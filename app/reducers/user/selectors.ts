@@ -1,4 +1,5 @@
 import { RootState } from '..';
+import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 
 /**
  * Selects the user state
@@ -60,4 +61,4 @@ export const selectMusdConversionAssetDetailCtasSeen = (state: RootState) =>
  * Selects the token overview chart type preference
  */
 export const selectTokenOverviewChartType = (state: RootState) =>
-  state.user?.tokenOverviewChartType;
+  state.user?.tokenOverviewChartType ?? ChartType.Line;

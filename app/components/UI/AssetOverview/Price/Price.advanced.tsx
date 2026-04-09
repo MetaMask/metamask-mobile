@@ -130,7 +130,7 @@ const PriceAdvanced = ({
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
-  const chartType = useSelector(selectTokenOverviewChartType) ?? ChartType.Line;
+  const chartType = useSelector(selectTokenOverviewChartType);
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );

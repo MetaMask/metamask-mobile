@@ -143,7 +143,7 @@ describe('user state selectors', () => {
       expect(result.current).toBe(ChartType.Candles);
     });
 
-    it('returns undefined when tokenOverviewChartType is not set', () => {
+    it('returns ChartType.Line default when tokenOverviewChartType is not set', () => {
       // @ts-expect-error - Testing undefined state
       mockState.user.tokenOverviewChartType = undefined;
 
@@ -151,7 +151,7 @@ describe('user state selectors', () => {
         useSelector(selectTokenOverviewChartType),
       );
 
-      expect(result.current).toBeUndefined();
+      expect(result.current).toBe(ChartType.Line);
     });
   });
 });
