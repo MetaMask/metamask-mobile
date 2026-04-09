@@ -8,6 +8,15 @@ import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock'
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
+jest.mock('react-redux', () => {
+  const actual = jest.requireActual('react-redux');
+  return {
+    ...actual,
+    useSelector: jest.fn(() => 2), // ChartType.Line = 2
+    useDispatch: jest.fn(() => jest.fn()),
+  };
+});
+
 jest.mock('react-native-skeleton-placeholder', () => {
   const { View } = jest.requireActual('react-native');
   const MockSkeleton = ({ children }: { children: React.ReactNode }) => (

@@ -13,6 +13,7 @@ import { toFormattedAddress } from '../../../../util/address';
 import I18n from '../../../../../locales/i18n';
 import { formatWithThreshold } from '../../../../util/assets';
 import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxAsset';
+import { isTronNativeToken } from '../utils/isTronNativeToken';
 ///: END:ONLY_INCLUDE_IF
 
 export interface UseTokenBalanceResult {
@@ -44,8 +45,7 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
     trxReadyForWithdrawal,
   } = useSelector(selectTronSpecialAssetsBySelectedAccountGroup);
 
-  const isTronNative =
-    token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
+  const isTronNative = isTronNativeToken(token);
 
   const totalStaked =
     (Number(stakedTrxForEnergy?.balance) || 0) +

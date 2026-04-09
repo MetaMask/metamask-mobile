@@ -181,10 +181,6 @@ jest.mock('../../../selectors/networkController', () => ({
   selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../selectors/tokenListController', () => ({
-  selectTokenList: jest.fn(() => ({})),
-}));
-
 jest.mock('../../../selectors/assets/assets-list', () => ({
   selectAssetsBySelectedAccountGroup: jest.fn(() => ({})),
 }));
@@ -233,6 +229,9 @@ jest.mock('../../UI/Tokens/util', () => ({
 
 const mockAsset = {
   address: '0x750e4C4984a9e0f12978eA6742Bc1c5D248f40ed',
+  symbol: 'TEST',
+  name: 'Test Token',
+  balance: '0',
   balanceFiat: '$11.89',
   chainId: '0x89',
   decimals: 6,
@@ -240,6 +239,7 @@ const mockAsset = {
     'https://static.cx.metamask.io/api/v1/tokenIcons/137/0x750e4c4984a9e0f12978ea6742bc1c5d248f40ed.png',
   isETH: false,
   isNative: false,
+  logo: '',
 };
 
 describe('AssetOptions Component', () => {
@@ -287,8 +287,6 @@ describe('AssetOptions Component', () => {
         };
       if (selector.name === 'selectEvmChainId') return '1';
       if (selector.name === 'selectProviderConfig') return {};
-      if (selector.name === 'selectTokenList')
-        return { '0x123': { symbol: 'ABC' } };
       if (selector.name === 'selectIsAllNetworks') return false;
       if (selector.name === 'selectIsPopularNetwork') return false;
       return {};
@@ -591,7 +589,6 @@ describe('AssetOptions Component', () => {
             ],
           };
         if (selector.name === 'selectEvmChainId') return '0x1';
-        if (selector.name === 'selectTokenList') return {};
         return {};
       });
 
@@ -653,7 +650,6 @@ describe('AssetOptions Component', () => {
             ],
           };
         if (selector.name === 'selectEvmChainId') return '1';
-        if (selector.name === 'selectTokenList') return {};
         if (selector.name === 'selectIsAllNetworks') return false;
         if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
@@ -724,8 +720,6 @@ describe('AssetOptions Component', () => {
             ],
           };
         if (selector.name === 'selectEvmChainId') return '0x1';
-        if (selector.name === 'selectTokenList')
-          return { '0x123': { symbol: 'TEST' } };
         if (selector.name === 'selectIsAllNetworks') return false;
         if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
@@ -793,7 +787,6 @@ describe('AssetOptions Component', () => {
             ],
           };
         if (selector.name === 'selectEvmChainId') return '1';
-        if (selector.name === 'selectTokenList') return {};
         if (selector.name === 'selectIsAllNetworks') return false;
         if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
@@ -856,8 +849,6 @@ describe('AssetOptions Component', () => {
             ],
           };
         if (selector.name === 'selectEvmChainId') return '0x1';
-        if (selector.name === 'selectTokenList')
-          return { '0x123': { symbol: 'TEST' } };
         if (selector.name === 'selectIsAllNetworks') return false;
         if (selector.name === 'selectIsPopularNetwork') return false;
         return {};

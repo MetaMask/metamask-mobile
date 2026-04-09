@@ -61,7 +61,7 @@ import { VerticalAlignment } from '../../../../../component-library/components/L
 import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectIconSeedAddressByAccountGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import Engine from '../../../../../core/Engine';
-import RewardsInfoBanner from '../RewardsInfoBanner';
+import RewardsNoPositionsImage from '../../../../../images/rewards/rewards-no-positions.svg';
 
 const styles = StyleSheet.create({
   skeletonLg: { height: 128, borderRadius: 12 },
@@ -150,7 +150,6 @@ interface OndoPortfolioProps {
   portfolio: OndoGmPortfolioDto | null;
   isLoading: boolean;
   hasError: boolean;
-  hasFetched: boolean;
   refetch: () => Promise<void>;
   campaignId: string;
   onOpenAccountPicker: (config: AccountPickerConfig) => void;
@@ -161,7 +160,6 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
   portfolio,
   isLoading,
   hasError,
-  hasFetched,
   refetch,
   campaignId,
   onOpenAccountPicker,
@@ -366,31 +364,45 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
     );
   }
 
-  if (hasFetched && (!portfolio || portfolio.positions.length === 0)) {
+  if (
+    !isLoading &&
+    !hasError &&
+    (!portfolio || portfolio.positions.length === 0)
+  ) {
     return (
       <Box
         testID={ONDO_PORTFOLIO_TEST_IDS.EMPTY}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="gap-2"
+        twClassName="py-6 gap-3"
       >
-        <RewardsInfoBanner
-          title={strings('rewards.ondo_campaign_portfolio.empty')}
-          description={strings(
-            'rewards.ondo_campaign_portfolio.empty_description',
-          )}
-          {...(!isCampaignComplete && {
-            onConfirm: () => {
+        <RewardsNoPositionsImage
+          name="rewards-no-positions"
+          width={80}
+          height={80}
+        />
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+        >
+          {strings('rewards.ondo_campaign_portfolio.empty')}
+        </Text>
+        {!isCampaignComplete && (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
+            twClassName="text-center"
+            onPress={() => {
               navigation.navigate(
                 Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR,
                 { mode: 'open_position', campaignId },
               );
-            },
-            confirmButtonLabel: strings(
-              'rewards.ondo_campaign_portfolio.empty_cta',
-            ),
-          })}
-        />
+            }}
+          >
+            {strings('rewards.ondo_campaign_portfolio.empty_cta')}
+          </Text>
+        )}
       </Box>
     );
   }
