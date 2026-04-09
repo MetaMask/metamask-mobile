@@ -101,31 +101,24 @@ const Checkout = () => {
   const registeredOrderIdsRef = useRef<Set<string>>(new Set());
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
   const kycPollRef = useRef<NodeJS.Timeout | null>(null);
-  const isMountedRef = useRef(true);
+  const hasAutoClosedRef = useRef(false);
   const { getIdProofStatus } = useTransakController();
-
-  useEffect(
-    () => () => {
-      isMountedRef.current = false;
-    },
-    [],
-  );
 
   // Poll for KYC document submission status and auto-close the webview.
   useEffect(() => {
     if (!workFlowRunId) return;
 
     kycPollRef.current = setInterval(async () => {
+      if (hasAutoClosedRef.current) return;
       try {
         const status = await getIdProofStatus(workFlowRunId);
         if (status?.status === 'SUBMITTED') {
+          hasAutoClosedRef.current = true;
           if (kycPollRef.current) {
             clearInterval(kycPollRef.current);
             kycPollRef.current = null;
           }
-          if (isMountedRef.current) {
-            navigation.goBack();
-          }
+          navigation.goBack();
         }
       } catch (err) {
         Logger.log('Checkout: KYC poll error, retrying', err);
