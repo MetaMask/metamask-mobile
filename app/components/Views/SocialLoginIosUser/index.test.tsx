@@ -8,6 +8,9 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { useRoute } from '@react-navigation/native';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import { AccountType } from '../../../constants/onboarding';
 
 jest.mock('../../../util/device', () => ({
   isMediumDevice: jest.fn(),
@@ -33,18 +36,40 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
+
 const mockRoute = {
   params: {
     accountName: 'test@example.com',
     oauthLoginSuccess: true,
     onboardingTraceCtx: { traceId: 'test-trace' },
+    provider: 'google',
   },
 };
 
 describe('SocialLoginIosUser', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockBuild.mockReturnValue('mockEvent');
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+    jest.mocked(useAnalytics).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as unknown as ReturnType<typeof useAnalytics>);
+  });
+
   describe('SocialLoginSuccessNewUser', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
       (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
       (useRoute as jest.Mock).mockReturnValue(mockRoute);
     });
@@ -87,14 +112,42 @@ describe('SocialLoginIosUser', () => {
           oauthLoginSuccess: true,
           onboardingTraceCtx: { traceId: 'test-trace' },
           accountName: 'test@example.com',
+          provider: 'google',
         },
       );
+    });
+
+    it('tracks viewed and CTA events with account_type', () => {
+      const { getByTestId } = renderWithProvider(
+        <SocialLoginIosUser type="new" />,
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        is_new_user: true,
+        account_type: AccountType.MetamaskGoogle,
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith('mockEvent');
+
+      const secureWalletButton = getByTestId(
+        OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_BUTTON,
+      );
+      fireEvent.press(secureWalletButton);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenLastCalledWith({
+        is_new_user: true,
+        account_type: AccountType.MetamaskGoogle,
+      });
     });
   });
 
   describe('SocialLoginSuccessExistingUser', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
       (useRoute as jest.Mock).mockReturnValue(mockRoute);
       (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
     });
@@ -138,6 +191,34 @@ describe('SocialLoginIosUser', () => {
         previous_screen: 'onboarding',
         oauthLoginSuccess: true,
         onboardingTraceCtx: { traceId: 'test-trace' },
+        provider: 'google',
+      });
+    });
+
+    it('tracks viewed and CTA events with imported account_type', () => {
+      const { getByTestId } = renderWithProvider(
+        <SocialLoginIosUser type="existing" />,
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        is_new_user: false,
+        account_type: AccountType.ImportedGoogle,
+      });
+
+      const secureWalletButton = getByTestId(
+        OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON,
+      );
+      fireEvent.press(secureWalletButton);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenLastCalledWith({
+        is_new_user: false,
+        account_type: AccountType.ImportedGoogle,
       });
     });
   });
