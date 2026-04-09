@@ -667,36 +667,41 @@ const ImportPrivateKeyView = () => {
   );
 };
 
-const ImportSRPView = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen
-      name={Routes.MULTI_SRP.IMPORT}
-      component={ImportNewSecretRecoveryPhrase}
-    />
-    <Stack.Screen
-      name={Routes.QR_TAB_SWITCHER}
-      component={QRTabSwitcher}
-      options={{ presentation: 'modal' }}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.SEEDPHRASE_MODAL}
-      component={SeedphraseModal}
-      options={{
-        presentation: 'modal',
-        cardStyle: { backgroundColor: 'transparent' },
-        cardStyleInterpolator: () => ({
-          overlayStyle: {
-            opacity: 0,
-          },
-        }),
+const ImportSRPView = () => {
+  const { colors } = useTheme();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
       }}
-    />
-  </Stack.Navigator>
-);
+    >
+      <Stack.Screen
+        name={Routes.MULTI_SRP.IMPORT}
+        component={ImportNewSecretRecoveryPhrase}
+      />
+      <Stack.Screen
+        name={Routes.QR_TAB_SWITCHER}
+        component={QRTabSwitcher}
+        options={{ presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SEEDPHRASE_MODAL}
+        component={SeedphraseModal}
+        options={{
+          presentation: 'modal',
+          cardStyle: { backgroundColor: 'transparent' },
+          cardStyleInterpolator: () => ({
+            overlayStyle: {
+              opacity: 0,
+            },
+          }),
+        }}
+      />
+    </Stack.Navigator>
+  );
+};
 
 const ConnectQRHardwareFlow = () => {
   const { colors } = useTheme();
@@ -994,7 +999,10 @@ const AppFlow = () => {
         <Stack.Screen
           name="ImportSRPView"
           component={ImportSRPView}
-          options={{ animationEnabled: true }}
+          options={{
+            animationEnabled: true,
+            cardStyle: { backgroundColor: colors.background.default },
+          }}
         />
       }
       <Stack.Screen
@@ -1060,6 +1068,10 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
         component={MultichainAccountDetailsActions}
+        options={{
+          presentation: 'transparentModal',
+          cardStyle: { backgroundColor: importedColors.transparent },
+        }}
       />
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
