@@ -32,6 +32,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
+import { useTransakController } from '../../hooks/useTransakController';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
 
 interface CheckoutParams {
@@ -57,6 +58,8 @@ interface CheckoutParams {
   providerType?: FIAT_ORDER_PROVIDERS;
   /** Optional callback invoked on navigation state changes after URL de-duplication (e.g. redirect URLs). */
   onNavigationStateChange?: (navState: { url: string }) => void;
+  /** The Transak workflow run ID, used to poll for KYC document submission status. */
+  workFlowRunId?: string;
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
@@ -90,12 +93,52 @@ const Checkout = () => {
     network,
     userAgent,
     onNavigationStateChange,
+    workFlowRunId,
   } = params ?? {};
   const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 
   const initialUriRef = useRef(uri);
   const registeredOrderIdsRef = useRef<Set<string>>(new Set());
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
+  const kycPollRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
+  const { getIdProofStatus } = useTransakController();
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+    },
+    [],
+  );
+
+  // Poll for KYC document submission status and auto-close the webview.
+  useEffect(() => {
+    if (!workFlowRunId) return;
+
+    kycPollRef.current = setInterval(async () => {
+      try {
+        const status = await getIdProofStatus(workFlowRunId);
+        if (status?.status === 'SUBMITTED') {
+          if (kycPollRef.current) {
+            clearInterval(kycPollRef.current);
+            kycPollRef.current = null;
+          }
+          if (isMountedRef.current) {
+            navigation.goBack();
+          }
+        }
+      } catch (err) {
+        Logger.log('Checkout: KYC poll error, retrying', err);
+      }
+    }, 2000);
+
+    return () => {
+      if (kycPollRef.current) {
+        clearInterval(kycPollRef.current);
+        kycPollRef.current = null;
+      }
+    };
+  }, [workFlowRunId, getIdProofStatus, navigation]);
 
   useEffect(() => {
     navigation.setOptions(

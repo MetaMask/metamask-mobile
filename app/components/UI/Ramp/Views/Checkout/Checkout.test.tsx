@@ -207,6 +207,13 @@ jest.mock('@metamask/react-native-webview', () => {
   };
 });
 
+const mockGetIdProofStatus = jest.fn();
+jest.mock('../../hooks/useTransakController', () => ({
+  useTransakController: () => ({
+    getIdProofStatus: mockGetIdProofStatus,
+  }),
+}));
+
 jest.mock('../../../../../util/device', () => ({
   isAndroid: jest.fn(() => false),
 }));
@@ -659,6 +666,113 @@ describe('Checkout', () => {
         'https://provider.example.com/next-hop',
         Logger,
       );
+    });
+  });
+
+  describe('KYC auto-close polling', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('does not poll when workFlowRunId is not provided', () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test Provider',
+      });
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      jest.advanceTimersByTime(5000);
+
+      expect(mockGetIdProofStatus).not.toHaveBeenCalled();
+    });
+
+    it('polls getIdProofStatus when workFlowRunId is provided', async () => {
+      mockGetIdProofStatus.mockResolvedValue({ status: 'PENDING' });
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test Provider',
+        workFlowRunId: 'wf-test-123',
+      });
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      expect(mockGetIdProofStatus).toHaveBeenCalledWith('wf-test-123');
+    });
+
+    it('auto-closes webview when KYC status is SUBMITTED', async () => {
+      mockGetIdProofStatus.mockResolvedValue({ status: 'SUBMITTED' });
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test Provider',
+        workFlowRunId: 'wf-test-123',
+      });
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      expect(mockNavigation.goBack).toHaveBeenCalled();
+    });
+
+    it('stops polling after SUBMITTED and does not call goBack again', async () => {
+      mockGetIdProofStatus.mockResolvedValue({ status: 'SUBMITTED' });
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test Provider',
+        workFlowRunId: 'wf-test-123',
+      });
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        jest.advanceTimersByTime(4000);
+      });
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('continues polling on error', async () => {
+      mockGetIdProofStatus
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockResolvedValueOnce({ status: 'SUBMITTED' });
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test Provider',
+        workFlowRunId: 'wf-test-123',
+      });
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      // First poll: error
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+
+      // Second poll: success
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      expect(mockNavigation.goBack).toHaveBeenCalled();
     });
   });
 });

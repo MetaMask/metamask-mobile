@@ -67,6 +67,7 @@ describe('V2AdditionalVerification', () => {
 
     expect(mockNavigateToKycWebview).toHaveBeenCalledWith({
       kycUrl: 'https://kyc.example.com',
+      workFlowRunId: 'wf-123',
       amount: 25,
     });
   });

@@ -145,13 +145,15 @@ jest.mock('../Views/Checkout', () => ({
       url,
       providerName,
       onNavigationStateChange,
+      workFlowRunId,
     }: {
       url: string;
       providerName: string;
       onNavigationStateChange?: (nav: { url: string }) => void;
+      workFlowRunId?: string;
     }) => {
       capturedHandleNavigationStateChange = onNavigationStateChange ?? null;
-      return ['Checkout', { url, providerName, onNavigationStateChange }];
+      return ['Checkout', { url, providerName, onNavigationStateChange, workFlowRunId }];
     },
   ),
 }));
@@ -389,7 +391,6 @@ describe('useTransakRouting', () => {
             }),
             expect.objectContaining({
               name: 'RampKycProcessing',
-              params: expect.objectContaining({ quote: mockQuote }),
             }),
           ],
         }),
@@ -493,7 +494,6 @@ describe('useTransakRouting', () => {
             expect.objectContaining({
               name: 'RampAdditionalVerification',
               params: expect.objectContaining({
-                quote: mockQuote,
                 kycUrl: 'https://kyc.example.com',
                 workFlowRunId: 'wf-123',
                 amount: 25,
@@ -542,7 +542,6 @@ describe('useTransakRouting', () => {
             expect.objectContaining({
               name: 'RampAdditionalVerification',
               params: expect.objectContaining({
-                quote: mockQuote,
                 kycUrl: 'https://kyc.example.com',
                 workFlowRunId: 'wf-123',
                 amount: undefined,
@@ -893,29 +892,34 @@ describe('useTransakRouting', () => {
   });
 
   describe('navigateToKycWebview', () => {
-    it('resets navigation stack to the KYC webview with amount preserved', () => {
+    it('resets navigation stack with KycProcessing behind the webview', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       act(() => {
         result.current.navigateToKycWebview({
           kycUrl: 'https://kyc.example.com',
+          workFlowRunId: 'wf-456',
           amount: 30,
         });
       });
 
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
-          index: 1,
+          index: 2,
           routes: [
             expect.objectContaining({
               name: 'RampAmountInput',
               params: { amount: 30 },
             }),
             expect.objectContaining({
+              name: 'RampKycProcessing',
+            }),
+            expect.objectContaining({
               name: 'Checkout',
               params: expect.objectContaining({
                 url: 'https://kyc.example.com',
                 providerName: 'Transak',
+                workFlowRunId: 'wf-456',
               }),
             }),
           ],

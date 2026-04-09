@@ -12,6 +12,9 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     setOptions: mockSetOptions,
   }),
+  useFocusEffect: (cb: () => void) => {
+    cb();
+  },
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -23,22 +26,18 @@ jest.mock('../../../Navbar', () => ({
   getDepositNavbarOptions: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  createNavigationDetails:
-    (..._args: unknown[]) =>
-    (params: unknown) => ['MockRoute', params],
-  useParams: () => ({
-    quote: { quoteId: 'test-quote-id', fiatAmount: 100 },
-  }),
-}));
-
 const mockGetAdditionalRequirements = jest.fn();
 const mockGetUserDetails = jest.fn();
+let mockBuyQuote: { quoteId: string; fiatAmount: number } | null = {
+  quoteId: 'test-quote-id',
+  fiatAmount: 100,
+};
 
 jest.mock('../../hooks/useTransakController', () => ({
   useTransakController: () => ({
     getAdditionalRequirements: mockGetAdditionalRequirements,
     getUserDetails: mockGetUserDetails,
+    buyQuote: mockBuyQuote,
   }),
 }));
 
@@ -79,6 +78,7 @@ describe('V2KycProcessing', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockBuyQuote = { quoteId: 'test-quote-id', fiatAmount: 100 };
     mockGetAdditionalRequirements.mockResolvedValue({
       formsRequired: [],
     });
@@ -290,7 +290,19 @@ describe('V2KycProcessing', () => {
     });
 
     await waitFor(() => {
-      expect(mockRouteAfterAuthentication).toHaveBeenCalled();
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockBuyQuote);
     });
+  });
+
+  it('does not fetch forms when buyQuote is null', async () => {
+    mockBuyQuote = null;
+
+    renderWithTheme(<V2KycProcessing />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockGetAdditionalRequirements).not.toHaveBeenCalled();
   });
 });
