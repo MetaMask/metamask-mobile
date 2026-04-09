@@ -18,9 +18,15 @@ export interface PredictMarketHighlightsFlag extends VersionGatedFeatureFlag {
   highlights: PredictMarketHighlight[];
 }
 
+export interface PredictExtendedSportsMarketsFlag
+  extends VersionGatedFeatureFlag {
+  leagues: string[];
+}
+
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
+  extendedSportsMarketsLeagues: string[];
   marketHighlightsFlag: PredictMarketHighlightsFlag;
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
