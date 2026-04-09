@@ -130,10 +130,18 @@ if (typeof global.CustomEvent === 'undefined') {
   };
 }
 
+class AbortError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'AbortError';
+  }
+}
+
 // The ReactNative polyfill for AbortController does not populate `signal.reason`.
 class AbortControllerWithReason extends AbortController {
   abort(reason) {
-    this.signal.reason = reason;
+    this.signal.reason =
+      reason ?? new AbortError('Signal is aborted without reason');
     super.abort();
   }
 }
