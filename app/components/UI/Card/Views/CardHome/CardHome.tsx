@@ -67,6 +67,8 @@ interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
 }
 
+const SETUP_ALERT_TYPES = new Set(['kyc_pending', 'card_provisioning']);
+
 const CardHome = () => {
   // --- Data ---
   const { data, isLoading, isError, refetch } = useCardHomeData();
@@ -198,9 +200,8 @@ const CardHome = () => {
     (a) => a.type === 'enable_card',
   );
 
-  const setupAlertTypes = new Set(['kyc_pending', 'card_provisioning']);
   const hasSetupAlerts = (data?.alerts ?? []).some((a) =>
-    setupAlertTypes.has(a.type),
+    SETUP_ALERT_TYPES.has(a.type),
   );
 
   const hasAlertOnlyState =
