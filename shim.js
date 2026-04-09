@@ -140,8 +140,14 @@ class AbortError extends Error {
 // The ReactNative polyfill for AbortController does not populate `signal.reason`.
 class AbortControllerWithReason extends AbortController {
   abort(reason) {
+    if (this.signal.aborted) {
+      return;
+    }
+
     this.signal.reason =
-      reason ?? new AbortError('Signal is aborted without reason');
+      reason === undefined
+        ? new AbortError('Signal is aborted without reason')
+        : reason;
     super.abort();
   }
 }
