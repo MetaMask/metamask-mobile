@@ -962,7 +962,6 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
         component={MaxBrowserTabsModal}
-        options={{ presentation: 'modal' }}
       />
       <Stack.Screen name="OnboardingRootNav" component={OnboardingRootNav} />
       <Stack.Screen
@@ -1084,52 +1083,18 @@ const AppFlow = () => {
         }}
       />
       <Stack.Screen
-        options={{
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          presentation: 'modal',
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
         name={Routes.LEDGER_TRANSACTION_MODAL}
         component={LedgerTransactionModal}
       />
       <Stack.Screen
-        options={{
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          presentation: 'modal',
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
         name={Routes.QR_SIGNING_TRANSACTION_MODAL}
         component={QRSigningTransactionModal}
       />
       <Stack.Screen
-        options={{
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          presentation: 'modal',
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
         name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
         component={LedgerMessageSignModal}
       />
-      <Stack.Screen
-        name={Routes.OPTIONS_SHEET}
-        component={OptionsSheet}
-        options={{ presentation: 'modal' }}
-      />
+      <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
       <Stack.Screen
         name={Routes.EDIT_ACCOUNT_NAME}
         component={EditAccountName}
@@ -1173,12 +1138,10 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
         component={ModalSwitchAccountType}
-        options={{ presentation: 'modal' }}
       />
       <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_MODAL}
         component={PayWithModal}
-        options={{ presentation: 'modal' }}
       />
     </Stack.Navigator>
   );
