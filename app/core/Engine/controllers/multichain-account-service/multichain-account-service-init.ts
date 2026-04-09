@@ -42,10 +42,18 @@ export const multichainAccountServiceInit: ControllerInitFunction<
     },
   };
 
+  const solanaSnapAccountProviderConfig = {
+    ...snapAccountProviderConfig,
+    createAccounts: {
+      ...snapAccountProviderConfig.createAccounts,
+      batched: true,
+    },
+  };
+
   const controller = new MultichainAccountService({
     messenger: controllerMessenger,
     providerConfigs: {
-      [SOL_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
+      [SOL_ACCOUNT_PROVIDER_NAME]: solanaSnapAccountProviderConfig,
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       [BTC_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// END:ONLY_INCLUDE_IF

@@ -418,6 +418,7 @@ export {
   DECIMAL_PRECISION_CONFIG,
   MARKET_SORTING_CONFIG,
   PROVIDER_CONFIG,
+  FUNDING_RATE_CONFIG,
 } from './constants';
 export type { SortOptionId } from './constants';
 
@@ -464,15 +465,10 @@ export {
 } from './utils';
 export type { HyperLiquidMarketData } from './utils';
 export {
-  adaptMarketFromMYX,
-  adaptPriceFromMYX,
-  adaptMarketDataFromMYX,
-  filterMYXExclusiveMarkets,
-  isOverlappingMarket,
-  buildPoolSymbolMap,
-  buildSymbolPoolsMap,
-  extractSymbolFromPoolId,
-} from './utils';
+  getPerpsConnectionAttemptContext,
+  withPerpsConnectionAttemptContext,
+} from './utils/perpsConnectionAttemptContext';
+export type { PerpsConnectionAttemptContext } from './utils/perpsConnectionAttemptContext';
 export {
   MAX_MARKET_PATTERN_LENGTH,
   escapeRegex,
@@ -539,6 +535,18 @@ export {
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
 } from './utils';
 export { getEnvironment } from './utils';
+export type { FiatRangeConfig } from './utils';
+export {
+  PRICE_THRESHOLD,
+  formatWithSignificantDigits,
+  PRICE_RANGES_MINIMAL_VIEW,
+  PRICE_RANGES_UNIVERSAL,
+  formatPerpsFiat,
+  formatPositionSize,
+  formatPnl,
+  formatPercentage,
+  formatFundingRate,
+} from './utils';
 
 // Error codes (explicit named exports)
 export { PERPS_ERROR_CODES } from './perpsErrorCodes';

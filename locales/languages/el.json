@@ -6638,7 +6638,6 @@
     "nested_transaction_heading": "Συναλλαγή {{index}}",
     "transaction": "Προστασία",
     "available_balance": "Διαθέσιμο υπόλοιπο: ",
-    "available_perps_balance": "Διαθέσιμο υπόλοιπο για Perps: ",
     "edit_amount_done": "Συνεχίστε",
     "deposit_edit_amount_done": "Προσθήκη κεφαλαίων",
     "deposit_edit_amount_predict_withdraw": "Ανάληψη",

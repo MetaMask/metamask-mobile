@@ -439,7 +439,7 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 {
                                   "color": "#131416",
-                                  "fontFamily": "Geist-Bold",
+                                  "fontFamily": "Geist-SemiBold",
                                   "fontSize": 20,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -1547,7 +1547,6 @@ exports[`Network Selector renders correctly 1`] = `
                                         "flexWrap": "wrap",
                                         "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
-                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                         "textAlign": "center",
@@ -2015,7 +2014,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                               style={
                                 {
                                   "color": "#131416",
-                                  "fontFamily": "Geist-Bold",
+                                  "fontFamily": "Geist-SemiBold",
                                   "fontSize": 20,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -5310,7 +5309,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         "flexWrap": "wrap",
                                         "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
-                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                         "textAlign": "center",

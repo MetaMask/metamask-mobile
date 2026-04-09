@@ -494,9 +494,8 @@ exports[`ViewPinBottomSheet renders correctly and matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Bold",
+                                        "fontFamily": "Geist-SemiBold",
                                         "fontSize": 16,
-                                        "fontWeight": 700,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },

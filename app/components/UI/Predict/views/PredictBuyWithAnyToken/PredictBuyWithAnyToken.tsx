@@ -127,7 +127,6 @@ const PredictBuyWithAnyToken = () => {
     providerFee,
     total,
     depositFee,
-    depositAmount,
     rewardsFeeAmount,
     totalPayForPredictBalance,
   } = usePredictBuyInfo({
@@ -166,6 +165,7 @@ const PredictBuyWithAnyToken = () => {
       maxBetAmount,
       isConfirming,
       isPayFeesLoading,
+      isInputFocused,
     });
 
   const { handleConfirm, placeOrder } = usePredictBuyActions({
@@ -291,7 +291,11 @@ const PredictBuyWithAnyToken = () => {
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />
-      <PredictPayWithAnyTokenInfo depositAmount={depositAmount} />
+      <PredictPayWithAnyTokenInfo
+        currentValue={currentValue}
+        preview={preview}
+        isInputFocused={isInputFocused}
+      />
     </SafeAreaView>
   );
 };

@@ -426,7 +426,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#131416",
-                                "fontFamily": "Geist-Bold",
+                                "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -528,7 +528,6 @@ exports[`DeveloperOptions renders correctly 1`] = `
                                     "flexWrap": "wrap",
                                     "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": 400,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -545,7 +544,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#131416",
-                                "fontFamily": "Geist-Bold",
+                                "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -622,7 +621,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               style={
                                 {
                                   "color": "#131416",
-                                  "fontFamily": "Geist-Bold",
+                                  "fontFamily": "Geist-SemiBold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
@@ -691,7 +690,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#131416",
-                                "fontFamily": "Geist-Bold",
+                                "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -793,7 +792,6 @@ exports[`DeveloperOptions renders correctly 1`] = `
                                     "flexWrap": "wrap",
                                     "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": 400,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -810,7 +808,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#131416",
-                                "fontFamily": "Geist-Bold",
+                                "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -912,7 +910,6 @@ exports[`DeveloperOptions renders correctly 1`] = `
                                     "flexWrap": "wrap",
                                     "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": 400,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -929,7 +926,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#131416",
-                                "fontFamily": "Geist-Bold",
+                                "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -1031,7 +1028,6 @@ exports[`DeveloperOptions renders correctly 1`] = `
                                     "flexWrap": "wrap",
                                     "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": 400,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -1048,7 +1044,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#131416",
-                                "fontFamily": "Geist-Bold",
+                                "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -1151,7 +1147,6 @@ exports[`DeveloperOptions renders correctly 1`] = `
                                     "flexWrap": "wrap",
                                     "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": 400,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -1180,7 +1175,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               style={
                                 {
                                   "color": "#131416",
-                                  "fontFamily": "Geist-Bold",
+                                  "fontFamily": "Geist-SemiBold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
@@ -1282,7 +1277,6 @@ exports[`DeveloperOptions renders correctly 1`] = `
                                       "flexWrap": "wrap",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "textAlign": "center",

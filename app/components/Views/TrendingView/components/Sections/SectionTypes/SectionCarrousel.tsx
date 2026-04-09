@@ -34,14 +34,16 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
   const displayData = isLoading ? skeletonData : data;
 
   return (
-    <Box twClassName="mb-6">
+    <Box twClassName="-mx-4 mb-6">
       <FlashList
         ref={flashListRef}
         data={displayData}
         renderItem={({ item, index }) => {
           const isLastItem = index === displayData.length - 1;
           return (
-            <Box style={tw.style({ width: CARD_WIDTH, height: CARD_HEIGHT })}>
+            <Box
+              style={tw.style({ width: CARD_WIDTH, minHeight: CARD_HEIGHT })}
+            >
               <Box
                 borderColor={BoxBorderColor.BorderDefault}
                 twClassName={`rounded-2xl overflow-hidden ${!isLastItem ? 'pr-4' : ''}`}
@@ -59,6 +61,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
             </Box>
           );
         }}
+        contentContainerStyle={tw.style('px-4')}
         keyExtractor={
           isLoading
             ? (_, index) => `skeleton-${index}`

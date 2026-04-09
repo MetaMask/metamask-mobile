@@ -14,7 +14,7 @@ import { Box } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import Routes from '../../../../../constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
-import { SectionRefreshHandle } from '../../types';
+import { SectionRefreshHandle, HomeSectionMode } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { strings } from '../../../../../../locales/i18n';
@@ -30,6 +30,7 @@ import {
 } from './components';
 import ViewMoreCard from '../../components/ViewMoreCard';
 import type {
+  PredictMarket,
   PredictPosition,
   UnrealizedPnL,
 } from '../../../../UI/Predict/types';
@@ -43,7 +44,9 @@ import { getEvmAccountFromSelectedAccountGroup } from '../../../../UI/Predict/ut
 import { formatPredictUnrealizedPnLStringParts } from '../../../../UI/Predict/utils/format';
 import useHomeViewedEvent, {
   HomeSectionNames,
+  type HomeSectionName,
 } from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
@@ -56,9 +59,64 @@ const SKELETON_KEYS = Array.from(
   (__, i) => `skeleton-${i}`,
 );
 
+type PredictionsTrendingHeaderTestId = 'trending-predictions' | 'predictions';
+
+interface HomepagePredictTrendingMarketsProps {
+  title: string;
+  onViewAll: () => void;
+  headerTestIdKey: PredictionsTrendingHeaderTestId;
+  isLoadingMarkets: boolean;
+  markets: PredictMarket[];
+}
+
+/**
+ * Shared header + horizontal markets carousel for homepage predictions
+ * (default “trending when empty” and dedicated trending-only section).
+ */
+const HomepagePredictTrendingMarkets = ({
+  title,
+  onViewAll,
+  headerTestIdKey,
+  isLoadingMarkets,
+  markets,
+}: HomepagePredictTrendingMarketsProps) => {
+  const tw = useTailwind();
+  return (
+    <Box gap={3}>
+      <SectionHeader
+        title={title}
+        onPress={onViewAll}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(headerTestIdKey)}
+      />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 gap-3')}
+      >
+        {isLoadingMarkets ? (
+          SKELETON_KEYS.map((key) => <PredictMarketCardSkeleton key={key} />)
+        ) : (
+          <>
+            {markets.map((market) => (
+              <PredictMarketCard key={market.id} market={market} />
+            ))}
+            <ViewMoreCard onPress={onViewAll} twClassName="w-[180px] flex-1" />
+          </>
+        )}
+      </ScrollView>
+    </Box>
+  );
+};
+
 interface PredictionsSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
+  /** @default 'default' */
+  mode?: HomeSectionMode;
+  /** Override the section name used in analytics events. */
+  sectionName?: HomeSectionName;
+  /** Override the section header title. */
+  titleOverride?: string;
 }
 
 interface PredictHomepageUnrealizedPnlRowState {
@@ -103,54 +161,124 @@ function getPredictHomepageUnrealizedPnlRowState(input: {
   };
 }
 
-/**
- * PredictionsSection - Displays prediction content on the homepage
- *
- * Unified section that shows:
- * - User's positions if they have any
- * - Trending markets if they don't have positions
- *
- * Returns null if the Predict feature flag is disabled.
- */
-const PredictionsSection = forwardRef<
-  SectionRefreshHandle,
-  PredictionsSectionProps
->(({ sectionIndex, totalSectionsLoaded }, ref) => {
-  const sectionViewRef = useRef<View>(null);
-  const tw = useTailwind();
+interface HomepagePredictPositionsProps {
+  title: string;
+  onViewAll: () => void;
+  privacyMode: boolean;
+  isLoadingPositions: boolean;
+  positions: PredictPosition[];
+  isLoadingClaimable: boolean;
+  totalClaimableValue: number;
+  predictHomepageUnrealizedPnl: PredictHomepageUnrealizedPnlRowState;
+  onClaim: () => Promise<void>;
+  onPositionPress: (position: PredictPosition) => void;
+}
+
+const HomepagePredictPositions = ({
+  title,
+  onViewAll,
+  privacyMode,
+  isLoadingPositions,
+  positions,
+  isLoadingClaimable,
+  totalClaimableValue,
+  predictHomepageUnrealizedPnl,
+  onClaim,
+  onPositionPress,
+}: HomepagePredictPositionsProps) => (
+  <Box gap={3}>
+    <Box gap={1}>
+      <SectionHeader
+        title={title}
+        onPress={onViewAll}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
+      />
+      {predictHomepageUnrealizedPnl.show && (
+        <HomepageSectionUnrealizedPnlRow
+          isLoading={predictHomepageUnrealizedPnl.isLoading}
+          valueText={predictHomepageUnrealizedPnl.valueText}
+          tone={predictHomepageUnrealizedPnl.tone}
+          label={strings('predict.unrealized_pnl_label')}
+          testID="homepage-predict-unrealized-pnl"
+        />
+      )}
+    </Box>
+    <Box>
+      {isLoadingPositions ? (
+        <>
+          <PredictPositionRowSkeleton />
+          <PredictPositionRowSkeleton />
+        </>
+      ) : (
+        positions.map((position) => (
+          <PredictPositionRow
+            key={`${position.outcomeId}:${position.outcomeIndex}`}
+            position={position}
+            onPress={onPositionPress}
+            privacyMode={Boolean(privacyMode)}
+          />
+        ))
+      )}
+      {!isLoadingPositions &&
+        !isLoadingClaimable &&
+        totalClaimableValue > 0 && (
+          <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
+            <PredictClaimButton
+              amount={privacyMode ? undefined : totalClaimableValue}
+              onPress={onClaim}
+            />
+          </Box>
+        )}
+    </Box>
+  </Box>
+);
+
+const usePredictNavigationHandlers = () => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const handleViewAllPredictions = useCallback(() => {
+    navigation.navigate(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+    });
+  }, [navigation]);
+
+  const handlePositionPress = useCallback(
+    (position: PredictPosition) => {
+      navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: position.marketId,
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+          headerShown: false,
+        },
+      });
+    },
+    [navigation],
+  );
+
+  return { handleViewAllPredictions, handlePositionPress };
+};
+
+const usePredictPositionsSectionData = () => {
   const privacyMode = useSelector(selectPrivacyMode);
-  const queryClient = useQueryClient();
-  const title = strings('homepage.sections.predictions');
   const { claim } = usePredictClaim();
 
-  // Fetch both positions and markets
   const {
     positions,
     isLoading: isLoadingPositions,
     error: positionsError,
     refetch: refetchPositions,
   } = usePredictPositionsForHomepage();
-
-  const {
-    markets,
-    isLoading: isLoadingMarkets,
-    error: marketsError,
-    refetch: refetchMarkets,
-  } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
-
   const { totalClaimableValue, isLoading: isLoadingClaimable } =
-    usePredictPositionsForHomepage({ claimable: true });
+    usePredictPositionsForHomepage({
+      claimable: true,
+    });
 
   const handleClaim = useCallback(async () => {
     await claim();
   }, [claim]);
 
-  // Determine if user has positions
   const hasPositions = positions.length > 0;
-
   const {
     data: predictUnrealizedPnL,
     isLoading: isPredictUnrealizedPnLLoading,
@@ -174,172 +302,299 @@ const PredictionsSection = forwardRef<
     ],
   );
 
-  const isLoading = isLoadingPositions || isLoadingMarkets;
+  return {
+    privacyMode,
+    positions,
+    isLoadingPositions,
+    positionsError,
+    refetchPositions,
+    totalClaimableValue,
+    isLoadingClaimable,
+    handleClaim,
+    hasPositions,
+    predictHomepageUnrealizedPnl,
+  };
+};
 
-  const hasError =
-    !isLoadingPositions &&
-    !isLoadingMarkets &&
-    !hasPositions &&
-    markets.length === 0 &&
-    (positionsError || marketsError);
-
-  const isEmpty =
-    !isLoading && !hasPositions && markets.length === 0 && !hasError;
-
-  const itemCount = hasPositions ? positions.length : 0;
-
-  // Determine whether the section will actually render visible content.
-  // Pass null when the section returns null so the event fires immediately.
-  // !isLoading is required: isEmpty is false during loading (its formula starts
-  // with !isLoading), so without this guard the hook would fire with stale
-  // itemCount/isEmpty values before data arrives.
-  const willRender = isPredictEnabled && !isLoading && !isEmpty && !hasError;
-
-  const { onLayout } = useHomeViewedEvent({
-    sectionRef: willRender ? sectionViewRef : null,
-    isLoading,
-    sectionName: HomeSectionNames.PREDICT,
-    sectionIndex,
-    totalSectionsLoaded,
-    // Empty when user has no positions (showing discovery/promotional content or nothing).
-    // Treat error state as empty — there is no useful content to show.
-    isEmpty: !hasPositions || !!hasError,
-    itemCount,
-  });
-
-  const refresh = useCallback(async () => {
-    const addr = getEvmAccountFromSelectedAccountGroup()?.address;
-    const invalidatePnl = addr
-      ? queryClient.invalidateQueries({
-          queryKey: predictQueries.unrealizedPnL.keys.byAddress(addr),
-        })
-      : Promise.resolve();
-    await Promise.all([refetchPositions(), refetchMarkets(), invalidatePnl]);
-  }, [queryClient, refetchPositions, refetchMarkets]);
-
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
-
-  const handleViewAllPredictions = useCallback(() => {
-    navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-    });
-  }, [navigation]);
-
-  const handlePositionPress = useCallback(
-    (position: PredictPosition) => {
-      navigation.navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: {
-          marketId: position.marketId,
-          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-          headerShown: false,
-        },
-      });
+const PredictionsSectionDefault = forwardRef<
+  SectionRefreshHandle,
+  PredictionsSectionProps
+>(
+  (
+    {
+      sectionIndex,
+      totalSectionsLoaded,
+      sectionName: sectionNameOverride,
+      titleOverride,
     },
-    [navigation],
-  );
+    ref,
+  ) => {
+    const sectionViewRef = useRef<View>(null);
+    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    const queryClient = useQueryClient();
+    const title = titleOverride ?? strings('homepage.sections.predictions');
+    const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
+    const { handleViewAllPredictions, handlePositionPress } =
+      usePredictNavigationHandlers();
+    const {
+      privacyMode,
+      positions,
+      isLoadingPositions,
+      positionsError,
+      refetchPositions,
+      totalClaimableValue,
+      isLoadingClaimable,
+      handleClaim,
+      hasPositions,
+      predictHomepageUnrealizedPnl,
+    } = usePredictPositionsSectionData();
+    const {
+      markets,
+      isLoading: isLoadingMarkets,
+      error: marketsError,
+      refetch: refetchMarkets,
+    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
 
-  // Don't render if Predict is disabled
-  if (!isPredictEnabled) {
-    return null;
-  }
+    const isLoading = isLoadingPositions || isLoadingMarkets;
+    const hasError =
+      !isLoadingPositions &&
+      !isLoadingMarkets &&
+      !hasPositions &&
+      markets.length === 0 &&
+      (positionsError || marketsError);
+    const isEmpty =
+      !isLoading && !hasPositions && markets.length === 0 && !hasError;
+    const willRender = isPredictEnabled && !isLoading && !isEmpty && !hasError;
+    const itemCount = hasPositions ? positions.length : markets.length;
 
-  // Don't render if there is a connection error
-  if (hasError) {
-    return null;
-  }
+    const { onLayout } = useHomeViewedEvent({
+      sectionRef: willRender ? sectionViewRef : null,
+      isLoading,
+      sectionName: analyticsName,
+      sectionIndex,
+      totalSectionsLoaded,
+      isEmpty: isEmpty || !!hasError,
+      itemCount,
+    });
 
-  // Render positions if user has any
-  if (hasPositions || isLoadingPositions) {
+    useSectionPerformance({
+      sectionId: HomeSectionNames.PREDICT,
+      contentReady: willRender,
+      isEmpty: isEmpty || !!hasError,
+      isLoading,
+      enabled: isPredictEnabled,
+    });
+
+    const refresh = useCallback(async () => {
+      const addr = getEvmAccountFromSelectedAccountGroup()?.address;
+      const invalidatePnl = addr
+        ? queryClient.invalidateQueries({
+            queryKey: predictQueries.unrealizedPnL.keys.byAddress(addr),
+          })
+        : Promise.resolve();
+      await Promise.all([refetchPositions(), refetchMarkets(), invalidatePnl]);
+    }, [queryClient, refetchPositions, refetchMarkets]);
+
+    useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+
+    if (!isPredictEnabled || hasError) {
+      return null;
+    }
+
+    if (hasPositions || isLoadingPositions) {
+      return (
+        <View ref={sectionViewRef} onLayout={onLayout}>
+          <HomepagePredictPositions
+            title={title}
+            onViewAll={handleViewAllPredictions}
+            privacyMode={privacyMode}
+            isLoadingPositions={isLoadingPositions}
+            positions={positions}
+            isLoadingClaimable={isLoadingClaimable}
+            totalClaimableValue={totalClaimableValue}
+            predictHomepageUnrealizedPnl={predictHomepageUnrealizedPnl}
+            onClaim={handleClaim}
+            onPositionPress={handlePositionPress}
+          />
+        </View>
+      );
+    }
+
+    if (!isLoadingMarkets && markets.length === 0) {
+      return null;
+    }
+
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <Box gap={1}>
-            <SectionHeader
-              title={title}
-              onPress={handleViewAllPredictions}
-              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-                'predictions',
-              )}
-            />
-            {predictHomepageUnrealizedPnl.show && (
-              <HomepageSectionUnrealizedPnlRow
-                isLoading={predictHomepageUnrealizedPnl.isLoading}
-                valueText={predictHomepageUnrealizedPnl.valueText}
-                tone={predictHomepageUnrealizedPnl.tone}
-                label={strings('predict.unrealized_pnl_label')}
-                testID="homepage-predict-unrealized-pnl"
-              />
-            )}
-          </Box>
-          <Box>
-            {isLoadingPositions ? (
-              <>
-                <PredictPositionRowSkeleton />
-                <PredictPositionRowSkeleton />
-              </>
-            ) : (
-              positions.map((position) => (
-                <PredictPositionRow
-                  key={`${position.outcomeId}:${position.outcomeIndex}`}
-                  position={position}
-                  onPress={handlePositionPress}
-                  privacyMode={Boolean(privacyMode)}
-                />
-              ))
-            )}
-            {!isLoadingPositions &&
-              !isLoadingClaimable &&
-              totalClaimableValue > 0 && (
-                <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
-                  <PredictClaimButton
-                    amount={privacyMode ? undefined : totalClaimableValue}
-                    onPress={handleClaim}
-                  />
-                </Box>
-              )}
-          </Box>
-        </Box>
+        <HomepagePredictTrendingMarkets
+          title={title}
+          onViewAll={handleViewAllPredictions}
+          headerTestIdKey="predictions"
+          isLoadingMarkets={isLoadingMarkets}
+          markets={markets}
+        />
       </View>
     );
-  }
+  },
+);
 
-  // Don't render if no markets and not loading (avoids showing ViewMoreCard alone)
-  if (!isLoadingMarkets && markets.length === 0) {
-    return null;
-  }
+const PredictionsSectionPositionsOnly = forwardRef<
+  SectionRefreshHandle,
+  PredictionsSectionProps
+>(
+  (
+    {
+      sectionIndex,
+      totalSectionsLoaded,
+      sectionName: sectionNameOverride,
+      titleOverride,
+    },
+    ref,
+  ) => {
+    const sectionViewRef = useRef<View>(null);
+    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    const queryClient = useQueryClient();
+    const title = titleOverride ?? strings('homepage.sections.predictions');
+    const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
+    const { handleViewAllPredictions, handlePositionPress } =
+      usePredictNavigationHandlers();
+    const {
+      privacyMode,
+      positions,
+      isLoadingPositions,
+      refetchPositions,
+      totalClaimableValue,
+      isLoadingClaimable,
+      handleClaim,
+      hasPositions,
+      predictHomepageUnrealizedPnl,
+    } = usePredictPositionsSectionData();
 
-  // Render trending markets if no positions
-  return (
-    <View ref={sectionViewRef} onLayout={onLayout}>
-      <Box gap={3}>
-        <SectionHeader
+    const willRender = isPredictEnabled && !isLoadingPositions && hasPositions;
+    const itemCount = hasPositions ? positions.length : 0;
+
+    const { onLayout } = useHomeViewedEvent({
+      sectionRef: willRender ? sectionViewRef : null,
+      isLoading: isLoadingPositions,
+      sectionName: analyticsName,
+      sectionIndex,
+      totalSectionsLoaded,
+      isEmpty: !isLoadingPositions && !hasPositions,
+      itemCount,
+    });
+
+    const refresh = useCallback(async () => {
+      const addr = getEvmAccountFromSelectedAccountGroup()?.address;
+      const invalidatePnl = addr
+        ? queryClient.invalidateQueries({
+            queryKey: predictQueries.unrealizedPnL.keys.byAddress(addr),
+          })
+        : Promise.resolve();
+      await Promise.all([refetchPositions(), invalidatePnl]);
+    }, [queryClient, refetchPositions]);
+
+    useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+
+    if (!isPredictEnabled || (!isLoadingPositions && !hasPositions)) {
+      return null;
+    }
+
+    return (
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        <HomepagePredictPositions
           title={title}
-          onPress={handleViewAllPredictions}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
+          onViewAll={handleViewAllPredictions}
+          privacyMode={privacyMode}
+          isLoadingPositions={isLoadingPositions}
+          positions={positions}
+          isLoadingClaimable={isLoadingClaimable}
+          totalClaimableValue={totalClaimableValue}
+          predictHomepageUnrealizedPnl={predictHomepageUnrealizedPnl}
+          onClaim={handleClaim}
+          onPositionPress={handlePositionPress}
         />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-3')}
-        >
-          {isLoadingMarkets ? (
-            SKELETON_KEYS.map((key) => <PredictMarketCardSkeleton key={key} />)
-          ) : (
-            <>
-              {markets.map((market) => (
-                <PredictMarketCard key={market.id} market={market} />
-              ))}
-              <ViewMoreCard
-                onPress={handleViewAllPredictions}
-                twClassName="w-[180px] flex-1"
-              />
-            </>
-          )}
-        </ScrollView>
-      </Box>
-    </View>
-  );
+      </View>
+    );
+  },
+);
+
+const PredictionsSectionTrendingOnly = forwardRef<
+  SectionRefreshHandle,
+  PredictionsSectionProps
+>(
+  (
+    {
+      sectionIndex,
+      totalSectionsLoaded,
+      sectionName: sectionNameOverride,
+      titleOverride,
+    },
+    ref,
+  ) => {
+    const sectionViewRef = useRef<View>(null);
+    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    const title = titleOverride ?? strings('homepage.sections.predictions');
+    const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
+    const { handleViewAllPredictions } = usePredictNavigationHandlers();
+
+    const {
+      markets,
+      isLoading: isLoadingMarkets,
+      refetch: refetchMarkets,
+    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
+
+    const itemCount = markets.length;
+    const willRender = isPredictEnabled && !isLoadingMarkets && itemCount > 0;
+
+    const { onLayout } = useHomeViewedEvent({
+      sectionRef: willRender ? sectionViewRef : null,
+      isLoading: isLoadingMarkets,
+      sectionName: analyticsName,
+      sectionIndex,
+      totalSectionsLoaded,
+      isEmpty: !isLoadingMarkets && itemCount === 0,
+      itemCount,
+    });
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        refresh: async () => {
+          await refetchMarkets();
+        },
+      }),
+      [refetchMarkets],
+    );
+
+    if (!isPredictEnabled || (!isLoadingMarkets && itemCount === 0)) {
+      return null;
+    }
+
+    return (
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        <HomepagePredictTrendingMarkets
+          title={title}
+          onViewAll={handleViewAllPredictions}
+          headerTestIdKey="trending-predictions"
+          isLoadingMarkets={isLoadingMarkets}
+          markets={markets}
+        />
+      </View>
+    );
+  },
+);
+
+const PredictionsSection = forwardRef<
+  SectionRefreshHandle,
+  PredictionsSectionProps
+>(({ mode = 'default', ...props }, ref) => {
+  if (mode === 'trending-only') {
+    return <PredictionsSectionTrendingOnly {...props} ref={ref} />;
+  }
+  if (mode === 'positions-only') {
+    return <PredictionsSectionPositionsOnly {...props} ref={ref} />;
+  }
+  return <PredictionsSectionDefault {...props} ref={ref} />;
 });
 
 export default PredictionsSection;
