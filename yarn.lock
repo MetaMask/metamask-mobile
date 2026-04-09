@@ -8737,6 +8737,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/hw-wallet-sdk@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "@metamask/hw-wallet-sdk@npm:0.7.0"
+  checksum: 10/2381f6fd8d3c3f74153345a63148c0cabb150b764822bd336ec855cc2d63dada0b8866568a87e68a3266fd63c7c7dc5845e33975afd6fc88d32efe6258fe0633
+  languageName: node
+  linkType: hard
+
 "@metamask/json-rpc-engine@npm:^10.0.0, @metamask/json-rpc-engine@npm:^10.0.2, @metamask/json-rpc-engine@npm:^10.0.3, @metamask/json-rpc-engine@npm:^10.1.0, @metamask/json-rpc-engine@npm:^10.1.1, @metamask/json-rpc-engine@npm:^10.2.0, @metamask/json-rpc-engine@npm:^10.2.3, @metamask/json-rpc-engine@npm:^10.2.4":
   version: 10.2.4
   resolution: "@metamask/json-rpc-engine@npm:10.2.4"
@@ -35586,7 +35593,7 @@ __metadata:
     "@metamask/gas-fee-controller": "npm:^26.1.0"
     "@metamask/gator-permissions-controller": "npm:^3.0.0"
     "@metamask/geolocation-controller": "npm:^0.1.1"
-    "@metamask/hw-wallet-sdk": "npm:^0.4.0"
+    "@metamask/hw-wallet-sdk": "npm:^0.7.0"
     "@metamask/json-rpc-engine": "npm:^10.2.3"
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"
     "@metamask/key-tree": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch"
