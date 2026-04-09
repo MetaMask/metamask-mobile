@@ -3237,6 +3237,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictBottomSheet: {
+    name: 'predictBottomSheet',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictWithAnyToken: {
     name: 'predictWithAnyToken',
     type: FeatureFlagType.Remote,

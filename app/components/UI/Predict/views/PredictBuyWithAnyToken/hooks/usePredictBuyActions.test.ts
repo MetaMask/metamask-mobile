@@ -497,4 +497,80 @@ describe('usePredictBuyActions', () => {
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
   });
+
+  describe('isSheetMode', () => {
+    it('calls initPayWithAnyToken on mount without transitionEnd when isSheetMode is true', () => {
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: jest.fn(),
+      };
+      renderHook(() => usePredictBuyActions(params));
+
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+      expect(mockAddListener).not.toHaveBeenCalledWith(
+        'transitionEnd',
+        expect.any(Function),
+      );
+    });
+
+    it('calls onClose instead of StackActions.pop on SUCCESS when isSheetMode is true', async () => {
+      const mockOnClose = jest.fn();
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: mockOnClose,
+      };
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyActions(params),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.SUCCESS };
+      rerender(params);
+
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
+    });
+
+    it('calls onReject and clearActiveOrderTransactionId on unmount when isSheetMode is true', () => {
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: jest.fn(),
+      };
+      const { unmount } = renderHook(() => usePredictBuyActions(params));
+
+      expect(mockAddListener).not.toHaveBeenCalledWith(
+        'beforeRemove',
+        expect.any(Function),
+      );
+
+      unmount();
+
+      expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
+      expect(mockClearActiveOrderTransactionId).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to StackActions.pop when isSheetMode is false (default)', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const params = createDefaultParams();
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyActions(params),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.SUCCESS };
+      rerender(params);
+
+      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
+    });
+  });
 });

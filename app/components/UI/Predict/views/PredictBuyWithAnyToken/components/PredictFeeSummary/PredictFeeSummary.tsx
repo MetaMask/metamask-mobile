@@ -108,8 +108,8 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
             <Box twClassName="flex-col">
               <Text
                 variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Bold}
-                color={TextColor.TextDefault}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
               >
                 {strings('predict.fee_summary.total')}
               </Text>

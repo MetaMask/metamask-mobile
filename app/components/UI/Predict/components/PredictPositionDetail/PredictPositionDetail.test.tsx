@@ -13,7 +13,6 @@ import {
 } from '../../types';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
-import Routes from '../../../../../constants/navigation/Routes';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 declare global {
@@ -70,6 +69,14 @@ jest.mock('../../hooks/usePredictPositions', () => ({
 
 jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: jest.fn(),
+}));
+
+const mockOpenSellSheet = jest.fn();
+jest.mock('../../contexts', () => ({
+  usePredictPreviewSheet: () => ({
+    openBuySheet: jest.fn(),
+    openSellSheet: mockOpenSellSheet,
+  }),
 }));
 
 const basePosition: PredictPositionType = {
@@ -338,13 +345,12 @@ describe('PredictPositionDetail', () => {
     expect(screen.queryByText('Cash out')).toBeNull();
   });
 
-  it('navigates to sell preview with position and outcome on cash out', () => {
+  it('opens sell sheet with position and outcome on cash out', () => {
     renderComponent();
 
     fireEvent.press(screen.getByText('Cash out'));
 
-    expect(global.__mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.SELL_PREVIEW,
+    expect(mockOpenSellSheet).toHaveBeenCalledWith(
       expect.objectContaining({
         position: expect.objectContaining({ id: 'pos-1' }),
         outcome: expect.objectContaining({ id: 'outcome-1' }),
@@ -448,5 +454,19 @@ describe('PredictPositionDetail', () => {
     );
 
     expect(cashOutButton).toHaveProp('disabled', true);
+  });
+
+  it('opens sell sheet via context on cash out', () => {
+    renderComponent();
+
+    fireEvent.press(screen.getByText('Cash out'));
+
+    expect(mockOpenSellSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        position: expect.objectContaining({ id: 'pos-1' }),
+        outcome: expect.objectContaining({ id: 'outcome-1' }),
+      }),
+    );
+    expect(global.__mockNavigate).not.toHaveBeenCalled();
   });
 });

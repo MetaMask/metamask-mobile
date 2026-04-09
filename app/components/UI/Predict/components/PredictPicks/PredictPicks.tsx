@@ -5,8 +5,8 @@ import { usePredictLivePositions } from '../../hooks/usePredictLivePositions';
 import { PredictEventValues } from '../../constants/eventNames';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { usePredictPreviewSheet } from '../../contexts';
 import { PredictMarket, PredictPosition } from '../../types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { strings } from '../../../../../../locales/i18n';
 import PredictPickItem from './PredictPickItem';
@@ -17,9 +17,6 @@ import {
 
 interface PredictPicksProps {
   market: PredictMarket;
-  /**
-   * TestID for the component
-   */
   testID?: string;
 }
 
@@ -39,10 +36,10 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
   const { livePositions } = usePredictLivePositions(positions);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { navigate } = navigation;
   const { executeGuardedAction } = usePredictActionGuard({
     navigation,
   });
+  const { openSellSheet } = usePredictPreviewSheet();
 
   const onCashOut = (position: PredictPosition) => {
     executeGuardedAction(
@@ -50,12 +47,14 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
         const _outcome = market?.outcomes.find(
           (o) => o.id === position.outcomeId,
         );
-        navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
-          market,
-          position,
-          outcome: _outcome,
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        });
+        if (_outcome) {
+          openSellSheet({
+            market,
+            position,
+            outcome: _outcome,
+            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          });
+        }
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
     );

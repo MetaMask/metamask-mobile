@@ -23,12 +23,16 @@ interface UsePredictBuyActionsParams {
   preview?: OrderPreview | null;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   setIsConfirming: (value: boolean) => void;
+  isSheetMode?: boolean;
+  onClose?: () => void;
 }
 
 export const usePredictBuyActions = ({
   preview,
   analyticsProperties,
   setIsConfirming,
+  isSheetMode = false,
+  onClose,
 }: UsePredictBuyActionsParams) => {
   const navigation =
     useNavigation<StackNavigationProp<PredictNavigationParamList>>();
@@ -47,6 +51,12 @@ export const usePredictBuyActions = ({
 
   const hasInitializedPayWithAnyTokenRef = useRef(false);
   const didInitiateOrderRef = useRef(false);
+  const onRejectRef = useRef(onReject);
+  const clearActiveOrderTransactionIdRef = useRef(
+    clearActiveOrderTransactionId,
+  );
+  onRejectRef.current = onReject;
+  clearActiveOrderTransactionIdRef.current = clearActiveOrderTransactionId;
 
   useEffect(() => {
     const controller = Engine.context.PredictController;
@@ -65,6 +75,15 @@ export const usePredictBuyActions = ({
       return;
     }
 
+    if (isSheetMode) {
+      if (!hasInitializedPayWithAnyTokenRef.current) {
+        hasInitializedPayWithAnyTokenRef.current = true;
+        resetSelectedPaymentToken();
+        initPayWithAnyToken();
+      }
+      return;
+    }
+
     const unsubscribe = navigation.addListener('transitionEnd', (e) => {
       if (!e.data.closing && !hasInitializedPayWithAnyTokenRef.current) {
         hasInitializedPayWithAnyTokenRef.current = true;
@@ -80,6 +99,7 @@ export const usePredictBuyActions = ({
     payWithAnyTokenEnabled,
     PredictController,
     resetSelectedPaymentToken,
+    isSheetMode,
   ]);
 
   useEffect(() => {
@@ -88,15 +108,10 @@ export const usePredictBuyActions = ({
     }
 
     return navigation.addListener('beforeRemove', () => {
-      onReject(undefined, true);
-      clearActiveOrderTransactionId();
+      onRejectRef.current(undefined, true);
+      clearActiveOrderTransactionIdRef.current();
     });
-  }, [
-    navigation,
-    payWithAnyTokenEnabled,
-    onReject,
-    clearActiveOrderTransactionId,
-  ]);
+  }, [navigation, payWithAnyTokenEnabled]);
 
   const handlePlaceOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
@@ -174,10 +189,14 @@ export const usePredictBuyActions = ({
     if (currentState === ActiveOrderState.SUCCESS) {
       PredictController.onPlaceOrderSuccess();
       if (didInitiateOrderRef.current) {
-        navigation.dispatch(StackActions.pop());
+        if (isSheetMode && onClose) {
+          onClose();
+        } else {
+          navigation.dispatch(StackActions.pop());
+        }
       }
     }
-  }, [PredictController, currentState, navigation]);
+  }, [PredictController, currentState, navigation, isSheetMode, onClose]);
 
   return {
     handleConfirm,

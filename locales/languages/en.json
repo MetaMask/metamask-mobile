@@ -2339,7 +2339,8 @@
       "try_again": "Try again",
       "view": "View",
       "yes_buy": "Yes, buy",
-      "yes_sell": "Yes, sell"
+      "yes_sell": "Yes, sell",
+      "buy": "Buy {{outcome}}"
     },
     "withdraw": {
       "withdrawing": "Withdrawal in progress",

@@ -65,6 +65,24 @@ export interface PredictSellPreviewParams {
   entryPoint?: PredictEntryPoint;
 }
 
+/** Props for rendering PredictBuyPreview inside a BottomSheet */
+export interface PredictBuyPreviewContentProps {
+  market: PredictMarket;
+  outcome: PredictOutcome;
+  outcomeToken: PredictOutcomeToken;
+  entryPoint?: PredictEntryPoint;
+  onClose: () => void;
+}
+
+/** Props for rendering PredictSellPreview inside a BottomSheet */
+export interface PredictSellPreviewContentProps {
+  market: PredictMarket;
+  position: PredictPosition;
+  outcome: PredictOutcome;
+  entryPoint?: PredictEntryPoint;
+  onClose: () => void;
+}
+
 export interface PredictNavigationParamList extends ParamListBase {
   Predict: undefined;
   PredictMarketList: PredictMarketListParams;

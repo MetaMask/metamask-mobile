@@ -29,9 +29,9 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { usePredictPreviewSheet } from '../../contexts';
 import {
   PredictMarket,
   PredictMarketStatus,
@@ -61,10 +61,10 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   const { icon, initialValue, outcome, title, optimistic, size } = position;
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { navigate } = navigation;
   const { executeGuardedAction } = usePredictActionGuard({
     navigation,
   });
+  const { openSellSheet } = usePredictPreviewSheet();
 
   // Only auto-refresh when the screen is focused to avoid duplicate fetches
   const isFocused = useIsFocused();
@@ -117,12 +117,14 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         const _outcome = market?.outcomes.find(
           (o) => o.id === position.outcomeId,
         );
-        navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
-          market,
-          position,
-          outcome: _outcome,
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        });
+        if (_outcome) {
+          openSellSheet({
+            market,
+            position,
+            outcome: _outcome,
+            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          });
+        }
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
     );

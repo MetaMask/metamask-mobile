@@ -36,7 +36,10 @@ import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { Side } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
+import {
+  PredictNavigationParamList,
+  PredictSellPreviewContentProps,
+} from '../../types/navigation';
 import {
   formatCents,
   formatPercentage,
@@ -48,13 +51,17 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import styleSheet from './PredictSellPreview.styles';
 import { PREDICT_SELL_PREVIEW_TEST_IDS } from './PredictSellPreview.testIds';
 
-const PredictSellPreview = () => {
+const PredictSellPreview = (contentProps?: PredictSellPreviewContentProps) => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
   const { goBack, dispatch } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
-  const { market, position, outcome, entryPoint } = route.params;
+
+  const isSheetMode = !!contentProps?.onClose;
+  const { market, position, outcome, entryPoint } = isSheetMode
+    ? contentProps
+    : route.params;
 
   const { icon, title, initialValue, size } = position;
 
@@ -161,9 +168,13 @@ const PredictSellPreview = () => {
 
   useEffect(() => {
     if (result?.success) {
-      dispatch(StackActions.pop());
+      if (isSheetMode) {
+        contentProps?.onClose();
+      } else {
+        dispatch(StackActions.pop());
+      }
     }
-  }, [dispatch, result]);
+  }, [dispatch, result, isSheetMode, contentProps]);
 
   // Use preview data if available, fallback to position data on error or when preview is unavailable
   const currentValue = preview
@@ -246,13 +257,20 @@ const PredictSellPreview = () => {
     );
   };
 
+  const Wrapper = isSheetMode ? Box : SafeAreaView;
+  const wrapperProps = isSheetMode
+    ? { twClassName: 'flex-1 bg-background-default' }
+    : { style: tw.style('flex-1 bg-background-default') };
+
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
-      <BottomSheetHeader onClose={() => goBack()}>
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('predict.cash_out')}
-        </Text>
-      </BottomSheetHeader>
+    <Wrapper {...wrapperProps}>
+      {!isSheetMode && (
+        <BottomSheetHeader onClose={() => goBack()}>
+          <Text variant={TextVariant.HeadingMd}>
+            {strings('predict.cash_out')}
+          </Text>
+        </BottomSheetHeader>
+      )}
       <View
         testID={PredictCashOutSelectorsIDs.CONTAINER}
         style={styles.container}
@@ -373,7 +391,7 @@ const PredictSellPreview = () => {
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />
-    </SafeAreaView>
+    </Wrapper>
   );
 };
 

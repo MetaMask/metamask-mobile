@@ -69,7 +69,7 @@ export const usePredictBuyConditions = ({
   const [insufficientPayTokenBalanceAlert] =
     useInsufficientPayTokenBalanceAlert();
 
-  const shouldWaitForPayFees = !isPredictBalanceSelected;
+  const shouldWaitForPayFees = !isPredictBalanceSelected && currentValue > 0;
 
   const isBalancePulsing = useMemo(
     () => isDepositPending && isPredictBalanceSelected,
@@ -218,6 +218,7 @@ export const usePredictBuyConditions = ({
     if (
       !isPredictBalanceSelected &&
       !isInputFocused &&
+      totalPayForPredictBalance > 0 &&
       predictBalance >= totalPayForPredictBalance
     ) {
       resetSelectedPaymentToken();

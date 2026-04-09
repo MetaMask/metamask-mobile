@@ -10,7 +10,6 @@ import {
   type PredictMarket,
 } from '../../types';
 import { formatPrice } from '../../utils/format';
-import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
@@ -22,6 +21,15 @@ jest.mock('@react-navigation/native', () => ({
 }));
 jest.mock('../../hooks/usePredictPositions');
 jest.mock('../../hooks/usePredictActionGuard');
+
+const mockOpenSellSheet = jest.fn();
+jest.mock('../../contexts', () => ({
+  usePredictPreviewSheet: () => ({
+    openBuySheet: jest.fn(),
+    openSellSheet: mockOpenSellSheet,
+  }),
+}));
+
 jest.mock('../../hooks/usePredictLivePositions', () => ({
   usePredictLivePositions: jest.fn((positions: unknown[]) => ({
     livePositions: positions ?? [],
@@ -484,7 +492,7 @@ describe('PredictPicks', () => {
       );
     });
 
-    it('navigates to SELL_PREVIEW when guarded action callback executes', () => {
+    it('opens sell sheet when guarded action callback executes', () => {
       const market = createMockMarket();
       const position = createMockPosition({
         id: 'pos-1',
@@ -499,8 +507,7 @@ describe('PredictPicks', () => {
         screen.getByTestId('predict-picks-cash-out-button-pos-1'),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.SELL_PREVIEW,
+      expect(mockOpenSellSheet).toHaveBeenCalledWith(
         expect.objectContaining({
           market,
           position,
@@ -524,15 +531,14 @@ describe('PredictPicks', () => {
         screen.getByTestId('predict-picks-cash-out-button-pos-1'),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.SELL_PREVIEW,
+      expect(mockOpenSellSheet).toHaveBeenCalledWith(
         expect.objectContaining({
           outcome: market.outcomes[1],
         }),
       );
     });
 
-    it('passes undefined outcome when outcomeId not found in market.outcomes', () => {
+    it('does not call openSellSheet when outcomeId not found', () => {
       const market = createMockMarket();
       const position = createMockPosition({
         id: 'pos-1',
@@ -547,12 +553,7 @@ describe('PredictPicks', () => {
         screen.getByTestId('predict-picks-cash-out-button-pos-1'),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.SELL_PREVIEW,
-        expect.objectContaining({
-          outcome: undefined,
-        }),
-      );
+      expect(mockOpenSellSheet).not.toHaveBeenCalled();
     });
 
     it('calls usePredictActionGuard with navigation only', () => {
@@ -566,6 +567,31 @@ describe('PredictPicks', () => {
           navigation: expect.any(Object),
         }),
       );
+    });
+
+    it('always uses context to open sell sheet', () => {
+      const market = createMockMarket();
+      const position = createMockPosition({
+        id: 'pos-1',
+        outcomeId: 'outcome-1',
+        claimable: false,
+      });
+      setupPositionsMock({ livePositions: [position] });
+      mockExecuteGuardedAction.mockImplementation((callback) => callback());
+
+      render(<PredictPicks market={market} />);
+      fireEvent.press(
+        screen.getByTestId('predict-picks-cash-out-button-pos-1'),
+      );
+
+      expect(mockOpenSellSheet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          market,
+          position,
+          outcome: expect.objectContaining({ id: 'outcome-1' }),
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });

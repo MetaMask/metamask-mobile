@@ -35,8 +35,6 @@ export function usePredictBottomSheet(params?: UsePredictBottomSheetParams) {
   const getRefHandlers = useCallback(
     (): PredictBottomSheetRef => ({
       onOpenBottomSheet: () => {
-        // setIsVisible(true) is idempotent - safe to call multiple times
-        // No need to check isVisible which would cause stale closure issues
         setIsVisible(true);
       },
       onCloseBottomSheet: () => {

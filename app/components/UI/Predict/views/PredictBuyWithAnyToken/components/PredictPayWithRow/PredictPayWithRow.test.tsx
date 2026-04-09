@@ -15,6 +15,7 @@ let mockPayToken: {
   symbol?: string;
   address?: string;
   chainId?: string;
+  balanceFiat?: string;
 } | null = null;
 jest.mock(
   '../../../../../../Views/confirmations/hooks/pay/useTransactionPayToken',
@@ -73,6 +74,11 @@ jest.mock('../../../../../../Views/confirmations/constants/predict', () => ({
 
 jest.mock('../../../../constants/transactions', () => ({
   PREDICT_BALANCE_CHAIN_ID: '0x89',
+}));
+
+let mockPredictBalance = 150.66;
+jest.mock('../../../../hooks/usePredictBalance', () => ({
+  usePredictBalance: () => ({ data: mockPredictBalance }),
 }));
 
 const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
@@ -191,5 +197,82 @@ describe('PredictPayWithRow', () => {
     renderWithProvider(<PredictPayWithRow />);
 
     expect(screen.getByText('Pay with USDC')).toBeOnTheScreen();
+  });
+
+  it('renders ArrowRight icon when chevronRight is true', () => {
+    const { toJSON } = renderWithProvider(<PredictPayWithRow chevronRight />);
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).toContain('ArrowRight');
+    expect(tree).not.toContain('ArrowDown');
+  });
+
+  it('renders ArrowDown icon by default (chevronRight false)', () => {
+    const { toJSON } = renderWithProvider(<PredictPayWithRow />);
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).toContain('ArrowDown');
+    expect(tree).not.toContain('ArrowRight');
+  });
+
+  describe('variant="row"', () => {
+    it('renders "Pay with" label on the left and token symbol on the right', () => {
+      renderWithProvider(<PredictPayWithRow variant="row" />);
+
+      expect(screen.getByText('Pay with')).toBeOnTheScreen();
+      expect(screen.getByText(/USDC/)).toBeOnTheScreen();
+    });
+
+    it('shows Predict balance with formatted balance when predict balance selected', () => {
+      mockIsPredictBalanceSelected = true;
+      mockPredictBalance = 150.66;
+
+      renderWithProvider(<PredictPayWithRow variant="row" />);
+
+      expect(screen.getByText('Pay with')).toBeOnTheScreen();
+      expect(screen.getByText(/Predict balance/)).toBeOnTheScreen();
+      expect(screen.getByText(/\$150\.66/)).toBeOnTheScreen();
+    });
+
+    it('always renders ArrowRight chevron in row variant', () => {
+      const { toJSON } = renderWithProvider(
+        <PredictPayWithRow variant="row" />,
+      );
+      const tree = JSON.stringify(toJSON());
+
+      expect(tree).toContain('ArrowRight');
+      expect(tree).not.toContain('ArrowDown');
+    });
+
+    it('shows payToken balanceFiat when not predict balance', () => {
+      mockPayToken = {
+        symbol: 'USDC',
+        address: '0xToken',
+        chainId: '0x89',
+        balanceFiat: '$200.50',
+      } as typeof mockPayToken;
+
+      renderWithProvider(<PredictPayWithRow variant="row" />);
+
+      expect(screen.getByText(/\$200\.50/)).toBeOnTheScreen();
+    });
+
+    it('navigates to pay-with modal on press', () => {
+      renderWithProvider(<PredictPayWithRow variant="row" />);
+
+      fireEvent.press(screen.getByText('Pay with'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CONFIRMATION_PAY_WITH_MODAL,
+      );
+    });
+
+    it('does not navigate when disabled', () => {
+      renderWithProvider(<PredictPayWithRow variant="row" disabled />);
+
+      fireEvent.press(screen.getByText('Pay with'));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 });
