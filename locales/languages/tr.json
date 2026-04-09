@@ -6638,7 +6638,6 @@
     "nested_transaction_heading": "{{index}} işlemi",
     "transaction": "İşlem",
     "available_balance": "Kullanılabilir bakiye: ",
-    "available_perps_balance": "Kullanılabilir Perps bakiyesi: ",
     "edit_amount_done": "Devam et",
     "deposit_edit_amount_done": "Fon ekle",
     "deposit_edit_amount_predict_withdraw": "Çek",

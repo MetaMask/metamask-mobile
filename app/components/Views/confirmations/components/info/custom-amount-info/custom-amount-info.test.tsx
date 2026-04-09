@@ -453,6 +453,41 @@ describe('CustomAmountInfo', () => {
     });
   });
 
+  it('renders no funds message for moneyAccountDeposit when no tokens available', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
+
+    const { getByText } = render({
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    expect(
+      getByText(strings('confirm.no_funds_use_different_account')),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render no funds message for moneyAccountDeposit when tokens available', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { queryByText } = render({
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    expect(
+      queryByText(strings('confirm.no_funds_use_different_account')),
+    ).not.toBeOnTheScreen();
+  });
+
   it('renders AccountSelector for moneyAccountDeposit transactions', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
