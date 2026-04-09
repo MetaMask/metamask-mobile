@@ -157,7 +157,7 @@ describe('TransactionDetails', () => {
     expect(screen.getByText('Date')).toBeOnTheScreen();
   });
 
-  it('should render correctly for multi-layer fee network', () => {
+  it('should render correctly for multi-layer fee network', async () => {
     jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
       timestamp: 1234,
       l1Fee: '0x1',
@@ -187,10 +187,16 @@ describe('TransactionDetails', () => {
         multiLayerL1FeeTotal: '0x1',
       },
     });
-    expect(screen.getByText('Status')).toBeOnTheScreen();
-    expect(screen.getByText('Date')).toBeOnTheScreen();
+    // Multi-layer fee networks (Optimism) show a block explorer link — this is
+    // absent in the base mainnet test and confirms the multi-layer path rendered.
+    await waitFor(() => {
+      expect(screen.getByText(/View on/i)).toBeOnTheScreen();
+    });
+    // The total amount row is always present once transactionDetails resolves.
+    expect(screen.getByText('Total amount')).toBeOnTheScreen();
   });
-  it('should render correctly for multi-layer fee network with no l1 fee', () => {
+
+  it('should render correctly for multi-layer fee network with no l1 fee', async () => {
     jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
       timestamp: 1234,
       l1Fee: '0x0',
@@ -216,11 +222,16 @@ describe('TransactionDetails', () => {
       },
       hash: '0x3',
       txParams: {
-        multiLayerL1FeeTotal: '0x1',
+        multiLayerL1FeeTotal: '0x0',
       },
     });
-    expect(screen.getByText('Status')).toBeOnTheScreen();
-    expect(screen.getByText('Date')).toBeOnTheScreen();
+    // Even with a zero L1 fee the multi-layer path still resolves and renders
+    // the Optimism block explorer link, confirming the async update completed.
+    await waitFor(() => {
+      expect(screen.getByText(/View on/i)).toBeOnTheScreen();
+    });
+    // With zero L1 fee the total amount row is still present (fee contribution is 0).
+    expect(screen.getByText('Total amount')).toBeOnTheScreen();
   });
 
   const arrangeBlockExplorerTest = () => {

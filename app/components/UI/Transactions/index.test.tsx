@@ -4,6 +4,7 @@ import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 import { render, screen, cleanup } from '@testing-library/react-native';
+import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -287,7 +288,9 @@ describe('Transactions', () => {
       </Provider>,
     );
     jest.advanceTimersByTime(100);
-    expect(screen.getByTestId('transactions-container')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(ActivitiesViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   describe('Transaction Component Behavior', () => {
