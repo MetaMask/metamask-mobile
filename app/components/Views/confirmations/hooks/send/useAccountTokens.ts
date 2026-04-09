@@ -16,12 +16,17 @@ import I18n from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
-import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
+import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
+import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import type { RootState } from '../../../../../reducers';
 
-const EMPTY_CACHE = {} as ReturnType<typeof selectERC20TokensByChain>;
-const selectEmptyCache = () => EMPTY_CACHE;
+export interface EnrichTokenRequest {
+  chainId: Hex;
+  address: string;
+}
+
+const EMPTY_REQUESTS: EnrichTokenRequest[] = [];
 
 function useFromAccountGroupAssets() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -51,20 +56,27 @@ function useFromAccountGroupAssets() {
 
 export function useAccountTokens({
   includeNoBalance = false,
-  includeAllTokens = false,
   tokenFilter,
+  enrichTokenRequests = EMPTY_REQUESTS,
 }: {
   includeNoBalance?: boolean;
-  includeAllTokens?: boolean;
   tokenFilter?: (chainId: string, address: string) => boolean;
+  enrichTokenRequests?: EnrichTokenRequest[];
 } = {}): AssetType[] {
   const globalAssets = useSelector(selectAssetsBySelectedAccountGroup);
   const fromAccountAssets = useFromAccountGroupAssets();
   const assets = fromAccountAssets ?? globalAssets;
   const fiatCurrency = useSelector(selectCurrentCurrency);
-  const tokensChainsCache = useSelector(
-    includeAllTokens ? selectERC20TokensByChain : selectEmptyCache,
+
+  const assetIds = useMemo(
+    () =>
+      enrichTokenRequests.map((req) =>
+        buildEvmCaip19AssetId(req.address, req.chainId),
+      ),
+    [enrichTokenRequests],
   );
+
+  const tokensByAssetId = useTokensData(assetIds);
 
   return useMemo(() => {
     const flatAssets = Object.values(assets).flat();
@@ -122,7 +134,7 @@ export function useAccountTokens({
       } as AssetType;
     });
 
-    if (includeAllTokens) {
+    if (enrichTokenRequests.length > 0) {
       let zeroFiat: string;
       try {
         zeroFiat = getIntlNumberFormatter(I18n.locale, {
@@ -134,27 +146,38 @@ export function useAccountTokens({
         zeroFiat = `0 ${fiatCurrency}`;
       }
 
-      const getAssetKey = (chain: string, addr: string) =>
-        `${chain.toLowerCase()}:${addr.toLowerCase()}`;
-
-      const existing = new Set(
-        flatAssets.map((a) =>
-          getAssetKey(a.chainId, 'address' in a ? a.address : a.assetId),
+      const existingKeys = new Set(
+        processedAssets.map(
+          (t) =>
+            `${t.chainId?.toLowerCase()}:${(t.address ?? '').toLowerCase()}`,
         ),
       );
 
-      for (const [chainId, cache] of Object.entries(tokensChainsCache ?? {})) {
-        for (const [address, entry] of Object.entries(cache?.data ?? {})) {
-          if (existing.has(getAssetKey(chainId, address))) {
-            continue;
-          }
-          if (tokenFilter && !tokenFilter(chainId, address)) {
-            continue;
-          }
-          processedAssets.push(
-            buildNoBalanceAsset(chainId as Hex, address, entry, zeroFiat),
-          );
-        }
+      for (let i = 0; i < enrichTokenRequests.length; i++) {
+        const req = enrichTokenRequests[i];
+        const key = `${req.chainId.toLowerCase()}:${req.address.toLowerCase()}`;
+        if (existingKeys.has(key)) continue;
+
+        const caipId = assetIds[i];
+        const data = tokensByAssetId[caipId];
+        if (!data?.name && !data?.symbol) continue;
+
+        processedAssets.push({
+          address: req.address.toLowerCase(),
+          chainId: req.chainId,
+          accountType: EthAccountType.Eoa,
+          name: data.name ?? '',
+          symbol: data.symbol ?? '',
+          decimals: data.decimals ?? 18,
+          image: data.iconUrl ?? '',
+          logo: data.iconUrl ?? undefined,
+          balance: '0',
+          balanceInSelectedCurrency: zeroFiat,
+          isETH: false,
+          isNative: false,
+          networkBadgeSource: getNetworkBadgeSource(req.chainId),
+          standard: TokenStandard.ERC20,
+        } as AssetType);
       }
     }
 
@@ -167,38 +190,10 @@ export function useAccountTokens({
   }, [
     assets,
     includeNoBalance,
-    includeAllTokens,
     fiatCurrency,
-    tokensChainsCache,
     tokenFilter,
+    enrichTokenRequests,
+    assetIds,
+    tokensByAssetId,
   ]) as unknown as AssetType[];
-}
-
-function buildNoBalanceAsset(
-  chainId: Hex,
-  address: string,
-  entry: {
-    name?: string;
-    symbol?: string;
-    decimals?: number;
-    iconUrl?: string;
-  },
-  zeroFiat: string,
-): AssetType {
-  return {
-    address,
-    chainId,
-    accountType: EthAccountType.Eoa,
-    name: entry.name ?? '',
-    symbol: entry.symbol ?? '',
-    decimals: entry.decimals ?? 18,
-    image: entry.iconUrl ?? '',
-    logo: entry.iconUrl ?? undefined,
-    balance: '0',
-    balanceInSelectedCurrency: zeroFiat,
-    isETH: false,
-    isNative: false,
-    networkBadgeSource: getNetworkBadgeSource(chainId),
-    standard: TokenStandard.ERC20,
-  };
 }
