@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from 'react';
-import { noop } from 'lodash';
 import { useSelector } from 'react-redux';
 import {
   Box,
