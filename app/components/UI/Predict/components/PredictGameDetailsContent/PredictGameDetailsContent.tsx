@@ -23,9 +23,11 @@ import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
 import PredictGameChart from '../PredictGameChart';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
 import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutSheet';
-import PredictPicks from '../PredictPicks/PredictPicks';
 import PredictShareButton from '../PredictShareButton/PredictShareButton';
 import PredictSportScoreboard from '../PredictSportScoreboard';
+import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
+import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
+import { useGameDetailsTabs } from './hooks/useGameDetailsTabs';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
@@ -57,6 +59,13 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
   const game = market.game;
+  const {
+    enabled: tabsEnabled,
+    tabs,
+    activeTab,
+    handleTabPress,
+    stickyHeaderIndices,
+  } = useGameDetailsTabs({ marketId: market.id });
 
   if (!outcome || !game) {
     return null;
@@ -105,6 +114,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
       <ScrollView
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-4')}
+        stickyHeaderIndices={stickyHeaderIndices}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -128,12 +138,20 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           />
         </Box>
 
-        <Box twClassName="px-4 py-2">
-          <PredictPicks
-            market={market}
-            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_PICK}
+        {tabsEnabled && (
+          <PredictMarketDetailsTabBar
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabPress={handleTabPress}
           />
-        </Box>
+        )}
+
+        <PredictGameDetailsTabsContent
+          market={market}
+          activeTab={activeTab}
+          tabs={tabs}
+          enabled={tabsEnabled}
+        />
       </ScrollView>
 
       <PredictGameDetailsFooter

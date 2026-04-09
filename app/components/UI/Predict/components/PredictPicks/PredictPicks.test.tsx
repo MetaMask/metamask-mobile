@@ -202,12 +202,12 @@ describe('PredictPicks', () => {
       expect(screen.getAllByTestId('predict-picks').length).toBeGreaterThan(0);
     });
 
-    it('renders "Your Picks" header when positions exist', () => {
+    it('renders pick items when positions exist', () => {
       setupPositionsMock({ livePositions: [createMockPosition()] });
 
       render(<PredictPicks market={createMockMarket()} />);
 
-      expect(screen.getByText('Your picks')).toBeOnTheScreen();
+      expect(screen.getAllByTestId('predict-picks').length).toBeGreaterThan(0);
     });
   });
 

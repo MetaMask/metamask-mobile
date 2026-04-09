@@ -1,4 +1,4 @@
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import React from 'react';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictLivePositions } from '../../hooks/usePredictLivePositions';
@@ -8,7 +8,6 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { PredictMarket, PredictPosition } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { strings } from '../../../../../../locales/i18n';
 import PredictPickItem from './PredictPickItem';
 import {
   PREDICT_PICKS_TEST_ID,
@@ -67,9 +66,6 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
 
   return (
     <Box testID={testID} twClassName="flex-col">
-      <Text variant={TextVariant.HeadingMd} twClassName="font-medium pt-8">
-        {strings('predict.market_details.your_picks')}
-      </Text>
       {livePositions.map((position) => (
         <PredictPickItem
           key={position.id}

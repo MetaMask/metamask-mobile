@@ -159,6 +159,48 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
+jest.mock('../../hooks/usePredictPositions', () => ({
+  usePredictPositions: jest.fn(() => ({
+    data: [],
+    isLoading: false,
+    refresh: jest.fn(),
+  })),
+}));
+
+jest.mock('./hooks/useGameDetailsTabs', () => ({
+  useGameDetailsTabs: jest.fn(() => ({
+    enabled: false,
+    tabs: [],
+    activeTab: null,
+    handleTabPress: jest.fn(),
+    stickyHeaderIndices: undefined,
+  })),
+}));
+
+jest.mock('../../../../../util/theme', () => ({
+  ...jest.requireActual('../../../../../util/theme'),
+  useTheme: () => ({
+    colors: {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+      primary: { default: '#0376C9' },
+    },
+  }),
+}));
+
+jest.mock(
+  '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return function MockPredictMarketDetailsTabBar({
+      testID,
+    }: {
+      testID?: string;
+    }) {
+      return <View testID={testID ?? 'mock-tab-bar'} />;
+    };
+  },
+);
+
 const mockBaseGame = {
   id: 'game-123',
   homeTeam: {
@@ -595,6 +637,28 @@ describe('PredictGameDetailsContent', () => {
       expect(picks).toBeOnTheScreen();
       expect(picks.props.accessibilityHint).toBe('marketId:test-market-id');
     });
+  });
+
+  it('renders all major sections for a valid market', () => {
+    const market = createMockMarket();
+
+    const { getByTestId, getByText, getByRole } = render(
+      <PredictGameDetailsContent
+        market={market}
+        onBack={mockOnBack}
+        onRefresh={mockOnRefresh}
+        onBetPress={mockOnBetPress}
+        refreshing={false}
+      />,
+    );
+
+    expect(getByRole('button')).toBeOnTheScreen();
+    expect(getByText('Test Game Market')).toBeOnTheScreen();
+    expect(getByTestId('predict-share-button')).toBeOnTheScreen();
+    expect(getByTestId('game-scoreboard')).toBeOnTheScreen();
+    expect(getByTestId('game-chart')).toBeOnTheScreen();
+    expect(getByTestId('game-picks')).toBeOnTheScreen();
+    expect(getByTestId('predict-game-details-footer')).toBeOnTheScreen();
   });
 
   it('matches snapshot', () => {

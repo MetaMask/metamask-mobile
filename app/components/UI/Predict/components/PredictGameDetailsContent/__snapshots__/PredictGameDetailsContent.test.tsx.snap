@@ -211,6 +211,25 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
           ]
         }
       >
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
+                "fontSize": 20,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingTop": 32,
+              },
+              undefined,
+            ]
+          }
+        >
+          predict.market_details.your_picks
+        </Text>
         <View
           accessibilityHint="marketId:test-market-id"
           testID="game-picks"
