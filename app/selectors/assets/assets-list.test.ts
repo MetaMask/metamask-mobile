@@ -362,6 +362,9 @@ const mockState = ({
         },
       },
     },
+    settings: {
+      hideZeroBalanceTokens: false,
+    },
   }) as unknown as RootState;
 
 describe('selectAssetsBySelectedAccountGroup', () => {
@@ -1060,6 +1063,126 @@ describe('selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance', () => {
       ['0x1'],
     );
     expect(byCaip).toEqual(byHex);
+  });
+
+  it('includes all tokens when hideZeroBalanceTokens is false', () => {
+    const state = {
+      ...mockState(),
+      settings: { hideZeroBalanceTokens: false },
+    } as unknown as RootState;
+
+    const result = selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+      state,
+      ['eip155:1', '0xa'],
+    );
+
+    // All tokens from both chains should be present (all have non-zero balances in mockState)
+    const chainIds = [...new Set(result.map((r) => r.chainId))];
+    expect(chainIds.sort()).toEqual(['0x1', '0xa']);
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('filters out zero-balance tokens when hideZeroBalanceTokens is true', () => {
+    const stateWithZeroBalances = {
+      ...mockState(),
+      settings: { hideZeroBalanceTokens: true },
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          TokenBalancesController: {
+            tokenBalances: {
+              '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
+                '0x1': {
+                  // stETH has zero balance
+                  '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': '0x0',
+                  // DAI has non-zero balance
+                  '0x6B175474E89094C44Da98b954EedeAC495271d0F':
+                    '0xAD78EBC5AC6200000',
+                },
+                '0xa': {
+                  // USDC has non-zero balance
+                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3B9ACA00',
+                },
+              },
+            },
+          },
+          // Native ETH on 0x1 has zero balance
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
+                  balance: '0x0',
+                  stakedBalance: '0x0',
+                },
+              },
+              '0xa': {
+                '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
+                  balance: '0xDE0B6B3A7640000',
+                },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+      stateWithZeroBalances,
+      ['eip155:1', '0xa'],
+    );
+
+    const addresses = result.map((r) => r.address);
+
+    // stETH (zero balance) should be filtered out
+    expect(addresses).not.toContain(
+      '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+    );
+    // ETH on 0x1 (zero balance) should be filtered out
+    expect(
+      result.find(
+        (r) =>
+          r.address === '0x0000000000000000000000000000000000000000' &&
+          r.chainId === '0x1' &&
+          !r.isStaked,
+      ),
+    ).toBeUndefined();
+    // DAI (non-zero balance) should remain
+    expect(addresses).toContain('0x6B175474E89094C44Da98b954EedeAC495271d0F');
+    // USDC (non-zero balance) should remain
+    expect(addresses).toContain('0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85');
+    // ETH on 0xa (non-zero balance) should remain
+    expect(
+      result.find(
+        (r) =>
+          r.address === '0x0000000000000000000000000000000000000000' &&
+          r.chainId === '0xa',
+      ),
+    ).toBeDefined();
+  });
+
+  it('keeps all tokens when hideZeroBalanceTokens is true but all have non-zero balances', () => {
+    const state = {
+      ...mockState(),
+      settings: { hideZeroBalanceTokens: true },
+    } as unknown as RootState;
+
+    const withFilter =
+      selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(state, [
+        'eip155:1',
+        '0xa',
+      ]);
+    const withoutFilter =
+      selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+        {
+          ...mockState(),
+          settings: { hideZeroBalanceTokens: false },
+        } as unknown as RootState,
+        ['eip155:1', '0xa'],
+      );
+
+    // All tokens in mockState have non-zero balances so counts should match
+    expect(withFilter.length).toBe(withoutFilter.length);
   });
 
   it('always sorts by balance and ignores PreferencesController tokenSortConfig', () => {
