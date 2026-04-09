@@ -1443,6 +1443,7 @@ export function getStakingNavbar(
  */
 export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
   return {
+    headerShown: true,
     headerTitle: () => null,
     headerLeft: () => (
       <ButtonIcon
