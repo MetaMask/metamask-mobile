@@ -292,7 +292,7 @@ describe('useSectionPerformance', () => {
 
       expect(mockAddBreadcrumb).toHaveBeenCalledWith(
         expect.objectContaining({
-          category: 'homepage.section.performance',
+          category: TraceOperation.HomepageSectionPerformance,
           level: 'warning',
           data: expect.objectContaining({
             section_id: HomeSectionNames.TOKENS,
