@@ -29,6 +29,7 @@ export const PERPS_CONSTANTS = {
   ConnectionAttemptTimeoutMs: 30_000, // 30 seconds timeout for connection attempts to prevent indefinite hanging
   WebsocketPingTimeoutMs: 5_000, // 5 seconds timeout for WebSocket health check ping
   ConnectRetryDelayMs: 200, // Delay before retrying connect() when connection isn't ready yet
+  ForegroundPingRetryDelayMs: 500, // Delay before retrying ping in resumeFromForeground — JS thread may be sluggish right after foregrounding
   ReconnectionCleanupDelayMs: 500, // Platform-agnostic delay to ensure WebSocket is ready
   ReconnectionDelayAndroidMs: 300, // Android-specific reconnection delay for better reliability on slower devices
   ReconnectionDelayIosMs: 100, // iOS-specific reconnection delay for optimal performance
