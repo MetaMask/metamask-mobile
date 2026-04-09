@@ -25,12 +25,14 @@ export const useWithdrawValidation = ({
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
 
-  // Available balance from perps account
+  // Truncate to 2 decimal places so validation matches the displayed balance.
+  // Without this, a raw balance like 16.069 displays as "$16.06" but the
+  // comparison would use 16.069, allowing the user to type 16.069 which
+  // exceeds what they see.
   const availableBalance = useMemo(() => {
     const balance = account?.availableBalance || '0';
-    // Use parseCurrencyString to properly parse formatted currency
-    // Return as string to maintain compatibility with components
-    return parseCurrencyString(balance).toString();
+    const parsed = parseCurrencyString(balance);
+    return (Math.floor(parsed * 100) / 100).toString();
   }, [account]);
 
   // Get withdrawal route for constraints

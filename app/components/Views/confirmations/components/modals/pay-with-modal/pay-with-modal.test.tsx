@@ -438,7 +438,21 @@ describe('PayWithModal', () => {
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
 
-    it('adds zero-balance token to TokensController on withdraw selection', async () => {
+    it('awaits addTokens before calling setPayToken for zero-balance withdraw token', async () => {
+      const callOrder: string[] = [];
+
+      mockAddTokens.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            callOrder.push('addTokens');
+            resolve();
+          }),
+      );
+
+      setPayTokenMock.mockImplementation(() => {
+        callOrder.push('setPayToken');
+      });
+
       const zeroBalanceToken = {
         accountType: EthAccountType.Eoa,
         address: '0xZeroBalanceToken',
@@ -463,6 +477,7 @@ describe('PayWithModal', () => {
 
       expect(mockAddTokens).toHaveBeenCalled();
       expect(setPayTokenMock).toHaveBeenCalled();
+      expect(callOrder).toStrictEqual(['addTokens', 'setPayToken']);
     });
   });
 

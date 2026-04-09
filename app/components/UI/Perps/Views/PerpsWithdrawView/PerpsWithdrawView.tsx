@@ -112,7 +112,7 @@ const PerpsWithdrawView: React.FC = () => {
   }, [account?.availableBalance]);
 
   const formattedBalance = useMemo(
-    () => formatPerpsFiat(availableBalance),
+    () => formatPerpsFiat(Math.floor(availableBalance * 100) / 100),
     [availableBalance],
   );
 
