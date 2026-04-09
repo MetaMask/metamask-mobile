@@ -21,6 +21,8 @@ import {
   marketInsightsNoData,
 } from '../../../api-mocking/mock-responses/market-insights-api-mocks';
 
+const TOKEN = 'Ethereum';
+
 const mockWithDataAndRamps = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagMarketInsightsEnabled(),
@@ -50,7 +52,8 @@ const mockWithData = async (mockServer: Mockttp) => {
 
 const navigateToMarketInsightsView = async () => {
   await loginToApp();
-  await WalletView.tapOnToken('Ethereum');
+  await WalletView.waitForTokenToBeReady(TOKEN);
+  await WalletView.tapOnToken(TOKEN);
   await Assertions.expectElementToBeVisible(TokenOverview.container, {
     description: 'Asset details screen is visible after tapping Ethereum',
   });
@@ -122,7 +125,8 @@ describe(
         },
         async () => {
           await loginToApp();
-          await WalletView.tapOnToken('Ethereum');
+          await WalletView.waitForTokenToBeReady(TOKEN);
+          await WalletView.tapOnToken(TOKEN);
           await Assertions.expectElementToBeVisible(TokenOverview.container, {
             description:
               'Asset details screen is visible after tapping Ethereum',
@@ -154,7 +158,8 @@ describe(
         },
         async () => {
           await loginToApp();
-          await WalletView.tapOnToken('Ethereum');
+          await WalletView.waitForTokenToBeReady(TOKEN);
+          await WalletView.tapOnToken(TOKEN);
           await Assertions.expectElementToBeVisible(TokenOverview.container, {
             description:
               'Asset details screen is visible after tapping Ethereum',
