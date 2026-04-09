@@ -137,6 +137,7 @@ export function PayWithModal() {
                   address: token.address,
                   symbol: token.symbol,
                   decimals: token.decimals,
+                  image: token.image || undefined,
                 },
               ],
               networkClientId,
