@@ -197,6 +197,13 @@ export interface SetOHLCVDataPayload {
   data: OHLCVBar[];
   /** When provided, the WebView fetches older pages directly instead of round-tripping via RN. */
   pagination?: OHLCVPaginationConfig;
+  /**
+   * Expected visible-range start as a Unix timestamp in **milliseconds**.
+   * When set, the WebView calls `chart.setVisibleRange()` after `resetData()`
+   * so only the requested period (1H, 1D, 1W, 1M, 1Y) is shown initially —
+   * the user can still scroll left to reveal older data fetched via pagination.
+   */
+  visibleFromMs?: number;
 }
 
 export interface AddIndicatorPayload {
@@ -457,6 +464,13 @@ export interface AdvancedChartProps {
    * while the chart is not yet `CHART_READY`). Cleared when set false and the chart is ready.
    */
   isLoading?: boolean;
+
+  /**
+   * Expected visible-range start (Unix ms). After data loads the WebView constrains
+   * the viewport to `[visibleFromMs, lastBarTime]` via `chart.setVisibleRange()`.
+   * The user can still scroll left to reveal older/paginated data.
+   */
+  visibleFromMs?: number;
 }
 
 /**

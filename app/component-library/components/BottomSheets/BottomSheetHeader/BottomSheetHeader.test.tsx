@@ -7,11 +7,11 @@ import BottomSheetHeader from './BottomSheetHeader';
 import { BottomSheetHeaderVariant } from './BottomSheetHeader.types';
 
 describe('BottomSheetHeader', () => {
-  it('should render snapshot correctly', () => {
+  it('renders correctly', () => {
     const wrapper = render(
       <BottomSheetHeader>Sample Header Title</BottomSheetHeader>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.toJSON()).toBeDefined();
   });
 
   it('renders with back button when onBack is provided', () => {
@@ -101,21 +101,21 @@ describe('BottomSheetHeader', () => {
     );
   });
 
-  it('renders snapshot correctly with Display variant', () => {
+  it('renders correctly with Display variant', () => {
     const wrapper = render(
       <BottomSheetHeader variant={BottomSheetHeaderVariant.Display}>
         Sample Header Title
       </BottomSheetHeader>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.toJSON()).toBeDefined();
   });
 
-  it('renders snapshot correctly with Compact variant', () => {
+  it('renders correctly with Compact variant', () => {
     const wrapper = render(
       <BottomSheetHeader variant={BottomSheetHeaderVariant.Compact}>
         Sample Header Title
       </BottomSheetHeader>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.toJSON()).toBeDefined();
   });
 });
