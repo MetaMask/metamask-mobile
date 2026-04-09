@@ -142,6 +142,7 @@ import CampaignTourStepView from '../../UI/Rewards/Views/CampaignTourStepView';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
+import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -1304,7 +1305,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
-        options={{ headerShown: true, ...slideFromRightAnimation }}
+        options={({ navigation }) => ({
+          ...slideFromRightAnimation,
+          ...getDeFiProtocolPositionDetailsNavbarOptions(navigation),
+        })}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
