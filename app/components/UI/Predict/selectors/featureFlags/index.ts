@@ -122,6 +122,11 @@ export const selectPredictFeatureFlags = createSelector(
     resolvePredictFeatureFlags({ remoteFeatureFlags, localOverrides }),
 );
 
+export const selectExtendedSportsMarketsLeagues = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.extendedSportsMarketsLeagues,
+);
+
 export const selectPredictFeeCollectionFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.feeCollection,
