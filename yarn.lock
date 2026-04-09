@@ -2112,8 +2112,8 @@ __metadata:
 
 "@braze/react-native-sdk@patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch":
   version: 19.1.0
-  resolution: "@braze/react-native-sdk@patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch::version=19.1.0&hash=c50812"
-  checksum: 10/8d57b8d761d71bc2410eb1de640fd2c018617495f044a937b2f9c9589716d05800210ce5356087fba0e78d72f833e070cba5c89405b58447a4ab29cc8318b9ec
+  resolution: "@braze/react-native-sdk@patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch::version=19.1.0&hash=04a867"
+  checksum: 10/b7295724be9840081daccc26c380a52a3cce12b9898ad0bfff8e3eb2b89b82b0bb60a80b546ad099922978155c86eaff935a57bedee4eda32e5d718d25af54f9
   languageName: node
   linkType: hard
 
