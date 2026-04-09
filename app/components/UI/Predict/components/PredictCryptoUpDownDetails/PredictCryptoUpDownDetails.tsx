@@ -41,7 +41,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
-      edges={['left', 'right', 'bottom']}
+      edges={['left', 'right', 'top']}
       testID={PredictCryptoUpDownDetailsSelectorsIDs.SCREEN}
     >
       <HeaderStandardAnimated
