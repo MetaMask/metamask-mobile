@@ -86,7 +86,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   }, [optInToCampaign, campaign.id, showToast, RewardsToastOptions, onClose]);
 
   return (
-    <BottomSheet goBack={noop} onClose={onClose}>
+    <BottomSheet onClose={onClose}>
       <Box twClassName="px-4 pb-4">
         {/* Header: centered title + close button */}
         <Box
