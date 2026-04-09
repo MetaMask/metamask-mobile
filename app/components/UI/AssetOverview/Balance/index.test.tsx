@@ -9,6 +9,7 @@ import { selectChainId } from '../../../../selectors/networkController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { selectPricePercentChange1d } from '../../../../selectors/tokenRatesController';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
+import { TOKEN_AMOUNT_BALANCE_TEST_ID } from '../../AssetElement/index.constants';
 
 // Create a mock function we can control in individual tests
 const mockSelectPricePercentChange1d = jest.fn();
@@ -314,10 +315,13 @@ describe('Balance', () => {
       </Provider>,
     );
     expect(getByTestId('asset-DAI')).toBeOnTheScreen();
+    const tokenAmount = getByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
+    expect(tokenAmount).toBeOnTheScreen();
+    expect(tokenAmount.props.children).toBe('456');
   });
 
   it('should render correctly without a secondary balance', () => {
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <Provider store={store}>
         <Balance
           asset={mockDAI}
@@ -327,6 +331,7 @@ describe('Balance', () => {
       </Provider>,
     );
     expect(getByTestId('asset-DAI')).toBeOnTheScreen();
+    expect(queryByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID)).toBeNull();
   });
 
   it('should fire navigation event for non native tokens', () => {
