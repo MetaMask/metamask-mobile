@@ -35699,7 +35699,7 @@ __metadata:
     "@metamask/transaction-controller": "npm:^64.2.0"
     "@metamask/transaction-pay-controller": "npm:^19.1.1"
     "@metamask/tron-wallet-snap": "npm:^1.25.2"
-    "@metamask/utils": "npm:^11.8.1"
+    "@metamask/utils": "npm:^11.11.0"
     "@myx-trade/sdk": "npm:^0.1.265"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.30.2"
