@@ -17,6 +17,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 
 interface TopTradersSectionProps {
   sectionIndex: number;
@@ -55,6 +56,13 @@ const TopTradersSection = forwardRef<
     totalSectionsLoaded,
     isEmpty: true,
     itemCount: 0,
+  });
+
+  useSectionPerformance({
+    sectionId: HomeSectionNames.TOP_TRADERS,
+    contentReady: isEnabled,
+    isEmpty: true,
+    enabled: isEnabled,
   });
 
   const handleViewAll = useCallback(() => {

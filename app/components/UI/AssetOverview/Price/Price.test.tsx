@@ -5,6 +5,8 @@ import Price from './Price';
 import type { TokenI } from '../../Tokens/types';
 import { PriceChartProvider } from '../PriceChart/PriceChart.context';
 import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
+import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
+import { ChartType } from '../../Charts/AdvancedChart/AdvancedChart.types';
 
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
@@ -18,6 +20,7 @@ jest.mock('react-redux', () => {
   return {
     ...actual,
     useSelector: jest.fn(),
+    useDispatch: jest.fn(() => jest.fn()),
   };
 });
 
@@ -94,6 +97,9 @@ describe('Price Component', () => {
       if (selector === selectTokenOverviewAdvancedChartEnabled) {
         return false;
       }
+      if (selector === selectTokenOverviewChartType) {
+        return ChartType.Line;
+      }
       return undefined;
     });
   });
@@ -102,6 +108,9 @@ describe('Price Component', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTokenOverviewAdvancedChartEnabled) {
         return true;
+      }
+      if (selector === selectTokenOverviewChartType) {
+        return ChartType.Line;
       }
       return undefined;
     });
@@ -116,6 +125,9 @@ describe('Price Component', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTokenOverviewAdvancedChartEnabled) {
         return true;
+      }
+      if (selector === selectTokenOverviewChartType) {
+        return ChartType.Line;
       }
       return undefined;
     });
@@ -137,6 +149,9 @@ describe('Price Component', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTokenOverviewAdvancedChartEnabled) {
         return true;
+      }
+      if (selector === selectTokenOverviewChartType) {
+        return ChartType.Line;
       }
       return undefined;
     });
