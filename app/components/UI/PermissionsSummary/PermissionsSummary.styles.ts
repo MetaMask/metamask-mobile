@@ -18,11 +18,8 @@ const createStyles = (params: {
   const height = nonTabView ? tabHeight : bottomSheetHeight;
 
   return StyleSheet.create({
-    safeArea: {
-      backgroundColor: theme.colors.background.alternative,
-    },
+    safeArea: {},
     mainContainer: {
-      backgroundColor: theme.colors.background.alternative,
       paddingTop: 16,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
