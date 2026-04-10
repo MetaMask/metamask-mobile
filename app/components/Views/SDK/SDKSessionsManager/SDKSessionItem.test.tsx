@@ -5,9 +5,6 @@ import { getPermittedAccounts } from '../../../../core/Permissions';
 import SDKSessionItem from './SDKSessionItem';
 
 // Mock external hooks and functions
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(),
-}));
 jest.mock('../../../../util/theme', () => ({
   useTheme: jest.fn(),
 }));

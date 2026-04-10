@@ -581,10 +581,28 @@ jest.mock('../../core/Engine', () =>
   require('../../core/__mocks__/MockedEngine'),
 );
 
-jest.mock('react-native-safe-area-context', () => ({
-  ...jest.requireActual('react-native-safe-area-context'),
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-}));
+jest.mock('react-native-safe-area-context', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const actual = jest.requireActual('react-native-safe-area-context');
+  // Always stub SafeAreaView with View: the real SafeAreaView is a forwardRef to
+  // codegenNativeComponent('RNCSafeAreaView'), which is often undefined in Jest, so
+  // the import looks defined but rendering throws "element type is invalid" (e.g.
+  // PermissionsSummary, AccountConnectMultiSelector, AddAccount).
+  const SafeAreaView = React.forwardRef((props, ref) =>
+    React.createElement(View, { ...props, ref }),
+  );
+  const mockInsets = { top: 0, right: 0, bottom: 0, left: 0 };
+  // Match typical per-test mocks (zero frame) so BottomSheet layout snapshots stay stable.
+  const mockFrame = { width: 0, height: 0, x: 0, y: 0 };
+  return {
+    ...actual,
+    SafeAreaView,
+    useSafeAreaInsets: () => mockInsets,
+    // Real hook throws without <SafeAreaProvider>; many tests render BottomSheet only.
+    useSafeAreaFrame: () => mockFrame,
+  };
+});
 
 jest.mock(
   'react-native-keyboard-controller',

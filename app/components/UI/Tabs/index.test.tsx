@@ -51,16 +51,6 @@ const mockInitialState = {
 };
 
 const mockInset = { top: 1, right: 2, bottom: 3, left: 4 };
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaInsetsContext: {
-    Consumer: ({
-      children,
-    }: {
-      children: (inset: typeof mockInset) => React.ReactNode;
-    }) => children(mockInset),
-  },
-}));
-
 jest.mock('../../../components/hooks/useAccounts', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const { KeyringTypes } = require('@metamask/keyring-controller');

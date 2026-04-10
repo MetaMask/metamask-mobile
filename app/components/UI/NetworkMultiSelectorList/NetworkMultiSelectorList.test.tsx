@@ -52,10 +52,6 @@ jest.mock('@metamask/keyring-api', () => ({
   EthScope: {},
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(),
-}));
-
 jest.mock('@metamask/controller-utils', () => ({
   toHex: jest.fn(),
 }));

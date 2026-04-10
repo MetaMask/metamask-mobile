@@ -7,12 +7,6 @@ import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 
 const MOCK_CHILD_ID = 'MOCK_CHILD_ID';
 
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaProvider: jest
-    .fn()
-    .mockImplementation(() => <MockView testID={MOCK_CHILD_ID} />),
-}));
-
 jest.mock('../../../core/SecureKeychain', () => ({
   ...jest.requireActual('../../../core/SecureKeychain').default,
   init: jest.fn(),

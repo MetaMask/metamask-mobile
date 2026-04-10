@@ -14,15 +14,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Mock dependencies
 jest.mock('../../../util/Logger');
 jest.mock('../../../util/device');
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(() => ({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  })),
-}));
-
 // Use the proper mock from __mocks__ directory
 jest.mock('rive-react-native', () =>
   jest.requireActual('../../../__mocks__/rive-react-native'),

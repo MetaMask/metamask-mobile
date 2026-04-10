@@ -65,10 +65,6 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(),
-}));
-
 // Mock NavigationService
 const mockNavigationServiceMethods = {
   navigate: jest.fn(),

@@ -9,10 +9,6 @@ import { IconName } from '@metamask/design-system-react-native';
 // Internal dependencies.
 import HeaderRoot from './HeaderRoot';
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
-}));
-
 const CONTAINER_TEST_ID = 'header-root-container';
 const LEFT_CHILDREN_TEST_ID = 'header-root-left-children';
 const END_ACCESSORY_TEST_ID = 'header-root-end-accessory';
