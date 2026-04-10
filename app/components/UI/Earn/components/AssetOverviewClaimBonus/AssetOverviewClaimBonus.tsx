@@ -38,6 +38,7 @@ import {
 } from '../../constants/musd';
 import useTokenBalance from '../../../TokenDetails/hooks/useTokenBalance';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
+import { toFormattedAddress } from '../../../../../util/address';
 import TagBase, {
   TagSeverity,
 } from '../../../../../component-library/base-components/TagBase';
@@ -84,13 +85,17 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   // keep the per-chain balance from useTokenBalance.
   const mainnetMusdAsset = useSelector((state: RootState) =>
     selectAsset(state, {
-      address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET],
+      address: toFormattedAddress(
+        MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET],
+      ),
       chainId: CHAIN_IDS.MAINNET,
     }),
   );
   const lineaMusdAsset = useSelector((state: RootState) =>
     selectAsset(state, {
-      address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
+      address: toFormattedAddress(
+        MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
+      ),
       chainId: CHAIN_IDS.LINEA_MAINNET,
     }),
   );
