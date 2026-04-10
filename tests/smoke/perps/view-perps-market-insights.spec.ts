@@ -170,7 +170,24 @@ describe(
           await navigateToPerpsMarketInsightsViewBTC();
           await MarketInsightsView.scrollToThumbsUp();
           await MarketInsightsView.tapThumbsUpButton();
-          await MarketInsightsView.expectThumbsUpButtonVisible();
+          await MarketInsightsView.expectThumbsUpFilled();
+        },
+      );
+    });
+
+    it('can tap thumbs down feedback button', async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().withPerpsFirstTimeUser(false).build(),
+          restartDevice: true,
+          testSpecificMock: mockWithPerpsData,
+          languageAndLocale: { language: 'en', locale: 'en_US' },
+        },
+        async () => {
+          await navigateToPerpsMarketInsightsViewBTC();
+          await MarketInsightsView.scrollToThumbsUp();
+          await MarketInsightsView.tapThumbsDownButton();
+          await MarketInsightsView.expectFeedbackBottomSheetVisible();
         },
       );
     });
