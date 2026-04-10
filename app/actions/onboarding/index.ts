@@ -11,8 +11,8 @@ export const SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL =
   'SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL';
 export const SET_SEEDLESS_ONBOARDING = 'SET_SEEDLESS_ONBOARDING';
 export const CLEAR_SEEDLESS_ONBOARDING = 'CLEAR_SEEDLESS_ONBOARDING';
-export const SET_IOS_GOOGLE_WARNING_SHEET_PROMPTED =
-  'SET_IOS_GOOGLE_WARNING_SHEET_PROMPTED';
+export const SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT =
+  'SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT';
 
 interface SaveEventAction {
   type: typeof SAVE_EVENT;
@@ -53,9 +53,9 @@ export interface ClearSeedlessOnboardingAction {
   type: typeof CLEAR_SEEDLESS_ONBOARDING;
 }
 
-export interface SetIosGoogleWarningSheetPromptedAction {
-  type: typeof SET_IOS_GOOGLE_WARNING_SHEET_PROMPTED;
-  iosGoogleWarningSheetPrompted: boolean;
+export interface SetIosGoogleWarningSheetLastDismissedAtAction {
+  type: typeof SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT;
+  iosGoogleWarningSheetLastDismissedAt: number;
 }
 
 export type OnboardingActionTypes =
@@ -67,7 +67,7 @@ export type OnboardingActionTypes =
   | SetPendingSocialLoginMarketingConsentBackfillAction
   | SetSeedlessOnboardingAction
   | ClearSeedlessOnboardingAction
-  | SetIosGoogleWarningSheetPromptedAction;
+  | SetIosGoogleWarningSheetLastDismissedAtAction;
 
 export function saveOnboardingEvent(
   eventArgs: [ITrackingEvent],
@@ -136,11 +136,11 @@ export function clearSeedlessOnboarding(): ClearSeedlessOnboardingAction {
   };
 }
 
-export function setIosGoogleWarningSheetPrompted(
-  iosGoogleWarningSheetPrompted: boolean,
-): SetIosGoogleWarningSheetPromptedAction {
+export function setIosGoogleWarningSheetLastDismissedAt(
+  iosGoogleWarningSheetLastDismissedAt: number,
+): SetIosGoogleWarningSheetLastDismissedAtAction {
   return {
-    type: SET_IOS_GOOGLE_WARNING_SHEET_PROMPTED,
-    iosGoogleWarningSheetPrompted,
+    type: SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT,
+    iosGoogleWarningSheetLastDismissedAt,
   };
 }

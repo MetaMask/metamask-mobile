@@ -4,8 +4,17 @@ import { presentIosGoogleLoginVersionWarningSheet } from '../../../components/Vi
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import { UserActionType } from '../../../actions/user';
-import { selectOnboardingIosGoogleWarningSheetPrompted } from '../../../selectors/onboarding';
-import { setIosGoogleWarningSheetPrompted } from '../../../actions/onboarding';
+import { selectOnboardingIosGoogleWarningSheetLastDismissedAt } from '../../../selectors/onboarding';
+import { setIosGoogleWarningSheetLastDismissedAt } from '../../../actions/onboarding';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
+import {
+  selectSeedlessOnboardingAuthConnection,
+  selectSeedlessOnboardingLoginFlow,
+} from '../../../selectors/seedlessOnboardingController';
+
+/** Minimum time between showing the iOS Google version warning sheet after dismiss. */
+export const IOS_GOOGLE_WARNING_SHEET_REMINDER_INTERVAL_MS =
+  7 * 24 * 60 * 60 * 1000;
 
 const promptIosGoogleWarningSheet = async function () {
   const navigation = NavigationService.navigation;
@@ -20,16 +29,32 @@ export function* promptIosGoogleWarningSheetSaga() {
     yield delay(5000);
 
     try {
-      // check for state
-      const iosGoogleWarningSheetPrompted: boolean = yield select(
-        selectOnboardingIosGoogleWarningSheetPrompted,
+      // check if the user is on the seedless Google login flow
+      const isSeedlessLoginFlow: boolean = yield select(
+        selectSeedlessOnboardingLoginFlow,
       );
-      if (iosGoogleWarningSheetPrompted) {
+      const authConnection: string | undefined = yield select(
+        selectSeedlessOnboardingAuthConnection,
+      );
+      if (!isSeedlessLoginFlow || authConnection !== AuthConnection.Google) {
+        return;
+      }
+
+      // check if the user has already dismissed the warning sheet in the last 7 days
+      const lastDismissedAt: number | null = yield select(
+        selectOnboardingIosGoogleWarningSheetLastDismissedAt,
+      );
+      if (
+        lastDismissedAt !== null &&
+        Date.now() - lastDismissedAt <
+          IOS_GOOGLE_WARNING_SHEET_REMINDER_INTERVAL_MS
+      ) {
         return;
       }
 
       yield call(promptIosGoogleWarningSheet);
-      yield put(setIosGoogleWarningSheetPrompted(true));
+      const dismissedAt = Date.now();
+      yield put(setIosGoogleWarningSheetLastDismissedAt(dismissedAt));
     } catch (error) {
       Logger.error(error as Error, 'Failed to prompt iOS Google warning sheet');
     }
