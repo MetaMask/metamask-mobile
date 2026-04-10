@@ -953,12 +953,14 @@ class WalletConnect2Session {
   ) => {
     const { method, params } = requestEvent.params.request;
     const mappedRequest = adaptWalletConnectRequestForSnap({ method, params });
+    const snapExecutionOrigin =
+      snapId === TRON_WALLET_SNAP_ID ? 'metamask' : unverifiedOrigin;
     DevLogger.log(
       `WC2::routeToSnap snapId=${snapId} method=${method} mappedMethod=${mappedRequest.method} origin=${unverifiedOrigin}`,
     );
     try {
       const result = await handleSnapRequest(Engine.controllerMessenger, {
-        origin: unverifiedOrigin,
+        origin: snapExecutionOrigin,
         snapId: snapId as SnapId,
         handler: HandlerType.OnRpcRequest,
         request: {
@@ -968,7 +970,56 @@ class WalletConnect2Session {
           params: mappedRequest.params,
         },
       });
-      await this.approveRequest({ id: requestEvent.id + '', result });
+      let walletConnectResult = result;
+      if (method === 'tron_signTransaction') {
+        const firstParam = Array.isArray(params) ? params[0] : params;
+        const transactionContainer =
+          typeof firstParam === 'object' && firstParam !== null
+            ? (firstParam as Record<string, unknown>).transaction
+            : undefined;
+        const originalTransaction =
+          typeof transactionContainer === 'object' &&
+          transactionContainer !== null &&
+          !Array.isArray(transactionContainer) &&
+          typeof (transactionContainer as Record<string, unknown>)
+            .transaction === 'object' &&
+          (transactionContainer as Record<string, unknown>).transaction !== null
+            ? ((transactionContainer as Record<string, unknown>)
+                .transaction as Record<string, unknown>)
+            : typeof transactionContainer === 'object' &&
+                transactionContainer !== null &&
+                !Array.isArray(transactionContainer)
+              ? (transactionContainer as Record<string, unknown>)
+              : undefined;
+
+        const resultObject =
+          typeof result === 'object' &&
+          result !== null &&
+          !Array.isArray(result)
+            ? (result as Record<string, unknown>)
+            : undefined;
+        const signatureValue = resultObject?.signature;
+        const normalizedSignature = Array.isArray(signatureValue)
+          ? signatureValue
+          : typeof signatureValue === 'string'
+            ? [signatureValue]
+            : undefined;
+
+        if (
+          originalTransaction &&
+          normalizedSignature &&
+          !(typeof resultObject?.txID === 'string')
+        ) {
+          walletConnectResult = {
+            ...originalTransaction,
+            signature: normalizedSignature,
+          };
+        }
+      }
+      await this.approveRequest({
+        id: requestEvent.id + '',
+        result: walletConnectResult,
+      });
     } catch (error) {
       await this.rejectRequest({ id: requestEvent.id + '', error });
     } finally {

@@ -1290,6 +1290,7 @@ describe('WalletConnect2Session', () => {
         expect.anything(),
         expect.objectContaining({
           snapId: 'npm:@metamask/tron-wallet-snap',
+          origin: 'metamask',
           handler: 'onRpcRequest',
           request: expect.objectContaining({
             method: 'signTransaction',
@@ -1306,6 +1307,60 @@ describe('WalletConnect2Session', () => {
       expect(approveRequestSpy).toHaveBeenCalledWith({
         id: requestId + '',
         result: 'snap-result',
+      });
+    });
+
+    it('merges Tron signature-only Snap result into original transaction', async () => {
+      const requestId = Math.floor(Math.random() * 1000000);
+      (handleSnapRequest as jest.Mock).mockResolvedValueOnce({
+        signature: '0xsignature',
+      });
+      const request: WalletKitTypes.SessionRequest = {
+        id: requestId,
+        topic: mockSession.topic,
+        params: {
+          request: {
+            method: 'tron_signTransaction',
+            params: [
+              {
+                address: 'TTestAddress',
+                transaction: {
+                  transaction: {
+                    raw_data_hex: '0xabc',
+                    txID: 'tx-123',
+                    visible: false,
+                  },
+                },
+              },
+            ],
+          },
+          chainId: 'tron:728126428' as CaipChainId,
+        },
+        verifyContext: {
+          verified: {
+            origin: 'https://sunswap.com',
+            validation: 'UNKNOWN',
+            verifyUrl: '',
+          },
+        },
+      };
+
+      const approveRequestSpy = jest
+        .spyOn(session, 'approveRequest')
+        .mockResolvedValue(undefined);
+
+      session.setDeeplink(false);
+      (session as any).topicByRequestId[requestId] = mockSession.topic;
+      await session.handleRequest(request);
+
+      expect(approveRequestSpy).toHaveBeenCalledWith({
+        id: requestId + '',
+        result: {
+          raw_data_hex: '0xabc',
+          txID: 'tx-123',
+          visible: false,
+          signature: ['0xsignature'],
+        },
       });
     });
 
