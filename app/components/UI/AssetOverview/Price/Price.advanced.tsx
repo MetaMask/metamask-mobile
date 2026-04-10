@@ -137,11 +137,26 @@ const PriceAdvanced = ({
     null,
   );
   const { setIsChartBeingTouched } = usePriceChart();
+  const activeTouchCountRef = useRef(0);
 
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
     [],
   );
+
+  const handleTouchStart = useCallback(() => {
+    activeTouchCountRef.current += 1;
+    if (activeTouchCountRef.current > 0) {
+      setIsChartBeingTouched(true);
+    }
+  }, [setIsChartBeingTouched]);
+
+  const handleTouchEnd = useCallback(() => {
+    activeTouchCountRef.current = Math.max(0, activeTouchCountRef.current - 1);
+    if (activeTouchCountRef.current === 0) {
+      setIsChartBeingTouched(false);
+    }
+  }, [setIsChartBeingTouched]);
 
   const handleChartInteracted = useCallback(
     (payload: ChartInteractedPayload) => {
@@ -349,10 +364,11 @@ const PriceAdvanced = ({
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}
         <View
+          testID="advanced-chart-touch-container"
           style={[styles.chartContainer, { height: CHART_HEIGHT }]}
-          onTouchStart={() => setIsChartBeingTouched(true)}
-          onTouchEnd={() => setIsChartBeingTouched(false)}
-          onTouchCancel={() => setIsChartBeingTouched(false)}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
         >
           {showEmptyState ? (
             <NoDataOverlay

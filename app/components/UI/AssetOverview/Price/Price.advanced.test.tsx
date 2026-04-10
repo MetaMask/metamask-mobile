@@ -8,6 +8,14 @@ import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock'
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
+const mockSetIsChartBeingTouched = jest.fn();
+jest.mock('../PriceChart/PriceChart.context', () => ({
+  usePriceChart: () => ({
+    isChartBeingTouched: false,
+    setIsChartBeingTouched: mockSetIsChartBeingTouched,
+  }),
+}));
+
 jest.mock('react-redux', () => {
   const actual = jest.requireActual('react-redux');
   return {
@@ -120,6 +128,7 @@ describe('PriceAdvanced', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSetIsChartBeingTouched.mockClear();
     const analyticsHook = createMockUseAnalyticsHook();
     mockTrackEvent = analyticsHook.trackEvent as jest.Mock;
     jest.mocked(useAnalytics).mockReturnValue(analyticsHook);
@@ -282,5 +291,94 @@ describe('PriceAdvanced', () => {
   it('renders price-label with the time range date label', () => {
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
     expect(getByTestId('price-label')).toBeOnTheScreen();
+  });
+
+  describe('multi-touch gesture handling', () => {
+    it('sets isChartBeingTouched to true on first touch', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+
+      fireEvent(chartContainer, 'touchStart');
+
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+    });
+
+    it('maintains isChartBeingTouched=true during multi-finger pinch gesture', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+
+      // Simulate pinch: two fingers touch
+      fireEvent(chartContainer, 'touchStart');
+      fireEvent(chartContainer, 'touchStart');
+
+      // First finger lifts
+      fireEvent(chartContainer, 'touchEnd');
+
+      // Should still be true because second finger is still down
+      expect(mockSetIsChartBeingTouched).toHaveBeenLastCalledWith(true);
+
+      // Second finger lifts
+      fireEvent(chartContainer, 'touchEnd');
+
+      // Now should be false
+      expect(mockSetIsChartBeingTouched).toHaveBeenLastCalledWith(false);
+    });
+
+    it('sets isChartBeingTouched to false only when all touches end', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+
+      // Three fingers touch
+      fireEvent(chartContainer, 'touchStart');
+      fireEvent(chartContainer, 'touchStart');
+      fireEvent(chartContainer, 'touchStart');
+
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+
+      // First finger lifts
+      fireEvent(chartContainer, 'touchEnd');
+      expect(mockSetIsChartBeingTouched).toHaveBeenLastCalledWith(true);
+
+      // Second finger lifts
+      fireEvent(chartContainer, 'touchEnd');
+      expect(mockSetIsChartBeingTouched).toHaveBeenLastCalledWith(true);
+
+      // Third finger lifts
+      fireEvent(chartContainer, 'touchEnd');
+      expect(mockSetIsChartBeingTouched).toHaveBeenLastCalledWith(false);
+    });
+
+    it('handles touchCancel the same as touchEnd', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+
+      // Two fingers touch
+      fireEvent(chartContainer, 'touchStart');
+      fireEvent(chartContainer, 'touchStart');
+
+      // First finger cancels
+      fireEvent(chartContainer, 'touchCancel');
+      expect(mockSetIsChartBeingTouched).toHaveBeenLastCalledWith(true);
+
+      // Second finger cancels
+      fireEvent(chartContainer, 'touchCancel');
+      expect(mockSetIsChartBeingTouched).toHaveBeenLastCalledWith(false);
+    });
+
+    it('prevents negative touch count', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+
+      // End without start (edge case)
+      fireEvent(chartContainer, 'touchEnd');
+      fireEvent(chartContainer, 'touchEnd');
+
+      // Should not throw and should remain false
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+
+      // Now start a touch
+      fireEvent(chartContainer, 'touchStart');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+    });
   });
 });
