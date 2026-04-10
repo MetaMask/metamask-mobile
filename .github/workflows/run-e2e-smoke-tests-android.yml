@@ -27,7 +27,7 @@ jobs:
     with:
       test-suite-name: ci-sanity-check-android
       platform: android
-      test_suite_tag: 'CiSanityCheck:'
+      test_suite_tag: 'CiSanityCheck'
       split_number: 1
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
