@@ -81,9 +81,6 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
       padding: 0,
       borderBottomWidth: 1,
     },
-    itemContainerNoBorder: {
-      borderBottomWidth: 0,
-    },
     typeContainer: {
       flexDirection: 'row',
       alignItems: 'center',
