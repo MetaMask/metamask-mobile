@@ -137,7 +137,6 @@ const PriceAdvanced = ({
     null,
   );
   const { setIsChartBeingTouched } = usePriceChart();
-  const activeTouchCountRef = useRef(0);
 
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
@@ -145,15 +144,11 @@ const PriceAdvanced = ({
   );
 
   const handleTouchStart = useCallback(() => {
-    activeTouchCountRef.current += 1;
     setIsChartBeingTouched(true);
   }, [setIsChartBeingTouched]);
 
   const handleTouchEnd = useCallback(() => {
-    activeTouchCountRef.current = Math.max(0, activeTouchCountRef.current - 1);
-    if (activeTouchCountRef.current === 0) {
-      setIsChartBeingTouched(false);
-    }
+    setIsChartBeingTouched(false);
   }, [setIsChartBeingTouched]);
 
   const handleChartInteracted = useCallback(
