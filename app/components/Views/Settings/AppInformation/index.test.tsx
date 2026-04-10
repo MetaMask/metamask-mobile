@@ -77,8 +77,12 @@ const MOCK_STATE = {
           disabledBooleanFlag: false,
           enabledObjectFlag: { enabled: true, value: 'test' },
           disabledObjectFlag: { enabled: false, value: 'test' },
-          enabledArrayFlag: ['item1', 'item2'],
-          emptyArrayFlag: [],
+          activeObjectFlag: { active: true, config: 'test' },
+          inactiveObjectFlag: { active: false },
+          valueObjectFlag: { value: true, name: 'test' },
+          valueFalseObjectFlag: { value: false },
+          configObjectFlag: { refreshRate: 30000, support: true },
+          arrayFlag: ['item1', 'item2'],
           stringFlag: 'some-value',
           nullFlag: null,
         },
@@ -600,7 +604,7 @@ describe('AppInformation', () => {
       triggerLongPress(screen);
 
       await waitFor(() => {
-        // Should show 4 enabled flags: enabledBooleanFlag, enabledObjectFlag, enabledArrayFlag, stringFlag
+        // Should show 4 enabled flags: activeObjectFlag, enabledBooleanFlag, enabledObjectFlag, valueObjectFlag
         expect(
           screen.getByText(/Feature Flags \(4 enabled\)/),
         ).toBeOnTheScreen();
@@ -627,17 +631,18 @@ describe('AppInformation', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Copy All to Clipboard')).toBeOnTheScreen();
-        expect(screen.getByText('• enabledArrayFlag')).toBeOnTheScreen();
+        expect(screen.getByText('• activeObjectFlag')).toBeOnTheScreen();
         expect(screen.getByText('• enabledBooleanFlag')).toBeOnTheScreen();
         expect(screen.getByText('• enabledObjectFlag')).toBeOnTheScreen();
-        expect(screen.getByText('• stringFlag')).toBeOnTheScreen();
+        expect(screen.getByText('• valueObjectFlag')).toBeOnTheScreen();
       });
 
-      // Should not show disabled flags
+      // Should not show disabled/config flags
       expect(screen.queryByText('• disabledBooleanFlag')).not.toBeOnTheScreen();
       expect(screen.queryByText('• disabledObjectFlag')).not.toBeOnTheScreen();
-      expect(screen.queryByText('• emptyArrayFlag')).not.toBeOnTheScreen();
-      expect(screen.queryByText('• nullFlag')).not.toBeOnTheScreen();
+      expect(screen.queryByText('• configObjectFlag')).not.toBeOnTheScreen();
+      expect(screen.queryByText('• arrayFlag')).not.toBeOnTheScreen();
+      expect(screen.queryByText('• stringFlag')).not.toBeOnTheScreen();
     });
 
     it('collapses feature flags list when tapped again', async () => {
@@ -732,10 +737,10 @@ describe('AppInformation', () => {
           .getAllByText(/^• /)
           .map((node) => node.props.children);
         expect(flagTexts).toEqual([
-          '• enabledArrayFlag',
+          '• activeObjectFlag',
           '• enabledBooleanFlag',
           '• enabledObjectFlag',
-          '• stringFlag',
+          '• valueObjectFlag',
         ]);
       });
     });

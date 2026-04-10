@@ -182,10 +182,13 @@ class AppInformation extends PureComponent {
    */
   isFeatureFlagEnabled = (value) => {
     if (typeof value === 'boolean') return value;
-    if (value && typeof value === 'object' && 'enabled' in value)
-      return value.enabled;
-    if (Array.isArray(value)) return value.length > 0;
-    return Boolean(value);
+    if (value && typeof value === 'object') {
+      if ('enabled' in value) return value.enabled === true;
+      if ('active' in value) return value.active === true;
+      if ('value' in value && typeof value.value === 'boolean')
+        return value.value;
+    }
+    return false;
   };
 
   /**
