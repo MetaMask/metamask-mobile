@@ -516,14 +516,13 @@ jobs:
 
   build-android-apks:
     name: 'Build Android APKs'
-    # [CI-DEV] Removed android_changed gate — build always runs and reuses cached APK
-    # when no build-impacting files changed (see scripts/e2e-build-config.json for the file list).
-    # The fingerprint cache in build-android-e2e.yml handles restoration from this PR's cache
-    # or falls back to main's cache, avoiding a full rebuild when nothing relevant changed.
+    # [CI-DEV] Gate restored: only builds when Android-impacting files changed.
+    # When no build files changed, provide-android-artifact reuses the last artifact (~2-3 min).
     if: >-
       ${{
         github.event_name != 'merge_group' &&
-        !github.event.pull_request.head.repo.fork
+        !github.event.pull_request.head.repo.fork &&
+        needs.needs_e2e_build.outputs.android_changed == 'true'
       }}
     permissions:
       contents: read
@@ -536,14 +535,108 @@ jobs:
       keystore_target: 'qa'
     secrets: inherit
 
+  provide-android-artifact:
+    name: 'Provide Android APKs (reuse — no native changes)'
+    # Runs when no Android-impacting files changed: downloads APK from last successful
+    # CI run on this branch (or falls back to main), then re-uploads to this run.
+    # Takes ~2-3 min vs ~20 min for a full build + environment setup.
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        !github.event.pull_request.head.repo.fork &&
+        needs.needs_e2e_build.outputs.android_changed == 'false'
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    needs: [needs_e2e_build, smart-e2e-selection]
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Find and re-upload Android APK artifacts from last successful run
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPO="${{ github.repository }}"
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          WORKFLOW="ci.yml"
+          RUN_ID=""
+
+          echo "🔍 Looking for last successful run with Android APK artifacts..."
+
+          for TRY_BRANCH in "$BRANCH" "main"; do
+            echo "  Checking branch: $TRY_BRANCH"
+
+            while IFS= read -r run_id; do
+              [ -z "$run_id" ] && continue
+              count=$(gh api "repos/$REPO/actions/runs/$run_id/artifacts?per_page=50" \
+                --jq '[.artifacts[] | select((.name == "main-e2e-release.apk" or .name == "main-e2e-release-androidTest.apk") and .expired == false)] | length' \
+                2>/dev/null || echo "0")
+              if [ "$count" -ge 2 ]; then
+                RUN_ID="$run_id"
+                echo "  ✅ Found artifacts in run $run_id on branch '$TRY_BRANCH'"
+                break
+              fi
+            done < <(gh api "repos/$REPO/actions/workflows/$WORKFLOW/runs?branch=$TRY_BRANCH&status=success&per_page=10" \
+              --jq '.workflow_runs[].id' 2>/dev/null | head -5 || echo "")
+
+            [ -n "$RUN_ID" ] && break
+          done
+
+          if [ -z "$RUN_ID" ]; then
+            echo "❌ No suitable Android APK artifacts found in recent successful runs"
+            exit 1
+          fi
+
+          mkdir -p re-upload/apk re-upload/test-apk
+
+          for artifact_name in "main-e2e-release.apk" "main-e2e-release-androidTest.apk"; do
+            echo "⬇️ Downloading $artifact_name from run $RUN_ID..."
+            artifact_url=$(gh api "repos/$REPO/actions/runs/$RUN_ID/artifacts?per_page=50" \
+              --jq ".artifacts[] | select(.name == \"$artifact_name\") | .archive_download_url")
+
+            if [ "$artifact_name" = "main-e2e-release.apk" ]; then
+              dest="re-upload/apk"
+            else
+              dest="re-upload/test-apk"
+            fi
+
+            curl -sL -H "Authorization: Bearer $GH_TOKEN" "$artifact_url" -o artifact.zip
+            unzip -o artifact.zip -d "$dest/"
+            rm artifact.zip
+            echo "  ✅ $artifact_name downloaded ($(ls $dest/ | wc -l) files)"
+          done
+
+      - name: Re-upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-e2e-release.apk
+          path: re-upload/apk/
+          retention-days: 7
+
+      - name: Re-upload Android Test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-e2e-release-androidTest.apk
+          path: re-upload/test-apk/
+          retention-days: 7
+
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    # [CI-DEV] Removed android_changed gate and hardcoded CiSanityCheck tag — re-enable before merging
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    # [CI-DEV] Hardcoded CiSanityCheck tag — re-enable smart selection before merging.
+    # Depends on either build-android-apks (when files changed) or provide-android-artifact (reuse).
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        !github.event.pull_request.head.repo.fork &&
+        !cancelled() &&
+        (needs.build-android-apks.result == 'success' || needs.provide-android-artifact.result == 'success')
+      }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
+    needs: [needs_e2e_build, build-android-apks, provide-android-artifact, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
@@ -552,12 +645,13 @@ jobs:
 
   build-ios-apps:
     name: 'Build iOS Apps'
-    # [CI-DEV] Removed ios_changed gate — build always runs and reuses cached .app
-    # when no build-impacting files changed (see scripts/e2e-build-config.json).
+    # [CI-DEV] Gate restored: only builds when iOS-impacting files changed.
+    # When no build files changed, provide-ios-artifact reuses the last artifact (~2-3 min).
     if: >-
       ${{
         github.event_name != 'merge_group' &&
-        !github.event.pull_request.head.repo.fork
+        !github.event.pull_request.head.repo.fork &&
+        needs.needs_e2e_build.outputs.ios_changed == 'true'
       }}
     permissions:
       contents: read
@@ -566,20 +660,97 @@ jobs:
     uses: ./.github/workflows/build-ios-e2e.yml
     secrets: inherit
 
+  provide-ios-artifact:
+    name: 'Provide iOS App (reuse — no native changes)'
+    # Runs when no iOS-impacting files changed: downloads the .app from last successful
+    # CI run on this branch (or falls back to main), then re-uploads to this run.
+    # Takes ~2-3 min vs ~20 min for a full build + environment setup.
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        !github.event.pull_request.head.repo.fork &&
+        needs.needs_e2e_build.outputs.ios_changed == 'false'
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    needs: [needs_e2e_build, smart-e2e-selection]
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Find and re-upload iOS App artifact from last successful run
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPO="${{ github.repository }}"
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          WORKFLOW="ci.yml"
+          RUN_ID=""
+          ARTIFACT_NAME="main-e2e-MetaMask.app"
+
+          echo "🔍 Looking for last successful run with iOS App artifact..."
+
+          for TRY_BRANCH in "$BRANCH" "main"; do
+            echo "  Checking branch: $TRY_BRANCH"
+
+            while IFS= read -r run_id; do
+              [ -z "$run_id" ] && continue
+              count=$(gh api "repos/$REPO/actions/runs/$run_id/artifacts?per_page=50" \
+                --jq "[.artifacts[] | select(.name == \"$ARTIFACT_NAME\" and .expired == false)] | length" \
+                2>/dev/null || echo "0")
+              if [ "$count" -ge 1 ]; then
+                RUN_ID="$run_id"
+                echo "  ✅ Found artifact in run $run_id on branch '$TRY_BRANCH'"
+                break
+              fi
+            done < <(gh api "repos/$REPO/actions/workflows/$WORKFLOW/runs?branch=$TRY_BRANCH&status=success&per_page=10" \
+              --jq '.workflow_runs[].id' 2>/dev/null | head -5 || echo "")
+
+            [ -n "$RUN_ID" ] && break
+          done
+
+          if [ -z "$RUN_ID" ]; then
+            echo "❌ No suitable iOS App artifact found in recent successful runs"
+            exit 1
+          fi
+
+          echo "⬇️ Downloading $ARTIFACT_NAME from run $RUN_ID..."
+          artifact_url=$(gh api "repos/$REPO/actions/runs/$RUN_ID/artifacts?per_page=50" \
+            --jq ".artifacts[] | select(.name == \"$ARTIFACT_NAME\") | .archive_download_url")
+
+          curl -sL -H "Authorization: Bearer $GH_TOKEN" "$artifact_url" -o artifact.zip
+          mkdir -p re-upload/app
+          unzip -o artifact.zip -d re-upload/app/
+          rm artifact.zip
+          echo "✅ iOS artifact downloaded ($(ls re-upload/app/ | wc -l) top-level entries)"
+
+      - name: Re-upload iOS App
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-e2e-MetaMask.app
+          path: re-upload/app/
+          retention-days: 7
+
   ios-tests-ready:
     name: 'iOS Tests Ready'
     runs-on: ubuntu-latest
-    # [CI-DEV] Removed ios_changed gate — re-enable before merging
-    if: ${{ github.event_name != 'merge_group' }}
-    needs: [needs_e2e_build, build-ios-apps, smart-e2e-selection]
+    # [CI-DEV] Gate updated: waits for either build-ios-apps or provide-ios-artifact.
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        !cancelled() &&
+        (needs.build-ios-apps.result == 'success' || needs.provide-ios-artifact.result == 'success')
+      }}
+    needs: [needs_e2e_build, build-ios-apps, provide-ios-artifact, smart-e2e-selection]
     steps:
       - name: iOS build complete
         run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    # [CI-DEV] Removed ios_changed gate and hardcoded CiSanityCheck tag — re-enable before merging
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    # [CI-DEV] Hardcoded CiSanityCheck tag — re-enable smart selection before merging.
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && !cancelled() }}
     permissions:
       contents: read
       id-token: write
@@ -797,6 +968,10 @@ jobs:
       - check-skip-merge-queue
       - all-jobs-pass
       - needs_e2e_build
+      - build-android-apks
+      - provide-android-artifact
+      - build-ios-apps
+      - provide-ios-artifact
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
     env:
