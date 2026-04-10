@@ -3,7 +3,7 @@ import { isIPFSUri } from '../../../../util/general';
 import isUrl from 'is-url';
 import type { BridgeToken } from '../../Bridge/types';
 import type { TokenListMap } from '@metamask/assets-controllers';
-import type { Hex, CaipChainId } from '@metamask/utils';
+import type { Hex } from '@metamask/utils';
 
 /**
  * Configuration for token icon enhancement
@@ -11,19 +11,6 @@ import type { Hex, CaipChainId } from '@metamask/utils';
 export interface TokenIconEnhancementConfig {
   token: Partial<BridgeToken>;
   tokenList: TokenListMap;
-  isIpfsGatewayEnabled?: boolean;
-}
-
-/**
- * Configuration for creating enhanced tokens
- */
-export interface CreateEnhancedTokenConfig {
-  symbol: string;
-  address: string;
-  chainId: Hex | CaipChainId;
-  decimals: number;
-  tokenList: TokenListMap;
-  name?: string;
   isIpfsGatewayEnabled?: boolean;
 }
 
@@ -119,33 +106,4 @@ export const enhanceTokenWithIcon = ({
     tokenFiatAmount: token.tokenFiatAmount,
     currencyExchangeRate: token.currencyExchangeRate,
   };
-};
-
-/**
- * Creates a token object with proper icon from basic token information
- * @param config - Configuration object with token details and metadata
- * @returns BridgeToken with proper icon enhancement
- */
-export const createEnhancedToken = ({
-  symbol,
-  address,
-  chainId,
-  decimals,
-  tokenList,
-  name,
-  isIpfsGatewayEnabled = false,
-}: CreateEnhancedTokenConfig): BridgeToken => {
-  const baseToken: Partial<BridgeToken> = {
-    symbol,
-    address,
-    chainId,
-    decimals,
-    name: name || symbol,
-  };
-
-  return enhanceTokenWithIcon({
-    token: baseToken,
-    tokenList,
-    isIpfsGatewayEnabled,
-  });
 };
