@@ -329,7 +329,7 @@
     "@metamask/utils": "^11.8.1",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
-    "@nktkas/hyperliquid": "^0.30.2",
+    "@nktkas/hyperliquid": "^0.32.2",
     "@noble/curves": "1.9.6",
     "@noble/hashes": "1.8.0",
     "@notifee/react-native": "^9.0.0",
