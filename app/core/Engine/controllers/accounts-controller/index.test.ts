@@ -3,7 +3,7 @@ import {
   type AccountsControllerMessenger,
 } from '@metamask/accounts-controller';
 import type { MessengerClientInitRequest } from '../../types';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { accountsControllerInit } from '.';
 import { defaultAccountsControllerState } from './constants';
 import { logAccountsControllerCreation } from './utils';
@@ -36,7 +36,9 @@ describe('accounts controller init', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
     // Create controller init request mock
-    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+    initRequestMock = buildMessengerClientInitRequestMock(
+      baseControllerMessenger,
+    );
   });
 
   describe('logs are registered during controller creation', () => {

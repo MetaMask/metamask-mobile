@@ -3,7 +3,7 @@ import {
   CurrencyRateMessenger,
 } from '@metamask/assets-controllers';
 import type { MessengerClientInitRequest } from '../../types';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { currencyRateControllerInit } from './currency-rate-controller-init';
 import { defaultCurrencyRateState } from './constants';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
@@ -23,7 +23,9 @@ describe('currency rate controller init', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
     // Create controller init request mock
-    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+    initRequestMock = buildMessengerClientInitRequestMock(
+      baseControllerMessenger,
+    );
   });
 
   it('returns controller instance', () => {

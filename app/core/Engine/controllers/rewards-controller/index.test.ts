@@ -1,5 +1,5 @@
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { MessengerClientInitRequest } from '../../types';
 import {
   RewardsController,
@@ -78,7 +78,7 @@ describe('rewardsControllerInit', () => {
 
     // Create controller init request mock
     initRequestMock = {
-      ...buildControllerInitRequestMock(baseControllerMessenger),
+      ...buildMessengerClientInitRequestMock(baseControllerMessenger),
       controllerMessenger:
         mockControllerMessenger as unknown as RewardsControllerMessenger,
       persistedState: {},
