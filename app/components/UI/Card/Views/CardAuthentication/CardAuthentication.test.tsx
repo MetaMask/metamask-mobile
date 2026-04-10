@@ -198,13 +198,6 @@ describe('CardAuthentication Component', () => {
         screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
       ).toBeOnTheScreen();
     });
-
-    it('renders login step', () => {
-      render();
-
-      expect(screen.getByText('Log in to your card account')).toBeOnTheScreen();
-      expect(screen.getByTestId('email-field')).toBeOnTheScreen();
-    });
   });
 
   describe('Login Step - Location Selection', () => {

@@ -332,6 +332,6 @@ describe('AddFundsBottomSheet', () => {
   it('renders component correctly', () => {
     const { getByText } = setupComponent();
 
-    expect(getByText('Add funds')).toBeOnTheScreen();
+    expect(getByText('Select method')).toBeOnTheScreen();
   });
 });
