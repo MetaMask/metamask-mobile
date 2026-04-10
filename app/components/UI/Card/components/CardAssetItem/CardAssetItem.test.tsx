@@ -108,10 +108,11 @@ describe('CardAssetItem Component', () => {
       uri: 'https://example.com/testnet.png',
     });
 
-    const { getByText } = renderWithProvider(() => (
-      <CardAssetItem asset={mockAsset} />
-    ));
+    renderWithProvider(() => <CardAssetItem asset={mockAsset} />);
 
-    expect(getByText('Ethereum')).toBeOnTheScreen();
+    expect(mockIsTestNet).toHaveBeenCalledWith(mockAsset.chainId);
+    expect(mockGetTestNetImageByChainId).toHaveBeenCalledWith(
+      mockAsset.chainId,
+    );
   });
 });

@@ -156,7 +156,7 @@ describe('CardButton Component', () => {
 
       expect(
         queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('withBadge variant: shows badge when button has not been viewed', () => {
@@ -197,7 +197,7 @@ describe('CardButton Component', () => {
 
       expect(
         queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     describe('analytics: CARD_BUTTON_VIEWED event', () => {

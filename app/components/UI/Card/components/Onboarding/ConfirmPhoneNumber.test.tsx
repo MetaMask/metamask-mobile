@@ -729,7 +729,7 @@ describe('ConfirmPhoneNumber Component', () => {
       ).not.toBeOnTheScreen();
       expect(
         queryByTestId('confirm-phone-number-phone-number-error'),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('shows verification error when verifyIsError is true', () => {

@@ -334,7 +334,7 @@ describe('SignUp Component', () => {
       // Description should be hidden when error is shown
       expect(
         queryByText('card.card_onboarding.sign_up.password_description'),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('shows description again when password becomes valid', async () => {

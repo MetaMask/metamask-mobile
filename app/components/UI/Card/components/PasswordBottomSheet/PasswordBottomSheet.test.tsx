@@ -123,7 +123,7 @@ describe('PasswordBottomSheet', () => {
     ).toBeTruthy();
     expect(
       queryByText('Enter your wallet password to view card details.'),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('displays password input field', () => {

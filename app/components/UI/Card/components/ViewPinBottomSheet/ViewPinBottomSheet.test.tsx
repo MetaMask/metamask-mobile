@@ -102,7 +102,7 @@ describe('ViewPinBottomSheet', () => {
     await waitFor(() => {
       expect(
         queryByTestId(ViewPinBottomSheetSelectors.PIN_IMAGE_SKELETON),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -118,7 +118,7 @@ describe('ViewPinBottomSheet', () => {
     await waitFor(() => {
       expect(
         queryByTestId(ViewPinBottomSheetSelectors.PIN_IMAGE_SKELETON),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
   });
 

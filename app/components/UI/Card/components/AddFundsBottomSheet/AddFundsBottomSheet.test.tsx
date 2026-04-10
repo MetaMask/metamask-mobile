@@ -270,7 +270,7 @@ describe('AddFundsBottomSheet', () => {
       CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
     );
 
-    expect(swapOption).toBeNull();
+    expect(swapOption).not.toBeOnTheScreen();
   });
 
   it('renders correct descriptions for different tokens', () => {
@@ -330,8 +330,8 @@ describe('AddFundsBottomSheet', () => {
   });
 
   it('renders component correctly', () => {
-    const { toJSON } = setupComponent();
+    const { getByText } = setupComponent();
 
-    expect(toJSON()).toBeTruthy();
+    expect(getByText('Add funds')).toBeOnTheScreen();
   });
 });
