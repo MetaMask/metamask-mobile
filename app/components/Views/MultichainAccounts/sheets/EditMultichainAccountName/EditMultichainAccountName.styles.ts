@@ -1,5 +1,5 @@
 import { Theme } from '../../../../../util/theme/models';
-import { Platform, StatusBar, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -7,7 +7,6 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     safeArea: {
-      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
       flex: 1,
       backgroundColor: colors.background.default,
     },

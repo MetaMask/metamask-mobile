@@ -1,5 +1,5 @@
 import { Theme } from '@metamask/design-tokens';
-import { Platform, StatusBar, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
   const {
@@ -8,7 +8,6 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     safeArea: {
-      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
       flex: 1, // Ensure SafeAreaView takes full available space
     },
 
