@@ -1,5 +1,4 @@
 import { useEffect, useMemo } from 'react';
-import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
@@ -10,7 +9,6 @@ import { usePredictDeposit } from '../../../hooks/usePredictDeposit';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
-import { useNoPayTokenQuotesAlert } from '../../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
 
 interface UsePredictBuyConditionsParams {
   currentValue: number;
@@ -20,6 +18,7 @@ interface UsePredictBuyConditionsParams {
   isConfirming: boolean;
   totalPayForPredictBalance: number;
   isInputFocused: boolean;
+  hasBlockingPayAlerts: boolean;
 }
 
 export const usePredictBuyConditions = ({
@@ -30,6 +29,7 @@ export const usePredictBuyConditions = ({
   isConfirming,
   totalPayForPredictBalance,
   isInputFocused,
+  hasBlockingPayAlerts,
 }: UsePredictBuyConditionsParams) => {
   const { isBalanceLoading, availableBalance } =
     usePredictBuyAvailableBalance();
@@ -39,17 +39,6 @@ export const usePredictBuyConditions = ({
   const { isPredictBalanceSelected, resetSelectedPaymentToken } =
     usePredictPaymentToken();
   const { data: predictBalance = 0 } = usePredictBalance();
-
-  const insufficientPayAlerts = useInsufficientPayTokenBalanceAlert();
-  const noQuotesAlerts = useNoPayTokenQuotesAlert();
-
-  const blockingPayAlerts = useMemo(() => {
-    const allPayAlerts = [...insufficientPayAlerts, ...noQuotesAlerts];
-    return allPayAlerts.filter((a) => a.isBlocking);
-  }, [insufficientPayAlerts, noQuotesAlerts]);
-
-  const hasBlockingPayAlerts =
-    !isPredictBalanceSelected && blockingPayAlerts.length > 0;
 
   const shouldWaitForPayFees = !isPredictBalanceSelected;
 

@@ -20,8 +20,7 @@ let mockSelectedPaymentToken: {
   chainId?: string;
 } | null = null;
 let mockIsDepositPending = false;
-let mockInsufficientPayAlerts: { message: string; isBlocking: boolean }[] = [];
-let mockNoQuotesAlerts: { message: string; isBlocking: boolean }[] = [];
+
 let mockPredictBalance = 0;
 const mockResetSelectedPaymentToken = jest.fn();
 
@@ -60,20 +59,6 @@ jest.mock('../../../hooks/usePredictDeposit', () => ({
 }));
 
 jest.mock(
-  '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
-  () => ({
-    useInsufficientPayTokenBalanceAlert: () => mockInsufficientPayAlerts,
-  }),
-);
-
-jest.mock(
-  '../../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
-  () => ({
-    useNoPayTokenQuotesAlert: () => mockNoQuotesAlerts,
-  }),
-);
-
-jest.mock(
   '../../../../../Views/confirmations/hooks/pay/useTransactionPayData',
   () => ({
     useTransactionPayTotals: () => mockPayTotals,
@@ -97,6 +82,7 @@ const defaultParams = {
   isConfirming: false,
   totalPayForPredictBalance: 0,
   isInputFocused: false,
+  hasBlockingPayAlerts: false,
 };
 
 describe('usePredictBuyConditions', () => {
@@ -113,8 +99,7 @@ describe('usePredictBuyConditions', () => {
     mockIsPredictBalanceSelected = true;
     mockSelectedPaymentToken = null;
     mockIsDepositPending = false;
-    mockInsufficientPayAlerts = [];
-    mockNoQuotesAlerts = [];
+
     mockPredictBalance = 0;
   });
 
@@ -369,12 +354,12 @@ describe('usePredictBuyConditions', () => {
 
     it('returns false when external payment token balance is insufficient', () => {
       mockIsPredictBalanceSelected = false;
-      mockInsufficientPayAlerts = [
-        { message: 'Insufficient payment token balance', isBlocking: true },
-      ];
 
       const { result } = renderHook(() =>
-        usePredictBuyConditions(defaultParams),
+        usePredictBuyConditions({
+          ...defaultParams,
+          hasBlockingPayAlerts: true,
+        }),
       );
 
       expect(result.current.canPlaceBet).toBe(false);

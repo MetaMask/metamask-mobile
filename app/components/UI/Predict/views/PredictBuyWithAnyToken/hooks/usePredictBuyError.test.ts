@@ -8,8 +8,6 @@ const mockClearOrderError = jest.fn();
 let mockActiveOrder: { error?: string } | null = null;
 let mockIsBalanceLoading = false;
 let mockIsPredictBalanceSelected = true;
-let mockInsufficientPayAlerts: { message: string; isBlocking: boolean }[] = [];
-let mockNoQuotesAlerts: { message: string; isBlocking: boolean }[] = [];
 
 jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
@@ -30,27 +28,6 @@ jest.mock('../../../hooks/usePredictPaymentToken', () => ({
     isPredictBalanceSelected: mockIsPredictBalanceSelected,
   }),
 }));
-
-jest.mock(
-  '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
-  () => ({
-    useInsufficientPayTokenBalanceAlert: () => mockInsufficientPayAlerts,
-  }),
-);
-
-jest.mock(
-  '../../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
-  () => ({
-    useNoPayTokenQuotesAlert: () => mockNoQuotesAlerts,
-  }),
-);
-
-jest.mock(
-  '../../../../../Views/confirmations/hooks/pay/useTransactionPayData',
-  () => ({
-    useTransactionPayTotals: () => null,
-  }),
-);
 
 jest.mock('./usePredictBuyAvailableBalance', () => ({
   usePredictBuyAvailableBalance: () => ({
@@ -133,6 +110,7 @@ const defaultParams = {
   maxBetAmount: 100,
   isPayFeesLoading: false,
   isInputFocused: false,
+  blockingPayAlertMessage: null as string | null,
 };
 
 describe('usePredictBuyError', () => {
@@ -141,8 +119,6 @@ describe('usePredictBuyError', () => {
     mockActiveOrder = null;
     mockIsBalanceLoading = false;
     mockIsPredictBalanceSelected = true;
-    mockInsufficientPayAlerts = [];
-    mockNoQuotesAlerts = [];
   });
 
   describe('errorResult', () => {
@@ -224,11 +200,13 @@ describe('usePredictBuyError', () => {
     it('returns the pay token balance alert message for external payment tokens', () => {
       mockActiveOrder = { error: 'order failed' };
       mockIsPredictBalanceSelected = false;
-      mockInsufficientPayAlerts = [
-        { message: 'Insufficient payment token balance', isBlocking: true },
-      ];
 
-      const { result } = renderHook(() => usePredictBuyError(defaultParams));
+      const { result } = renderHook(() =>
+        usePredictBuyError({
+          ...defaultParams,
+          blockingPayAlertMessage: 'Insufficient payment token balance',
+        }),
+      );
 
       expect(mockGetPlaceOrderErrorOutcome).not.toHaveBeenCalled();
       expect(result.current.errorMessage).toBe(
@@ -238,12 +216,13 @@ describe('usePredictBuyError', () => {
 
     it('suppresses pay token balance alert while input is focused', () => {
       mockIsPredictBalanceSelected = false;
-      mockInsufficientPayAlerts = [
-        { message: 'Insufficient payment token balance', isBlocking: true },
-      ];
 
       const { result } = renderHook(() =>
-        usePredictBuyError({ ...defaultParams, isInputFocused: true }),
+        usePredictBuyError({
+          ...defaultParams,
+          blockingPayAlertMessage: 'Insufficient payment token balance',
+          isInputFocused: true,
+        }),
       );
 
       expect(result.current.errorMessage).toBeUndefined();

@@ -2,13 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import { MINIMUM_BET } from '../../../constants/transactions';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
+import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
 import { formatPrice } from '../../../utils/format';
 import { getPlaceOrderErrorOutcome } from '../../../utils/predictErrorHandler';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
-import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
-import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
-import { useNoPayTokenQuotesAlert } from '../../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
 
 interface UsePredictBuyInfoParams {
   preview?: OrderPreview | null;
@@ -20,6 +18,7 @@ interface UsePredictBuyInfoParams {
   maxBetAmount: number;
   isPayFeesLoading: boolean;
   isInputFocused: boolean;
+  blockingPayAlertMessage: string | null;
 }
 
 export const usePredictBuyError = ({
@@ -32,24 +31,12 @@ export const usePredictBuyError = ({
   maxBetAmount,
   isPayFeesLoading,
   isInputFocused,
+  blockingPayAlertMessage,
 }: UsePredictBuyInfoParams) => {
   const { activeOrder, clearOrderError } = usePredictActiveOrder();
   const { isBalanceLoading } = usePredictBuyAvailableBalance();
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
   const { isPredictBalanceSelected } = usePredictPaymentToken();
-
-  const insufficientPayAlerts = useInsufficientPayTokenBalanceAlert();
-  const noQuotesAlerts = useNoPayTokenQuotesAlert();
-
-  const blockingPayAlerts = useMemo(() => {
-    const allPayAlerts = [...insufficientPayAlerts, ...noQuotesAlerts];
-    return allPayAlerts.filter((a) => a.isBlocking);
-  }, [insufficientPayAlerts, noQuotesAlerts]);
-
-  const blockingPayAlertMessage = useMemo(
-    () => blockingPayAlerts[0]?.message ?? blockingPayAlerts[0]?.title,
-    [blockingPayAlerts],
-  );
 
   const errorResult = useMemo(() => {
     if (isBalanceLoading || isPlacingOrder || isConfirming || !preview) {

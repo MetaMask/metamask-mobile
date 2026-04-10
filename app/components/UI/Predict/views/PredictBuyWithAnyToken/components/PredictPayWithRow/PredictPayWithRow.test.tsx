@@ -237,7 +237,7 @@ describe('PredictPayWithRow', () => {
     const { toJSON } = renderWithProvider(<PredictPayWithRow disabled />);
     const tree = JSON.stringify(toJSON());
 
-    expect(tree).not.toContain('"backgroundColor":"#b4b4b528"');
+    expect(tree).not.toContain('backgroundColor');
   });
 
   it('does not apply muted background when transactionMeta is null', () => {
@@ -246,7 +246,7 @@ describe('PredictPayWithRow', () => {
     const { toJSON } = renderWithProvider(<PredictPayWithRow />);
     const tree = JSON.stringify(toJSON());
 
-    expect(tree).not.toContain('"backgroundColor":"#b4b4b528"');
+    expect(tree).not.toContain('backgroundColor');
   });
 
   it('does not apply muted background for hardware accounts', () => {
@@ -255,7 +255,7 @@ describe('PredictPayWithRow', () => {
     const { toJSON } = renderWithProvider(<PredictPayWithRow />);
     const tree = JSON.stringify(toJSON());
 
-    expect(tree).not.toContain('"backgroundColor":"#b4b4b528"');
+    expect(tree).not.toContain('backgroundColor');
   });
 
   it('renders predict balance first hint when external token selected', () => {
