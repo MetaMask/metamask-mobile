@@ -6039,7 +6039,7 @@
     "your_bonus_tooltip_your_bonus": "Your bonus",
     "your_bonus_tooltip_your_bonus_desc": ":  {{percentage}}% annualized bonus you earn just for holding mUSD. You can claim it daily on Linea. ",
     "your_bonus_tooltip_annual_bonus": "Estimated annual bonus: ",
-    "your_bonus_tooltip_annual_bonus_desc": "A projection of what you'd earn over a year based on your current balance and rate.",
+    "your_bonus_tooltip_annual_bonus_desc": "A projection of what you'd earn over a year based on your current balance and rate. Rate is variable and may change.",
     "your_bonus_tooltip_lifetime_bonus": "Lifetime bonus claimed: ",
     "your_bonus_tooltip_lifetime_bonus_desc": "The total bonus you've claimed since you started.",
     "learn_more": "Learn more",
