@@ -10,7 +10,6 @@ import {
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
-  GetSeriesParams,
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
@@ -123,7 +122,6 @@ export interface PredictProvider {
   readonly chainId: number;
 
   getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
-  getCarouselMarkets?(): Promise<PredictMarket[]>;
   getMarketsByIds?(marketIds: string[]): Promise<PredictMarket[]>;
   getMarketDetails(params: { marketId: string }): Promise<PredictMarket>;
   getPriceHistory(
@@ -169,8 +167,6 @@ export interface PredictProvider {
     tokenIds: string[],
     callback: PriceUpdateCallback,
   ): () => void;
-
-  getMarketSeries?(params: GetSeriesParams): Promise<PredictMarket[]>;
 
   getConnectionStatus?(): ConnectionStatus;
 }
