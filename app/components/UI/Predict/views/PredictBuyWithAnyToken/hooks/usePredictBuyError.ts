@@ -8,6 +8,7 @@ import { getPlaceOrderErrorOutcome } from '../../../utils/predictErrorHandler';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
+import { useNoPayTokenQuotesAlert } from '../../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
 
 interface UsePredictBuyInfoParams {
   preview?: OrderPreview | null;
@@ -36,26 +37,35 @@ export const usePredictBuyError = ({
   const { isBalanceLoading } = usePredictBuyAvailableBalance();
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
   const { isPredictBalanceSelected } = usePredictPaymentToken();
-  const [insufficientPayTokenBalanceAlert] =
-    useInsufficientPayTokenBalanceAlert();
+
+  const insufficientPayAlerts = useInsufficientPayTokenBalanceAlert();
+  const noQuotesAlerts = useNoPayTokenQuotesAlert();
+
+  const blockingPayAlerts = useMemo(() => {
+    const allPayAlerts = [...insufficientPayAlerts, ...noQuotesAlerts];
+    return allPayAlerts.filter((a) => a.isBlocking);
+  }, [insufficientPayAlerts, noQuotesAlerts]);
+
+  const blockingPayAlertMessage = useMemo(
+    () => blockingPayAlerts[0]?.message ?? blockingPayAlerts[0]?.title,
+    [blockingPayAlerts],
+  );
 
   const errorResult = useMemo(() => {
     if (isBalanceLoading || isPlacingOrder || isConfirming || !preview) {
       return undefined;
     }
 
+    const ready =
+      !isPayFeesLoading && !isPredictBalanceSelected && !isInputFocused;
+
     // Suppress the alert while the user is actively editing the amount.
     // The deposit amount only syncs to TransactionPayController when the
     // input loses focus, so the alert may reflect an outdated amount.
-    if (
-      !isPayFeesLoading &&
-      !isPredictBalanceSelected &&
-      !isInputFocused &&
-      !!insufficientPayTokenBalanceAlert
-    ) {
+    if (ready && !!blockingPayAlertMessage) {
       return {
         status: 'error',
-        error: insufficientPayTokenBalanceAlert.message,
+        error: blockingPayAlertMessage,
       };
     }
 
@@ -73,7 +83,7 @@ export const usePredictBuyError = ({
     isPayFeesLoading,
     isPredictBalanceSelected,
     isInputFocused,
-    insufficientPayTokenBalanceAlert,
+    blockingPayAlertMessage,
     activeOrder?.error,
   ]);
 
