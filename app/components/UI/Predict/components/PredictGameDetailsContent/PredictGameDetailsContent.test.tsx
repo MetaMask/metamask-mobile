@@ -167,7 +167,7 @@ jest.mock('../../hooks/usePredictPositions', () => ({
   })),
 }));
 
-jest.mock('./hooks/useGameDetailsTabs', () => ({
+jest.mock('../../hooks/useGameDetailsTabs', () => ({
   useGameDetailsTabs: jest.fn(() => ({
     enabled: false,
     tabs: [],

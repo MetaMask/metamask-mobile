@@ -1,13 +1,13 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useGameDetailsTabs } from './useGameDetailsTabs';
-import type { PredictPosition } from '../../../types';
+import type { PredictPosition } from '../types';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 

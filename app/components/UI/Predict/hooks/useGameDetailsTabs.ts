@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../../../locales/i18n';
-import { selectExtendedSportsMarketsLeagues } from '../../../selectors/featureFlags';
-import type { PredictPosition, PredictSportsLeague } from '../../../types';
-import type { PredictMarketDetailsTabKey } from '../../../Predict.testIds';
+import { strings } from '../../../../../locales/i18n';
+import { selectExtendedSportsMarketsLeagues } from '../selectors/featureFlags';
+import type { PredictPosition, PredictSportsLeague } from '../types';
+import type { PredictMarketDetailsTabKey } from '../Predict.testIds';
 
 interface UseGameDetailsTabsParams {
   activePositions: PredictPosition[];

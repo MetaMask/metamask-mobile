@@ -28,7 +28,7 @@ import PredictShareButton from '../PredictShareButton/PredictShareButton';
 import PredictSportScoreboard from '../PredictSportScoreboard';
 import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
 import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
-import { useGameDetailsTabs } from './hooks/useGameDetailsTabs';
+import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
