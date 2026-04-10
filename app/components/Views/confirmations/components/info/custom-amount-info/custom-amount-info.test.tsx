@@ -12,7 +12,8 @@ import { otherControllersMock } from '../../../__mocks__/controllers/other-contr
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import { Alert } from '../../../types/alerts';
+import { Alert, Severity } from '../../../types/alerts';
+import { AlertKeys } from '../../../constants/alerts';
 import {
   AlertsContextParams,
   useAlerts,
@@ -569,14 +570,19 @@ describe('CustomAmountInfo', () => {
       expect(getByTestId('bridge-fee-row')).toBeOnTheScreen();
     });
 
-    it('hides fee rows when blocking alerts are present and no quotes', async () => {
+    it('hides fee rows when no-quotes alert is present', async () => {
       useTransactionPayHasSourceAmountMock.mockReturnValue(false);
       useTransactionPayQuotesMock.mockReturnValue([]);
       useAlertsMock.mockReturnValue({
-        alerts: [] as Alert[],
+        alerts: [
+          {
+            key: AlertKeys.NoPayTokenQuotes,
+            severity: Severity.Danger,
+            isBlocking: true,
+          },
+        ] as Alert[],
         generalAlerts: [] as Alert[],
         fieldAlerts: [] as Alert[],
-        hasBlockingAlerts: true,
       } as AlertsContextParams);
 
       const { getByText, queryByTestId } = render();
