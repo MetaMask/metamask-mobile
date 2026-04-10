@@ -31,8 +31,9 @@ function numericInsetContribution(value: unknown): number {
  * SafeAreaView that avoids native top inset (reduces post-mount header jump).
  * When the resolved top edge would apply an inset, top is applied via
  * useSafeAreaInsets + paddingTop or marginTop (per `mode`) instead; other edges
- * stay on the native view. Top spacing is additive with existing numeric
- * paddingTop / marginTop (matches native additive inset behavior).
+ * stay on the native view. Top spacing uses existing numeric paddingTop /
+ * marginTop with `insets.top`: **additive** → sum; **maximum** →
+ * `Math.max(existing, insets.top)` (matches native edge modes).
  */
 export const SafeAreaView = forwardRef<
   ComponentRef<typeof NativeSafeAreaView>,
@@ -40,28 +41,28 @@ export const SafeAreaView = forwardRef<
 >(({ edges, style, mode, ...props }, ref) => {
   const insets = useSafeAreaInsets();
 
-  const { nativeEdges, applyHookTopInset } = useMemo(() => {
+  const { nativeEdges, applyHookTopInset, hookTopEdgeMode } = useMemo(() => {
     const nativeEdgesInternal: Record<Edge, EdgeMode> =
       edges == null
         ? { ...defaultEdges }
         : (() => {
-            const edgesObj: EdgeRecord = Array.isArray(edges)
-              ? (edges as readonly Edge[]).reduce<EdgeRecord>(
-                  (acc, edge: Edge) => {
-                    acc[edge] = 'additive';
-                    return acc;
-                  },
-                  {},
-                )
-              : (edges as EdgeRecord);
+          const edgesObj: EdgeRecord = Array.isArray(edges)
+            ? (edges as readonly Edge[]).reduce<EdgeRecord>(
+              (acc, edge: Edge) => {
+                acc[edge] = 'additive';
+                return acc;
+              },
+              {},
+            )
+            : (edges as EdgeRecord);
 
-            return {
-              top: edgesObj.top ?? 'off',
-              right: edgesObj.right ?? 'off',
-              bottom: edgesObj.bottom ?? 'off',
-              left: edgesObj.left ?? 'off',
-            };
-          })();
+          return {
+            top: edgesObj.top ?? 'off',
+            right: edgesObj.right ?? 'off',
+            bottom: edgesObj.bottom ?? 'off',
+            left: edgesObj.left ?? 'off',
+          };
+        })();
 
     // Defers top inset to be applied via styles instead
     const topMode = nativeEdgesInternal.top;
@@ -71,12 +72,14 @@ export const SafeAreaView = forwardRef<
       return {
         nativeEdges: { ...nativeEdgesInternal, top: 'off' as const },
         applyHookTopInset: true,
+        hookTopEdgeMode: topMode,
       };
     }
 
     return {
       nativeEdges: nativeEdgesInternal,
       applyHookTopInset: false,
+      hookTopEdgeMode: undefined,
     };
   }, [edges]);
 
@@ -91,9 +94,18 @@ export const SafeAreaView = forwardRef<
       resolvedMode === 'margin' ? 'marginTop' : 'paddingTop';
     const flat = StyleSheet.flatten(style) ?? {};
     const existing = numericInsetContribution(flat[edgeKey]);
-    // Last entry wins per-key; value is existing + inset (native additive semantics).
-    return [style, { [edgeKey]: existing + insets.top } as ViewStyle];
-  }, [applyHookTopInset, insets.top, resolvedMode, style]);
+    const combinedTop =
+      hookTopEdgeMode === 'maximum'
+        ? Math.max(existing, insets.top)
+        : existing + insets.top;
+    return [style, { [edgeKey]: combinedTop } as ViewStyle];
+  }, [
+    applyHookTopInset,
+    hookTopEdgeMode,
+    insets.top,
+    resolvedMode,
+    style,
+  ]);
 
   return (
     <NativeSafeAreaView
