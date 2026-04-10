@@ -297,8 +297,11 @@ const usePredictionsCommonSetup = ({
   const queryClient = useQueryClient();
   const title = titleOverride ?? strings('homepage.sections.predictions');
   const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
-  const { handleViewAllPredictions, handleViewAllFromPositions, handlePositionPress } =
-    usePredictNavigationHandlers({ onBeforeNavigate });
+  const {
+    handleViewAllPredictions,
+    handleViewAllFromPositions,
+    handlePositionPress,
+  } = usePredictNavigationHandlers({ onBeforeNavigate });
 
   return {
     isPredictEnabled,
