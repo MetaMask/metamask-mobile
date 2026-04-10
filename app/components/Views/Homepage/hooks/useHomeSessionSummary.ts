@@ -3,8 +3,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useHomepageScrollContext } from '../context/HomepageScrollContext';
-import { useHomepageTrendingAbTest } from '../context/HomepageTrendingAbTestContext';
-import { HOMEPAGE_TRENDING_SECTIONS_AB_KEY } from '../abTestConfig';
 
 interface UseHomeSessionSummaryParams {
   totalSectionsLoaded: number;
@@ -27,7 +25,6 @@ const useHomeSessionSummary = ({
   const { visitId, entryPoint, getViewedSectionCount } =
     useHomepageScrollContext();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { variantName, isActive } = useHomepageTrendingAbTest();
 
   const sessionStartRef = useRef<number>(Date.now());
 
@@ -43,17 +40,15 @@ const useHomeSessionSummary = ({
     visitId,
     entryPoint,
     totalSectionsLoaded,
-    isActive,
-    variantName,
   });
   latestRef.current = {
     visitId,
     entryPoint,
     totalSectionsLoaded,
-    isActive,
-    variantName,
   };
 
+  // active_ab_tests is auto-injected by the analytics registry via
+  // HOMEPAGE_TRENDING_SECTIONS_AB_TEST_ANALYTICS_MAPPING in abTestConfig.ts
   useFocusEffect(
     useCallback(
       () => () => {
@@ -71,14 +66,6 @@ const useHomeSessionSummary = ({
               total_sections_loaded: snap.totalSectionsLoaded,
               entry_point: snap.entryPoint,
               session_time: sessionTime,
-              ...(snap.isActive && {
-                active_ab_tests: [
-                  {
-                    key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-                    value: snap.variantName,
-                  },
-                ],
-              }),
             })
             .build(),
         );

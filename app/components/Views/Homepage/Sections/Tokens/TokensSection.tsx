@@ -49,6 +49,7 @@ import { useTrendingRequest } from '../../../../UI/Trending/hooks/useTrendingReq
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
+import { useHomepageTrendingSectionTransactionAbTests } from '../../hooks/useHomepageTrendingSectionTransactionAbTests';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -315,6 +316,8 @@ const TokensSectionTrendingOnly = forwardRef<
     const navigation = useNavigation();
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
+    const { applyTagForDedicatedTrendingSection } =
+      useHomepageTrendingSectionTransactionAbTests();
     const {
       results: trendingTokens,
       isLoading: isTrendingLoading,
@@ -372,6 +375,7 @@ const TokensSectionTrendingOnly = forwardRef<
                     token={token}
                     position={index}
                     tokenDetailsSource={TokenDetailsSource.HomepageTrending}
+                    onBeforeNavigate={applyTagForDedicatedTrendingSection}
                   />
                 ))}
           </SectionRow>

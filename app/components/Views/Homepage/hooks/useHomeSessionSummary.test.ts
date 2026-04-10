@@ -2,7 +2,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { renderHook, act } from '@testing-library/react-hooks';
 import useHomeSessionSummary from './useHomeSessionSummary';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { HOMEPAGE_TRENDING_SECTIONS_AB_KEY } from '../abTestConfig';
 
 // --- @react-navigation/native mock ---
 jest.mock('@react-navigation/native', () => ({
@@ -26,14 +25,6 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
-}));
-
-const mockTrendingAbTest = jest.fn(() => ({
-  variantName: 'control',
-  isActive: false,
-}));
-jest.mock('../context/HomepageTrendingAbTestContext', () => ({
-  useHomepageTrendingAbTest: () => mockTrendingAbTest(),
 }));
 
 // --- Scroll context mock ---
@@ -87,10 +78,6 @@ const setupFocusBlur = () => {
 describe('useHomeSessionSummary', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockTrendingAbTest.mockReturnValue({
-      variantName: 'control',
-      isActive: false,
-    });
     mockGetViewedSectionCount = jest.fn(() => 3);
     mockNotifySectionViewed = jest.fn();
     mockContextValue = {
@@ -301,47 +288,6 @@ describe('useHomeSessionSummary', () => {
       });
       expect(typeof props.session_time).toBe('number');
     });
-
-    it('includes active_ab_tests when homepage trending AB test is active', () => {
-      mockTrendingAbTest.mockReturnValue({
-        variantName: 'treatment',
-        isActive: true,
-      });
-      const { simulateBlur } = setupFocusBlur();
-
-      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
-
-      act(() => {
-        simulateBlur();
-      });
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          active_ab_tests: [
-            {
-              key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-              value: 'treatment',
-            },
-          ],
-        }),
-      );
-    });
-
-    it('does not include active_ab_tests when homepage trending AB test is inactive', () => {
-      const { simulateBlur } = setupFocusBlur();
-
-      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
-
-      act(() => {
-        simulateBlur();
-      });
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.not.objectContaining({
-          active_ab_tests: expect.anything(),
-        }),
-      );
-    });
   });
 
   describe('session timer resets on new visit', () => {
@@ -392,8 +338,8 @@ describe('useHomeSessionSummary', () => {
     });
   });
 
-  describe('AB resolution does not trigger blur cleanup', () => {
-    it('does not fire session_summary when AB values change while focused', () => {
+  describe('re-render does not trigger blur cleanup', () => {
+    it('does not fire session_summary on re-render while focused', () => {
       let cleanup: (() => void) | undefined;
       let lastCallback: unknown;
       mockUseFocusEffect.mockImplementation((callback) => {
@@ -404,43 +350,21 @@ describe('useHomeSessionSummary', () => {
         }
       });
 
-      let abVariantName = 'control';
-      let abIsActive = false;
-      mockTrendingAbTest.mockImplementation(() => ({
-        variantName: abVariantName,
-        isActive: abIsActive,
-      }));
-
       const { rerender } = renderHook(() =>
         useHomeSessionSummary({ totalSectionsLoaded: 5 }),
       );
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
 
-      // Simulate async AB resolution while user is still on homepage.
-      abVariantName = 'treatment';
-      abIsActive = true;
       rerender();
 
-      // Must not fire a blur event just because AB state changed.
       expect(mockTrackEvent).not.toHaveBeenCalled();
 
-      // Actual blur should emit exactly once with the latest AB payload.
       act(() => {
         cleanup?.();
       });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          active_ab_tests: [
-            {
-              key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-              value: 'treatment',
-            },
-          ],
-        }),
-      );
     });
   });
 });

@@ -137,6 +137,10 @@ interface TrendingTokenRowItemProps {
    */
   tokenDetailsSource?: TokenDetailsSource;
   /**
+   * Runs before navigating into token details (e.g. to tag AB test context).
+   */
+  onBeforeNavigate?: () => void;
+  /**
    * Custom press handler. When provided, bypasses default navigation to the
    * asset details screen (including network-add logic and analytics tracking).
    */
@@ -186,6 +190,7 @@ const TrendingTokenRowItem = ({
   position,
   filterContext,
   tokenDetailsSource = TokenDetailsSource.Trending,
+  onBeforeNavigate,
   onPress,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -272,6 +277,8 @@ const TrendingTokenRowItem = ({
       }
     }
 
+    onBeforeNavigate?.();
+
     // Use push so we always open a new Asset screen for the tapped token.
     // This prevents issues such as dismissing screens like Bridge instead
     // of navigating forward to the new token.
@@ -288,6 +295,7 @@ const TrendingTokenRowItem = ({
     pricePercentChange,
     token,
     sessionManager,
+    onBeforeNavigate,
   ]);
 
   return (

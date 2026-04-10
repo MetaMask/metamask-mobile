@@ -13,8 +13,6 @@ import {
   ActionPosition,
 } from '../../../../../util/analytics/actionButtonTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { HOMEPAGE_TRENDING_SECTIONS_AB_KEY } from '../../../../Views/Homepage/abTestConfig';
-import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -22,20 +20,6 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
 }));
-
-const mockUseABTest = jest.fn(() => ({
-  variant: {},
-  variantName: 'control',
-  isActive: false,
-}));
-jest.mock('../../../../../hooks', () => {
-  const actual = jest.requireActual('../../../../../hooks');
-  return {
-    ...actual,
-    useABTest: (...args: unknown[]) =>
-      Reflect.apply(mockUseABTest, undefined, args),
-  };
-});
 
 // Mock useAnalytics hook
 const mockTrackEvent = jest.fn();
@@ -168,11 +152,6 @@ describe('useSwapBridgeNavigation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseABTest.mockReturnValue({
-      variant: {},
-      variantName: 'control',
-      isActive: false,
-    });
 
     // Setup event builder chain
     mockBuild.mockReturnValue({ category: 'test' });
@@ -1299,36 +1278,41 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('dispatches setTransactionActiveAbTests with homepage trending AB when asset is from homepage trending section', () => {
-      mockUseABTest.mockReturnValue({
-        variantName: 'trendingSections',
-        isActive: true,
-        variant: { separateTrending: true },
-      });
-
-      const trendingHomepageToken: BridgeToken = {
-        ...mockSourceToken,
-        source: TokenDetailsSource.HomepageTrending,
-      } as BridgeToken;
+    it('dispatches transactionActiveAbTests passed by caller', () => {
+      const abTests = [
+        { key: 'homepageAbtestTrendingSections', value: 'trendingSections' },
+      ];
 
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
             location: SwapBridgeNavigationLocation.TokenView,
             sourcePage: mockSourcePage,
-            sourceToken: trendingHomepageToken,
+            sourceToken: mockSourceToken,
+            transactionActiveAbTests: abTests,
           }),
         { state: initialState },
       );
 
       result.current.goToSwaps();
 
-      expect(mockSetTransactionActiveAbTests).toHaveBeenCalledWith([
-        {
-          key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-          value: 'trendingSections',
-        },
-      ]);
+      expect(mockSetTransactionActiveAbTests).toHaveBeenCalledWith(abTests);
+    });
+
+    it('clears transactionActiveAbTests when caller does not provide them', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenView,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockSetTransactionActiveAbTests).toHaveBeenCalledWith(undefined);
     });
   });
 

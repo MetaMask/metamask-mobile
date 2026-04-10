@@ -39,12 +39,6 @@ import {
 } from '../../utils/tokenUtils';
 import { areAddressesEqual } from '../../../../../util/address';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
-import { useABTest } from '../../../../../hooks';
-import {
-  HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-  HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
-} from '../../../../Views/Homepage/abTestConfig';
-import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
@@ -58,14 +52,6 @@ export const isAssetFromTrending = (asset: unknown) =>
   asset !== null &&
   'isFromTrending' in asset &&
   asset.isFromTrending === true;
-
-/** True when Token Details source is homepage dedicated trending tokens section. */
-export const isAssetFromHomepageTrendingSource = (asset: unknown): boolean =>
-  typeof asset === 'object' &&
-  asset !== null &&
-  'source' in asset &&
-  (asset as { source?: TokenDetailsSource }).source ===
-    TokenDetailsSource.HomepageTrending;
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -124,6 +110,7 @@ export const useSwapBridgeNavigation = ({
   sourceToken: sourceTokenBase,
   destToken: destTokenBase,
   abTestContext,
+  transactionActiveAbTests,
   skipLocationUpdate = false,
   swapButtonEventLocationOverride,
 }: {
@@ -135,6 +122,12 @@ export const useSwapBridgeNavigation = ({
   abTestContext?: {
     assetsASSETS2493AbtestTokenDetailsLayout?: string;
   };
+  /**
+   * A/B test assignments to tag on the transaction for attribution.
+   * Homepage-owned entry points pass this explicitly; other callers omit it
+   * which clears any stale state.
+   */
+  transactionActiveAbTests?: { key: string; value: string }[];
   /**
    * When true, skip calling setLocation on the bridge controller.
    * Use this when re-entering the bridge flow from a page that was opened
@@ -158,14 +151,6 @@ export const useSwapBridgeNavigation = ({
     selectIsBridgeEnabledSourceFactory,
   );
   const currentNetworkInfo = useCurrentNetworkInfo();
-
-  const {
-    variantName: homepageTrendingVariantName,
-    isActive: isHomepageTrendingAbActive,
-  } = useABTest(
-    HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-    HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
-  );
 
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
@@ -289,22 +274,7 @@ export const useSwapBridgeNavigation = ({
         isAssetFromTrending(effectiveDestTokenBase);
       const isFromTrending = isFromTrendingSession || isFromTrendingAsset;
 
-      const fromHomepageTrendingSection =
-        isAssetFromHomepageTrendingSource(effectiveSourceTokenBase) ||
-        isAssetFromHomepageTrendingSource(effectiveDestTokenBase);
-
-      dispatch(
-        setTransactionActiveAbTests(
-          fromHomepageTrendingSection && isHomepageTrendingAbActive
-            ? [
-                {
-                  key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-                  value: homepageTrendingVariantName,
-                },
-              ]
-            : undefined,
-        ),
-      );
+      dispatch(setTransactionActiveAbTests(transactionActiveAbTests));
 
       // Set the location on the bridge controller once so all internally-fired
       // events (InputChanged, QuotesRequested, QuotesReceived, etc.) carry it.
@@ -381,8 +351,7 @@ export const useSwapBridgeNavigation = ({
       getIsBridgeEnabledSource,
       skipLocationUpdate,
       swapButtonEventLocationOverride,
-      isHomepageTrendingAbActive,
-      homepageTrendingVariantName,
+      transactionActiveAbTests,
     ],
   );
   const { networkModal } = useAddNetwork();

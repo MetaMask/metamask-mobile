@@ -48,6 +48,7 @@ import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled'
 import { BridgeToken } from '../../Bridge/types';
 import { useTokenDetailsABTest } from './useTokenDetailsABTest';
 import { TokenDetailsSource } from '../constants/constants';
+import { selectTransactionActiveAbTests } from '../../../../core/redux/slices/bridge';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -157,6 +158,9 @@ export const useTokenActions = ({
   // A/B test context
   const { isTestActive, variantName } = useTokenDetailsABTest();
 
+  // Carry forward transaction AB test attribution set by homepage entry points
+  const transactionActiveAbTests = useSelector(selectTransactionActiveAbTests);
+
   // Swap/Bridge navigation
   const { sourceToken, destToken } = getSwapTokens(token);
   // When Token Details was opened from the bridge asset picker, skip updating
@@ -174,6 +178,7 @@ export const useTokenActions = ({
         assetsASSETS2493AbtestTokenDetailsLayout: variantName,
       }),
     },
+    transactionActiveAbTests,
     skipLocationUpdate: isFromBridgeAssetPicker,
   });
 
