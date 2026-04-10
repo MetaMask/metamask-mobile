@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, SafeAreaView, Keyboard, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Keyboard, TextInput } from 'react-native';
 
 import Text, {
   TextVariant,

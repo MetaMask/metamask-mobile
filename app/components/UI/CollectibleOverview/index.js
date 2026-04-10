@@ -5,12 +5,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   StyleSheet,
   View,
   Easing,
   Animated,
-  SafeAreaView,
   TouchableWithoutFeedback,
 } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';

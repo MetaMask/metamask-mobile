@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Alert, Platform, SafeAreaView, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Alert, Platform, StatusBar } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';

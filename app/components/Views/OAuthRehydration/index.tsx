@@ -6,8 +6,8 @@ import React, {
   useContext,
   useRef,
 } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  SafeAreaView,
   Image,
   BackHandler,
   TouchableOpacity,

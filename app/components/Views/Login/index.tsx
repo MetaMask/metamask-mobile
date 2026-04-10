@@ -5,9 +5,9 @@ import React, {
   useCallback,
   useContext,
 } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Alert,
-  SafeAreaView,
   BackHandler,
   TouchableOpacity,
   Platform,

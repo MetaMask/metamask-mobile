@@ -1,9 +1,9 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
   TouchableWithoutFeedback,
   Keyboard,
-  SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
 import Text, {

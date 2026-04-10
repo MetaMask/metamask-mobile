@@ -7,11 +7,11 @@ import React, {
 } from 'react';
 import Video from 'react-native-video';
 import PropTypes from 'prop-types';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   PanResponder,
   StyleSheet,
   Animated,
-  SafeAreaView,
   Easing,
   Image,
   View,

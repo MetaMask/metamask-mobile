@@ -1,12 +1,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
   Text,
   View,
-  SafeAreaView,
   InteractionManager,
   Image,
 } from 'react-native';

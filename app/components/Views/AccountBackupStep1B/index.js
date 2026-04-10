@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Image,
   useWindowDimensions,
 } from 'react-native';

@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Platform,
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,

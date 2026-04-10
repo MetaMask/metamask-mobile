@@ -1,7 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountConnectMultiSelector renders correctly 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
+>
   <View
     style={
       {
@@ -706,5 +715,5 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
       </View>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

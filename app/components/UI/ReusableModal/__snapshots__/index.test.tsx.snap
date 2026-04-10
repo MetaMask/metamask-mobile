@@ -1,7 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ReusableModal should render correctly 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
+>
   <View
     style={
       {
@@ -75,5 +84,5 @@ exports[`ReusableModal should render correctly 1`] = `
       }
     />
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

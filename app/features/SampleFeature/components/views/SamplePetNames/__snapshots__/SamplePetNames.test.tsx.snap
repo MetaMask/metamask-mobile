@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SamplePetNames matches rendered snapshot 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#ffffff",
@@ -59,5 +67,5 @@ exports[`SamplePetNames matches rendered snapshot 1`] = `
       />
     </TouchableOpacity>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
