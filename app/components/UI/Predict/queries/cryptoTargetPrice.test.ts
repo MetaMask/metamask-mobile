@@ -84,7 +84,14 @@ describe('cryptoTargetPrice queries', () => {
     it('fetches and returns target price from primary API', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ price: 42000 }),
+        json: async () => ({
+          openPrice: 42000,
+          closePrice: 41800,
+          timestamp: 1700000000000,
+          completed: true,
+          incomplete: false,
+          cached: false,
+        }),
       });
 
       const result = await invokeQueryFn();
@@ -101,7 +108,14 @@ describe('cryptoTargetPrice queries', () => {
     it('returns cached result on second call without a second network request', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ price: 42000 }),
+        json: async () => ({
+          openPrice: 42000,
+          closePrice: 41800,
+          timestamp: 1700000000000,
+          completed: true,
+          incomplete: false,
+          cached: false,
+        }),
       });
 
       const first = await invokeQueryFn();
@@ -206,7 +220,14 @@ describe('cryptoTargetPrice queries', () => {
     it('encodes query parameters in the API URL', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ price: 100 }),
+        json: async () => ({
+          openPrice: 100,
+          closePrice: 99,
+          timestamp: 1700000000000,
+          completed: true,
+          incomplete: false,
+          cached: false,
+        }),
       });
 
       await invokeQueryFn({
@@ -239,11 +260,25 @@ describe('cryptoTargetPrice queries', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ price: 42000 }),
+          json: async () => ({
+            openPrice: 42000,
+            closePrice: 41800,
+            timestamp: 1700000000000,
+            completed: true,
+            incomplete: false,
+            cached: false,
+          }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ price: 3000 }),
+          json: async () => ({
+            openPrice: 3000,
+            closePrice: 2950,
+            timestamp: 1700000000000,
+            completed: true,
+            incomplete: false,
+            cached: false,
+          }),
         });
 
       await invokeQueryFn({ ...defaultParams, eventId: 'event-btc' });
@@ -255,7 +290,14 @@ describe('cryptoTargetPrice queries', () => {
     it('clears module-level cache via clearTargetPriceCache', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ price: 42000 }),
+        json: async () => ({
+          openPrice: 42000,
+          closePrice: 41800,
+          timestamp: 1700000000000,
+          completed: true,
+          incomplete: false,
+          cached: false,
+        }),
       });
 
       await invokeQueryFn();

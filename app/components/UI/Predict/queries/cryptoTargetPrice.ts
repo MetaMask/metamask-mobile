@@ -30,7 +30,12 @@ export const predictCryptoTargetPriceKeys = {
 };
 
 interface CryptoTargetPriceApiResponse {
-  price: number;
+  openPrice: number;
+  closePrice: number;
+  timestamp: number;
+  completed: boolean;
+  incomplete: boolean;
+  cached: boolean;
 }
 
 export interface CryptoTargetPriceApiParams {
@@ -52,10 +57,10 @@ async function fetchTargetPriceFromApi(
 
   const data: unknown = await response.json();
   const parsed = data as CryptoTargetPriceApiResponse | undefined;
-  if (typeof parsed?.price !== 'number') {
+  if (typeof parsed?.openPrice !== 'number') {
     throw new Error('Crypto target price API returned unexpected shape');
   }
-  return parsed.price;
+  return parsed.openPrice;
 }
 
 function extractThresholdFromOutcomes(

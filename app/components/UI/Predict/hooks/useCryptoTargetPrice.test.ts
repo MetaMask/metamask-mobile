@@ -98,7 +98,14 @@ describe('useCryptoTargetPrice', () => {
     const { Wrapper } = createWrapper();
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ price: 42000 }),
+      json: async () => ({
+        openPrice: 42000,
+        closePrice: 41800,
+        timestamp: 1700000000000,
+        completed: true,
+        incomplete: false,
+        cached: false,
+      }),
     });
 
     const { result } = renderHook(() => useCryptoTargetPrice(defaultParams), {
