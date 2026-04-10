@@ -20,10 +20,15 @@ describe(SmokeConfirmations('Send Bitcoin'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
-            homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
-          });
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            {
+              homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
+              homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
+              tokenDetailsV2: false,
+            },
+            1000,
+          );
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
             url: /^https:\/\/digest\.api\.cx\.metamask\.io\/api\/v1\/asset-summary/,
@@ -42,9 +47,7 @@ describe(SmokeConfirmations('Send Bitcoin'), () => {
             timeout: 30000,
           },
         );
-        await WalletView.tapTokenNetworkFilter();
-        await NetworkListModal.changeNetworkTo(TOKEN);
-        await WalletView.tapOnToken(TOKEN, 1);
+        await WalletView.tapOnToken(TOKEN, 0);
         await TokenOverview.tapSendButton();
         await SendView.enterZeroAmount();
         await SendView.checkInsufficientFundsError();
