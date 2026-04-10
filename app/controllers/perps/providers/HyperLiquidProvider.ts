@@ -5429,38 +5429,62 @@ export class HyperLiquidProvider implements PerpsProvider {
         params?.accountId,
       );
 
-      // HyperLiquid API requires startTime to be a number (not undefined)
-      // Default to configured days ago to get recent funding payments
-      // Using 0 (epoch) would return oldest 500 records, missing latest payments
-      const defaultStartTime =
-        Date.now() -
-        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.DEFAULT_FUNDING_HISTORY_DAYS *
-          24 *
-          60 *
-          60 *
-          1000;
-      const rawFunding = await infoClient.userFunding({
-        user: userAddress,
-        startTime: params?.startTime ?? defaultStartTime,
-        endTime: params?.endTime,
-      });
+      // Divide the full history range into 30-day windows and fetch all in
+      // parallel. The HyperLiquid API returns records in ascending order and
+      // caps each call at FUNDING_HISTORY_API_LIMIT (500) records. A single
+      // large window therefore returns only the oldest 500 items, silently
+      // dropping the most recent payments. Parallel small windows guarantee
+      // every window is under the cap so the latest records are always present.
+      const finalEndTime = params?.endTime ?? Date.now();
+      const finalStartTime =
+        params?.startTime ??
+        finalEndTime -
+          PERPS_TRANSACTIONS_HISTORY_CONSTANTS.DEFAULT_FUNDING_HISTORY_DAYS *
+            24 *
+            60 *
+            60 *
+            1000;
+      const pageWindowMs =
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_PAGE_WINDOW_DAYS *
+        24 *
+        60 *
+        60 *
+        1000;
+
+      const chunks: { start: number; end: number }[] = [];
+      let chunkEnd = finalEndTime;
+      while (chunkEnd > finalStartTime) {
+        const chunkStart = Math.max(finalStartTime, chunkEnd - pageWindowMs);
+        chunks.push({ start: chunkStart, end: chunkEnd });
+        chunkEnd = chunkStart;
+      }
+
+      const pages = await Promise.all(
+        chunks.map((chunk) =>
+          infoClient.userFunding({
+            user: userAddress,
+            startTime: chunk.start,
+            endTime: chunk.end,
+          }),
+        ),
+      );
+
+      const allRaw = pages.flatMap((page) => page ?? []);
+      allRaw.sort((a, b) => a.time - b.time);
 
       this.#deps.debugLogger.log('User funding received:', {
-        count: rawFunding?.length ?? 0,
+        count: allRaw.length,
+        pages: chunks.length,
       });
 
       // Transform HyperLiquid funding to abstract Funding type
-      const funding: Funding[] = (rawFunding || []).map((rawFundingItem) => {
-        const { delta, hash, time } = rawFundingItem;
-
-        return {
-          symbol: delta.coin,
-          amountUsd: delta.usdc,
-          rate: delta.fundingRate,
-          timestamp: time,
-          transactionHash: hash,
-        };
-      });
+      const funding: Funding[] = allRaw.map(({ delta, hash, time }) => ({
+        symbol: delta.coin,
+        amountUsd: delta.usdc,
+        rate: delta.fundingRate,
+        timestamp: time,
+        transactionHash: hash,
+      }));
 
       return funding;
     } catch (error) {

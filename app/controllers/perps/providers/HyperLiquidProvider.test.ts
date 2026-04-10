@@ -6503,6 +6503,143 @@ describe('HyperLiquidProvider', () => {
       expect(result).toEqual([]);
     });
 
+    it('fetches funding across multiple page windows to include latest records', async () => {
+      const NOW = 1735689600000; // fixed timestamp for determinism
+      const DAY_MS = 24 * 60 * 60 * 1000;
+
+      const oldRecord = {
+        time: NOW - 40 * DAY_MS,
+        hash: '0x' + 'a'.repeat(64),
+        delta: {
+          type: 'funding',
+          coin: 'BTC',
+          usdc: '-1.0',
+          szi: '0.1',
+          fundingRate: '0.0001',
+          nSamples: null,
+        },
+      };
+      const recentRecord = {
+        time: NOW - 5 * DAY_MS,
+        hash: '0x' + 'b'.repeat(64),
+        delta: {
+          type: 'funding',
+          coin: 'BTC',
+          usdc: '-2.0',
+          szi: '0.1',
+          fundingRate: '0.0001',
+          nSamples: null,
+        },
+      };
+
+      const userFundingMock = jest
+        .fn()
+        .mockImplementation(
+          (params: { startTime: number; endTime: number }) => {
+            const records = [oldRecord, recentRecord].filter(
+              (r) => r.time >= params.startTime && r.time <= params.endTime,
+            );
+            return Promise.resolve(records);
+          },
+        );
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFunding: userFundingMock,
+      });
+
+      // Time range spans 60 days → 2 page windows of 30 days each
+      const result = await provider.getFunding({
+        startTime: NOW - 60 * DAY_MS,
+        endTime: NOW,
+      });
+
+      expect(userFundingMock).toHaveBeenCalledTimes(2);
+      expect(result).toHaveLength(2);
+      // Results sorted ascending: older first, recent last
+      expect(result[0].amountUsd).toBe('-1.0');
+      expect(result[1].amountUsd).toBe('-2.0');
+      // Most recent record is present — this would fail with the old single-call approach
+      // when total records exceeded the 500-record API cap
+      expect(result[1].timestamp).toBe(recentRecord.time);
+    });
+
+    it('includes records from the most recent page window when history is long', async () => {
+      const NOW = 1735689600000;
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      const recentTs = NOW - 2 * DAY_MS;
+
+      const userFundingMock = jest
+        .fn()
+        .mockImplementation(
+          (params: { startTime: number; endTime: number }) => {
+            if (params.endTime >= recentTs && params.startTime <= recentTs) {
+              return Promise.resolve([
+                {
+                  time: recentTs,
+                  hash: '0x' + 'f'.repeat(64),
+                  delta: {
+                    type: 'funding',
+                    coin: 'ETH',
+                    usdc: '-0.5',
+                    szi: '1.0',
+                    fundingRate: '0.00005',
+                    nSamples: null,
+                  },
+                },
+              ]);
+            }
+            return Promise.resolve([]);
+          },
+        );
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFunding: userFundingMock,
+      });
+
+      const result = await provider.getFunding({ endTime: NOW });
+
+      // Multiple page windows must be created for a 365-day range
+      expect(userFundingMock.mock.calls.length).toBeGreaterThan(1);
+      // The most recent record is present — proves pagination reaches the latest window
+      expect(result.some((r) => r.timestamp === recentTs)).toBe(true);
+    });
+
+    it('handles null response from one page window without losing other pages', async () => {
+      const NOW = 1735689600000;
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      const validRecord = {
+        time: NOW - 10 * DAY_MS,
+        hash: '0x' + 'c'.repeat(64),
+        delta: {
+          type: 'funding',
+          coin: 'BTC',
+          usdc: '-3.0',
+          szi: '0.2',
+          fundingRate: '0.0002',
+          nSamples: null,
+        },
+      };
+
+      let callCount = 0;
+      const userFundingMock = jest.fn().mockImplementation(() => {
+        callCount += 1;
+        // First call returns null, subsequent calls return data
+        return Promise.resolve(callCount === 1 ? null : [validRecord]);
+      });
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFunding: userFundingMock,
+      });
+
+      const result = await provider.getFunding({
+        startTime: NOW - 60 * DAY_MS,
+        endTime: NOW,
+      });
+
+      // Null page is gracefully skipped; valid records from other pages survive
+      expect(result.some((r) => r.amountUsd === '-3.0')).toBe(true);
+    });
+
     it('handles validateWithdrawal returning true', async () => {
       const params = {
         amount: '100',
