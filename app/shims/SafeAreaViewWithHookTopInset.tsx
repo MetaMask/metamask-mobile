@@ -4,7 +4,7 @@ import React, {
   type ComponentProps,
   type ComponentRef,
 } from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 // Use package `src/` so Metro runs RN codegen on specs (lib/module bypasses it → "Could not find component config").
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context/src/SafeAreaView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context/src/SafeAreaContext';
@@ -23,11 +23,16 @@ const defaultEdges: Record<Edge, EdgeMode> = {
 
 type NativeSafeAreaViewProps = ComponentProps<typeof NativeSafeAreaView>;
 
+function numericInsetContribution(value: unknown): number {
+  return typeof value === 'number' && !Number.isNaN(value) ? value : 0;
+}
+
 /**
  * SafeAreaView that avoids native top inset (reduces post-mount header jump).
  * When the resolved top edge would apply an inset, top is applied via
  * useSafeAreaInsets + paddingTop or marginTop (per `mode`) instead; other edges
- * stay on the native view.
+ * stay on the native view. Top spacing is additive with existing numeric
+ * paddingTop / marginTop (matches native additive inset behavior).
  */
 export const SafeAreaView = forwardRef<
   ComponentRef<typeof NativeSafeAreaView>,
@@ -82,11 +87,12 @@ export const SafeAreaView = forwardRef<
     if (!applyHookTopInset) {
       return style;
     }
-    const topFromHook =
-      resolvedMode === 'margin'
-        ? { marginTop: insets.top }
-        : { paddingTop: insets.top };
-    return [topFromHook, style];
+    const edgeKey =
+      resolvedMode === 'margin' ? 'marginTop' : 'paddingTop';
+    const flat = StyleSheet.flatten(style) ?? {};
+    const existing = numericInsetContribution(flat[edgeKey]);
+    // Last entry wins per-key; value is existing + inset (native additive semantics).
+    return [style, { [edgeKey]: existing + insets.top } as ViewStyle];
   }, [applyHookTopInset, insets.top, resolvedMode, style]);
 
   return (
