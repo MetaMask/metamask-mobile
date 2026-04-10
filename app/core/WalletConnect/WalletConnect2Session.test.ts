@@ -1257,7 +1257,15 @@ describe('WalletConnect2Session', () => {
         params: {
           request: {
             method: 'tron_signTransaction',
-            params: [{ raw_data: { contract: [] } }],
+            params: [
+              {
+                address: 'TTestAddress',
+                transaction: {
+                  raw_data_hex: '0xabc',
+                  type: 'TransferContract',
+                },
+              },
+            ],
           },
           chainId: 'tron:728126428' as CaipChainId,
         },
@@ -1284,8 +1292,14 @@ describe('WalletConnect2Session', () => {
           snapId: 'npm:@metamask/tron-wallet-snap',
           handler: 'onRpcRequest',
           request: expect.objectContaining({
-            method: 'tron_signTransaction',
-            params: [{ raw_data: { contract: [] } }],
+            method: 'signTransaction',
+            params: {
+              address: 'TTestAddress',
+              transaction: {
+                rawDataHex: '0xabc',
+                type: 'TransferContract',
+              },
+            },
           }),
         }),
       );

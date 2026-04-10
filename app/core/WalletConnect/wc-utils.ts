@@ -31,6 +31,7 @@ import { TrxAccountType, TrxScope } from '@metamask/keyring-api';
 import Engine from '../Engine';
 import { APPROVED_METHODS_BY_NAMESPACE } from './wc-config';
 import {
+  getCompatibleTronCaipChainIdsForWalletConnect,
   normalizeCaipChainIdInboundForWalletConnect,
   normalizeCaipChainIdOutboundForWalletConnect,
 } from './WalletConnectMultiChainConnector';
@@ -53,13 +54,13 @@ export interface WCMultiVersionParams {
  * Used for all chains: EVM, Tron, Solana, etc.
  */
 export interface NamespaceConfig {
-  /** CAIP-2 chain IDs to advertise (e.g. ["eip155:1", "tron:728126428"]) */
+  /** CAIP-2 chain IDs to advertise (e.g. ["eip155:1", "tron:0x2b6653dc"]) */
   chains: string[];
   /** WalletConnect methods the wallet supports for this namespace */
   methods: string[];
   /** Events emitted by the wallet for this namespace */
   events: string[];
-  /** CAIP-10 account strings (e.g. ["eip155:1:0xabc...", "tron:728126428:TAddr..."]) */
+  /** CAIP-10 account strings (e.g. ["eip155:1:0xabc...", "tron:0x2b6653dc:TAddr..."]) */
   accounts: string[];
 }
 
@@ -297,9 +298,8 @@ export const getScopedPermissions = async ({
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const tronChains = permittedChains
     .filter((chain) => chain.startsWith(`${KnownCaipNamespace.Tron}:`))
-    // Keep CAIP chain ids as stored in permissions (currently decimal for tron)
-    // to match WalletKit session/event validation.
-    .map((chain) => chain);
+    .flatMap((chain) => getCompatibleTronCaipChainIdsForWalletConnect(chain));
+  const uniqueTronChains = Array.from(new Set(tronChains));
 
   const tronPermissionCaveat = Engine.context.PermissionController?.getCaveat?.(
     channelId,
@@ -309,15 +309,28 @@ export const getScopedPermissions = async ({
   const permittedTronAccountStrings = tronPermissionCaveat
     ? getCaipAccountIdsFromCaip25CaveatValue(
         tronPermissionCaveat.value as Caip25CaveatValue,
-      ).filter((account) => account.startsWith(`${KnownCaipNamespace.Tron}:`))
+      )
+        .filter((account) => account.startsWith(`${KnownCaipNamespace.Tron}:`))
+        .flatMap((account) => {
+          const [namespace, chainRef, ...addressParts] = account.split(':');
+          if (namespace !== KnownCaipNamespace.Tron || !chainRef) {
+            return [account];
+          }
+          const address = addressParts.join(':');
+          return getCompatibleTronCaipChainIdsForWalletConnect(
+            `${namespace}:${chainRef}`,
+          ).map((chainId) => `${chainId}:${address}`);
+        })
     : [];
 
   const tronAccounts = Engine.context.AccountsController.listAccounts().filter(
     (account) => account.type === TrxAccountType.Eoa,
   );
-  if (tronChains.length > 0) {
+  if (uniqueTronChains.length > 0) {
     const discoveredTronAccountStrings = tronAccounts.flatMap((account) =>
-      tronChains.map((tronChainId) => `${tronChainId}:${account.address}`),
+      uniqueTronChains.map(
+        (tronChainId) => `${tronChainId}:${account.address}`,
+      ),
     );
     const tronAccountStrings = Array.from(
       new Set([
@@ -326,29 +339,31 @@ export const getScopedPermissions = async ({
       ]),
     );
     namespaces[KnownCaipNamespace.Tron] = {
-      chains: tronChains,
+      chains: uniqueTronChains,
       methods: APPROVED_METHODS_BY_NAMESPACE[KnownCaipNamespace.Tron],
       events: [],
       accounts: tronAccountStrings,
     };
     DevLogger.log(`WC::getScopedPermissions added Tron namespace`, {
-      chains: tronChains,
+      chains: uniqueTronChains,
       accountsCount: tronAccountStrings.length,
     });
   } else if (tronAccounts.length > 0) {
     // Fallback for local setups where tron scope is not persisted yet.
-    const tronChainId = TrxScope.Mainnet;
-    const tronAccountStrings = tronAccounts.map(
-      (account) => `${tronChainId}:${account.address}`,
+    const tronChainIds = getCompatibleTronCaipChainIdsForWalletConnect(
+      TrxScope.Mainnet,
+    );
+    const tronAccountStrings = tronAccounts.flatMap((account) =>
+      tronChainIds.map((tronChainId) => `${tronChainId}:${account.address}`),
     );
     namespaces[KnownCaipNamespace.Tron] = {
-      chains: [tronChainId],
+      chains: tronChainIds,
       methods: APPROVED_METHODS_BY_NAMESPACE[KnownCaipNamespace.Tron],
       events: [],
       accounts: tronAccountStrings,
     };
     DevLogger.log(`WC::getScopedPermissions fallback Tron namespace`, {
-      chains: [tronChainId],
+      chains: tronChainIds,
       accountsCount: tronAccountStrings.length,
     });
   }
