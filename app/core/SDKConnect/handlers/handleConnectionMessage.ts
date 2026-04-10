@@ -81,8 +81,8 @@ export const handleConnectionMessage = async ({
           sdk_version: connection.originatorInfo?.apiVersion,
           rpc_method: message.method,
           wallet_version: version,
+          remote_session_id: anonId,
         })
-        .addSensitiveProperties({ remote_session_id: anonId })
         .build(),
     );
   }

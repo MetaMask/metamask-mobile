@@ -280,8 +280,6 @@ describe('connectToChannel', () => {
           name: 'Remote Connection Request Received',
           properties: expect.objectContaining({
             transport_type: 'socket_relay',
-          }),
-          sensitiveProperties: expect.objectContaining({
             remote_session_id: 'test-anon-id',
           }),
         }),

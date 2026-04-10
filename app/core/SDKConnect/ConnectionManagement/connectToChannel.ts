@@ -85,8 +85,8 @@ async function connectToChannel({
         .addProperties({
           transport_type: 'socket_relay',
           sdk_version: originatorInfo?.apiVersion,
+          remote_session_id: anonId,
         })
-        .addSensitiveProperties({ remote_session_id: anonId })
         .build(),
     );
   }

@@ -180,8 +180,6 @@ describe('handleConnectionMessage', () => {
           properties: expect.objectContaining({
             transport_type: 'socket_relay',
             rpc_method: 'eth_sendTransaction',
-          }),
-          sensitiveProperties: expect.objectContaining({
             remote_session_id: 'test-anon-id',
           }),
         }),

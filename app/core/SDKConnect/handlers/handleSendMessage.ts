@@ -48,8 +48,8 @@ export const handleSendMessage = async ({
             transport_type: 'socket_relay',
             sdk_version: connection.originatorInfo?.apiVersion,
             rpc_method: method,
+            remote_session_id: anonId,
           })
-          .addSensitiveProperties({ remote_session_id: anonId })
           .build(),
       );
     }
