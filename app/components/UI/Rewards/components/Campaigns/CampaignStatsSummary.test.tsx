@@ -55,6 +55,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_leaderboard.tier_mid': 'Silver',
       'rewards.ondo_campaign_leaderboard.tier_upper': 'Platinum',
       'rewards.ondo_campaign_leaderboard.pending': 'Pending',
+      'rewards.ondo_campaign_leaderboard.qualified': 'Qualified',
     };
     return t[key] ?? key;
   },
@@ -189,7 +190,7 @@ describe('CampaignStatsSummary', () => {
     expect(getByText('Stats')).toBeDefined();
   });
 
-  // ── Pending tag ──────────────────────────────────────────────────
+  // ── Pending / Qualified tags ────────────────────────────────────────
 
   it('renders Pending tags next to rank and tier when qualified is false', () => {
     const pendingPosition: CampaignLeaderboardPositionDto = {
@@ -198,7 +199,7 @@ describe('CampaignStatsSummary', () => {
       qualifiedDays: 3,
     };
 
-    const { getAllByTestId } = render(
+    const { getAllByTestId, getAllByText } = render(
       <CampaignStatsSummary
         {...baseProps}
         leaderboardPosition={pendingPosition}
@@ -208,17 +209,22 @@ describe('CampaignStatsSummary', () => {
     expect(
       getAllByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
     ).toHaveLength(2);
+    expect(getAllByText('Pending')).toHaveLength(2);
   });
 
-  it('does not render Pending tags when qualified is true', () => {
-    const { queryByTestId } = render(<CampaignStatsSummary {...baseProps} />);
+  it('renders Qualified tag only next to tier when qualified is true', () => {
+    const { getAllByTestId, getByText, queryAllByText } = render(
+      <CampaignStatsSummary {...baseProps} />,
+    );
 
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
-    ).toBeNull();
+      getAllByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
+    ).toHaveLength(1);
+    expect(getByText('Qualified')).toBeDefined();
+    expect(queryAllByText('Pending')).toHaveLength(0);
   });
 
-  it('does not render Pending tags when leaderboardPosition is null', () => {
+  it('does not render tags when leaderboardPosition is null', () => {
     const { queryByTestId } = render(
       <CampaignStatsSummary {...baseProps} leaderboardPosition={null} />,
     );

@@ -28,6 +28,7 @@ import {
 } from './OndoLeaderboard.utils';
 
 export const CAMPAIGN_LEADERBOARD_TEST_IDS = {
+  QUALIFIED_CHECK: 'campaign-leaderboard-qualified-check',
   CONTAINER: 'campaign-leaderboard-container',
   TIER_TOGGLE: 'campaign-leaderboard-tier-toggle',
   LIST: 'campaign-leaderboard-list',
@@ -94,18 +95,21 @@ const LeaderboardEntryRow: React.FC<{
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {entry.referralCode}
       </Text>
-      {!entry.qualified && (
+      {!entry.qualified ? (
         <PendingTag testID={CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG} />
-      )}
+      ) : isCurrentUser ? (
+        <Icon
+          name={IconName.Check}
+          size={IconSize.Sm}
+          color={IconColor.SuccessDefault}
+          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.QUALIFIED_CHECK}
+        />
+      ) : null}
     </Box>
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
-      color={
-        entry.rateOfReturn >= 0
-          ? TextColor.SuccessDefault
-          : TextColor.ErrorDefault
-      }
+      color={isCurrentUser ? TextColor.SuccessDefault : TextColor.TextDefault}
     >
       {formatRateOfReturn(entry.rateOfReturn)}
     </Text>

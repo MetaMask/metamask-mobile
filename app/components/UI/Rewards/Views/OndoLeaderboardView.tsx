@@ -16,6 +16,7 @@ import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import {
   StatCell,
   PendingTag,
+  QualifiedTag,
 } from '../components/Campaigns/CampaignStatsSummary';
 import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
@@ -45,6 +46,7 @@ const OndoLeaderboardView: React.FC = () => {
     useGetOndoLeaderboardPosition(campaignId);
 
   const isPending = position != null && !position.qualified;
+  const isQualified = position != null && position.qualified;
 
   const {
     tierNames,
@@ -80,9 +82,6 @@ const OndoLeaderboardView: React.FC = () => {
           {/* User position */}
           {position && (
             <Box twClassName="p-4 gap-3">
-              <Text variant={TextVariant.HeadingMd}>
-                {strings('rewards.ondo_campaign_leaderboard.your_position')}
-              </Text>
               <Box flexDirection={BoxFlexDirection.Row}>
                 <StatCell
                   label="Rank"
@@ -94,7 +93,13 @@ const OndoLeaderboardView: React.FC = () => {
                   label="Tier"
                   value={formatTierDisplayName(position.projectedTier)}
                   isLoading={isPositionLoading}
-                  suffix={isPending ? <PendingTag /> : undefined}
+                  suffix={
+                    isPending ? (
+                      <PendingTag />
+                    ) : isQualified ? (
+                      <QualifiedTag />
+                    ) : undefined
+                  }
                 />
               </Box>
             </Box>

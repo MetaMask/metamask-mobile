@@ -74,6 +74,10 @@ jest.mock(
   },
 );
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => null),
+}));
+
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -81,18 +85,6 @@ jest.mock('../../../Views/ErrorBoundary', () => {
     __esModule: true,
     default: ({ children }: { children: React.ReactNode }) =>
       ReactActual.createElement(View, null, children),
-  };
-});
-
-jest.mock('../components/Campaigns/OndoLeaderboardPosition', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      ReactActual.createElement(View, {
-        testID: 'ondo-leaderboard-position',
-      }),
   };
 });
 
@@ -159,14 +151,30 @@ describe('OndoLeaderboardView', () => {
     expect(getByTestId('campaign-leaderboard')).toBeDefined();
   });
 
-  it('renders the OndoLeaderboardPosition component', () => {
-    const { getByTestId } = render(<OndoLeaderboardView />);
-    expect(getByTestId('ondo-leaderboard-position')).toBeDefined();
+  it('renders Your position section with rank and tier when position exists', () => {
+    mockUseGetOndoLeaderboardPosition.mockReturnValue({
+      ...positionDefaults,
+      position: {
+        rank: 5,
+        projectedTier: 'STARTER',
+        qualified: true,
+        qualifiedDays: 10,
+        rateOfReturn: 0.1,
+        neighbors: [],
+        computedAt: '2024-01-01T00:00:00Z',
+      },
+    });
+    const { getByText } = render(<OndoLeaderboardView />);
+    expect(getByText('Rank')).toBeDefined();
+    expect(getByText('Tier')).toBeDefined();
   });
 
   it('calls useGetOndoLeaderboard with the campaign ID from route params', () => {
     render(<OndoLeaderboardView />);
-    expect(mockUseGetOndoLeaderboard).toHaveBeenCalledWith('campaign-ondo-123');
+    expect(mockUseGetOndoLeaderboard).toHaveBeenCalledWith(
+      'campaign-ondo-123',
+      expect.objectContaining({ defaultTier: undefined }),
+    );
   });
 
   it('calls useGetOndoLeaderboardPosition with the campaign ID from route params', () => {

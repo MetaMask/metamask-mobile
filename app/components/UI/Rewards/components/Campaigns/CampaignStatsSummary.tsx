@@ -41,7 +41,11 @@ export const StatCell: React.FC<StatCellProps> = ({
   const tw = useTailwind();
   return (
     <Box style={CELL_STYLE}>
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+      >
         {label}
       </Text>
       {isLoading ? (
@@ -91,6 +95,18 @@ export const PendingTag: React.FC<{ testID?: string }> = ({ testID }) => (
   </Box>
 );
 
+export const QualifiedTag: React.FC<{ testID?: string }> = ({ testID }) => (
+  <Box twClassName="bg-success-muted rounded-[6px] px-1" testID={testID}>
+    <Text
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.SuccessDefault}
+    >
+      {strings('rewards.ondo_campaign_leaderboard.qualified')}
+    </Text>
+  </Box>
+);
+
 interface DataSourceState {
   isLoading: boolean;
   hasError: boolean;
@@ -118,6 +134,8 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
 
   const isPending =
     leaderboardPosition != null && !leaderboardPosition.qualified;
+  const isQualified =
+    leaderboardPosition != null && leaderboardPosition.qualified;
 
   const returnValue = leaderboardPosition
     ? formatPercentChange(leaderboardPosition.rateOfReturn)
@@ -176,6 +194,10 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
           suffix={
             isPending ? (
               <PendingTag
+                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG}
+              />
+            ) : isQualified ? (
+              <QualifiedTag
                 testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG}
               />
             ) : undefined

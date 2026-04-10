@@ -13,12 +13,13 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   Icon,
   IconName,
   IconSize,
   Skeleton,
   Text,
-  TextColor,
+  TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -247,27 +248,31 @@ const OndoCampaignDetailsView: React.FC = () => {
               {showPortfolioSection && (
                 <>
                   <Box twClassName="p-4">
-                    <Pressable
-                      onPress={() =>
-                        navigation.navigate(
-                          Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW,
-                          { campaignId },
-                        )
-                      }
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      justifyContent={BoxJustifyContent.Between}
+                      twClassName="mb-4"
                     >
-                      <Box
-                        flexDirection={BoxFlexDirection.Row}
-                        alignItems={BoxAlignItems.Center}
-                        twClassName="gap-2 mb-4"
+                      <Text variant={TextVariant.HeadingMd}>
+                        {strings(
+                          'rewards.ondo_campaign_portfolio.positions_title',
+                        )}
+                      </Text>
+                      <TextButton
+                        variant={TextVariant.BodyMd}
+                        onPress={() =>
+                          navigation.navigate(
+                            Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW,
+                            { campaignId },
+                          )
+                        }
                       >
-                        <Text variant={TextVariant.HeadingMd}>
-                          {strings(
-                            'rewards.ondo_campaign_portfolio.positions_title',
-                          )}
-                        </Text>
-                        <Icon name={IconName.ArrowRight} size={IconSize.Md} />
-                      </Box>
-                    </Pressable>
+                        {strings(
+                          'rewards.ondo_campaign_portfolio.view_activity',
+                        )}
+                      </TextButton>
+                    </Box>
                     <OndoPortfolio
                       portfolio={portfolioData}
                       isLoading={isPortfolioLoading}

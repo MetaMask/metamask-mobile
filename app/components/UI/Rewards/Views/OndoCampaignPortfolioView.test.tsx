@@ -1,17 +1,10 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import OndoCampaignPortfolioView, {
   CAMPAIGN_PORTFOLIO_TEST_IDS,
 } from './OndoCampaignPortfolioView';
-import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
-import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useGetOndoCampaignActivity } from '../hooks/useGetOndoCampaignActivity';
-import Routes from '../../../../constants/navigation/Routes';
-import {
-  CampaignType,
-  type CampaignDto,
-  type OndoGmActivityEntryDto,
-} from '../../../../core/Engine/controllers/rewards-controller/types';
+import type { OndoGmActivityEntryDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -88,92 +81,6 @@ jest.mock('../../../Views/ErrorBoundary', () => {
   };
 });
 
-jest.mock('../components/Campaigns/OndoAccountPickerSheet', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Pressable } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      onClose,
-    }: {
-      pendingPicker: unknown;
-      sheetRef: unknown;
-      onClose: () => void;
-      onGroupSelect: () => void;
-    }) =>
-      ReactActual.createElement(
-        View,
-        { testID: 'account-picker-sheet' },
-        ReactActual.createElement(Pressable, {
-          testID: 'account-picker-sheet-close',
-          onPress: onClose,
-        }),
-      ),
-  };
-});
-
-let capturedOnOpenAccountPicker: ((config: unknown) => void) | undefined;
-
-jest.mock('../components/Campaigns/OndoPortfolio', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Pressable } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      onOpenAccountPicker,
-    }: {
-      onOpenAccountPicker?: (config: unknown) => void;
-    }) => {
-      capturedOnOpenAccountPicker = onOpenAccountPicker;
-      return ReactActual.createElement(Pressable, {
-        testID: 'ondo-portfolio',
-        onPress: () =>
-          onOpenAccountPicker?.({
-            row: {
-              tokenAsset: 'eip155:1/erc20:0xabc',
-              tokenSymbol: 'USDC',
-              tokenName: 'USD Coin',
-            },
-            entries: [
-              {
-                group: { id: 'group-1', name: 'Account 1' },
-                balance: '100',
-              },
-            ],
-          }),
-      });
-    },
-    AccountGroupSelectRow: () => ReactActual.createElement(View, null),
-    getChainHex: jest.fn(() => '0x1'),
-  };
-});
-
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => null),
-}));
-
-jest.mock('../../../../core/Engine/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      AccountTreeController: { setSelectedAccountGroup: jest.fn() },
-    },
-  },
-}));
-
-jest.mock('../../AssetOverview/Balance/Balance', () => ({
-  NetworkBadgeSource: jest.fn(() => ({ uri: 'https://mock.icon' })),
-}));
-
-jest.mock('../../Trending/components/TrendingTokenLogo', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () => ReactActual.createElement(View, null),
-  };
-});
-
 jest.mock('../components/Campaigns/OndoActivityRow', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -182,17 +89,34 @@ jest.mock('../components/Campaigns/OndoActivityRow', () => {
     default: ({
       entry,
       testID,
+      timeOnly,
     }: {
       entry: { type: string };
       testID?: string;
+      timeOnly?: boolean;
     }) =>
       ReactActual.createElement(
         View,
         { testID },
         ReactActual.createElement(Text, null, entry.type),
+        timeOnly &&
+          ReactActual.createElement(
+            Text,
+            { testID: `${testID}-time-only` },
+            'time-only',
+          ),
       ),
   };
 });
+
+jest.mock('../utils/formatUtils', () => ({
+  formatRewardsDateLabel: (date: Date) => {
+    const month = date.toLocaleString('en-US', { month: 'short' });
+    const day = date.getDate();
+    const year = date.getFullYear();
+    return `${month} ${day}, ${year}`;
+  },
+}));
 
 jest.mock('../components/RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
@@ -222,22 +146,13 @@ jest.mock('../components/RewardsInfoBanner', () => {
   };
 });
 
-jest.mock('../hooks/useGetOndoPortfolioPosition');
-const mockUseGetOndoPortfolioPosition = jest.mocked(
-  useGetOndoPortfolioPosition,
-);
-
 jest.mock('../hooks/useGetOndoCampaignActivity');
 const mockUseGetOndoCampaignActivity = jest.mocked(useGetOndoCampaignActivity);
-
-jest.mock('../hooks/useRewardCampaigns');
-const mockUseRewardCampaigns = jest.mocked(useRewardCampaigns);
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
-      'rewards.ondo_campaign_portfolio.positions_title': 'Positions',
-      'rewards.ondo_campaign_activity.title': 'Activity',
+      'rewards.ondo_campaign_portfolio.activity_title': 'Activity',
       'rewards.ondo_campaign_activity.error_title': 'Failed to load activity',
       'rewards.ondo_campaign_activity.error_description': 'Please try again.',
       'rewards.ondo_campaign_activity.retry_button': 'Retry',
@@ -248,18 +163,6 @@ jest.mock('../../../../../locales/i18n', () => ({
     return translations[key] ?? key;
   },
 }));
-
-const MOCK_CAMPAIGN: CampaignDto = {
-  id: 'campaign-1',
-  type: CampaignType.ONDO_HOLDING,
-  name: 'Test Campaign',
-  startDate: new Date().toISOString(),
-  endDate: new Date(Date.now() + 86400000).toISOString(),
-  termsAndConditions: null,
-  excludedRegions: [],
-  details: null,
-  featured: true,
-};
 
 const MOCK_ENTRY: OndoGmActivityEntryDto = {
   type: 'DEPOSIT',
@@ -272,16 +175,6 @@ const MOCK_ENTRY: OndoGmActivityEntryDto = {
   destAddress: null,
   usdAmount: '5000.000000',
   timestamp: '2026-03-28T14:30:00.000Z',
-};
-
-const emptyCategorized = { active: [], upcoming: [], previous: [] };
-
-const portfolioDefaults = {
-  portfolio: null,
-  isLoading: false,
-  hasError: false,
-  hasFetched: false,
-  refetch: jest.fn(),
 };
 
 const activityDefaults = {
@@ -298,15 +191,6 @@ const activityDefaults = {
 describe('OndoCampaignPortfolioView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseRewardCampaigns.mockReturnValue({
-      campaigns: [MOCK_CAMPAIGN],
-      categorizedCampaigns: emptyCategorized,
-      isLoading: false,
-      hasLoaded: true,
-      hasError: false,
-      fetchCampaigns: jest.fn(),
-    });
-    mockUseGetOndoPortfolioPosition.mockReturnValue(portfolioDefaults);
     mockUseGetOndoCampaignActivity.mockReturnValue(activityDefaults);
   });
 
@@ -315,14 +199,9 @@ describe('OndoCampaignPortfolioView', () => {
     expect(getByTestId(CAMPAIGN_PORTFOLIO_TEST_IDS.CONTAINER)).toBeDefined();
   });
 
-  it('renders "Positions" as the header title', () => {
+  it('renders "Activity" as the header title', () => {
     const { getByText } = render(<OndoCampaignPortfolioView />);
-    expect(getByText('Positions')).toBeDefined();
-  });
-
-  it('renders the portfolio component in the list header', () => {
-    const { getByTestId } = render(<OndoCampaignPortfolioView />);
-    expect(getByTestId('ondo-portfolio')).toBeDefined();
+    expect(getByText('Activity')).toBeDefined();
   });
 
   it('renders activity rows when entries are available', () => {
@@ -338,6 +217,44 @@ describe('OndoCampaignPortfolioView', () => {
 
     expect(getByTestId('portfolio-activity-row-0')).toBeDefined();
     expect(getByTestId('portfolio-activity-row-1')).toBeDefined();
+  });
+
+  it('renders date headers for each distinct date', () => {
+    mockUseGetOndoCampaignActivity.mockReturnValue({
+      ...activityDefaults,
+      activityEntries: [
+        MOCK_ENTRY,
+        { ...MOCK_ENTRY, timestamp: '2026-03-27T10:00:00.000Z' },
+      ],
+    });
+
+    const { getAllByText } = render(<OndoCampaignPortfolioView />);
+    const dateHeaders = getAllByText(/\w+ \d+, \d{4}/);
+    expect(dateHeaders.length).toBe(2);
+  });
+
+  it('groups entries on the same date under a single header', () => {
+    mockUseGetOndoCampaignActivity.mockReturnValue({
+      ...activityDefaults,
+      activityEntries: [
+        MOCK_ENTRY,
+        { ...MOCK_ENTRY, timestamp: '2026-03-28T10:00:00.000Z' },
+      ],
+    });
+
+    const { getAllByText } = render(<OndoCampaignPortfolioView />);
+    const dateHeaders = getAllByText(/\w+ \d+, \d{4}/);
+    expect(dateHeaders.length).toBe(1);
+  });
+
+  it('passes timeOnly to OndoActivityRow', () => {
+    mockUseGetOndoCampaignActivity.mockReturnValue({
+      ...activityDefaults,
+      activityEntries: [MOCK_ENTRY],
+    });
+
+    const { getByTestId } = render(<OndoCampaignPortfolioView />);
+    expect(getByTestId('portfolio-activity-row-0-time-only')).toBeDefined();
   });
 
   it('renders empty state when no activity entries', () => {
@@ -359,38 +276,5 @@ describe('OndoCampaignPortfolioView', () => {
 
     const { getByTestId } = render(<OndoCampaignPortfolioView />);
     expect(getByTestId('error-banner')).toBeDefined();
-  });
-
-  it('opens account picker bottom sheet when OndoPortfolio triggers onOpenAccountPicker', () => {
-    const { getByTestId } = render(<OndoCampaignPortfolioView />);
-
-    fireEvent.press(getByTestId('ondo-portfolio'));
-
-    expect(getByTestId('account-picker-sheet')).toBeDefined();
-  });
-
-  it('captures onOpenAccountPicker callback from OndoPortfolio', () => {
-    render(<OndoCampaignPortfolioView />);
-    expect(capturedOnOpenAccountPicker).toBeDefined();
-  });
-
-  it('does not navigate before account picker is triggered', () => {
-    render(<OndoCampaignPortfolioView />);
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR,
-      expect.anything(),
-    );
-  });
-
-  it('closes account picker sheet and clears pendingPicker when onClose is called', () => {
-    const { getByTestId, queryByTestId } = render(
-      <OndoCampaignPortfolioView />,
-    );
-    // Open the account picker
-    fireEvent.press(getByTestId('ondo-portfolio'));
-    expect(getByTestId('account-picker-sheet')).toBeDefined();
-    // Close it
-    fireEvent.press(getByTestId('account-picker-sheet-close'));
-    expect(queryByTestId('account-picker-sheet')).toBeNull();
   });
 });

@@ -52,6 +52,37 @@ export const formatRewardsDate = (
   }).format(date);
 
 /**
+ * Formats a date as a date-only label for section headers.
+ * @param date - Date object
+ * @returns Formatted date string without time
+ * @example 'Apr 23, 2025'
+ */
+export const formatRewardsDateLabel = (
+  date: Date,
+  locale: string = I18n.locale,
+): string =>
+  new Intl.DateTimeFormat(locale, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
+
+/**
+ * Formats a date as a time-only string.
+ * @param date - Date object
+ * @returns Formatted time string
+ * @example '10:30 AM'
+ */
+export const formatRewardsTimeOnly = (
+  date: Date,
+  locale: string = I18n.locale,
+): string =>
+  new Intl.DateTimeFormat(locale, {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
+
+/**
  * Formats a "YYYY-MM-DD" date string into a localized format without timezone shifts.
  * @param isoDate - The date string in "YYYY-MM-DD" format.
  * @param locale - The locale to format for (e.g., 'en-US', 'fr-FR').
@@ -208,6 +239,21 @@ export const validateEmail = (email: string): boolean => {
  */
 export const formatUsd = (value: string | number): string =>
   formatFiat(new BigNumber(value), 'USD');
+
+/**
+ * Formats a USD amount with a +/- sign prefix. Returns '—' for null.
+ *
+ * @example formatSignedUsd('5000.000000')  // '+$5,000.00'
+ * @example formatSignedUsd('-1250.50')     // '-$1,250.50'
+ * @example formatSignedUsd(null)           // '—'
+ */
+export const formatSignedUsd = (value: string | null): string => {
+  if (value === null) return '—';
+  const num = parseFloat(value);
+  if (Number.isNaN(num)) return value;
+  const sign = num > 0 ? '+' : '';
+  return `${sign}${formatUsd(value)}`;
+};
 
 // ── Percent / rate formatting ───────────────────────────────────────────
 

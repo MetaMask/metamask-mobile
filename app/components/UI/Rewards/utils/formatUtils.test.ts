@@ -4,6 +4,8 @@
 
 import {
   formatRewardsDate,
+  formatRewardsDateLabel,
+  formatRewardsTimeOnly,
   formatTimeRemaining,
   formatNumber,
   getIconName,
@@ -21,6 +23,7 @@ import {
   caipChainIdToHex,
   shortenAddress,
   formatUsd,
+  formatSignedUsd,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -106,6 +109,34 @@ describe('formatUtils', () => {
 
       // Then it should return formatted date in French locale
       expect(result).toMatch(/15 janv., \d{1,2}:\d{2}/);
+    });
+  });
+
+  describe('formatRewardsDateLabel', () => {
+    it('formats date with short month, day, and year', () => {
+      const date = new Date('2025-04-23T10:30:00Z');
+      const result = formatRewardsDateLabel(date, 'en-US');
+      expect(result).toBe('Apr 23, 2025');
+    });
+
+    it('formats date correctly with custom locale', () => {
+      const date = new Date('2025-04-23T10:30:00Z');
+      const result = formatRewardsDateLabel(date, 'fr-FR');
+      expect(result).toMatch(/23 avr\. 2025|23 avr 2025/);
+    });
+  });
+
+  describe('formatRewardsTimeOnly', () => {
+    it('formats time with hour and minute', () => {
+      const date = new Date('2025-04-23T14:30:00Z');
+      const result = formatRewardsTimeOnly(date, 'en-US');
+      expect(result).toMatch(/\d{1,2}:\d{2}\s?(AM|PM)/);
+    });
+
+    it('formats time correctly with custom locale', () => {
+      const date = new Date('2025-04-23T14:30:00Z');
+      const result = formatRewardsTimeOnly(date, 'fr-FR');
+      expect(result).toMatch(/\d{1,2}:\d{2}/);
     });
   });
 
@@ -1412,6 +1443,28 @@ describe('formatUtils', () => {
 
     it('formats an integer string', () => {
       expect(formatUsd('100')).toBe('$100.00');
+    });
+  });
+
+  describe('formatSignedUsd', () => {
+    it('returns em dash for null', () => {
+      expect(formatSignedUsd(null)).toBe('—');
+    });
+
+    it('prepends + for positive amounts', () => {
+      expect(formatSignedUsd('5000.000000')).toBe('+$5,000.00');
+    });
+
+    it('keeps - for negative amounts', () => {
+      expect(formatSignedUsd('-1250.500000')).toBe('$-1,250.50');
+    });
+
+    it('formats zero without sign', () => {
+      expect(formatSignedUsd('0')).toBe('$0.00');
+    });
+
+    it('returns raw string for non-numeric input', () => {
+      expect(formatSignedUsd('abc')).toBe('abc');
     });
   });
 });

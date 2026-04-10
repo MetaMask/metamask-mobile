@@ -70,6 +70,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_leaderboard.tier_upper': 'Platinum',
       'rewards.ondo_campaign_leaderboard.select_tier': 'Select Tier',
       'rewards.ondo_campaign_leaderboard.pending': 'Pending',
+      'rewards.ondo_campaign_leaderboard.qualified': 'Qualified',
     };
     return translations[key] || key;
   },
@@ -599,7 +600,7 @@ describe('OndoLeaderboard', () => {
     });
   });
 
-  describe('pending tag', () => {
+  describe('pending tag and qualified check', () => {
     it('renders Pending tag when entry is not qualified', () => {
       const entries = [
         createMockEntry({
@@ -619,7 +620,7 @@ describe('OndoLeaderboard', () => {
       expect(getByText('Pending')).toBeDefined();
     });
 
-    it('does not render Pending tag when entry is qualified', () => {
+    it('does not render Pending tag or check when entry is qualified but not current user', () => {
       const entries = [
         createMockEntry({
           rank: 1,
@@ -632,6 +633,34 @@ describe('OndoLeaderboard', () => {
         <OndoLeaderboard {...defaultProps} entries={entries} />,
       );
 
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
+      ).toBeNull();
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.QUALIFIED_CHECK),
+      ).toBeNull();
+    });
+
+    it('renders green check when entry is qualified and is current user', () => {
+      const entries = [
+        createMockEntry({
+          rank: 1,
+          referralCode: 'MYCODE',
+          qualified: true,
+          qualifiedDays: 10,
+        }),
+      ];
+      const { getByTestId, queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={entries}
+          currentUserReferralCode="MYCODE"
+        />,
+      );
+
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.QUALIFIED_CHECK),
+      ).toBeDefined();
       expect(
         queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
       ).toBeNull();
