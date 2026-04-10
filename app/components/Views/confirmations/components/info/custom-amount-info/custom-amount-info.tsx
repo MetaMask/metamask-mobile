@@ -169,7 +169,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
-    const hasQuoteResults = isQuotesLoading || Boolean(quotes?.length);
+    const hasSourceAmount = useTransactionPayHasSourceAmount();
+    const { hasBlockingAlerts } = useAlerts();
+    const hasQuoteResults =
+      isQuotesLoading ||
+      Boolean(quotes?.length) ||
+      (!hasSourceAmount && !hasBlockingAlerts);
 
     const {
       amountFiat,

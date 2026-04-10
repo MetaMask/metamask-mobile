@@ -106,10 +106,16 @@ describe('BridgeFeeRow', () => {
     expect(queryByTestId('metamask-fee-row-skeleton')).toBeNull();
   });
 
-  it('renders empty fee when there are no quotes', () => {
+  it('renders fee from totals when there are no quotes', () => {
     useTransactionPayQuotesMock.mockReturnValue([]);
-    const { getByTestId } = render();
-    expect(getByTestId('bridge-fee-row')).toBeDefined();
+    const { getByText } = render();
+    expect(getByText('$1.23')).toBeDefined();
+  });
+
+  it('does not render tooltip when there are no quotes', () => {
+    useTransactionPayQuotesMock.mockReturnValue([]);
+    const { queryByTestId } = render();
+    expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
   });
 
   it('includes metamask fee in transaction fee total', () => {
