@@ -342,7 +342,7 @@ const Main = (props) => {
       }
     }
     previousNetworkConfigurations.current = networkConfigurations;
-  }, [isOnBridgeRoute, networkConfigurations, networkImage, toastRef]);
+  }, [networkConfigurations, networkImage, toastRef]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
