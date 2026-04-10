@@ -41,6 +41,7 @@ import {
   normalizeCaipChainIdInbound,
 } from './wc-utils';
 import {
+  adaptWalletConnectRequestForSnap,
   getChainChangedEmissionForWalletConnect,
   shouldEmitChainChangedForWalletConnect,
 } from './WalletConnectMultiChainConnector';
@@ -951,8 +952,9 @@ class WalletConnect2Session {
     unverifiedOrigin: string,
   ) => {
     const { method, params } = requestEvent.params.request;
+    const mappedRequest = adaptWalletConnectRequestForSnap({ method, params });
     DevLogger.log(
-      `WC2::routeToSnap snapId=${snapId} method=${method} origin=${unverifiedOrigin}`,
+      `WC2::routeToSnap snapId=${snapId} method=${method} mappedMethod=${mappedRequest.method} origin=${unverifiedOrigin}`,
     );
     try {
       const result = await handleSnapRequest(Engine.controllerMessenger, {
@@ -962,8 +964,8 @@ class WalletConnect2Session {
         request: {
           jsonrpc: '2.0',
           id: requestEvent.id,
-          method,
-          params: params ?? [],
+          method: mappedRequest.method,
+          params: mappedRequest.params,
         },
       });
       await this.approveRequest({ id: requestEvent.id + '', result });
