@@ -1,6 +1,6 @@
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { CardController, defaultCardControllerState } from './CardController';
 import {
   type CardControllerMessenger,
@@ -20,7 +20,7 @@ jest.mock('./CardController', () => {
 describe('cardControllerInit', () => {
   const cardControllerClassMock = jest.mocked(CardController);
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<CardControllerMessenger>
+    MessengerClientInitRequest<CardControllerMessenger>
   >;
 
   beforeEach(() => {

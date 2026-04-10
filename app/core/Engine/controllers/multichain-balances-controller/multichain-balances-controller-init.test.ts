@@ -3,7 +3,7 @@ import {
   MultichainBalancesControllerMessenger,
   MultichainBalancesControllerState,
 } from '@metamask/assets-controllers';
-import type { ControllerInitRequest } from '../../types';
+import type { MessengerClientInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { multichainBalancesControllerInit } from './multichain-balances-controller-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
@@ -16,7 +16,7 @@ describe('multichain balances controller init', () => {
     MultichainBalancesController,
   );
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<MultichainBalancesControllerMessenger>
+    MessengerClientInitRequest<MultichainBalancesControllerMessenger>
   >;
 
   beforeEach(() => {
