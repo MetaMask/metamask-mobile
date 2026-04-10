@@ -57,7 +57,7 @@ jest.mock('@solana/addresses', () => ({
   isAddress: jest.fn(),
 }));
 jest.mock('@metamask/controller-utils', () => ({
-  ...jest.requireActual('@metamask/messengerClient-utils'),
+  ...jest.requireActual('@metamask/controller-utils'),
   toHex: jest.fn(),
 }));
 jest.mock('./utils/solana-snap', () => ({
