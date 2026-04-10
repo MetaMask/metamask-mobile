@@ -2,9 +2,8 @@
  * Slack RC Build Notification Script
  *
  * Cherry-pick section: reads markdown from rc-cherry-pick-changelog.sh (written in CI by
- * scripts/write-rc-cherry-pick-changelog-artifact.sh, e.g. build-rc-auto.yml → artifact).
- * If that file is missing, falls back to CHANGELOG.md via @metamask/auto-changelog (other
- * workflows that do not upload the artifact).
+ * scripts/write-rc-cherry-pick-changelog-merge-base.sh: --from merge-base(HEAD, origin/main),
+ * --to HEAD). If that file is missing, falls back to CHANGELOG.md via @metamask/auto-changelog.
  *
  * Required: SEMVER, SLACK_BOT_TOKEN, IOS_BUILD_NUMBER, ANDROID_BUILD_NUMBER
  * Optional: RC_CHERRY_PICK_CHANGELOG_PATH (defaults to rc-cherry-pick-changelog.md in repo root)
