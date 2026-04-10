@@ -43,8 +43,8 @@ function getInitRequestMock(): jest.Mocked<
     initMessenger: undefined,
   };
 
-  // @ts-expect-error: Partial implementation.
   requestMock.getMessengerClient.mockImplementation(
+    // @ts-expect-error: Partial implementation.
     (controllerName: string) => {
       if (controllerName === 'SnapKeyringBuilder') {
         return jest.fn();
@@ -75,12 +75,12 @@ describe('keyringControllerInit', () => {
     mockIsMoneyAccountEnabled.mockReturnValue(true);
   });
 
-  it('initializes the controller', () => {
+  it('initializes the messengerClient', () => {
     const { messengerClient } = keyringControllerInit(getInitRequestMock());
     expect(messengerClient).toBeInstanceOf(KeyringController);
   });
 
-  it('passes the proper arguments to the controller', () => {
+  it('passes the proper arguments to the messengerClient', () => {
     keyringControllerInit(getInitRequestMock());
 
     const controllerMock = jest.mocked(KeyringController);

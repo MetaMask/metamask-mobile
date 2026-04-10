@@ -57,7 +57,7 @@ jest.mock('@solana/addresses', () => ({
   isAddress: jest.fn(),
 }));
 jest.mock('@metamask/controller-utils', () => ({
-  ...jest.requireActual('@metamask/controller-utils'),
+  ...jest.requireActual('@metamask/messengerClient-utils'),
   toHex: jest.fn(),
 }));
 jest.mock('./utils/solana-snap', () => ({
@@ -370,7 +370,7 @@ describe('RewardsController', () => {
       unsubscribe: jest.fn(),
     } as unknown as jest.Mocked<RewardsControllerMessenger>;
 
-    controller = new RewardsController({
+    messengerClient = new RewardsController({
       messenger: mockMessenger,
       isDisabled: () => false,
     });
@@ -436,7 +436,7 @@ describe('RewardsController', () => {
         },
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
         isDisabled: () => false,
@@ -451,7 +451,7 @@ describe('RewardsController', () => {
     });
 
     it('preserves rewardsEnvUrl across resetState', () => {
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: { rewardsEnvUrl: 'https://rewards.uat-api.cx.metamask.io' },
         isDisabled: () => false,
@@ -476,7 +476,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: null,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -529,7 +529,7 @@ describe('RewardsController', () => {
       expect(resetAllSpy).not.toHaveBeenCalled();
     });
 
-    it('updates controller state to UAT URL', async () => {
+    it('updates messengerClient state to UAT URL', async () => {
       // Arrange
       expect(messengerClient.state.rewardsEnvUrl).toBeNull();
 
@@ -540,9 +540,9 @@ describe('RewardsController', () => {
       expect(messengerClient.state.rewardsEnvUrl).toBe(UAT_URL);
     });
 
-    it('updates controller state to PRD URL', async () => {
+    it('updates messengerClient state to PRD URL', async () => {
       // Arrange
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: { rewardsEnvUrl: UAT_URL },
         isDisabled: () => false,
@@ -579,7 +579,7 @@ describe('RewardsController', () => {
 
     it('preserves rewardsEnvUrl after resetAll clears other state', async () => {
       // Arrange — set up some state that resetAll will clear
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: {
@@ -640,7 +640,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: recentTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -670,7 +670,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: recentTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -699,7 +699,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: staleTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -733,7 +733,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: staleTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -834,7 +834,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: null,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -3737,7 +3737,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: recentTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -3767,7 +3767,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: staleTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -3802,7 +3802,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: staleTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -3927,7 +3927,7 @@ describe('RewardsController', () => {
           lastPerpsDiscountRateFetched: Date.now() - 600000, // Stale cache
         };
 
-        controller = new RewardsController({
+        messengerClient = new RewardsController({
           messenger: mockMessenger,
           state: {
             activeAccount: null,
@@ -3993,7 +3993,7 @@ describe('RewardsController', () => {
           lastPerpsDiscountRateFetched: Date.now() - 700000, // Stale
         };
 
-        controller = new RewardsController({
+        messengerClient = new RewardsController({
           messenger: mockMessenger,
           state: {
             activeAccount: null,
@@ -4041,7 +4041,7 @@ describe('RewardsController', () => {
           lastPerpsDiscountRateFetched: Date.now() - 800000,
         };
 
-        controller = new RewardsController({
+        messengerClient = new RewardsController({
           messenger: mockMessenger,
           state: {
             activeAccount: null,
@@ -4086,7 +4086,7 @@ describe('RewardsController', () => {
           lastPerpsDiscountRateFetched: Date.now() - 900000,
         };
 
-        controller = new RewardsController({
+        messengerClient = new RewardsController({
           messenger: mockMessenger,
           state: {
             activeAccount: null,
@@ -4633,7 +4633,7 @@ describe('RewardsController', () => {
         lastFetched: recentTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -4723,7 +4723,7 @@ describe('RewardsController', () => {
         season: mockSeasonMetadata,
       });
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -4802,7 +4802,7 @@ describe('RewardsController', () => {
         currentTierId: 'gold',
       });
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -4868,7 +4868,7 @@ describe('RewardsController', () => {
     });
 
     it('throws error when season is not found in state', async () => {
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -4895,7 +4895,7 @@ describe('RewardsController', () => {
     });
 
     it('handles errors from data service', async () => {
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6094,7 +6094,7 @@ describe('RewardsController', () => {
 
     it('returns null when disabled via isDisabled callback', async () => {
       const isDisabled = () => true;
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6127,7 +6127,7 @@ describe('RewardsController', () => {
         lastFetched: recentTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6163,7 +6163,7 @@ describe('RewardsController', () => {
         lastFetched: expiredTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6232,7 +6232,7 @@ describe('RewardsController', () => {
         lastFetched: staleTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6317,7 +6317,7 @@ describe('RewardsController', () => {
         tiers,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6387,7 +6387,7 @@ describe('RewardsController', () => {
         tiers,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6446,7 +6446,7 @@ describe('RewardsController', () => {
         },
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6505,7 +6505,7 @@ describe('RewardsController', () => {
         tiers,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6556,7 +6556,7 @@ describe('RewardsController', () => {
         next: null,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6579,7 +6579,7 @@ describe('RewardsController', () => {
     });
 
     it('handles errors from discover seasons API', async () => {
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6610,7 +6610,7 @@ describe('RewardsController', () => {
         next: null,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6681,7 +6681,7 @@ describe('RewardsController', () => {
         lastFetched: recentTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6730,7 +6730,7 @@ describe('RewardsController', () => {
         referralPoints: 1000,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6782,7 +6782,7 @@ describe('RewardsController', () => {
         referralPoints: 750,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6837,7 +6837,7 @@ describe('RewardsController', () => {
     });
 
     it('logs and rethrows Error objects when API call fails', async () => {
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6868,7 +6868,7 @@ describe('RewardsController', () => {
     });
 
     it('rethrows non-Error objects when API call fails', async () => {
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -7393,7 +7393,7 @@ describe('RewardsController', () => {
       const caipAccount2 = 'eip155:1:0x2222222222222222' as CaipAccountId;
 
       // Create account states so they can be set as activeAccount
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -7648,7 +7648,7 @@ describe('RewardsController', () => {
         },
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -7707,7 +7707,7 @@ describe('RewardsController', () => {
         token: 'valid-session-token',
       });
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: accountState,
@@ -7760,7 +7760,7 @@ describe('RewardsController', () => {
         // No lastFreshOptInStatusCheck
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: accountState,
@@ -7813,7 +7813,7 @@ describe('RewardsController', () => {
         lastFreshOptInStatusCheck: recentTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: accountState,
@@ -7866,7 +7866,7 @@ describe('RewardsController', () => {
         lastFreshOptInStatusCheck: staleTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: accountState,
@@ -7924,7 +7924,7 @@ describe('RewardsController', () => {
         token: 'valid-session-token',
       });
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: accountState,
@@ -7978,7 +7978,7 @@ describe('RewardsController', () => {
 
     it('skips logout when no authenticated account exists', async () => {
       // Arrange
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -8006,7 +8006,7 @@ describe('RewardsController', () => {
       // Arrange
       const mockSubscriptionId = 'sub-123';
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: {
@@ -8069,7 +8069,7 @@ describe('RewardsController', () => {
       // Mock token storage to succeed during initialization
       mockStoreSubscriptionToken.mockResolvedValue({ success: true });
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: mockActiveAccount,
@@ -8150,7 +8150,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: Date.now(),
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: activeAccountState,
@@ -8195,7 +8195,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: Date.now(),
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: activeAccountState,
@@ -8235,7 +8235,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: Date.now(),
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: activeAccountState,
@@ -8292,7 +8292,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: Date.now(),
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: activeAccountState,
@@ -9156,7 +9156,7 @@ describe('RewardsController', () => {
         ...getRewardsControllerDefaultState(),
         activeAccount: null,
       };
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
         isDisabled: () => false,
@@ -9175,7 +9175,7 @@ describe('RewardsController', () => {
         ...getRewardsControllerDefaultState(),
         activeAccount: null,
       };
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
         isDisabled: () => false,
@@ -9202,7 +9202,7 @@ describe('RewardsController', () => {
         activeAccount: null,
         accounts: {},
       };
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
         isDisabled: () => false,
@@ -9228,7 +9228,7 @@ describe('RewardsController', () => {
           [CAIP_ACCOUNT_1]: mockAccountState,
         },
       };
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
         isDisabled: () => false,
@@ -9265,7 +9265,7 @@ describe('RewardsController', () => {
           [CAIP_ACCOUNT_1]: mockAccountState,
         },
       };
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
         isDisabled: () => false,
@@ -9304,7 +9304,7 @@ describe('RewardsController', () => {
           [caipAccountLowercase]: accountStateWithLowercase,
         },
       };
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
         isDisabled: () => false,
@@ -10283,7 +10283,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('updates controller state after successful opt-in', async () => {
+    it('updates messengerClient state after successful opt-in', async () => {
       // Arrange
       const mockAccounts = [mockEvmInternalAccount];
       mockMessenger.call.mockImplementation((method, ..._args): any => {
@@ -10608,7 +10608,7 @@ describe('RewardsController', () => {
 
       // Mock convertInternalAccountToCaipAccountId to return null
       jest
-        .spyOn(controller as any, 'convertInternalAccountToCaipAccountId')
+        .spyOn(messengerClient as any, 'convertInternalAccountToCaipAccountId')
         .mockReturnValue(null);
 
       mockMessenger.call.mockImplementation((method, ..._args): any => {
@@ -14342,7 +14342,7 @@ describe('RewardsController', () => {
         unsubscribe: jest.fn(),
       } as unknown as jest.Mocked<RewardsControllerMessenger>;
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -14567,7 +14567,7 @@ describe('RewardsController', () => {
         lastFetched: recentTime,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -14655,7 +14655,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -14728,7 +14728,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -14790,7 +14790,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -14868,7 +14868,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -15129,7 +15129,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -15197,7 +15197,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -15256,7 +15256,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15287,7 +15287,7 @@ describe('RewardsController', () => {
     });
 
     it('throws error when API fails', async () => {
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15306,7 +15306,7 @@ describe('RewardsController', () => {
     });
 
     it('handles null API response', async () => {
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15328,7 +15328,7 @@ describe('RewardsController', () => {
     });
 
     it('handles empty rewards array from API', async () => {
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15380,7 +15380,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -15454,7 +15454,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15488,7 +15488,7 @@ describe('RewardsController', () => {
 
     it('successfully claim reward without DTO', async () => {
       // Arrange
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15530,7 +15530,7 @@ describe('RewardsController', () => {
         },
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15623,7 +15623,7 @@ describe('RewardsController', () => {
         pointsEvents: {},
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
       });
@@ -15665,7 +15665,7 @@ describe('RewardsController', () => {
     it('handles and re-throw API errors', async () => {
       // Arrange
       const mockError = new Error('API Error: Reward already claimed');
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15693,7 +15693,7 @@ describe('RewardsController', () => {
     it('handles non-Error objects in catch block', async () => {
       // Arrange
       const mockError = 'String error';
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => false,
@@ -15711,7 +15711,7 @@ describe('RewardsController', () => {
     it('handles empty DTO object', async () => {
       // Arrange
       const emptyDto = {};
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => false,
@@ -15744,7 +15744,7 @@ describe('RewardsController', () => {
           metadata: 'additional-metadata',
         },
       };
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15815,7 +15815,7 @@ describe('RewardsController', () => {
         pointsEvents: {},
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
       });
@@ -15833,7 +15833,7 @@ describe('RewardsController', () => {
 
     it('logs cache invalidation', async () => {
       // Arrange
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15867,7 +15867,7 @@ describe('RewardsController', () => {
         amount: '1000',
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15905,7 +15905,7 @@ describe('RewardsController', () => {
     it('handles and re-throw API errors', async () => {
       // Arrange
       const mockError = new Error('API Error: Failed to get tokens');
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15930,7 +15930,7 @@ describe('RewardsController', () => {
     it('handles non-Error objects in catch block', async () => {
       // Arrange
       const mockError = 'String error';
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => false,
@@ -15950,7 +15950,7 @@ describe('RewardsController', () => {
 
     it('returns null when data service returns null', async () => {
       // Arrange
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15977,7 +15977,7 @@ describe('RewardsController', () => {
         amount: '5000',
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -17696,7 +17696,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: null,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -17713,7 +17713,7 @@ describe('RewardsController', () => {
 
     it('returns null for non-existent account', () => {
       // Arrange
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -17735,7 +17735,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: null,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -17767,7 +17767,7 @@ describe('RewardsController', () => {
         },
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -17784,7 +17784,7 @@ describe('RewardsController', () => {
 
     it('returns null when no subscriptions exist', () => {
       // Arrange
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -18225,7 +18225,7 @@ describe('RewardsController', () => {
         lastFreshOptInStatusCheck: Date.now(),
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -18260,7 +18260,7 @@ describe('RewardsController', () => {
         [ADDRESS_3.toLowerCase(), mockInternalAccount3],
       ]);
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -18304,7 +18304,7 @@ describe('RewardsController', () => {
       };
 
       // Only ADDRESS_1 has cached data, ADDRESS_2 and ADDRESS_3 don't
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -18353,7 +18353,7 @@ describe('RewardsController', () => {
         lastFreshOptInStatusCheck: Date.now(),
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -18393,7 +18393,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: Date.now(),
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -18458,7 +18458,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: Date.now(),
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -18517,7 +18517,7 @@ describe('RewardsController', () => {
         lastFreshOptInStatusCheck: Date.now(),
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -19002,7 +19002,7 @@ describe('RewardsController', () => {
     });
 
     it('fetches campaigns when rewards is enabled', async () => {
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -19020,7 +19020,7 @@ describe('RewardsController', () => {
     });
 
     it('fetches campaigns from API and caches result', async () => {
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -19050,7 +19050,7 @@ describe('RewardsController', () => {
       const recentTime = Date.now() - 60000; // 1 minute ago (within 5 minute threshold)
       const mockCachedCampaign = createTestCampaign({ id: 'cached-campaign' });
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -19074,7 +19074,7 @@ describe('RewardsController', () => {
       const staleCampaign = createTestCampaign({ id: 'stale-campaign' });
       const freshCampaigns = [createTestCampaign({ id: 'fresh-campaign' })];
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -19099,7 +19099,7 @@ describe('RewardsController', () => {
     });
 
     it('logs when fetching fresh campaigns data', async () => {
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });

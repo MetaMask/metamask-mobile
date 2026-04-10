@@ -31,8 +31,8 @@ function getInitRequestMock(): jest.Mocked<
     initMessenger: getPermissionControllerInitMessenger(baseMessenger),
   };
 
-  // @ts-expect-error: Partial implementation.
   requestMock.getMessengerClient.mockImplementation(
+    // @ts-expect-error: Partial implementation.
     (controllerName: string) => {
       if (controllerName === 'ApprovalController') {
         return {
@@ -54,12 +54,12 @@ function getInitRequestMock(): jest.Mocked<
 }
 
 describe('permissionControllerInit', () => {
-  it('initializes the controller', () => {
+  it('initializes the messengerClient', () => {
     const { messengerClient } = permissionControllerInit(getInitRequestMock());
     expect(messengerClient).toBeInstanceOf(PermissionController);
   });
 
-  it('passes the proper arguments to the controller', () => {
+  it('passes the proper arguments to the messengerClient', () => {
     permissionControllerInit(getInitRequestMock());
 
     const controllerMock = jest.mocked(PermissionController);
