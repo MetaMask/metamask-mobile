@@ -1,7 +1,7 @@
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getAuthenticationControllerMessenger } from '../../messengers/identity/authentication-controller-messenger';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { authenticationControllerInit } from './authentication-controller-init';
 import {
   Controller as AuthenticationController,
@@ -12,7 +12,7 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/profile-sync-controller/auth');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<AuthenticationControllerMessenger>
+  MessengerClientInitRequest<AuthenticationControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
