@@ -19,10 +19,14 @@ const createStyles = (params: {
 
   return StyleSheet.create({
     safeArea: {
-      backgroundColor: theme.colors.background.alternative,
+      ...(!isRenderedAsBottomSheet && {
+        backgroundColor: theme.colors.background.alternative,
+      }),
     },
     mainContainer: {
-      backgroundColor: theme.colors.background.alternative,
+      ...(!isRenderedAsBottomSheet && {
+        backgroundColor: theme.colors.background.alternative,
+      }),
       paddingTop: 16,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,

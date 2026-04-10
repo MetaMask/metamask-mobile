@@ -68,57 +68,55 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
 
   return (
     <BottomSheet ref={sheetRef} onClose={onClose}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <ButtonIcon
-            onPress={handleBack}
-            iconName={IconName.ArrowLeft}
-            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.BACK_BUTTON}
-          />
-          <Text
-            variant={TextVariant.HeadingMd}
-            style={styles.title}
-            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.TITLE}
-          >
-            {strings('multichain_accounts.learn_more.title')}
-          </Text>
-          <ButtonIcon
-            onPress={handleClose}
-            iconName={IconName.Close}
-            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CLOSE_BUTTON}
-          />
-        </View>
+      <View style={styles.header}>
+        <ButtonIcon
+          onPress={handleBack}
+          iconName={IconName.ArrowLeft}
+          testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.BACK_BUTTON}
+        />
+        <Text
+          variant={TextVariant.HeadingMd}
+          style={styles.title}
+          testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.TITLE}
+        >
+          {strings('multichain_accounts.learn_more.title')}
+        </Text>
+        <ButtonIcon
+          onPress={handleClose}
+          iconName={IconName.Close}
+          testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CLOSE_BUTTON}
+        />
+      </View>
 
-        <View style={styles.content}>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextDefault}
-            style={styles.description}
-            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.DESCRIPTION}
-          >
-            {strings('multichain_accounts.learn_more.description')}
-          </Text>
+      <View style={styles.content}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          style={styles.description}
+          testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.DESCRIPTION}
+        >
+          {strings('multichain_accounts.learn_more.description')}
+        </Text>
 
-          <Checkbox
-            isChecked={isCheckboxChecked}
-            onPress={handleCheckboxToggle}
-            label={strings('multichain_accounts.learn_more.checkbox_label')}
-            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CHECKBOX}
-          />
-        </View>
+        <Checkbox
+          isChecked={isCheckboxChecked}
+          onPress={handleCheckboxToggle}
+          label={strings('multichain_accounts.learn_more.checkbox_label')}
+          testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CHECKBOX}
+        />
+      </View>
 
-        <View style={styles.footer}>
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonBaseSize.Lg}
-            isFullWidth
-            onPress={handleConfirm}
-            isDisabled={!isCheckboxChecked}
-            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CONFIRM_BUTTON}
-          >
-            {strings('multichain_accounts.learn_more.confirm_button')}
-          </Button>
-        </View>
+      <View style={styles.footer}>
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonBaseSize.Lg}
+          isFullWidth
+          onPress={handleConfirm}
+          isDisabled={!isCheckboxChecked}
+          testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CONFIRM_BUTTON}
+        >
+          {strings('multichain_accounts.learn_more.confirm_button')}
+        </Button>
       </View>
     </BottomSheet>
   );

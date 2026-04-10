@@ -119,17 +119,12 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
         />
       </View>
       <RCTSafeAreaView
-        style={
-          {
-            "backgroundColor": "#f3f3f4",
-          }
-        }
+        style={{}}
       >
         <View
           style={
             [
               {
-                "backgroundColor": "#f3f3f4",
                 "borderTopLeftRadius": 20,
                 "borderTopRightRadius": 20,
                 "height": undefined,
@@ -1186,17 +1181,12 @@ exports[`AccountConnect renders correctly with base request when there is no exi
         />
       </View>
       <RCTSafeAreaView
-        style={
-          {
-            "backgroundColor": "#f3f3f4",
-          }
-        }
+        style={{}}
       >
         <View
           style={
             [
               {
-                "backgroundColor": "#f3f3f4",
                 "borderTopLeftRadius": 20,
                 "borderTopRightRadius": 20,
                 "height": undefined,
@@ -2253,17 +2243,12 @@ exports[`AccountConnect renders correctly with request including chains and acco
         />
       </View>
       <RCTSafeAreaView
-        style={
-          {
-            "backgroundColor": "#f3f3f4",
-          }
-        }
+        style={{}}
       >
         <View
           style={
             [
               {
-                "backgroundColor": "#f3f3f4",
                 "borderTopLeftRadius": 20,
                 "borderTopRightRadius": 20,
                 "height": undefined,
@@ -3320,17 +3305,12 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
         />
       </View>
       <RCTSafeAreaView
-        style={
-          {
-            "backgroundColor": "#f3f3f4",
-          }
-        }
+        style={{}}
       >
         <View
           style={
             [
               {
-                "backgroundColor": "#f3f3f4",
                 "borderTopLeftRadius": 20,
                 "borderTopRightRadius": 20,
                 "height": undefined,
