@@ -27,6 +27,7 @@ import {
   type CampaignLeaderboardPositionDto,
   type OndoGmPortfolioDto,
   type OndoGmPortfolioState,
+  type OndoGmCampaignDepositsDto,
   type PaginatedOndoGmActivityDto,
   type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
@@ -121,6 +122,9 @@ const ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 
 
 // Campaign portfolio position cache threshold
 const ONDO_CAMPAIGN_PORTFOLIO_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Campaign deposits cache threshold
+const ONDO_CAMPAIGN_DEPOSITS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
@@ -234,6 +238,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  ondoCampaignDeposits: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -268,6 +278,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   ondoCampaignLeaderboardPositions: {},
   ondoCampaignPortfolio: {},
   ondoCampaignActivity: {},
+  ondoCampaignDeposits: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });
@@ -375,6 +386,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getGeoRewardsMetadata',
   'getHasAccountOptedIn',
   'getOffDeviceSubscriptionAccounts',
+  'getOndoCampaignDeposits',
   'getOndoCampaignLeaderboard',
   'getOndoCampaignLeaderboardPosition',
   'getOndoCampaignActivity',
@@ -3549,6 +3561,52 @@ export class RewardsController extends BaseController<
             campaignId: payload.campaignId,
             computedAt: payload.computedAt,
             tiers: payload.tiers,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Get campaign-wide total deposits.
+   * This is a public endpoint - no authentication required.
+   * Results are cached for 5 minutes.
+   * @param campaignId - The campaign ID to get deposits for.
+   * @returns The total USD deposited across all participants.
+   */
+  async getOndoCampaignDeposits(
+    campaignId: string,
+  ): Promise<OndoGmCampaignDepositsDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return { totalUsdDeposited: '0' };
+    }
+
+    const result = await wrapWithCache<OndoGmCampaignDepositsDto>({
+      key: campaignId,
+      ttl: ONDO_CAMPAIGN_DEPOSITS_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.ondoCampaignDeposits[k];
+        if (!cached) return undefined;
+        return {
+          payload: { totalUsdDeposited: cached.totalUsdDeposited },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh campaign deposits via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getOndoCampaignDeposits',
+          campaignId,
+        )) as OndoGmCampaignDepositsDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.ondoCampaignDeposits[k] = {
+            totalUsdDeposited: payload.totalUsdDeposited,
             lastFetched: Date.now(),
           };
         });

@@ -545,6 +545,14 @@ export type OndoGmPortfolioSummaryState = {
 };
 
 /**
+ * Campaign-wide total deposits (public endpoint).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmCampaignDepositsDto = {
+  totalUsdDeposited: string;
+};
+
+/**
  * Cached portfolio payload (explicit shape for Json / StateConstraint compatibility).
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -653,6 +661,15 @@ export type OndoGmActivityState = {
   results: OndoGmActivityEntryState[];
   has_more: boolean;
   cursor: string | null;
+  lastFetched: number;
+};
+
+/**
+ * Cached campaign deposits (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmCampaignDepositsState = {
+  totalUsdDeposited: string;
   lastFetched: number;
 };
 
@@ -1774,6 +1791,8 @@ export type RewardsControllerState = {
   ondoCampaignActivity: {
     [compositeId: string]: OndoGmActivityState;
   };
+  /** Ondo campaign deposits keyed by campaignId (public endpoint). */
+  ondoCampaignDeposits: { [campaignId: string]: OndoGmCampaignDepositsState };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.

@@ -241,6 +241,32 @@ export const formatUsd = (value: string | number): string =>
   formatFiat(new BigNumber(value), 'USD');
 
 /**
+ * Formats a USD amount in compact notation (e.g. $1.5M, $350K).
+ * Implemented manually because Hermes does not support `notation: 'compact'`.
+ *
+ * @example formatCompactUsd(1500000) // '$1.5M'
+ * @example formatCompactUsd(6000000) // '$6M'
+ * @example formatCompactUsd(25000)   // '$25K'
+ * @example formatCompactUsd(500)     // '$500'
+ */
+export const formatCompactUsd = (value: number): string => {
+  const abs = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+
+  if (abs >= 1_000_000) {
+    const compact = abs / 1_000_000;
+    const formatted = compact % 1 === 0 ? `${compact}` : compact.toFixed(1);
+    return `${sign}$${formatted}M`;
+  }
+  if (abs >= 1_000) {
+    const compact = abs / 1_000;
+    const formatted = compact % 1 === 0 ? `${compact}` : compact.toFixed(1);
+    return `${sign}$${formatted}K`;
+  }
+  return `${sign}$${abs}`;
+};
+
+/**
  * Formats a USD amount with a +/- sign prefix. Returns '—' for null.
  *
  * @example formatSignedUsd('5000.000000')  // '+$5,000.00'

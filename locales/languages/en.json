@@ -8084,6 +8084,15 @@
         "open_position": "Open Position"
       }
     },
+    "ondo_campaign_prize_pool": {
+      "title": "Prize Pool",
+      "current_label": "Current",
+      "next_label": "Next",
+      "volume_subtext": "{{current}} of {{target}} volume",
+      "error_title": "Failed to load prize pool",
+      "error_description": "There was an error loading the prize pool. Please try again.",
+      "retry_button": "Retry"
+    },
     "ondo_campaign_leaderboard_position": {
       "title": "Your Position",
       "rank": "My Rank",

@@ -24,6 +24,7 @@ import {
   shortenAddress,
   formatUsd,
   formatSignedUsd,
+  formatCompactUsd,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -1465,6 +1466,44 @@ describe('formatUtils', () => {
 
     it('returns raw string for non-numeric input', () => {
       expect(formatSignedUsd('abc')).toBe('abc');
+    });
+  });
+
+  describe('formatCompactUsd', () => {
+    it('formats millions with decimal', () => {
+      expect(formatCompactUsd(1_500_000)).toBe('$1.5M');
+    });
+
+    it('formats whole millions without trailing .0', () => {
+      expect(formatCompactUsd(6_000_000)).toBe('$6M');
+    });
+
+    it('formats thousands', () => {
+      expect(formatCompactUsd(25_000)).toBe('$25K');
+    });
+
+    it('formats thousands with decimal', () => {
+      expect(formatCompactUsd(2_500)).toBe('$2.5K');
+    });
+
+    it('formats whole thousands without trailing .0', () => {
+      expect(formatCompactUsd(50_000)).toBe('$50K');
+    });
+
+    it('formats small values without suffix', () => {
+      expect(formatCompactUsd(500)).toBe('$500');
+    });
+
+    it('formats zero', () => {
+      expect(formatCompactUsd(0)).toBe('$0');
+    });
+
+    it('formats negative millions', () => {
+      expect(formatCompactUsd(-3_500_000)).toBe('-$3.5M');
+    });
+
+    it('formats negative thousands', () => {
+      expect(formatCompactUsd(-75_000)).toBe('-$75K');
     });
   });
 });

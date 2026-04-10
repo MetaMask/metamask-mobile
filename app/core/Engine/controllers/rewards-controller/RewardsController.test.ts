@@ -15817,7 +15817,7 @@ describe('RewardsController', () => {
           controller.metadata,
           'includeInDebugSnapshot',
         ),
-      ).toMatchInlineSnapshot(`{}`);
+      ).toMatchSnapshot();
     });
   });
 
@@ -15828,54 +15828,13 @@ describe('RewardsController', () => {
         controller.metadata,
         'includeInStateLogs',
       ),
-    ).toMatchInlineSnapshot(`
-        {
-          "accounts": {},
-          "activeAccount": null,
-          "activeBoosts": {},
-          "campaignParticipantStatus": {},
-          "campaigns": {},
-          "offDeviceSubscriptionAccounts": {},
-          "ondoCampaignActivity": {},
-          "ondoCampaignLeaderboard": {},
-          "ondoCampaignLeaderboardPositions": {},
-          "ondoCampaignPortfolio": {},
-          "pointsEstimateHistory": [],
-          "pointsEvents": {},
-          "seasonStatuses": {},
-          "seasons": {},
-          "subscriptionReferralDetails": {},
-          "subscriptions": {},
-          "unlockedRewards": {},
-        }
-      `);
+    ).toMatchSnapshot();
   });
 
   it('persists expected state', () => {
     expect(
       deriveStateFromMetadata(controller.state, controller.metadata, 'persist'),
-    ).toMatchInlineSnapshot(`
-        {
-          "accounts": {},
-          "activeAccount": null,
-          "activeBoosts": {},
-          "campaignParticipantStatus": {},
-          "campaigns": {},
-          "offDeviceSubscriptionAccounts": {},
-          "ondoCampaignActivity": {},
-          "ondoCampaignLeaderboard": {},
-          "ondoCampaignLeaderboardPositions": {},
-          "ondoCampaignPortfolio": {},
-          "pointsEstimateHistory": [],
-          "pointsEvents": {},
-          "rewardsEnvUrl": null,
-          "seasonStatuses": {},
-          "seasons": {},
-          "subscriptionReferralDetails": {},
-          "subscriptions": {},
-          "unlockedRewards": {},
-        }
-      `);
+    ).toMatchSnapshot();
   });
 
   it('exposes expected state to UI', () => {
@@ -15885,27 +15844,7 @@ describe('RewardsController', () => {
         controller.metadata,
         'usedInUi',
       ),
-    ).toMatchInlineSnapshot(`
-        {
-          "accounts": {},
-          "activeAccount": null,
-          "activeBoosts": {},
-          "campaignParticipantStatus": {},
-          "campaigns": {},
-          "offDeviceSubscriptionAccounts": {},
-          "ondoCampaignActivity": {},
-          "ondoCampaignLeaderboard": {},
-          "ondoCampaignLeaderboardPositions": {},
-          "ondoCampaignPortfolio": {},
-          "pointsEvents": {},
-          "rewardsEnvUrl": null,
-          "seasonStatuses": {},
-          "seasons": {},
-          "subscriptionReferralDetails": {},
-          "subscriptions": {},
-          "unlockedRewards": {},
-        }
-      `);
+    ).toMatchSnapshot();
   });
 
   describe('#signRewardsMessage', () => {
@@ -19895,6 +19834,80 @@ describe('RewardsController', () => {
       await expect(
         controller.getActivityLastUpdated('campaign-1', 'sub-1'),
       ).rejects.toThrow('API error');
+    });
+  });
+
+  describe('getOndoCampaignDeposits', () => {
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockCampaignId = 'campaign-deposits-123';
+    const mockDeposits = { totalUsdDeposited: '1250000.000000' };
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns zero deposits when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result =
+        await disabledController.getOndoCampaignDeposits(mockCampaignId);
+
+      expect(result).toEqual({ totalUsdDeposited: '0' });
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches deposits from API and caches result', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockDeposits);
+
+      const result = await ctrl.getOndoCampaignDeposits(mockCampaignId);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignDeposits',
+        mockCampaignId,
+      );
+      expect(result).toEqual(mockDeposits);
+      expect(ctrl.state.ondoCampaignDeposits[mockCampaignId]).toBeDefined();
+    });
+
+    it('returns cached deposits when cache is fresh', async () => {
+      const recentTime = Date.now() - 60000;
+      const state = {
+        ...getRewardsControllerDefaultState(),
+        ondoCampaignDeposits: {
+          [mockCampaignId]: {
+            totalUsdDeposited: mockDeposits.totalUsdDeposited,
+            lastFetched: recentTime,
+          },
+        },
+      };
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state,
+      });
+
+      const result = await ctrl.getOndoCampaignDeposits(mockCampaignId);
+
+      expect(result).toEqual(mockDeposits);
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
   });
 });

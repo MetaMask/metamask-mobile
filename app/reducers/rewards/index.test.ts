@@ -35,6 +35,9 @@ import rewardsReducer, {
   setOndoCampaignLeaderboardPosition,
   setOndoCampaignPortfolioPosition,
   setOndoCampaignActivity,
+  setOndoCampaignDeposits,
+  setOndoCampaignDepositsLoading,
+  setOndoCampaignDepositsError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -5338,5 +5341,82 @@ describe('setOndoCampaignActivity', () => {
     const state = rewardsReducer(initialState, action);
 
     expect(state.ondoCampaignActivity['sub-1:campaign-1']).toBeNull();
+  });
+});
+
+describe('ondoCampaignDeposits', () => {
+  it('setOndoCampaignDeposits sets data and clears error', () => {
+    const deposits = { totalUsdDeposited: '1250000.000000' };
+    const prevState = {
+      ...initialState,
+      ondoCampaignDepositsError: true,
+    };
+
+    const state = rewardsReducer(prevState, setOndoCampaignDeposits(deposits));
+
+    expect(state.ondoCampaignDeposits).toEqual(deposits);
+    expect(state.ondoCampaignDepositsError).toBe(false);
+  });
+
+  it('setOndoCampaignDepositsLoading(true) sets loading when no data', () => {
+    const state = rewardsReducer(
+      initialState,
+      setOndoCampaignDepositsLoading(true),
+    );
+
+    expect(state.ondoCampaignDepositsLoading).toBe(true);
+  });
+
+  it('setOndoCampaignDepositsLoading(true) skips when data already exists', () => {
+    const prevState = {
+      ...initialState,
+      ondoCampaignDeposits: { totalUsdDeposited: '500000' },
+      ondoCampaignDepositsLoading: false,
+    };
+
+    const state = rewardsReducer(
+      prevState as RewardsState,
+      setOndoCampaignDepositsLoading(true),
+    );
+
+    expect(state.ondoCampaignDepositsLoading).toBe(false);
+  });
+
+  it('setOndoCampaignDepositsLoading(false) clears loading', () => {
+    const prevState = { ...initialState, ondoCampaignDepositsLoading: true };
+
+    const state = rewardsReducer(
+      prevState,
+      setOndoCampaignDepositsLoading(false),
+    );
+
+    expect(state.ondoCampaignDepositsLoading).toBe(false);
+  });
+
+  it('setOndoCampaignDepositsError(true) sets error', () => {
+    const state = rewardsReducer(
+      initialState,
+      setOndoCampaignDepositsError(true),
+    );
+
+    expect(state.ondoCampaignDepositsError).toBe(true);
+  });
+
+  it('resetRewardsState resets deposits to null', () => {
+    const prevState = {
+      ...initialState,
+      ondoCampaignDeposits: { totalUsdDeposited: '500000' },
+      ondoCampaignDepositsLoading: true,
+      ondoCampaignDepositsError: true,
+    };
+
+    const state = rewardsReducer(
+      prevState as RewardsState,
+      resetRewardsState(),
+    );
+
+    expect(state.ondoCampaignDeposits).toBeNull();
+    expect(state.ondoCampaignDepositsLoading).toBe(false);
+    expect(state.ondoCampaignDepositsError).toBe(false);
   });
 });

@@ -33,6 +33,7 @@ import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
 import OndoAccountPickerSheet from '../components/Campaigns/OndoAccountPickerSheet';
 import OndoCampaignCTA from '../components/Campaigns/OndoCampaignCTA';
 import CampaignStatsSummary from '../components/Campaigns/CampaignStatsSummary';
+import OndoPrizePool from '../components/Campaigns/OndoPrizePool';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
@@ -41,6 +42,7 @@ import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPos
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useOndoAccountPicker } from '../hooks/useOndoAccountPicker';
+import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { OndoCampaignHowItWorks } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -65,6 +67,13 @@ const OndoCampaignDetailsView: React.FC = () => {
   const referralCode = useSelector(selectReferralCode);
   const { pendingPicker, setPendingPicker, sheetRef, handleGroupSelect } =
     useOndoAccountPicker(campaignId);
+
+  const {
+    deposits,
+    isLoading: isDepositsLoading,
+    hasError: hasDepositsError,
+    refetch: refetchDeposits,
+  } = useGetOndoCampaignDeposits(campaignId);
 
   const {
     campaigns,
@@ -210,6 +219,18 @@ const OndoCampaignDetailsView: React.FC = () => {
           {campaign && (
             <>
               <CampaignStatus campaign={campaign} optedIn={isOptedIn} />
+
+              <Box twClassName="p-4">
+                <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
+                  {strings('rewards.ondo_campaign_prize_pool.title')}
+                </Text>
+                <OndoPrizePool
+                  totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
+                  isLoading={isDepositsLoading}
+                  hasError={hasDepositsError}
+                  refetch={refetchDeposits}
+                />
+              </Box>
 
               {/* Phase 1: Not opted in, show how it works section */}
               {showHowItWorksSection && (

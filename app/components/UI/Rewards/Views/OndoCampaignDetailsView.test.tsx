@@ -4,6 +4,7 @@ import OndoCampaignDetailsView, {
   CAMPAIGN_DETAILS_TEST_IDS,
 } from './OndoCampaignDetailsView';
 import { CAMPAIGN_STATS_SUMMARY_TEST_IDS } from '../components/Campaigns/CampaignStatsSummary';
+import { ONDO_PRIZE_POOL_TEST_IDS } from '../components/Campaigns/OndoPrizePool';
 import { CAMPAIGN_CTA_TEST_IDS } from '../components/Campaigns/CampaignOptInCta';
 import {
   type CampaignDto,
@@ -14,6 +15,7 @@ import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticip
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
+import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
@@ -243,6 +245,31 @@ const mockUseGetOndoPortfolioPosition =
     typeof useGetOndoPortfolioPosition
   >;
 
+jest.mock('../hooks/useGetOndoCampaignDeposits');
+const mockUseGetOndoCampaignDeposits =
+  useGetOndoCampaignDeposits as jest.MockedFunction<
+    typeof useGetOndoCampaignDeposits
+  >;
+
+const mockOndoPrizePool = jest.fn();
+jest.mock('../components/Campaigns/OndoPrizePool', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const { ONDO_PRIZE_POOL_TEST_IDS: actualTestIds } = jest.requireActual(
+    '../components/Campaigns/OndoPrizePool',
+  );
+  return {
+    __esModule: true,
+    ONDO_PRIZE_POOL_TEST_IDS: actualTestIds,
+    default: (props: Record<string, unknown>) => {
+      mockOndoPrizePool(props);
+      return ReactActual.createElement(View, {
+        testID: actualTestIds.CONTAINER,
+      });
+    },
+  };
+});
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => null),
 }));
@@ -445,6 +472,13 @@ describe('OndoCampaignDetailsView', () => {
       hasFetched: false,
       refetch: jest.fn(),
     });
+    mockUseGetOndoCampaignDeposits.mockReturnValue({
+      deposits: null,
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+    mockOndoPrizePool.mockReset();
   });
 
   it('renders the container', () => {
@@ -934,6 +968,26 @@ describe('OndoCampaignDetailsView', () => {
       // Close it
       fireEvent.press(getByTestId('account-picker-sheet-close'));
       expect(queryByTestId('account-picker-sheet')).toBeNull();
+    });
+  });
+
+  describe('prize pool', () => {
+    it('renders OndoPrizePool when campaign exists', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId(ONDO_PRIZE_POOL_TEST_IDS.CONTAINER)).toBeDefined();
+    });
+
+    it('does not render OndoPrizePool when no campaign', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [],
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(ONDO_PRIZE_POOL_TEST_IDS.CONTAINER)).toBeNull();
     });
   });
 });

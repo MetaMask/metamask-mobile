@@ -4872,4 +4872,36 @@ describe('RewardsDataService', () => {
       ).rejects.toThrow('Get campaign activity last updated failed: 500');
     });
   });
+
+  describe('getOndoCampaignDeposits', () => {
+    const mockCampaignId = 'campaign-deposits-123';
+    const mockDeposits = { totalUsdDeposited: '1250000.000000' };
+
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockDeposits),
+      } as unknown as Response);
+    });
+
+    it('calls the correct public endpoint with GET and returns deposits data', async () => {
+      const result = await service.getOndoCampaignDeposits(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/stats/deposits`,
+        expect.objectContaining({
+          method: 'GET',
+        }),
+      );
+      expect(result).toEqual(mockDeposits);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getOndoCampaignDeposits(mockCampaignId),
+      ).rejects.toThrow('Get campaign deposits failed: 500');
+    });
+  });
 });
