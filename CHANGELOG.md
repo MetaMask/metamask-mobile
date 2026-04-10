@@ -9,8 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.73.0]
 
+### Uncategorized
+
+- chore:cherry pick 28490 (#28556)
+- chore: cherry pick 28423 (#28540)
+- cherry pick 28368 (#28535)
+- chore: use push EAS directly (#28362) (#28362)
+- Null (#28510)
+
+---
+
+- chore/modify runway ota build core workflow (#28310)
+- Chore/abstract build from upload to testflight (#28309)
+- chore: display OTA push platform in summary (#28059)
+- chore(release): sync stable to main for version 7.71.1 (#28154)
+- chore(release): sync stable to main for version 7.71.0 (#28023)
+
 ### Added
 
+- Added runway production workflows (#27887)
+- Update Earn team name to @MetaMask/earn in codeowners (#28062)
 - Added feature-flagged "withdraw to any token" flow for Perps, allowing users to withdraw Perps funds to any supported token via MetaMask Pay (#28265)
 - Added a token safety banner and warning modal in Swaps that alerts users when the destination token is flagged as suspicious or malicious before proceeding with a swap (#27834)
 - Added trending stocks deep link routing (#27869)
@@ -33,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Derive mm*pay*\* metrics from controller state for reliable Transaction Finalized tracking (#28164)
 - Fixed Bitcoin PSBT build errors to include the underlying cause for better diagnostics (#28282)
 - Fixed stuck pending withdraw (#26537)
 - Fixed duplicate WalletConnect relay messages when switching chains (#27978)
