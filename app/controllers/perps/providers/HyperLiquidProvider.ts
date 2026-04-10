@@ -5449,6 +5449,18 @@ export class HyperLiquidProvider implements PerpsProvider {
         count: rawFunding?.length ?? 0,
       });
 
+      // [PR-28671] BUG_MARKER: API cap hit — latest funding payments are missing
+      if (rawFunding && rawFunding.length >= 500) {
+        this.#deps.debugLogger.log(
+          '[PR-28671] BUG_MARKER: getFunding hit 500-record API cap - latest payments will be missing',
+          {
+            count: rawFunding.length,
+            oldestRecord: rawFunding[0]?.time,
+            newestRecord: rawFunding[rawFunding.length - 1]?.time,
+          },
+        );
+      }
+
       // Transform HyperLiquid funding to abstract Funding type
       const funding: Funding[] = (rawFunding || []).map((rawFundingItem) => {
         const { delta, hash, time } = rawFundingItem;
