@@ -13,10 +13,15 @@ import {
   AuthServerUrl,
   web3AuthNetwork,
 } from '../../../../app/core/OAuthService/OAuthLoginHandlers/constants';
-import { OAUTH_CONFIG } from '../../../../app/core/OAuthService/OAuthLoginHandlers/config';
 import type { BaseHandlerOptions } from '../../../../app/core/OAuthService/OAuthLoginHandlers/baseHandler';
 
-const UAT_GROUPED_AUTH = OAUTH_CONFIG.main_uat;
+function getMockGoogleOAuthClientId(): string {
+  return (
+    process.env.IOS_GOOGLE_CLIENT_ID ||
+    process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID ||
+    '615965109465-i8oeh9kuvl1n6lk1ffkobpvth27bmi41.apps.googleusercontent.com'
+  );
+}
 
 /**
  * Login result type
@@ -250,12 +255,14 @@ export function createLoginHandler(
   switch (provider) {
     case 'google':
       return new MockGoogleLoginHandler({
-        clientId: UAT_GROUPED_AUTH.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
+        clientId: getMockGoogleOAuthClientId(),
         redirectUri: 'metamask://e2e',
       });
     case 'apple':
       return new MockAppleLoginHandler({
-        clientId: UAT_GROUPED_AUTH.APPLE_GROUPED_AUTH_CONNECTION_ID,
+        clientId:
+          process.env.ANDROID_APPLE_CLIENT_ID ||
+          'io.metamask.appleloginclient.dev',
       });
     default:
       throw new Error(`[E2E Mock] Unsupported provider: ${provider}`);
