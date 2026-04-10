@@ -26,7 +26,11 @@ import { parseCaipAccountId, Hex, type CaipChainId } from '@metamask/utils';
 import type { AccountGroupObject } from '@metamask/account-tree-controller';
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
-import { formatUsd , parseCaip19, caipChainIdToHex } from '../../utils/formatUtils';
+import {
+  formatUsd,
+  parseCaip19,
+  caipChainIdToHex,
+} from '../../utils/formatUtils';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';

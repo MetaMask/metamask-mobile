@@ -149,11 +149,7 @@ describe('OndoPrizePool', () => {
 
   it('shows skeleton when loading with no data', () => {
     const { getByTestId, queryByTestId } = render(
-      <OndoPrizePool
-        {...baseProps}
-        totalUsdDeposited={null}
-        isLoading
-      />,
+      <OndoPrizePool {...baseProps} totalUsdDeposited={null} isLoading />,
     );
 
     expect(getByTestId(ONDO_PRIZE_POOL_TEST_IDS.CONTAINER)).toBeDefined();
@@ -162,9 +158,7 @@ describe('OndoPrizePool', () => {
   });
 
   it('shows stale data when loading with existing data (SWR)', () => {
-    const { getByTestId } = render(
-      <OndoPrizePool {...baseProps} isLoading />,
-    );
+    const { getByTestId } = render(<OndoPrizePool {...baseProps} isLoading />);
 
     expect(getByTestId(ONDO_PRIZE_POOL_TEST_IDS.PROGRESS_BAR)).toBeDefined();
     expect(getByTestId(ONDO_PRIZE_POOL_TEST_IDS.SUBTEXT)).toBeDefined();
