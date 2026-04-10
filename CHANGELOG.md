@@ -9,22 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.73.0]
 
-### Uncategorized
-
-- chore:cherry pick 28490 (#28556)
-- chore: cherry pick 28423 (#28540)
-- cherry pick 28368 (#28535)
-- chore: use push EAS directly (#28362)
-- Null (#28510)
-
----
-
-- chore/modify runway ota build core workflow (#28310)
-- Chore/abstract build from upload to testflight (#28309)
-- chore: display OTA push platform in summary (#28059)
-- chore(release): sync stable to main for version 7.71.1 (#28154)
-- chore(release): sync stable to main for version 7.71.0 (#28023)
-
 ### Added
 
 - Added runway production workflows (#27887)
