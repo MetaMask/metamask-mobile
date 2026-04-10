@@ -736,7 +736,7 @@ describe('AccountActions', () => {
         state: initialState,
       });
 
-      expect(queryByText('Switch to Smart account')).toBeNull();
+      expect(queryByText('Switch to Smart account')).not.toBeOnTheScreen();
     });
 
     it('option should not be displayed for hardware wallet accounts', () => {
@@ -746,7 +746,7 @@ describe('AccountActions', () => {
         state: initialState,
       });
 
-      expect(queryByText('Switch to Smart account')).toBeNull();
+      expect(queryByText('Switch to Smart account')).not.toBeOnTheScreen();
     });
   });
 
