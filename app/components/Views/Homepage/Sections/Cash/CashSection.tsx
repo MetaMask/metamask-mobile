@@ -53,9 +53,9 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
 
     const handleViewCashTokens = useCallback(() => {
       if (isMoneyHomeEnabled) {
-        navigation.navigate(Routes.MONEY.ROOT as never);
+        navigation.navigate(Routes.MONEY.ROOT);
       } else {
-        navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW as never);
+        navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW);
       }
     }, [navigation, isMoneyHomeEnabled]);
 

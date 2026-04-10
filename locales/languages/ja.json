@@ -6638,7 +6638,6 @@
     "nested_transaction_heading": "トランザクション {{index}}",
     "transaction": "トランザクション",
     "available_balance": "利用可能残高: ",
-    "available_perps_balance": "使用可能なパーペチュアル残高: ",
     "edit_amount_done": "続行",
     "deposit_edit_amount_done": "資金を追加",
     "deposit_edit_amount_predict_withdraw": "出金",

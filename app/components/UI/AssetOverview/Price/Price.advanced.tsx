@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { Dimensions, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import Svg, { Path } from 'react-native-svg';
 import { strings } from '../../../../../locales/i18n';
@@ -18,6 +19,7 @@ import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
+import { normalizeTokenAddress } from '../../Bridge/utils/tokenUtils';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
 import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
@@ -41,6 +43,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
+import { setTokenOverviewChartType } from '../../../../actions/user';
+import { usePriceChart } from '../PriceChart/PriceChart.context';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
 
@@ -124,17 +129,27 @@ const PriceAdvanced = ({
   comparePrice,
   isLoading,
 }: PriceAdvancedProps) => {
+  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
-  const [chartType, setChartType] = useState<ChartType>(ChartType.Line);
+  const chartType = useSelector(selectTokenOverviewChartType);
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
+  const { setIsChartBeingTouched } = usePriceChart();
 
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
     [],
   );
+
+  const handleTouchStart = useCallback(() => {
+    setIsChartBeingTouched(true);
+  }, [setIsChartBeingTouched]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsChartBeingTouched(false);
+  }, [setIsChartBeingTouched]);
 
   const handleChartInteracted = useCallback(
     (payload: ChartInteractedPayload) => {
@@ -168,8 +183,8 @@ const PriceAdvanced = ({
         })
         .build(),
     );
-    setChartType(next);
-  }, [chartType, createEventBuilder, trackEvent]);
+    dispatch(setTokenOverviewChartType(next));
+  }, [chartType, createEventBuilder, trackEvent, dispatch]);
 
   const handleTimeRangeSelect = useCallback(
     (range: TimeRange) => {
@@ -188,10 +203,18 @@ const PriceAdvanced = ({
     [createEventBuilder, timeRange, trackEvent],
   );
 
-  const assetId = useMemo(
-    () => formatAddressToAssetId(asset.address, asset.chainId as Hex) ?? '',
-    [asset.address, asset.chainId],
-  );
+  const assetId = useMemo(() => {
+    // Normalize Polygon's native token address (0x...001010) to zero address
+    // before formatting to CAIP-19 assetId. formatAddressToAssetId will convert
+    // zero address to proper SLIP-44 format (e.g., eip155:137/slip44:966 for Polygon)
+    const normalizedAddress = normalizeTokenAddress(
+      asset.address,
+      asset.chainId as Hex,
+    );
+    return (
+      formatAddressToAssetId(normalizedAddress, asset.chainId as Hex) ?? ''
+    );
+  }, [asset.address, asset.chainId]);
   const config = TIME_RANGE_CONFIGS[timeRange];
 
   /**
@@ -333,7 +356,13 @@ const PriceAdvanced = ({
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}
-        <View style={[styles.chartContainer, { height: CHART_HEIGHT }]}>
+        <View
+          testID="advanced-chart-touch-container"
+          style={[styles.chartContainer, { height: CHART_HEIGHT }]}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+        >
           {showEmptyState ? (
             <NoDataOverlay
               hasInsufficientData={hasInsufficientData}
