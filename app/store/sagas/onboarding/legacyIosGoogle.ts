@@ -1,6 +1,6 @@
 import { call, delay, put, select, take } from 'redux-saga/effects';
 import NavigationService from '../../../core/NavigationService';
-import { presentIosGoogleLoginVersionWarningSheet } from '../../../components/Views/Onboarding/OnboardingIosPrompt';
+import { presentIosGoogleLoginVersionWarningSheetReminder } from '../../../components/Views/Onboarding/OnboardingIosPrompt';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import { UserActionType } from '../../../actions/user';
@@ -11,6 +11,7 @@ import {
   selectSeedlessOnboardingAuthConnection,
   selectSeedlessOnboardingLoginFlow,
 } from '../../../selectors/seedlessOnboardingController';
+import { selectGoogleLoginIosUnsupportedBlockingEnabled } from '../../../selectors/featureFlagController/googleLoginIosUnsupportedBlocking';
 
 /** Minimum time between showing the iOS Google version warning sheet after dismiss. */
 export const IOS_GOOGLE_WARNING_SHEET_REMINDER_INTERVAL_MS =
@@ -18,7 +19,7 @@ export const IOS_GOOGLE_WARNING_SHEET_REMINDER_INTERVAL_MS =
 
 const promptIosGoogleWarningSheet = async function () {
   const navigation = NavigationService.navigation;
-  await presentIosGoogleLoginVersionWarningSheet(navigation);
+  await presentIosGoogleLoginVersionWarningSheetReminder(navigation);
 };
 
 export function* promptIosGoogleWarningSheetSaga() {
@@ -29,6 +30,9 @@ export function* promptIosGoogleWarningSheetSaga() {
     yield delay(5000);
 
     try {
+      const googleLoginIosUnsupportedBlockingEnabled: boolean = yield select(
+        selectGoogleLoginIosUnsupportedBlockingEnabled,
+      );
       // check if the user is on the seedless Google login flow
       const isSeedlessLoginFlow: boolean = yield select(
         selectSeedlessOnboardingLoginFlow,
@@ -36,7 +40,12 @@ export function* promptIosGoogleWarningSheetSaga() {
       const authConnection: string | undefined = yield select(
         selectSeedlessOnboardingAuthConnection,
       );
-      if (!isSeedlessLoginFlow || authConnection !== AuthConnection.Google) {
+
+      if (
+        googleLoginIosUnsupportedBlockingEnabled ||
+        !isSeedlessLoginFlow ||
+        authConnection !== AuthConnection.Google
+      ) {
         return;
       }
 

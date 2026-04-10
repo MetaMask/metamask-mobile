@@ -67,6 +67,24 @@ export const IosGoogleLoginVersionWarningDescription = () => {
   );
 };
 
+export const IosGoogleLoginVersionWarningDescriptionReminder = () => {
+  const tw = useTailwind();
+  return (
+    <Box gap={4}>
+      <Text style={tw.style('text-pretty')}>
+        {strings('error_sheet.ios_need_update_reminder_description')}
+        <Text style={tw.style('text-pretty')}>
+          {strings('error_sheet.ios_need_update_reminder_description_version')}
+        </Text>
+        {strings('error_sheet.ios_need_update_reminder_description_end')}
+      </Text>
+      <Text style={tw.style('text-pretty')}>
+        {strings('error_sheet.ios_need_update_reminder_description_2')}
+      </Text>
+    </Box>
+  );
+};
+
 export async function presentIosGoogleLoginUnsupportedBlockingSheet(
   navigation: AppNavigationProp,
 ): Promise<void> {
@@ -111,6 +129,21 @@ export async function presentIosGoogleLoginVersionWarningSheet(
     title: strings('error_sheet.ios_need_update_title'),
     description: <IosGoogleLoginVersionWarningDescription />,
     primaryButtonLabel: strings('error_sheet.ios_need_update_button'),
+    closeOnPrimaryButtonPress: true,
+    isInteractable: false,
+  });
+}
+
+export async function presentIosGoogleLoginVersionWarningSheetReminder(
+  navigation: AppNavigationProp,
+): Promise<void> {
+  await navigateToSuccessErrorSheetPromise(navigation, {
+    type: 'error',
+    icon: IconName.Warning,
+    iconColor: IconColor.Warning,
+    title: strings('error_sheet.ios_need_update_reminder_title'),
+    description: <IosGoogleLoginVersionWarningDescriptionReminder />,
+    primaryButtonLabel: strings('error_sheet.ios_need_update_reminder_button'),
     closeOnPrimaryButtonPress: true,
     isInteractable: false,
   });
