@@ -16,7 +16,10 @@ import {
   type SortField,
 } from '@metamask/perps-controller';
 import type { PerpsTransaction } from '../types/transactionHistory';
-import { transformFillsToTransactions } from '../utils/transactionTransforms';
+import {
+  transformFillsToTransactions,
+  mergeOrderFills,
+} from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';
 import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
@@ -125,40 +128,10 @@ export const usePerpsHomeData = ({
     };
   }, [isConnected, isInitialized, isConnecting]);
 
-  // Merge REST + WebSocket fills with deduplication
-  // Live fills take precedence over REST fills (more up-to-date)
-  const mergedFills = useMemo(() => {
-    // Use Map for efficient deduplication
-    const fillsMap = new Map<string, OrderFill>();
-
-    // Add REST fills first
-    for (const fill of restFills) {
-      const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
-      fillsMap.set(key, fill);
-    }
-
-    // Add live fills (overwrites duplicates from REST - live data is fresher)
-    // Preserve detailedOrderType from REST fills since WS fills lack it
-    for (const fill of liveFills) {
-      const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
-      const existing = fillsMap.get(key);
-      if (existing?.detailedOrderType && !fill.detailedOrderType) {
-        fillsMap.set(key, {
-          ...fill,
-          detailedOrderType: existing.detailedOrderType,
-          ...(existing.liquidation &&
-            !fill.liquidation && { liquidation: existing.liquidation }),
-        });
-      } else {
-        fillsMap.set(key, fill);
-      }
-    }
-
-    // Convert back to array and sort by timestamp descending (newest first)
-    return Array.from(fillsMap.values()).sort(
-      (a, b) => b.timestamp - a.timestamp,
-    );
-  }, [restFills, liveFills]);
+  const mergedFills = useMemo(
+    () => mergeOrderFills(restFills, liveFills),
+    [restFills, liveFills],
+  );
 
   // Transform merged fills to PerpsTransaction format for activity display
   const tradesOnly = useMemo(
