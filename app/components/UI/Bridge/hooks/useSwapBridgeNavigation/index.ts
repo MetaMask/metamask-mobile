@@ -232,12 +232,23 @@ export const useSwapBridgeNavigation = ({
       // Pre-populate Redux state before navigation to prevent empty button flash
       dispatch(setSourceToken(sourceToken));
 
+      // Only use the configured dest token if its chain is bridge-enabled.
+      // When the dest is on an unsupported chain (e.g. token viewed from an
+      // unsupported network in the trending "buy" flow), fall through to the
+      // default dest logic so the UI opens with a valid pair.
+      const isDestChainSupported = effectiveDestTokenBase
+        ? getIsBridgeEnabledSource(effectiveDestTokenBase.chainId)
+        : true;
+      const validDestTokenBase = isDestChainSupported
+        ? effectiveDestTokenBase
+        : undefined;
+
       // Use provided destToken if available and different from sourceToken, otherwise compute default
       if (
-        effectiveDestTokenBase &&
-        !areAddressesEqual(sourceToken.address, effectiveDestTokenBase.address)
+        validDestTokenBase &&
+        !areAddressesEqual(sourceToken.address, validDestTokenBase.address)
       ) {
-        dispatch(setDestToken(effectiveDestTokenBase));
+        dispatch(setDestToken(validDestTokenBase));
       } else {
         // Either no destToken provided, or it's the same as sourceToken - use default logic
         const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
