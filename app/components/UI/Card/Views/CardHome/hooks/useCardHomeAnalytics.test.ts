@@ -36,6 +36,7 @@ const mockData: CardHomeData = {
   account: null,
   alerts: [],
   actions: [],
+  delegationSettings: null,
 };
 
 function setupHook(

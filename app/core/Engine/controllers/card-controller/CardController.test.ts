@@ -147,6 +147,7 @@ const mockCardHomeData: CardHomeData = {
   account: null,
   alerts: [],
   actions: [],
+  delegationSettings: null,
 };
 
 const mockSession: CardAuthSession = {
@@ -1677,6 +1678,7 @@ describe('CardController — data pass-throughs', () => {
         account: null,
         alerts: [],
         actions: [{ type: 'add_funds', enabled: true }],
+        delegationSettings: null,
       };
       const provider = buildMockProvider();
       const mockGetOnChainAssets = provider.getOnChainAssets as jest.Mock;
