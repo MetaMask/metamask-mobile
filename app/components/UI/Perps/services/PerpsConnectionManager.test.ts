@@ -1197,6 +1197,38 @@ describe('PerpsConnectionManager', () => {
       expect(state.isConnecting).toBe(false);
     });
 
+    it('skips cache clearing when preserveCaches is true', async () => {
+      // Arrange
+      const m = PerpsConnectionManager as unknown as {
+        connectionRefCount: number;
+        performActualDisconnection: (opts: {
+          force?: boolean;
+          preserveCaches?: boolean;
+        }) => Promise<void>;
+      };
+      m.connectionRefCount = 0;
+
+      // Act
+      await m.performActualDisconnection({ preserveCaches: true });
+
+      // Assert — caches must NOT be cleared when preserveCaches=true
+      expect(
+        mockStreamManagerInstance.positions.clearCache,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.orders.clearCache,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.account.clearCache,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.prices.clearCache,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.marketData.clearCache,
+      ).not.toHaveBeenCalled();
+    });
+
     it('skips disconnection when reference count is still positive', async () => {
       // Arrange — refCount > 0 means another consumer reconnected during grace period
       const m = PerpsConnectionManager as unknown as {
@@ -1453,17 +1485,49 @@ describe('PerpsConnectionManager', () => {
       );
     });
 
-    it('reconnects when existing connection ping fails', async () => {
+    it('retries ping after delay and skips reconnect when retry succeeds', async () => {
       // Establish an initial connection
       await PerpsConnectionManager.connect();
 
-      // Make ping fail to simulate unhealthy connection
-      (
-        Engine.context.PerpsController.getActiveProvider as jest.Mock
-      ).mockReturnValueOnce({
-        ping: jest.fn().mockRejectedValueOnce(new Error('ping timeout')),
+      // First ping fails, retry succeeds — simulates JS thread sluggishness on foreground
+      const failPing = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('ping timeout'));
+      const succeedPing = jest.fn().mockResolvedValue(undefined);
+      (Engine.context.PerpsController.getActiveProvider as jest.Mock)
+        .mockReturnValueOnce({ ping: failPing })
+        .mockReturnValueOnce({ ping: succeedPing });
+
+      (Engine.context.PerpsController.init as jest.Mock).mockClear();
+
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
       });
 
+      // Retry ping succeeded — no full reconnect needed
+      expect(Engine.context.PerpsController.init).not.toHaveBeenCalled();
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+    });
+
+    it('soft-reconnects with preserveCaches when both pings fail', async () => {
+      // Establish an initial connection
+      await PerpsConnectionManager.connect();
+
+      // Both pings fail — truly unhealthy connection
+      (Engine.context.PerpsController.getActiveProvider as jest.Mock)
+        .mockReturnValueOnce({
+          ping: jest.fn().mockRejectedValueOnce(new Error('ping timeout')),
+        })
+        .mockReturnValueOnce({
+          ping: jest.fn().mockRejectedValueOnce(new Error('ping timeout')),
+        });
+
+      // Clear cache mocks to track preserveCaches behavior
+      Object.values(mockStreamManagerInstance).forEach(({ clearCache }) =>
+        clearCache.mockClear(),
+      );
       (Engine.context.PerpsController.init as jest.Mock).mockClear();
       (Engine.context.PerpsController.disconnect as jest.Mock).mockClear();
 
@@ -1471,8 +1535,18 @@ describe('PerpsConnectionManager', () => {
         source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
       });
 
-      // Should have fallen through to ensureConnected → reconnected
+      // Should have reconnected
       expect(Engine.context.PerpsController.init).toHaveBeenCalled();
+      // Caches must NOT be cleared — preserveCaches=true prevents skeleton flash
+      expect(
+        mockStreamManagerInstance.positions.clearCache,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.orders.clearCache,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.account.clearCache,
+      ).not.toHaveBeenCalled();
     });
 
     it('cancels grace period before resuming', async () => {

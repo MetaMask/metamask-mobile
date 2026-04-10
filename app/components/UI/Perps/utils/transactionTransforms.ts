@@ -191,6 +191,50 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
   return allFills;
 }
 
+/**
+ * Merges REST and WebSocket fill arrays into a single deduplicated, sorted array.
+ *
+ * REST fills are added first; WS fills overwrite duplicates (fresher data).
+ * When a WS fill lacks `detailedOrderType` or `liquidation` that the REST fill has,
+ * the REST metadata is preserved so TP/SL pills remain visible on all screens.
+ *
+ * Dedup key: `orderId-timestamp-size-price`
+ *
+ * @param restFills - Historical fills from the REST API
+ * @param liveFills - Real-time fills from the WebSocket
+ * @returns Merged, deduplicated fills sorted by timestamp descending
+ */
+export function mergeOrderFills(
+  restFills: OrderFill[],
+  liveFills: OrderFill[],
+): OrderFill[] {
+  const fillsMap = new Map<string, OrderFill>();
+
+  for (const fill of restFills) {
+    const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
+    fillsMap.set(key, fill);
+  }
+
+  for (const fill of liveFills) {
+    const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
+    const existing = fillsMap.get(key);
+    if (existing?.detailedOrderType && !fill.detailedOrderType) {
+      fillsMap.set(key, {
+        ...fill,
+        detailedOrderType: existing.detailedOrderType,
+        ...(existing.liquidation &&
+          !fill.liquidation && { liquidation: existing.liquidation }),
+      });
+    } else {
+      fillsMap.set(key, fill);
+    }
+  }
+
+  return Array.from(fillsMap.values()).sort(
+    (a, b) => b.timestamp - a.timestamp,
+  );
+}
+
 export interface WithdrawalRequest {
   id: string;
   timestamp: number;

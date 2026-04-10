@@ -4097,7 +4097,7 @@ describe('PredictController', () => {
         ...overrides,
       }) as any;
 
-    it('does nothing when token is null', () => {
+    it('treats null as balance token and clears selectedPaymentToken', () => {
       withController(({ controller }) => {
         const existingToken = {
           address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -4108,7 +4108,22 @@ describe('PredictController', () => {
 
         controller.selectPaymentToken(null);
 
-        expect(controller.state.selectedPaymentToken).toEqual(existingToken);
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+
+    it('transitions PAY_WITH_ANY_TOKEN to PREVIEW when token is null', () => {
+      withController(({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+
+        controller.selectPaymentToken(null);
+
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(controller.state.selectedPaymentToken).toBeNull();
       });
     });
 
@@ -9299,6 +9314,59 @@ describe('PredictController', () => {
           success: false,
           error: 'Failed to get batch ID from transaction submission',
         });
+      });
+    });
+  });
+
+  describe('getMarketSeries', () => {
+    it('delegates the params to the provider', async () => {
+      const params = {
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+        limit: 10,
+      };
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketSeries = jest
+          .fn()
+          .mockResolvedValue([]);
+
+        await controller.getMarketSeries(params);
+
+        expect(mockPolymarketProvider.getMarketSeries).toHaveBeenCalledWith(
+          params,
+        );
+      });
+    });
+
+    it('returns the provider result', async () => {
+      const params = {
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+      };
+      const mockMarkets = [
+        {
+          id: 'series-market-1',
+          title: 'BTC Up or Down 5m',
+          series: {
+            id: '10684',
+            slug: 'btc-up-or-down-5m',
+            title: 'BTC Up or Down 5m',
+            recurrence: '5m',
+          },
+        },
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketSeries = jest
+          .fn()
+          .mockResolvedValue(mockMarkets);
+
+        const result = await controller.getMarketSeries(params);
+
+        expect(result).toEqual(mockMarkets);
       });
     });
   });

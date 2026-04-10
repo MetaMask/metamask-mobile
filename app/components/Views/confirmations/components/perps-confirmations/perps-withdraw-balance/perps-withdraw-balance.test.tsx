@@ -42,7 +42,7 @@ describe('PerpsWithdrawBalance', () => {
     const { getByText } = renderComponent();
 
     expect(
-      getByText(`${strings('confirm.available_perps_balance')}$1,232.39`),
+      getByText(`${strings('confirm.available_balance')}$1,232.39`),
     ).toBeOnTheScreen();
   });
 
@@ -55,7 +55,7 @@ describe('PerpsWithdrawBalance', () => {
     const { getByText } = renderComponent();
 
     expect(
-      getByText(`${strings('confirm.available_perps_balance')}$0`),
+      getByText(`${strings('confirm.available_balance')}$0`),
     ).toBeOnTheScreen();
   });
 });
