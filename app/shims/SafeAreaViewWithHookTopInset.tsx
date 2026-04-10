@@ -26,15 +26,16 @@ type NativeSafeAreaViewProps = ComponentProps<typeof NativeSafeAreaView>;
 /**
  * SafeAreaView that avoids native top inset (reduces post-mount header jump).
  * When the resolved top edge would apply an inset, top is applied via
- * useSafeAreaInsets + paddingTop instead; other edges stay on the native view.
+ * useSafeAreaInsets + paddingTop or marginTop (per `mode`) instead; other edges
+ * stay on the native view.
  */
 export const SafeAreaView = forwardRef<
   ComponentRef<typeof NativeSafeAreaView>,
   NativeSafeAreaViewProps
->(({ edges, style, ...props }, ref) => {
+>(({ edges, style, mode, ...props }, ref) => {
   const insets = useSafeAreaInsets();
 
-  const { nativeEdges, applyHookTopPadding } = useMemo(() => {
+  const { nativeEdges, applyHookTopInset } = useMemo(() => {
     const nativeEdgesInternal: Record<Edge, EdgeMode> =
       edges == null
         ? { ...defaultEdges }
@@ -64,28 +65,35 @@ export const SafeAreaView = forwardRef<
     if (apply) {
       return {
         nativeEdges: { ...nativeEdgesInternal, top: 'off' as const },
-        applyHookTopPadding: true,
+        applyHookTopInset: true,
       };
     }
 
     return {
       nativeEdges: nativeEdgesInternal,
-      applyHookTopPadding: false,
+      applyHookTopInset: false,
     };
   }, [edges]);
 
-  // Apply top inset as padding style if needed
+  // Match native SafeAreaView default (`mode` defaults to 'padding' on the native view).
+  const resolvedMode = mode ?? 'padding';
+
   const combinedStyle = useMemo((): StyleProp<ViewStyle> => {
-    if (!applyHookTopPadding) {
+    if (!applyHookTopInset) {
       return style;
     }
-    return [{ paddingTop: insets.top }, style];
-  }, [applyHookTopPadding, insets.top, style]);
+    const topFromHook =
+      resolvedMode === 'margin'
+        ? { marginTop: insets.top }
+        : { paddingTop: insets.top };
+    return [topFromHook, style];
+  }, [applyHookTopInset, insets.top, resolvedMode, style]);
 
   return (
     <NativeSafeAreaView
       ref={ref}
       {...props}
+      mode={mode}
       edges={nativeEdges as Edges}
       style={combinedStyle}
     />
