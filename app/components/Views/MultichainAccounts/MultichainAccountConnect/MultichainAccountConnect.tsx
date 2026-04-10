@@ -595,19 +595,18 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
       const isMultichainRequest = !hostInfo.metadata.isEip1193Request;
 
-      const eventBuilder = createEventBuilder(
-        MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
-      ).addProperties({
-        number_of_accounts: accountsLength,
-        source: eventSource,
-        chain_id_list: chainIds,
-        referrer: channelIdOrHostname,
-        ...getApiAnalyticsProperties(isMultichainRequest),
-      });
-      if (anonId) {
-        eventBuilder.addSensitiveProperties({ anon_id: anonId });
-      }
-      trackEvent(eventBuilder.build());
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED)
+          .addProperties({
+            number_of_accounts: accountsLength,
+            source: eventSource,
+            chain_id_list: chainIds,
+            referrer: channelIdOrHostname,
+            ...getApiAnalyticsProperties(isMultichainRequest),
+            ...(anonId ? { anon_id: anonId } : {}),
+          })
+          .build(),
+      );
     },
     [
       accountsLength,
@@ -706,21 +705,20 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         accountType = 'unknown';
       }
 
-      const eventBuilder = createEventBuilder(
-        MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
-      ).addProperties({
-        number_of_accounts: accountsLength,
-        number_of_accounts_connected: connectedAccountLength,
-        account_type: accountType,
-        source: eventSource,
-        chain_id_list: selectedChainIds,
-        referrer,
-        ...getApiAnalyticsProperties(isMultichainRequest),
-      });
-      if (anonId) {
-        eventBuilder.addSensitiveProperties({ anon_id: anonId });
-      }
-      trackEvent(eventBuilder.build());
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED)
+          .addProperties({
+            number_of_accounts: accountsLength,
+            number_of_accounts_connected: connectedAccountLength,
+            account_type: accountType,
+            source: eventSource,
+            chain_id_list: selectedChainIds,
+            referrer,
+            ...getApiAnalyticsProperties(isMultichainRequest),
+            ...(anonId ? { anon_id: anonId } : {}),
+          })
+          .build(),
+      );
 
       const labelOptions: ToastOptions['labelOptions'] =
         connectedAccountLength >= 1
