@@ -1,12 +1,11 @@
 import React from 'react';
 import CollectibleContractOverview from './';
 import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { TokenOverviewSelectorsIDs } from '../AssetOverview/TokenOverview.testIds';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -85,20 +84,22 @@ describe('CollectibleContractOverview', () => {
   });
 
   it('should render correctly', () => {
-    const wrapper = shallow(
+    render(
       <Provider store={store}>
-        <CollectibleContractOverview
-          collectibleContract={{
-            name: 'name',
-            symbol: 'symbol',
-            description: 'description',
-            address: '',
-            totalSupply: 1,
-          }}
-        />
+        <ThemeContext.Provider value={mockTheme}>
+          <CollectibleContractOverview
+            collectibleContract={{
+              name: 'name',
+              symbol: 'symbol',
+              description: 'description',
+              address: '',
+              totalSupply: 1,
+            }}
+          />
+        </ThemeContext.Provider>
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(screen.getByText('name')).toBeOnTheScreen();
   });
 
   it('calls onSend and navigates when send button is pressed', () => {
