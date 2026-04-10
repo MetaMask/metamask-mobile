@@ -331,7 +331,7 @@ export class WebSocketManager {
     }
     callbacks.add(callback);
 
-    this.ensureRtdsConnection(symbols);
+    this.ensureRtdsConnection();
 
     return () => {
       const _callbacks = this.cryptoPriceSubscriptions.get(subscriptionKey);
@@ -339,7 +339,7 @@ export class WebSocketManager {
         _callbacks.delete(callback);
         if (_callbacks.size === 0) {
           this.cryptoPriceSubscriptions.delete(subscriptionKey);
-          this.sendRtdsUnsubscribe(symbols);
+          this.sendRtdsUnsubscribe();
         }
       }
 
@@ -521,9 +521,9 @@ export class WebSocketManager {
     this.marketReconnectAttempts = 0;
   }
 
-  private ensureRtdsConnection(symbols: string[]): void {
+  private ensureRtdsConnection(): void {
     if (this.rtdsWs?.readyState === WebSocket.OPEN) {
-      this.sendRtdsSubscribe(symbols);
+      this.sendRtdsSubscribe();
       return;
     }
     if (this.rtdsWs?.readyState === WebSocket.CONNECTING) {
@@ -622,26 +622,24 @@ export class WebSocketManager {
     this.cryptoPriceBuffer.clear();
   }
 
-  private sendRtdsSubscribe(symbols: string[]): void {
+  private sendRtdsSubscribe(): void {
     if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
       return;
     }
 
-    this.rtdsWs.send(
-      JSON.stringify({
-        action: 'subscribe',
-        subscriptions: [
-          {
-            topic: 'crypto_prices',
-            type: 'update',
-            filters: symbols.join(','),
-          },
-        ],
-      }),
-    );
+    const msg = JSON.stringify({
+      action: 'subscribe',
+      subscriptions: [
+        {
+          topic: 'crypto_prices',
+          type: 'update',
+        },
+      ],
+    });
+    this.rtdsWs.send(msg);
   }
 
-  private sendRtdsUnsubscribe(symbols: string[]): void {
+  private sendRtdsUnsubscribe(): void {
     if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
       return;
     }
@@ -653,7 +651,6 @@ export class WebSocketManager {
           {
             topic: 'crypto_prices',
             type: 'update',
-            filters: symbols.join(','),
           },
         ],
       }),
@@ -667,7 +664,7 @@ export class WebSocketManager {
     });
 
     if (allSymbols.size > 0) {
-      this.sendRtdsSubscribe(Array.from(allSymbols));
+      this.sendRtdsSubscribe();
     }
   }
 

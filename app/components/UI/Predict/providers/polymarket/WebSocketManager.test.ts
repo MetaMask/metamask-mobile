@@ -558,7 +558,6 @@ describe('WebSocketManager', () => {
             {
               topic: 'crypto_prices',
               type: 'update',
-              filters: 'btcusdt',
             },
           ],
         }),
@@ -657,7 +656,6 @@ describe('WebSocketManager', () => {
             {
               topic: 'crypto_prices',
               type: 'update',
-              filters: 'btcusdt',
             },
           ],
         }),
@@ -1122,7 +1120,6 @@ describe('WebSocketManager', () => {
             {
               topic: 'crypto_prices',
               type: 'update',
-              filters: 'ethusdt',
             },
           ],
         }),
