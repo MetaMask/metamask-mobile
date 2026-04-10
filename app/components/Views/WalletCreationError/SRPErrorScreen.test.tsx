@@ -70,14 +70,14 @@ describe('SRPErrorScreen', () => {
       expect(mockTrackOnboarding).toHaveBeenCalled();
     });
 
-    it('tracks event with correct flow_type property', () => {
+    it('tracks screen viewed event with account_type, error_type, and error_message', () => {
       renderWithProvider(<SRPErrorScreen error={mockError} />);
 
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({
-            flow_type: 'srp',
-            error_name: 'WalletCreationError',
+            account_type: 'srp',
+            error_type: 'WalletCreationError',
             error_message: 'Test wallet creation error',
           }),
         }),
@@ -168,7 +168,7 @@ describe('SRPErrorScreen', () => {
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({
-            flow_type: 'srp',
+            account_type: 'srp',
           }),
         }),
         expect.any(Function),
@@ -225,7 +225,7 @@ describe('SRPErrorScreen', () => {
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({
-            flow_type: 'srp',
+            account_type: 'srp',
           }),
         }),
         expect.any(Function),

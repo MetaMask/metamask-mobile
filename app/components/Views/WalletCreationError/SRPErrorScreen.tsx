@@ -70,8 +70,8 @@ const SRPErrorScreen = ({
         MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_VIEWED,
       )
         .addProperties({
-          flow_type: 'srp',
-          error_name: error?.name || 'Unknown',
+          account_type: 'srp',
+          error_type: error?.name || 'Unknown',
           error_message: error?.message || 'No message',
         })
         .build(),
@@ -87,7 +87,7 @@ const SRPErrorScreen = ({
         MetaMetricsEvents.WALLET_CREATION_ERROR_RETRY_CLICKED,
       )
         .addProperties({
-          flow_type: 'srp',
+          account_type: 'srp',
         })
         .build(),
       saveOnboardingEvent,
@@ -105,7 +105,7 @@ const SRPErrorScreen = ({
         MetaMetricsEvents.WALLET_CREATION_ERROR_REPORT_SENT,
       )
         .addProperties({
-          flow_type: 'srp',
+          account_type: 'srp',
         })
         .build(),
       saveOnboardingEvent,
