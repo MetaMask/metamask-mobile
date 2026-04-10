@@ -363,7 +363,7 @@
     "@walletconnect/core": "^2.23.0",
     "@walletconnect/react-native-compat": "^2.23.0",
     "@walletconnect/utils": "^2.23.0",
-    "@xmldom/xmldom": "^0.8.12",
+    "@xmldom/xmldom": "^0.8.10",
     "asyncstorage-down": "4.2.0",
     "axios": "^1.13.5",
     "bignumber.js": "^9.0.1",
