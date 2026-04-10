@@ -171,7 +171,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isQuotesLoading = useIsTransactionPayLoading();
     const hasSourceAmount = useTransactionPayHasSourceAmount();
     const { hasBlockingAlerts } = useAlerts();
-    const hasQuoteResults =
+    const showPaymentDetails =
       isQuotesLoading ||
       Boolean(quotes?.length) ||
       (!hasSourceAmount && !hasBlockingAlerts);
@@ -277,7 +277,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {!overrideContent && disablePay !== true && hasTokens && (
                 <PayWithRow />
               )}
-              {hasQuoteResults && (
+              {showPaymentDetails && (
                 <>
                   <BridgeFeeRow />
                   <BridgeTimeRow />

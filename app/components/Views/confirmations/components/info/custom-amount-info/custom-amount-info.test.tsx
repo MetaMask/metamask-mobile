@@ -550,7 +550,7 @@ describe('CustomAmountInfo', () => {
     });
   });
 
-  describe('hasQuoteResults', () => {
+  describe('showPaymentDetails', () => {
     async function pressDone(
       getByText: ReturnType<typeof render>['getByText'],
     ) {
