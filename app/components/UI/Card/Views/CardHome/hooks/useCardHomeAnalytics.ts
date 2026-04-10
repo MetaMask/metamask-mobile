@@ -12,6 +12,7 @@ import type { CardHomeData } from '../../../../../../core/Engine/controllers/car
 interface UseCardHomeAnalyticsParams {
   data: CardHomeData | null | undefined;
   isLoading: boolean;
+  hasSetupActions: boolean;
   balanceFormatted: string | undefined;
   rawTokenBalance: number | undefined;
   rawFiatNumber: number | undefined;
@@ -20,6 +21,7 @@ interface UseCardHomeAnalyticsParams {
 export function useCardHomeAnalytics({
   data,
   isLoading,
+  hasSetupActions,
   balanceFormatted,
   rawTokenBalance,
   rawFiatNumber,
@@ -27,10 +29,6 @@ export function useCardHomeAnalytics({
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTracked = useRef(false);
-
-  const hasSetupActions = (data?.actions ?? []).some(
-    (a) => a.type === 'enable_card',
-  );
 
   useEffect(() => {
     if (hasTracked.current || isLoading) return;

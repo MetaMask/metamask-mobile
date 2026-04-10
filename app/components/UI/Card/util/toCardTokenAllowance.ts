@@ -26,5 +26,6 @@ export function toCardTokenAllowance(
     priority:
       asset.priority >= Number.MAX_SAFE_INTEGER ? undefined : asset.priority,
     stagingTokenAddress: asset.stagingTokenAddress ?? null,
+    delegationContract: asset.delegationContract ?? null,
   };
 }

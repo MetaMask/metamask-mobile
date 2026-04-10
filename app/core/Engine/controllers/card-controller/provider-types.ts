@@ -1,5 +1,9 @@
 import type { CaipChainId, Json } from '@metamask/utils';
-import { CardStatus, CardType } from '../../../../components/UI/Card/types';
+import {
+  CardStatus,
+  CardType,
+  DelegationSettingsResponse,
+} from '../../../../components/UI/Card/types';
 
 export { CardStatus, CardType };
 
@@ -126,6 +130,7 @@ export interface CardFundingAsset {
   status: FundingAssetStatus;
   stagingTokenAddress?: string;
   externalId?: number;
+  delegationContract?: string;
 }
 
 // -- Card Details --
@@ -201,6 +206,7 @@ export interface CardHomeData {
   account: CardAccountStatus | null;
   alerts: CardAlert[];
   actions: CardAction[];
+  delegationSettings: DelegationSettingsResponse | null;
 }
 
 export function emptyCardHomeData(): CardHomeData {
@@ -212,6 +218,7 @@ export function emptyCardHomeData(): CardHomeData {
     account: null,
     alerts: [],
     actions: [],
+    delegationSettings: null,
   };
 }
 

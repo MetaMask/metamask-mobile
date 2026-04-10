@@ -84,6 +84,7 @@ const CardImageSection = ({
       type={cardType ?? CardType.VIRTUAL}
       status={cardStatus ?? CardStatus.ACTIVE}
       address={walletAddress}
+      testID={walletAddress ? CardHomeSelectors.CARD_WALLET_ADDRESS : undefined}
     />
   );
 };

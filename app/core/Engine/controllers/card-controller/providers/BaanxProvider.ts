@@ -417,6 +417,7 @@ export class BaanxProvider implements ICardProvider {
         account,
         alerts,
         actions,
+        delegationSettings,
       };
     } catch (error) {
       Logger.error(error as Error, getErrorContext('getCardHomeData'));
@@ -753,6 +754,7 @@ export class BaanxProvider implements ICardProvider {
           { type: 'add_funds', enabled: true },
           { type: 'change_asset' },
         ],
+        delegationSettings: null,
       };
     } catch (error) {
       Logger.error(error as Error, getErrorContext('getOnChainAssets'));
@@ -1311,6 +1313,13 @@ export class BaanxProvider implements ICardProvider {
       const chainId = info?.caipChainId ?? `eip155:${network.chainId}`;
       const isNonProduction = network.environment !== 'production';
 
+      // Enrich existing assets with delegationContract from their matching network
+      for (const existing of result) {
+        if (existing.chainId === chainId && !existing.delegationContract) {
+          existing.delegationContract = network.delegationContract;
+        }
+      }
+
       for (const tokenConfig of Object.values(network.tokens ?? {})) {
         if (!tokenConfig.address) continue;
 
@@ -1344,6 +1353,7 @@ export class BaanxProvider implements ICardProvider {
           stagingTokenAddress: isNonProduction
             ? tokenConfig.address
             : undefined,
+          delegationContract: network.delegationContract,
         });
       }
     }

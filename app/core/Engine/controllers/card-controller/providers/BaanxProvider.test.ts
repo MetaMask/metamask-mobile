@@ -2210,6 +2210,7 @@ describe('BaanxProvider', () => {
         account: null,
         alerts: [],
         actions: [],
+        delegationSettings: null,
       });
     });
   });

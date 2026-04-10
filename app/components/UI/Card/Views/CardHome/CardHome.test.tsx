@@ -142,6 +142,7 @@ const mockPriorityToken = {
   allowanceState: AllowanceState.Enabled,
   priority: 1,
   stagingTokenAddress: null,
+  delegationContract: null,
 };
 
 // CardFundingAsset version — balance is remaining amount, allowance is total cap.
@@ -159,7 +160,6 @@ const mockPrimaryAsset = {
 };
 
 const mockCurrentAddress = '0x789';
-const truncatedCardAddress = '0x78...x789';
 
 const mockSelectedInternalAccount = {
   address: mockCurrentAddress,
@@ -1065,37 +1065,31 @@ describe('CardHome Component', () => {
     expect(screen.getByTestId('card-view-title')).toBeOnTheScreen();
   });
 
-  it('does not render wallet address on the card image when unauthenticated', async () => {
+  it('does not render wallet address on the card image when unauthenticated', () => {
     // Given: unauthenticated user with primary asset wallet address
     setupMockSelectors({ isAuthenticated: false });
 
     // When: component renders
-    const { toJSON, UNSAFE_root } = render();
+    render();
 
     // Then: card image should not include the wallet address
-    await waitFor(() => {
-      expect(toJSON()).toBeDefined();
-    });
     expect(
-      UNSAFE_root.findAllByProps({ address: truncatedCardAddress }),
-    ).toHaveLength(0);
+      screen.queryByTestId(CardHomeSelectors.CARD_WALLET_ADDRESS),
+    ).not.toBeOnTheScreen();
   });
 
-  it('renders wallet address on the card image when authenticated', async () => {
+  it('renders wallet address on the card image when authenticated', () => {
     // Given: authenticated user with primary asset wallet address
     setupMockSelectors({ isAuthenticated: true });
     setupLoadCardDataMock({ isAuthenticated: true });
 
     // When: component renders
-    const { toJSON, UNSAFE_root } = render();
+    render();
 
     // Then: card image should include the wallet address
-    await waitFor(() => {
-      expect(toJSON()).toBeDefined();
-    });
     expect(
-      UNSAFE_root.findAllByProps({ address: truncatedCardAddress }),
-    ).not.toHaveLength(0);
+      screen.getByTestId(CardHomeSelectors.CARD_WALLET_ADDRESS),
+    ).toBeOnTheScreen();
   });
 
   it('navigates to add funds modal when add funds button is pressed with USDC token', async () => {
@@ -5550,6 +5544,7 @@ describe('CardHome Component', () => {
           },
           alerts: [],
           actions: [{ type: 'enable_card' }],
+          delegationSettings: null,
         },
         isLoading: false,
         isError: false,
@@ -5563,11 +5558,15 @@ describe('CardHome Component', () => {
       );
       fireEvent.press(enableButton);
 
-      // Then: navigates to SpendingLimit when Enable Card pressed
+      // Then: navigates to SpendingLimit with full params
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
-          flow: 'manage',
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.SPENDING_LIMIT,
+          expect.objectContaining({
+            flow: 'manage',
+            delegationSettings: null,
+          }),
+        );
       });
     });
 

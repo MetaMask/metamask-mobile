@@ -54,10 +54,16 @@ function setupHook(
     createEventBuilder: mockCreateEventBuilder,
   } as never);
 
+  const mergedData = hookParams.data ?? mockData;
+  const hasSetupActions =
+    hookParams.hasSetupActions ??
+    (mergedData?.actions ?? []).some((a) => a.type === 'enable_card');
+
   return renderHook(() =>
     useCardHomeAnalytics({
-      data: mockData,
+      data: mergedData,
       isLoading: false,
+      hasSetupActions,
       balanceFormatted: '$10.00',
       rawTokenBalance: 10,
       rawFiatNumber: 10,

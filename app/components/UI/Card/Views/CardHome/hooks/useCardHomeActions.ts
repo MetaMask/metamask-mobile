@@ -29,7 +29,30 @@ import useCardPinToken from '../../../hooks/useCardPinToken';
 import { useOpenSwaps } from '../../../hooks/useOpenSwaps';
 import { useNavigateToCardPage } from '../../../hooks/useNavigateToCardPage';
 import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
-import type { CardTokenAllowance } from '../../../types';
+import type {
+  CardTokenAllowance,
+  DelegationSettingsResponse,
+} from '../../../types';
+
+function buildSpendingLimitParams(data: CardHomeData | null | undefined) {
+  const allTokens = (data?.supportedTokens ?? []).map(toCardTokenAllowance);
+  const priorityToken = data?.primaryAsset
+    ? toCardTokenAllowance(data.primaryAsset)
+    : null;
+  const delegationSettings: DelegationSettingsResponse | null =
+    data?.delegationSettings ?? null;
+  const externalWalletDetailsData = {
+    walletDetails: [] as never[],
+    mappedWalletDetails: (data?.assets ?? []).map(toCardTokenAllowance),
+    priorityWalletDetail: priorityToken ?? undefined,
+  };
+  return {
+    allTokens,
+    priorityToken,
+    delegationSettings,
+    externalWalletDetailsData,
+  };
+}
 
 interface UseCardHomeActionsParams {
   data: CardHomeData | null | undefined;
@@ -317,21 +340,12 @@ export function useCardHomeActions({
         .build(),
     );
     if (isAuthenticated) {
-      const legacyTokens = (data?.supportedTokens ?? []).map(
-        toCardTokenAllowance,
-      );
-      const legacyPriority = data?.primaryAsset
-        ? toCardTokenAllowance(data.primaryAsset)
-        : null;
+      const params = buildSpendingLimitParams(data);
       navigation.navigate(
         ...createAssetSelectionModalNavigationDetails({
-          tokensWithAllowances: legacyTokens,
-          delegationSettings: { networks: [], count: 0, _links: { self: '' } },
-          cardExternalWalletDetails: {
-            walletDetails: [] as never[],
-            mappedWalletDetails: (data?.assets ?? []).map(toCardTokenAllowance),
-            priorityWalletDetail: legacyPriority ?? undefined,
-          },
+          tokensWithAllowances: params.allTokens,
+          delegationSettings: params.delegationSettings,
+          cardExternalWalletDetails: params.externalWalletDetailsData,
         }),
       );
     } else {
@@ -345,8 +359,15 @@ export function useCardHomeActions({
         .addProperties({ action: CardActions.OPEN_ONBOARDING_DELEGATION_FLOW })
         .build(),
     );
-    navigation.navigate(Routes.CARD.SPENDING_LIMIT, { flow: 'manage' });
-  }, [navigation, trackEvent, createEventBuilder]);
+    const params = buildSpendingLimitParams(data);
+    navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+      flow: 'manage',
+      priorityToken: params.priorityToken,
+      allTokens: params.allTokens,
+      delegationSettings: params.delegationSettings,
+      externalWalletDetailsData: params.externalWalletDetailsData,
+    });
+  }, [navigation, trackEvent, createEventBuilder, data]);
 
   const manageSpendingLimitAction = useCallback(() => {
     trackEvent(
@@ -355,11 +376,18 @@ export function useCardHomeActions({
         .build(),
     );
     if (isAuthenticated) {
-      navigation.navigate(Routes.CARD.SPENDING_LIMIT, { flow: 'enable' });
+      const params = buildSpendingLimitParams(data);
+      navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+        flow: 'enable',
+        priorityToken: params.priorityToken,
+        allTokens: params.allTokens,
+        delegationSettings: params.delegationSettings,
+        externalWalletDetailsData: params.externalWalletDetailsData,
+      });
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
-  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
+  }, [isAuthenticated, navigation, trackEvent, createEventBuilder, data]);
 
   const logoutAction = useCallback(() => {
     Alert.alert(

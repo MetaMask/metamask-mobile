@@ -111,6 +111,10 @@ const CardHome = () => {
 
   const isFrozen = data?.card?.status === CardStatus.FROZEN;
 
+  const hasSetupActions = (data?.actions ?? []).some(
+    (a) => a.type === 'enable_card',
+  );
+
   // --- Extracted hooks ---
   const actions = useCardHomeActions({
     data,
@@ -124,6 +128,7 @@ const CardHome = () => {
   useCardHomeAnalytics({
     data,
     isLoading,
+    hasSetupActions,
     balanceFormatted,
     rawTokenBalance,
     rawFiatNumber,
@@ -199,10 +204,6 @@ const CardHome = () => {
     }
     return balanceFiat;
   }, [balanceFiat, balanceFormatted]);
-
-  const hasSetupActions = (data?.actions ?? []).some(
-    (a) => a.type === 'enable_card',
-  );
 
   const hasSetupAlerts = (data?.alerts ?? []).some((a) =>
     SETUP_ALERT_TYPES.has(a.type),
