@@ -274,6 +274,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
     needs:
+      - ci-sanity-check-ios
       - confirmations-ios-smoke
       - trade-ios-smoke
       - perps-ios-smoke

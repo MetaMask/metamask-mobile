@@ -246,6 +246,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
     needs:
+      - ci-sanity-check-android
       - trade-android-smoke
       - perps-android-smoke
       - wallet-platform-android-smoke
