@@ -554,7 +554,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Find and re-upload Android APK artifacts from last successful run
+      - name: Find and re-upload Android APK artifacts from last completed run
         shell: bash
         run: |
           set -euo pipefail
@@ -563,7 +563,9 @@ jobs:
           WORKFLOW="ci.yml"
           RUN_ID=""
 
-          echo "🔍 Looking for last successful run with Android APK artifacts..."
+          echo "🔍 Looking for last completed run with Android APK artifacts..."
+          # Use status=completed (not success) so we find runs where build succeeded
+          # but later test steps failed — the APK artifact is still valid.
 
           for TRY_BRANCH in "$BRANCH" "main"; do
             echo "  Checking branch: $TRY_BRANCH"
@@ -578,14 +580,14 @@ jobs:
                 echo "  ✅ Found artifacts in run $run_id on branch '$TRY_BRANCH'"
                 break
               fi
-            done < <(gh api "repos/$REPO/actions/workflows/$WORKFLOW/runs?branch=$TRY_BRANCH&status=success&per_page=10" \
-              --jq '.workflow_runs[].id' 2>/dev/null | head -5 || echo "")
+            done < <(gh api "repos/$REPO/actions/workflows/$WORKFLOW/runs?branch=$TRY_BRANCH&status=completed&per_page=10" \
+              --jq '.workflow_runs[].id' 2>/dev/null | head -8 || echo "")
 
             [ -n "$RUN_ID" ] && break
           done
 
           if [ -z "$RUN_ID" ]; then
-            echo "❌ No suitable Android APK artifacts found in recent successful runs"
+            echo "❌ No suitable Android APK artifacts found in recent completed runs"
             exit 1
           fi
 
@@ -687,9 +689,12 @@ jobs:
           BRANCH="${{ github.head_ref || github.ref_name }}"
           WORKFLOW="ci.yml"
           RUN_ID=""
-          ARTIFACT_NAME="main-e2e-MetaMask.app"
+          ARTIFACT_NAME="main-qa-MetaMask.app"
 
-          echo "🔍 Looking for last successful run with iOS App artifact..."
+          echo "🔍 Looking for last completed run with iOS App artifact..."
+          # Use status=completed (not success) — build artifact is valid even if later
+          # test steps failed. Also: iOS build uses metamask_environment='qa' by default,
+          # so artifact is named main-qa-MetaMask.app (not main-e2e-MetaMask.app).
 
           for TRY_BRANCH in "$BRANCH" "main"; do
             echo "  Checking branch: $TRY_BRANCH"
@@ -704,14 +709,14 @@ jobs:
                 echo "  ✅ Found artifact in run $run_id on branch '$TRY_BRANCH'"
                 break
               fi
-            done < <(gh api "repos/$REPO/actions/workflows/$WORKFLOW/runs?branch=$TRY_BRANCH&status=success&per_page=10" \
-              --jq '.workflow_runs[].id' 2>/dev/null | head -5 || echo "")
+            done < <(gh api "repos/$REPO/actions/workflows/$WORKFLOW/runs?branch=$TRY_BRANCH&status=completed&per_page=10" \
+              --jq '.workflow_runs[].id' 2>/dev/null | head -8 || echo "")
 
             [ -n "$RUN_ID" ] && break
           done
 
           if [ -z "$RUN_ID" ]; then
-            echo "❌ No suitable iOS App artifact found in recent successful runs"
+            echo "❌ No suitable iOS App artifact found in recent completed runs"
             exit 1
           fi
 
@@ -728,7 +733,7 @@ jobs:
       - name: Re-upload iOS App
         uses: actions/upload-artifact@v4
         with:
-          name: main-e2e-MetaMask.app
+          name: main-qa-MetaMask.app
           path: re-upload/app/
           retention-days: 7
 
@@ -750,7 +755,15 @@ jobs:
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
     # [CI-DEV] Hardcoded CiSanityCheck tag — re-enable smart selection before merging.
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && !cancelled() }}
+    # Must check ios-tests-ready.result explicitly: !cancelled() alone is true even when
+    # ios-tests-ready is skipped (skipped ≠ cancelled in GitHub Actions).
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        !github.event.pull_request.head.repo.fork &&
+        !cancelled() &&
+        needs.ios-tests-ready.result == 'success'
+      }}
     permissions:
       contents: read
       id-token: write
