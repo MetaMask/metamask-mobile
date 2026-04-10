@@ -7,10 +7,14 @@
 import '../../../../../../tests/component-view/mocks';
 import type { ComponentType } from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  MOCK_PERPS_MARKET_INSIGHTS_REPORT,
+  OPEN_POSITION_STREAM_ITEM,
+  setupPerpsMarketInsightsEngineMock,
+} from '../../../../../../tests/component-view/fixtures/perpsMarketInsights';
 import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { getModifyActionLabels } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import Routes from '../../../../../constants/navigation/Routes';
-import Engine from '../../../../../core/Engine';
 import MarketInsightsView from '../../../MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { analytics } from '../../../../../util/analytics/analytics';
@@ -29,82 +33,20 @@ const CANDLE_SELECTOR_BASE =
 const MORE_CANDLE_SHEET_BASE =
   `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-more-candle-periods-bottom-sheet` as const;
 
-const mockPerpsInsightsReport = {
-  asset: 'ETH',
-  digestId: 'mock-digest-id-eth-perps-001',
-  generatedAt: '2026-04-08T10:00:00.000Z',
-  headline: 'Ethereum shows strong momentum amid institutional demand',
-  summary:
-    'Ethereum continues to attract institutional interest with increasing on-chain activity and a healthy DeFi ecosystem.',
-  trends: [
-    {
-      title: 'Institutional Adoption',
-      description:
-        'Large institutions continue to accumulate ETH as a treasury asset following ETF approvals.',
-      category: 'macro',
-      impact: 'positive',
-      articles: [
-        {
-          title: 'Spot Ethereum ETFs See Record Weekly Inflows',
-          url: 'https://example.com/eth-etf-inflows',
-          source: 'CryptoNews',
-          date: '2026-04-07T09:00:00.000Z',
+function renderEligibleNoPositionPerpsDetails(
+  params?: Partial<Parameters<typeof renderPerpsMarketDetailsView>[0]>,
+) {
+  renderPerpsMarketDetailsView({
+    streamOverrides: { positions: [] },
+    overrides: {
+      engine: {
+        backgroundState: {
+          PerpsController: { isEligible: true },
         },
-      ],
-      tweets: [
-        {
-          contentSummary:
-            'ETH institutional demand is at all-time highs this quarter.',
-          url: 'https://x.com/example/status/123456789',
-          author: '@cryptoanalyst',
-          date: '2026-04-07T08:30:00.000Z',
-        },
-      ],
+      },
     },
-    {
-      title: 'DeFi Activity Surge',
-      description:
-        'On-chain DeFi volumes have increased significantly, driving ETH utility and burn rate.',
-      category: 'technical',
-      impact: 'positive',
-      articles: [
-        {
-          title: 'Ethereum DeFi TVL Hits New Milestone',
-          url: 'https://example.com/defi-tvl',
-          source: 'DeFiPulse',
-          date: '2026-04-06T14:00:00.000Z',
-        },
-      ],
-      tweets: [],
-    },
-  ],
-  social: [],
-  sources: [
-    { name: 'CryptoNews', url: 'https://example.com', type: 'news' },
-    { name: 'DeFiPulse', url: 'https://defipulse.com', type: 'data' },
-  ],
-};
-
-function mockPerpsInsightsApi(report: typeof mockPerpsInsightsReport | null) {
-  (
-    Engine as unknown as {
-      context: {
-        AiDigestController?: { fetchMarketInsights: jest.Mock };
-        RampsController?: { setSelectedToken: jest.Mock };
-      };
-    }
-  ).context.AiDigestController = {
-    fetchMarketInsights: jest.fn().mockResolvedValue(report),
-  };
-  (
-    Engine as unknown as {
-      context: {
-        RampsController?: { setSelectedToken: jest.Mock };
-      };
-    }
-  ).context.RampsController = {
-    setSelectedToken: jest.fn(),
-  };
+    ...params,
+  });
 }
 
 describe('PerpsMarketDetailsView', () => {
@@ -120,16 +62,7 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   it('renders long and short actions when there is no open position', async () => {
-    renderPerpsMarketDetailsView({
-      streamOverrides: { positions: [] },
-      overrides: {
-        engine: {
-          backgroundState: {
-            PerpsController: { isEligible: true },
-          },
-        },
-      },
-    });
+    renderEligibleNoPositionPerpsDetails();
 
     expect(
       await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
@@ -307,16 +240,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('opens statistics tooltip and Got it dismisses it', async () => {
-      renderPerpsMarketDetailsView({
-        streamOverrides: { positions: [] },
-        overrides: {
-          engine: {
-            backgroundState: {
-              PerpsController: { isEligible: true },
-            },
-          },
-        },
-      });
+      renderEligibleNoPositionPerpsDetails();
 
       const openInterestIcon = await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON,
@@ -339,15 +263,7 @@ describe('PerpsMarketDetailsView', () => {
 
   describe('Header and chart actions', () => {
     it('renders back button and fullscreen chart button', async () => {
-      renderPerpsMarketDetailsView({
-        overrides: {
-          engine: {
-            backgroundState: {
-              PerpsController: { isEligible: true },
-            },
-          },
-        },
-      });
+      renderEligibleNoPositionPerpsDetails();
 
       expect(
         await screen.findByTestId(PerpsMarketHeaderSelectorsIDs.BACK_BUTTON),
@@ -360,16 +276,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('renders header and title section with market title', async () => {
-      renderPerpsMarketDetailsView({
-        streamOverrides: { positions: [] },
-        overrides: {
-          engine: {
-            backgroundState: {
-              PerpsController: { isEligible: true },
-            },
-          },
-        },
-      });
+      renderEligibleNoPositionPerpsDetails();
 
       expect(
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
@@ -418,16 +325,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('title section onLayout sets header height for scroll animation', async () => {
-      renderPerpsMarketDetailsView({
-        streamOverrides: { positions: [] },
-        overrides: {
-          engine: {
-            backgroundState: {
-              PerpsController: { isEligible: true },
-            },
-          },
-        },
-      });
+      renderEligibleNoPositionPerpsDetails();
 
       const titleSectionWrapper = await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.TITLE_SECTION_WRAPPER,
@@ -443,16 +341,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('opens fullscreen chart modal and close button is pressable', async () => {
-      renderPerpsMarketDetailsView({
-        streamOverrides: { positions: [] },
-        overrides: {
-          engine: {
-            backgroundState: {
-              PerpsController: { isEligible: true },
-            },
-          },
-        },
-      });
+      renderEligibleNoPositionPerpsDetails();
 
       const fullscreenButton = await screen.findByTestId(
         `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
@@ -572,38 +461,16 @@ describe('PerpsMarketDetailsView', () => {
     const renderPerpsInsightsJourney = ({
       hasPosition,
       insightsFlagEnabled = true,
-      report = mockPerpsInsightsReport,
+      report = MOCK_PERPS_MARKET_INSIGHTS_REPORT,
     }: {
       hasPosition: boolean;
       insightsFlagEnabled?: boolean;
-      report?: typeof mockPerpsInsightsReport | null;
+      report?: typeof MOCK_PERPS_MARKET_INSIGHTS_REPORT | null;
     }) => {
-      mockPerpsInsightsApi(report);
+      setupPerpsMarketInsightsEngineMock(report);
       renderPerpsMarketDetailsView({
         streamOverrides: {
-          positions: hasPosition
-            ? [
-                {
-                  symbol: 'ETH',
-                  size: '2.5',
-                  marginUsed: '500',
-                  entryPrice: '2000',
-                  liquidationPrice: '1900',
-                  unrealizedPnl: '100',
-                  returnOnEquity: '0.20',
-                  leverage: { value: 10, type: 'isolated' as const },
-                  cumulativeFunding: {
-                    sinceOpen: '5',
-                    allTime: '10',
-                    sinceChange: '2',
-                  },
-                  positionValue: '5000',
-                  maxLeverage: 50,
-                  takeProfitCount: 0,
-                  stopLossCount: 0,
-                },
-              ]
-            : [],
+          positions: hasPosition ? [OPEN_POSITION_STREAM_ITEM] : [],
         },
         overrides: {
           engine: {
@@ -625,9 +492,10 @@ describe('PerpsMarketDetailsView', () => {
           {
             name: Routes.MARKET_INSIGHTS.VIEW,
             Component: MarketInsightsView as unknown as ComponentType<unknown>,
+            mount: 'root',
           },
-          { name: Routes.BRIDGE.ROOT },
-          { name: Routes.RAMP.TOKEN_SELECTION },
+          { name: Routes.BRIDGE.ROOT, mount: 'root' },
+          { name: Routes.RAMP.TOKEN_SELECTION, mount: 'root' },
         ],
       });
     };
@@ -647,6 +515,9 @@ describe('PerpsMarketDetailsView', () => {
         await screen.findByText(
           'Ethereum shows strong momentum amid institutional demand',
         ),
+      ).toBeOnTheScreen();
+      expect(
+        await screen.findByText(MOCK_PERPS_MARKET_INSIGHTS_REPORT.summary),
       ).toBeOnTheScreen();
       expect(
         await screen.findByText('Institutional Adoption'),
@@ -707,30 +578,32 @@ describe('PerpsMarketDetailsView', () => {
 
     it('tracks thumbs up interaction from Perps insights', async () => {
       const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
-      renderPerpsInsightsJourney({ hasPosition: true });
+      try {
+        renderPerpsInsightsJourney({ hasPosition: true });
 
-      fireEvent.press(
-        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-      );
-      const thumbsUp = await screen.findByTestId(
-        MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON,
-      );
-
-      trackEventSpy.mockClear();
-      fireEvent.press(thumbsUp);
-
-      await waitFor(() => {
-        expect(trackEventSpy).toHaveBeenCalledWith(
-          expect.objectContaining({
-            name: 'Market Insights Interaction',
-            properties: expect.objectContaining({
-              interaction_type: 'thumbs_up',
-            }),
-          }),
+        fireEvent.press(
+          await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
         );
-      });
+        const thumbsUp = await screen.findByTestId(
+          MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON,
+        );
 
-      trackEventSpy.mockRestore();
+        trackEventSpy.mockClear();
+        fireEvent.press(thumbsUp);
+
+        await waitFor(() => {
+          expect(trackEventSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+              name: 'Market Insights Interaction',
+              properties: expect.objectContaining({
+                interaction_type: 'thumbs_up',
+              }),
+            }),
+          );
+        });
+      } finally {
+        trackEventSpy.mockRestore();
+      }
     });
 
     it('shows feedback bottom sheet on thumbs down from Perps insights', async () => {
