@@ -42,6 +42,56 @@ describe('WalletConnectMultiChainConnector', () => {
       });
     });
 
+    it('maps tron_signTransaction when params is an object', () => {
+      const result = adaptWalletConnectRequestForSnap({
+        method: 'tron_signTransaction',
+        params: {
+          address: 'TAddress',
+          transaction: {
+            raw_data_hex: '0xdef',
+            type: 'TriggerSmartContract',
+          },
+        },
+      });
+
+      expect(result).toStrictEqual({
+        method: 'signTransaction',
+        params: {
+          address: 'TAddress',
+          transaction: {
+            rawDataHex: '0xdef',
+            type: 'TriggerSmartContract',
+          },
+        },
+      });
+    });
+
+    it('extracts raw_data_hex from tx object shape', () => {
+      const result = adaptWalletConnectRequestForSnap({
+        method: 'tron_signTransaction',
+        params: {
+          address: 'TAddress',
+          tx: {
+            raw_data_hex: '0x999',
+            raw_data: {
+              contract: [{ type: 'TriggerSmartContract' }],
+            },
+          },
+        },
+      });
+
+      expect(result).toStrictEqual({
+        method: 'signTransaction',
+        params: {
+          address: 'TAddress',
+          transaction: {
+            rawDataHex: '0x999',
+            type: 'TriggerSmartContract',
+          },
+        },
+      });
+    });
+
     it('omits undefined fields in mapped tron_signTransaction params', () => {
       const result = adaptWalletConnectRequestForSnap({
         method: 'tron_signTransaction',
