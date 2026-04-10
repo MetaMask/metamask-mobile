@@ -8,8 +8,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -914,7 +913,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -926,8 +925,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1832,7 +1830,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1844,8 +1842,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2720,6 +2717,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

@@ -8,8 +8,7 @@ exports[`AddAccountActions renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -696,6 +695,6 @@ exports[`AddAccountActions renders correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

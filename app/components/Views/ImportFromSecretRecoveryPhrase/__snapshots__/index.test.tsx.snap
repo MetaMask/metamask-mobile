@@ -8,8 +8,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -955,6 +954,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

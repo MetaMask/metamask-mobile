@@ -8,8 +8,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -675,6 +674,6 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

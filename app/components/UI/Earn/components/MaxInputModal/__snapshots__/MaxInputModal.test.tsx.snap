@@ -8,8 +8,7 @@ exports[`MaxInputModal render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -685,6 +684,6 @@ exports[`MaxInputModal render matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

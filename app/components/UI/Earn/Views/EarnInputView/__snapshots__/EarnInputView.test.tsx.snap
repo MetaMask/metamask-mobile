@@ -8,8 +8,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1701,7 +1700,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1713,8 +1712,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3406,6 +3404,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

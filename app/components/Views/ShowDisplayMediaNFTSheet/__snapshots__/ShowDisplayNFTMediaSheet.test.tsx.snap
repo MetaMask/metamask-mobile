@@ -8,8 +8,7 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -762,6 +761,6 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

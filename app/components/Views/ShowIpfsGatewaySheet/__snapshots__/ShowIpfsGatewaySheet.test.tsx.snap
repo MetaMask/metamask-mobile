@@ -8,8 +8,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -660,6 +659,6 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

@@ -8,8 +8,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -770,7 +769,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -782,8 +781,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1544,7 +1542,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1556,8 +1554,7 @@ exports[`Wallet should render correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2318,7 +2315,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2330,8 +2327,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3092,7 +3088,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3104,8 +3100,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3866,6 +3861,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
