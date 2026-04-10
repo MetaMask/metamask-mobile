@@ -383,8 +383,6 @@
           "lastCompletedWithdrawalTxHashes": [],
           "lastDepositResult": null,
           "lastDepositTransactionId": null,
-          "lastCompletedWithdrawalTimestamp": null,
-          "lastCompletedWithdrawalTxHashes": [],
           "lastError": null,
           "lastUpdateTimestamp": 0,
           "lastWithdrawResult": null,
