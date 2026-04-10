@@ -22,6 +22,11 @@ export interface PickerBaseProps extends TouchableOpacityProps {
    * Dropdown icon styles.
    */
   dropdownIconStyle?: ViewStyle;
+  /**
+   * When false, the trailing dropdown arrow icon is not rendered.
+   * @default true
+   */
+  showDropdownIcon?: boolean;
 }
 
 /**

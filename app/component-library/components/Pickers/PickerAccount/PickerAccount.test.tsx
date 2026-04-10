@@ -6,6 +6,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PickerAccount from './PickerAccount';
 import { SAMPLE_PICKERACCOUNT_PROPS } from './PickerAccount.constants';
 import { WalletViewSelectorsIDs } from '../../../../components/Views/Wallet/WalletView.testIds';
+import { IconName } from '../../Icons/Icon';
 
 describe('PickerAccount', () => {
   const mockOnPress = jest.fn();
@@ -23,7 +24,7 @@ describe('PickerAccount', () => {
 
   describe('Rendering', () => {
     it('renders with required props', () => {
-      const { getByText, getByTestId } = render(
+      const { getByText, getByTestId, UNSAFE_queryByProps } = render(
         <PickerAccount {...defaultProps} />,
       );
 
@@ -36,6 +37,8 @@ describe('PickerAccount', () => {
       expect(
         getByTestId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
       ).toBeOnTheScreen();
+
+      expect(UNSAFE_queryByProps({ name: IconName.ArrowDown })).toBeNull();
     });
 
     it('renders with custom account name', () => {
