@@ -117,7 +117,6 @@ import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AssetSelectionBottomSheet from './AssetSelectionBottomSheet';
 import {
   AllowanceState,
@@ -134,20 +133,19 @@ import { useUpdateTokenPriority } from '../../hooks/useUpdateTokenPriority';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
-// Wrapper component to provide Toast context and SafeAreaProvider
+// Wrapper component to provide Toast context
 const renderWithToastContext = (component: React.ReactElement) =>
   render(
-    <SafeAreaProvider>
-      <ToastContext.Provider
-        value={{
-          toastRef: {
-            current: { showToast: mockShowToast, closeToast: jest.fn() },
-          },
-        }}
-      >
-        {component}
-      </ToastContext.Provider>
-    </SafeAreaProvider>,
+
+    <ToastContext.Provider
+      value={{
+        toastRef: {
+          current: { showToast: mockShowToast, closeToast: jest.fn() },
+        },
+      }}
+    >
+      {component}
+    </ToastContext.Provider>,
   );
 
 // Helper function to create mock token

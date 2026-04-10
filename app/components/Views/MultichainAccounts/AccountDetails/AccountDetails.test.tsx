@@ -9,7 +9,6 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { formatAddress } from '../../../../util/address';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../../confirmations/hooks/7702/useEIP7702Networks', () => ({
@@ -54,21 +53,19 @@ const renderWithAccount = (account: InternalAccount | undefined) => {
   // Create proper state that includes the account in the AccountsController
   const mockAccountsState = account
     ? {
-        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-        internalAccounts: {
-          ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-          accounts: {
-            ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-            [account.id]: account,
-          },
+      ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+      internalAccounts: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+        accounts: {
+          ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+          [account.id]: account,
         },
-      }
+      },
+    }
     : MOCK_ACCOUNTS_CONTROLLER_STATE;
 
   return renderWithProvider(
-    <SafeAreaProvider>
-      <AccountDetails />
-    </SafeAreaProvider>,
+    <AccountDetails />,
     {
       state: {
         engine: {
@@ -125,9 +122,7 @@ describe('AccountDetails', () => {
     };
 
     renderWithProvider(
-      <SafeAreaProvider>
-        <AccountDetails />
-      </SafeAreaProvider>,
+      <AccountDetails />,
       {
         state: {
           engine: {

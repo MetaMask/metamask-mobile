@@ -3,7 +3,6 @@ import { fireEvent } from '@testing-library/react-native';
 import { EditMultichainAccountName } from './EditMultichainAccountName';
 import { strings } from '../../../../../../locales/i18n';
 import { EditAccountNameIds } from '../EditAccountName.testIds';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 const mockGoBack = jest.fn();
@@ -40,9 +39,9 @@ jest.mock('../../../../../core/Engine', () => ({
 describe('EditMultichainAccountName', () => {
   const render = () =>
     renderWithProvider(
-      <SafeAreaProvider>
-        <EditMultichainAccountName />
-      </SafeAreaProvider>,
+
+      <EditMultichainAccountName />
+
     );
 
   beforeEach(() => {

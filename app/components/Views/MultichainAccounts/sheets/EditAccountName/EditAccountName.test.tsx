@@ -6,7 +6,6 @@ import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { EditAccountNameIds } from '../EditAccountName.testIds';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 const mockGoBack = jest.fn();
@@ -42,9 +41,7 @@ jest.mock('../../../../../core/Engine', () => ({
 
 const render = () =>
   renderWithProvider(
-    <SafeAreaProvider>
-      <EditAccountName />
-    </SafeAreaProvider>,
+    <EditAccountName />
   );
 
 describe('EditAccountName', () => {

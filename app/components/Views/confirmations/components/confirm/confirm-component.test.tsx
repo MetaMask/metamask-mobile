@@ -1,7 +1,6 @@
 import React from 'react';
 import { cloneDeep } from 'lodash';
 import { ScrollView } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   generateContractInteractionState,
   personalSignatureConfirmationState,
@@ -198,9 +197,7 @@ describe('Confirm', () => {
 
   it('renders information for personal sign', () => {
     const { getAllByRole, getByText } = renderWithProvider(
-      <SafeAreaProvider>
-        <Confirm />
-      </SafeAreaProvider>,
+      <Confirm />,
       {
         state: personalSignatureConfirmationState,
       },
@@ -219,9 +216,7 @@ describe('Confirm', () => {
   it('renders information for typed sign v1', () => {
     const { getAllByRole, getAllByText, getByText, queryByText } =
       renderWithProvider(
-        <SafeAreaProvider>
-          <Confirm />
-        </SafeAreaProvider>,
+        <Confirm />,
         {
           state: typedSignV1ConfirmationState,
         },
@@ -359,7 +354,7 @@ describe('Confirm', () => {
     expect(getByTestId('confirm-loader-transfer')).toBeDefined();
   });
 
-  it('renders InfoLoader with SafeAreaView for CustomAmount loader', () => {
+  it('renders InfoLoader for CustomAmount loader', () => {
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.CustomAmount,
     });
@@ -386,7 +381,7 @@ describe('Confirm', () => {
     expect(scrollViews.length).toBeGreaterThan(0);
   });
 
-  it('renders InfoLoader with SafeAreaView for PredictClaim loader', () => {
+  it('renders InfoLoader for PredictClaim loader', () => {
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.PredictClaim,
     });
@@ -413,7 +408,7 @@ describe('Confirm', () => {
     expect(scrollViews.length).toBeGreaterThan(0);
   });
 
-  it('renders InfoLoader with SafeAreaView for Transfer loader', () => {
+  it('renders InfoLoader for Transfer loader', () => {
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.Transfer,
     });

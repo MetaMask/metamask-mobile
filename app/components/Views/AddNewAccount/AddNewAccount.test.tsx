@@ -12,7 +12,6 @@ import {
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
 import { AddNewAccountProps } from './AddNewAccount.types';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import { RootState } from '../../../reducers';
@@ -150,9 +149,7 @@ const render = (
   params: AddNewAccountProps,
 ): ReturnType<typeof renderWithProvider> =>
   renderWithProvider(
-    <SafeAreaProvider>
-      <AddNewAccount {...params} />
-    </SafeAreaProvider>,
+    <AddNewAccount {...params} />,
     { state },
   );
 

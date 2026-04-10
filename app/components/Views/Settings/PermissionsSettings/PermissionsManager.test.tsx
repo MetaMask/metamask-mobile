@@ -4,7 +4,6 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PermissionsManager from './PermissionsManager';
 import { strings } from '../../../../../locales/i18n';
 import { SDKSelectorsIDs } from '../../SDK/SDK.testIds';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 
 const mockNavigate = jest.fn();
@@ -24,9 +23,7 @@ describe('PermissionsManager', () => {
 
   it('should render empty state when no permissions exist', () => {
     const { getByText, getByTestId } = renderWithProvider(
-      <SafeAreaProvider>
-        <PermissionsManager navigation={mockNavigation} />
-      </SafeAreaProvider>,
+      <PermissionsManager navigation={mockNavigation} />,
       {
         state: {
           engine: {

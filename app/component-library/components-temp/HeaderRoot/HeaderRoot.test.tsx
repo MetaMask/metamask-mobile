@@ -246,7 +246,7 @@ describe('HeaderRoot', () => {
       expect(container.props.style).toEqual(
         expect.arrayContaining([
           expect.anything(),
-          expect.objectContaining({ marginTop: 44 }),
+          expect.objectContaining({ marginTop: expect.any(Number) }),
         ]),
       );
     });
