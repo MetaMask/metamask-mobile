@@ -159,6 +159,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             tabs={tabs}
             activeTab={activeTab}
             onTabPress={handleTabPress}
+            tabTwStyle="flex-1"
           />
         )}
 

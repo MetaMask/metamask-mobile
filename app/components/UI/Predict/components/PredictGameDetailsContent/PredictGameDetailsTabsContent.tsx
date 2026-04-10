@@ -78,7 +78,7 @@ const PredictGameDetailsTabsContent = memo(
       <>
         {currentKey === 'positions' && (
           <Box
-            twClassName="px-4 py-2"
+            twClassName="px-4"
             testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.TAB_CONTENT}
           >
             <PredictPicks
