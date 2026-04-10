@@ -3,6 +3,7 @@ import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { render, fireEvent } from '@testing-library/react-native';
 import PredictGameDetailsContent from './PredictGameDetailsContent';
 import { PredictMarket, PredictMarketStatus } from '../../types';
+import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const mockGoBack = jest.fn();
@@ -192,12 +193,11 @@ jest.mock(
   '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar',
   () => {
     const { View } = jest.requireActual('react-native');
-    return function MockPredictMarketDetailsTabBar({
-      testID,
-    }: {
-      testID?: string;
-    }) {
-      return <View testID={testID ?? 'mock-tab-bar'} />;
+    return {
+      __esModule: true,
+      default: function MockPredictMarketDetailsTabBar() {
+        return <View testID="mock-tab-bar" />;
+      },
     };
   },
 );
@@ -676,5 +676,60 @@ describe('PredictGameDetailsContent', () => {
     ).toJSON();
 
     expect(tree).toMatchSnapshot();
+  });
+
+  describe('tab bar rendering', () => {
+    it('renders PredictMarketDetailsTabBar when showTabBar is true', () => {
+      (useGameDetailsTabs as jest.Mock).mockReturnValue({
+        enabled: true,
+        showTabBar: true,
+        tabs: [
+          { label: 'Positions', key: 'positions' },
+          { label: 'Outcomes', key: 'outcomes' },
+        ],
+        activeTab: 0,
+        handleTabPress: jest.fn(),
+        stickyHeaderIndices: [2],
+      });
+
+      const market = createMockMarket();
+
+      const { getByTestId } = render(
+        <PredictGameDetailsContent
+          market={market}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          refreshing={false}
+        />,
+      );
+
+      expect(getByTestId('mock-tab-bar')).toBeOnTheScreen();
+    });
+
+    it('does not render PredictMarketDetailsTabBar when showTabBar is false', () => {
+      (useGameDetailsTabs as jest.Mock).mockReturnValue({
+        enabled: false,
+        showTabBar: false,
+        tabs: [],
+        activeTab: null,
+        handleTabPress: jest.fn(),
+        stickyHeaderIndices: undefined,
+      });
+
+      const market = createMockMarket();
+
+      const { queryByTestId } = render(
+        <PredictGameDetailsContent
+          market={market}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          refreshing={false}
+        />,
+      );
+
+      expect(queryByTestId('mock-tab-bar')).not.toBeOnTheScreen();
+    });
   });
 });

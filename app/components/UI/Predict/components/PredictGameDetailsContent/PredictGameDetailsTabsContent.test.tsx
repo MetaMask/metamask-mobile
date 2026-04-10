@@ -204,9 +204,7 @@ describe('PredictGameDetailsTabs', () => {
       expect(
         getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER),
       ).toBeOnTheScreen();
-      expect(
-        getByText('predict.market_details.outcomes_coming_soon'),
-      ).toBeOnTheScreen();
+      expect(getByText('Outcomes coming soon')).toBeOnTheScreen();
     });
 
     it('does not render PredictPicks', () => {
@@ -296,9 +294,7 @@ describe('PredictGameDetailsTabs', () => {
       expect(
         getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER),
       ).toBeOnTheScreen();
-      expect(
-        getByText('predict.market_details.outcomes_coming_soon'),
-      ).toBeOnTheScreen();
+      expect(getByText('Outcomes coming soon')).toBeOnTheScreen();
     });
 
     it('renders nothing when activeTab is null', () => {
