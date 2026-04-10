@@ -1,7 +1,11 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { RootState } from '../../../../../reducers';
 import AssetOverviewClaimBonus from '.';
 import {
   useMerklBonusClaim,
@@ -60,6 +64,10 @@ const createMockMerklClaimData = (
   ...overrides,
 });
 
+const mockInitialState: DeepPartial<RootState> = {
+  engine: { backgroundState },
+};
+
 describe('AssetOverviewClaimBonus', () => {
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
@@ -113,6 +121,7 @@ describe('AssetOverviewClaimBonus', () => {
     it('renders the section header, tag, rows, and CTA', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
       );
 
       expect(
@@ -142,6 +151,7 @@ describe('AssetOverviewClaimBonus', () => {
 
       const { getByTestId } = renderWithProvider(
         <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
       );
 
       expect(
@@ -164,6 +174,7 @@ describe('AssetOverviewClaimBonus', () => {
         <AssetOverviewClaimBonus
           asset={createMockAsset({ balance: '1000', balanceFiat: '$1000' })}
         />,
+        { state: mockInitialState },
       );
 
       expect(
@@ -205,6 +216,7 @@ describe('AssetOverviewClaimBonus', () => {
         <AssetOverviewClaimBonus
           asset={createMockAsset({ balance: '500', balanceFiat: '$500' })}
         />,
+        { state: mockInitialState },
       );
 
       expect(
@@ -244,6 +256,7 @@ describe('AssetOverviewClaimBonus', () => {
         <AssetOverviewClaimBonus
           asset={createMockAsset({ balance: '0', balanceFiat: '$0' })}
         />,
+        { state: mockInitialState },
       );
 
       expect(
@@ -282,6 +295,7 @@ describe('AssetOverviewClaimBonus', () => {
         <AssetOverviewClaimBonus
           asset={createMockAsset({ balance: '0', balanceFiat: '$0' })}
         />,
+        { state: mockInitialState },
       );
 
       expect(
@@ -310,6 +324,7 @@ describe('AssetOverviewClaimBonus', () => {
 
       const { getByTestId } = renderWithProvider(
         <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
       );
 
       const button = getByTestId(
@@ -328,6 +343,7 @@ describe('AssetOverviewClaimBonus', () => {
 
       const { getByTestId } = renderWithProvider(
         <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
       );
 
       const button = getByTestId(
@@ -341,6 +357,7 @@ describe('AssetOverviewClaimBonus', () => {
     it('calls claimRewards on claim button press', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
       );
 
       fireEvent.press(
@@ -355,6 +372,7 @@ describe('AssetOverviewClaimBonus', () => {
 
       const { getByTestId } = renderWithProvider(
         <AssetOverviewClaimBonus asset={asset} />,
+        { state: mockInitialState },
       );
 
       fireEvent.press(
@@ -378,6 +396,7 @@ describe('AssetOverviewClaimBonus', () => {
     it('prevents duplicate claim presses via isClaimPressedRef guard', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
       );
 
       const button = getByTestId(
@@ -401,6 +420,7 @@ describe('AssetOverviewClaimBonus', () => {
         <AssetOverviewClaimBonus
           asset={createMockAsset({ balance: '1000' })}
         />,
+        { state: mockInitialState },
       );
 
       fireEvent.press(
@@ -415,6 +435,7 @@ describe('AssetOverviewClaimBonus', () => {
     it('opens tooltip modal with correct content on info button press', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
       );
 
       fireEvent.press(
@@ -433,6 +454,7 @@ describe('AssetOverviewClaimBonus', () => {
     it('fires TOOLTIP_OPENED analytics on info button press', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
       );
 
       fireEvent.press(
@@ -456,6 +478,7 @@ describe('AssetOverviewClaimBonus', () => {
     it('opens terms URL and fires analytics when terms link is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
       );
 
       fireEvent.press(
@@ -464,7 +487,9 @@ describe('AssetOverviewClaimBonus', () => {
 
       const tooltipDescription = mockOpenTooltipModal.mock.calls[0][1];
 
-      const { getByText } = renderWithProvider(tooltipDescription);
+      const { getByText } = renderWithProvider(tooltipDescription, {
+        state: mockInitialState,
+      });
       fireEvent.press(getByText('Terms apply.'));
 
       expect(Linking.openURL).toHaveBeenCalledWith(
