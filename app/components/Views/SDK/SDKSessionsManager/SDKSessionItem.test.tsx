@@ -1,6 +1,5 @@
 import { render } from '@testing-library/react-native';
 import React from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getPermittedAccounts } from '../../../../core/Permissions';
 import SDKSessionItem from './SDKSessionItem';
 
@@ -46,7 +45,6 @@ jest.mock(
 );
 
 describe('SDKSessionItem', () => {
-  const mockUseSafeAreaInsets = useSafeAreaInsets as jest.Mock;
   const mockGetPermittedAccounts = getPermittedAccounts as jest.Mock;
 
   const defaultProps = {
@@ -65,13 +63,6 @@ describe('SDKSessionItem', () => {
   };
 
   beforeEach(() => {
-    mockUseSafeAreaInsets.mockReturnValue({
-      top: 10,
-      bottom: 10,
-      left: 0,
-      right: 0,
-    });
-
     mockGetPermittedAccounts.mockResolvedValue([
       '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
     ]);
