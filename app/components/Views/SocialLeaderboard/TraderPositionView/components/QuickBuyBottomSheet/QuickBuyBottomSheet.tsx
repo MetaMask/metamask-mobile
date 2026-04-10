@@ -54,6 +54,9 @@ import {
   setDestToken,
   resetBridgeState,
   selectIsSubmittingTx,
+  selectDestAddress,
+  selectIsEvmNonEvmBridge,
+  selectIsNonEvmNonEvmBridge,
   setIsSubmittingTx,
 } from '../../../../../../core/redux/slices/bridge';
 import { useBridgeQuoteRequest } from '../../../../../UI/Bridge/hooks/useBridgeQuoteRequest';
@@ -70,6 +73,7 @@ import AddRewardsAccount from '../../../../../UI/Rewards/components/AddRewardsAc
 import useSubmitBridgeTx from '../../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { useRefreshSmartTransactionsLiveness } from '../../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
+import { useRecipientInitialization } from '../../../../../UI/Bridge/hooks/useRecipientInitialization';
 import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
 import Engine from '../../../../../../core/Engine';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -109,6 +113,9 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
 
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const walletAddress = useSelector(selectSourceWalletAddress);
+  const destAddress = useSelector(selectDestAddress);
+  const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
+  const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
 
   // Resolve Position → destination BridgeToken
   const {
@@ -149,6 +156,10 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
       dispatch(setDestToken(destToken));
     }
   }, [selectedSourceToken, destToken, dispatch]);
+
+  // Mirror BridgeView recipient initialization for cross-chain non-EVM destinations.
+  const hasInitializedRecipient = useRef(false);
+  useRecipientInitialization(hasInitializedRecipient);
 
   // Convert USD → source token amount using exchange rate
   const sourceTokenAmount = useMemo(() => {
@@ -229,18 +240,23 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
 
   // Tx submission
   const { submitBridgeTx } = useSubmitBridgeTx();
+  const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
+  const hasValidQuoteInputs = Boolean(
+    sourceToken &&
+      destToken &&
+      sourceTokenAmount &&
+      (!hasDestinationPicker || destAddress),
+  );
 
   // Trigger quote fetch when inputs are valid
   useEffect(() => {
-    const hasValidInputs = sourceToken && destToken && sourceTokenAmount;
-
-    if (hasValidInputs) {
+    if (hasValidQuoteInputs) {
       updateQuoteParams();
     }
     return () => {
       updateQuoteParams.cancel();
     };
-  }, [sourceToken, destToken, sourceTokenAmount, updateQuoteParams]);
+  }, [hasValidQuoteInputs, updateQuoteParams]);
 
   // Open bottom sheet on mount
   useEffect(() => {

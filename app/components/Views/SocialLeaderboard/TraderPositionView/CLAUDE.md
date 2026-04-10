@@ -92,6 +92,9 @@ QuickBuy reuses the existing Bridge system by writing to the shared bridge Redux
 |---|---|---|
 | `selectIsSubmittingTx` | bridge slice | Button loading state |
 | `selectSourceWalletAddress` | `app/selectors/bridge.ts` | Wallet address for the source chain; derived from `selectSourceToken.chainId` via `selectSelectedInternalAccountByScope` |
+| `selectDestAddress` | bridge slice | Recipient address for the destination chain; required before fetching EVM ↔ non-EVM quotes |
+| `selectIsEvmNonEvmBridge` | bridge slice | Identifies EVM → non-EVM and non-EVM → EVM routes that need recipient initialization |
+| `selectIsNonEvmNonEvmBridge` | bridge slice | Identifies non-EVM → non-EVM routes that also require a destination recipient |
 | `selectSelectedInternalAccountByScope` | multichain account selectors | EVM address used by `useSourceTokenOptions` for cached balance lookups |
 | `selectAccountsByChainId` | accountTrackerController | Cached native balances for source token candidates |
 | `selectTokensBalances` | tokenBalancesController | Cached ERC-20 balances for source token candidates |
@@ -127,7 +130,9 @@ QuickBuy reuses the existing Bridge system by writing to the shared bridge Redux
 | Hook | Purpose |
 |---|---|
 | `useInitialSlippage` | Sets per-chain default slippage in Redux if not already set |
+| `useRecipientInitialization` | Mirrors BridgeView recipient setup by selecting a default destination account for the current destination chain before cross-chain quote fetches |
 | `useSubmitBridgeTx` | Submits the approved tx via `BridgeStatusController.submitTx()` |
+| `useRewards` | Reuses the Bridge rewards/points estimation flow for swap quotes. Returns `estimatedPoints`, loading/error state, opt-in state, and whether the rewards row should be shown. |
 
 ### Controller Interactions
 
@@ -146,6 +151,8 @@ sourceTokenAmount = usdAmount / sourceToken.currencyExchangeRate
 ```
 
 This is dispatched to Redux via `setSourceAmount`, which triggers the quote request.
+
+For EVM ↔ non-EVM and non-EVM ↔ non-EVM routes, QuickBuy now mirrors `BridgeView` by initializing a destination recipient with `useRecipientInitialization()` and gating quote fetches on `destAddress`. This prevents `useBridgeQuoteRequest` from falling back to the source-chain `walletAddress` as `destWalletAddress`, which was the root cause of the SPCX Solana quick-buy mismatch: the main Swaps flow waited for a valid Solana recipient, while QuickBuy used to request quotes too early.
 
 ## Transaction Submission
 
@@ -220,7 +227,9 @@ The design doc (Section 7.8) notes that `useValidateBridgeTx()` should be called
 
 ### Points estimation
 
-The "Est. points" row is hardcoded to `0`. There is no integration with a points/rewards system yet.
+The "Est. points" row is no longer hardcoded. QuickBuy now calls the shared Bridge `useRewards` hook, which ultimately uses `RewardsController:estimatePoints` with `activityType: 'SWAP'` and the active bridge quote.
+
+Current caveat: this is **not working yet in practice** for QuickBuy. In the current environment the rewards flow is still effectively showing `0` points instead of a live estimate. The underlying controller path reports `hasActiveSeason: false`, so QuickBuy falls back rather than rendering a real points estimate.
 
 ### TraderPositionView uses mock data
 
@@ -247,6 +256,10 @@ The bridge slice is shared global state. Any code that writes to it (`setSourceT
 ### selectSourceWalletAddress depends on setSourceToken
 
 `selectSourceWalletAddress` returns `undefined` until `setSourceToken` is dispatched (it derives the wallet address from `sourceToken.chainId`). This means `useBridgeQuoteRequest` will silently skip quote fetching until the source token is in Redux. If you see quotes not loading, check this dependency chain.
+
+### Cross-chain non-EVM quotes also depend on `destAddress`
+
+QuickBuy now follows the same gating as `BridgeView` for EVM ↔ non-EVM and non-EVM ↔ non-EVM routes: it calls `useRecipientInitialization()` and waits for `destAddress` before calling `updateQuoteParams()`. This is important because `useBridgeQuoteRequest` builds `destWalletAddress` as `destAddress ?? walletAddress`. If `destAddress` is missing for a Solana destination, the quote request can incorrectly use the EVM source address as the destination recipient and return no routes even though the full Swaps flow works.
 
 ### useLatestBalance does RPC fetching
 
