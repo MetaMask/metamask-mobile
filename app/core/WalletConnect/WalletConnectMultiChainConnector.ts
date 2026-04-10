@@ -62,6 +62,23 @@ export const normalizeCaipChainIdOutboundForWalletConnect = (
   return caipChainId;
 };
 
+export const getCompatibleTronCaipChainIdsForWalletConnect = (
+  caipChainId: string,
+): string[] => {
+  if (!caipChainId.startsWith(`${KnownCaipNamespace.Tron}:`)) {
+    return [caipChainId];
+  }
+
+  const inboundNormalized =
+    normalizeCaipChainIdInboundForWalletConnect(caipChainId);
+  const outboundNormalized =
+    normalizeCaipChainIdOutboundForWalletConnect(caipChainId);
+
+  return Array.from(
+    new Set([caipChainId, inboundNormalized, outboundNormalized]),
+  );
+};
+
 export const getChainChangedEmissionForWalletConnect = ({
   namespaces,
   fallbackEvmDecimal,
@@ -123,4 +140,112 @@ export const shouldEmitChainChangedForWalletConnect = ({
   }
 
   return { shouldEmit: true };
+};
+
+interface SnapMappedRequest {
+  method: string;
+  params: unknown;
+}
+
+/**
+ * Adapts WalletConnect Tron methods to the canonical Tron Snap RPC surface.
+ * Non-Tron methods are passed through unchanged.
+ */
+export const adaptWalletConnectRequestForSnap = ({
+  method,
+  params,
+}: {
+  method: string;
+  params: unknown;
+}): SnapMappedRequest => {
+  const firstParam =
+    Array.isArray(params) && params.length > 0 ? params[0] : undefined;
+
+  if (method === 'tron_signMessage') {
+    const mappedParams: Record<string, string> = {};
+    const address =
+      firstParam && typeof firstParam === 'object' && 'address' in firstParam
+        ? firstParam.address
+        : undefined;
+    const message =
+      firstParam && typeof firstParam === 'object' && 'message' in firstParam
+        ? firstParam.message
+        : undefined;
+    if (typeof address === 'string') {
+      mappedParams.address = address;
+    }
+    if (typeof message === 'string') {
+      mappedParams.message = message;
+    }
+
+    return {
+      method: 'signMessage',
+      params: mappedParams,
+    };
+  }
+
+  if (method === 'tron_signTransaction') {
+    const transaction =
+      firstParam &&
+      typeof firstParam === 'object' &&
+      'transaction' in firstParam
+        ? (firstParam.transaction as
+            | {
+                raw_data_hex?: string;
+                rawDataHex?: string;
+                type?: string;
+              }
+            | undefined)
+        : (firstParam as
+            | {
+                raw_data_hex?: string;
+                rawDataHex?: string;
+                type?: string;
+              }
+            | undefined);
+
+    const rawDataHex =
+      transaction &&
+      typeof transaction === 'object' &&
+      'raw_data_hex' in transaction
+        ? transaction.raw_data_hex
+        : transaction &&
+            typeof transaction === 'object' &&
+            'rawDataHex' in transaction
+          ? transaction.rawDataHex
+          : undefined;
+    const type =
+      transaction && typeof transaction === 'object' && 'type' in transaction
+        ? transaction.type
+        : undefined;
+
+    const mappedTransaction: Record<string, string> = {};
+    if (typeof rawDataHex === 'string') {
+      mappedTransaction.rawDataHex = rawDataHex;
+    }
+    if (typeof type === 'string') {
+      mappedTransaction.type = type;
+    }
+
+    const mappedParams: {
+      address?: string;
+      transaction: Record<string, string>;
+    } = {
+      transaction: mappedTransaction,
+    };
+    const address =
+      firstParam && typeof firstParam === 'object' && 'address' in firstParam
+        ? firstParam.address
+        : undefined;
+    if (typeof address === 'string') {
+      mappedParams.address = address;
+    }
+
+    return {
+      method: 'signTransaction',
+      params: mappedParams,
+    };
+  }
+
+  return { method, params };
 };

@@ -35,6 +35,7 @@ import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
 import {
   getHostname,
+  normalizeCaipChainIdOutbound,
   getScopedPermissions,
   hideWCLoadingState,
   parseWalletConnectUri,
@@ -42,6 +43,7 @@ import {
   isValidUrl,
 } from './wc-utils';
 import {
+  getCompatibleTronCaipChainIdsForWalletConnect,
   getChainChangedEmissionForWalletConnect,
   shouldEmitChainChangedForWalletConnect,
 } from './WalletConnectMultiChainConnector';
@@ -808,11 +810,22 @@ export class WC2Manager {
 
         const requestedTronChains = requestedTronNamespace.chains ?? [];
         const requestedTronMethods = requestedTronNamespace.methods ?? [];
+        const tronChains =
+          requestedTronChains.length > 0
+            ? Array.from(
+                new Set(
+                  requestedTronChains.flatMap((chain) =>
+                    getCompatibleTronCaipChainIdsForWalletConnect(
+                      normalizeCaipChainIdOutbound(chain),
+                    ),
+                  ),
+                ),
+              )
+            : getCompatibleTronCaipChainIdsForWalletConnect(
+                normalizeCaipChainIdOutbound(TrxScope.Mainnet),
+              );
         namespaces.tron = {
-          chains:
-            requestedTronChains.length > 0
-              ? requestedTronChains
-              : [TrxScope.Mainnet],
+          chains: tronChains,
           methods:
             requestedTronMethods.length > 0
               ? requestedTronMethods
@@ -820,9 +833,11 @@ export class WC2Manager {
           events: requestedTronNamespace.events ?? [],
           // A namespace requested by the dapp must still be structurally present,
           // even if there are temporarily no local Tron accounts selected yet.
-          accounts: tronAccounts.map(
-            (address) =>
-              `${TrxScope.Mainnet}:${address}` as `${string}:${string}:${string}`,
+          accounts: tronAccounts.flatMap((address) =>
+            tronChains.map(
+              (chainId) =>
+                `${chainId}:${address}` as `${string}:${string}:${string}`,
+            ),
           ),
         };
         DevLogger.log(
