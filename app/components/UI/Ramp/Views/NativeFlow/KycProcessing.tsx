@@ -73,6 +73,7 @@ const V2KycProcessing = () => {
   useFocusEffect(
     useCallback(() => {
       if (!quoteId) return;
+      setKycFormsError(null);
       const fetchKycForms = async () => {
         try {
           const result = await getAdditionalRequirements(quoteId);
