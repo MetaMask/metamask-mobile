@@ -7462,10 +7462,6 @@
         "card_provisioning": {
           "title": "Card being created",
           "description": "Your card is being created. This may take a few moments."
-        },
-        "login_required": {
-          "title": "Log in to manage your card",
-          "confirm_button_label": "Log in"
         }
       },
       "kyc_status": {
@@ -7585,6 +7581,7 @@
     },
     "card_authentication": {
       "title": "Log in to your card account",
+      "auth_prompt_info": "Log in to your card account to access this feature.",
       "location_button_text": "International",
       "location_button_text_us": "United States",
       "email_label": "Email",

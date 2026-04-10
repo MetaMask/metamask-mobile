@@ -1675,7 +1675,7 @@ describe('CardController — data pass-throughs', () => {
         supportedTokens: [mockAsset],
         card: null,
         account: null,
-        alerts: [{ type: 'login_required', dismissable: false }],
+        alerts: [],
         actions: [{ type: 'add_funds', enabled: true }],
       };
       const provider = buildMockProvider();

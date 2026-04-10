@@ -21,9 +21,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Card being provisioned',
       'card.card_home.messages.card_provisioning.description':
         'Your card is being automatically provisioned. This may take a few moments.',
-      'card.card_home.messages.login_required.title': 'Login Required',
-      'card.card_home.messages.login_required.confirm_button_label': 'Log In',
       'card.card_spending_limit.dismiss': 'Dismiss',
+      'card.card_authentication.auth_prompt_info':
+        'Log in to your card account to access this feature.',
     };
     return mockStrings[key] || key;
   }),
@@ -54,12 +54,12 @@ describe('CardMessageBox', () => {
   });
 
   describe('CloseSpendingLimit warning', () => {
-    it('renders warning icon', () => {
+    it('renders warning banner', () => {
       const { getByTestId } = renderWithProvider(() => (
         <CardMessageBox messageType={CardMessageBoxType.CloseSpendingLimit} />
       ));
 
-      expect(getByTestId('icon')).toBeOnTheScreen();
+      expect(getByTestId('card-message-box')).toBeOnTheScreen();
     });
 
     it('renders title and description', () => {
@@ -113,12 +113,12 @@ describe('CardMessageBox', () => {
   });
 
   describe('KYCPending warning', () => {
-    it('renders warning icon', () => {
+    it('renders warning banner', () => {
       const { getByTestId } = renderWithProvider(() => (
         <CardMessageBox messageType={CardMessageBoxType.KYCPending} />
       ));
 
-      expect(getByTestId('icon')).toBeOnTheScreen();
+      expect(getByTestId('card-message-box')).toBeOnTheScreen();
     });
 
     it('renders title and description', () => {
@@ -145,12 +145,12 @@ describe('CardMessageBox', () => {
   });
 
   describe('CardProvisioning info', () => {
-    it('renders info icon', () => {
+    it('renders info banner', () => {
       const { getByTestId } = renderWithProvider(() => (
         <CardMessageBox messageType={CardMessageBoxType.CardProvisioning} />
       ));
 
-      expect(getByTestId('icon')).toBeOnTheScreen();
+      expect(getByTestId('card-message-box')).toBeOnTheScreen();
     });
 
     it('renders title and description', () => {
@@ -183,58 +183,6 @@ describe('CardMessageBox', () => {
       ));
 
       expect(getByTestId('card-message-box')).toBeOnTheScreen();
-    });
-  });
-
-  describe('LoginRequired info', () => {
-    it('renders info icon', () => {
-      const { getByTestId } = renderWithProvider(() => (
-        <CardMessageBox messageType={CardMessageBoxType.LoginRequired} />
-      ));
-
-      expect(getByTestId('icon')).toBeOnTheScreen();
-    });
-
-    it('renders title', () => {
-      const { getByText } = renderWithProvider(() => (
-        <CardMessageBox messageType={CardMessageBoxType.LoginRequired} />
-      ));
-
-      expect(getByText('Login Required')).toBeOnTheScreen();
-    });
-
-    it('does not render description since LoginRequired has none', () => {
-      const { getByText, queryByText } = renderWithProvider(() => (
-        <CardMessageBox messageType={CardMessageBoxType.LoginRequired} />
-      ));
-
-      expect(getByText('Login Required')).toBeOnTheScreen();
-      expect(
-        queryByText('Your identity verification is still being reviewed.'),
-      ).toBeNull();
-    });
-
-    it('renders confirm button when onConfirm is provided', () => {
-      const { getByText } = renderWithProvider(() => (
-        <CardMessageBox
-          messageType={CardMessageBoxType.LoginRequired}
-          onConfirm={mockOnConfirm}
-        />
-      ));
-
-      expect(getByText('Log In')).toBeOnTheScreen();
-    });
-
-    it('calls onConfirm when confirm button is pressed', () => {
-      const { getByTestId } = renderWithProvider(() => (
-        <CardMessageBox
-          messageType={CardMessageBoxType.LoginRequired}
-          onConfirm={mockOnConfirm}
-        />
-      ));
-
-      fireEvent.press(getByTestId('confirm-button'));
-      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -284,12 +232,12 @@ describe('CardMessageBox', () => {
       expect(mockOnDismiss).toHaveBeenCalledTimes(1);
     });
 
-    it('renders all message types with icon and content', () => {
+    it('renders all message types as banners', () => {
       const allMessageTypes = [
         CardMessageBoxType.CloseSpendingLimit,
         CardMessageBoxType.KYCPending,
         CardMessageBoxType.CardProvisioning,
-        CardMessageBoxType.LoginRequired,
+        CardMessageBoxType.AuthPrompt,
       ];
 
       allMessageTypes.forEach((messageType) => {
@@ -297,7 +245,7 @@ describe('CardMessageBox', () => {
           <CardMessageBox messageType={messageType} />
         ));
 
-        expect(getByTestId('icon')).toBeOnTheScreen();
+        expect(getByTestId('card-message-box')).toBeOnTheScreen();
       });
     });
   });

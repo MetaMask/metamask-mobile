@@ -702,7 +702,6 @@ export class BaanxProvider implements ICardProvider {
   async getOnChainAssets(address: string): Promise<CardHomeData> {
     const fallback: CardHomeData = {
       ...emptyCardHomeData(),
-      alerts: [{ type: 'login_required', dismissable: false }],
       actions: [{ type: 'add_funds', enabled: true }, { type: 'change_asset' }],
     };
 
@@ -743,17 +742,13 @@ export class BaanxProvider implements ICardProvider {
         foxConnect as { global: string; us: string },
       );
 
-      const alerts: CardAlert[] = [
-        { type: 'login_required', dismissable: false },
-      ];
-
       return {
         primaryAsset,
         assets,
         supportedTokens: assets,
         card: null,
         account: null,
-        alerts,
+        alerts: [],
         actions: [
           { type: 'add_funds', enabled: true },
           { type: 'change_asset' },

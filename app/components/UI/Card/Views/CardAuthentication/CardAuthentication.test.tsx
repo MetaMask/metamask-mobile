@@ -30,6 +30,8 @@ const mockReset = jest.fn();
 const mockDispatch = jest.fn();
 const mockAddListener = jest.fn(() => jest.fn());
 
+let mockRouteParams: Record<string, unknown> = {};
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -39,6 +41,7 @@ jest.mock('@react-navigation/native', () => ({
     dispatch: mockDispatch,
     addListener: mockAddListener,
   }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock('../../hooks/useCardAuth');
@@ -126,6 +129,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_otp_authentication.didnt_receive_code':
         "Didn't receive the code?",
       'card.card_otp_authentication.resend_verification': 'Resend',
+      'card.card_authentication.auth_prompt_info':
+        'Log in to your card account to access this feature.',
     };
     if (key === 'card.card_otp_authentication.description_with_phone_number') {
       return `We sent a code to ${params?.maskedPhoneNumber}`;
@@ -169,6 +174,7 @@ jest.useFakeTimers({ advanceTimers: true });
 describe('CardAuthentication Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = {};
 
     mockInitiateMutateAsync.mockResolvedValue(undefined);
     mockSubmitMutateAsync.mockResolvedValue({ done: true });
@@ -834,6 +840,37 @@ describe('CardAuthentication Component', () => {
 
       expect(screen.getByTestId('email-field')).toBeOnTheScreen();
       expect(screen.queryByTestId('otp-code-field')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Auth Prompt Info Banner', () => {
+    it('shows info banner when showAuthPrompt param is true', () => {
+      mockRouteParams = { showAuthPrompt: true };
+      render();
+
+      expect(screen.getByTestId('card-message-box')).toBeOnTheScreen();
+      expect(
+        screen.getByText('Log in to your card account to access this feature.'),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not show info banner when showAuthPrompt param is absent', () => {
+      render();
+
+      expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
+    });
+
+    it('does not show info banner on OTP step even with showAuthPrompt param', () => {
+      mockRouteParams = { showAuthPrompt: true };
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+
+      render();
+
+      expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
     });
   });
 });

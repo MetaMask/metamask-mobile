@@ -172,8 +172,7 @@ export type CardAlertType =
   | 'kyc_pending'
   | 'card_provisioning'
   | 'close_to_spending_limit'
-  | 'limited_allowance'
-  | 'login_required';
+  | 'limited_allowance';
 
 export interface CardAlertAction {
   type: 'navigate';

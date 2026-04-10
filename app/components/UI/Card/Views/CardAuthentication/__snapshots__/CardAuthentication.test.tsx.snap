@@ -439,22 +439,6 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                 >
                                   Log in to your card account
                                 </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#66676a",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                  testID="onboarding-step-description"
-                                />
                               </View>
                               <View
                                 style={

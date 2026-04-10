@@ -6,10 +6,7 @@ import Engine from '../../../../../../core/Engine';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectIsCardAuthenticated } from '../../../../../../selectors/cardController';
-import {
-  IconName,
-  IconColor,
-} from '../../../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
   ToastVariants,
@@ -94,6 +91,11 @@ export function useCardHomeActions({
   );
 
   const handleToggleFreeze = useCallback(async () => {
+    if (!isAuthenticated) {
+      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+      return;
+    }
+
     const wasFrozen = isFrozen;
 
     if (!isFrozen) {
@@ -131,6 +133,7 @@ export function useCardHomeActions({
       },
     });
   }, [
+    isAuthenticated,
     isFrozen,
     freeze,
     unfreeze,
@@ -183,6 +186,10 @@ export function useCardHomeActions({
   ]);
 
   const viewCardDetailsAction = useCallback(async () => {
+    if (!isAuthenticated) {
+      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+      return;
+    }
     if (isCardDetailsLoading || isCardDetailsImageLoading) return;
     if (cardDetailsImageUrl) {
       trackEvent(
@@ -200,6 +207,7 @@ export function useCardHomeActions({
       onSuccess: () => fetchAndShowCardDetails(),
     });
   }, [
+    isAuthenticated,
     isCardDetailsLoading,
     isCardDetailsImageLoading,
     cardDetailsImageUrl,
@@ -251,6 +259,10 @@ export function useCardHomeActions({
   ]);
 
   const viewPinAction = useCallback(async () => {
+    if (!isAuthenticated) {
+      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+      return;
+    }
     if (isPinLoading) return;
     await withBiometricAuth({
       reauthenticate,
@@ -261,7 +273,14 @@ export function useCardHomeActions({
       ),
       onSuccess: () => fetchAndShowPin(),
     });
-  }, [isPinLoading, reauthenticate, fetchAndShowPin, navigation, toastRef]);
+  }, [
+    isAuthenticated,
+    isPinLoading,
+    reauthenticate,
+    fetchAndShowPin,
+    navigation,
+    toastRef,
+  ]);
 
   // --- Navigation actions ---
 
@@ -316,7 +335,7 @@ export function useCardHomeActions({
         }),
       );
     } else {
-      navigation.navigate(Routes.CARD.AUTHENTICATION);
+      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
   }, [isAuthenticated, navigation, trackEvent, createEventBuilder, data]);
 
@@ -338,7 +357,7 @@ export function useCardHomeActions({
     if (isAuthenticated) {
       navigation.navigate(Routes.CARD.SPENDING_LIMIT, { flow: 'enable' });
     } else {
-      navigation.navigate(Routes.CARD.AUTHENTICATION);
+      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
   }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
 
@@ -388,14 +407,34 @@ export function useCardHomeActions({
     data?.account?.shippingAddress,
   ]);
 
+  const navigateToCardPageAction = useCallback(() => {
+    if (isAuthenticated) {
+      navigateToCardPage();
+    } else {
+      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+    }
+  }, [isAuthenticated, navigateToCardPage, navigation]);
+
+  const navigateToTravelPageAction = useCallback(() => {
+    if (isAuthenticated) {
+      navigateToTravelPage();
+    } else {
+      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+    }
+  }, [isAuthenticated, navigateToTravelPage, navigation]);
+
   const cashbackAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({ action: CardActions.CASHBACK_BUTTON })
         .build(),
     );
-    navigation.navigate(Routes.CARD.CASHBACK);
-  }, [navigation, trackEvent, createEventBuilder]);
+    if (isAuthenticated) {
+      navigation.navigate(Routes.CARD.CASHBACK);
+    } else {
+      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+    }
+  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
 
   return {
     freeze,
@@ -416,8 +455,8 @@ export function useCardHomeActions({
     logoutAction,
     orderMetalCardAction,
     cashbackAction,
-    navigateToCardPage,
-    navigateToTravelPage,
+    navigateToCardPage: navigateToCardPageAction,
+    navigateToTravelPage: navigateToTravelPageAction,
     navigateToCardTosPage,
   };
 }

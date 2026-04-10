@@ -284,7 +284,6 @@ const CardHome = () => {
         onDismissSpendingLimitWarning={() =>
           setIsSpendingLimitWarningDismissed(true)
         }
-        onLoginRequired={() => navigation.navigate(Routes.CARD.AUTHENTICATION)}
       />
 
       <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">

@@ -25,7 +25,7 @@ const CardHomeFooter = ({
 }: CardHomeFooterProps) => {
   const tw = useTailwind();
 
-  if (!isAuthenticated || isLoading) return null;
+  if (isLoading) return null;
 
   return (
     <>
@@ -50,15 +50,20 @@ const CardHomeFooter = ({
           {strings('card.card_home.contact_support')}
         </Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        onPress={onLogout}
-        testID={CardHomeSelectors.LOGOUT_ITEM}
-        style={tw.style('py-4 px-4 mb-6')}
-      >
-        <Text variant={TextVariant.BodyMd} twClassName="text-text-alternative">
-          {strings('card.card_home.logout')}
-        </Text>
-      </TouchableOpacity>
+      {isAuthenticated && (
+        <TouchableOpacity
+          onPress={onLogout}
+          testID={CardHomeSelectors.LOGOUT_ITEM}
+          style={tw.style('py-4 px-4 mb-6')}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-text-alternative"
+          >
+            {strings('card.card_home.logout')}
+          </Text>
+        </TouchableOpacity>
+      )}
     </>
   );
 };

@@ -76,6 +76,9 @@ const ManageCardOptions = ({
     isAuthenticated &&
     card;
 
+  const showTeaserOptions =
+    !isLoading && !isAuthenticated && !hasSetupActions && !hasAlertOnlyState;
+
   const isEligibleForMetalCard =
     isMetalCardCheckoutEnabled &&
     isAuthenticated &&
@@ -105,10 +108,10 @@ const ManageCardOptions = ({
             testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
           />
         )}
-        {isAuthenticated && !isLoading && card && (
+        {((isAuthenticated && !isLoading && card) || showTeaserOptions) && (
           <ManageCardListItem
             title={strings(
-              cardDetailsImageUrl
+              cardDetailsImageUrl && isAuthenticated
                 ? 'card.card_home.manage_card_options.hide_card_details'
                 : 'card.card_home.manage_card_options.view_card_details',
             )}
@@ -119,47 +122,49 @@ const ManageCardOptions = ({
             testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
           />
         )}
-        {isAuthenticated &&
+        {((isAuthenticated &&
           !isLoading &&
           card &&
-          capabilities?.supportsPinView && (
-            <ManageCardListItem
-              title={strings('card.card_home.manage_card_options.view_pin')}
-              description={strings(
-                'card.card_home.manage_card_options.view_pin_description',
-              )}
-              onPress={onViewPin}
-              isLoading={isPinLoading}
-              testID={CardHomeSelectors.VIEW_PIN_BUTTON}
-            />
-          )}
-        {isAuthenticated &&
+          capabilities?.supportsPinView) ||
+          (showTeaserOptions && capabilities?.supportsPinView)) && (
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.view_pin')}
+            description={strings(
+              'card.card_home.manage_card_options.view_pin_description',
+            )}
+            onPress={onViewPin}
+            isLoading={isPinLoading}
+            testID={CardHomeSelectors.VIEW_PIN_BUTTON}
+          />
+        )}
+        {((isAuthenticated &&
           !isLoading &&
           card?.isFreezable &&
-          card?.status !== CardStatus.BLOCKED && (
-            <ManageCardListItem
-              title={
-                isFrozen
-                  ? strings('card.card_home.manage_card_options.unfreeze_card')
-                  : strings('card.card_home.manage_card_options.freeze_card')
-              }
-              description={strings(
-                isFrozen
-                  ? 'card.card_home.manage_card_options.unfreeze_card_description'
-                  : 'card.card_home.manage_card_options.freeze_card_description',
-              )}
-              rightElement={
-                <Switch
-                  value={isFrozen}
-                  onValueChange={isFreezeLoading ? undefined : onToggleFreeze}
-                  disabled={isFreezeLoading}
-                  style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
-                  testID={CardHomeSelectors.FREEZE_CARD_TOGGLE}
-                />
-              }
-              testID="freeze-card-list-item"
-            />
-          )}
+          card?.status !== CardStatus.BLOCKED) ||
+          showTeaserOptions) && (
+          <ManageCardListItem
+            title={
+              isFrozen && isAuthenticated
+                ? strings('card.card_home.manage_card_options.unfreeze_card')
+                : strings('card.card_home.manage_card_options.freeze_card')
+            }
+            description={strings(
+              isFrozen && isAuthenticated
+                ? 'card.card_home.manage_card_options.unfreeze_card_description'
+                : 'card.card_home.manage_card_options.freeze_card_description',
+            )}
+            rightElement={
+              <Switch
+                value={isFrozen && isAuthenticated}
+                onValueChange={isFreezeLoading ? undefined : onToggleFreeze}
+                disabled={isFreezeLoading}
+                style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
+                testID={CardHomeSelectors.FREEZE_CARD_TOGGLE}
+              />
+            }
+            testID="freeze-card-list-item"
+          />
+        )}
         {!isLoading && (
           <ManageCardListItem
             title={strings(
@@ -172,7 +177,7 @@ const ManageCardOptions = ({
           />
         )}
       </Box>
-      {isFullySetUp && (
+      {(isFullySetUp || showTeaserOptions) && (
         <>
           <ManageCardListItem
             title={strings('card.card_home.manage_card_options.manage_card')}
@@ -183,21 +188,22 @@ const ManageCardOptions = ({
             onPress={onNavigateToCardPage}
             testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
           />
-          {isAuthenticated &&
+          {((isAuthenticated &&
             capabilities?.supportsCashback &&
-            account?.verificationStatus === 'VERIFIED' && (
-              <ManageCardListItem
-                title={strings('card.card_home.manage_card_options.cashback')}
-                description={strings(
-                  card?.type === CardType.METAL
-                    ? 'card.card_home.manage_card_options.cashback_description_metal'
-                    : 'card.card_home.manage_card_options.cashback_description',
-                )}
-                rightIcon={IconName.ArrowRight}
-                onPress={onCashback}
-                testID={CardHomeSelectors.CASHBACK_ITEM}
-              />
-            )}
+            account?.verificationStatus === 'VERIFIED') ||
+            showTeaserOptions) && (
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.cashback')}
+              description={strings(
+                card?.type === CardType.METAL
+                  ? 'card.card_home.manage_card_options.cashback_description_metal'
+                  : 'card.card_home.manage_card_options.cashback_description',
+              )}
+              rightIcon={IconName.ArrowRight}
+              onPress={onCashback}
+              testID={CardHomeSelectors.CASHBACK_ITEM}
+            />
+          )}
           <ManageCardListItem
             title={strings('card.card_home.manage_card_options.travel_title')}
             description={strings(

@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
 import {
@@ -20,13 +20,14 @@ import { useCardAuth } from '../../hooks/useCardAuth';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
 import { setOnboardingId } from '../../../../../core/redux/slices/card';
 import { selectCardUserLocation } from '../../../../../selectors/cardController';
-import type { CardLocation } from '../../types';
+import { CardMessageBoxType, type CardLocation } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -38,10 +39,18 @@ const autoComplete = Platform.select<TextInputProps['autoComplete']>({
   default: 'one-time-code',
 });
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type CardAuthenticationParams = {
+  CardAuthentication: { showAuthPrompt?: boolean } | undefined;
+};
+
 const CardAuthentication = () => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
+  const route =
+    useRoute<RouteProp<CardAuthenticationParams, 'CardAuthentication'>>();
+  const showAuthPrompt = route.params?.showAuthPrompt ?? false;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -274,7 +283,7 @@ const CardAuthentication = () => {
           : strings(
               'card.card_otp_authentication.description_without_phone_number',
             )
-        : '',
+        : undefined,
     [maskedPhoneNumber, isOtpStep],
   );
 
@@ -350,6 +359,9 @@ const CardAuthentication = () => {
         </>
       ) : (
         <>
+          {showAuthPrompt && (
+            <CardMessageBox messageType={CardMessageBoxType.AuthPrompt} />
+          )}
           <Box twClassName="flex-row justify-between gap-2">
             <TouchableOpacity
               onPress={() => setSelectedLocation('international')}
@@ -454,6 +466,7 @@ const CardAuthentication = () => {
       password,
       performLogin,
       resendCooldown,
+      showAuthPrompt,
       tw,
       selectedLocation,
     ],

@@ -28,7 +28,6 @@ jest.mock('../../../components/CardMessageBox/CardMessageBox', () => {
 
 const mockOnNavigateToSpendingLimit = jest.fn();
 const mockOnDismissSpendingLimitWarning = jest.fn();
-const mockOnLoginRequired = jest.fn();
 
 function renderComponent(alerts: CardAlert[]) {
   return render(
@@ -36,7 +35,6 @@ function renderComponent(alerts: CardAlert[]) {
       alerts={alerts}
       onNavigateToSpendingLimit={mockOnNavigateToSpendingLimit}
       onDismissSpendingLimitWarning={mockOnDismissSpendingLimitWarning}
-      onLoginRequired={mockOnLoginRequired}
     />,
   );
 }
@@ -44,21 +42,6 @@ function renderComponent(alerts: CardAlert[]) {
 describe('CardAlertSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('renders LoginRequired CardMessageBox for login_required alert', () => {
-    const { getByTestId } = renderComponent([
-      { type: 'login_required', dismissable: false },
-    ]);
-
-    const box = getByTestId(
-      `card-message-box-${CardMessageBoxType.LoginRequired}`,
-    );
-    expect(box).toBeOnTheScreen();
-
-    const props = JSON.parse(box.props.accessibilityLabel);
-    expect(props.hasOnConfirm).toBe(true);
-    expect(props.hasOnDismiss).toBe(false);
   });
 
   it('renders CloseSpendingLimit CardMessageBox with onConfirm and onDismiss', () => {
@@ -121,14 +104,10 @@ describe('CardAlertSection', () => {
   it('renders multiple alerts', () => {
     const { getByTestId } = renderComponent([
       { type: 'kyc_pending', dismissable: false },
-      { type: 'login_required', dismissable: false },
     ]);
 
     expect(
       getByTestId(`card-message-box-${CardMessageBoxType.KYCPending}`),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(`card-message-box-${CardMessageBoxType.LoginRequired}`),
     ).toBeOnTheScreen();
   });
 });

@@ -7,26 +7,16 @@ interface CardAlertSectionProps {
   alerts: CardAlert[];
   onNavigateToSpendingLimit: () => void;
   onDismissSpendingLimitWarning?: () => void;
-  onLoginRequired: () => void;
 }
 
 const CardAlertSection = ({
   alerts,
   onNavigateToSpendingLimit,
   onDismissSpendingLimitWarning,
-  onLoginRequired,
 }: CardAlertSectionProps) => (
   <>
     {alerts.map((cardAlert) => {
       switch (cardAlert.type) {
-        case 'login_required':
-          return (
-            <CardMessageBox
-              key={cardAlert.type}
-              messageType={CardMessageBoxType.LoginRequired}
-              onConfirm={onLoginRequired}
-            />
-          );
         case 'close_to_spending_limit':
           return (
             <CardMessageBox

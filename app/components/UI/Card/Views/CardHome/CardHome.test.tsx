@@ -2122,7 +2122,9 @@ describe('CardHome Component', () => {
       fireEvent.press(changeAssetButton);
 
       // Then: should navigate to authentication screen
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+        showAuthPrompt: true,
+      });
     });
 
     it('navigates to asset selection modal when change asset pressed and authenticated', () => {
@@ -2172,7 +2174,9 @@ describe('CardHome Component', () => {
       fireEvent.press(manageSpendingLimitItem);
 
       // Then: should navigate to authentication screen
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+        showAuthPrompt: true,
+      });
     });
 
     it('shows logout button when user is authenticated', () => {
@@ -3283,7 +3287,7 @@ describe('CardHome Component', () => {
         mockReauthenticate.mockResolvedValue(undefined);
       });
 
-      it('does not show card details button when user is not authenticated', () => {
+      it('shows card details button as teaser when user is not authenticated', () => {
         // Given: User is not authenticated
         setupMockSelectors({ isAuthenticated: false });
         setupLoadCardDataMock({
@@ -3296,10 +3300,10 @@ describe('CardHome Component', () => {
         // When: component renders
         render();
 
-        // Then: card details button is not shown
+        // Then: card details button is shown as a teaser option
         expect(
-          screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
-        ).toBeNull();
+          screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+        ).toBeOnTheScreen();
       });
 
       it('does not show card details button when user has no card', () => {
@@ -3619,8 +3623,8 @@ describe('CardHome Component', () => {
         mockGetCapabilities.mockReturnValue({ supportsPinView: true });
       });
 
-      it('does not show view pin button when user is not authenticated', () => {
-        // Given: User is not authenticated
+      it('shows view pin button as teaser when user is not authenticated', () => {
+        // Given: User is not authenticated but capabilities support PIN view
         setupMockSelectors({ isAuthenticated: false });
         setupLoadCardDataMock({
           isAuthenticated: false,
@@ -3632,10 +3636,10 @@ describe('CardHome Component', () => {
         // When: component renders
         render();
 
-        // Then: view pin button is not shown
+        // Then: view pin button is shown as a teaser option
         expect(
-          screen.queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
-        ).toBeNull();
+          screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+        ).toBeOnTheScreen();
       });
 
       it('does not show view pin button when user has no card', () => {
@@ -3951,7 +3955,7 @@ describe('CardHome Component', () => {
         ).toBeTruthy();
       });
 
-      it('does not show freeze toggle when user is not authenticated', () => {
+      it('shows freeze toggle as teaser when user is not authenticated', () => {
         setupMockSelectors({ isAuthenticated: false });
         setupLoadCardDataMock({
           isAuthenticated: false,
@@ -3963,8 +3967,8 @@ describe('CardHome Component', () => {
         render();
 
         expect(
-          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
-        ).toBeNull();
+          screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+        ).toBeOnTheScreen();
       });
 
       it('does not show freeze toggle when card is not freezable', () => {
@@ -5343,9 +5347,8 @@ describe('CardHome Component', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('hides cashback item when user is not authenticated', () => {
-      // Given: unauthenticated user
-      mockGetCapabilities.mockReturnValue(null);
+    it('shows cashback item as teaser when user is not authenticated', () => {
+      // Given: unauthenticated cardholder
       setupMockSelectors({
         isAuthenticated: false,
         userLocation: 'international',
@@ -5360,10 +5363,10 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: cashback item is not rendered
+      // Then: cashback item is rendered as a teaser
       expect(
-        screen.queryByTestId(CardHomeSelectors.CASHBACK_ITEM),
-      ).not.toBeOnTheScreen();
+        screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM),
+      ).toBeOnTheScreen();
     });
 
     it('hides cashback item when KYC is not verified', () => {
@@ -5763,6 +5766,156 @@ describe('CardHome Component', () => {
           }),
         );
       });
+    });
+  });
+
+  describe('Unauthenticated cardholder teaser options', () => {
+    beforeEach(() => {
+      setupMockSelectors({ isAuthenticated: false });
+      mockGetCapabilities.mockReturnValue({
+        supportsPinView: true,
+        supportsCashback: true,
+      });
+    });
+
+    it('shows view card details as teaser when unauthenticated', () => {
+      render();
+      expect(
+        screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows view pin as teaser when unauthenticated', () => {
+      render();
+      expect(
+        screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows freeze card as teaser when unauthenticated', () => {
+      render();
+      expect(
+        screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows cashback as teaser when unauthenticated', () => {
+      render();
+      expect(
+        screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows manage card as teaser when unauthenticated', () => {
+      render();
+      expect(
+        screen.getByTestId(CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows travel as teaser when unauthenticated', () => {
+      render();
+      expect(
+        screen.getByTestId(CardHomeSelectors.TRAVEL_ITEM),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to authentication when view card details pressed', () => {
+      render();
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+        showAuthPrompt: true,
+      });
+    });
+
+    it('navigates to authentication when view pin pressed', () => {
+      render();
+      fireEvent.press(screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON));
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+        showAuthPrompt: true,
+      });
+    });
+
+    it('navigates to authentication when freeze card toggled', () => {
+      render();
+      fireEvent(
+        screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+        'valueChange',
+        true,
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+        showAuthPrompt: true,
+      });
+    });
+
+    it('navigates to authentication when cashback pressed', () => {
+      render();
+      fireEvent.press(screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM));
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+        showAuthPrompt: true,
+      });
+    });
+
+    it('navigates to authentication when manage card pressed', () => {
+      render();
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+        showAuthPrompt: true,
+      });
+    });
+
+    it('navigates to authentication when travel pressed', () => {
+      render();
+      fireEvent.press(screen.getByTestId(CardHomeSelectors.TRAVEL_ITEM));
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+        showAuthPrompt: true,
+      });
+    });
+
+    it('does not show metal card option when unauthenticated', () => {
+      render();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.ORDER_METAL_CARD_ITEM),
+      ).toBeNull();
+    });
+
+    it('does not show push provisioning button when unauthenticated', () => {
+      mockUsePushProvisioning.mockReturnValue({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: false,
+      });
+      render();
+      expect(screen.queryByTestId('add-to-wallet-button')).toBeNull();
+    });
+
+    it('shows terms and conditions when unauthenticated', () => {
+      render();
+      expect(
+        screen.getByTestId(CardHomeSelectors.CARD_TOS_ITEM),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows contact support when unauthenticated', () => {
+      render();
+      expect(
+        screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not show logout when unauthenticated', () => {
+      render();
+      expect(screen.queryByTestId(CardHomeSelectors.LOGOUT_ITEM)).toBeNull();
     });
   });
 });
