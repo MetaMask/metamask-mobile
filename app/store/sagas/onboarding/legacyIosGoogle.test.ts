@@ -7,7 +7,7 @@ import {
   IOS_GOOGLE_WARNING_SHEET_REMINDER_INTERVAL_MS,
   promptIosGoogleWarningSheetSaga,
 } from './legacyIosGoogle';
-import { presentIosGoogleLoginVersionWarningSheet } from '../../../components/Views/Onboarding/OnboardingIosPrompt';
+import { presentIosGoogleLoginVersionWarningSheetReminder } from '../../../components/Views/Onboarding/OnboardingIosPrompt';
 import Device from '../../../util/device';
 
 jest.mock('../../../core/NavigationService', () => ({
@@ -18,7 +18,7 @@ jest.mock('../../../core/NavigationService', () => ({
 }));
 
 jest.mock('../../../components/Views/Onboarding/OnboardingIosPrompt', () => ({
-  presentIosGoogleLoginVersionWarningSheet: jest
+  presentIosGoogleLoginVersionWarningSheetReminder: jest
     .fn()
     .mockResolvedValue(undefined),
 }));
@@ -65,7 +65,7 @@ const googleSeedlessState = {
 
 describe('promptIosGoogleWarningSheetSaga', () => {
   const mockedPresentSheet = jest.mocked(
-    presentIosGoogleLoginVersionWarningSheet,
+    presentIosGoogleLoginVersionWarningSheetReminder,
   );
   const mockedIsIos = jest.mocked(Device.isIos);
   const mockedIsAndroid = jest.mocked(Device.isAndroid);
