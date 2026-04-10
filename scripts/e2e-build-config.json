@@ -1,0 +1,46 @@
+{
+  "_comment": "Authoritative list of file patterns that trigger E2E build creation. If a push only touches files NOT in android/ios/shared below (or matches ignore), the CI will reuse the latest cached build from the PR branch or main instead of building fresh. Keep this in sync with the filters in .github/workflows/needs-e2e-build.yml.",
+  "android": [
+    "android/**"
+  ],
+  "ios": [
+    "ios/**"
+  ],
+  "shared": [
+    "package.json",
+    "metro.config.js",
+    "tsconfig.json",
+    "babel.config.js",
+    "yarn.lock",
+    "app/**",
+    "tests/**",
+    "sentry*.properties*",
+    "appwright/**",
+    "scripts/build.sh",
+    "scripts/setup.mjs",
+    "patches/**",
+    ".yarn/patches/**",
+    ".github/workflows/**",
+    ".github/scripts/**",
+    "react-native.config.js"
+  ],
+  "ignore": [
+    "**/*.md",
+    "docs/**",
+    "**/*.yml",
+    ".github/**",
+    "LICENSE",
+    "README.md",
+    "RELEASE.MD",
+    "CHANGELOG.md",
+    "attribution.txt",
+    "*.svg",
+    "*.png",
+    "codecov.yml",
+    "crowdin.yml",
+    "bitrise.yml",
+    "sonar-project.properties",
+    "scripts/*",
+    "scripts/*/**"
+  ]
+}

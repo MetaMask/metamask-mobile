@@ -70,7 +70,9 @@ jobs:
         id: filter
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
         with:
-          # Path filtering logic:
+          # Path filtering logic — mirrors scripts/e2e-build-config.json (authoritative reference).
+          # Keep both files in sync when adding/removing patterns.
+          #
           # - android: Files that require Android builds only
           # - ios: Files that require iOS builds only
           # - shared: Files that require both Android and iOS builds
