@@ -1,15 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`EnterPasswordSimple should render correctly 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<View
   style={
     {
       "backgroundColor": "white",
@@ -167,5 +159,5 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
       </View>
     </RCTScrollView>
   </View>
-</RNCSafeAreaView>
+</View>
 `;

@@ -1,16 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TestForm renders correctly 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
->
+<View>
   <Text
     accessibilityRole="text"
     style={
@@ -72,5 +63,5 @@ exports[`TestForm renders correctly 1`] = `
       random button label
     </Text>
   </TouchableOpacity>
-</RNCSafeAreaView>
+</View>
 `;

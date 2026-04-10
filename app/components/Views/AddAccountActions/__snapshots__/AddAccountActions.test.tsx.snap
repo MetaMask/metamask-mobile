@@ -334,16 +334,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "additive",
-                          }
-                        }
-                      >
+                      <View>
                         <View>
                           <Text
                             accessibilityRole="text"
@@ -695,7 +686,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             </Text>
                           </TouchableOpacity>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>

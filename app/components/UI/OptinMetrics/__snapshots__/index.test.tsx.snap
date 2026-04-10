@@ -217,13 +217,10 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -760,7 +757,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                             </Text>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -1138,13 +1135,10 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -1681,7 +1675,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                             </Text>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -2176,13 +2170,10 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -2719,7 +2710,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                             </Text>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>

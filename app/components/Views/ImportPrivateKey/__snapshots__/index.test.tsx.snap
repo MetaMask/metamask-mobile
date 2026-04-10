@@ -334,13 +334,10 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -765,7 +762,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                           </View>
                         </RCTScrollView>
                         <View />
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>

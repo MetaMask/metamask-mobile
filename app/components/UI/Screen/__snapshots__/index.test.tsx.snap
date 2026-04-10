@@ -8,15 +8,7 @@ exports[`Screen should render correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaView
-    edges={
-      {
-        "bottom": "additive",
-        "left": "additive",
-        "right": "additive",
-        "top": "additive",
-      }
-    }
+  <View
     style={
       {
         "flex": 1,
@@ -26,6 +18,6 @@ exports[`Screen should render correctly 1`] = `
     <View>
       Foobar
     </View>
-  </RNCSafeAreaView>
+  </View>
 </View>
 `;

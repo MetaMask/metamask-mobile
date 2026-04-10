@@ -1,13 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AesCryptoTestForm renders correctly 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -197,15 +194,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
         }
         testID="account-address"
       />
-      <RNCSafeAreaView
-        edges={
-          {
-            "bottom": "additive",
-            "left": "additive",
-            "right": "additive",
-            "top": "additive",
-          }
-        }
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -290,16 +279,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Generate
           </Text>
         </TouchableOpacity>
-      </RNCSafeAreaView>
-      <RNCSafeAreaView
-        edges={
-          {
-            "bottom": "additive",
-            "left": "additive",
-            "right": "additive",
-            "top": "additive",
-          }
-        }
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -409,16 +390,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Generate
           </Text>
         </TouchableOpacity>
-      </RNCSafeAreaView>
-      <RNCSafeAreaView
-        edges={
-          {
-            "bottom": "additive",
-            "left": "additive",
-            "right": "additive",
-            "top": "additive",
-          }
-        }
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -528,16 +501,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Encrypt
           </Text>
         </TouchableOpacity>
-      </RNCSafeAreaView>
-      <RNCSafeAreaView
-        edges={
-          {
-            "bottom": "additive",
-            "left": "additive",
-            "right": "additive",
-            "top": "additive",
-          }
-        }
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -622,16 +587,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Decrypt
           </Text>
         </TouchableOpacity>
-      </RNCSafeAreaView>
-      <RNCSafeAreaView
-        edges={
-          {
-            "bottom": "additive",
-            "left": "additive",
-            "right": "additive",
-            "top": "additive",
-          }
-        }
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -741,16 +698,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Encrypt
           </Text>
         </TouchableOpacity>
-      </RNCSafeAreaView>
-      <RNCSafeAreaView
-        edges={
-          {
-            "bottom": "additive",
-            "left": "additive",
-            "right": "additive",
-            "top": "additive",
-          }
-        }
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -835,8 +784,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Decrypt
           </Text>
         </TouchableOpacity>
-      </RNCSafeAreaView>
+      </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;

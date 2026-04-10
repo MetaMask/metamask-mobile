@@ -334,14 +334,11 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
-                          }
+                          [
+                            "bottom",
+                          ]
                         }
                         style={
                           {
@@ -1044,7 +1041,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                             </View>
                           </View>
                         </RCTScrollView>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>

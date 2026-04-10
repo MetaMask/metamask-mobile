@@ -1,15 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleView Snapshot renders correctly 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<View
   style={
     {
       "backgroundColor": "#ffffff",
@@ -68,16 +60,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
               }
             />
           </View>
-          <RNCSafeAreaView
-            edges={
-              {
-                "bottom": "additive",
-                "left": "additive",
-                "right": "additive",
-                "top": "additive",
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -412,7 +395,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                 </Text>
               </View>
             </View>
-          </RNCSafeAreaView>
+          </View>
         </View>
       </View>
     </View>
@@ -467,5 +450,5 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
       </Text>
     </TouchableOpacity>
   </View>
-</RNCSafeAreaView>
+</View>
 `;

@@ -415,8 +415,8 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                   "overflow": "hidden",
                                 },
                                 {
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
                                   "shadowOffset": {
@@ -430,7 +430,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -559,10 +559,10 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 8,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                         {
@@ -583,8 +583,8 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "height": 24,
-                                            "width": 24,
+                                            "height": 32,
+                                            "width": 32,
                                           },
                                           undefined,
                                         ]
