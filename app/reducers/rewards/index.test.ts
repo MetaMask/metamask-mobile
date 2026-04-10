@@ -34,7 +34,6 @@ import rewardsReducer, {
   setOndoCampaignLeaderboardSelectedTier,
   setOndoCampaignLeaderboardPosition,
   setOndoCampaignPortfolioPosition,
-  setOndoCampaignActivity,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -58,7 +57,6 @@ import {
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
   OndoGmPortfolioDto,
-  OndoGmActivityEntryDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 import { brandColor } from '@metamask/design-tokens';
@@ -2156,7 +2154,6 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardSelectedTier: null,
         ondoCampaignLeaderboardPositions: {},
         ondoCampaignPortfolio: {},
-        ondoCampaignActivity: {},
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
@@ -2271,7 +2268,6 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardSelectedTier: null,
         ondoCampaignLeaderboardPositions: {},
         ondoCampaignPortfolio: {},
-        ondoCampaignActivity: {},
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
@@ -2672,54 +2668,6 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(initialState, rehydrateAction);
 
       expect(state.ondoCampaignPortfolio).toEqual({});
-    });
-
-    it('should restore ondoCampaignActivity from persisted state', () => {
-      const mockEntries = [
-        {
-          type: 'DEPOSIT',
-          srcToken: {
-            tokenAsset: 'eip155:59144/erc20:0xabc',
-            tokenSymbol: 'USDC',
-            tokenName: 'USD Coin',
-          },
-          destToken: null,
-          destAddress: null,
-          usdAmount: '5000.000000',
-          timestamp: '2026-03-28T14:30:00.000Z',
-        },
-      ];
-      const persistedRewardsState = {
-        ...initialState,
-        ondoCampaignActivity: {
-          'sub-1:campaign-1': mockEntries,
-        },
-      } as unknown as RewardsState;
-      const rehydrateAction = {
-        type: 'persist/REHYDRATE',
-        payload: { rewards: persistedRewardsState },
-      };
-
-      const state = rewardsReducer(initialState, rehydrateAction);
-
-      expect(state.ondoCampaignActivity).toEqual({
-        'sub-1:campaign-1': mockEntries,
-      });
-    });
-
-    it('should default ondoCampaignActivity to {} when absent from persisted state (upgrade path)', () => {
-      const persistedRewardsStateWithoutField = {
-        ...initialState,
-        ondoCampaignActivity: undefined,
-      } as unknown as RewardsState;
-      const rehydrateAction = {
-        type: 'persist/REHYDRATE',
-        payload: { rewards: persistedRewardsStateWithoutField },
-      };
-
-      const state = rewardsReducer(initialState, rehydrateAction);
-
-      expect(state.ondoCampaignActivity).toEqual({});
     });
   });
 
@@ -5294,45 +5242,5 @@ describe('setOndoCampaignPortfolioPosition', () => {
     const state = rewardsReducer(stateWithPortfolio, action);
 
     expect(state.ondoCampaignPortfolio['sub-1:campaign-1']).toBeUndefined();
-  });
-});
-
-describe('setOndoCampaignActivity', () => {
-  it('should set activity entries for a campaign', () => {
-    const mockEntries: OndoGmActivityEntryDto[] = [
-      {
-        type: 'DEPOSIT',
-        srcToken: {
-          tokenAsset: 'eip155:59144/erc20:0xabc',
-          tokenSymbol: 'USDC',
-          tokenName: 'USD Coin',
-        },
-        destToken: null,
-        destAddress: null,
-        usdAmount: '5000.000000',
-        timestamp: '2026-03-28T14:30:00.000Z',
-      },
-    ];
-    const action = setOndoCampaignActivity({
-      subscriptionId: 'sub-1',
-      campaignId: 'campaign-1',
-      entries: mockEntries,
-    });
-
-    const state = rewardsReducer(initialState, action);
-
-    expect(state.ondoCampaignActivity['sub-1:campaign-1']).toEqual(mockEntries);
-  });
-
-  it('should set null when null entries provided', () => {
-    const action = setOndoCampaignActivity({
-      subscriptionId: 'sub-1',
-      campaignId: 'campaign-1',
-      entries: null,
-    });
-
-    const state = rewardsReducer(initialState, action);
-
-    expect(state.ondoCampaignActivity['sub-1:campaign-1']).toBeNull();
   });
 });

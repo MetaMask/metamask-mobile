@@ -26,7 +26,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -40,7 +40,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       style={
         {
           "color": "#457a39",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 32,
           "letterSpacing": 0,
           "lineHeight": 40,
@@ -158,7 +158,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     style={
       {
         "color": "#131416",
-        "fontFamily": "Geist-SemiBold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 20,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -172,7 +172,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     style={
       {
         "color": "#457a39",
-        "fontFamily": "Geist-SemiBold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 32,
         "letterSpacing": 0,
         "lineHeight": 40,
