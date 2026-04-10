@@ -150,7 +150,8 @@ function createTestStreamManager(
 export interface PerpsExtraRoute {
   name: string;
   Component?: React.ComponentType<unknown>;
-  /** 'perps-root' registers under Routes.PERPS.ROOT nested navigator; default ('root') is the root stack. */
+  /** 'root' registers in the root stack (e.g. cross-feature screens like MarketInsightsView).
+   * Omitting or using 'perps-root' nests the route under Routes.PERPS.ROOT (default — backward-compatible). */
   mount?: 'root' | 'perps-root';
 }
 
@@ -213,12 +214,13 @@ export function renderPerpsView(
   if (extraRoutes?.length) {
     const Stack = createStackNavigator();
     const InnerStack = createStackNavigator();
+    // Routes with mount: 'root' go directly in the root stack (e.g. MarketInsightsView).
+    // All others (mount: 'perps-root' or unset) nest under Routes.PERPS.ROOT — the
+    // default preserves backward compatibility with tests that omit mount entirely.
     const nestedPerpsRoutes = extraRoutes.filter(
-      ({ mount }) => mount === 'perps-root',
+      ({ mount }) => mount !== 'root',
     );
-    const rootRoutes = extraRoutes.filter(
-      ({ mount }) => mount !== 'perps-root',
-    );
+    const rootRoutes = extraRoutes.filter(({ mount }) => mount === 'root');
     // PerpsTabView navigates via navigation.navigate(PERPS.ROOT, { screen: MARKET_LIST }).
     // So we register PERPS.ROOT as a nested stack containing the extra routes; then
     // navigating to ROOT with screen: MARKET_LIST shows the route probe.
