@@ -348,7 +348,7 @@ import { EncryptionKey } from '../Encryptor/types';
 
 import { Hex } from '@metamask/utils';
 
-import { CONTROLLER_MESSENGERS } from './messengers';
+import { MESSENGER_FACTORIES } from './messengers';
 import type { RootState } from '../../reducers';
 import {
   AppMetadataController,
@@ -982,7 +982,7 @@ type MessengerClientPersistedState = Partial<{
 /**
  * Map of messenger client messengers by name.
  */
-export type MessengerClientMessengersByName = typeof CONTROLLER_MESSENGERS;
+export type MessengerClientMessengersByName = typeof MESSENGER_FACTORIES;
 
 /**
  * Request to initialize and return a controller instance.
@@ -1089,8 +1089,8 @@ export type MessengerClientInitFunction<
 export type MessengerClientInitFunctionsByMessengerClientName = {
   [Name in MessengerClientsToInitialize]: MessengerClientInitFunction<
     MessengerClientsByName[Name],
-    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
-    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
+    ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getMessenger']>,
+    ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getInitMessenger']>
   >;
 };
 

@@ -157,7 +157,7 @@ import { getComplianceControllerMessenger } from './compliance/compliance-contro
 /**
  * The messengers for the controllers that have been.
  */
-export const CONTROLLER_MESSENGERS = {
+export const MESSENGER_FACTORIES = {
   AccountsController: {
     getMessenger: getAccountsControllerMessenger,
     getInitMessenger: noop,
