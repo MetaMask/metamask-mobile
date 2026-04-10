@@ -4,14 +4,14 @@ import {
   type SignatureControllerOptions,
 } from '@metamask/signature-controller';
 import type {
-  ControllerInitFunction,
-  ControllerInitRequest,
+  MessengerClientInitFunction,
+  MessengerClientInitRequest,
 } from '../../types';
 import { trace } from '../../../../util/trace';
 import AppConstants from '../../../AppConstants';
 import Logger from '../../../../util/Logger';
 
-export const SignatureControllerInit: ControllerInitFunction<
+export const SignatureControllerInit: MessengerClientInitFunction<
   SignatureController,
   SignatureControllerMessenger
 > = (request) => {
@@ -37,7 +37,7 @@ export const SignatureControllerInit: ControllerInitFunction<
 };
 
 function getControllers(
-  request: ControllerInitRequest<SignatureControllerMessenger>,
+  request: MessengerClientInitRequest<SignatureControllerMessenger>,
 ) {
   return {
     preferencesController: request.getController('PreferencesController'),
