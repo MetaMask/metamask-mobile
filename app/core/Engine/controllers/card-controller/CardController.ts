@@ -4,6 +4,7 @@ import { numberToHex, type Hex, type Json } from '@metamask/utils';
 import Logger from '../../../../util/Logger';
 import {
   CARD_CONTROLLER_NAME,
+  DEFAULT_CARD_PROVIDER_ID,
   type CardControllerMessenger,
   type CardControllerState,
 } from './types';
@@ -35,10 +36,7 @@ import {
 } from './provider-types';
 import { CardTokenStore } from './CardTokenStore';
 import { isEthAccount } from '../../../Multichain/utils';
-import {
-  reorderAssets,
-  pickPrimaryFromReordered,
-} from '../../../../components/UI/Card/util/assetPriority';
+import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
@@ -90,7 +88,7 @@ const metadata: StateMetadata<CardControllerState> = {
 
 export const defaultCardControllerState: CardControllerState = {
   selectedCountry: null,
-  activeProviderId: 'baanx',
+  activeProviderId: DEFAULT_CARD_PROVIDER_ID,
   isAuthenticated: false,
   cardholderAccounts: [],
   providerData: {},
@@ -279,22 +277,32 @@ export class CardController extends BaseController<
       CARDHOLDER_MAX_BATCHES,
     );
 
-    try {
-      const results = await Promise.all(
-        batches.map((batch) =>
-          this.#fetchCardholderBatch(batch, accountsApiUrl),
-        ),
-      );
+    const settled = await Promise.allSettled(
+      batches.map((batch) => this.#fetchCardholderBatch(batch, accountsApiUrl)),
+    );
+
+    const results: string[] = [];
+    let anySucceeded = false;
+    for (const outcome of settled) {
+      if (outcome.status === 'fulfilled') {
+        anySucceeded = true;
+        results.push(...outcome.value);
+      } else {
+        Logger.error(outcome.reason as Error, {
+          tags: { feature: 'card', operation: 'checkCardholderAccounts' },
+          context: {
+            name: 'CardController',
+            data: { accountCount: caipAccountIds.length },
+          },
+        });
+      }
+    }
+
+    // Only update state if at least one batch succeeded. A total failure
+    // (e.g. network outage) should leave the existing cached list intact.
+    if (anySucceeded) {
       this.update((s) => {
-        s.cardholderAccounts = results.flat();
-      });
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: { feature: 'card', operation: 'checkCardholderAccounts' },
-        context: {
-          name: 'CardController',
-          data: { accountCount: caipAccountIds.length },
-        },
+        s.cardholderAccounts = results;
       });
     }
   }
@@ -531,6 +539,8 @@ export class CardController extends BaseController<
   }> {
     const tokens = await this.getValidTokens();
 
+    // Always fetch card home data regardless of auth state: authenticated users
+    // get full card data, unauthenticated users get on-chain asset state.
     this.fetchCardHomeData().catch((error) =>
       Logger.error(error as Error, {
         tags: { feature: 'card' },
@@ -540,6 +550,7 @@ export class CardController extends BaseController<
         },
       }),
     );
+
     if (!tokens) return { isAuthenticated: false };
     return { isAuthenticated: true, location: tokens.location };
   }
@@ -630,18 +641,13 @@ export class CardController extends BaseController<
   // -- Data pass-throughs --
 
   getCapabilities(): CardProviderCapabilities {
-    const base = this.getActiveProvider().capabilities;
+    const provider = this.getActiveProvider();
     const pid = this.state.activeProviderId ?? '';
     const provData = this.state.providerData[pid] as
       | { location?: string }
       | undefined;
-    const isUS = provData?.location === 'us';
-
-    return {
-      ...base,
-      supportsPinView: isUS || base.supportsPinView,
-      supportsCashback: !isUS && base.supportsCashback,
-    };
+    const location = provData?.location ?? '';
+    return provider.resolveCapabilities?.(location) ?? provider.capabilities;
   }
 
   async getCardHomeData(address: string): Promise<CardHomeData> {
@@ -678,8 +684,15 @@ export class CardController extends BaseController<
             } as unknown as Record<string, Json>;
           });
         }
-      } catch {
-        // optimistic update already applied
+      } catch (refreshError) {
+        // Optimistic update already applied; log so we know the refresh failed.
+        Logger.error(refreshError as Error, {
+          tags: { feature: 'card' },
+          context: {
+            name: 'CardController',
+            data: { method: 'freezeCard/refresh' },
+          },
+        });
       }
     } catch (error) {
       this.update((s) => {
@@ -715,8 +728,15 @@ export class CardController extends BaseController<
             } as unknown as Record<string, Json>;
           });
         }
-      } catch {
-        // optimistic update already applied
+      } catch (refreshError) {
+        // Optimistic update already applied; log so we know the refresh failed.
+        Logger.error(refreshError as Error, {
+          tags: { feature: 'card' },
+          context: {
+            name: 'CardController',
+            data: { method: 'unfreezeCard/refresh' },
+          },
+        });
       }
     } catch (error) {
       this.update((s) => {

@@ -1,4 +1,4 @@
-import { useCallback, useContext } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -89,6 +89,11 @@ export function useCardHomeActions({
     reset: resetPinToken,
   } = useCardPinToken();
   const { openSwaps } = useOpenSwaps({ priorityToken: legacyPriorityToken });
+
+  const spendingLimitParams = useMemo(
+    () => buildSpendingLimitParams(data),
+    [data],
+  );
 
   // --- Freeze ---
 
@@ -340,18 +345,24 @@ export function useCardHomeActions({
         .build(),
     );
     if (isAuthenticated) {
-      const params = buildSpendingLimitParams(data);
       navigation.navigate(
         ...createAssetSelectionModalNavigationDetails({
-          tokensWithAllowances: params.allTokens,
-          delegationSettings: params.delegationSettings,
-          cardExternalWalletDetails: params.externalWalletDetailsData,
+          tokensWithAllowances: spendingLimitParams.allTokens,
+          delegationSettings: spendingLimitParams.delegationSettings,
+          cardExternalWalletDetails:
+            spendingLimitParams.externalWalletDetailsData,
         }),
       );
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
-  }, [isAuthenticated, navigation, trackEvent, createEventBuilder, data]);
+  }, [
+    isAuthenticated,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    spendingLimitParams,
+  ]);
 
   const enableCardAction = useCallback(() => {
     trackEvent(
@@ -359,15 +370,14 @@ export function useCardHomeActions({
         .addProperties({ action: CardActions.OPEN_ONBOARDING_DELEGATION_FLOW })
         .build(),
     );
-    const params = buildSpendingLimitParams(data);
     navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
       flow: 'manage',
-      priorityToken: params.priorityToken,
-      allTokens: params.allTokens,
-      delegationSettings: params.delegationSettings,
-      externalWalletDetailsData: params.externalWalletDetailsData,
+      priorityToken: spendingLimitParams.priorityToken,
+      allTokens: spendingLimitParams.allTokens,
+      delegationSettings: spendingLimitParams.delegationSettings,
+      externalWalletDetailsData: spendingLimitParams.externalWalletDetailsData,
     });
-  }, [navigation, trackEvent, createEventBuilder, data]);
+  }, [navigation, trackEvent, createEventBuilder, spendingLimitParams]);
 
   const manageSpendingLimitAction = useCallback(() => {
     trackEvent(
@@ -376,18 +386,24 @@ export function useCardHomeActions({
         .build(),
     );
     if (isAuthenticated) {
-      const params = buildSpendingLimitParams(data);
       navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
         flow: 'enable',
-        priorityToken: params.priorityToken,
-        allTokens: params.allTokens,
-        delegationSettings: params.delegationSettings,
-        externalWalletDetailsData: params.externalWalletDetailsData,
+        priorityToken: spendingLimitParams.priorityToken,
+        allTokens: spendingLimitParams.allTokens,
+        delegationSettings: spendingLimitParams.delegationSettings,
+        externalWalletDetailsData:
+          spendingLimitParams.externalWalletDetailsData,
       });
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
-  }, [isAuthenticated, navigation, trackEvent, createEventBuilder, data]);
+  }, [
+    isAuthenticated,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    spendingLimitParams,
+  ]);
 
   const logoutAction = useCallback(() => {
     Alert.alert(

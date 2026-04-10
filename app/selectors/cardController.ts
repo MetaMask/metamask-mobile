@@ -1,9 +1,10 @@
 import { createSelector } from 'reselect';
 import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
 import { RootState } from '../reducers';
-import type {
-  CardControllerState,
-  CardHomeDataStatus,
+import {
+  DEFAULT_CARD_PROVIDER_ID,
+  type CardControllerState,
+  type CardHomeDataStatus,
 } from '../core/Engine/controllers/card-controller/types';
 import type { CardHomeData } from '../core/Engine/controllers/card-controller/provider-types';
 import type { CardLocation } from '../components/UI/Card/types';
@@ -65,7 +66,7 @@ export const selectIsCardholder = createSelector(
 export const selectCardUserLocation = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined): CardLocation | null => {
-    const pid = cardState?.activeProviderId ?? 'baanx';
+    const pid = cardState?.activeProviderId ?? DEFAULT_CARD_PROVIDER_ID;
     const provData = cardState?.providerData?.[pid] as
       | { location?: string }
       | undefined;

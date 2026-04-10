@@ -191,7 +191,7 @@ const ManageCardOptions = ({
           {((isAuthenticated &&
             capabilities?.supportsCashback &&
             account?.verificationStatus === 'VERIFIED') ||
-            showTeaserOptions) && (
+            (showTeaserOptions && capabilities?.supportsCashback)) && (
             <ManageCardListItem
               title={strings('card.card_home.manage_card_options.cashback')}
               description={strings(

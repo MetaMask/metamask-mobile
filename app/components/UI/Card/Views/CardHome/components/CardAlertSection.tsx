@@ -15,12 +15,12 @@ const CardAlertSection = ({
   onDismissSpendingLimitWarning,
 }: CardAlertSectionProps) => (
   <>
-    {alerts.map((cardAlert) => {
+    {alerts.map((cardAlert, index) => {
       switch (cardAlert.type) {
         case 'close_to_spending_limit':
           return (
             <CardMessageBox
-              key={cardAlert.type}
+              key={`${cardAlert.type}-${index}`}
               messageType={CardMessageBoxType.CloseSpendingLimit}
               onConfirm={onNavigateToSpendingLimit}
               onDismiss={onDismissSpendingLimitWarning}
@@ -29,14 +29,14 @@ const CardAlertSection = ({
         case 'kyc_pending':
           return (
             <CardMessageBox
-              key={cardAlert.type}
+              key={`${cardAlert.type}-${index}`}
               messageType={CardMessageBoxType.KYCPending}
             />
           );
         case 'card_provisioning':
           return (
             <CardMessageBox
-              key={cardAlert.type}
+              key={`${cardAlert.type}-${index}`}
               messageType={CardMessageBoxType.CardProvisioning}
             />
           );

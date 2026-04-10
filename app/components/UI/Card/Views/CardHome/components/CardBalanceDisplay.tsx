@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -18,7 +18,6 @@ import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
 } from '../../../../Tokens/constants';
-import Engine from '../../../../../../core/Engine';
 import type { AssetBalanceInfo } from '../../../hooks/useAssetBalances';
 import { strings } from '../../../../../../../locales/i18n';
 
@@ -27,6 +26,7 @@ interface CardBalanceDisplayProps {
   balanceAmount: string | undefined;
   privacyMode: boolean;
   assetBalance: AssetBalanceInfo | undefined;
+  onTogglePrivacy: (value: boolean) => void;
 }
 
 const CardBalanceDisplay = ({
@@ -34,16 +34,9 @@ const CardBalanceDisplay = ({
   balanceAmount,
   privacyMode,
   assetBalance,
+  onTogglePrivacy,
 }: CardBalanceDisplayProps) => {
   const tw = useTailwind();
-  const { PreferencesController } = Engine.context;
-
-  const togglePrivacy = useCallback(
-    (value: boolean) => {
-      PreferencesController.setPrivacyMode(value);
-    },
-    [PreferencesController],
-  );
 
   return (
     <Box twClassName="items-center justify-between flex-row w-full mt-4">
@@ -68,7 +61,7 @@ const CardBalanceDisplay = ({
             )}
           </SensitiveText>
           <TouchableOpacity
-            onPress={() => togglePrivacy(!privacyMode)}
+            onPress={() => onTogglePrivacy(!privacyMode)}
             testID={CardHomeSelectors.PRIVACY_TOGGLE_BUTTON}
             style={tw.style(isLoading ? 'hidden' : '')}
           >

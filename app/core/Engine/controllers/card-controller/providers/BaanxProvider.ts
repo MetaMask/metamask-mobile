@@ -230,6 +230,20 @@ export class BaanxProvider implements ICardProvider {
     supportsCashback: true,
   };
 
+  /**
+   * Applies Baanx-specific location overrides:
+   * - US users always get PIN view (regardless of base flag).
+   * - US users do not have cashback (only available outside the US).
+   */
+  resolveCapabilities(location: string): CardProviderCapabilities {
+    const isUS = location === 'us';
+    return {
+      ...this.capabilities,
+      supportsPinView: isUS || this.capabilities.supportsPinView,
+      supportsCashback: !isUS && this.capabilities.supportsCashback,
+    };
+  }
+
   private readonly service: BaanxService;
   private readonly cardFeatureFlag: CardFeatureFlag | null;
 

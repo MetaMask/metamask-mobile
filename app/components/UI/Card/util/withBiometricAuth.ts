@@ -39,7 +39,9 @@ export async function withBiometricAuth({
     ) {
       navigation.navigate(
         ...createPasswordBottomSheetNavigationDetails({
-          onSuccess: () => onSuccess(),
+          onSuccess: async () => {
+            await onSuccess();
+          },
           ...(passwordDescription ? { description: passwordDescription } : {}),
         }),
       );

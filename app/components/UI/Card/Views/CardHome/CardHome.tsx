@@ -30,6 +30,7 @@ import {
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import {
   selectIsCardAuthenticated,
@@ -136,6 +137,10 @@ const CardHome = () => {
 
   const [isSpendingLimitWarningDismissed, setIsSpendingLimitWarningDismissed] =
     useState(false);
+
+  const handleTogglePrivacy = useCallback((value: boolean) => {
+    Engine.context.PreferencesController.setPrivacyMode(value);
+  }, []);
 
   // --- Pull-to-refresh ---
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -312,6 +317,7 @@ const CardHome = () => {
             balanceAmount={balanceAmount}
             privacyMode={privacyMode}
             assetBalance={assetBalance}
+            onTogglePrivacy={handleTogglePrivacy}
           />
         )}
 

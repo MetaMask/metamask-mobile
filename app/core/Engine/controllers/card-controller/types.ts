@@ -20,6 +20,9 @@ import type { CardHomeData } from './provider-types';
 
 export const CARD_CONTROLLER_NAME = 'CardController';
 
+/** The provider ID used when no other provider has been selected. */
+export const DEFAULT_CARD_PROVIDER_ID = 'baanx';
+
 export type CardHomeDataStatus = 'idle' | 'loading' | 'error' | 'success';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

@@ -325,6 +325,7 @@ export interface RegistrationStatus {
 export interface ICardProvider {
   readonly id: CardProviderId;
   readonly capabilities: CardProviderCapabilities;
+  resolveCapabilities?(location: string): CardProviderCapabilities;
 
   initiateAuth(country: string): Promise<CardAuthSession>;
   submitCredentials(

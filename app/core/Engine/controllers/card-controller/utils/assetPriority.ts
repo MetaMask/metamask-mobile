@@ -1,4 +1,4 @@
-import type { CardFundingAsset } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import type { CardFundingAsset } from '../provider-types';
 
 /**
  * Reorders assets so that the selected asset is priority 1 and the rest
