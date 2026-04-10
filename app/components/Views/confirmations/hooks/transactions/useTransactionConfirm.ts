@@ -32,7 +32,7 @@ export function useTransactionConfirm() {
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
-  const { chainId, isGasFeeTokenIgnoredIfBalance, type } =
+  const { chainId, isGasFeeTokenIgnoredIfBalance, type, batchTransactions } =
     transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
@@ -46,8 +46,18 @@ export function useTransactionConfirm() {
 
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
 
+  /** Matches `handleSmartTransaction`: when true, a fee-token transfer is batched and requires a second signature (e.g. Ledger) during publish. */
+  const willAppendFeeTokenBatch =
+    isGaslessSupportedSTX &&
+    Boolean(selectedGasFeeToken) &&
+    !isGasFeeTokenIgnoredIfBalance;
+
+  const hasExistingBatchTransactions = (batchTransactions?.length ?? 0) > 0;
+
   const waitForResult =
-    !isSmartTransaction && !quotes?.length && !selectedGasFeeToken;
+    willAppendFeeTokenBatch ||
+    hasExistingBatchTransactions ||
+    (!isSmartTransaction && !quotes?.length && !selectedGasFeeToken);
 
   const handleSmartTransaction = useCallback(
     (updatedMetadata: TransactionMeta) => {

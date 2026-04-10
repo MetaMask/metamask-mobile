@@ -191,6 +191,37 @@ describe('useTransactionConfirm', () => {
     );
   });
 
+  it('sets waitForResult true when transaction already has batchTransactions', async () => {
+    useGaslessSupportedSmartTransactionsMock.mockReturnValue({
+      isSupported: true,
+      isSmartTransaction: true,
+      pending: false,
+    });
+    useSelectedGasFeeTokenMock.mockReturnValue(
+      undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+    );
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      chainId: CHAIN_ID_MOCK,
+      origin: ORIGIN_METAMASK,
+      txParams: {},
+      batchTransactions: [{ to: '0x1', data: '0x', value: '0x0' }],
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHook();
+
+    await act(async () => {
+      await result.current.onConfirm();
+    });
+
+    expect(onApprovalConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        waitForResult: true,
+      }),
+      expect.anything(),
+    );
+  });
+
   it('calls tryEnableEvmNetwork', async () => {
     const tryEnableEvmNetworkMock = jest.fn();
 
@@ -402,6 +433,21 @@ describe('useTransactionConfirm', () => {
       });
     });
 
+    it('sets waitForResult true when appending fee token batch for smart transaction', async () => {
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({
+          waitForResult: true,
+        }),
+        expect.anything(),
+      );
+    });
+
     it('does nothing if selectedGasFeeToken missing', async () => {
       useSelectedGasFeeTokenMock.mockReturnValue(
         undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
@@ -437,6 +483,13 @@ describe('useTransactionConfirm', () => {
           batchTransactions: expect.any(Array),
         }),
       });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({
+          waitForResult: false,
+        }),
+        expect.anything(),
+      );
     });
   });
 
