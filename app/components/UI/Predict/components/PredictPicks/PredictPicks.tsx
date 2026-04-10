@@ -37,13 +37,13 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
   const onCashOut = (position: PredictPosition) => {
     executeGuardedAction(
       () => {
-        const _outcome = market?.outcomes.find(
+        const outcome = market?.outcomes.find(
           (o) => o.id === position.outcomeId,
         );
         navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
           market,
           position,
-          outcome: _outcome,
+          outcome,
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         });
       },

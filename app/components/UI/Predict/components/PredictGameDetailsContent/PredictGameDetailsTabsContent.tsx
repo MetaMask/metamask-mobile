@@ -13,7 +13,7 @@ import type { PredictMarketDetailsTabKey } from '../../Predict.testIds';
 import PredictPicks from '../PredictPicks/PredictPicks';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 
-interface PredictGameDetailsTabsProps {
+interface PredictGameDetailsTabsContentProps {
   market: PredictMarket;
   activeTab: number | null;
   tabs: { label: string; key: PredictMarketDetailsTabKey }[];
@@ -22,6 +22,19 @@ interface PredictGameDetailsTabsProps {
   activePositions: PredictPosition[];
   claimablePositions: PredictPosition[];
 }
+
+const OutcomesPlaceholder = () => (
+  <Box
+    alignItems={BoxAlignItems.Center}
+    justifyContent={BoxJustifyContent.Center}
+    twClassName="px-4 py-12"
+    testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER}
+  >
+    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+      Outcomes coming soon
+    </Text>
+  </Box>
+);
 
 const PredictGameDetailsTabsContent = memo(
   ({
@@ -32,7 +45,7 @@ const PredictGameDetailsTabsContent = memo(
     showTabBar,
     activePositions,
     claimablePositions,
-  }: PredictGameDetailsTabsProps) => {
+  }: PredictGameDetailsTabsContentProps) => {
     const hasPositions =
       activePositions.length > 0 || claimablePositions.length > 0;
 
@@ -56,18 +69,7 @@ const PredictGameDetailsTabsContent = memo(
     }
 
     if (!showTabBar) {
-      return (
-        <Box
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="px-4 py-12"
-          testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER}
-        >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('predict.market_details.outcomes_coming_soon')}
-          </Text>
-        </Box>
-      );
+      return <OutcomesPlaceholder />;
     }
 
     const currentKey = activeTab !== null ? tabs[activeTab]?.key : undefined;
@@ -87,21 +89,7 @@ const PredictGameDetailsTabsContent = memo(
             />
           </Box>
         )}
-        {currentKey === 'outcomes' && (
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="px-4 py-12"
-            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('predict.market_details.outcomes_coming_soon')}
-            </Text>
-          </Box>
-        )}
+        {currentKey === 'outcomes' && <OutcomesPlaceholder />}
       </>
     );
   },
