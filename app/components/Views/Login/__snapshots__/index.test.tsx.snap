@@ -1,18 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Login renders matching snapshot 1`] = `
-<RCTSafeAreaView
-  style={
-    [
-      {
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
-      },
-      false,
-    ]
-  }
->
+[
   <View
     style={
       [
@@ -438,7 +427,7 @@ exports[`Login renders matching snapshot 1`] = `
         </Text>
       </View>
     </View>
-  </View>
+  </View>,
   <View
     collapsable={false}
     style={
@@ -452,7 +441,7 @@ exports[`Login renders matching snapshot 1`] = `
         "top": 0,
       }
     }
-  />
+  />,
   <TouchableOpacity
     activeOpacity={1}
     delayLongPress={10000}
@@ -488,23 +477,12 @@ exports[`Login renders matching snapshot 1`] = `
       }
       testID="fox-animation-mock"
     />
-  </TouchableOpacity>
-</RCTSafeAreaView>
+  </TouchableOpacity>,
+]
 `;
 
 exports[`Login renders matching snapshot when password input is focused 1`] = `
-<RCTSafeAreaView
-  style={
-    [
-      {
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
-      },
-      false,
-    ]
-  }
->
+[
   <View
     style={
       [
@@ -927,7 +905,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
         </Text>
       </View>
     </View>
-  </View>
+  </View>,
   <View
     collapsable={false}
     style={
@@ -941,7 +919,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
         "top": 0,
       }
     }
-  />
+  />,
   <TouchableOpacity
     activeOpacity={1}
     delayLongPress={10000}
@@ -977,6 +955,6 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
       }
       testID="fox-animation-mock"
     />
-  </TouchableOpacity>
-</RCTSafeAreaView>
+  </TouchableOpacity>,
+]
 `;

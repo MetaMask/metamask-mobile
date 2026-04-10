@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`EditAccountName should render correctly 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#ffffff",
@@ -413,5 +421,5 @@ exports[`EditAccountName should render correctly 1`] = `
       </Text>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

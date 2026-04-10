@@ -290,7 +290,16 @@ exports[`CollectibleModal renders correctly 1`] = `
             }
           />
         </View>
-        <RCTSafeAreaView>
+        <RNCSafeAreaView
+          edges={
+            {
+              "bottom": "additive",
+              "left": "additive",
+              "right": "additive",
+              "top": "additive",
+            }
+          }
+        >
           <View
             onLayout={[Function]}
           >
@@ -628,7 +637,7 @@ exports[`CollectibleModal renders correctly 1`] = `
               </Text>
             </View>
           </View>
-        </RCTSafeAreaView>
+        </RNCSafeAreaView>
       </View>
     </View>
   </View>
