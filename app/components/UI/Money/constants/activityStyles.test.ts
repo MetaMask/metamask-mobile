@@ -73,7 +73,7 @@ describe('activityStyles', () => {
               amount: '1',
               symbol: 'mUSD',
               contractAddress: MUSD_TOKEN_ADDRESS,
-            },
+            } as unknown as NonNullable<TransactionMeta['transferInformation']>,
           }),
         ),
       ).toBe('');

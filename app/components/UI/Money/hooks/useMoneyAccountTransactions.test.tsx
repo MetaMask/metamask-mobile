@@ -1,6 +1,9 @@
 import type { MoneyAccount } from '@metamask/money-account-controller';
 import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import {
+  renderHookWithProvider,
+  type ProviderValues,
+} from '../../../../util/test/renderWithProvider';
 import {
   MOCK_HD_KEYRING_METADATA,
   MOCK_KEYRING_CONTROLLER,
@@ -36,7 +39,9 @@ const MOCK_MONEY_ACCOUNTS = {
 const MOCK_DEPOSITS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityDeposit);
 const MOCK_TRANSFERS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityTransfer);
 
-function engineState(remoteFeatureFlags: Record<string, unknown>) {
+function engineState(
+  remoteFeatureFlags: Record<string, unknown>,
+): ProviderValues['state'] {
   return {
     engine: {
       backgroundState: {
@@ -49,7 +54,7 @@ function engineState(remoteFeatureFlags: Record<string, unknown>) {
         KeyringController: MOCK_KEYRING_CONTROLLER,
       },
     },
-  };
+  } as ProviderValues['state'];
 }
 
 describe('useMoneyAccountTransactions', () => {
