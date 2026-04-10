@@ -1,4 +1,4 @@
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 import { CardController, defaultCardControllerState } from './CardController';
 import type { CardControllerMessenger } from './types';
 import { BaanxService } from './services/BaanxService';
@@ -12,7 +12,7 @@ import type { CardFeatureFlag } from '../../../../selectors/featureFlagControlle
  * @param request - The request object.
  * @returns The CardController.
  */
-export const cardControllerInit: ControllerInitFunction<
+export const cardControllerInit: MessengerClientInitFunction<
   CardController,
   CardControllerMessenger
 > = (request) => {

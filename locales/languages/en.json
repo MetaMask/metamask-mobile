@@ -2023,6 +2023,7 @@
       "trade_again": "Trade again",
       "activity": {
         "deposit_title": "Deposit",
+        "withdrawal_title": "Withdrawal",
         "deposited_amount": "Deposited {{amount}} {{symbol}}",
         "withdrew_amount": "Withdrew {{amount}} {{symbol}}",
         "status_completed": "Completed",

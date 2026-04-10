@@ -1,6 +1,6 @@
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import {
   TransactionPayController,
@@ -15,7 +15,7 @@ jest.mock('@metamask/transaction-pay-controller');
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     TransactionPayControllerMessenger,
     TransactionPayControllerInitMessenger
   >

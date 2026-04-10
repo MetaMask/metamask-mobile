@@ -33,8 +33,8 @@ import { getTransactionById } from '../../../../util/transactions';
 import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import type {
-  ControllerInitFunction,
-  ControllerInitRequest,
+  MessengerClientInitFunction,
+  MessengerClientInitRequest,
 } from '../../types';
 import AppConstants from '../../../../core/AppConstants';
 import type { TransactionEventHandlerRequest } from './types';
@@ -68,7 +68,7 @@ const TRANSACTION_SUBMISSION_METHOD = {
   SENTINEL_RELAY: 'sentinel_relay',
 } as const;
 
-export const TransactionControllerInit: ControllerInitFunction<
+export const TransactionControllerInit: MessengerClientInitFunction<
   TransactionController,
   TransactionControllerMessenger,
   TransactionControllerInitMessenger
@@ -424,7 +424,7 @@ function isFirstTimeInteractionEnabled(
 }
 
 function getControllers(
-  request: ControllerInitRequest<
+  request: MessengerClientInitRequest<
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >,
@@ -442,7 +442,7 @@ function getControllers(
 
 function beforeSign(
   hookRequest: { transactionMeta: TransactionMeta },
-  request: ControllerInitRequest<
+  request: MessengerClientInitRequest<
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >,

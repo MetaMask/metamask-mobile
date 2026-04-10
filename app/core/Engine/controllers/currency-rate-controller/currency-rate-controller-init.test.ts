@@ -2,7 +2,7 @@ import {
   CurrencyRateController,
   CurrencyRateMessenger,
 } from '@metamask/assets-controllers';
-import type { ControllerInitRequest } from '../../types';
+import type { MessengerClientInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { currencyRateControllerInit } from './currency-rate-controller-init';
 import { defaultCurrencyRateState } from './constants';
@@ -14,7 +14,7 @@ jest.mock('@metamask/assets-controllers');
 describe('currency rate controller init', () => {
   const currencyRateControllerClassMock = jest.mocked(CurrencyRateController);
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<CurrencyRateMessenger>
+    MessengerClientInitRequest<CurrencyRateMessenger>
   >;
 
   beforeEach(() => {

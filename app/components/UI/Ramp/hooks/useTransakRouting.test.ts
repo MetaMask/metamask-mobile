@@ -135,28 +135,23 @@ jest.mock('../Deposit/utils', () => ({
   generateThemeParameters: jest.fn(() => ({ theme: 'light' })),
 }));
 
+let capturedHandleNavigationStateChange:
+  | ((nav: { url: string }) => void)
+  | null = null;
+
 jest.mock('../Views/Checkout', () => ({
   createCheckoutNavDetails: jest.fn(
     ({
       url,
       providerName,
-      callbackKey,
+      onNavigationStateChange,
     }: {
       url: string;
       providerName: string;
-      callbackKey?: string;
-    }) => ['Checkout', { url, providerName, callbackKey }],
-  ),
-}));
-
-let capturedHandleNavigationStateChange:
-  | ((nav: { url: string }) => void)
-  | null = null;
-jest.mock('../utils/checkoutCallbackRegistry', () => ({
-  registerCheckoutCallback: jest.fn(
-    (callback: (nav: { url: string }) => void) => {
-      capturedHandleNavigationStateChange = callback;
-      return 'mock-callback-key';
+      onNavigationStateChange?: (nav: { url: string }) => void;
+    }) => {
+      capturedHandleNavigationStateChange = onNavigationStateChange ?? null;
+      return ['Checkout', { url, providerName, onNavigationStateChange }];
     },
   ),
 }));
@@ -188,6 +183,7 @@ const mockQuote = {
 describe('useTransakRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    capturedHandleNavigationStateChange = null;
     mockUserRegion = {
       country: { currency: 'USD', isoCode: 'US' },
       regionCode: 'us-ca',
@@ -299,6 +295,7 @@ describe('useTransakRouting', () => {
               params: expect.objectContaining({
                 url: 'https://payment.example.com',
                 providerName: 'Transak',
+                onNavigationStateChange: expect.any(Function),
               }),
             }),
           ],
