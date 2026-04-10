@@ -985,8 +985,8 @@ type MessengerClientPersistedState = Partial<{
 export type MessengerClientMessengersByName = typeof MESSENGER_FACTORIES;
 
 /**
- * Request to initialize and return a controller instance.
- * Includes standard data and methods not coupled to any specific controller.
+ * Request to initialize and return a messenger client instance.
+ * Includes standard data and methods not coupled to any specific messenger client.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MessengerClientInitRequest<
