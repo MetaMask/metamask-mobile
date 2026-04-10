@@ -2,7 +2,6 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import DataCollectionModal from './'; // Adjust the import path as necessary
 import { strings } from '../../../../locales/i18n';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DataCollectionBottomSheetSelectorsIDs } from './DataCollectionBottomSheet.testIds';
 
 jest.mock('../../../../locales/i18n', () => ({
