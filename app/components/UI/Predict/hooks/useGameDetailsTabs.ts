@@ -52,17 +52,11 @@ export function useGameDetailsTabs({
 
   const showTabBar = enabled && hasPositions;
 
-  const stickyHeaderIndices = useMemo(
-    () => (showTabBar ? [2] : undefined),
-    [showTabBar],
-  );
-
   return {
     enabled,
     showTabBar,
     tabs,
     activeTab,
     handleTabPress,
-    stickyHeaderIndices,
   };
 }

@@ -84,12 +84,6 @@ describe('useGameDetailsTabs', () => {
 
       expect(result.current.activeTab).toBe(0);
     });
-
-    it('returns undefined stickyHeaderIndices', () => {
-      const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
-
-      expect(result.current.stickyHeaderIndices).toBeUndefined();
-    });
   });
 
   describe('tabs computation', () => {
@@ -218,29 +212,6 @@ describe('useGameDetailsTabs', () => {
       );
 
       expect(result.current.showTabBar).toBe(true);
-    });
-  });
-
-  describe('stickyHeaderIndices', () => {
-    beforeEach(() => {
-      mockUseSelector.mockReturnValue(['nba']);
-    });
-
-    it('returns [2] when showTabBar is true', () => {
-      const { result } = renderHook(() =>
-        useGameDetailsTabs({
-          ...defaultParams,
-          activePositions: [createMockPosition()],
-        }),
-      );
-
-      expect(result.current.stickyHeaderIndices).toEqual([2]);
-    });
-
-    it('returns undefined when showTabBar is false', () => {
-      const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
-
-      expect(result.current.stickyHeaderIndices).toBeUndefined();
     });
   });
 });

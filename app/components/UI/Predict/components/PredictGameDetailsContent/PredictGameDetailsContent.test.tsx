@@ -175,7 +175,6 @@ jest.mock('../../hooks/useGameDetailsTabs', () => ({
     activeTab: null,
     handleTabPress: jest.fn(),
     showTabBar: false,
-    stickyHeaderIndices: undefined,
   })),
 }));
 
@@ -687,7 +686,6 @@ describe('PredictGameDetailsContent', () => {
         ],
         activeTab: 0,
         handleTabPress: jest.fn(),
-        stickyHeaderIndices: [2],
       });
 
       const market = createMockMarket();
@@ -710,9 +708,8 @@ describe('PredictGameDetailsContent', () => {
         enabled: false,
         showTabBar: false,
         tabs: [],
-        activeTab: null,
+        activeTab: 0,
         handleTabPress: jest.fn(),
-        stickyHeaderIndices: undefined,
       });
 
       const market = createMockMarket();

@@ -77,12 +77,19 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     tabs,
     activeTab,
     handleTabPress,
-    stickyHeaderIndices,
   } = useGameDetailsTabs({
     activePositions,
     claimablePositions,
     league: game?.league,
   });
+
+  // Index of the tab bar in the ScrollView children:
+  // [0] Scoreboard, [1] Chart, [2] TabBar (when visible)
+  const TAB_BAR_CHILD_INDEX = 2;
+  const stickyHeaderIndices = useMemo(
+    () => (showTabBar ? [TAB_BAR_CHILD_INDEX] : undefined),
+    [showTabBar],
+  );
 
   if (!outcome || !game) {
     return null;
