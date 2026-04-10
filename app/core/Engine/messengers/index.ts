@@ -155,9 +155,9 @@ import { getComplianceServiceMessenger } from './compliance/compliance-service-m
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
 
 /**
- * The messengers for the controllers that have been.
+ * The messenger factories for the messenger clients that have been modularized.
  */
-export const CONTROLLER_MESSENGERS = {
+export const MESSENGER_FACTORIES = {
   AccountsController: {
     getMessenger: getAccountsControllerMessenger,
     getInitMessenger: noop,
