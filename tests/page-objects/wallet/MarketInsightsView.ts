@@ -20,22 +20,8 @@ class MarketInsightsView {
     return Matchers.getIdentifier(MarketInsightsSelectorsIDs.VIEW_SCROLL);
   }
 
-  get longButton() {
-    return Matchers.getElementByID(MarketInsightsSelectorsIDs.LONG_BUTTON);
-  }
-
-  get shortButton() {
-    return Matchers.getElementByID(MarketInsightsSelectorsIDs.SHORT_BUTTON);
-  }
-
   get thumbsUpButton() {
     return Matchers.getElementByID(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON);
-  }
-
-  get thumbsDownButton() {
-    return Matchers.getElementByID(
-      MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON,
-    );
   }
 
   trendItem(index: number) {
@@ -47,30 +33,6 @@ class MarketInsightsView {
   async expectViewVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.container, {
       description: 'Market Insights detail view is visible',
-    });
-  }
-
-  async expectLongButtonVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.longButton, {
-      description: 'Market Insights Long button is visible',
-    });
-  }
-
-  async expectLongButtonNotVisible(): Promise<void> {
-    await Assertions.expectElementToNotBeVisible(this.longButton, {
-      description: 'Market Insights Long button is not visible',
-    });
-  }
-
-  async expectShortButtonVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.shortButton, {
-      description: 'Market Insights Short button is visible',
-    });
-  }
-
-  async expectShortButtonNotVisible(): Promise<void> {
-    await Assertions.expectElementToNotBeVisible(this.shortButton, {
-      description: 'Market Insights Short button is not visible',
     });
   }
 
@@ -116,46 +78,9 @@ class MarketInsightsView {
     });
   }
 
-  get thumbsUpFilledIcon() {
-    return Matchers.getElementByID(
-      MarketInsightsSelectorsIDs.THUMBS_UP_FILLED_ICON,
-    );
-  }
-
   async expectThumbsUpButtonVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.thumbsUpButton, {
       description: 'Market Insights thumbs up button is visible',
-    });
-  }
-
-  async expectThumbsUpFilled(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.thumbsUpFilledIcon, {
-      description:
-        'Market Insights thumbs up filled icon is visible after tapping',
-    });
-  }
-
-  async tapThumbsDownButton(): Promise<void> {
-    await Gestures.tap(this.thumbsDownButton, {
-      elemDescription: 'Tap Market Insights thumbs down button',
-    });
-  }
-
-  get feedbackBottomSheet() {
-    return Matchers.getElementByID(
-      MarketInsightsSelectorsIDs.FEEDBACK_BOTTOM_SHEET,
-    );
-  }
-
-  async expectThumbsDownButtonVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.thumbsDownButton, {
-      description: 'Market Insights thumbs down button is visible',
-    });
-  }
-
-  async expectFeedbackBottomSheetVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.feedbackBottomSheet, {
-      description: 'Market Insights feedback bottom sheet is visible',
     });
   }
 }

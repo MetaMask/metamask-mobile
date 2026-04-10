@@ -10,7 +10,6 @@ export enum MarketInsightsSelectorsIDs {
   TWEET_CARD = 'market-insights-tweet-card',
   SOURCES_FOOTER = 'market-insights-sources-footer',
   THUMBS_UP_BUTTON = 'market-insights-thumbs-up-button',
-  THUMBS_UP_FILLED_ICON = 'icon-ThumbUpFilled',
   THUMBS_DOWN_BUTTON = 'market-insights-thumbs-down-button',
   LONG_BUTTON = 'market-insights-long-button',
   SHORT_BUTTON = 'market-insights-short-button',

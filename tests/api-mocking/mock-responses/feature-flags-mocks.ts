@@ -209,17 +209,3 @@ export const remoteFeatureFlagMarketInsightsEnabled = (enabled = true) => ({
     minimumVersion: '0.0.0',
   },
 });
-
-/**
- * Enables the Market Insights feature on Perps market details.
- * Selector: selectMarketInsightsPerpsEnabled (featureFlagController/marketInsights/perps.ts)
- * Flag key: aiSocialMarketInsightsPerpsEnabled
- */
-export const remoteFeatureFlagMarketInsightsPerpsEnabled = (
-  enabled = true,
-) => ({
-  aiSocialMarketInsightsPerpsEnabled: {
-    enabled,
-    minimumVersion: '0.0.0',
-  },
-});
