@@ -235,12 +235,17 @@ const PriceAdvanced = ({
     }),
     [nextCursor, hasMore, assetId, currentCurrency],
   );
-  // This is to make sure we show only data relevant to selected timeframe even if api returns a lot more data than that
+  // Anchor the visible window to the last candle so the timeframe constructor
+  // spans exactly durationMs (e.g. 24 h) and the leftmost rendered bar matches
+  // the reference price used for the header percentage.
+  const lastBarTime = ohlcvData[ohlcvData.length - 1]?.time;
+
   const visibleFromMs = useMemo(() => {
-    const lastBar = ohlcvData[ohlcvData.length - 1];
-    if (!lastBar) return undefined;
-    return lastBar.time - config.durationMs;
-  }, [ohlcvData, config.durationMs]);
+    if (lastBarTime == null) return undefined;
+    return lastBarTime - config.durationMs;
+  }, [lastBarTime, config.durationMs]);
+
+  const visibleToMs = lastBarTime;
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
@@ -395,6 +400,7 @@ const PriceAdvanced = ({
               isLoading={chartLoading}
               ohlcvPagination={ohlcvPagination}
               visibleFromMs={visibleFromMs}
+              visibleToMs={visibleToMs}
               onCrosshairMove={handleCrosshairMove}
               onChartInteracted={handleChartInteracted}
               onChartTradingViewClicked={handleChartTradingViewClicked}

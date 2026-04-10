@@ -40,6 +40,8 @@ window.ohlcvPagination = {
 window.ohlcvGeneration = 0;
 /** Visible-range start (ms) from RN; used to clip bars on first load so the chart auto-fits correctly. */
 window.visibleFromMs = null;
+/** Visible-range end (ms) from RN; anchors the timeframe `to` to the last candle instead of Date.now(). */
+window.visibleToMs = null;
 // Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
 window.currentChartType = 2;
 window.lineLastPriceShapeId = null;
@@ -427,6 +429,9 @@ function handleSetOHLCVData(payload) {
     payload.visibleFromMs != null ? payload.visibleFromMs : null;
   window.visibleFromMs = visibleFromMs;
 
+  var visibleToMs = payload.visibleToMs != null ? payload.visibleToMs : null;
+  window.visibleToMs = visibleToMs;
+
   var newResolution = detectResolution(window.ohlcvData);
 
   function scheduleVisibleRangeAfterDataLoad(chart) {
@@ -435,7 +440,6 @@ function handleSetOHLCVData(payload) {
     var sub = chart.onDataLoaded();
     sub.subscribe(null, function onLoaded() {
       sub.unsubscribe(null, onLoaded);
-      // Discard stale callback if user switched timeframes before load completed
       if (capturedGeneration !== window.ohlcvGeneration) {
         return;
       }
@@ -447,7 +451,7 @@ function handleSetOHLCVData(payload) {
       try {
         chart.setVisibleRange(
           { from: fromSec, to: toSec },
-          { percentRightMargin: 5 },
+          { percentRightMargin: 0 },
         );
       } catch (e) {
         // setVisibleRange can fail if chart is mid-teardown
@@ -1427,9 +1431,12 @@ function syncTimeScaleRightMargin(isLineChart) {
   try {
     var ts = window.chartWidget.activeChart().getTimeScale();
     ts.usePercentageRightOffset().setValue(false);
-    var gap = isLineChart
-      ? LINE_CHART_RIGHT_OFFSET_BARS
-      : CANDLE_CHART_RIGHT_GAP_BARS;
+    var gap =
+      window.visibleFromMs != null
+        ? 0
+        : isLineChart
+          ? LINE_CHART_RIGHT_OFFSET_BARS
+          : CANDLE_CHART_RIGHT_GAP_BARS;
     ts.defaultRightOffset().setValue(gap);
     ts.setRightOffset(gap);
   } catch (e) {}
@@ -3302,11 +3309,14 @@ function initChart() {
       disabledFeatures.push('context_menus');
     }
 
+    var visibleToSec = Math.ceil(
+      (window.visibleToMs != null ? window.visibleToMs : Date.now()) / 1000,
+    );
     var tfOption =
       window.visibleFromMs != null
         ? {
             from: Math.floor(window.visibleFromMs / 1000),
-            to: Math.ceil(Date.now() / 1000),
+            to: visibleToSec,
           }
         : undefined;
 
