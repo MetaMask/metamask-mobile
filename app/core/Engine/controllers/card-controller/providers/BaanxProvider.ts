@@ -27,6 +27,7 @@ import {
   SUPPORTED_ASSET_NETWORKS,
   cardNetworkInfos,
 } from '../../../../../components/UI/Card/constants';
+import { isAccountEligibleForProvisioning } from '../../../../../components/UI/Card/pushProvisioning/constants';
 import {
   generatePKCEPair,
   generateState,
@@ -1209,7 +1210,10 @@ export class BaanxProvider implements ICardProvider {
   ): CardAccountStatus {
     return {
       verificationStatus: user.verificationState ?? null,
-      provisioningEligible: !!card && card.status === CardStatus.ACTIVE,
+      provisioningEligible:
+        !!card &&
+        card.status === CardStatus.ACTIVE &&
+        isAccountEligibleForProvisioning(user.createdAt),
       holderName: user.firstName
         ? `${user.firstName} ${user.lastName ?? ''}`.trim()
         : null,

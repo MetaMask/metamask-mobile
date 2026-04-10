@@ -1650,6 +1650,86 @@ describe('BaanxProvider', () => {
       // fetchWalletDetails uppercases currency when no matching token found in feature flags
       expect(result.primaryAsset?.symbol).toBe('MUSD');
     });
+
+    function setupProvisioningEligibilityMock(
+      svc: jest.Mocked<BaanxService>,
+      overrides: {
+        cardStatus?: CardStatus;
+        createdAt?: string | null;
+      } = {},
+    ) {
+      const { cardStatus = CardStatus.ACTIVE, createdAt } = overrides;
+      svc.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'card-1',
+            status: cardStatus,
+            type: CardType.VIRTUAL,
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            firstName: 'Test',
+            lastName: 'User',
+            verificationState: 'VERIFIED',
+            ...(createdAt !== undefined ? { createdAt } : {}),
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([]);
+        }
+        if (path === '/v1/wallet/external/priority') {
+          return Promise.resolve([]);
+        }
+        return Promise.resolve({});
+      });
+    }
+
+    it('sets provisioningEligible true for active card with account created after cutoff', async () => {
+      setupProvisioningEligibilityMock(service, {
+        createdAt: '2026-01-15T00:00:00.000Z',
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.account?.provisioningEligible).toBe(true);
+    });
+
+    it('sets provisioningEligible false for active card with account created before cutoff', async () => {
+      setupProvisioningEligibilityMock(service, {
+        createdAt: '2025-11-09T23:59:59.999Z',
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.account?.provisioningEligible).toBe(false);
+    });
+
+    it('sets provisioningEligible false when createdAt is missing', async () => {
+      setupProvisioningEligibilityMock(service);
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.account?.provisioningEligible).toBe(false);
+    });
+
+    it('sets provisioningEligible false when card is not active', async () => {
+      setupProvisioningEligibilityMock(service, {
+        cardStatus: CardStatus.FROZEN,
+        createdAt: '2026-01-15T00:00:00.000Z',
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.account?.provisioningEligible).toBe(false);
+    });
   });
 
   describe('getFundingConfig', () => {

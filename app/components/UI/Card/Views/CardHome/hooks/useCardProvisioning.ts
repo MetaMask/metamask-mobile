@@ -64,6 +64,7 @@ export function useCardProvisioning(data: CardHomeData | null | undefined) {
     usePushProvisioning({
       cardDetails: cardDetailsForProvisioning,
       userAddress: userAddressForProvisioning,
+      provisioningEligible: data?.account?.provisioningEligible ?? false,
       onSuccess: () => {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
