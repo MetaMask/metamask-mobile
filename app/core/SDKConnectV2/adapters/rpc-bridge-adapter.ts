@@ -153,6 +153,7 @@ export class RPCBridgeAdapter
           isWalletConnect: false,
           analytics: {
             isRemoteConn: true,
+            transport: 'mwp',
             platform:
               this.connInfo.metadata.sdk.platform ??
               AppConstants.MM_SDK.UNKNOWN_PARAM,

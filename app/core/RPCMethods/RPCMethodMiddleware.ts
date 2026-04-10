@@ -414,8 +414,11 @@ export const getRpcMethodMiddleware = ({
   const origin = channelId ?? hostname;
 
   const getSource = () => {
-    if (analytics?.isRemoteConn)
-      return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+    if (analytics?.isRemoteConn) {
+      return analytics?.transport === 'mwp'
+        ? AppConstants.REQUEST_SOURCES.MM_CONNECT
+        : AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+    }
     if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
     return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
   };

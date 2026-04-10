@@ -38,6 +38,7 @@ const getDefaultBridgeParams = (clientInfo: DappClient) => ({
       isWalletConnect: false,
       analytics: {
         isRemoteConn: true,
+        transport: 'socket_relay',
         platform:
           clientInfo.originatorInfo.platform ??
           AppConstants.MM_SDK.UNKNOWN_PARAM,

@@ -96,6 +96,7 @@ export const setupBridge = ({
         isWalletConnect: false,
         analytics: {
           isRemoteConn: true,
+          transport: 'socket_relay',
           platform:
             originatorInfo?.platform ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
         },
