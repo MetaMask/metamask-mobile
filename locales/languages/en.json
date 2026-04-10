@@ -705,7 +705,11 @@
     "smart_contract_address": "Smart contract address",
     "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
     "i_understand": "I understand",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "new_address_title": "New address",
+    "new_address_message": "You're sending to this address for the first time. Make sure that it's correct before you continue:",
+    "alert_navigation_previous": "Previous alert",
+    "alert_navigation_next": "Next alert"
   },
   "unified_ramp": {
     "networks_filter_bar": {

@@ -6,6 +6,7 @@ import {
   TransactionController as BaseTransactionController,
   IsAtomicBatchSupportedRequest,
   IsAtomicBatchSupportedResult,
+  getAccountAddressRelationship,
 } from '@metamask/transaction-controller';
 import { NetworkClientId } from '@metamask/network-controller';
 
@@ -215,6 +216,23 @@ export async function isAtomicBatchSupported(
 ): Promise<IsAtomicBatchSupportedResult> {
   const { TransactionController } = Engine.context;
   return TransactionController?.isAtomicBatchSupported(request);
+}
+
+/**
+ * Returns whether the sender has no prior on-chain interaction with `to` on `chainId`,
+ * or `undefined` when the relationship cannot be determined (API error or unknown count).
+ */
+export async function checkFirstTimeInteraction(request: {
+  from: string;
+  to: string;
+  chainId: number;
+}): Promise<boolean | undefined> {
+  try {
+    const result = await getAccountAddressRelationship(request);
+    return result.count === undefined ? undefined : result.count === 0;
+  } catch {
+    return undefined;
+  }
 }
 
 function sanitizeTransactionParamsGasValues(

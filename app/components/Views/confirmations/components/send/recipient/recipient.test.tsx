@@ -10,6 +10,7 @@ import { useContacts } from '../../../hooks/send/useContacts';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useSendActions } from '../../../hooks/send/useSendActions';
+import { useSendAlerts } from '../../../hooks/send/alerts/useSendAlerts';
 import { useSendType } from '../../../hooks/send/useSendType';
 import { RecipientType } from '../../UI/recipient';
 import { Recipient } from './recipient';
@@ -63,6 +64,10 @@ jest.mock('../../../hooks/send/useContacts', () => ({
 
 jest.mock('../../../hooks/send/useToAddressValidation', () => ({
   useToAddressValidation: jest.fn(),
+}));
+
+jest.mock('../../../hooks/send/alerts/useSendAlerts', () => ({
+  useSendAlerts: jest.fn(),
 }));
 
 jest.mock('../../../hooks/send/metrics/useRecipientSelectionMetrics', () => ({
@@ -149,21 +154,20 @@ jest.mock('../send-alert-modal', () => ({
     isOpen,
     onAcknowledge,
     onClose,
-    title,
-    errorMessage,
+    alerts,
   }: {
     isOpen: boolean;
     onAcknowledge: () => void;
     onClose: () => void;
-    title: string;
-    errorMessage: string;
+    alerts: { title: string; message: string }[];
   }) => {
     const { View, Text, Pressable } = jest.requireActual('react-native');
-    if (!isOpen) return null;
+    if (!isOpen || !alerts?.length) return null;
+    const first = alerts[0];
     return (
       <View testID="send-alert-modal">
-        <Text testID="alert-modal-title">{title}</Text>
-        <Text testID="alert-modal-error">{errorMessage}</Text>
+        <Text testID="alert-modal-title">{first.title}</Text>
+        <Text testID="alert-modal-error">{first.message}</Text>
         <Pressable testID="alert-modal-acknowledge" onPress={onAcknowledge}>
           <Text>Acknowledge</Text>
         </Pressable>
@@ -199,6 +203,7 @@ const mockUseRecipientSelectionMetrics = jest.mocked(
   useRecipientSelectionMetrics,
 );
 const mockUseSendActions = jest.mocked(useSendActions);
+const mockUseSendAlerts = jest.mocked(useSendAlerts);
 const mockUseSendType = jest.mocked(useSendType);
 
 function createMockUseSendType(
@@ -239,9 +244,15 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
+    });
+
+    mockUseSendAlerts.mockReturnValue({
+      alerts: [],
+      hasUnacknowledgedAlerts: false,
+      acknowledgeAlerts: jest.fn(),
+      isAlertCheckPending: false,
     });
 
     mockUseRecipientSelectionMetrics.mockReturnValue({
@@ -342,7 +353,6 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: 'some_dummy_address',
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -435,7 +445,6 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: 'Warning',
     });
@@ -463,7 +472,6 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: 'Error',
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: 'Warning',
     });
@@ -501,7 +509,6 @@ describe('Recipient', () => {
       loading: true,
       resolvedAddress: undefined,
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: 'Warning',
     });
@@ -569,7 +576,6 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: '0xresolved',
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xother',
       toAddressWarning: undefined,
     });
@@ -585,7 +591,6 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: '0xresolved',
       toAddressError: 'Invalid address',
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xvalid',
       toAddressWarning: undefined,
     });
@@ -601,7 +606,6 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: '0xresolved',
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xvalid',
       toAddressWarning: 'Warning',
     });
@@ -617,7 +621,6 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: true,
       resolvedAddress: '0xresolved',
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xvalid',
       toAddressWarning: undefined,
     });
@@ -634,7 +637,6 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -668,7 +670,6 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -706,7 +707,6 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: 'Error',
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -744,7 +744,10 @@ describe('SendAlertModal integration', () => {
   let mockHandleSubmitPressLocal: jest.Mock;
 
   const setupTokenContractScenario = (
-    overrides: Partial<ReturnType<typeof useToAddressValidation>> = {},
+    validationOverrides: Partial<
+      ReturnType<typeof useToAddressValidation>
+    > = {},
+    sendAlertsOverrides: Partial<ReturnType<typeof useSendAlerts>> = {},
   ) => {
     mockHandleSubmitPressLocal = jest.fn();
     mockUseSendActions.mockReturnValue({
@@ -771,11 +774,24 @@ describe('SendAlertModal integration', () => {
     mockUseToAddressValidation.mockReturnValue({
       loading: false,
       resolvedAddress: undefined,
-      toAddressError: 'Token contract warning',
-      toAddressErrorAllowAcknowledge: true,
+      toAddressError: undefined,
       toAddressValidated: '0x1234567890123456789012345678901234567890',
       toAddressWarning: undefined,
-      ...overrides,
+      ...validationOverrides,
+    });
+
+    mockUseSendAlerts.mockReturnValue({
+      alerts: [
+        {
+          key: 'tokenContract',
+          title: 'Smart contract address',
+          message: 'You are sending to a smart contract address',
+        },
+      ],
+      hasUnacknowledgedAlerts: true,
+      acknowledgeAlerts: jest.fn(),
+      isAlertCheckPending: false,
+      ...sendAlertsOverrides,
     });
 
     mockUseRecipientSelectionMetrics.mockReturnValue({
@@ -793,7 +809,7 @@ describe('SendAlertModal integration', () => {
     jest.clearAllMocks();
   });
 
-  it('opens alert modal when review pressed and toAddressErrorAllowAcknowledge is true', () => {
+  it('opens alert modal when review pressed and has unacknowledged send alerts', () => {
     setupTokenContractScenario();
 
     const { getByTestId } = renderWithProvider(<Recipient />);
@@ -841,11 +857,16 @@ describe('SendAlertModal integration', () => {
     );
   });
 
-  it('does not show alert modal when toAddressErrorAllowAcknowledge is false', () => {
-    setupTokenContractScenario({
-      toAddressError: 'Some error',
-      toAddressErrorAllowAcknowledge: false,
-    });
+  it('does not show alert modal when there are no unacknowledged send alerts', () => {
+    setupTokenContractScenario(
+      {
+        toAddressError: 'Some error',
+      },
+      {
+        alerts: [],
+        hasUnacknowledgedAlerts: false,
+      },
+    );
 
     const { getByTestId, queryByTestId } = renderWithProvider(<Recipient />);
 
@@ -892,9 +913,15 @@ describe('SendAlertModal integration', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xvalid',
       toAddressWarning: undefined,
+    });
+
+    mockUseSendAlerts.mockReturnValue({
+      alerts: [],
+      hasUnacknowledgedAlerts: false,
+      acknowledgeAlerts: jest.fn(),
+      isAlertCheckPending: false,
     });
 
     mockUseAccounts.mockReturnValue(mockAccounts);
