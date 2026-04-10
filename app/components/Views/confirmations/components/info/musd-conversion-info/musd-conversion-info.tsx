@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import {
   MUSD_TOKEN,
@@ -59,12 +59,10 @@ export const MusdConversionInfo = () => {
     tokenAddress: tokenToAddAddress,
   });
 
-  const renderOverrideContent = useCallback(() => null, []);
-
   return (
     <CustomAmountInfo
       preferredToken={preferredPaymentToken}
-      overrideContent={renderOverrideContent}
+      hidePayTokenAmount
       hasMax
       onAmountSubmit={startQuoteTrace}
     />

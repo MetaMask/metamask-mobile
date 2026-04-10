@@ -77,10 +77,9 @@ export interface CustomAmountInfoProps {
   preferredToken?: SetPayTokenRequest;
   footerText?: string;
   /**
-   * Optional render function that overrides the default content.
-   * When set, automatically hides PayTokenAmount, PayWithRow, and children.
+   * When true, hides the default PayTokenAmount below the fiat amount.
    */
-  overrideContent?: (amountHuman: string) => ReactNode;
+  hidePayTokenAmount?: boolean;
   /**
    * Callback fired when user presses Done after entering an amount.
    */
@@ -99,7 +98,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     disablePay,
     hasMax,
     onAmountSubmit,
-    overrideContent,
+    hidePayTokenAmount,
     preferredToken,
     footerText,
   }) => {
@@ -225,19 +224,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {overrideContent
-            ? overrideContent(amountHuman)
-            : disablePay !== true && (
-                <PayTokenAmount
-                  amountHuman={amountHuman}
-                  disabled={!hasTokens}
-                />
-              )}
-          {!overrideContent && children}
+          {!hidePayTokenAmount && disablePay !== true && (
+            <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
+          )}
+          {!hidePayTokenAmount && children}
         </Box>
         <Box gap={16}>
           <AlertMessage alertMessage={alertMessage} />
-          {!overrideContent && (
+          {!hidePayTokenAmount && (
             <>
               {isMoneyAccountDeposit && !hasTokens && (
                 <TextComponent

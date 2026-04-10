@@ -158,15 +158,15 @@ describe('MusdConversionInfo', () => {
     });
   });
 
-  describe('overrideContent', () => {
-    it('passes overrideContent function to CustomAmountInfo', () => {
+  describe('hidePayTokenAmount', () => {
+    it('passes hidePayTokenAmount to CustomAmountInfo', () => {
       renderWithProvider(<MusdConversionInfo />, {
         state: {},
       });
 
       expect(CustomAmountInfo).toHaveBeenCalledWith(
         expect.objectContaining({
-          overrideContent: expect.any(Function),
+          hidePayTokenAmount: true,
         }),
         expect.anything(),
       );
