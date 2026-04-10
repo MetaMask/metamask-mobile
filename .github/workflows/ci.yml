@@ -194,6 +194,8 @@ jobs:
       - check-skip-merge-queue
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
@@ -213,8 +215,59 @@ jobs:
         env:
           NODE_OPTIONS: --max_old_space_size=12288
 
-      - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 55
+      - name: Record HEAD bundle size
+        id: head-size
+        run: |
+          HEAD_SIZE=$(stat -c %s ios/main.jsbundle)
+          echo "bytes=$HEAD_SIZE" >> "$GITHUB_OUTPUT"
+          HEAD_MB=$(echo "scale=2; $HEAD_SIZE / 1024 / 1024" | bc)
+          echo "HEAD bundle size: $HEAD_SIZE bytes ($HEAD_MB MB)"
+          cp ios/main.jsbundle /tmp/head-main.jsbundle
+
+      - name: Build base bundle and compare sizes
+        if: github.event_name == 'pull_request'
+        env:
+          NODE_OPTIONS: --max_old_space_size=12288
+          HEAD_BUNDLE_SIZE: ${{ steps.head-size.outputs.bytes }}
+        run: |
+          BASE_SHA=$(git merge-base HEAD "${{ github.event.pull_request.base.sha }}")
+          echo "Checking out merge base commit: $BASE_SHA"
+
+          git checkout "$BASE_SHA"
+          yarn install --immutable
+          yarn setup:github-ci --no-build-android
+          yarn gen-bundle:ios
+
+          BASE_SIZE=$(stat -c %s ios/main.jsbundle)
+          DELTA=$((HEAD_BUNDLE_SIZE - BASE_SIZE))
+          DELTA_KB=$(echo "scale=2; $DELTA / 1024" | bc)
+          BASE_MB=$(echo "scale=2; $BASE_SIZE / 1024 / 1024" | bc)
+          HEAD_MB=$(echo "scale=2; $HEAD_BUNDLE_SIZE / 1024 / 1024" | bc)
+
+          echo "===== JS Bundle Size Comparison ====="
+          echo "Base bundle size: $BASE_MB MB"
+          echo "HEAD bundle size: $HEAD_MB MB"
+          echo "Delta: ${DELTA_KB} KB ($DELTA bytes)"
+          echo "====================================="
+
+          {
+            echo "## JS Bundle Size"
+            echo "| Metric | Size |"
+            echo "|--------|------|"
+            echo "| Base (${{ github.event.pull_request.base.ref }}) | $BASE_MB MB |"
+            echo "| HEAD | $HEAD_MB MB |"
+            if [ "$DELTA" -gt 0 ]; then
+              echo "| **Delta** | **+${DELTA_KB} KB** |"
+            elif [ "$DELTA" -lt 0 ]; then
+              echo "| **Delta** | **${DELTA_KB} KB** |"
+            else
+              echo "| **Delta** | **0 KB (unchanged)** |"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Restore HEAD bundle
+        if: github.event_name == 'pull_request'
+        run: cp /tmp/head-main.jsbundle ios/main.jsbundle
 
       - name: Upload iOS bundle
         uses: actions/upload-artifact@v4
