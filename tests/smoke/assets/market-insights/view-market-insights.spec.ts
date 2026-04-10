@@ -3,6 +3,7 @@ import WalletView from '../../../page-objects/wallet/WalletView';
 import TokenOverview from '../../../page-objects/wallet/TokenOverview';
 import MarketInsightsEntryCard from '../../../page-objects/wallet/MarketInsightsEntryCard';
 import MarketInsightsView from '../../../page-objects/wallet/MarketInsightsView';
+import ToastModal from '../../../page-objects/wallet/ToastModal';
 import QuoteView from '../../../page-objects/swaps/QuoteView';
 import BuildQuoteView from '../../../page-objects/Ramps/BuildQuoteView';
 import Assertions from '../../../framework/Assertions';
@@ -222,7 +223,9 @@ describe(
           await navigateToMarketInsightsView();
           await MarketInsightsView.scrollToThumbsUp();
           await MarketInsightsView.tapThumbsUpButton();
-          await MarketInsightsView.expectThumbsUpFilled();
+          await Assertions.expectElementToBeVisible(ToastModal.container, {
+            description: 'Feedback submitted toast is visible after thumbs up',
+          });
         },
       );
     });

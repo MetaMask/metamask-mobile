@@ -222,6 +222,13 @@ export function renderPerpsView(
           component={WrappedComponent as unknown as React.ComponentType}
           initialParams={initialParams}
         />
+        {extraRoutes.map(({ name, Component: Extra }) => (
+          <Stack.Screen
+            key={`root-${name}`}
+            name={name}
+            component={Extra ?? DefaultRouteProbe(name)}
+          />
+        ))}
         <Stack.Screen
           name={Routes.PERPS.ROOT}
           component={NestedPerpsStack as unknown as React.ComponentType}
@@ -321,17 +328,19 @@ export function renderPerpsMarketDetailsView(
     overrides?: DeepPartial<RootState>;
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
+    extraRoutes?: PerpsExtraRoute[];
   } = {},
 ) {
   const {
     overrides = defaultGeoRestrictionOverrides,
     initialParams = { market: defaultMarketDetailsMarket },
     streamOverrides = { positions: [defaultSelectModifyActionPosition] },
+    extraRoutes,
   } = options;
   return renderPerpsView(
     PerpsMarketDetailsView as unknown as React.ComponentType,
     'PerpsMarketDetails',
-    { overrides, initialParams, streamOverrides },
+    { overrides, initialParams, streamOverrides, extraRoutes },
   );
 }
 

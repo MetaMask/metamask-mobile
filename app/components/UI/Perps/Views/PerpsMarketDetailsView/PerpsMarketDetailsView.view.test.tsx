@@ -5,9 +5,15 @@
  * Run with: yarn test:view --testPathPattern="PerpsMarketDetailsView.view.test"
  */
 import '../../../../../../tests/component-view/mocks';
-import { fireEvent, screen } from '@testing-library/react-native';
+import type { ComponentType } from 'react';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { getModifyActionLabels } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
+import MarketInsightsView from '../../../MarketInsights/Views/MarketInsightsView/MarketInsightsView';
+import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
+import { analytics } from '../../../../../util/analytics/analytics';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
@@ -22,6 +28,84 @@ const CANDLE_SELECTOR_BASE =
   `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector` as const;
 const MORE_CANDLE_SHEET_BASE =
   `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-more-candle-periods-bottom-sheet` as const;
+
+const mockPerpsInsightsReport = {
+  asset: 'ETH',
+  digestId: 'mock-digest-id-eth-perps-001',
+  generatedAt: '2026-04-08T10:00:00.000Z',
+  headline: 'Ethereum shows strong momentum amid institutional demand',
+  summary:
+    'Ethereum continues to attract institutional interest with increasing on-chain activity and a healthy DeFi ecosystem.',
+  trends: [
+    {
+      title: 'Institutional Adoption',
+      description:
+        'Large institutions continue to accumulate ETH as a treasury asset following ETF approvals.',
+      category: 'macro',
+      impact: 'positive',
+      articles: [
+        {
+          title: 'Spot Ethereum ETFs See Record Weekly Inflows',
+          url: 'https://example.com/eth-etf-inflows',
+          source: 'CryptoNews',
+          date: '2026-04-07T09:00:00.000Z',
+        },
+      ],
+      tweets: [
+        {
+          contentSummary:
+            'ETH institutional demand is at all-time highs this quarter.',
+          url: 'https://x.com/example/status/123456789',
+          author: '@cryptoanalyst',
+          date: '2026-04-07T08:30:00.000Z',
+        },
+      ],
+    },
+    {
+      title: 'DeFi Activity Surge',
+      description:
+        'On-chain DeFi volumes have increased significantly, driving ETH utility and burn rate.',
+      category: 'technical',
+      impact: 'positive',
+      articles: [
+        {
+          title: 'Ethereum DeFi TVL Hits New Milestone',
+          url: 'https://example.com/defi-tvl',
+          source: 'DeFiPulse',
+          date: '2026-04-06T14:00:00.000Z',
+        },
+      ],
+      tweets: [],
+    },
+  ],
+  social: [],
+  sources: [
+    { name: 'CryptoNews', url: 'https://example.com', type: 'news' },
+    { name: 'DeFiPulse', url: 'https://defipulse.com', type: 'data' },
+  ],
+};
+
+function mockPerpsInsightsApi(report: typeof mockPerpsInsightsReport | null) {
+  (
+    Engine as unknown as {
+      context: {
+        AiDigestController?: { fetchMarketInsights: jest.Mock };
+        RampsController?: { setSelectedToken: jest.Mock };
+      };
+    }
+  ).context.AiDigestController = {
+    fetchMarketInsights: jest.fn().mockResolvedValue(report),
+  };
+  (
+    Engine as unknown as {
+      context: {
+        RampsController?: { setSelectedToken: jest.Mock };
+      };
+    }
+  ).context.RampsController = {
+    setSelectedToken: jest.fn(),
+  };
+}
 
 describe('PerpsMarketDetailsView', () => {
   it('renders error state when route does not provide market params', async () => {
@@ -483,6 +567,189 @@ describe('PerpsMarketDetailsView', () => {
       );
       expect(tutorialCard).toBeOnTheScreen();
       // Not pressing to avoid unhandled NAVIGATE(PerpsTutorial) in test navigator.
+    });
+
+    const renderPerpsInsightsJourney = ({
+      hasPosition,
+      insightsFlagEnabled = true,
+      report = mockPerpsInsightsReport,
+    }: {
+      hasPosition: boolean;
+      insightsFlagEnabled?: boolean;
+      report?: typeof mockPerpsInsightsReport | null;
+    }) => {
+      mockPerpsInsightsApi(report);
+      renderPerpsMarketDetailsView({
+        streamOverrides: {
+          positions: hasPosition
+            ? [
+                {
+                  symbol: 'ETH',
+                  size: '2.5',
+                  marginUsed: '500',
+                  entryPrice: '2000',
+                  liquidationPrice: '1900',
+                  unrealizedPnl: '100',
+                  returnOnEquity: '0.20',
+                  leverage: { value: 10, type: 'isolated' as const },
+                  cumulativeFunding: {
+                    sinceOpen: '5',
+                    allTime: '10',
+                    sinceChange: '2',
+                  },
+                  positionValue: '5000',
+                  maxLeverage: 50,
+                  takeProfitCount: 0,
+                  stopLossCount: 0,
+                },
+              ]
+            : [],
+        },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  aiSocialMarketInsightsPerpsEnabled: {
+                    enabled: insightsFlagEnabled,
+                    featureVersion: '1',
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+        extraRoutes: [
+          {
+            name: Routes.MARKET_INSIGHTS.VIEW,
+            Component: MarketInsightsView as unknown as ComponentType<unknown>,
+          },
+          { name: Routes.BRIDGE.ROOT },
+          { name: Routes.RAMP.TOKEN_SELECTION },
+        ],
+      });
+    };
+
+    it('opens market insights from Perps and hides Long/Short when position is open', async () => {
+      renderPerpsInsightsJourney({ hasPosition: true });
+
+      const entryCard = await screen.findByTestId(
+        MarketInsightsSelectorsIDs.ENTRY_CARD,
+      );
+      fireEvent.press(entryCard);
+
+      expect(
+        await screen.findByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        await screen.findByText(
+          'Ethereum shows strong momentum amid institutional demand',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        await screen.findByText('Institutional Adoption'),
+      ).toBeOnTheScreen();
+      expect(await screen.findByText('DeFi Activity Surge')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows Long/Short in market insights when there is no position', async () => {
+      renderPerpsInsightsJourney({ hasPosition: false });
+
+      fireEvent.press(
+        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
+      );
+
+      expect(
+        await screen.findByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        await screen.findByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render perps market insights card when feature flag is disabled', async () => {
+      renderPerpsInsightsJourney({
+        hasPosition: true,
+        insightsFlagEnabled: false,
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
+        ).not.toBeOnTheScreen();
+      });
+    });
+
+    it('shows sources bottom sheet when tapping a trend item from Perps insights', async () => {
+      renderPerpsInsightsJourney({ hasPosition: true });
+
+      fireEvent.press(
+        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
+      );
+
+      const trendItem = await screen.findByTestId(
+        `${MarketInsightsSelectorsIDs.TREND_ITEM}-0`,
+      );
+      fireEvent.press(trendItem);
+
+      expect(
+        await screen.findByText('Spot Ethereum ETFs See Record Weekly Inflows'),
+      ).toBeOnTheScreen();
+    });
+
+    it('tracks thumbs up interaction from Perps insights', async () => {
+      const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+      renderPerpsInsightsJourney({ hasPosition: true });
+
+      fireEvent.press(
+        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
+      );
+      const thumbsUp = await screen.findByTestId(
+        MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON,
+      );
+
+      trackEventSpy.mockClear();
+      fireEvent.press(thumbsUp);
+
+      await waitFor(() => {
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Market Insights Interaction',
+            properties: expect.objectContaining({
+              interaction_type: 'thumbs_up',
+            }),
+          }),
+        );
+      });
+
+      trackEventSpy.mockRestore();
+    });
+
+    it('shows feedback bottom sheet on thumbs down from Perps insights', async () => {
+      renderPerpsInsightsJourney({ hasPosition: true });
+
+      fireEvent.press(
+        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
+      );
+      fireEvent.press(
+        await screen.findByTestId(
+          MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON,
+        ),
+      );
+
+      expect(
+        await screen.findByTestId(
+          MarketInsightsSelectorsIDs.FEEDBACK_BOTTOM_SHEET,
+        ),
+      ).toBeOnTheScreen();
     });
   });
 });
