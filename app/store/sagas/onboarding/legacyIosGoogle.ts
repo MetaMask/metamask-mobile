@@ -13,15 +13,28 @@ import {
 } from '../../../selectors/seedlessOnboardingController';
 import { selectGoogleLoginIosUnsupportedBlockingEnabled } from '../../../selectors/featureFlagController/googleLoginIosUnsupportedBlocking';
 
-/** Minimum time between showing the iOS Google version warning sheet after dismiss. */
+/**
+ * Cooldown between reminder presentations of the iOS Google version warning sheet after the user
+ * dismisses it (milliseconds).
+ */
 export const IOS_GOOGLE_WARNING_SHEET_REMINDER_INTERVAL_MS =
   7 * 24 * 60 * 60 * 1000;
 
+/**
+ * Presents the iOS Google login version reminder sheet using the current root navigation.
+ */
 const promptIosGoogleWarningSheet = async function () {
   const navigation = NavigationService.navigation;
   await presentIosGoogleLoginVersionWarningSheetReminder(navigation);
 };
 
+/**
+ * After login on iOS versions below 17.4, may show a reminder that Google login requires a newer iOS.
+ *
+ * Runs only when blocking mode is off, the user completed seedless onboarding with Google, and the
+ * reminder was not dismissed within {@link IOS_GOOGLE_WARNING_SHEET_REMINDER_INTERVAL_MS}.
+ * Waits for {@link UserActionType.LOGIN} and a short delay so navigation to the wallet home can finish.
+ */
 export function* promptIosGoogleWarningSheetSaga() {
   if (Device.isIos() && Device.comparePlatformVersionTo('17.4') < 0) {
     yield take(UserActionType.LOGIN);

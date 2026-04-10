@@ -9,6 +9,7 @@ import {
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
+/** Body copy for the blocking sheet when Google login is unsupported on this iOS version. */
 const IosGoogleLoginUnsupportedBlockingSheetDescription = () => {
   const tw = useTailwind();
   return (
@@ -26,6 +27,8 @@ const IosGoogleLoginUnsupportedBlockingSheetDescription = () => {
     </Box>
   );
 };
+
+/** Body copy for the blocking sheet shown during vault rehydration on unsupported iOS. */
 const IosGoogleLoginUnsupportedBlockingSheetRehydrationDescription = () => {
   const tw = useTailwind();
   return (
@@ -49,6 +52,7 @@ const IosGoogleLoginUnsupportedBlockingSheetRehydrationDescription = () => {
   );
 };
 
+/** Body copy for the non-blocking "update iOS" warning sheet (initial presentation). */
 export const IosGoogleLoginVersionWarningDescription = () => {
   const tw = useTailwind();
   return (
@@ -67,6 +71,7 @@ export const IosGoogleLoginVersionWarningDescription = () => {
   );
 };
 
+/** Body copy for the reminder variant of the "update iOS" warning sheet. */
 export const IosGoogleLoginVersionWarningDescriptionReminder = () => {
   const tw = useTailwind();
   return (
@@ -85,6 +90,11 @@ export const IosGoogleLoginVersionWarningDescriptionReminder = () => {
   );
 };
 
+/**
+ * Presents a non-dismissible error sheet explaining that Google login is not supported on this iOS version.
+ *
+ * @param navigation - App navigation used to push the success/error sheet.
+ */
 export async function presentIosGoogleLoginUnsupportedBlockingSheet(
   navigation: AppNavigationProp,
 ): Promise<void> {
@@ -100,6 +110,11 @@ export async function presentIosGoogleLoginUnsupportedBlockingSheet(
   });
 }
 
+/**
+ * Presents the unsupported-iOS blocking sheet with copy tailored to vault rehydration.
+ *
+ * @param navigation - App navigation used to push the success/error sheet.
+ */
 export async function presentIosGoogleLoginUnsupportedBlockingSheetRehydration(
   navigation: AppNavigationProp,
 ): Promise<void> {
@@ -119,6 +134,11 @@ export async function presentIosGoogleLoginUnsupportedBlockingSheetRehydration(
   });
 }
 
+/**
+ * Presents the standard "update iOS" warning for Google login on older iOS versions.
+ *
+ * @param navigation - App navigation used to push the success/error sheet.
+ */
 export async function presentIosGoogleLoginVersionWarningSheet(
   navigation: AppNavigationProp,
 ): Promise<void> {
@@ -134,6 +154,11 @@ export async function presentIosGoogleLoginVersionWarningSheet(
   });
 }
 
+/**
+ * Presents the reminder copy for the "update iOS" warning (e.g. after login when eligible).
+ *
+ * @param navigation - App navigation used to push the success/error sheet.
+ */
 export async function presentIosGoogleLoginVersionWarningSheetReminder(
   navigation: AppNavigationProp,
 ): Promise<void> {
