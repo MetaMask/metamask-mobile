@@ -70,10 +70,6 @@ jest.mock('../../../../../selectors/tokenBalancesController', () => ({
   selectAllTokenBalances: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../../../selectors/tokenListController', () => ({
-  selectERC20TokensByChain: jest.fn(() => ({})),
-}));
-
 jest.mock('../../../../../selectors/tokensController', () => ({
   selectAllTokens: jest.fn(() => ({})),
 }));
@@ -391,11 +387,7 @@ describe('OndoPortfolio', () => {
         const { selectAllTokens } = jest.requireMock(
           '../../../../../selectors/tokensController',
         );
-        const { selectERC20TokensByChain } = jest.requireMock(
-          '../../../../../selectors/tokenListController',
-        );
         if (selector === selectAllTokens) return {};
-        if (selector === selectERC20TokensByChain) return {};
         return null;
       });
     });
@@ -443,9 +435,6 @@ describe('OndoPortfolio', () => {
         const { selectAllTokenBalances } = jest.requireMock(
           '../../../../../selectors/tokenBalancesController',
         );
-        const { selectERC20TokensByChain } = jest.requireMock(
-          '../../../../../selectors/tokenListController',
-        );
         const { selectAllTokens } = jest.requireMock(
           '../../../../../selectors/tokensController',
         );
@@ -460,7 +449,6 @@ describe('OndoPortfolio', () => {
               '0x1': { [TOKEN_ADDRESS]: rawHexBalance },
             },
           };
-        if (selector === selectERC20TokensByChain) return {};
         if (selector === selectAllTokens) return {};
         if (selector === selectInternalAccountByAddresses) return () => [];
         return null;
@@ -653,9 +641,6 @@ describe('OndoPortfolio', () => {
         const { selectAllTokenBalances } = jest.requireMock(
           '../../../../../selectors/tokenBalancesController',
         );
-        const { selectERC20TokensByChain } = jest.requireMock(
-          '../../../../../selectors/tokenListController',
-        );
         const { selectAllTokens } = jest.requireMock(
           '../../../../../selectors/tokensController',
         );
@@ -675,7 +660,6 @@ describe('OndoPortfolio', () => {
               '0x1': { [TOKEN_ADDRESS]: '0x56bc75e2d63100000' },
             },
           };
-        if (selector === selectERC20TokensByChain) return {};
         if (selector === selectAllTokens) return {};
         if (selector === selectInternalAccountByAddresses)
           return () => [{ id: 'acc-1', address: ACCOUNT_1 }];
@@ -708,9 +692,6 @@ describe('OndoPortfolio', () => {
         const { selectAllTokenBalances } = jest.requireMock(
           '../../../../../selectors/tokenBalancesController',
         );
-        const { selectERC20TokensByChain } = jest.requireMock(
-          '../../../../../selectors/tokenListController',
-        );
         const { selectAllTokens } = jest.requireMock(
           '../../../../../selectors/tokensController',
         );
@@ -733,7 +714,6 @@ describe('OndoPortfolio', () => {
               '0x1': { [TOKEN_ADDRESS]: '0x56bc75e2d63100000' },
             },
           };
-        if (selector === selectERC20TokensByChain) return {};
         if (selector === selectAllTokens) return {};
         if (selector === selectInternalAccountByAddresses)
           return () => [
