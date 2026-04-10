@@ -5,41 +5,33 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { useTheme } from '../../../../../util/theme';
 import MoneySectionHeader from '../MoneySectionHeader';
-import MultichainTransactionListItem from '../../../MultichainTransactionListItem';
-import type { MoneyMockTransaction } from '../../constants/mockActivityData';
-import { MUSD_TOKEN } from '../../../Earn/constants/musd';
-import {
-  getMoneyActivityTextStyles,
-  getMusdDisplayAmount,
-  getMusdFiatAmount,
-  moneyActivityItemStyles,
-} from '../../constants/activityStyles';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import { MoneyActivityListTestIds } from './MoneyActivityList.testIds';
+import MoneyActivityItem from '../MoneyActivityItem/MoneyActivityItem';
 
 const MAX_PREVIEW_ITEMS = 5;
 
 interface MoneyActivityListProps {
-  transactions: MoneyMockTransaction[];
+  transactions: TransactionMeta[];
+  moneyAddress?: string;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
-  navigation: AppNavigationProp;
+  onItemPress?: () => void;
 }
 
 const MoneyActivityList = ({
   transactions,
+  moneyAddress,
   onViewAllPress,
   onHeaderPress,
-  navigation,
+  onItemPress,
 }: MoneyActivityListProps) => {
-  const { colors } = useTheme();
-  const previewItems = transactions.slice(0, MAX_PREVIEW_ITEMS);
-
-  if (previewItems.length === 0) {
+  if (!transactions.length) {
     return null;
   }
+
+  const previewItems = transactions.slice(0, MAX_PREVIEW_ITEMS);
 
   return (
     <Box testID={MoneyActivityListTestIds.CONTAINER}>
@@ -49,24 +41,12 @@ const MoneyActivityList = ({
           onPress={onHeaderPress}
         />
       </Box>
-      {previewItems.map((item, i) => (
-        <MultichainTransactionListItem
-          key={item.transaction.id}
-          transaction={item.transaction}
-          chainId={item.chainId}
-          navigation={navigation}
-          index={i}
-          hideDate
-          iconSize={40}
-          badgePosition={{ bottom: -4, right: -4 }}
-          description={item.description}
-          tokenIconSource={MUSD_TOKEN.imageSource}
-          containerStyle={moneyActivityItemStyles.container}
-          hideSubtitle={!item.description}
-          textStyles={getMoneyActivityTextStyles(colors, item.transaction.type)}
-          displayAmountOverride={getMusdDisplayAmount(item.transaction)}
-          fiatAmount={getMusdFiatAmount(item.transaction)}
-          hideBorder
+      {previewItems.map((item) => (
+        <MoneyActivityItem
+          key={item.id}
+          tx={item}
+          moneyAddress={moneyAddress}
+          onPress={onItemPress}
         />
       ))}
       {onViewAllPress && (

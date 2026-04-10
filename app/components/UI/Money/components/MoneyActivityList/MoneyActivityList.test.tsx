@@ -5,20 +5,16 @@ import { configureStore } from '@reduxjs/toolkit';
 import MoneyActivityList from './MoneyActivityList';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import { MoneyActivityListTestIds } from './MoneyActivityList.testIds';
+import { MoneyActivityItemTestIds } from '../MoneyActivityItem/MoneyActivityItem.testIds';
 
-jest.mock('../../../MultichainTransactionListItem', () => {
+jest.mock('../MoneyActivityItem/MoneyActivityItem', () => {
   const { View, Text } = jest.requireActual('react-native');
+  const mockRowPrefix = 'money-activity-item-row';
   return {
     __esModule: true,
-    default: ({
-      transaction,
-      description,
-    }: {
-      transaction: { id: string };
-      description?: string;
-    }) => (
-      <View testID={`mock-tx-${transaction.id}`}>
-        <Text>{description ?? 'no-desc'}</Text>
+    default: ({ tx }: { tx: { id: string; moneySubtitle?: string } }) => (
+      <View testID={`${mockRowPrefix}-${tx.id}`}>
+        <Text>{tx.moneySubtitle ?? 'no-desc'}</Text>
       </View>
     ),
   };
@@ -47,8 +43,6 @@ const createMockStore = () =>
     },
   });
 
-const mockNavigation = { navigate: jest.fn(), goBack: jest.fn() };
-
 const renderWithProvider = (ui: React.ReactElement) => {
   const store = createMockStore();
   return render(<Provider store={store}>{ui}</Provider>);
@@ -57,34 +51,31 @@ const renderWithProvider = (ui: React.ReactElement) => {
 describe('MoneyActivityList', () => {
   it('renders up to 5 transactions from mock data', () => {
     const { getByTestId } = renderWithProvider(
-      <MoneyActivityList
-        transactions={MOCK_MONEY_TRANSACTIONS}
-        navigation={mockNavigation as never}
-      />,
+      <MoneyActivityList transactions={MOCK_MONEY_TRANSACTIONS} />,
     );
 
     expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeTruthy();
-    expect(getByTestId('mock-tx-money-tx-1')).toBeTruthy();
-    expect(getByTestId('mock-tx-money-tx-5')).toBeTruthy();
+    expect(
+      getByTestId(`${MoneyActivityItemTestIds.ROW}-money-tx-1`),
+    ).toBeTruthy();
+    expect(
+      getByTestId(`${MoneyActivityItemTestIds.ROW}-money-tx-5`),
+    ).toBeTruthy();
   });
 
   it('does not render more than 5 items', () => {
     const { queryByTestId } = renderWithProvider(
-      <MoneyActivityList
-        transactions={MOCK_MONEY_TRANSACTIONS}
-        navigation={mockNavigation as never}
-      />,
+      <MoneyActivityList transactions={MOCK_MONEY_TRANSACTIONS} />,
     );
 
-    expect(queryByTestId('mock-tx-money-tx-6')).toBeNull();
+    expect(
+      queryByTestId(`${MoneyActivityItemTestIds.ROW}-money-tx-6`),
+    ).toBeNull();
   });
 
   it('returns null when transactions list is empty', () => {
     const { queryByTestId } = renderWithProvider(
-      <MoneyActivityList
-        transactions={[]}
-        navigation={mockNavigation as never}
-      />,
+      <MoneyActivityList transactions={[]} />,
     );
 
     expect(queryByTestId(MoneyActivityListTestIds.CONTAINER)).toBeNull();
@@ -92,10 +83,7 @@ describe('MoneyActivityList', () => {
 
   it('renders section header with Activity title', () => {
     const { getByTestId } = renderWithProvider(
-      <MoneyActivityList
-        transactions={MOCK_MONEY_TRANSACTIONS}
-        navigation={mockNavigation as never}
-      />,
+      <MoneyActivityList transactions={MOCK_MONEY_TRANSACTIONS} />,
     );
 
     expect(getByTestId('section-header')).toBeTruthy();
@@ -107,7 +95,6 @@ describe('MoneyActivityList', () => {
       <MoneyActivityList
         transactions={MOCK_MONEY_TRANSACTIONS}
         onViewAllPress={mockPress}
-        navigation={mockNavigation as never}
       />,
     );
 
@@ -119,10 +106,7 @@ describe('MoneyActivityList', () => {
 
   it('does not render View all button when onViewAllPress is not provided', () => {
     const { queryByTestId } = renderWithProvider(
-      <MoneyActivityList
-        transactions={MOCK_MONEY_TRANSACTIONS}
-        navigation={mockNavigation as never}
-      />,
+      <MoneyActivityList transactions={MOCK_MONEY_TRANSACTIONS} />,
     );
 
     expect(queryByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON)).toBeNull();
@@ -134,7 +118,6 @@ describe('MoneyActivityList', () => {
       <MoneyActivityList
         transactions={MOCK_MONEY_TRANSACTIONS}
         onHeaderPress={mockPress}
-        navigation={mockNavigation as never}
       />,
     );
 

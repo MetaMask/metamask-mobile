@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { SectionList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import {
   Box,
   BoxAlignItems,
@@ -20,41 +21,41 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import MultichainTransactionListItem from '../../../MultichainTransactionListItem';
-import MOCK_MONEY_TRANSACTIONS, {
-  MoneyActivityFilter,
-  MoneyMockTransaction,
-} from '../../constants/mockActivityData';
-import { MUSD_TOKEN } from '../../../Earn/constants/musd';
-import {
-  getMoneyActivityTextStyles,
-  getMusdDisplayAmount,
-  getMusdFiatAmount,
-  moneyActivityItemStyles,
-} from '../../constants/activityStyles';
+import MoneyActivityItem from '../../components/MoneyActivityItem';
+import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
+import { getMoneyActivityDateKeyUtc } from '../../constants/moneyActivityFilters';
+import { MoneyActivityFilter } from '../../constants/mockActivityData';
+import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMoneyActivityUnderConstructionAlert';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
+  filterButtonSpacing: {
+    minWidth: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minHeight: 48,
+  },
 });
 
 interface DateSection {
   title: string;
-  data: MoneyMockTransaction[];
+  data: TransactionMeta[];
 }
 
-function groupByDate(transactions: MoneyMockTransaction[]): DateSection[] {
-  const groups = new Map<string, MoneyMockTransaction[]>();
+function groupByDate(transactions: TransactionMeta[]): DateSection[] {
+  const groups = new Map<string, TransactionMeta[]>();
   for (const tx of transactions) {
-    const existing = groups.get(tx.date);
+    const key = getMoneyActivityDateKeyUtc(tx);
+    const existing = groups.get(key);
     if (existing) {
       existing.push(tx);
     } else {
-      groups.set(tx.date, [tx]);
+      groups.set(key, [tx]);
     }
   }
-  return Array.from(groups.entries()).map(([date, data]) => ({
-    title: new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
+  return Array.from(groups.entries()).map(([dateKey, data]) => ({
+    title: new Date(`${dateKey}T00:00:00.000Z`).toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
@@ -69,19 +70,26 @@ const MoneyActivityView = () => {
   const { colors } = useTheme();
   const [filter, setFilter] = useState(MoneyActivityFilter.All);
 
+  const { allTransactions, deposits, transfers, moneyAddress } =
+    useMoneyAccountTransactions();
+
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  // eslint-disable-next-line no-alert
-  const handleSearchPress = () => alert('Under construction 🚧');
+  const handleItemPress = useCallback(() => {
+    showMoneyActivityUnderConstructionAlert();
+  }, []);
 
   const filtered = useMemo(() => {
-    if (filter === MoneyActivityFilter.All) return MOCK_MONEY_TRANSACTIONS;
-    if (filter === MoneyActivityFilter.Deposits)
-      return MOCK_MONEY_TRANSACTIONS.filter((tx) => tx.filter === 'deposit');
-    return MOCK_MONEY_TRANSACTIONS.filter((tx) => tx.filter === 'transfer');
-  }, [filter]);
+    if (filter === MoneyActivityFilter.All) {
+      return allTransactions;
+    }
+    if (filter === MoneyActivityFilter.Deposits) {
+      return deposits;
+    }
+    return transfers;
+  }, [filter, allTransactions, deposits, transfers]);
 
   const sections = useMemo(() => groupByDate(filtered), [filtered]);
 
@@ -97,29 +105,11 @@ const MoneyActivityView = () => {
     </Box>
   );
 
-  const renderItem = ({
-    item,
-    index,
-  }: {
-    item: MoneyMockTransaction;
-    index: number;
-  }) => (
-    <MultichainTransactionListItem
-      transaction={item.transaction}
-      chainId={item.chainId}
-      navigation={navigation as never}
-      index={index}
-      hideDate
-      iconSize={40}
-      badgePosition={{ bottom: -4, right: -4 }}
-      description={item.description}
-      tokenIconSource={MUSD_TOKEN.imageSource}
-      containerStyle={moneyActivityItemStyles.container}
-      hideSubtitle={!item.description}
-      textStyles={getMoneyActivityTextStyles(colors, item.transaction.type)}
-      displayAmountOverride={getMusdDisplayAmount(item.transaction)}
-      fiatAmount={getMusdFiatAmount(item.transaction)}
-      hideBorder
+  const renderItem = ({ item }: { item: TransactionMeta }) => (
+    <MoneyActivityItem
+      tx={item}
+      moneyAddress={moneyAddress}
+      onPress={handleItemPress}
     />
   );
 
@@ -134,12 +124,12 @@ const MoneyActivityView = () => {
       twClassName="flex-1 bg-default"
       testID={MoneyActivityViewTestIds.CONTAINER}
     >
-      {/* Header */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-1 pt-2 pb-1"
+        justifyContent={BoxJustifyContent.Start}
+        paddingHorizontal={1}
+        paddingVertical={2}
       >
         <ButtonIcon
           iconName={IconName.ArrowLeft}
@@ -148,35 +138,32 @@ const MoneyActivityView = () => {
           accessibilityLabel="Back"
           testID={MoneyActivityViewTestIds.BACK_BUTTON}
         />
-        <ButtonIcon
-          iconName={IconName.Search}
-          size={ButtonIconSize.Md}
-          onPress={handleSearchPress}
-          accessibilityLabel="Search"
-          testID={MoneyActivityViewTestIds.SEARCH_BUTTON}
-        />
       </Box>
 
-      {/* Title */}
-      <Box twClassName="px-4 pb-2">
+      <Box paddingHorizontal={4} paddingTop={4} paddingBottom={6}>
         <Text
           variant={TextVariant.HeadingLg}
-          fontWeight={FontWeight.SemiBold}
+          fontWeight={FontWeight.Medium}
           testID={MoneyActivityViewTestIds.TITLE}
         >
           {strings('money.activity.title')}
         </Text>
       </Box>
 
-      {/* Filter tabs */}
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 pb-3 gap-2">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        gap={4}
+        paddingHorizontal={4}
+        paddingBottom={3}
+      >
         <Button
           variant={
             isActive(MoneyActivityFilter.All)
               ? ButtonVariant.Primary
               : ButtonVariant.Secondary
           }
-          size={ButtonSize.Sm}
+          size={ButtonSize.Md}
+          style={styles.filterButtonSpacing}
           onPress={() => setFilter(MoneyActivityFilter.All)}
           testID={MoneyActivityViewTestIds.FILTER_ALL}
         >
@@ -188,7 +175,8 @@ const MoneyActivityView = () => {
               ? ButtonVariant.Primary
               : ButtonVariant.Secondary
           }
-          size={ButtonSize.Sm}
+          size={ButtonSize.Md}
+          style={styles.filterButtonSpacing}
           onPress={() => setFilter(MoneyActivityFilter.Deposits)}
           testID={MoneyActivityViewTestIds.FILTER_DEPOSITS}
         >
@@ -200,7 +188,8 @@ const MoneyActivityView = () => {
               ? ButtonVariant.Primary
               : ButtonVariant.Secondary
           }
-          size={ButtonSize.Sm}
+          size={ButtonSize.Md}
+          style={styles.filterButtonSpacing}
           onPress={() => setFilter(MoneyActivityFilter.Transfers)}
           testID={MoneyActivityViewTestIds.FILTER_TRANSFERS}
         >
@@ -208,14 +197,31 @@ const MoneyActivityView = () => {
         </Button>
       </Box>
 
-      {/* Transaction list */}
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item.transaction.id}
-        renderItem={renderItem}
-        renderSectionHeader={renderSectionHeader}
-        stickySectionHeadersEnabled={false}
-      />
+      {sections.length === 0 ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="flex-1 px-6 pb-8"
+          testID={MoneyActivityViewTestIds.EMPTY_LIST}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={MoneyActivityViewTestIds.EMPTY_LIST_MESSAGE}
+          >
+            {strings('money.activity.empty')}
+          </Text>
+        </Box>
+      ) : (
+        <SectionList
+          sections={sections}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
+          stickySectionHeadersEnabled={false}
+        />
+      )}
     </Box>
   );
 };

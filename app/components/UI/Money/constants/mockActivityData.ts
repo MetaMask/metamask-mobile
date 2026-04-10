@@ -1,5 +1,11 @@
-import { Transaction, TransactionType } from '@metamask/keyring-api';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import {
+  type TransactionMeta,
+  type TransactionParams,
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import type { Hex } from '@metamask/utils';
+import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 
 export type MoneyActivityFilterType = 'deposit' | 'transfer';
 
@@ -9,232 +15,129 @@ export enum MoneyActivityFilter {
   Transfers = 'transfers',
 }
 
-export interface MoneyMockTransaction {
-  transaction: Transaction;
-  chainId: SupportedCaipChainId;
-  description?: string;
-  date: string;
-  filter: MoneyActivityFilterType;
+/**
+ * When set on mock or enriched {@link TransactionMeta}, overrides the default title from {@link TransactionType}.
+ */
+export type MoneyActivityTitleKey =
+  | 'added'
+  | 'deposited'
+  | 'received'
+  | 'card_transaction'
+  | 'converted'
+  | 'sent'
+  | 'transferred';
+
+/**
+ * {@link TransactionMeta} plus optional Money activity presentation fields.
+ */
+export type MoneyActivityTransactionMeta = TransactionMeta & {
+  moneySubtitle?: string;
+  moneyActivityTitleKey?: MoneyActivityTitleKey;
+};
+
+export const MOCK_CHAIN_ID = '0x1' as Hex;
+
+export const MOCK_NETWORK_CLIENT_ID = 'mainnet';
+
+const defaultTxParams = {
+  from: '0x0000000000000000000000000000000000000001',
+  to: '0x0000000000000000000000000000000000000002',
+  value: '0x0',
+} as unknown as TransactionParams;
+
+function makeMoneyTx(config: {
+  id: string;
+  /** Unix time in seconds (matches historical mock JSON). */
+  timestampSec: number;
+  type: TransactionType;
+  amount: string;
+  symbol?: string;
+  moneySubtitle?: string;
+  moneyActivityTitleKey?: MoneyActivityTitleKey;
+}): MoneyActivityTransactionMeta {
+  const {
+    id,
+    timestampSec,
+    type,
+    amount,
+    symbol = MUSD_TOKEN.symbol,
+    moneySubtitle,
+    moneyActivityTitleKey,
+  } = config;
+
+  return {
+    id,
+    chainId: MOCK_CHAIN_ID,
+    networkClientId: MOCK_NETWORK_CLIENT_ID,
+    status: TransactionStatus.confirmed,
+    time: timestampSec * 1000,
+    txParams: defaultTxParams,
+    type,
+    transferInformation: {
+      amount,
+      contractAddress: MUSD_TOKEN_ADDRESS,
+      decimals: MUSD_TOKEN.decimals,
+      symbol,
+    },
+    ...(moneySubtitle !== undefined ? { moneySubtitle } : {}),
+    ...(moneyActivityTitleKey !== undefined ? { moneyActivityTitleKey } : {}),
+  };
 }
 
-const MUSD_ASSET_TYPE = 'eip155:1/erc20:0xmusd' as const;
-const MOCK_ACCOUNT = '00000000-0000-0000-0000-000000000001';
-const MOCK_CHAIN = 'eip155:1' as const;
-
-const makeMusdAsset = (amount: string) => ({
-  unit: 'mUSD',
-  type: MUSD_ASSET_TYPE as `${string}:${string}/${string}:${string}`,
-  amount,
-  fungible: true as const,
-});
-
-const MOCK_MONEY_TRANSACTIONS: MoneyMockTransaction[] = [
-  {
-    transaction: {
-      id: 'money-tx-1',
-      chain: MOCK_CHAIN,
-      account: MOCK_ACCOUNT,
-      status: 'confirmed',
-      timestamp: 1747094400,
-      type: TransactionType.Receive,
-      from: [
-        {
-          address: '0x0000000000000000000000000000000000000000',
-          asset: makeMusdAsset('100.00'),
-        },
-      ],
-      to: [
-        {
-          address: '0x1111111111111111111111111111111111111111',
-          asset: makeMusdAsset('100.00'),
-        },
-      ],
-      fees: [],
-      events: [],
-    },
-    chainId: MOCK_CHAIN as unknown as SupportedCaipChainId,
-    description: undefined,
-    date: '2026-05-10',
-    filter: 'deposit',
-  },
-  {
-    transaction: {
-      id: 'money-tx-2',
-      chain: MOCK_CHAIN,
-      account: MOCK_ACCOUNT,
-      status: 'confirmed',
-      timestamp: 1747090800,
-      type: TransactionType.Receive,
-      from: [
-        {
-          address: '0xTransakBridge0000000000000000000000000000',
-          asset: makeMusdAsset('1000.00'),
-        },
-      ],
-      to: [
-        {
-          address: '0x1111111111111111111111111111111111111111',
-          asset: makeMusdAsset('1000.00'),
-        },
-      ],
-      fees: [],
-      events: [],
-    },
-    chainId: MOCK_CHAIN as unknown as SupportedCaipChainId,
-    description: 'Transak',
-    date: '2026-05-10',
-    filter: 'deposit',
-  },
-  {
-    transaction: {
-      id: 'money-tx-3',
-      chain: MOCK_CHAIN,
-      account: MOCK_ACCOUNT,
-      status: 'confirmed',
-      timestamp: 1747087200,
-      type: TransactionType.Receive,
-      from: [
-        {
-          address: '0x2323100000000000000000000000000000012345',
-          asset: makeMusdAsset('500.00'),
-        },
-      ],
-      to: [
-        {
-          address: '0x1111111111111111111111111111111111111111',
-          asset: makeMusdAsset('500.00'),
-        },
-      ],
-      fees: [],
-      events: [],
-    },
-    chainId: MOCK_CHAIN as unknown as SupportedCaipChainId,
-    description: 'From: 0x23231...12345',
-    date: '2026-05-10',
-    filter: 'deposit',
-  },
-  {
-    transaction: {
-      id: 'money-tx-4',
-      chain: MOCK_CHAIN,
-      account: MOCK_ACCOUNT,
-      status: 'confirmed',
-      timestamp: 1747083600,
-      type: TransactionType.Send,
-      from: [
-        {
-          address: '0x1111111111111111111111111111111111111111',
-          asset: makeMusdAsset('10.00'),
-        },
-      ],
-      to: [
-        {
-          address: '0xMerchant000000000000000000000000000000000',
-          asset: makeMusdAsset('10.00'),
-        },
-      ],
-      fees: [],
-      events: [],
-    },
-    chainId: MOCK_CHAIN as unknown as SupportedCaipChainId,
-    description: undefined,
-    date: '2026-05-10',
-    filter: 'transfer',
-  },
-  {
-    transaction: {
-      id: 'money-tx-5',
-      chain: MOCK_CHAIN,
-      account: MOCK_ACCOUNT,
-      status: 'confirmed',
-      timestamp: 1746921600,
-      type: TransactionType.Swap,
-      from: [
-        {
-          address: '0x1111111111111111111111111111111111111111',
-          asset: {
-            unit: 'USDC',
-            type: 'eip155:1/erc20:0xusdc' as `${string}:${string}/${string}:${string}`,
-            amount: '300.00',
-            fungible: true as const,
-          },
-        },
-      ],
-      to: [
-        {
-          address: '0x1111111111111111111111111111111111111111',
-          asset: makeMusdAsset('300.00'),
-        },
-      ],
-      fees: [],
-      events: [],
-    },
-    chainId: MOCK_CHAIN as unknown as SupportedCaipChainId,
-    description: 'USDC → mUSD',
-    date: '2026-05-08',
-    filter: 'deposit',
-  },
-  {
-    transaction: {
-      id: 'money-tx-6',
-      chain: MOCK_CHAIN,
-      account: MOCK_ACCOUNT,
-      status: 'confirmed',
-      timestamp: 1746918000,
-      type: TransactionType.Send,
-      from: [
-        {
-          address: '0x1111111111111111111111111111111111111111',
-          asset: makeMusdAsset('250.00'),
-        },
-      ],
-      to: [
-        {
-          address: '0x2222222222222222222222222222222222222222',
-          asset: {
-            unit: 'ETH',
-            type: 'eip155:1/slip44:60' as `${string}:${string}/${string}:${string}`,
-            amount: '0.1',
-            fungible: true as const,
-          },
-        },
-      ],
-      fees: [],
-      events: [],
-    },
-    chainId: MOCK_CHAIN as unknown as SupportedCaipChainId,
-    description: 'From mUSD → ETH',
-    date: '2026-05-08',
-    filter: 'transfer',
-  },
-  {
-    transaction: {
-      id: 'money-tx-7',
-      chain: MOCK_CHAIN,
-      account: MOCK_ACCOUNT,
-      status: 'confirmed',
-      timestamp: 1746914400,
-      type: TransactionType.Receive,
-      from: [
-        {
-          address: '0x3333333333333333333333333333333333333333',
-          asset: makeMusdAsset('200.00'),
-        },
-      ],
-      to: [
-        {
-          address: '0x1111111111111111111111111111111111111111',
-          asset: makeMusdAsset('200.00'),
-        },
-      ],
-      fees: [],
-      events: [],
-    },
-    chainId: MOCK_CHAIN as unknown as SupportedCaipChainId,
-    description: 'From: 0x33333...33333',
-    date: '2026-05-08',
-    filter: 'deposit',
-  },
+const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
+  makeMoneyTx({
+    id: 'money-tx-1',
+    timestampSec: 1747094400,
+    type: TransactionType.moneyAccountDeposit,
+    amount: '100000000',
+    moneyActivityTitleKey: 'added',
+  }),
+  makeMoneyTx({
+    id: 'money-tx-2',
+    timestampSec: 1747090800,
+    type: TransactionType.moneyAccountDeposit,
+    amount: '1000000000',
+    moneySubtitle: 'Transak',
+    moneyActivityTitleKey: 'deposited',
+  }),
+  makeMoneyTx({
+    id: 'money-tx-3',
+    timestampSec: 1747087200,
+    type: TransactionType.incoming,
+    amount: '500000000',
+    moneySubtitle: 'From: 0x23231...12345',
+    moneyActivityTitleKey: 'received',
+  }),
+  makeMoneyTx({
+    id: 'money-tx-4',
+    timestampSec: 1747083600,
+    type: TransactionType.moneyAccountWithdraw,
+    amount: '10000000',
+    moneyActivityTitleKey: 'card_transaction',
+  }),
+  makeMoneyTx({
+    id: 'money-tx-5',
+    timestampSec: 1746921600,
+    type: TransactionType.musdConversion,
+    amount: '300000000',
+    moneySubtitle: 'USDC → mUSD',
+    moneyActivityTitleKey: 'converted',
+  }),
+  makeMoneyTx({
+    id: 'money-tx-6',
+    timestampSec: 1746918000,
+    type: TransactionType.moneyAccountWithdraw,
+    amount: '250000000',
+    moneySubtitle: 'mUSD → ETH',
+    moneyActivityTitleKey: 'transferred',
+  }),
 ];
 
 export default MOCK_MONEY_TRANSACTIONS;
+
+export {
+  getMoneyActivityDateKeyUtc,
+  isMoneyActivityDeposit,
+  isMoneyActivityTransfer,
+  isMoneyActivityTransaction,
+} from './moneyActivityFilters';

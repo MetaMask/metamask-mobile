@@ -6235,9 +6235,19 @@
     "activity": {
       "title": "Activity",
       "view_all": "View all",
+      "empty": "No activity yet",
       "filter_all": "All",
       "filter_deposits": "Deposits",
       "filter_transfers": "Transfers"
+    },
+    "transaction": {
+      "added": "Added",
+      "deposited": "Deposited",
+      "received": "Received",
+      "sent": "Sent",
+      "transferred": "Transferred",
+      "card_transaction": "Card transaction",
+      "converted": "Converted"
     }
   },
   "stake": {

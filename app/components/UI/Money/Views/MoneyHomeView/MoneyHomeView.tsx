@@ -14,17 +14,18 @@ import MoneyMetaMaskCard from '../../components/MoneyMetaMaskCard';
 import MoneyWhyMetaMaskMoney from '../../components/MoneyWhyMetaMaskMoney';
 import MoneyActivityList from '../../components/MoneyActivityList';
 import MoneyFooter from '../../components/MoneyFooter';
-import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
+import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
+import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMoneyActivityUnderConstructionAlert';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
-// eslint-disable-next-line no-alert
-const TEMP_ALERT_HANDLER = () => alert('Under construction 🚧');
+/** Placeholder until Money home actions are implemented */
+const noopHandler = () => undefined;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation();
@@ -32,36 +33,38 @@ const MoneyHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
+  const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  // eslint-disable-next-line no-alert
-  const handleMenuPress = () => alert('Under construction 🚧');
+  const handleMenuPress = noopHandler;
 
-  const handleAddPress = TEMP_ALERT_HANDLER;
-  const handleTransferPress = TEMP_ALERT_HANDLER;
-  const handleCardPress = TEMP_ALERT_HANDLER;
-  const handleAddMusdPress = TEMP_ALERT_HANDLER;
-  const handleGetNowPress = TEMP_ALERT_HANDLER;
-  const handleHeaderPress = TEMP_ALERT_HANDLER;
+  const handleAddPress = noopHandler;
+  const handleTransferPress = noopHandler;
+  const handleCardPress = noopHandler;
+  const handleAddMusdPress = noopHandler;
+  const handleGetNowPress = noopHandler;
+  const handleHeaderPress = noopHandler;
 
-  const handleTokenAddPress = (tokenName: string) => {
-    TEMP_ALERT_HANDLER();
-  };
+  const handleTokenAddPress = noopHandler;
 
-  const handleSeeEarningsPress = TEMP_ALERT_HANDLER;
-  const handleLearnMorePress = TEMP_ALERT_HANDLER;
-  const handleAddMoneyPress = TEMP_ALERT_HANDLER;
-  const handleHowItWorksHeaderPress = TEMP_ALERT_HANDLER;
-  const handlePotentialEarningsHeaderPress = TEMP_ALERT_HANDLER;
-  const handleWhyMetaMaskMoneyHeaderPress = TEMP_ALERT_HANDLER;
+  const handleSeeEarningsPress = noopHandler;
+  const handleLearnMorePress = noopHandler;
+  const handleAddMoneyPress = noopHandler;
+  const handleHowItWorksHeaderPress = noopHandler;
+  const handlePotentialEarningsHeaderPress = noopHandler;
+  const handleWhyMetaMaskMoneyHeaderPress = noopHandler;
 
   const handleViewAllActivityPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.ACTIVITY as never);
   }, [navigation]);
   const handleActivityHeaderPress = handleViewAllActivityPress;
+
+  const handleActivityItemPress = useCallback(() => {
+    showMoneyActivityUnderConstructionAlert();
+  }, []);
 
   return (
     <Box
@@ -107,13 +110,18 @@ const MoneyHomeView = () => {
           onHeaderPress={handleHeaderPress}
         />
         <Divider />
-        <MoneyActivityList
-          transactions={MOCK_MONEY_TRANSACTIONS}
-          onViewAllPress={handleViewAllActivityPress}
-          onHeaderPress={handleActivityHeaderPress}
-          navigation={navigation as never}
-        />
-        <Divider />
+        {allTransactions.length > 0 && (
+          <>
+            <MoneyActivityList
+              transactions={allTransactions}
+              moneyAddress={moneyAddress}
+              onViewAllPress={handleViewAllActivityPress}
+              onHeaderPress={handleActivityHeaderPress}
+              onItemPress={handleActivityItemPress}
+            />
+            <Divider />
+          </>
+        )}
         <MoneyWhyMetaMaskMoney
           onLearnMorePress={handleLearnMorePress}
           onHeaderPress={handleWhyMetaMaskMoneyHeaderPress}
