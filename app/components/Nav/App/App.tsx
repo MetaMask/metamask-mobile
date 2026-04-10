@@ -679,6 +679,7 @@ const ImportSRPView = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
+      presentation: 'transparentModal',
     }}
   >
     <Stack.Screen
@@ -694,7 +695,6 @@ const ImportSRPView = () => (
       name={Routes.SHEET.SEEDPHRASE_MODAL}
       component={SeedphraseModal}
       options={{
-        presentation: 'modal',
         cardStyle: { backgroundColor: 'transparent' },
         cardStyleInterpolator: () => ({
           overlayStyle: {
