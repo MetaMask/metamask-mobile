@@ -595,9 +595,14 @@ jest.mock('react-native-safe-area-context', () => {
   const mockInsets = { top: 0, right: 0, bottom: 0, left: 0 };
   // Match typical per-test mocks (zero frame) so BottomSheet layout snapshots stay stable.
   const mockFrame = { width: 0, height: 0, x: 0, y: 0 };
+  // The real SafeAreaInsetsContext defaults to null without <SafeAreaProvider>. Many unit
+  // tests render components that use SafeAreaInsetsContext.Consumer but do not wrap the
+  // tree in a provider; align the default with useSafeAreaInsets above so insets.top works.
+  const SafeAreaInsetsContext = React.createContext(mockInsets);
   return {
     ...actual,
     SafeAreaView,
+    SafeAreaInsetsContext,
     useSafeAreaInsets: () => mockInsets,
     // Real hook throws without <SafeAreaProvider>; many tests render BottomSheet only.
     useSafeAreaFrame: () => mockFrame,
