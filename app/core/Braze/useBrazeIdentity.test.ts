@@ -1,14 +1,16 @@
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import { useBrazeIdentity } from './useBrazeIdentity';
-import { setBrazeUser } from './index';
+import { setBrazeUser, clearBrazeUser } from './index';
 import backgroundState from '../../util/test/initial-background-state.json';
 
 jest.mock('./index', () => ({
   ...jest.requireActual('./index'),
   setBrazeUser: jest.fn(),
+  clearBrazeUser: jest.fn(),
 }));
 
 const mockSetBrazeUser = jest.mocked(setBrazeUser);
+const mockClearBrazeUser = jest.mocked(clearBrazeUser);
 
 const createState = (isSignedIn: boolean) =>
   ({
@@ -33,13 +35,15 @@ describe('useBrazeIdentity', () => {
     });
 
     expect(mockSetBrazeUser).toHaveBeenCalledTimes(1);
+    expect(mockClearBrazeUser).not.toHaveBeenCalled();
   });
 
-  it('does not call setBrazeUser on mount when not signed in', () => {
+  it('calls clearBrazeUser on mount when not signed in', () => {
     renderHookWithProvider(() => useBrazeIdentity(), {
       state: createState(false),
     });
 
+    expect(mockClearBrazeUser).toHaveBeenCalledTimes(1);
     expect(mockSetBrazeUser).not.toHaveBeenCalled();
   });
 });

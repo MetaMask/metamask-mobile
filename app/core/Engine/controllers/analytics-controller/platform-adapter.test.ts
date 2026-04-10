@@ -1,5 +1,6 @@
-import { createPlatformAdapter } from './platform-adapter';
+import { createPlatformAdapter, setBrazeProfileId } from './platform-adapter';
 import type { SegmentClient } from '@segment/analytics-react-native';
+import { BrazePlugin } from '@segment/analytics-react-native-plugin-braze';
 import MetaMetricsPrivacySegmentPlugin from '../../../../util/analytics/privacySegmentPlugin';
 
 // Mock Logger (not in global setup)
@@ -35,6 +36,8 @@ jest.mock('../../../../util/analytics/SegmentPersistor', () => ({
 interface GlobalWithSegmentClient {
   segmentMockClient: SegmentClient;
 }
+
+const MockBrazePlugin = BrazePlugin as jest.MockedClass<typeof BrazePlugin>;
 
 describe('createPlatformAdapter', () => {
   beforeEach(() => {
@@ -138,6 +141,47 @@ describe('createPlatformAdapter', () => {
       expect(segmentMockClient.add).toHaveBeenCalledWith({
         plugin: expect.any(Object),
       });
+    });
+  });
+
+  describe('BrazePlugin', () => {
+    it('adds BrazePlugin to the Segment client on creation', () => {
+      createPlatformAdapter();
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+
+      expect(MockBrazePlugin).toHaveBeenCalledTimes(1);
+      expect(segmentMockClient.add).toHaveBeenCalledWith({
+        plugin: expect.objectContaining({ key: 'Appboy' }),
+      });
+    });
+  });
+
+  describe('setBrazeProfileId', () => {
+    it('forwards profileId to the BrazePlugin instance', () => {
+      createPlatformAdapter();
+      const pluginInstance = MockBrazePlugin.mock.results[0]
+        .value as ReturnType<typeof MockBrazePlugin>;
+
+      setBrazeProfileId('profile-123');
+
+      expect(pluginInstance.setBrazeProfileId).toHaveBeenCalledWith(
+        'profile-123',
+      );
+    });
+
+    it('forwards undefined to clear the BrazePlugin identity', () => {
+      createPlatformAdapter();
+      const pluginInstance = MockBrazePlugin.mock.results[0]
+        .value as ReturnType<typeof MockBrazePlugin>;
+
+      setBrazeProfileId(undefined);
+
+      expect(pluginInstance.setBrazeProfileId).toHaveBeenCalledWith(undefined);
+    });
+
+    it('does nothing when called before adapter is created', () => {
+      expect(() => setBrazeProfileId('profile-123')).not.toThrow();
     });
   });
 

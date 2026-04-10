@@ -537,6 +537,15 @@ jest.mock('@segment/analytics-react-native', () => {
   };
 });
 
+jest.mock('@segment/analytics-react-native-plugin-braze', () => ({
+  __esModule: true,
+  BrazePlugin: jest.fn().mockImplementation(() => ({
+    type: 'destination',
+    key: 'Appboy',
+    setBrazeProfileId: jest.fn(),
+  })),
+}));
+
 jest.mock('@notifee/react-native', () =>
   require('@notifee/react-native/jest-mock'),
 );

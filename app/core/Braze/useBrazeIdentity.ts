@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { selectIsSignedIn } from '../../selectors/identity';
-import { setBrazeUser } from './index';
+import { setBrazeUser, clearBrazeUser } from './index';
 
 /**
- * Reacts to MetaMask profile sign-in and sets the Braze external user ID
- * to the profile ID via `Braze.changeUser()`.
+ * Syncs the Braze identity with the MetaMask profile sign-in state.
  *
- * This is the sole mechanism for creating/identifying Braze users —
- * Braze is intentionally decoupled from the Segment analytics pipeline.
+ * On sign-in the profile ID is forwarded to the Braze Segment plugin via
+ * `setBrazeUser()`.  On sign-out `clearBrazeUser()` makes the plugin a
+ * no-op so events are no longer attributed to the previous user.
  */
 export function useBrazeIdentity(): void {
   const isSignedIn = useSelector(selectIsSignedIn);
@@ -16,6 +16,8 @@ export function useBrazeIdentity(): void {
   useEffect(() => {
     if (isSignedIn) {
       setBrazeUser();
+    } else {
+      clearBrazeUser();
     }
   }, [isSignedIn]);
 }
