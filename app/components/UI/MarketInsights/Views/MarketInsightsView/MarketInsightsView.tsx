@@ -86,8 +86,6 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import parseRampIntent from '../../../Ramp/utils/parseRampIntent';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
-import { useComplianceGate } from '../../../Compliance';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import PerpsBottomSheetTooltip from '../../../Perps/components/PerpsBottomSheetTooltip';
 import {
   PERPS_EVENT_PROPERTY,
@@ -226,8 +224,6 @@ const MarketInsightsView: React.FC = () => {
   const isEligible = useSelector(selectPerpsEligibility);
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
-  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
-  const { gate } = useComplianceGate(selectedAddress ?? '');
   const { track } = usePerpsEventTracking();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -351,37 +347,35 @@ const MarketInsightsView: React.FC = () => {
   }, []);
 
   const handlePerpsDirectionPress = useCallback(
-    (direction: 'long' | 'short') =>
-      gate(async () => {
-        if (!isEligible) {
-          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-            [PERPS_EVENT_PROPERTY.SOURCE]:
-              PERPS_EVENT_VALUE.SOURCE.MARKET_INSIGHTS,
-          });
-          setIsEligibilityModalVisible(true);
-          return;
-        }
-
-        const event = createEventBuilder(
-          MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
-        )
-          .addProperties({
-            ...assetIdProperty,
-            ...assetSymbolProperty,
-            interaction_type: direction,
-          })
-          .build();
-        trackEvent(event);
-
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.ORDER_REDIRECT,
-          params: { direction, asset: assetSymbol },
+    async (direction: 'long' | 'short') => {
+      if (!isEligible) {
+        track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PERPS_EVENT_PROPERTY.SOURCE]:
+            PERPS_EVENT_VALUE.SOURCE.MARKET_INSIGHTS,
         });
-      }),
+        setIsEligibilityModalVisible(true);
+        return;
+      }
+
+      const event = createEventBuilder(
+        MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+      )
+        .addProperties({
+          ...assetIdProperty,
+          ...assetSymbolProperty,
+          interaction_type: direction,
+        })
+        .build();
+      trackEvent(event);
+
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.ORDER_REDIRECT,
+        params: { direction, asset: assetSymbol },
+      });
+    },
     [
-      gate,
       isEligible,
       track,
       navigation,

@@ -26,7 +26,6 @@ const mockCreateEventBuilder = jest.fn(
 const mockUseSwapBridgeNavigation = jest.fn((_options: unknown) => ({
   goToSwaps: mockGoToSwaps,
 }));
-const mockGate = jest.fn((fn: () => Promise<void>) => fn());
 const mockPerpsTrack = jest.fn();
 let mockIsEligible = true;
 
@@ -229,10 +228,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
-}));
-
-jest.mock('../../../Compliance', () => ({
-  useComplianceGate: () => ({ gate: mockGate }),
 }));
 
 jest.mock('../../../Perps/selectors/perpsController', () => ({
