@@ -357,17 +357,23 @@ if [ "$PLAT" = "ios" ]; then
       fi
 
       # Look for a freshly-built .app (mtime >= build start) once xcodebuild reports success.
+      # Iterate all MetaMask-* dirs in DerivedData — multiple worktrees produce separate
+      # dirs with different hashes, and `head -1` could pick a stale one that always fails
+      # the mtime check, causing a 900s timeout despite a successful build.
       if grep -q '\*\* BUILD SUCCEEDED \*\*\|Build Succeeded' "$BUILD_LOG" 2>/dev/null; then
-        CANDIDATE=$(find "$HOME/Library/Developer/Xcode/DerivedData" -path "*/MetaMask-*/Build/Products/Debug-iphonesimulator/MetaMask.app" -maxdepth 5 -prune 2>/dev/null | head -1)
-        if [ -n "$CANDIDATE" ] && [ -d "$CANDIDATE" ]; then
+        while IFS= read -r CANDIDATE; do
+          [ -d "$CANDIDATE" ] || continue
           APP_MTIME=$(stat -f %m "$CANDIDATE" 2>/dev/null || echo 0)
           if [ "$APP_MTIME" -ge "$BUILD_START" ]; then
             APP_PATH="$CANDIDATE"
-            echo -e "  ${GREEN}→${NC} Build Succeeded (${ELAPSED}s)"
-            kill_tree "$EXPO_PID"
-            wait $EXPO_PID 2>/dev/null || true
             break
           fi
+        done < <(find "$HOME/Library/Developer/Xcode/DerivedData" -path "*/MetaMask-*/Build/Products/Debug-iphonesimulator/MetaMask.app" -maxdepth 5 -prune 2>/dev/null)
+        if [ -n "$APP_PATH" ]; then
+          echo -e "  ${GREEN}→${NC} Build Succeeded (${ELAPSED}s)"
+          kill_tree "$EXPO_PID"
+          wait $EXPO_PID 2>/dev/null || true
+          break
         fi
       fi
 
@@ -555,6 +561,7 @@ if [ $CDP_RETRY -ge $CDP_TIMEOUT ]; then
   echo -e "  ${RED}CDP timeout — diagnostic probe:${NC}"
   probe_ports="$PORT"
   [ "$PORT" != "8081" ] && probe_ports="$probe_ports 8081"
+  count_self=0
   count_other=0
   for probe_port in $probe_ports; do
     count=$(probe_cdp_port "$probe_port")
@@ -566,10 +573,10 @@ if [ $CDP_RETRY -ge $CDP_TIMEOUT ]; then
         | python3 -c 'import sys,json
 for p in json.loads(sys.stdin.read() or "[]"):
     print(f"      - {p.get(\"title\",\"?\")} (device={p.get(\"deviceName\",\"?\")})")' 2>/dev/null || true
-      [ "$probe_port" != "$PORT" ] && count_other=$count
     fi
+    if [ "$probe_port" = "$PORT" ]; then count_self=$count; else count_other=$count; fi
   done
-  if [ "$count_other" != "0" ]; then
+  if [ "$count_self" = "0" ] && [ "$count_other" != "0" ]; then
     echo ""
     echo -e "  ${YELLOW}HINT:${NC} Targets found on 8081 but none on $PORT."
     echo -e "  ${DIM}A stale 'expo run:ios' without --port is likely holding 8081.${NC}"
