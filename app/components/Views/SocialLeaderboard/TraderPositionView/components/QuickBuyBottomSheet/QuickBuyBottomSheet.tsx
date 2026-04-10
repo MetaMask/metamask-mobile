@@ -24,7 +24,7 @@ import {
   ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
-  IconName,
+  IconName as DsIconName,
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
@@ -32,12 +32,22 @@ import {
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import Icon, {
+  IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
+import { getNetworkImageSource } from '../../../../../../util/networks';
 import type { Position } from '@metamask/social-controllers';
 import type { BottomSheetRef } from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import type { Hex } from '@metamask/utils';
+import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { useQuickBuySetup } from './useQuickBuySetup';
+import { useSourceTokenOptions } from './useSourceTokenOptions';
+import SourceTokenPicker from './SourceTokenPicker';
 import {
   setSourceAmount,
   setSourceToken,
@@ -95,14 +105,30 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const walletAddress = useSelector(selectSourceWalletAddress);
 
-  // Resolve Position → BridgeToken (source on mainnet, dest on position's chain)
+  // Resolve Position → destination BridgeToken
   const {
-    sourceChainId,
+    chainId: destChainId,
     destToken,
-    sourceToken,
     isLoading: isSetupLoading,
     isUnsupportedChain,
   } = useQuickBuySetup(position);
+
+  // Source token selection
+  const { options: sourceTokenOptions } = useSourceTokenOptions(destChainId);
+  const [selectedSourceToken, setSelectedSourceToken] = useState<
+    BridgeToken | undefined
+  >(undefined);
+  const [isSourcePickerOpen, setIsSourcePickerOpen] = useState(false);
+
+  // Auto-select the first option (highest fiat balance) when options load
+  useEffect(() => {
+    if (sourceTokenOptions.length > 0 && !selectedSourceToken) {
+      setSelectedSourceToken(sourceTokenOptions[0]);
+    }
+  }, [sourceTokenOptions, selectedSourceToken]);
+
+  const sourceToken = selectedSourceToken;
+  const sourceChainId = (sourceToken?.chainId as Hex) ?? '0x1';
 
   // Initialize STX for the source chain (where the tx originates)
   useRefreshSmartTransactionsLiveness(sourceChainId);
@@ -113,11 +139,11 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
 
   // Set tokens in bridge Redux when ready
   useEffect(() => {
-    if (sourceToken && destToken) {
-      dispatch(setSourceToken(sourceToken));
+    if (selectedSourceToken && destToken) {
+      dispatch(setSourceToken(selectedSourceToken));
       dispatch(setDestToken(destToken));
     }
-  }, [sourceToken, destToken, dispatch]);
+  }, [selectedSourceToken, destToken, dispatch]);
 
   // Convert USD → source token amount using exchange rate
   const sourceTokenAmount = useMemo(() => {
@@ -326,7 +352,7 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
           </Text>
         </Box>
         <ButtonIcon
-          iconName={IconName.Close}
+          iconName={DsIconName.Close}
           size={ButtonIconSize.Md}
           onPress={handleClose}
           testID="quick-buy-close-button"
@@ -424,53 +450,87 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
             {/* Footer details — px-4, gap-6 (24px) between sections, gap-4 (16px) between rows */}
             <Box twClassName="px-4 pb-6" gap={6}>
               <Box gap={4}>
-                {/* Pay with row */}
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Between}
+                {/* Pay with row — tappable to toggle source token picker */}
+                <TouchableOpacity
+                  onPress={() => setIsSourcePickerOpen((prev) => !prev)}
+                  disabled={sourceTokenOptions.length === 0}
+                  testID="quick-buy-pay-with-row"
                 >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings('social_leaderboard.quick_buy.pay_with')}
-                  </Text>
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
-                    gap={2}
+                    justifyContent={BoxJustifyContent.Between}
                   >
-                    <AvatarToken
-                      name={sourceToken?.symbol ?? ''}
-                      src={
-                        sourceToken?.image
-                          ? { uri: sourceToken.image }
-                          : undefined
-                      }
-                      size={AvatarTokenSize.Xs}
-                    />
                     <Text
                       variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
+                      color={TextColor.TextAlternative}
                     >
-                      {sourceToken?.symbol ?? ''}
+                      {strings('social_leaderboard.quick_buy.pay_with')}
                     </Text>
-                    {sourceBalanceFiat && (
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      gap={2}
+                    >
+                      <BadgeWrapper
+                        badgePosition={BadgePosition.BottomRight}
+                        badgeElement={
+                          <BadgeNetwork
+                            name={sourceToken?.symbol ?? ''}
+                            imageSource={getNetworkImageSource({
+                              chainId: sourceChainId,
+                            })}
+                          />
+                        }
+                      >
+                        <AvatarToken
+                          name={sourceToken?.symbol ?? ''}
+                          src={
+                            sourceToken?.image
+                              ? { uri: sourceToken.image }
+                              : undefined
+                          }
+                          size={AvatarTokenSize.Xs}
+                        />
+                      </BadgeWrapper>
                       <Text
                         variant={TextVariant.BodyMd}
-                        color={TextColor.TextAlternative}
+                        color={TextColor.TextDefault}
                       >
-                        {`(${sourceBalanceFiat})`}
+                        {sourceToken?.symbol ?? ''}
                       </Text>
-                    )}
-                    <Icon
-                      name={IconName.ArrowRight}
-                      size={IconSize.Sm}
-                      color={colors.icon.alternative}
-                    />
+                      {sourceBalanceFiat && (
+                        <Text
+                          variant={TextVariant.BodyMd}
+                          color={TextColor.TextAlternative}
+                        >
+                          {`(${sourceBalanceFiat})`}
+                        </Text>
+                      )}
+                      <Icon
+                        name={
+                          isSourcePickerOpen
+                            ? IconName.ArrowUp
+                            : IconName.ArrowDown
+                        }
+                        size={IconSize.Sm}
+                        color={colors.icon.alternative}
+                      />
+                    </Box>
                   </Box>
-                </Box>
+                </TouchableOpacity>
+
+                {/* Inline source token dropdown */}
+                {isSourcePickerOpen && (
+                  <SourceTokenPicker
+                    options={sourceTokenOptions}
+                    selectedToken={selectedSourceToken}
+                    onSelect={(token) => {
+                      setSelectedSourceToken(token);
+                      setIsSourcePickerOpen(false);
+                    }}
+                  />
+                )}
 
                 {/* Total row */}
                 <Box
