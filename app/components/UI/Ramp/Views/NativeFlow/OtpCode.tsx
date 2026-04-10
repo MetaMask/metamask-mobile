@@ -49,6 +49,7 @@ export interface V2OtpCodeParams {
   amount?: string;
   currency?: string;
   assetId?: string;
+  headlessSessionId?: string;
 }
 
 export const createV2OtpCodeNavDetails =
@@ -77,7 +78,7 @@ const ResendButton: FC<{
 const V2OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { email, stateToken, amount, currency, assetId } =
+  const { email, stateToken, amount, currency, assetId, headlessSessionId } =
     useParams<V2OtpCodeParams>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -255,7 +256,13 @@ const V2OtpCode = () => {
               selectedPaymentMethod?.id || '',
               amount,
             );
-            await routeAfterAuthentication(quote);
+            if (headlessSessionId) {
+              await routeAfterAuthentication(quote, undefined, 0, {
+                headlessSessionId,
+              });
+            } else {
+              await routeAfterAuthentication(quote);
+            }
           } catch (routeError) {
             navigation.navigate(Routes.RAMP.AMOUNT_INPUT, {
               nativeFlowError: parseUserFacingError(
@@ -300,6 +307,7 @@ const V2OtpCode = () => {
     selectedToken?.chainId,
     selectedPaymentMethod?.id,
     routeAfterAuthentication,
+    headlessSessionId,
   ]);
 
   const handleValueChange = useCallback((text: string) => {

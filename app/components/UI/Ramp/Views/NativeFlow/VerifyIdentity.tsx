@@ -37,6 +37,7 @@ export interface V2VerifyIdentityParams {
   amount?: string;
   currency?: string;
   assetId?: string;
+  headlessSessionId?: string;
 }
 
 export const createV2VerifyIdentityNavDetails =
@@ -47,15 +48,21 @@ const V2VerifyIdentity = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { userRegion } = useRampsUserRegion();
-  const { amount, currency, assetId } = useParams<V2VerifyIdentityParams>();
+  const { amount, currency, assetId, headlessSessionId } =
+    useParams<V2VerifyIdentityParams>();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
 
   const navigateToEnterEmail = useCallback(() => {
     navigation.navigate(
-      ...createV2EnterEmailNavDetails({ amount, currency, assetId }),
+      ...createV2EnterEmailNavDetails({
+        amount,
+        currency,
+        assetId,
+        headlessSessionId,
+      }),
     );
-  }, [navigation, amount, currency, assetId]);
+  }, [navigation, amount, currency, assetId, headlessSessionId]);
 
   useEffect(() => {
     navigation.setOptions(

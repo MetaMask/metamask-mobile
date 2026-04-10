@@ -34,6 +34,7 @@ export interface V2EnterEmailParams {
   amount?: string;
   currency?: string;
   assetId?: string;
+  headlessSessionId?: string;
 }
 
 export const createV2EnterEmailNavDetails =
@@ -122,6 +123,7 @@ const V2EnterEmail = () => {
             amount: params?.amount,
             currency: params?.currency,
             assetId: params?.assetId,
+            headlessSessionId: params?.headlessSessionId,
           }),
         );
       } else {
