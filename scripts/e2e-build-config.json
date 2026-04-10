@@ -13,7 +13,6 @@
     "babel.config.js",
     "yarn.lock",
     "app/**",
-    "tests/**",
     "sentry*.properties*",
     "appwright/**",
     "scripts/build.sh",
