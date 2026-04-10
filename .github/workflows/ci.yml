@@ -638,6 +638,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      checks: write
+      pull-requests: write
     needs: [needs_e2e_build, build-android-apks, provide-android-artifact, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
@@ -767,6 +769,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      checks: write
+      pull-requests: write
     needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
