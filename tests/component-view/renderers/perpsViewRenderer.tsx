@@ -164,7 +164,7 @@ interface RenderPerpsViewOptions {
 }
 
 const DefaultRouteProbe =
-  (routeName: string): React.FC =>
+  (routeName: string): React.ComponentType<unknown> =>
   () => <Text testID={`route-${routeName}`}>{routeName}</Text>;
 
 /**
