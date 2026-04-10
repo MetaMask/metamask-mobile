@@ -24,6 +24,22 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       backgroundColor: colors.background.default,
     },
+    addWalletModalContainer: {
+      flex: 1,
+      backgroundColor: colors.background.default,
+    },
+    accountSelectorFooter: {
+      flexDirection: 'row',
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+    },
+    footerButton: {
+      flex: 1,
+    },
+    footerButtonSubsequent: {
+      flex: 1,
+      marginLeft: 16,
+    },
   });
 };
 

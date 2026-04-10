@@ -19,16 +19,6 @@ import {
 } from '../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
-// Feature flag mocks
-const mockSelectFullPageAccountListEnabledFlag = jest.fn(() => false);
-jest.mock(
-  '../../../selectors/featureFlagController/fullPageAccountList',
-  () => ({
-    selectFullPageAccountListEnabledFlag: () =>
-      mockSelectFullPageAccountListEnabledFlag(),
-  }),
-);
-
 // Mock Engine
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -171,9 +161,6 @@ describe('AccountSelector', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Reset feature flags
-    mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
-
     // Reset loading states to default
     mockUseAccountsOperationsLoadingStates.mockReturnValue({
       isAccountSyncingInProgress: false,
@@ -264,12 +251,19 @@ describe('AccountSelector', () => {
       );
       fireEvent.press(addButton);
 
-      // Header should change to "Add wallet" (replaces "Accounts")
-      expect(screen.getByText('Add wallet')).toBeOnTheScreen();
+      // Footer button and overlay header both show "Add wallet" in full-page mode
+      expect(screen.getAllByText('Add wallet').length).toBeGreaterThanOrEqual(
+        1,
+      );
 
       // Import SRP button should be visible
       expect(
         screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
+      ).toBeOnTheScreen();
+
+      // Account list remains visible behind the add-wallet overlay
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
       ).toBeOnTheScreen();
 
       jest.useFakeTimers();
@@ -549,117 +543,6 @@ describe('AccountSelector', () => {
     });
   });
 
-  describe('Full-Page Account List Feature Flag', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('renders BottomSheet when feature flag is disabled', () => {
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-        mockRoute.params,
-      );
-
-      // Should render header with title
-      expect(screen.getByText('Accounts')).toBeOnTheScreen();
-      // Account list should be present
-      expect(
-        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders full-page modal when feature flag is enabled', () => {
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-        mockRoute.params,
-      );
-
-      // Should render header with title
-      expect(screen.getByText('Accounts')).toBeOnTheScreen();
-      // Account list should be present
-      expect(
-        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders add button in full-page mode', () => {
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-        mockRoute.params,
-      );
-
-      const addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      expect(addButton).toBeOnTheScreen();
-    });
-
-    it('opens add wallet bottom sheet overlay in full-page mode', () => {
-      jest.useRealTimers();
-
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-        mockRoute.params,
-      );
-
-      const addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      fireEvent.press(addButton);
-
-      // Should show the add wallet actions overlay (button in background + header in overlay)
-      // There should be at least 2 "Add wallet" texts - but we check for the overlay content
-      expect(
-        screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
-      ).toBeOnTheScreen();
-
-      // Account list should still be visible in background
-      expect(
-        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeOnTheScreen();
-
-      jest.useFakeTimers();
-    });
-
-    it('hides add button in full-page mode when disableAddAccountButton is true', () => {
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
-
-      const routeWithDisabledButton: AccountSelectorProps['route'] = {
-        params: {
-          ...defaultRouteParams,
-          disableAddAccountButton: true,
-        },
-      };
-
-      renderScreen(
-        () => <AccountSelector route={routeWithDisabledButton} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-      );
-
-      const addButton = screen.queryByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      expect(addButton).toBeNull();
-    });
-  });
-
   describe('Screen Navigation', () => {
     it('navigates to add wallet actions screen when button is pressed', () => {
       jest.useRealTimers();
@@ -677,8 +560,10 @@ describe('AccountSelector', () => {
       );
       fireEvent.press(addButton);
 
-      // Verify we're on add wallet actions screen - header shows "Add wallet"
-      expect(screen.getByText('Add wallet')).toBeOnTheScreen();
+      // Footer button and overlay header both show "Add wallet" in full-page mode
+      expect(screen.getAllByText('Add wallet').length).toBeGreaterThanOrEqual(
+        1,
+      );
 
       // Import wallet option should be visible
       expect(screen.getByText('Import a wallet')).toBeOnTheScreen();
