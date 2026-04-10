@@ -724,7 +724,9 @@ describe('ConfirmPhoneNumber Component', () => {
         </Provider>,
       );
 
-      expect(queryByTestId('confirm-phone-number-code-field-error')).toBeNull();
+      expect(
+        queryByTestId('confirm-phone-number-code-field-error'),
+      ).not.toBeOnTheScreen();
       expect(
         queryByTestId('confirm-phone-number-phone-number-error'),
       ).toBeNull();

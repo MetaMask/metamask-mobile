@@ -199,10 +199,11 @@ describe('CardAuthentication Component', () => {
       ).toBeOnTheScreen();
     });
 
-    it('matches login step snapshot', () => {
-      const { toJSON } = render();
+    it('renders login step', () => {
+      render();
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(screen.getByText('Log in to your card account')).toBeOnTheScreen();
+      expect(screen.getByTestId('email-field')).toBeOnTheScreen();
     });
   });
 

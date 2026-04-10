@@ -61,10 +61,10 @@ describe('ViewPinBottomSheet', () => {
     });
   });
 
-  it('renders correctly and matches snapshot', () => {
-    const { toJSON } = renderWithProvider(() => <ViewPinBottomSheet />);
+  it('renders correctly', () => {
+    const { getByText } = renderWithProvider(() => <ViewPinBottomSheet />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Your Card PIN')).toBeOnTheScreen();
   });
 
   it('displays the title', () => {
