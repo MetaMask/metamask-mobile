@@ -254,13 +254,14 @@ const usePredictNavigationHandlers = ({
   }, [navigation, onBeforeNavigate]);
 
   const handleViewAllFromPositions = useCallback(() => {
+    onBeforeNavigate?.();
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
       params: {
         entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
       },
     });
-  }, [navigation]);
+  }, [navigation, onBeforeNavigate]);
 
   const handlePositionPress = useCallback(
     (position: PredictPosition) => {
