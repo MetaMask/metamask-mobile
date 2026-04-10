@@ -2,7 +2,7 @@ import {
   ComplianceController,
   type ComplianceControllerMessenger,
 } from '@metamask/compliance-controller';
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 
 /**
  * Initialize the ComplianceController.
@@ -17,7 +17,7 @@ import type { ControllerInitFunction } from '../../types';
  * @param request.persistedState - Persisted state to hydrate from.
  * @returns The initialized ComplianceController.
  */
-export const complianceControllerInit: ControllerInitFunction<
+export const complianceControllerInit: MessengerClientInitFunction<
   ComplianceController,
   ComplianceControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {
