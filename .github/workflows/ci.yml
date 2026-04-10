@@ -536,18 +536,21 @@ jobs:
 
   build-android-apks:
     name: 'Build Android APKs'
-    # [CI-DEV] Gate restored: only builds when Android-impacting files changed.
-    # When no build files changed, provide-android-artifact reuses the last artifact (~2-3 min).
+    # [CI-DEV] Gate restored: only builds when Android-impacting files changed,
+    # OR when provide-android-artifact ran but found no cached artifact (fresh branch).
     if: >-
       ${{
         github.event_name != 'merge_group' &&
         !github.event.pull_request.head.repo.fork &&
-        needs.needs_e2e_build.outputs.android_changed == 'true'
+        (
+          needs.provide-android-artifact.result == 'skipped' ||
+          needs.provide-android-artifact.outputs.artifact_found == 'false'
+        )
       }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, smart-e2e-selection]
+    needs: [needs_e2e_build, smart-e2e-selection, provide-android-artifact]
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
@@ -560,6 +563,8 @@ jobs:
     # Runs when no Android-impacting files changed: downloads APK from last successful
     # CI run on this branch (or falls back to main), then re-uploads to this run.
     # Takes ~2-3 min vs ~20 min for a full build + environment setup.
+    # If no cached artifact is found (fresh branch), emits artifact_found=false so
+    # build-android-apks can fall back to a full build instead of failing.
     if: >-
       ${{
         github.event_name != 'merge_group' &&
@@ -571,10 +576,13 @@ jobs:
       contents: read
       actions: read
     needs: [needs_e2e_build, smart-e2e-selection]
+    outputs:
+      artifact_found: ${{ steps.find-artifact.outputs.artifact_found }}
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Find and re-upload Android APK artifacts from last completed run
+        id: find-artifact
         shell: bash
         run: |
           set -euo pipefail
@@ -607,9 +615,11 @@ jobs:
           done
 
           if [ -z "$RUN_ID" ]; then
-            echo "❌ No suitable Android APK artifacts found in recent completed runs"
-            exit 1
+            echo "⚠️  No suitable Android APK artifacts found in recent completed runs — a fresh build will be triggered."
+            echo "artifact_found=false" >> $GITHUB_OUTPUT
+            exit 0
           fi
+          echo "artifact_found=true" >> $GITHUB_OUTPUT
 
           mkdir -p re-upload/apk re-upload/test-apk
 
@@ -631,6 +641,7 @@ jobs:
           done
 
       - name: Re-upload Android APK
+        if: steps.find-artifact.outputs.artifact_found == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: main-e2e-release.apk
@@ -638,6 +649,7 @@ jobs:
           retention-days: 7
 
       - name: Re-upload Android Test APK
+        if: steps.find-artifact.outputs.artifact_found == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: main-e2e-release-androidTest.apk
@@ -669,18 +681,21 @@ jobs:
 
   build-ios-apps:
     name: 'Build iOS Apps'
-    # [CI-DEV] Gate restored: only builds when iOS-impacting files changed.
-    # When no build files changed, provide-ios-artifact reuses the last artifact (~2-3 min).
+    # [CI-DEV] Gate restored: only builds when iOS-impacting files changed,
+    # OR when provide-ios-artifact ran but found no cached artifact (fresh branch).
     if: >-
       ${{
         github.event_name != 'merge_group' &&
         !github.event.pull_request.head.repo.fork &&
-        needs.needs_e2e_build.outputs.ios_changed == 'true'
+        (
+          needs.provide-ios-artifact.result == 'skipped' ||
+          needs.provide-ios-artifact.outputs.artifact_found == 'false'
+        )
       }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, smart-e2e-selection]
+    needs: [needs_e2e_build, smart-e2e-selection, provide-ios-artifact]
     uses: ./.github/workflows/build-ios-e2e.yml
     secrets: inherit
 
@@ -689,6 +704,8 @@ jobs:
     # Runs when no iOS-impacting files changed: downloads the .app from last successful
     # CI run on this branch (or falls back to main), then re-uploads to this run.
     # Takes ~2-3 min vs ~20 min for a full build + environment setup.
+    # If no cached artifact is found (fresh branch), emits artifact_found=false so
+    # build-ios-apps can fall back to a full build instead of failing.
     if: >-
       ${{
         github.event_name != 'merge_group' &&
@@ -700,10 +717,13 @@ jobs:
       contents: read
       actions: read
     needs: [needs_e2e_build, smart-e2e-selection]
+    outputs:
+      artifact_found: ${{ steps.find-artifact.outputs.artifact_found }}
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Find and re-upload iOS App artifact from last successful run
+        id: find-artifact
         shell: bash
         run: |
           set -euo pipefail
@@ -738,9 +758,11 @@ jobs:
           done
 
           if [ -z "$RUN_ID" ]; then
-            echo "❌ No suitable iOS App artifact found in recent completed runs"
-            exit 1
+            echo "⚠️  No suitable iOS App artifact found in recent completed runs — a fresh build will be triggered."
+            echo "artifact_found=false" >> $GITHUB_OUTPUT
+            exit 0
           fi
+          echo "artifact_found=true" >> $GITHUB_OUTPUT
 
           echo "⬇️ Downloading $ARTIFACT_NAME from run $RUN_ID..."
           artifact_url=$(gh api "repos/$REPO/actions/runs/$RUN_ID/artifacts?per_page=50" \
@@ -753,6 +775,7 @@ jobs:
           echo "✅ iOS artifact downloaded ($(ls re-upload/app/ | wc -l) top-level entries)"
 
       - name: Re-upload iOS App
+        if: steps.find-artifact.outputs.artifact_found == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: main-qa-MetaMask.app
