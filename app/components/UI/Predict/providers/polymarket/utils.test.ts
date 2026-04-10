@@ -1970,12 +1970,12 @@ describe('polymarket utils', () => {
       expect(result.map((m) => m.conditionId)).toEqual(['first', 'second']);
     });
 
-    it('prioritizes sortBy parameter over sport event sorting', () => {
+    it('prioritizes sport event sorting over sortBy parameter', () => {
       const markets = [
-        createMarket('totals-low-price', '["0.3", "0.7"]', 100, 100, 'totals'),
+        createMarket('totals-high-price', '["0.9", "0.1"]', 100, 100, 'totals'),
         createMarket(
-          'moneyline-high-price',
-          '["0.9", "0.1"]',
+          'moneyline-low-price',
+          '["0.3", "0.7"]',
           100,
           100,
           'moneyline',
@@ -1986,10 +1986,79 @@ describe('polymarket utils', () => {
 
       const result = sortMarkets(event, 'price');
 
-      // Price sorting overrides sport sorting
       expect(result.map((m) => m.conditionId)).toEqual([
-        'moneyline-high-price',
-        'totals-low-price',
+        'moneyline-low-price',
+        'totals-high-price',
+      ]);
+    });
+
+    it('places moneyline first for sport events even when moneyline has lower price', () => {
+      const markets = [
+        createMarket(
+          'spreads-high-price',
+          '["0.9", "0.1"]',
+          200,
+          200,
+          'spreads',
+        ),
+        createMarket('totals-mid-price', '["0.7", "0.3"]', 150, 150, 'totals'),
+        createMarket(
+          'moneyline-low-price',
+          '["0.3", "0.7"]',
+          100,
+          100,
+          'moneyline',
+        ),
+      ];
+      const sportTags = [{ id: '1', label: 'Sports', slug: 'sports' }];
+      const event = createEvent(sportTags, markets);
+
+      const result = sortMarkets(event, 'price');
+
+      // Moneyline first despite having the lowest price
+      expect(result.map((m) => m.conditionId)).toEqual([
+        'moneyline-low-price',
+        'spreads-high-price',
+        'totals-mid-price',
+      ]);
+    });
+
+    it('uses sortBy parameter for non-sport events when sortBy is provided', () => {
+      const markets = [
+        createMarket('low-price', '["0.2", "0.8"]', 100, 100),
+        createMarket('high-price', '["0.8", "0.2"]', 100, 100),
+      ];
+      const event = createEvent([], markets);
+
+      const result = sortMarkets(event, 'price');
+
+      // Non-sport events still respect sortBy
+      expect(result.map((m) => m.conditionId)).toEqual([
+        'high-price',
+        'low-price',
+      ]);
+    });
+
+    it('ignores event.sortBy for sport events', () => {
+      const markets = [
+        createMarket('totals-high-price', '["0.9", "0.1"]', 100, 100, 'totals'),
+        createMarket(
+          'moneyline-low-price',
+          '["0.2", "0.8"]',
+          100,
+          100,
+          'moneyline',
+        ),
+      ];
+      const sportTags = [{ id: '1', label: 'Sports', slug: 'sports' }];
+      const event = createEvent(sportTags, markets, 'price');
+
+      const result = sortMarkets(event);
+
+      // Sport sorting wins over event.sortBy
+      expect(result.map((m) => m.conditionId)).toEqual([
+        'moneyline-low-price',
+        'totals-high-price',
       ]);
     });
   });

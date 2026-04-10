@@ -6249,6 +6249,20 @@
     },
     "footer": {
       "add_money": "Add money"
+    },
+    "convert_stablecoins": {
+      "title": "Convert your stablecoins",
+      "description_prefix": "Get a ",
+      "description_bonus": "3% annualized bonus",
+      "description_suffix": " by converting USDC, USDT, and DAI to mUSD.",
+      "tag_dollar_backed": "Dollar-backed",
+      "tag_no_lockups": "No lockups",
+      "tag_no_fee": "No MetaMask fee",
+      "tag_daily_bonus": "Daily bonus",
+      "convert_cta": "Convert to mUSD",
+      "learn_more": "Learn more",
+      "swap": "Swap",
+      "buy": "Buy"
     }
   },
   "stake": {
@@ -6263,6 +6277,10 @@
       "unstake_failed": "Unstaking failed",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
+      "total_rewards": "Total rewards",
+      "total_claimable_rewards": "Total claimable rewards",
+      "estimated_rewards_api_unavailable": "We couldn’t load estimated annual rewards. Try again later.",
+      "fiat_unavailable": "Fiat values are temporarily unavailable.",
       "estimated_annual_reward": "Est. annual reward",
       "trx_locked_for": "TRX locked for",
       "trx_locked_for_minimum_time": "~3 days",
@@ -6525,6 +6543,7 @@
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
       "receive_as": "Receive",
+      "from": "From",
       "to": "To",
       "total": "Total",
       "you_receive": "You'll receive",
@@ -6681,11 +6700,11 @@
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction",
     "available_balance": "Available balance: ",
-    "available_perps_balance": "Available Perps balance: ",
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
+    "deposit_edit_amount_musd_conversion": "Convert to mUSD",
+    "no_funds_use_different_account": "No funds available. Use a different account."
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -6885,8 +6904,17 @@
     "ios_need_update_description": "MetaMask Google Sign-In will soon require ",
     "ios_need_update_description_version": "iOS 17.4 or later",
     "ios_need_update_description_end": ". You can continue using Google Sign-In on this device for now, but it will no longer be supported in an upcoming update.",
-    "ios_need_update_description2": "You can still access your wallet using the same Google account on a supported device or the MetaMask extension. We strongly recommend backing up your Secret Recovery Phrase to ensure uninterrupted access.",
-    "ios_need_update_button": "Continue"
+    "ios_need_update_description2": "You can still access your wallet using the same Google account on a supported device or the MetaMask extension. We also advise backing up your Secret Recovery Phrase if you are proceeding without updating iOS.",
+    "ios_need_update_button": "Continue",
+    "ios_google_login_unsupported_blocking_title": "Update iOS to create a wallet with Google",
+    "ios_google_login_unsupported_blocking_description": "MetaMask's Google Sign-In requires iOS 17.4 or later. Update your iPhone to continue creating a wallet with Google.",
+    "ios_google_login_unsupported_blocking_description_2": "Alternatively, you can create a wallet using a Secret Recovery Phrase instead.",
+    "ios_google_login_unsupported_blocking_button": "Close",
+    "ios_google_login_unsupported_blocking_rehydration_title": "Google Sign-In unavailable on this iOS version",
+    "ios_google_login_unsupported_blocking_rehydration_description": "MetaMask's Google Sign-In now requires iOS 17.4 or later. Your wallet and funds are safe.",
+    "ios_google_login_unsupported_blocking_rehydration_description_2": "Update your iPhone to iOS 17.4 or later to continue using Google Sign-In.",
+    "ios_google_login_unsupported_blocking_rehydration_description_3": "Can't update? You can still access your wallet by signing in on another device with the same Google login and password or importing with your Secret Recovery Phrase.",
+    "ios_google_login_unsupported_blocking_rehydration_button": "Close"
   },
   "password_hint": {
     "title": "Password hint",
@@ -8356,8 +8384,8 @@
   },
   "homepage": {
     "sections": {
-      "cash": "Cash",
-      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash": "Money",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Money section on the homepage.",
       "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "Tokens",
       "perpetuals": "Perpetuals",

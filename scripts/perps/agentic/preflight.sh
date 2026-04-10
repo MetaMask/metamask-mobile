@@ -107,6 +107,36 @@ ok()   { echo -e "  ${GREEN}✓${NC} $*"; }
 warn() { echo -e "  ${YELLOW}⚠${NC} $*"; }
 fail() { echo -e "  ${RED}✗${NC} $*"; exit 1; }
 
+# Kill a process and all its descendants.
+# We need this because `$!` after `eval "$EXPO_CMD" &` points at the yarn
+# corepack wrapper, not the deep child (yarn → corepack → yarn.cjs → node
+# expo/cli) that actually binds $PORT. Killing just the wrapper leaves the
+# child alive and still holding the port. Scoped strictly to descendants of
+# the given PID — safe for parallel worktrees / farmslot slots.
+collect_tree() {
+  local parent=$1
+  local children
+  children=$(pgrep -P "$parent" 2>/dev/null || true)
+  for child in $children; do
+    collect_tree "$child"
+  done
+  echo "$parent"
+}
+kill_tree() {
+  local pids
+  pids=$(collect_tree "$1")
+  for p in $pids; do kill -TERM "$p" 2>/dev/null || true; done
+  local t=0
+  while [ $t -lt 20 ]; do
+    local alive=0
+    for p in $pids; do kill -0 "$p" 2>/dev/null && alive=1; done
+    [ $alive -eq 0 ] && return
+    sleep 0.1
+    t=$((t + 1))
+  done
+  for p in $pids; do kill -KILL "$p" 2>/dev/null || true; done
+}
+
 # ── Early fixture validation (fail fast before long pipeline) ────────
 if $DO_WALLET_SETUP; then
   if [ ! -f "$WALLET_FIXTURE" ]; then
@@ -184,6 +214,44 @@ else
   echo -e "  Mode: default (Metro → CDP)"
 fi
 
+# ── Zombie sweep (silent when clean) ─────────────────────────────────
+# Detect and clean up orphaned expo/metro processes from previous crashed runs.
+# These leave a port bound (usually $PORT or the expo default 8081), and any app
+# launched afterwards may register its Hermes inspector on the wrong port — which
+# breaks CDP discovery and looks like an unrelated bug.
+# Scope: only kill processes we can identify as expo/metro/react-native. Anything
+# else on the port is foreign and we fail loudly with the holder's command.
+sweep_port() {
+  local port=$1
+  local label=$2
+  local holder_pid
+  holder_pid=$(lsof -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -1 || true)
+  [ -z "$holder_pid" ] && return 0
+
+  local holder_cmd
+  holder_cmd=$(ps -p "$holder_pid" -o command= 2>/dev/null || echo unknown)
+
+  if echo "$holder_cmd" | grep -qE 'expo (run|start)|react-native|metro'; then
+    if $CHECK_ONLY; then
+      fail "Port $port ($label) held by stale $holder_cmd (PID $holder_pid) — run without --check-only to sweep"
+    fi
+    warn "Port $port ($label) held by stale process (PID $holder_pid)"
+    echo -e "  ${DIM}${holder_cmd:0:100}${NC}"
+    kill_tree "$holder_pid"
+    sleep 1
+    if lsof -iTCP:"$port" -sTCP:LISTEN -t >/dev/null 2>&1; then
+      fail "Failed to free port $port — manual cleanup required"
+    fi
+    ok "Port $port freed"
+  else
+    fail "Port $port ($label) held by foreign process (PID $holder_pid): ${holder_cmd:0:80}"
+  fi
+}
+
+sweep_port "$PORT" "worktree Metro"
+# expo CLI's hardcoded default — any prior run without --port leaks here.
+[ "$PORT" != "8081" ] && sweep_port 8081 "expo default"
+
 # ── Step: yarn setup (clean only) ────────────────────────────────────
 if $DO_CLEAN; then
   if [ "$PLAT" = "ios" ]; then
@@ -234,29 +302,111 @@ if [ "$PLAT" = "ios" ]; then
     $CHECK_ONLY && fail "App not installed (run with --rebuild)"
     echo ""
     echo -e "  ${YELLOW}Building + installing app${NC}"
-    echo -e "  ${DIM}expo run:ios --no-bundler${NC}"
+    echo -e "  ${DIM}expo run:ios --port \$PORT (bundler killed after build, start-metro.sh takes over)${NC}"
     echo ""
 
     echo "  Running pod install via bundler..."
     (cd ios && bundle exec pod install --repo-update --ansi 2>&1 | tail -3) || warn "pod install had issues"
 
-    EXPO_CMD="yarn expo run:ios --no-install --no-bundler --port $PORT --configuration Debug --scheme MetaMask"
+    # Must pass --port (never --no-bundler): @expo/cli rejects that combo
+    # (resolveBundlerProps.js), and without --port expo's headless bundler silently
+    # binds the hardcoded default 8081, which collides with other worktrees and
+    # causes the installed app to register its Hermes inspector on 8081 instead of
+    # the worktree's $PORT — breaking CDP discovery.
+    EXPO_CMD="yarn expo run:ios --no-install --port $PORT --configuration Debug --scheme MetaMask"
     [ -n "${IOS_SIMULATOR:-}" ] && EXPO_CMD="$EXPO_CMD --device $IOS_SIMULATOR"
 
+    # expo run:ios does not exit after a successful build — it keeps Metro running
+    # and streams simulator logs indefinitely. We only need the .app artifact here:
+    # start-metro.sh owns the Metro lifecycle in step [4/N]. Background expo, tee
+    # output to a log, watch for the success marker, then tear down the whole expo
+    # subprocess tree. We must walk the tree (yarn → corepack → yarn.cjs → node
+    # expo/cli) because killing only $! leaves the deep child alive and orphaned,
+    # still holding $PORT — which would defeat start-metro.sh and break CDP.
+    BUILD_LOG=".agent/ios-expo-build.log"
+    mkdir -p "$(dirname "$BUILD_LOG")"
+    : > "$BUILD_LOG"
+    BUILD_START=$(date +%s)
+
     set +e
-    eval "$EXPO_CMD" 2>&1 | while IFS= read -r line; do
-      case "$line" in
-        *"Build Succeeded"*) echo -e "  ${GREEN}→${NC} $line" ;;
-        *"error:"*)          echo -e "  ${RED}→${NC} $line" ;;
-        *"failed"*)          echo -e "  ${RED}→${NC} $line" ;;
-        *"Something went wrong"*) echo -e "  ${RED}→${NC} $line" ;;
-      esac
+    eval "$EXPO_CMD" >"$BUILD_LOG" 2>&1 &
+    EXPO_PID=$!
+
+    APP_PATH=""
+    BUILD_TIMEOUT=900
+    while :; do
+      NOW=$(date +%s)
+      ELAPSED=$((NOW - BUILD_START))
+      if [ $ELAPSED -ge $BUILD_TIMEOUT ]; then
+        kill_tree "$EXPO_PID"
+        wait $EXPO_PID 2>/dev/null || true
+        echo ""
+        echo -e "  ${RED}Build log tail:${NC}"
+        tail -30 "$BUILD_LOG" | sed 's/^/    /'
+        fail "Build timed out after ${BUILD_TIMEOUT}s — see $BUILD_LOG"
+      fi
+
+      # Look for a freshly-built .app (mtime >= build start) once xcodebuild reports success.
+      # Check success BEFORE errors: the cumulative log may contain non-fatal warnings
+      # matching "Something went wrong" early in the build that would false-positive if
+      # we checked errors first.
+      # Iterate all MetaMask-* dirs in DerivedData — multiple worktrees produce separate
+      # dirs with different hashes, and `head -1` could pick a stale one that always fails
+      # the mtime check, causing a 900s timeout despite a successful build.
+      if grep -q '\*\* BUILD SUCCEEDED \*\*\|Build Succeeded' "$BUILD_LOG" 2>/dev/null; then
+        while IFS= read -r CANDIDATE; do
+          [ -d "$CANDIDATE" ] || continue
+          APP_MTIME=$(stat -f %m "$CANDIDATE" 2>/dev/null || echo 0)
+          if [ "$APP_MTIME" -ge "$BUILD_START" ]; then
+            APP_PATH="$CANDIDATE"
+            break
+          fi
+        done < <(find "$HOME/Library/Developer/Xcode/DerivedData" -path "*/MetaMask-*/Build/Products/Debug-iphonesimulator/MetaMask.app" -maxdepth 5 -prune 2>/dev/null)
+        if [ -n "$APP_PATH" ]; then
+          echo -e "  ${GREEN}→${NC} Build Succeeded (${ELAPSED}s)"
+          kill_tree "$EXPO_PID"
+          wait $EXPO_PID 2>/dev/null || true
+          break
+        fi
+      fi
+
+      # Surface fatal CLI errors only after confirming build hasn't succeeded.
+      if grep -qE 'CommandError:|BUILD FAILED' "$BUILD_LOG" 2>/dev/null; then
+        kill_tree "$EXPO_PID"
+        wait $EXPO_PID 2>/dev/null || true
+        echo ""
+        echo -e "  ${RED}Build log tail:${NC}"
+        tail -30 "$BUILD_LOG" | sed 's/^/    /'
+        fail "Build failed — see $BUILD_LOG"
+      fi
+
+      # If expo exited on its own before we found a fresh .app, treat as failure.
+      if ! kill -0 $EXPO_PID 2>/dev/null; then
+        echo ""
+        echo -e "  ${RED}expo run:ios exited without producing a fresh .app${NC}"
+        echo -e "  ${RED}Build log tail:${NC}"
+        tail -30 "$BUILD_LOG" | sed 's/^/    /'
+        fail "Build failed — see $BUILD_LOG"
+      fi
+
+      sleep 2
     done
     set -e
 
-    APP_PATH=$(find "$HOME/Library/Developer/Xcode/DerivedData" -path "*/MetaMask-*/Build/Products/Debug-iphonesimulator/MetaMask.app" -maxdepth 5 2>/dev/null | head -1)
+    # Wait for expo's Metro on $PORT to actually release the socket — kill_tree
+    # already SIGKILLed any stragglers, but the kernel takes a moment to free the
+    # port. start-metro.sh probes /status and would race an orphaned bundler.
+    for _ in $(seq 1 10); do
+      lsof -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1 || break
+      sleep 1
+    done
+    if lsof -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+      HOLDER=$(lsof -iTCP:"$PORT" -sTCP:LISTEN -Fc 2>/dev/null | grep '^c' | head -1)
+      fail "Port $PORT still held after expo teardown ($HOLDER) — aborting to avoid CDP misrouting"
+    fi
+
     if [ -z "$APP_PATH" ]; then
-      fail "Build artifact not found in DerivedData"
+      fail "Build artifact not found in DerivedData — see $BUILD_LOG"
     fi
 
     if $DO_CLEAN || $DO_WALLET_SETUP; then
@@ -400,7 +550,44 @@ while [ $CDP_RETRY -lt $CDP_TIMEOUT ]; do
   [ $CDP_RETRY -eq 5 ] && echo -e "  ${DIM}Still waiting... app may still be loading JS bundle${NC}"
   [ $CDP_RETRY -eq 15 ] && echo -e "  ${DIM}Taking longer than usual — check device${NC}"
 done
-[ $CDP_RETRY -ge $CDP_TIMEOUT ] && fail "CDP did not become available after ${CDP_TIMEOUT}s"
+if [ $CDP_RETRY -ge $CDP_TIMEOUT ]; then
+  # Diagnostic: probe candidate ports before failing. The symptom we hit most
+  # often is the app registering its Hermes inspector on 8081 instead of our
+  # $PORT when a stale expo dev server lingers — surface that explicitly so we
+  # don't spend 15 tool calls diagnosing the same thing twice.
+  probe_cdp_port() {
+    curl -s --max-time 2 "http://localhost:$1/json/list" 2>/dev/null \
+      | python3 -c 'import sys,json; d=json.loads(sys.stdin.read() or "[]"); print(len(d))' 2>/dev/null \
+      || echo 0
+  }
+  echo ""
+  echo -e "  ${RED}CDP timeout — diagnostic probe:${NC}"
+  probe_ports="$PORT"
+  [ "$PORT" != "8081" ] && probe_ports="$probe_ports 8081"
+  count_self=0
+  count_other=0
+  for probe_port in $probe_ports; do
+    count=$(probe_cdp_port "$probe_port")
+    if [ "$count" = "0" ]; then
+      echo -e "    ${DIM}port $probe_port: 0 targets${NC}"
+    else
+      echo -e "    ${YELLOW}port $probe_port: $count targets${NC}"
+      curl -s --max-time 2 "http://localhost:${probe_port}/json/list" 2>/dev/null \
+        | python3 -c 'import sys,json
+for p in json.loads(sys.stdin.read() or "[]"):
+    t = p.get("title","?"); d = p.get("deviceName","?")
+    print("      - %s (device=%s)" % (t, d))' 2>/dev/null || true
+    fi
+    if [ "$probe_port" = "$PORT" ]; then count_self=$count; else count_other=$count; fi
+  done
+  if [ "$count_self" = "0" ] && [ "$count_other" != "0" ]; then
+    echo ""
+    echo -e "  ${YELLOW}HINT:${NC} Targets found on 8081 but none on $PORT."
+    echo -e "  ${DIM}A stale 'expo run:ios' without --port is likely holding 8081.${NC}"
+    echo -e "  ${DIM}Run: pgrep -fl 'expo run:ios' to confirm, then kill it and retry.${NC}"
+  fi
+  fail "CDP did not become available after ${CDP_TIMEOUT}s"
+fi
 
 # Verify CDP is connected to the right platform
 CDP_PLATFORM=$(node "$SCRIPTS/cdp-bridge.js" status 2>/dev/null | jq -r '.platform // empty' || true)
