@@ -247,8 +247,6 @@ const PerpsScreenStack = () => {
             options={{
               title: strings('perps.markets.title'),
               headerShown: false,
-              presentation: 'transparentModal',
-              detachPreviousScreen: false,
             }}
           />
 
