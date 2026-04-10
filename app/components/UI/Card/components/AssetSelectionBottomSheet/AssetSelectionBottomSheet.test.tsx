@@ -136,7 +136,6 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 // Wrapper component to provide Toast context
 const renderWithToastContext = (component: React.ReactElement) =>
   render(
-
     <ToastContext.Provider
       value={{
         toastRef: {
@@ -279,7 +278,7 @@ describe('AssetSelectionBottomSheet', () => {
       });
 
       expect(UNSAFE_getByType('ActivityIndicator' as never)).toBeTruthy();
-      expect(queryByText('No tokens available')).toBeNull();
+      expect(queryByText('No tokens available')).not.toBeOnTheScreen();
     });
 
     it('displays no tokens message when no tokens available', () => {
@@ -1076,7 +1075,7 @@ describe('AssetSelectionBottomSheet', () => {
         delegationSettings,
       });
 
-      expect(queryByText(/0x/)).toBeNull();
+      expect(queryByText(/0x/)).not.toBeOnTheScreen();
     });
   });
 

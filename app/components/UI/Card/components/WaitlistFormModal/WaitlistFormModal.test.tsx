@@ -180,7 +180,7 @@ describe('WaitlistFormModal', () => {
         mockOnLoadEnd?.();
       });
 
-      expect(queryByTestId('waitlist-form-loading')).toBeNull();
+      expect(queryByTestId('waitlist-form-loading')).not.toBeOnTheScreen();
     });
 
     it('shows the loading overlay again when a new load starts', () => {
@@ -189,7 +189,7 @@ describe('WaitlistFormModal', () => {
       act(() => {
         mockOnLoadEnd?.();
       });
-      expect(queryByTestId('waitlist-form-loading')).toBeNull();
+      expect(queryByTestId('waitlist-form-loading')).not.toBeOnTheScreen();
 
       act(() => {
         mockOnLoadStart?.();
@@ -207,7 +207,7 @@ describe('WaitlistFormModal', () => {
       });
 
       expect(getByTestId('waitlist-form-error-container')).toBeTruthy();
-      expect(queryByTestId('waitlist-form-webview')).toBeNull();
+      expect(queryByTestId('waitlist-form-webview')).not.toBeOnTheScreen();
     });
 
     it('retry button clears the error and shows the WebView again', () => {
@@ -220,7 +220,9 @@ describe('WaitlistFormModal', () => {
 
       fireEvent.press(getByTestId('waitlist-form-retry-button'));
 
-      expect(queryByTestId('waitlist-form-error-container')).toBeNull();
+      expect(
+        queryByTestId('waitlist-form-error-container'),
+      ).not.toBeOnTheScreen();
       expect(getByTestId('waitlist-form-webview')).toBeTruthy();
     });
 

@@ -90,7 +90,7 @@ describe('AssetCard', () => {
     it('does not render token avatar for "Other" option', () => {
       render({ isOther: true, symbol: 'Other' });
 
-      expect(screen.queryByTestId('token-avatar-image')).toBeNull();
+      expect(screen.queryByTestId('token-avatar-image')).not.toBeOnTheScreen();
     });
   });
 

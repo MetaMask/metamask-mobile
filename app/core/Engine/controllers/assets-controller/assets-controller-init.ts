@@ -8,7 +8,7 @@ import {
   ASSETS_UNIFY_STATE_FLAG,
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 } from '../../../../selectors/featureFlagController/assetsUnifyState';
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 import {
   type AssetsControllerMessenger,
   type AssetsControllerInitMessenger,
@@ -87,7 +87,7 @@ function getApiClient(
  * @param request.getController - Function to get a controller by name.
  * @returns The initialized controller.
  */
-export const assetsControllerInit: ControllerInitFunction<
+export const assetsControllerInit: MessengerClientInitFunction<
   AssetsController,
   AssetsControllerMessenger,
   AssetsControllerInitMessenger

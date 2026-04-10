@@ -5,7 +5,7 @@ import {
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
 } from '@metamask/multichain-account-service';
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import Engine from '../../Engine';
 import { forwardSelectedAccountGroupToSnapKeyring } from '../../../SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
@@ -17,7 +17,7 @@ import { MultichainAccountServiceInitMessenger } from '../../messengers/multicha
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized service.
  */
-export const multichainAccountServiceInit: ControllerInitFunction<
+export const multichainAccountServiceInit: MessengerClientInitFunction<
   MultichainAccountService,
   MultichainAccountServiceMessenger,
   MultichainAccountServiceInitMessenger

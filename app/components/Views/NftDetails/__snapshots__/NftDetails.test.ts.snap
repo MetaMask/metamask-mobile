@@ -388,7 +388,7 @@ exports[`NftDetails renders correctly 1`] = `
                                       onLayout={[Function]}
                                       style={
                                         {
-                                          "alignSelf": "flex-start",
+                                          "alignSelf": "auto",
                                           "position": "relative",
                                         }
                                       }

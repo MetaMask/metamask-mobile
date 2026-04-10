@@ -5,7 +5,7 @@ import {
   getTokenListControllerInitMessenger,
   TokenListControllerInitMessenger,
 } from '../messengers/token-list-controller-messenger';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { tokenListControllerInit } from './token-list-controller-init';
 import {
   TokenListController,
@@ -27,7 +27,7 @@ jest.mock('@metamask/assets-controllers', () => {
 });
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     TokenListControllerMessenger,
     TokenListControllerInitMessenger
   >
