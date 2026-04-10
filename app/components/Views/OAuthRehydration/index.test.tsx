@@ -306,7 +306,7 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(store.getState().security.dataCollectionForMarketing).toBe(true);
         expect(mockAnalyticsIdentify).toHaveBeenCalledWith({
-          [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
         });
         expect(mockAnalyticsTrackEvent).toHaveBeenCalledWith(
           expect.objectContaining({

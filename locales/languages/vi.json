@@ -6638,7 +6638,6 @@
     "nested_transaction_heading": "Giao dịch {{index}}",
     "transaction": "Bảo vệ",
     "available_balance": "Số dư khả dụng: ",
-    "available_perps_balance": "Số dư Hợp đồng vĩnh cửu khả dụng: ",
     "edit_amount_done": "Tiếp tục",
     "deposit_edit_amount_done": "Nạp tiền",
     "deposit_edit_amount_predict_withdraw": "Rút tiền",

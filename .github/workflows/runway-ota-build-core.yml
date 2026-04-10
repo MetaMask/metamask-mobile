@@ -49,6 +49,16 @@ on:
         required: false
         type: boolean
         default: false
+    outputs:
+      semantic_version:
+        description: 'package.json version at the built commit (empty when OTA path taken)'
+        value: ${{ jobs.trigger-build.outputs.semantic_version }}
+      ios_version_code:
+        description: 'iOS CURRENT_PROJECT_VERSION at the built commit (empty when OTA path taken)'
+        value: ${{ jobs.trigger-build.outputs.ios_version_code }}
+      android_version_code:
+        description: 'Android versionCode at the built commit (empty when OTA path taken)'
+        value: ${{ jobs.trigger-build.outputs.android_version_code }}
 
 permissions:
   contents: write # required by build.yml (update-build-version job)

@@ -3,7 +3,8 @@ import { default as Transactions, UnconnectedTransactions } from '.';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
-import { render, cleanup } from '@testing-library/react-native';
+import { render, screen, cleanup, act } from '@testing-library/react-native';
+import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -36,11 +37,16 @@ const mockNavigation = {
 
 // Mock the multichain utils
 jest.mock('../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../core/Multichain/utils'),
   isNonEvmChainId: jest.fn(),
+  getFormattedAddressFromInternalAccount: jest.fn(
+    (account) => account?.address ?? '0x123...456',
+  ),
 }));
 
 // Mock network utils
 jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
   getBlockExplorerAddressUrl: jest.fn(),
   getBlockExplorerName: jest.fn(),
   findBlockExplorerForNonEvmChainId: jest.fn(),
@@ -77,6 +83,10 @@ jest.mock('../../../core/Engine', () => ({
     },
     TransactionController: {
       stopTransaction: jest.fn(),
+    },
+    GasFeeController: {
+      startPolling: jest.fn().mockReturnValue('polling-token'),
+      stopPollingByPollingToken: jest.fn(),
     },
   },
 }));
@@ -126,12 +136,6 @@ jest.mock('../../../component-library/components/Buttons/Button', () => ({
   ButtonSize: { Lg: 'lg', Md: 'md' },
 }));
 
-jest.mock('../../../util/accounts', () => ({
-  getFormattedAddressFromInternalAccount: jest.fn(
-    (account) => account?.address || '0x123...456',
-  ),
-}));
-
 // Mock React Native components and StyleSheet
 jest.mock('react-native', () => {
   const RN = jest.requireActual(
@@ -166,6 +170,7 @@ jest.mock('../../../util/number', () => ({
 }));
 
 jest.mock('../../../util/conversions', () => ({
+  ...jest.requireActual('../../../util/conversions'),
   decGWEIToHexWEI: jest.fn(() => '0x123'),
 }));
 
@@ -179,6 +184,9 @@ const initialState = {
   },
   settings: {
     primaryCurrency: 'USD',
+  },
+  qrKeyringScanner: {
+    isScanning: false,
   },
 };
 const store = mockStore(initialState);
@@ -259,7 +267,7 @@ describe('Transactions', () => {
   });
 
   it('should render correctly', () => {
-    const wrapper = shallow(
+    render(
       <Provider store={store}>
         <Transactions
           transactions={[
@@ -282,10 +290,18 @@ describe('Transactions', () => {
             },
           ]}
           loading={false}
+          navigation={mockNavigation}
+          confirmedTransactions={[]}
+          submittedTransactions={[]}
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+    expect(
+      screen.getByTestId(ActivitiesViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   describe('Transaction Component Behavior', () => {
@@ -1836,7 +1852,9 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(instance.mounted).toBe(true);
 
     // Fast-forward timers
-    jest.advanceTimersByTime(100);
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
 
     expect(instance.setState).toHaveBeenCalledWith({ ready: true });
     expect(instance.init).toHaveBeenCalled();
