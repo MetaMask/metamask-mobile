@@ -45,7 +45,7 @@ const REPO_URL = process.env.GITHUB_REPOSITORY
   ? `https://github.com/${process.env.GITHUB_REPOSITORY}`
   : 'https://github.com/MetaMask/metamask-mobile';
 
-const MAX_RC_COMMIT_LINES = 20;
+const MAX_RC_COMMIT_LINES = 10;
 
 /** Commits whose subject starts with this (version bump automation) are omitted from the RC list. */
 const SKIP_CI_BUMP_VERSION_SUBJECT = /^\[skip ci\] Bump version number to/;
