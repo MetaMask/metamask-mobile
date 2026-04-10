@@ -64,16 +64,18 @@ const V2KycProcessing = () => {
     );
   }, [navigation, theme]);
 
+  const quoteId = quote?.quoteId;
+
   // Fetch KYC forms when the screen gains focus.
   // When behind the Checkout webview (via navigateToKycWebviewCallback), this
   // fires once the webview is dismissed. When navigated to directly (e.g.
   // SUBMITTED status), it fires immediately on mount.
   useFocusEffect(
     useCallback(() => {
-      if (!quote) return;
+      if (!quoteId) return;
       const fetchKycForms = async () => {
         try {
-          const result = await getAdditionalRequirements(quote.quoteId);
+          const result = await getAdditionalRequirements(quoteId);
           setKycForms(result);
         } catch (err) {
           setKycFormsError(
@@ -85,7 +87,7 @@ const V2KycProcessing = () => {
         }
       };
       fetchKycForms();
-    }, [getAdditionalRequirements, quote]),
+    }, [getAdditionalRequirements, quoteId]),
   );
 
   const fetchUserDetailsCallback = useCallback(async () => {

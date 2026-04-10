@@ -13,7 +13,8 @@ jest.mock('@react-navigation/native', () => ({
     setOptions: mockSetOptions,
   }),
   useFocusEffect: (cb: () => void) => {
-    cb();
+    const { useEffect } = jest.requireActual('react');
+    useEffect(cb, [cb]);
   },
 }));
 
@@ -89,6 +90,17 @@ describe('V2KycProcessing', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  it('renders loading state with activity indicator', async () => {
+    const { getByTestId, getByText } = renderWithTheme(<V2KycProcessing />);
+    expect(getByTestId('activity-indicator')).toBeOnTheScreen();
+    expect(getByText('deposit.kyc_processing.heading')).toBeOnTheScreen();
+    expect(getByText('deposit.kyc_processing.description')).toBeOnTheScreen();
+
+    await act(async () => {
+      await Promise.resolve();
+    });
   });
 
   it('renders activity indicator while polling', async () => {
