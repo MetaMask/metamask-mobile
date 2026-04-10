@@ -17,6 +17,7 @@ import {
   PerpsStreamProvider,
   type PerpsStreamManager,
 } from '../../../app/components/UI/Perps/providers/PerpsStreamManager';
+import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
 import PerpsMarketDetailsView from '../../../app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView';
 import PerpsMarketListView from '../../../app/components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView';
 import PerpsSelectModifyActionView from '../../../app/components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView';
@@ -149,6 +150,8 @@ function createTestStreamManager(
 export interface PerpsExtraRoute {
   name: string;
   Component?: React.ComponentType<unknown>;
+  /** 'perps-root' registers under Routes.PERPS.ROOT nested navigator; default is root stack. */
+  mount?: 'root' | 'perps-root';
 }
 
 interface RenderPerpsViewOptions {
@@ -161,7 +164,7 @@ interface RenderPerpsViewOptions {
 }
 
 const DefaultRouteProbe =
-  (routeName: string): React.FC =>
+  (routeName: string): React.ComponentType<unknown> =>
   () => <Text testID={`route-${routeName}`}>{routeName}</Text>;
 
 /**
@@ -185,26 +188,51 @@ export function renderPerpsView(
   const testStreamManager = createTestStreamManager(streamOverrides);
 
   const WrappedComponent = (props: Record<string, unknown>) => (
-    <PerpsConnectionContext.Provider value={testConnectionValue}>
-      <PerpsStreamProvider testStreamManager={testStreamManager}>
-        <Component {...props} />
-      </PerpsStreamProvider>
-    </PerpsConnectionContext.Provider>
+    <AccessRestrictedProvider>
+      <PerpsConnectionContext.Provider value={testConnectionValue}>
+        <PerpsStreamProvider testStreamManager={testStreamManager}>
+          <Component {...props} />
+        </PerpsStreamProvider>
+      </PerpsConnectionContext.Provider>
+    </AccessRestrictedProvider>
   );
+
+  const wrapRouteWithPerpsProviders = (
+    RouteComponent: React.ComponentType<unknown>,
+  ) => {
+    const WrappedRoute = (props: Record<string, unknown>) => (
+      <AccessRestrictedProvider>
+        <PerpsConnectionContext.Provider value={testConnectionValue}>
+          <PerpsStreamProvider testStreamManager={testStreamManager}>
+            <RouteComponent {...props} />
+          </PerpsStreamProvider>
+        </PerpsConnectionContext.Provider>
+      </AccessRestrictedProvider>
+    );
+    return WrappedRoute as unknown as React.ComponentType;
+  };
 
   if (extraRoutes?.length) {
     const Stack = createStackNavigator();
     const InnerStack = createStackNavigator();
+    const nestedPerpsRoutes = extraRoutes.filter(
+      ({ mount }) => mount === 'perps-root',
+    );
+    const rootRoutes = extraRoutes.filter(
+      ({ mount }) => mount !== 'perps-root',
+    );
     // PerpsTabView navigates via navigation.navigate(PERPS.ROOT, { screen: MARKET_LIST }).
     // So we register PERPS.ROOT as a nested stack containing the extra routes; then
     // navigating to ROOT with screen: MARKET_LIST shows the route probe.
     const nestedScreens = (
       <>
-        {extraRoutes.map(({ name, Component: Extra }) => (
+        {nestedPerpsRoutes.map(({ name, Component: Extra }) => (
           <InnerStack.Screen
             key={name}
             name={name}
-            component={Extra ?? DefaultRouteProbe(name)}
+            component={wrapRouteWithPerpsProviders(
+              Extra ?? DefaultRouteProbe(name),
+            )}
           />
         ))}
       </>
@@ -219,10 +247,21 @@ export function renderPerpsView(
           component={WrappedComponent as unknown as React.ComponentType}
           initialParams={initialParams}
         />
-        <Stack.Screen
-          name={Routes.PERPS.ROOT}
-          component={NestedPerpsStack as unknown as React.ComponentType}
-        />
+        {rootRoutes.map(({ name, Component: Extra }) => (
+          <Stack.Screen
+            key={`root-${name}`}
+            name={name}
+            component={wrapRouteWithPerpsProviders(
+              Extra ?? DefaultRouteProbe(name),
+            )}
+          />
+        ))}
+        {nestedPerpsRoutes.length ? (
+          <Stack.Screen
+            name={Routes.PERPS.ROOT}
+            component={NestedPerpsStack as unknown as React.ComponentType}
+          />
+        ) : null}
       </Stack.Navigator>
     );
     return renderWithProvider(stackTree, { state });
@@ -680,11 +719,13 @@ export function renderPerpsComponent(
   const testStreamManager = createTestStreamManager(streamOverrides);
 
   const WrappedComponent = () => (
-    <PerpsConnectionContext.Provider value={testConnectionValue}>
-      <PerpsStreamProvider testStreamManager={testStreamManager}>
-        <Component {...props} />
-      </PerpsStreamProvider>
-    </PerpsConnectionContext.Provider>
+    <AccessRestrictedProvider>
+      <PerpsConnectionContext.Provider value={testConnectionValue}>
+        <PerpsStreamProvider testStreamManager={testStreamManager}>
+          <Component {...props} />
+        </PerpsStreamProvider>
+      </PerpsConnectionContext.Provider>
+    </AccessRestrictedProvider>
   );
 
   return renderComponentViewScreen(
@@ -719,11 +760,13 @@ export function renderPerpsComponentDisconnected(
   };
 
   const WrappedComponent = () => (
-    <PerpsConnectionContext.Provider value={disconnectedValue}>
-      <PerpsStreamProvider testStreamManager={testStreamManager}>
-        <Component {...props} />
-      </PerpsStreamProvider>
-    </PerpsConnectionContext.Provider>
+    <AccessRestrictedProvider>
+      <PerpsConnectionContext.Provider value={disconnectedValue}>
+        <PerpsStreamProvider testStreamManager={testStreamManager}>
+          <Component {...props} />
+        </PerpsStreamProvider>
+      </PerpsConnectionContext.Provider>
+    </AccessRestrictedProvider>
   );
 
   return renderComponentViewScreen(
