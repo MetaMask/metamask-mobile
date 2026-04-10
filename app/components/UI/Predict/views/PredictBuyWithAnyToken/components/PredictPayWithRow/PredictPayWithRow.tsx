@@ -11,6 +11,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import { strings } from '../../../../../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -20,6 +21,7 @@ import Icon, {
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { useTransactionPayToken } from '../../../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import { hasTransactionType } from '../../../../../../Views/confirmations/utils/transaction';
 import { TokenIcon } from '../../../../../../Views/confirmations/components/token-icon';
 import { isHardwareAccount } from '../../../../../../../util/address';
 import { POLYGON_USDCE } from '../../../../../../Views/confirmations/constants/predict';
@@ -39,8 +41,13 @@ export function PredictPayWithRow({
   const { payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const from = transactionMeta?.txParams?.from;
+  const isPredictDepositAndOrder = hasTransactionType(transactionMeta, [
+    TransactionType.predictDepositAndOrder,
+  ]);
   const canEdit =
-    !isHardwareAccount((from as string) ?? '') && !disabled && transactionMeta;
+    !isHardwareAccount((from as string) ?? '') &&
+    !disabled &&
+    isPredictDepositAndOrder;
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
 

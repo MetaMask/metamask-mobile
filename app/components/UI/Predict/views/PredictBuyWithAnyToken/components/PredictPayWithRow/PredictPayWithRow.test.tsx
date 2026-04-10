@@ -59,6 +59,14 @@ jest.mock('../../../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(() => false),
 }));
 
+let mockHasTransactionType = true;
+jest.mock('../../../../../../Views/confirmations/utils/transaction', () => ({
+  hasTransactionType: (transactionMeta: unknown) => {
+    if (!transactionMeta) return false;
+    return mockHasTransactionType;
+  },
+}));
+
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     if (key === 'confirm.label.pay_with') return 'Pay with';
@@ -93,6 +101,7 @@ describe('PredictPayWithRow', () => {
     mockIsPredictBalanceSelected = false;
     mockSelectedPaymentToken = null;
     mockIsHardwareAccount.mockReturnValue(false);
+    mockHasTransactionType = true;
   });
 
   it('renders label with payToken symbol', () => {
@@ -265,5 +274,23 @@ describe('PredictPayWithRow', () => {
     expect(
       screen.queryByText('Predict balance used first'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('does not navigate when transaction is not predictDepositAndOrder', () => {
+    mockHasTransactionType = false;
+
+    renderWithProvider(<PredictPayWithRow />);
+    fireEvent.press(screen.getByText('Pay with USDC'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('hides arrow icon when transaction is not predictDepositAndOrder', () => {
+    mockHasTransactionType = false;
+
+    const { toJSON } = renderWithProvider(<PredictPayWithRow />);
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).not.toContain('ArrowDown');
   });
 });
