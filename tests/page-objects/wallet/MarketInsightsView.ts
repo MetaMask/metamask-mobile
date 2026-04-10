@@ -117,7 +117,9 @@ class MarketInsightsView {
   }
 
   get thumbsUpFilledIcon() {
-    return Matchers.getElementByID('icon-ThumbUpFilled');
+    return Matchers.getElementByID(
+      MarketInsightsSelectorsIDs.THUMBS_UP_FILLED_ICON,
+    );
   }
 
   async expectThumbsUpButtonVisible(): Promise<void> {
