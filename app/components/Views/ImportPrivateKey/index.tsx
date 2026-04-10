@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { Alert, TextInput, View, DimensionValue } from 'react-native';
+import { Alert, TextInput, View, DimensionValue, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -66,16 +66,12 @@ const ImportPrivateKey = () => {
     // eslint-disable-next-line
   }, []);
 
-  const learnMore = () =>
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: isSRP
-          ? 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key'
-          : 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
-        title: strings('drawer.metamask_support'),
-      },
-    });
+  const learnMore = () => {
+    const url = isSRP
+      ? 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key'
+      : 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet';
+    Linking.openURL(url);
+  };
 
   const dismiss = () => {
     navigation.goBack();

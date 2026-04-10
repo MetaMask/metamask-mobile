@@ -7,7 +7,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { ImportAccountFromPrivateKeyIDs } from './ImportAccountFromPrivateKey.testIds';
-import { Alert } from 'react-native';
+import { Alert, Linking } from 'react-native';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -149,6 +149,7 @@ describe('ImportPrivateKey', () => {
   });
 
   it('calls learnMore function with srp url when learn more text is pressed', () => {
+    jest.spyOn(Linking, 'openURL').mockImplementation(jest.fn());
     const { getByText } = renderScreen(
       ImportPrivateKey,
       { name: 'ImportPrivateKey' },
@@ -159,16 +160,13 @@ describe('ImportPrivateKey', () => {
     expect(learnMoreText).toBeOnTheScreen();
     fireEvent.press(learnMoreText);
 
-    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key',
-        title: strings('drawer.metamask_support'),
-      },
-    });
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key',
+    );
   });
 
   it('calls learnMore function with social login url when learn more text is pressed', () => {
+    jest.spyOn(Linking, 'openURL').mockImplementation(jest.fn());
     const { getByText } = renderScreen(
       ImportPrivateKey,
       { name: 'ImportPrivateKey' },
@@ -180,13 +178,9 @@ describe('ImportPrivateKey', () => {
 
     fireEvent.press(learnMoreText);
 
-    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
-        title: strings('drawer.metamask_support'),
-      },
-    });
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
+    );
   });
 
   it('calls scanPkey function when QR scan button is pressed', () => {
