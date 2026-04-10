@@ -90,6 +90,6 @@ describe('ReceiveRow', () => {
 
   it('renders receive amount from totals without quotes', () => {
     const { getByText } = render();
-    expect(getByText(EXPECTED_RECEIVE_MOCK)).toBeDefined();
+    expect(getByText(EXPECTED_RECEIVE_MOCK)).toBeOnTheScreen();
   });
 });

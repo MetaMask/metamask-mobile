@@ -109,7 +109,7 @@ describe('BridgeFeeRow', () => {
   it('renders fee from totals when there are no quotes', () => {
     useTransactionPayQuotesMock.mockReturnValue([]);
     const { getByText } = render();
-    expect(getByText('$1.23')).toBeDefined();
+    expect(getByText('$1.23')).toBeOnTheScreen();
   });
 
   it('does not render tooltip when there are no quotes', () => {

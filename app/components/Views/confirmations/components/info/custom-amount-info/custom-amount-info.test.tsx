@@ -566,7 +566,7 @@ describe('CustomAmountInfo', () => {
       const { getByText, getByTestId } = render();
       await pressDone(getByText);
 
-      expect(getByTestId('bridge-fee-row')).toBeDefined();
+      expect(getByTestId('bridge-fee-row')).toBeOnTheScreen();
     });
 
     it('hides fee rows when blocking alerts are present and no quotes', async () => {
@@ -592,7 +592,7 @@ describe('CustomAmountInfo', () => {
       const { getByText, getByTestId } = render();
       await pressDone(getByText);
 
-      expect(getByTestId('bridge-fee-row')).toBeDefined();
+      expect(getByTestId('bridge-fee-row')).toBeOnTheScreen();
     });
   });
 });

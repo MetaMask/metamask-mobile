@@ -113,7 +113,7 @@ describe('BridgeTimeRow', () => {
 
     const { getByText } = render();
 
-    expect(getByText('< 10 sec')).toBeDefined();
+    expect(getByText('< 10 sec')).toBeOnTheScreen();
   });
 
   it('renders skeleton if quotes loading', async () => {

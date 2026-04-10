@@ -32,7 +32,7 @@ export function BridgeTimeRow() {
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
 
-  const isSameChain = payToken?.chainId === chainId;
+  const isSameChain = payToken?.chainId != null && payToken.chainId === chainId;
 
   const showEstimate =
     !hasTransactionType(transactionMetadata, HIDE_TYPES) &&
