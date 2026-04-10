@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -17,6 +17,7 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
@@ -26,6 +27,14 @@ const TEMP_ALERT_HANDLER = () => alert('Under construction 🚧');
 const MoneyHomeView = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+
+  const {
+    musdBalanceResult,
+    musdShfvdBalanceResult,
+    exchangeRateResult,
+    // vaultApyResult,
+    musdEquivalentBalanceResult,
+  } = useMoneyAccountBalance();
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
 
