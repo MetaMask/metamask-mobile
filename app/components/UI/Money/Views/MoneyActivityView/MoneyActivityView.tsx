@@ -19,7 +19,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import MoneyActivityItem from '../../components/MoneyActivityItem';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
@@ -43,7 +43,10 @@ interface DateSection {
   data: TransactionMeta[];
 }
 
-function groupByDate(transactions: TransactionMeta[]): DateSection[] {
+function groupByDate(
+  transactions: TransactionMeta[],
+  locale: string,
+): DateSection[] {
   const groups = new Map<string, TransactionMeta[]>();
   for (const tx of transactions) {
     const key = getMoneyActivityDateKeyUtc(tx);
@@ -55,7 +58,7 @@ function groupByDate(transactions: TransactionMeta[]): DateSection[] {
     }
   }
   return Array.from(groups.entries()).map(([dateKey, data]) => ({
-    title: new Date(`${dateKey}T00:00:00.000Z`).toLocaleDateString('en-US', {
+    title: new Date(`${dateKey}T00:00:00.000Z`).toLocaleDateString(locale, {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
@@ -91,7 +94,10 @@ const MoneyActivityView = () => {
     return transfers;
   }, [filter, allTransactions, deposits, transfers]);
 
-  const sections = useMemo(() => groupByDate(filtered), [filtered]);
+  const sections = useMemo(
+    () => groupByDate(filtered, I18n.locale),
+    [filtered],
+  );
 
   const renderSectionHeader = ({ section }: { section: DateSection }) => (
     <Box twClassName="px-4 pt-2 pb-1 bg-default">

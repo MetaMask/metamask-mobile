@@ -6,7 +6,6 @@ import type { Hex } from '@metamask/utils';
 import { safeToChecksumAddress } from '../../../../util/address';
 import {
   buildMoneyActivityFiatLine,
-  convertUsdToSelectedFiat,
   formatMoneyActivityFiatDisplay,
 } from './moneyActivityFiat';
 import { getMusdDisplayAmountFromTransactionMeta } from '../constants/activityStyles';
@@ -67,31 +66,6 @@ function makeIncomingTx(
 }
 
 describe('moneyActivityFiat', () => {
-  describe('convertUsdToSelectedFiat', () => {
-    it('returns the same amount when USD is selected', () => {
-      expect(convertUsdToSelectedFiat(100, mockRates, 'usd')).toBe(100);
-      expect(convertUsdToSelectedFiat(100, mockRates, 'USD')).toBe(100);
-    });
-
-    it('converts using ETH rate ratio when non-USD is selected', () => {
-      const eurRates = {
-        ETH: {
-          conversionRate: 2300,
-          usdConversionRate: 2500,
-          conversionDate: null as number | null,
-        },
-      };
-      expect(convertUsdToSelectedFiat(1000, eurRates, 'eur')).toBeCloseTo(
-        1000 * (2300 / 2500),
-        5,
-      );
-    });
-
-    it('returns undefined when rates are missing', () => {
-      expect(convertUsdToSelectedFiat(100, {}, 'eur')).toBeUndefined();
-    });
-  });
-
   describe('formatMoneyActivityFiatDisplay', () => {
     it('uses exactly two fractional digits', () => {
       const out = formatMoneyActivityFiatDisplay(1234.5, 'USD');
@@ -119,11 +93,18 @@ describe('moneyActivityFiat', () => {
       expect(line).toMatch(/920/);
     });
 
-    it('falls back to USD-equivalent conversion for mUSD when market data is missing', () => {
+    it('converts mUSD to fiat via peg-derived token→ETH price when market data is missing', () => {
       const tx = makeIncomingTx('1000000000');
       expect(buildMoneyActivityFiatLine(tx, mockRates, 'usd', {})).toMatch(
         /^\+.*1,000\.00/,
       );
+    });
+
+    it('converts mUSD to EUR via peg when market data is missing', () => {
+      const tx = makeIncomingTx('1000000000');
+      const line = buildMoneyActivityFiatLine(tx, mockRatesEur, 'eur', {});
+      expect(line).toMatch(/^\+/);
+      expect(line).toMatch(/920/);
     });
 
     it('returns empty when market data is missing and token is not mUSD-like', () => {

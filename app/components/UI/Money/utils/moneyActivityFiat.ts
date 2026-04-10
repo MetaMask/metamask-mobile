@@ -10,6 +10,7 @@ import {
 } from '../../../../util/number';
 import { isMusdToken } from '../../Earn/constants/musd';
 import { getMoneyAmountPrefixForTransactionMeta } from '../constants/activityStyles';
+import { ETH_TICKER } from '../constants/moneyTokens';
 
 export type CurrencyRatesMap = NonNullable<CurrencyRateState['currencyRates']>;
 
@@ -76,60 +77,57 @@ function isMusdLikeForFiatFallback(
   return isMusdToken(contractAddress) || symbol?.toUpperCase() === 'MUSD';
 }
 
+interface CurrencyRateEntryLike {
+  conversionRate?: number | null;
+  usdConversionRate?: number | null;
+}
+
+interface ResolvedFiatConversionRateEntry {
+  conversionRate: number;
+  usdConversionRate: number;
+}
+
+/**
+ * Picks a rate entry for fiat conversion: prefers `preferredTicker` when both
+ * `conversionRate` and `usdConversionRate` are present, otherwise falls back to
+ * the first map entry that has both.
+ */
+function resolveCurrencyRateEntry(
+  currencyRates: CurrencyRatesMap | undefined,
+  preferredTicker: string,
+): ResolvedFiatConversionRateEntry | undefined {
+  if (!currencyRates) {
+    return undefined;
+  }
+  const preferredEntry: CurrencyRateEntryLike | undefined =
+    currencyRates[preferredTicker];
+  const hasValidRates = (e: CurrencyRateEntryLike | undefined) =>
+    Boolean(e?.conversionRate && e?.usdConversionRate);
+
+  const rateEntry = hasValidRates(preferredEntry)
+    ? preferredEntry
+    : Object.values(currencyRates).find(hasValidRates);
+
+  if (
+    rateEntry?.conversionRate == null ||
+    rateEntry.usdConversionRate == null
+  ) {
+    return undefined;
+  }
+
+  return {
+    conversionRate: rateEntry.conversionRate,
+    usdConversionRate: rateEntry.usdConversionRate,
+  };
+}
+
 /**
  * ETH → user's selected fiat rate from {@link CurrencyRateController} (same denominator as token→ETH `price`).
  */
 function getEthToFiatConversionRate(
   currencyRates: CurrencyRatesMap | undefined,
 ): number | undefined {
-  if (!currencyRates) {
-    return undefined;
-  }
-  const ethEntry = currencyRates.ETH;
-  const hasValidRates = (e: (typeof currencyRates)[string] | undefined) =>
-    Boolean(e?.conversionRate && e?.usdConversionRate);
-
-  const rateEntry = hasValidRates(ethEntry)
-    ? ethEntry
-    : Object.values(currencyRates).find(hasValidRates);
-
-  if (!rateEntry?.conversionRate || !rateEntry?.usdConversionRate) {
-    return undefined;
-  }
-
-  return rateEntry.conversionRate;
-}
-
-/**
- * Converts a USD-equivalent amount (mUSD peg 1:1) to the user's selected fiat.
- * Inverse of {@link convertFiatToUsd}: `fiat = usd * (conversionRate / usdConversionRate)`
- * using native rates (e.g. ETH) where both rates share the same denominator.
- */
-export function convertUsdToSelectedFiat(
-  usdAmount: number,
-  currencyRates: CurrencyRatesMap | undefined,
-  currentCurrency: string | undefined,
-): number | undefined {
-  if (!currentCurrency || !currencyRates) {
-    return undefined;
-  }
-  if (currentCurrency.toLowerCase() === 'usd') {
-    return usdAmount;
-  }
-
-  const ethEntry = currencyRates.ETH;
-  const hasValidRates = (e: (typeof currencyRates)[string] | undefined) =>
-    Boolean(e?.conversionRate && e?.usdConversionRate);
-
-  const rateEntry = hasValidRates(ethEntry)
-    ? ethEntry
-    : Object.values(currencyRates).find(hasValidRates);
-
-  if (!rateEntry?.conversionRate || !rateEntry?.usdConversionRate) {
-    return undefined;
-  }
-
-  return usdAmount * (rateEntry.conversionRate / rateEntry.usdConversionRate);
+  return resolveCurrencyRateEntry(currencyRates, ETH_TICKER)?.conversionRate;
 }
 
 /**
@@ -154,10 +152,13 @@ export function formatMoneyActivityFiatDisplay(
 
 /**
  * Secondary fiat line for a Money activity row: prefix (+/-) + localized currency (2 decimals).
- * Uses token→ETH `price` from market data and ETH→fiat from {@link CurrencyRateController},
- * matching {@link balanceToFiat} / TransactionElement ERC-20 handling.
- * When `price` is missing (common before rates load), mUSD falls back to a USD-equivalent
- * amount and {@link convertUsdToSelectedFiat} so a line still renders.
+ * Converts **token → fiat** via {@link balanceToFiatNumber}: human token amount × ETH→fiat
+ * × token→ETH `price` from market data, matching {@link balanceToFiat} / TransactionElement
+ * ERC-20 handling.
+ *
+ * When market `price` is missing (common before rates load), mUSD-like tokens use the same
+ * `balanceToFiatNumber` path with a **synthetic** token→ETH price from a 1:1 USD peg
+ * (`1 / usdConversionRate` on the resolved ETH rate entry), so the pipeline stays token→fiat.
  */
 export function buildMoneyActivityFiatLine(
   tx: TransactionMeta,
@@ -213,12 +214,18 @@ export function buildMoneyActivityFiatLine(
       2,
     );
   } else if (isMusdLikeForFiatFallback(ti.contractAddress, ti.symbol)) {
-    const converted = convertUsdToSelectedFiat(
-      absAmount,
-      currencyRates,
-      currentCurrency,
-    );
-    fiatNumber = converted;
+    const rateEntry = resolveCurrencyRateEntry(currencyRates, ETH_TICKER);
+    if (rateEntry === undefined || rateEntry.usdConversionRate === 0) {
+      fiatNumber = undefined;
+    } else {
+      const tokenToEthPricePeg = 1 / rateEntry.usdConversionRate;
+      fiatNumber = balanceToFiatNumber(
+        absAmount,
+        rateEntry.conversionRate,
+        tokenToEthPricePeg,
+        2,
+      );
+    }
   }
 
   if (fiatNumber === undefined) {

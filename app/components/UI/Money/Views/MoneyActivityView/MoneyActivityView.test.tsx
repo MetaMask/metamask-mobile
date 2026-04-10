@@ -44,6 +44,8 @@ jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en-US' },
   strings: (key: string) => {
     const map: Record<string, string> = {
       'money.activity.title': 'Activity',
