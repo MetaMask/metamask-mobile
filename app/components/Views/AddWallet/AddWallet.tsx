@@ -44,7 +44,7 @@ const AddWallet = () => {
     () => [
       {
         analyticsEvent: MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
-        description: 'Using a 12, 18 or 24-word seed phrase',
+        description: strings('multichain_accounts.add_wallet_srp_description'),
         iconName: IconName.Wallet,
         routeName: Routes.MULTI_SRP.IMPORT,
         testID: AddWalletTestIds.IMPORT_WALLET_BUTTON,
@@ -52,7 +52,9 @@ const AddWallet = () => {
       },
       {
         analyticsEvent: MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-        description: 'Via a private key',
+        description: strings(
+          'multichain_accounts.add_wallet_private_key_description',
+        ),
         iconName: IconName.Download,
         routeName: 'ImportPrivateKeyView',
         testID: AddWalletTestIds.IMPORT_ACCOUNT_BUTTON,
@@ -60,7 +62,9 @@ const AddWallet = () => {
       },
       {
         analyticsEvent: MetaMetricsEvents.ADD_HARDWARE_WALLET,
-        description: 'Using Bluetooth or a QR Code',
+        description: strings(
+          'multichain_accounts.add_wallet_hardware_description',
+        ),
         iconName: IconName.Hardware,
         routeName: Routes.HW.CONNECT,
         testID: AddWalletTestIds.CONNECT_HARDWARE_BUTTON,

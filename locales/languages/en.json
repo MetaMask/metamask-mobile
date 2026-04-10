@@ -6998,6 +6998,9 @@
       "confirm_button": "Confirm"
     },
     "add_wallet": "Add wallet",
+    "add_wallet_srp_description": "Using a 12, 18 or 24-word seed phrase",
+    "add_wallet_private_key_description": "Via a private key",
+    "add_wallet_hardware_description": "Using Bluetooth or a QR Code",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
     "account_details": {
