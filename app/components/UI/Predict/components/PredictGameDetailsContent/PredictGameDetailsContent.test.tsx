@@ -179,15 +179,13 @@ jest.mock('../../hooks/useGameDetailsTabs', () => ({
   })),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  ...jest.requireActual('../../../../../util/theme'),
-  useTheme: () => ({
-    colors: {
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      primary: { default: '#0376C9' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    ...jest.requireActual('../../../../../util/theme'),
+    useTheme: () => mockTheme,
+  };
+});
 
 jest.mock(
   '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar',
