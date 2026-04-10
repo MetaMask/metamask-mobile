@@ -37,12 +37,7 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 describe('EditMultichainAccountName', () => {
-  const render = () =>
-    renderWithProvider(
-
-      <EditMultichainAccountName />
-
-    );
+  const render = () => renderWithProvider(<EditMultichainAccountName />);
 
   beforeEach(() => {
     jest.clearAllMocks();

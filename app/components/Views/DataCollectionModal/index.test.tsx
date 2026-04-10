@@ -31,11 +31,7 @@ describe('DataCollectionModal', () => {
   });
 
   it('should render expected snapshot', () => {
-    const { toJSON } = render(
-
-      <DataCollectionModal />
-
-    );
+    const { toJSON } = render(<DataCollectionModal />);
     expect(toJSON()).toMatchSnapshot();
   });
 });

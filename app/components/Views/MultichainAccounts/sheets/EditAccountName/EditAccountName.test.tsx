@@ -39,10 +39,7 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-const render = () =>
-  renderWithProvider(
-    <EditAccountName />
-  );
+const render = () => renderWithProvider(<EditAccountName />);
 
 describe('EditAccountName', () => {
   beforeEach(() => {

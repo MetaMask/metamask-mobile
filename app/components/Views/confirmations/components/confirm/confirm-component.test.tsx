@@ -196,12 +196,9 @@ describe('Confirm', () => {
   });
 
   it('renders information for personal sign', () => {
-    const { getAllByRole, getByText } = renderWithProvider(
-      <Confirm />,
-      {
-        state: personalSignatureConfirmationState,
-      },
-    );
+    const { getAllByRole, getByText } = renderWithProvider(<Confirm />, {
+      state: personalSignatureConfirmationState,
+    });
     expect(getByText('Signature request')).toBeDefined();
     expect(
       getByText('Review request details before you confirm.'),
@@ -215,12 +212,9 @@ describe('Confirm', () => {
 
   it('renders information for typed sign v1', () => {
     const { getAllByRole, getAllByText, getByText, queryByText } =
-      renderWithProvider(
-        <Confirm />,
-        {
-          state: typedSignV1ConfirmationState,
-        },
-      );
+      renderWithProvider(<Confirm />, {
+        state: typedSignV1ConfirmationState,
+      });
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('Request from')).toBeDefined();
     expect(getByText('metamask.github.io')).toBeDefined();

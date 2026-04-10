@@ -53,44 +53,41 @@ const renderWithAccount = (account: InternalAccount | undefined) => {
   // Create proper state that includes the account in the AccountsController
   const mockAccountsState = account
     ? {
-      ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-      internalAccounts: {
-        ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-        accounts: {
-          ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-          [account.id]: account,
-        },
-      },
-    }
-    : MOCK_ACCOUNTS_CONTROLLER_STATE;
-
-  return renderWithProvider(
-    <AccountDetails />,
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            AccountsController: mockAccountsState,
-            KeyringController: {
-              keyrings: [
-                {
-                  type: KeyringTypes.hd,
-                  accounts: [mockAccount.address],
-                  metadata: {
-                    id: 'mock-keyring-id',
-                    name: 'mock-keyring-name',
-                  },
-                },
-              ],
-            },
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        internalAccounts: {
+          ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+          accounts: {
+            ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+            [account.id]: account,
           },
         },
-        settings: {
-          avatarAccountType: AvatarAccountType.Maskicon,
+      }
+    : MOCK_ACCOUNTS_CONTROLLER_STATE;
+
+  return renderWithProvider(<AccountDetails />, {
+    state: {
+      engine: {
+        backgroundState: {
+          AccountsController: mockAccountsState,
+          KeyringController: {
+            keyrings: [
+              {
+                type: KeyringTypes.hd,
+                accounts: [mockAccount.address],
+                metadata: {
+                  id: 'mock-keyring-id',
+                  name: 'mock-keyring-name',
+                },
+              },
+            ],
+          },
         },
       },
+      settings: {
+        avatarAccountType: AvatarAccountType.Maskicon,
+      },
     },
-  );
+  });
 };
 
 describe('AccountDetails', () => {
@@ -121,33 +118,30 @@ describe('AccountDetails', () => {
       account: nonExistentAccount,
     };
 
-    renderWithProvider(
-      <AccountDetails />,
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE, // Don't include the non-existent account
-              KeyringController: {
-                keyrings: [
-                  {
-                    type: KeyringTypes.hd,
-                    accounts: [mockAccount.address],
-                    metadata: {
-                      id: 'mock-keyring-id',
-                      name: 'mock-keyring-name',
-                    },
+    renderWithProvider(<AccountDetails />, {
+      state: {
+        engine: {
+          backgroundState: {
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE, // Don't include the non-existent account
+            KeyringController: {
+              keyrings: [
+                {
+                  type: KeyringTypes.hd,
+                  accounts: [mockAccount.address],
+                  metadata: {
+                    id: 'mock-keyring-id',
+                    name: 'mock-keyring-name',
                   },
-                ],
-              },
+                },
+              ],
             },
           },
-          settings: {
-            avatarAccountType: AvatarAccountType.Maskicon,
-          },
+        },
+        settings: {
+          avatarAccountType: AvatarAccountType.Maskicon,
         },
       },
-    );
+    });
 
     expect(mockNavigate).toHaveBeenCalledWith('AccountSelector');
   });

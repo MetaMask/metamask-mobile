@@ -148,10 +148,7 @@ const render = (
   state: RootState,
   params: AddNewAccountProps,
 ): ReturnType<typeof renderWithProvider> =>
-  renderWithProvider(
-    <AddNewAccount {...params} />,
-    { state },
-  );
+  renderWithProvider(<AddNewAccount {...params} />, { state });
 
 describe('AddNewAccount', () => {
   beforeEach(() => {
