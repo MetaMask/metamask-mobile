@@ -98,7 +98,6 @@ jobs:
               - 'babel.config.js'                  # Transpilation affects both
               - 'yarn.lock'                        # Dependency changes affect both
               - 'app/**'                           # Shared app files
-              - 'tests/**'                         # E2E test files (separate from mobile builds)
               - 'sentry*.properties*'              # Sentry configs
               - 'appwright/**'                     # Appwright test files
               - 'scripts/build.sh'                 # Build script changes
@@ -112,6 +111,7 @@ jobs:
               - 'docs/**'                          # Documentation directory
               - '**/*.yml'                         # Workflow files
               - '.github/**'                       # All .github files (workflows, scripts, actions — CI-only changes don't affect native builds)
+              - 'tests/**'                         # E2E test specs — run against the built app, don't require native rebuilds
               - 'LICENSE'                          # License file
               - 'README.md'                        # Main README
               - 'RELEASE.MD'                       # Release notes
