@@ -197,6 +197,21 @@ export function renderPerpsView(
     </AccessRestrictedProvider>
   );
 
+  const wrapRouteWithPerpsProviders = (
+    RouteComponent: React.ComponentType<unknown>,
+  ) => {
+    const WrappedRoute = (props: Record<string, unknown>) => (
+      <AccessRestrictedProvider>
+        <PerpsConnectionContext.Provider value={testConnectionValue}>
+          <PerpsStreamProvider testStreamManager={testStreamManager}>
+            <RouteComponent {...props} />
+          </PerpsStreamProvider>
+        </PerpsConnectionContext.Provider>
+      </AccessRestrictedProvider>
+    );
+    return WrappedRoute as unknown as React.ComponentType;
+  };
+
   if (extraRoutes?.length) {
     const Stack = createStackNavigator();
     const InnerStack = createStackNavigator();
@@ -212,10 +227,13 @@ export function renderPerpsView(
     const nestedScreens = (
       <>
         {nestedPerpsRoutes.map(({ name, Component: Extra }) => (
+          // Extra routes can render real views (not only probes), so keep provider parity.
           <InnerStack.Screen
             key={name}
             name={name}
-            component={Extra ?? DefaultRouteProbe(name)}
+            component={wrapRouteWithPerpsProviders(
+              Extra ?? DefaultRouteProbe(name),
+            )}
           />
         ))}
       </>
@@ -234,7 +252,9 @@ export function renderPerpsView(
           <Stack.Screen
             key={`root-${name}`}
             name={name}
-            component={Extra ?? DefaultRouteProbe(name)}
+            component={wrapRouteWithPerpsProviders(
+              Extra ?? DefaultRouteProbe(name),
+            )}
           />
         ))}
         {nestedPerpsRoutes.length ? (
