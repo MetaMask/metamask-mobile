@@ -84,15 +84,18 @@ describe('GasFeeTokenModal', () => {
     transactionId = 'test-transaction-id',
     gasFeeTokens = [],
     selectedGasFeeToken = undefined,
+    excludeNativeTokenForFee,
   }: {
     transactionId?: string;
     gasFeeTokens?: GasFeeToken[];
     selectedGasFeeToken?: string;
+    excludeNativeTokenForFee?: boolean;
   } = {}) => {
     mockUseTransactionMetadataRequest.mockReturnValue({
       id: transactionId,
       gasFeeTokens,
       selectedGasFeeToken,
+      excludeNativeTokenForFee,
     } as ReturnType<typeof useTransactionMetadataRequest>);
 
     const selectedToken = selectedGasFeeToken
@@ -214,6 +217,19 @@ describe('GasFeeTokenModal', () => {
     );
 
     await waitFor(() => expect(mockOnClose).toHaveBeenCalled());
+  });
+
+  it('never renders native list item if `excludeNativeTokenForFee` is set to `true`', () => {
+    const { queryByTestId } = setupTest({
+      gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+      selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+      excludeNativeTokenForFee: true,
+    });
+    expect(
+      queryByTestId(
+        `gas-fee-token-list-item-${MOCK_NATIVE_USE_GAS_FEE_TOKEN.symbol}`,
+      ),
+    ).toBeNull();
   });
 
   it('shows native token as selected when no gas fee token is selected', () => {

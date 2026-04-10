@@ -32,11 +32,6 @@ on:
         required: false
         type: string
         default: main-rc
-      upload_testflight:
-        description: 'If true and platform is ios, upload IPA to TestFlight after trigger-build'
-        required: false
-        type: boolean
-        default: false
       create_production_ota_tag:
         description: 'If true, create OTA release tag after production trigger-ota (callers: *production* only)'
         required: false
@@ -54,6 +49,16 @@ on:
         required: false
         type: boolean
         default: false
+    outputs:
+      semantic_version:
+        description: 'package.json version at the built commit (empty when OTA path taken)'
+        value: ${{ jobs.trigger-build.outputs.semantic_version }}
+      ios_version_code:
+        description: 'iOS CURRENT_PROJECT_VERSION at the built commit (empty when OTA path taken)'
+        value: ${{ jobs.trigger-build.outputs.ios_version_code }}
+      android_version_code:
+        description: 'Android versionCode at the built commit (empty when OTA path taken)'
+        value: ${{ jobs.trigger-build.outputs.android_version_code }}
 
 permissions:
   contents: write # required by build.yml (update-build-version job)
@@ -111,8 +116,9 @@ jobs:
           RELEASE_TAG="v${VERSION}"
           echo "base_ref=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
 
-          # Extract OTA_VERSION from line 9 (format: export const OTA_VERSION: string = 'vX.Y.Z';)
-          extract_ota() { sed -n '9p' "$1" | sed "s/.*'\\([^']*\\)'.*/\1/"; }
+          # Parse OTA_VERSION from the export line (do not use a fixed line number — comment block length changes).
+          extract_ota() { grep -E '^export const OTA_VERSION' "$1" | sed -n "s/^export const OTA_VERSION: string = '\\([^']*\\)'.*/\\1/p"; }
+          extract_ota_from_git_show() { grep -E '^export const OTA_VERSION' | sed -n "s/^export const OTA_VERSION: string = '\\([^']*\\)'.*/\\1/p"; }
 
           # OTA_VERSION from current ref
           CURRENT_OTA=$(extract_ota app/constants/ota.ts)
@@ -121,10 +127,10 @@ jobs:
           # Ref to compare against for detecting bump: use release tag if it exists, else main
           if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
             COMPARE_REF="$RELEASE_TAG"
-            BASE_OTA=$(git show "${COMPARE_REF}:app/constants/ota.ts" 2>/dev/null | sed -n '9p' | sed "s/.*'\\([^']*\\)'.*/\1/" || echo "")
+            BASE_OTA=$(git show "${COMPARE_REF}:app/constants/ota.ts" 2>/dev/null | extract_ota_from_git_show || echo "")
           else
             COMPARE_REF="main"
-            BASE_OTA=$(git show "origin/main:app/constants/ota.ts" 2>/dev/null | sed -n '9p' | sed "s/.*'\\([^']*\\)'.*/\1/" || echo "")
+            BASE_OTA=$(git show "origin/main:app/constants/ota.ts" 2>/dev/null | extract_ota_from_git_show || echo "")
             echo "Release tag ${RELEASE_TAG} not found; comparing OTA_VERSION to ${COMPARE_REF} to detect bump"
           fi
 
@@ -191,7 +197,7 @@ jobs:
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [decide, trigger-build]
-    if: ${{ inputs.platform == 'ios' && inputs.upload_testflight }}
+    if: ${{ inputs.platform == 'ios' }}
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
       environment: ${{ inputs.environment }}

@@ -184,7 +184,7 @@ const OnboardingSuccessFlow = () => {
     <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS}
-        component={OnboardingSuccess as ScreenComponent}
+        component={OnboardingSuccess}
         options={{
           headerShown: false,
         }}
@@ -245,7 +245,7 @@ const OnboardingNav = () => {
       />
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS}
-        component={OnboardingSuccess as ScreenComponent}
+        component={OnboardingSuccess}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -280,18 +280,19 @@ const OnboardingNav = () => {
       />
       <Stack.Screen
         name="AccountAlreadyExists"
-        component={AccountStatus as ScreenComponent}
+        component={AccountStatus}
         initialParams={{ type: 'found' }}
         options={{ headerShown: false }}
       />
       <Stack.Screen
         name="AccountNotFound"
-        component={AccountStatus as ScreenComponent}
+        component={AccountStatus}
         initialParams={{ type: 'not_exist' }}
         options={{ headerShown: false }}
       />
+      {/* OAuth rehydration inside onboarding stack (distinct route name from AppFlow). */}
       <Stack.Screen
-        name="Rehydrate"
+        name={Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE}
         component={OAuthRehydration}
         options={{ headerShown: false }}
       />
@@ -395,9 +396,7 @@ interface RootModalFlowProps {
   };
 }
 const RootModalFlow = (props: RootModalFlowProps) => (
-  <Stack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
-  >
+  <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions }}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
       component={WalletActions}
@@ -432,7 +431,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ONBOARDING_SHEET}
-      component={OnboardingSheet as ScreenComponent}
+      component={OnboardingSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
@@ -943,6 +942,7 @@ const AppFlow = () => {
       screenOptions={{
         headerShown: false,
         animationEnabled: false,
+        presentation: 'transparentModal',
       }}
     >
       <Stack.Screen name={Routes.ONBOARDING.HOME_NAV} component={Main} />
@@ -954,11 +954,14 @@ const AppFlow = () => {
           cardStyle: { backgroundColor: colors.background.default },
         }}
       />
-      <Stack.Screen name="Rehydrate" component={OAuthRehydration} />
+      {/* Same screen as ONBOARDING_OAUTH_REHYDRATE but registered on root AppFlow for post-login unlock. */}
+      <Stack.Screen
+        name={Routes.ONBOARDING.REHYDRATE}
+        component={OAuthRehydration}
+      />
       <Stack.Screen
         name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
         component={MaxBrowserTabsModal}
-        options={{ presentation: 'modal' }}
       />
       <Stack.Screen name="OnboardingRootNav" component={OnboardingRootNav} />
       <Stack.Screen
@@ -972,10 +975,6 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.MODAL.ROOT_MODAL_FLOW}
         component={RootModalFlow as ScreenComponent}
-        options={{
-          presentation: 'modal',
-          detachPreviousScreen: false,
-        }}
       />
       <Stack.Screen
         name="ImportPrivateKeyView"
@@ -1030,7 +1029,7 @@ const AppFlow = () => {
       />
       <Stack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-        component={RevealPrivateCredential as ScreenComponent}
+        component={RevealPrivateCredential}
         options={{
           headerShown: false,
           animationEnabled: true,
@@ -1084,52 +1083,18 @@ const AppFlow = () => {
         }}
       />
       <Stack.Screen
-        options={{
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          presentation: 'modal',
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
         name={Routes.LEDGER_TRANSACTION_MODAL}
         component={LedgerTransactionModal}
       />
       <Stack.Screen
-        options={{
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          presentation: 'modal',
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
         name={Routes.QR_SIGNING_TRANSACTION_MODAL}
         component={QRSigningTransactionModal}
       />
       <Stack.Screen
-        options={{
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          presentation: 'modal',
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
         name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
         component={LedgerMessageSignModal}
       />
-      <Stack.Screen
-        name={Routes.OPTIONS_SHEET}
-        component={OptionsSheet}
-        options={{ presentation: 'modal' }}
-      />
+      <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
       <Stack.Screen
         name={Routes.EDIT_ACCOUNT_NAME}
         component={EditAccountName}
@@ -1173,12 +1138,10 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
         component={ModalSwitchAccountType}
-        options={{ presentation: 'modal' }}
       />
       <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_MODAL}
         component={PayWithModal}
-        options={{ presentation: 'modal' }}
       />
     </Stack.Navigator>
   );

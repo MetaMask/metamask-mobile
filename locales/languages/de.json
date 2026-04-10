@@ -6638,7 +6638,6 @@
     "nested_transaction_heading": "Transaktion {{index}}",
     "transaction": "Transaktion",
     "available_balance": "Verfügbares Guthaben: ",
-    "available_perps_balance": "Verfügbares Perps-Guthaben: ",
     "edit_amount_done": "Fortfahren",
     "deposit_edit_amount_done": "Gelder hinzufügen",
     "deposit_edit_amount_predict_withdraw": "Auszahlen",

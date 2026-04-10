@@ -76,10 +76,7 @@ import {
 } from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  resetAuthenticatedData,
-  selectUserCardLocation,
-} from '../../../../../core/redux/slices/card';
+import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import { cardQueries } from '../../queries';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
@@ -144,7 +141,7 @@ const CardHome = () => {
   const [isHandlingAuthError, setIsHandlingAuthError] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
-  const userLocation = useSelector(selectUserCardLocation);
+  const userLocation = useSelector(selectCardUserLocation);
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
   );
@@ -1130,12 +1127,16 @@ const CardHome = () => {
 
       try {
         await removeCardBaanxToken();
+        // Sync controller state: token is now gone so validateAndRefreshSession
+        // will mark CardController.isAuthenticated = false without an API call.
+        await Engine.context.CardController.validateAndRefreshSession().catch(
+          () => undefined,
+        );
 
         if (isComponentUnmountedRef.current) {
           return;
         }
 
-        dispatch(resetAuthenticatedData());
         queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
 
         toastRef?.current?.showToast({
@@ -1159,7 +1160,7 @@ const CardHome = () => {
     };
 
     handleAuthenticationError();
-  }, [cardError, dispatch, queryClient, isAuthenticated, navigation, toastRef]);
+  }, [cardError, queryClient, isAuthenticated, navigation, toastRef]);
 
   useEffect(() => {
     if (isSDKLoading) {

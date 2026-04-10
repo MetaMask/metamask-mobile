@@ -19,6 +19,7 @@ import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../../../selectors/rampsController';
 import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
+import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -91,9 +92,7 @@ function ProviderSelectionModal() {
     if (!assetId) {
       return providers;
     }
-    return providers.filter(
-      (p) => p.supportedCryptoCurrencies?.[assetId] === true,
-    );
+    return providers.filter((p) => providerSupportsAsset(p, assetId));
   }, [providers, assetId]);
 
   const providerIds = useMemo(

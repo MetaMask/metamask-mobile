@@ -23,7 +23,7 @@ import { CardLocation } from '../types';
  * @returns The card provider adapter for the user's location
  */
 export function getCardProvider(
-  userCardLocation: CardLocation,
+  userCardLocation: CardLocation | null,
   cardSDK: CardSDK,
 ): ICardProviderAdapter | null {
   switch (userCardLocation) {

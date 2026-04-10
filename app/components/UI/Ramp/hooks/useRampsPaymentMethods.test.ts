@@ -262,4 +262,259 @@ describe('useRampsPaymentMethods', () => {
       Engine.context.RampsController.setSelectedPaymentMethod,
     ).toHaveBeenCalledWith(null);
   });
+
+  it('lowercases checksummed assetId before passing to getPaymentMethods', async () => {
+    const checksummedAssetId =
+      'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+    const store = createMockStore({
+      tokens: {
+        ...baseRampsState.tokens,
+        selected: {
+          assetId: checksummedAssetId,
+          chainId: 'eip155:1',
+          name: 'USDC',
+          symbol: 'USDC',
+          decimals: 6,
+          iconUrl: '',
+          tokenSupported: true,
+        },
+      },
+    });
+    const { Wrapper, queryClient } = createWrapper(store);
+
+    (
+      Engine.context.RampsController.getPaymentMethods as jest.Mock
+    ).mockResolvedValue({ payments: mockPaymentMethods });
+
+    const { unmount } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(
+        Engine.context.RampsController.getPaymentMethods,
+      ).toHaveBeenCalled();
+    });
+
+    const callArgs = (
+      Engine.context.RampsController.getPaymentMethods as jest.Mock
+    ).mock.calls[0];
+    // Second argument is the options object containing assetId
+    expect(callArgs[1].assetId).toBe(checksummedAssetId.toLowerCase());
+
+    queryClient.cancelQueries();
+    unmount();
+    queryClient.clear();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
+  it('transitions from loading to success when query resolves', async () => {
+    const store = createMockStore();
+    const { Wrapper } = createWrapper(store);
+
+    let resolveQuery: (value: { payments: PaymentMethod[] }) => void = () => {
+      // noop, overwritten by mock
+    };
+    (
+      Engine.context.RampsController.getPaymentMethods as jest.Mock
+    ).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveQuery = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.status).toBe('loading');
+    expect(result.current.isSuccess).toBe(false);
+
+    await act(async () => {
+      resolveQuery({ payments: mockPaymentMethods });
+    });
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('success');
+    });
+
+    // isLoading remains true because no payment method is selected yet
+    // (auto-selection was triggered but Redux hasn't updated in this test)
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.isSuccess).toBe(true);
+    expect(result.current.paymentMethods).toEqual(mockPaymentMethods);
+  });
+
+  it('returns selectedPaymentMethod from Redux state', async () => {
+    const store = createMockStore({
+      paymentMethods: {
+        ...baseRampsState.paymentMethods,
+        selected: mockPaymentMethods[1],
+      },
+    });
+    const { Wrapper } = createWrapper(store);
+
+    (
+      Engine.context.RampsController.getPaymentMethods as jest.Mock
+    ).mockResolvedValue({ payments: mockPaymentMethods });
+
+    const { result } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('success');
+    });
+
+    expect(result.current.selectedPaymentMethod).toEqual(mockPaymentMethods[1]);
+  });
+
+  it('setSelectedPaymentMethod is stable across re-renders', async () => {
+    const store = createMockStore();
+    const { Wrapper } = createWrapper(store);
+
+    (
+      Engine.context.RampsController.getPaymentMethods as jest.Mock
+    ).mockResolvedValue({ payments: mockPaymentMethods });
+
+    const { result, rerender } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    const firstRef = result.current.setSelectedPaymentMethod;
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('success');
+    });
+
+    rerender({});
+
+    expect(result.current.setSelectedPaymentMethod).toBe(firstRef);
+  });
+
+  it('disables query when userRegion is missing', () => {
+    const store = createMockStore({
+      userRegion: { country: null, state: null, regionCode: null },
+    });
+    const { Wrapper } = createWrapper(store);
+
+    const { result } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    expect(result.current.status).toBe('idle');
+    expect(result.current.isLoading).toBe(false);
+    expect(
+      Engine.context.RampsController.getPaymentMethods,
+    ).not.toHaveBeenCalled();
+  });
+
+  describe('auto-selection', () => {
+    it('auto-selects first payment method when data loads and none is selected', async () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+
+      (
+        Engine.context.RampsController.getPaymentMethods as jest.Mock
+      ).mockResolvedValue({ payments: mockPaymentMethods });
+
+      const { result } = renderHook(() => useRampsPaymentMethods(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+
+      expect(
+        Engine.context.RampsController.setSelectedPaymentMethod,
+      ).toHaveBeenCalledWith(mockPaymentMethods[0]);
+    });
+
+    it('preserves existing selection if it is still in the new list', async () => {
+      const store = createMockStore({
+        paymentMethods: {
+          ...baseRampsState.paymentMethods,
+          selected: mockPaymentMethods[1],
+        },
+      });
+      const { Wrapper } = createWrapper(store);
+
+      (
+        Engine.context.RampsController.getPaymentMethods as jest.Mock
+      ).mockResolvedValue({ payments: mockPaymentMethods });
+
+      const { result } = renderHook(() => useRampsPaymentMethods(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+
+      expect(
+        Engine.context.RampsController.setSelectedPaymentMethod,
+      ).not.toHaveBeenCalled();
+      expect(result.current.selectedPaymentMethod).toEqual(
+        mockPaymentMethods[1],
+      );
+    });
+
+    it('does not auto-select when payment methods list is empty', async () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+
+      (
+        Engine.context.RampsController.getPaymentMethods as jest.Mock
+      ).mockResolvedValue({ payments: [] });
+
+      const { result } = renderHook(() => useRampsPaymentMethods(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+
+      expect(
+        Engine.context.RampsController.setSelectedPaymentMethod,
+      ).not.toHaveBeenCalled();
+      expect(result.current.selectedPaymentMethod).toBeNull();
+    });
+
+    it('falls back to first method when current selection is not in the new list', async () => {
+      const removedMethod: PaymentMethod = {
+        id: '/payments/removed',
+        paymentType: 'removed',
+        name: 'Removed',
+        score: 0,
+        icon: 'removed',
+      };
+      const store = createMockStore({
+        paymentMethods: {
+          ...baseRampsState.paymentMethods,
+          selected: removedMethod,
+        },
+      });
+      const { Wrapper } = createWrapper(store);
+
+      (
+        Engine.context.RampsController.getPaymentMethods as jest.Mock
+      ).mockResolvedValue({ payments: mockPaymentMethods });
+
+      const { result } = renderHook(() => useRampsPaymentMethods(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+
+      expect(
+        Engine.context.RampsController.setSelectedPaymentMethod,
+      ).toHaveBeenCalledWith(mockPaymentMethods[0]);
+    });
+  });
 });

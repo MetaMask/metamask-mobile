@@ -23,6 +23,7 @@ import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
+import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
@@ -212,7 +213,7 @@ function BuildQuote() {
       return false;
     }
 
-    if (!selectedProvider.supportedCryptoCurrencies?.[effectiveAssetId]) {
+    if (!providerSupportsAsset(selectedProvider, effectiveAssetId)) {
       return true;
     }
 
@@ -272,8 +273,8 @@ function BuildQuote() {
     ) {
       return;
     }
-    const supportingProvider = providers.find(
-      (p) => p.supportedCryptoCurrencies?.[effectiveAssetId] === true,
+    const supportingProvider = providers.find((p) =>
+      providerSupportsAsset(p, effectiveAssetId),
     );
     if (supportingProvider) {
       setSelectedProvider(supportingProvider, { autoSelected: true });
@@ -300,7 +301,7 @@ function BuildQuote() {
       const supportingProvider = providers.find(
         (p) =>
           p.id !== selectedProvider?.id &&
-          p.supportedCryptoCurrencies?.[effectiveAssetId] === true,
+          providerSupportsAsset(p, effectiveAssetId),
       );
       if (supportingProvider) {
         setSelectedProvider(supportingProvider, { autoSelected: true });
