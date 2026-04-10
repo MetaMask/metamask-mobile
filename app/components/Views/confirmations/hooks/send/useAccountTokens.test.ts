@@ -11,8 +11,9 @@ import {
 } from '../../../../../selectors/assets/assets-list';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { isTestNet } from '../../../../../util/networks';
-import { selectAllTokens } from '../../../../../selectors/tokensController';
-import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
+import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
+import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
+import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
@@ -65,13 +66,8 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/tokensController', () => ({
-  selectAllTokens: jest.fn(),
-}));
-
-jest.mock('../../../../../selectors/tokenListController', () => ({
-  selectERC20TokensByChain: jest.fn(),
-}));
+jest.mock('../../../../hooks/useTokensData/useTokensData');
+jest.mock('../../../../../util/multichain/buildEvmCaip19AssetId');
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockGetNetworkBadgeSource = jest.mocked(getNetworkBadgeSource);
@@ -81,6 +77,8 @@ const mockSelectAssetsBySelectedAccountGroup = jest.mocked(
 );
 const mockSelectCurrentCurrency = jest.mocked(selectCurrentCurrency);
 const mockIsTestNet = jest.mocked(isTestNet);
+const mockUseTokensData = jest.mocked(useTokensData);
+const mockBuildEvmCaip19AssetId = jest.mocked(buildEvmCaip19AssetId);
 
 const mockAssets = {
   '0x1': [
@@ -131,12 +129,6 @@ describe('useAccountTokens', () => {
       if (selector === selectCurrentCurrency) {
         return 'USD';
       }
-      if (selector === selectAllTokens) {
-        return {};
-      }
-      if (selector === selectERC20TokensByChain) {
-        return {};
-      }
       if (selector === selectInternalAccountsById) {
         return {};
       }
@@ -151,6 +143,11 @@ describe('useAccountTokens', () => {
     mockGetIntlNumberFormatter.mockReturnValue(mockFormatter as any);
     mockFormatter.format.mockReturnValue('$100.50');
     mockIsTestNet.mockReturnValue(false);
+    mockUseTokensData.mockReturnValue({});
+    mockBuildEvmCaip19AssetId.mockImplementation(
+      (address: string, chainId: Hex) =>
+        `eip155:${chainId}/erc20:${address.toLowerCase()}`,
+    );
   });
 
   it('returns all assets with balance', () => {
@@ -570,12 +567,6 @@ describe('useAccountTokens', () => {
         if (selector === selectCurrentCurrency) {
           return 'USD';
         }
-        if (selector === selectAllTokens) {
-          return {};
-        }
-        if (selector === selectERC20TokensByChain) {
-          return {};
-        }
         return undefined;
       });
 
@@ -589,115 +580,7 @@ describe('useAccountTokens', () => {
     });
   });
 
-  describe('includeAllTokens', () => {
-    const catalogTokens = {
-      '0x1': {
-        data: {
-          '0xusdc': {
-            name: 'USD Coin',
-            symbol: 'USDC',
-            decimals: 6,
-            iconUrl: 'https://example.com/usdc.png',
-          },
-          '0xtoken1': {
-            name: 'Token One',
-            symbol: 'TOKEN1',
-            decimals: 18,
-            iconUrl: 'https://example.com/token1.png',
-          },
-        },
-      },
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function setupAllTokensMocks(accountAssets: any = mockAssets) {
-      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(accountAssets);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectAssetsBySelectedAccountGroup) {
-          return accountAssets;
-        }
-        if (selector === selectCurrentCurrency) {
-          return 'USD';
-        }
-        if (selector === selectAllTokens) {
-          return {};
-        }
-        if (selector === selectERC20TokensByChain) {
-          return catalogTokens;
-        }
-        return undefined;
-      });
-    }
-
-    it('adds catalog tokens not already in account', () => {
-      const accountAssets = {
-        '0x1': [
-          {
-            chainId: '0x1',
-            address: '0xtoken1',
-            fiat: { balance: '50' },
-            rawBalance: '0x1234',
-            symbol: 'TOKEN1',
-          },
-        ],
-      };
-
-      setupAllTokensMocks(accountAssets);
-
-      const { result } = renderHook(() =>
-        useAccountTokens({ includeAllTokens: true }),
-      );
-
-      const symbols = result.current.map((a) => a.symbol);
-      expect(symbols).toContain('TOKEN1');
-      expect(symbols).toContain('USDC');
-    });
-
-    it('does not duplicate tokens already in account', () => {
-      const accountAssets = {
-        '0x1': [
-          {
-            chainId: '0x1',
-            address: '0xusdc',
-            fiat: { balance: '100' },
-            rawBalance: '0x1234',
-            symbol: 'USDC',
-          },
-        ],
-      };
-
-      setupAllTokensMocks(accountAssets);
-
-      const { result } = renderHook(() =>
-        useAccountTokens({ includeAllTokens: true }),
-      );
-
-      const usdcEntries = result.current.filter((a) => a.symbol === 'USDC');
-      expect(usdcEntries).toHaveLength(1);
-      expect(usdcEntries[0].balance).not.toBe('0');
-    });
-
-    it('sets zero balance on catalog tokens', () => {
-      setupAllTokensMocks({});
-
-      const { result } = renderHook(() =>
-        useAccountTokens({ includeAllTokens: true }),
-      );
-
-      const usdc = result.current.find((a) => a.symbol === 'USDC');
-      expect(usdc?.balance).toBe('0');
-    });
-
-    it('does not add catalog tokens when includeAllTokens is false', () => {
-      setupAllTokensMocks({});
-
-      const { result } = renderHook(() =>
-        useAccountTokens({ includeAllTokens: false }),
-      );
-
-      expect(result.current).toHaveLength(0);
-    });
-
+  describe('tokenFilter', () => {
     it('excludes owned assets without chainId when tokenFilter is provided', () => {
       const accountAssets = {
         '0x1': [
@@ -720,7 +603,19 @@ describe('useAccountTokens', () => {
         ],
       };
 
-      setupAllTokensMocks(accountAssets);
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        accountAssets as any,
+      );
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return accountAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        return undefined;
+      });
 
       const filter = () => true;
 
@@ -754,7 +649,19 @@ describe('useAccountTokens', () => {
         ],
       };
 
-      setupAllTokensMocks(accountAssets);
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        accountAssets as any,
+      );
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return accountAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        return undefined;
+      });
 
       const filter = () => true;
 
@@ -765,33 +672,133 @@ describe('useAccountTokens', () => {
       expect(result.current).toHaveLength(1);
       expect(result.current[0].symbol).toBe('TOKEN1');
     });
+  });
 
-    it('only builds catalog tokens that pass tokenFilter', () => {
-      setupAllTokensMocks({});
+  describe('enrichTokenRequests', () => {
+    it('adds zero-balance entries from API data for tokens not in wallet', () => {
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue({});
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return {};
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        return undefined;
+      });
 
-      const filter = (chainId: string, address: string) =>
-        chainId === '0x1' && address === '0xusdc';
+      const requests = [{ chainId: '0x1' as Hex, address: '0xusdc' }];
+
+      mockUseTokensData.mockReturnValue({
+        'eip155:0x1/erc20:0xusdc': {
+          assetId: 'eip155:0x1/erc20:0xusdc',
+          name: 'USD Coin',
+          symbol: 'USDC',
+          decimals: 6,
+          iconUrl: 'https://example.com/usdc.png',
+        },
+      });
 
       const { result } = renderHook(() =>
-        useAccountTokens({ includeAllTokens: true, tokenFilter: filter }),
+        useAccountTokens({ enrichTokenRequests: requests }),
       );
 
       expect(result.current).toHaveLength(1);
       expect(result.current[0].symbol).toBe('USDC');
-      expect(result.current[0].address).toBe('0xusdc');
+      expect(result.current[0].balance).toBe('0');
+      expect(result.current[0].decimals).toBe(6);
+      expect(result.current[0].image).toBe('https://example.com/usdc.png');
     });
 
-    it('includes all catalog tokens when tokenFilter is undefined', () => {
-      setupAllTokensMocks({});
+    it('does not duplicate tokens already in wallet', () => {
+      const accountAssets = {
+        '0x1': [
+          {
+            chainId: '0x1',
+            address: '0xusdc',
+            accountType: 'eip155:1/erc20:0xusdc',
+            fiat: { balance: '100' },
+            rawBalance: '0x1234',
+            symbol: 'USDC',
+          },
+        ],
+      };
+
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        accountAssets as any,
+      );
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return accountAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        return undefined;
+      });
+
+      const requests = [{ chainId: '0x1' as Hex, address: '0xusdc' }];
+
+      mockUseTokensData.mockReturnValue({
+        'eip155:0x1/erc20:0xusdc': {
+          assetId: 'eip155:0x1/erc20:0xusdc',
+          name: 'USD Coin',
+          symbol: 'USDC',
+          decimals: 6,
+          iconUrl: 'https://example.com/usdc.png',
+        },
+      });
 
       const { result } = renderHook(() =>
-        useAccountTokens({ includeAllTokens: true }),
+        useAccountTokens({ enrichTokenRequests: requests }),
       );
 
-      expect(result.current).toHaveLength(2);
-      const symbols = result.current.map((a) => a.symbol);
-      expect(symbols).toContain('USDC');
-      expect(symbols).toContain('TOKEN1');
+      const usdcEntries = result.current.filter((a) => a.symbol === 'USDC');
+      expect(usdcEntries).toHaveLength(1);
+      expect(usdcEntries[0].balance).not.toBe('0');
+    });
+
+    it('skips API entries with no name and no symbol', () => {
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue({});
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return {};
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        return undefined;
+      });
+
+      const requests = [{ chainId: '0x1' as Hex, address: '0xunknown' }];
+
+      mockUseTokensData.mockReturnValue({});
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ enrichTokenRequests: requests }),
+      );
+
+      expect(result.current).toHaveLength(0);
+    });
+
+    it('does not add enrichment entries when enrichTokenRequests is empty', () => {
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue({});
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return {};
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ enrichTokenRequests: [] }),
+      );
+
+      expect(result.current).toHaveLength(0);
     });
   });
 
@@ -819,9 +826,6 @@ describe('useAccountTokens', () => {
         }
         if (selector === selectCurrentCurrency) {
           return 'USD';
-        }
-        if (selector === selectERC20TokensByChain) {
-          return {};
         }
         if (selector === selectInternalAccountsById) {
           return {

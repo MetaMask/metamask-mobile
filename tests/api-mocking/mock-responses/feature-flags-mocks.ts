@@ -203,3 +203,16 @@ export const remoteFeatureFlagTronAccounts = (enabled = true) => ({
     minimumVersion: '0.0.0',
   },
 });
+
+/**
+ * Enables the Market Insights (AI social market analysis) feature on asset details.
+ * Uses minimumVersion '0.0.0' so debug/test builds always pass the version gate.
+ * Selector: selectMarketInsightsEnabled (featureFlagController/marketInsights/index.ts)
+ * Flag key: aiSocialMarketAnalysisEnabled
+ */
+export const remoteFeatureFlagMarketInsightsEnabled = (enabled = true) => ({
+  aiSocialMarketAnalysisEnabled: {
+    enabled,
+    minimumVersion: '0.0.0',
+  },
+});

@@ -11,6 +11,7 @@ import {
   formatPositionSize,
   formatLeverage,
   parseCurrencyString,
+  truncateToTwoDecimals,
   parsePercentageString,
   formatTransactionDate,
   formatDateSection,
@@ -938,6 +939,31 @@ describe('formatUtils', () => {
       expect(parseCurrencyString(null as any)).toBe(0);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(parseCurrencyString(undefined as any)).toBe(0);
+    });
+  });
+
+  describe('truncateToTwoDecimals', () => {
+    it('truncates without rounding up', () => {
+      expect(truncateToTwoDecimals(16.069)).toBe(16.06);
+      expect(truncateToTwoDecimals(16.999)).toBe(16.99);
+      expect(truncateToTwoDecimals(0.009)).toBe(0);
+    });
+
+    it('preserves values with 2 or fewer decimals', () => {
+      expect(truncateToTwoDecimals(16.07)).toBe(16.07);
+      expect(truncateToTwoDecimals(16)).toBe(16);
+      expect(truncateToTwoDecimals(0)).toBe(0);
+    });
+
+    it('handles IEEE 754 edge cases correctly', () => {
+      expect(truncateToTwoDecimals(10.29)).toBe(10.29);
+      expect(truncateToTwoDecimals(1.005)).toBe(1);
+      expect(truncateToTwoDecimals(0.1 + 0.2)).toBe(0.3);
+    });
+
+    it('handles negative values', () => {
+      expect(truncateToTwoDecimals(-16.069)).toBe(-16.06);
+      expect(truncateToTwoDecimals(-10.29)).toBe(-10.29);
     });
   });
 

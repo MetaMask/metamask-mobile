@@ -3,13 +3,14 @@ import { useSelector } from 'react-redux';
 import usePrevious from '../../../hooks/usePrevious';
 import { BigNumber } from 'bignumber.js';
 import { TransactionType } from '@metamask/transaction-controller';
+import type { OrderFill } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
 import { areAddressesEqual } from '../../../../util/address';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { FillType, PerpsTransaction } from '../types/transactionHistory';
+import { PerpsTransaction } from '../types/transactionHistory';
 import { useUserHistory } from './useUserHistory';
 import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
 import {
@@ -18,6 +19,7 @@ import {
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
   transformWalletPerpsDepositsToTransactions,
+  mergeOrderFills,
 } from '../utils/transactionTransforms';
 
 interface UsePerpsTransactionHistoryParams {
@@ -46,6 +48,7 @@ export const usePerpsTransactionHistory = ({
   skipInitialFetch = false,
 }: UsePerpsTransactionHistoryParams = {}): UsePerpsTransactionHistoryResult => {
   const [transactions, setTransactions] = useState<PerpsTransaction[]>([]);
+  const [restFills, setRestFills] = useState<OrderFill[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -140,8 +143,13 @@ export const usePerpsTransactionHistory = ({
         }
       }
 
+      // Store raw enriched fills so mergedTransactions can merge at fill level
+      // (prevents WS partial-snapshot from overwriting correctly aggregated REST data)
+      setRestFills(enrichedFills);
+
       // Transform each data type to PerpsTransaction format
-      const fillTransactions = transformFillsToTransactions(enrichedFills);
+      // Note: fill transactions are derived in mergedTransactions from restFills,
+      // so we only need orders, funding, and user history here.
       const orderTransactions = transformOrdersToTransactions(
         orders,
         fillSizeByOrderId,
@@ -151,9 +159,8 @@ export const usePerpsTransactionHistory = ({
         userHistoryRef.current,
       );
 
-      // Combine all transactions (no Arbitrum withdrawals - using user history as single source of truth)
+      // Combine all non-trade transactions (no Arbitrum withdrawals - using user history as single source of truth)
       const allTransactions = [
-        ...fillTransactions,
         ...orderTransactions,
         ...fundingTransactions,
         ...userHistoryTransactions,
@@ -181,6 +188,7 @@ export const usePerpsTransactionHistory = ({
       DevLogger.log('Error fetching transaction history:', errorMessage);
       setError(errorMessage);
       setTransactions([]);
+      setRestFills([]);
     } finally {
       setIsLoading(false);
     }
@@ -223,34 +231,21 @@ export const usePerpsTransactionHistory = ({
     return null;
   }, [error, userHistoryError]);
 
-  // Merge live WebSocket fills with REST transactions for instant updates
-  // Live fills take precedence for recent trades
-  // IMPORTANT: Deduplicate trades using asset+timestamp (truncated to seconds), not tx.id,
-  // because:
-  // 1. The ID includes array index which differs between REST and WebSocket arrays
-  // 2. Aggregated fills (from split stop loss/TP) may have slightly different first-fill
-  //    timestamps between REST and WebSocket if fills arrive in different order
+  // Merge live WebSocket fills with REST fills at the raw OrderFill level first,
+  // then transform once. This ensures multi-fill trades (e.g. SL split into 10
+  // sub-fills) are aggregated from the complete fill set rather than from the WS
+  // partial snapshot, which would produce an incorrect (lower) PnL and size.
   const mergedTransactions = useMemo(() => {
-    // Transform live fills to PerpsTransaction format
-    // Note: transformFillsToTransactions now aggregates split stop loss/TP fills
-    const liveTransactions = transformFillsToTransactions(liveFills);
-
-    // If no REST transactions yet, return live fills plus wallet deposits (sorted)
-    if (transactions.length === 0) {
-      const combined = [...liveTransactions, ...walletDepositTransactions].sort(
-        (a, b) => b.timestamp - a.timestamp,
-      );
-      return combined;
-    }
-
-    // Separate trade transactions from non-trade transactions (orders, funding, deposits)
-    // Non-trade transactions use their ID directly (no index issue)
-    const restTradeTransactions = transactions.filter(
-      (tx) => tx.type === 'trade',
+    // Transform once on the complete merged fill set
+    const mergedFillTransactions = transformFillsToTransactions(
+      mergeOrderFills(restFills, liveFills),
     );
+
+    // Separate non-trade transactions (orders, funding, user history deposits)
     const nonTradeTransactions = transactions.filter(
       (tx) => tx.type !== 'trade',
     );
+
     // Deduplicate wallet deposits against REST (user history) deposits by txHash.
     // When a wallet-originated deposit is bridged and recorded by the perps backend,
     // it appears in both sources; we keep the REST version and drop the wallet duplicate.
@@ -269,60 +264,15 @@ export const usePerpsTransactionHistory = ({
         return h === '' || !restDepositTxHashes.has(h);
       },
     );
-    const nonTradeIncludingWalletDeposits = [
+
+    const allTransactions = [
+      ...mergedFillTransactions,
       ...nonTradeTransactions,
       ...walletDepositsDeduplicated,
     ];
 
-    // Merge trades using asset+timestamp(seconds) as dedup key
-    // Use seconds-truncated timestamp to handle cases where REST and WebSocket
-    // aggregated fills have slightly different first-fill timestamps
-    const tradeMap = new Map<string, PerpsTransaction>();
-
-    // Add REST trade transactions first
-    for (const tx of restTradeTransactions) {
-      // Use asset + timestamp (truncated to seconds) as key
-      const timestampSeconds = Math.floor(tx.timestamp / 1000);
-      const dedupKey = `${tx.asset}-${timestampSeconds}`;
-      tradeMap.set(dedupKey, tx);
-    }
-
-    // Add live fills (overwrites REST duplicates - live data is fresher)
-    // Preserve fillType from REST when WS fill lacks enrichment (TP/SL pills)
-    for (const tx of liveTransactions) {
-      const timestampSeconds = Math.floor(tx.timestamp / 1000);
-      const dedupKey = `${tx.asset}-${timestampSeconds}`;
-      const existing = tradeMap.get(dedupKey);
-      if (
-        existing?.fill?.fillType &&
-        existing.fill.fillType !== FillType.Standard &&
-        tx.fill?.fillType === FillType.Standard
-      ) {
-        tradeMap.set(dedupKey, {
-          ...tx,
-          fill: {
-            ...tx.fill,
-            fillType: existing.fill.fillType,
-            ...(existing.fill.liquidation &&
-              !tx.fill.liquidation && {
-                liquidation: existing.fill.liquidation,
-              }),
-          },
-        });
-      } else {
-        tradeMap.set(dedupKey, tx);
-      }
-    }
-
-    // Combine deduplicated trades with non-trade transactions (including wallet deposits)
-    const allTransactions = [
-      ...Array.from(tradeMap.values()),
-      ...nonTradeIncludingWalletDeposits,
-    ];
-
-    // Sort by timestamp descending
     return allTransactions.sort((a, b) => b.timestamp - a.timestamp);
-  }, [liveFills, transactions, walletDepositTransactions]);
+  }, [liveFills, restFills, transactions, walletDepositTransactions]);
 
   return {
     transactions: mergedTransactions,
