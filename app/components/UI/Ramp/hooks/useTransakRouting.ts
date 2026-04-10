@@ -14,6 +14,8 @@ import { generateThemeParameters } from '../Deposit/utils';
 import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
 import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
 import { createCheckoutNavDetails } from '../Views/Checkout';
+import { createKycCheckoutNavDetails } from '../Views/NativeFlow/KycCheckout';
+import { registerCheckoutCallback } from '../utils/checkoutCallbackRegistry';
 import useAnalytics from './useAnalytics';
 import { showV2OrderToast } from '../utils/v2OrderToast';
 import Logger from '../../../../util/Logger';
@@ -398,14 +400,11 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       workFlowRunId: string;
       amount?: number;
     }) => {
-      const [routeName, routeParams] = createCheckoutNavDetails({
+      const [routeName, routeParams] = createKycCheckoutNavDetails({
         url: kycUrl,
         providerName: 'Transak',
         workFlowRunId,
       });
-      // Stack: BuildQuote → KycProcessing → Checkout (webview on top).
-      // When the user closes the Checkout webview, they land on KycProcessing
-      // which polls for KYC approval and continues the order flow.
       navigation.reset({
         index: 2,
         routes: [

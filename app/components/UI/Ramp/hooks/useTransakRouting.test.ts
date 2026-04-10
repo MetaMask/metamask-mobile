@@ -158,6 +158,32 @@ jest.mock('../Views/Checkout', () => ({
   ),
 }));
 
+jest.mock('../Views/NativeFlow/KycCheckout', () => ({
+  createKycCheckoutNavDetails: jest.fn(
+    ({
+      url,
+      providerName,
+      workFlowRunId,
+    }: {
+      url: string;
+      providerName: string;
+      workFlowRunId: string;
+    }) => ['RampKycCheckout', { url, providerName, workFlowRunId }],
+  ),
+}));
+
+let capturedHandleNavigationStateChange:
+  | ((nav: { url: string }) => void)
+  | null = null;
+jest.mock('../utils/checkoutCallbackRegistry', () => ({
+  registerCheckoutCallback: jest.fn(
+    (callback: (nav: { url: string }) => void) => {
+      capturedHandleNavigationStateChange = callback;
+      return 'mock-callback-key';
+    },
+  ),
+}));
+
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
@@ -915,7 +941,7 @@ describe('useTransakRouting', () => {
               name: 'RampKycProcessing',
             }),
             expect.objectContaining({
-              name: 'Checkout',
+              name: 'RampKycCheckout',
               params: expect.objectContaining({
                 url: 'https://kyc.example.com',
                 providerName: 'Transak',

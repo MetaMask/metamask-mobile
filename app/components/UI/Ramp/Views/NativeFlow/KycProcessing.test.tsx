@@ -381,4 +381,82 @@ describe('V2KycProcessing', () => {
 
     expect(mockGetAdditionalRequirements).not.toHaveBeenCalled();
   });
+
+  it('calls Logger.error when routeAfterAuthentication fails', async () => {
+    const Logger = jest.requireMock('../../../../../util/Logger') as {
+      error: jest.Mock;
+    };
+    mockRouteAfterAuthentication.mockRejectedValue(new Error('Route failed'));
+    mockGetAdditionalRequirements.mockResolvedValue({ formsRequired: [] });
+    mockGetUserDetails.mockResolvedValue({
+      kyc: { status: 'APPROVED', type: 'SIMPLE' },
+    });
+
+    const { getByText } = renderWithTheme(<V2KycProcessing />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(
+        getByText('deposit.kyc_processing.success_button'),
+      ).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.kyc_processing.success_button'));
+    });
+
+    await waitFor(() => {
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message: 'V2KycProcessing::handleContinue error',
+        }),
+      );
+    });
+  });
+
+  it('shows loading state on error-state continue button', async () => {
+    let resolveRoute: () => void;
+    mockRouteAfterAuthentication.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveRoute = resolve;
+        }),
+    );
+    mockGetAdditionalRequirements.mockResolvedValue({ formsRequired: [] });
+    mockGetUserDetails.mockResolvedValue({
+      kyc: { status: 'REJECTED', type: 'SIMPLE' },
+    });
+
+    const { getByText } = renderWithTheme(<V2KycProcessing />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(
+        getByText('deposit.kyc_processing.error_button'),
+      ).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.kyc_processing.error_button'));
+    });
+
+    await act(async () => {
+      resolveRoute();
+    });
+
+    expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockBuyQuote);
+  });
 });
