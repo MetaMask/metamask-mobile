@@ -90,6 +90,8 @@ jest.mock('../../../../../Views/confirmations/hooks/useConfirmActions', () => ({
 }));
 
 const mockClearActiveOrderTransactionId = jest.fn();
+const mockRejectRequest = jest.fn();
+const mockTransactions: { id: string; status: string }[] = [];
 
 jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
@@ -120,6 +122,16 @@ jest.mock('../../../../../../core/Engine', () => ({
         mockOnPlaceOrderSuccess(...args),
       clearActiveOrderTransactionId: (...args: unknown[]) =>
         mockClearActiveOrderTransactionId(...args),
+    },
+    ApprovalController: {
+      rejectRequest: (...args: unknown[]) => mockRejectRequest(...args),
+    },
+    TransactionController: {
+      state: {
+        get transactions() {
+          return mockTransactions;
+        },
+      },
     },
   },
 }));
@@ -154,6 +166,7 @@ describe('usePredictBuyActions', () => {
     mockTransitionEndCallbacks.length = 0;
     mockBeforeRemoveCallbacks.length = 0;
     mockAddListener.mockImplementation(createAddListenerMock());
+    mockTransactions.length = 0;
   });
 
   describe('mount effect', () => {
@@ -546,6 +559,54 @@ describe('usePredictBuyActions', () => {
       rerender(createDefaultParams());
 
       expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
+    });
+  });
+
+  describe('pending transaction rejection', () => {
+    it('rejects unapproved transactions before calling initPayWithAnyToken', () => {
+      mockTransactions.push(
+        { id: 'tx-1', status: 'unapproved' },
+        { id: 'tx-2', status: 'unapproved' },
+      );
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockRejectRequest).toHaveBeenCalledTimes(2);
+      expect(mockRejectRequest).toHaveBeenCalledWith('tx-1', expect.anything());
+      expect(mockRejectRequest).toHaveBeenCalledWith('tx-2', expect.anything());
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not reject already approved transactions', () => {
+      mockTransactions.push(
+        { id: 'tx-1', status: 'confirmed' },
+        { id: 'tx-2', status: 'unapproved' },
+      );
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockRejectRequest).toHaveBeenCalledTimes(1);
+      expect(mockRejectRequest).toHaveBeenCalledWith('tx-2', expect.anything());
+    });
+
+    it('proceeds with initPayWithAnyToken even if rejection throws', () => {
+      mockTransactions.push({ id: 'tx-1', status: 'unapproved' });
+      mockRejectRequest.mockImplementation(() => {
+        throw new Error('Already resolved');
+      });
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not reject transactions when pay with any token is disabled', () => {
+      mockPayWithAnyTokenEnabled = false;
+      mockTransactions.push({ id: 'tx-1', status: 'unapproved' });
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockRejectRequest).not.toHaveBeenCalled();
     });
   });
 });
