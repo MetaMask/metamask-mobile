@@ -146,9 +146,7 @@ const PriceAdvanced = ({
 
   const handleTouchStart = useCallback(() => {
     activeTouchCountRef.current += 1;
-    if (activeTouchCountRef.current > 0) {
-      setIsChartBeingTouched(true);
-    }
+    setIsChartBeingTouched(true);
   }, [setIsChartBeingTouched]);
 
   const handleTouchEnd = useCallback(() => {
