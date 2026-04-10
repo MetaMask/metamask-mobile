@@ -51,10 +51,10 @@ describe('remoteFeatureFlagControllerInit', () => {
   });
 
   it('initializes the controller', () => {
-    const { controller } =
+    const { messengerClient } =
       remoteFeatureFlagControllerInit(getInitRequestMock());
 
-    expect(controller).toBeInstanceOf(Object);
+    expect(messengerClient).toBeInstanceOf(Object);
   });
 
   it('passes the proper arguments to the controller', () => {

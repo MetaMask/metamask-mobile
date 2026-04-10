@@ -59,8 +59,8 @@ function buildInitRequestMock(
     ...initRequestProperties,
   };
 
-  if (!initRequestProperties.getController) {
-    requestMock.getController = jest
+  if (!initRequestProperties.getMessengerClient) {
+    requestMock.getMessengerClient = jest
       .fn()
       .mockReturnValue(buildTransactionControllerMock());
   }
@@ -85,13 +85,13 @@ describe('BridgeStatusController Init', () => {
     const result = bridgeStatusControllerInit(requestMock);
 
     // Assert
-    expect(result.controller).toBeInstanceOf(BridgeStatusController);
+    expect(result.messengerClient).toBeInstanceOf(BridgeStatusController);
   });
 
   it('throws error if TransactionController is not found', () => {
     // Arrange
     const requestMock = buildInitRequestMock({
-      getController: jest.fn().mockImplementation(() => {
+      getMessengerClient: jest.fn().mockImplementation(() => {
         throw new Error('TransactionController not found');
       }),
     });
@@ -200,7 +200,9 @@ describe('BridgeStatusController Init', () => {
         addTransactionBatch: jest.fn().mockResolvedValue(['txId1', 'txId2']),
       });
       const requestMock = buildInitRequestMock({
-        getController: jest.fn().mockReturnValue(mockTransactionController),
+        getMessengerClient: jest
+          .fn()
+          .mockReturnValue(mockTransactionController),
       });
 
       // Act
@@ -246,14 +248,16 @@ describe('BridgeStatusController Init', () => {
       // Arrange
       const mockTransactionController = buildTransactionControllerMock();
       const requestMock = buildInitRequestMock({
-        getController: jest.fn().mockReturnValue(mockTransactionController),
+        getMessengerClient: jest
+          .fn()
+          .mockReturnValue(mockTransactionController),
       });
 
       // Act
       bridgeStatusControllerInit(requestMock);
 
       // Assert
-      expect(requestMock.getController).toHaveBeenCalledWith(
+      expect(requestMock.getMessengerClient).toHaveBeenCalledWith(
         'TransactionController',
       );
     });

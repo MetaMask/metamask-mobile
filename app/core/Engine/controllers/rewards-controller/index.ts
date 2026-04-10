@@ -24,7 +24,7 @@ export const rewardsControllerInit: MessengerClientInitFunction<
   const rewardsControllerState =
     persistedState.RewardsController ?? defaultRewardsControllerState;
 
-  const controller = new RewardsController({
+  const messengerClient = new RewardsController({
     messenger: controllerMessenger,
     state: rewardsControllerState,
     isDisabled: () => {
@@ -35,7 +35,7 @@ export const rewardsControllerInit: MessengerClientInitFunction<
     isTronOptinEnabled: () => selectTronRewardsEnabledFlag(getState()),
   });
 
-  return { controller };
+  return { messengerClient };
 };
 
 export { RewardsController };

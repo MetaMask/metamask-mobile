@@ -73,7 +73,7 @@ describe('MultichainAccountServiceInit', () => {
 
   it('returns service instance', () => {
     expect(
-      multichainAccountServiceInit(getInitRequestMock()).controller,
+      multichainAccountServiceInit(getInitRequestMock()).messengerClient,
     ).toBeInstanceOf(MultichainAccountService);
   });
 

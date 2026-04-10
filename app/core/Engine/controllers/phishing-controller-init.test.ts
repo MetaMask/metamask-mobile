@@ -40,8 +40,8 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('PhishingControllerInit', () => {
   it('initializes the controller', () => {
-    const { controller } = phishingControllerInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(PhishingController);
+    const { messengerClient } = phishingControllerInit(getInitRequestMock());
+    expect(messengerClient).toBeInstanceOf(PhishingController);
   });
 
   it('passes the proper arguments to the controller', () => {

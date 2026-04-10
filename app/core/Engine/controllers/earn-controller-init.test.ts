@@ -18,7 +18,7 @@ function getInitRequestMock() {
   };
 
   // @ts-expect-error: Partial mock.
-  requestMock.getController.mockImplementation((name) => {
+  requestMock.getMessengerClient.mockImplementation((name) => {
     if (name === 'TransactionController') {
       return {
         addTransaction: jest.fn(),
@@ -33,8 +33,8 @@ function getInitRequestMock() {
 
 describe('EarnControllerInit', () => {
   it('initializes the controller', () => {
-    const { controller } = earnControllerInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(EarnController);
+    const { messengerClient } = earnControllerInit(getInitRequestMock());
+    expect(messengerClient).toBeInstanceOf(EarnController);
   });
 
   it('passes the proper arguments to the controller', () => {

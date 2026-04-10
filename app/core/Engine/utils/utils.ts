@@ -46,11 +46,11 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
   let partialMessengerClientsByName: Partial<MessengerClientsByName> = {};
 
   // Used by other messenger clients to get dependent messenger clients
-  const getController = <Name extends MessengerClientName>(
+  const getMessengerClient = <Name extends MessengerClientName>(
     name: Name,
   ): MessengerClientsByName[Name] =>
     getMessengerClientOrThrow({
-      controller: partialMessengerClientsByName?.[name],
+      messengerClient: partialMessengerClientsByName?.[name],
       name,
     });
 
@@ -80,18 +80,18 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
 
     const finalInitRequest: BaseMessengerClientInitRequest = {
       controllerMessenger,
-      getController,
+      getMessengerClient,
       initMessenger,
       ...initRequest,
     };
 
     // Initialize the messenger client
-    const { controller } = initFunction(finalInitRequest);
+    const { messengerClient } = initFunction(finalInitRequest);
 
     // Add the messenger client to the map
     partialMessengerClientsByName = {
       ...partialMessengerClientsByName,
-      [messengerClientName]: controller,
+      [messengerClientName]: messengerClient,
     };
 
     log('Initialized messenger client', messengerClientName);
@@ -108,22 +108,22 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
  * Throws an error if the messenger client is not found.
  *
  * @param options - Options containing the messenger client and name.
- * @param options.controller - The messenger client to get.
+ * @param options.messengerClient - The messenger client to get.
  * @param options.name - The name of the messenger client.
  * @returns The messenger client.
  */
 export function getMessengerClientOrThrow<Name extends MessengerClientName>({
-  controller,
+  messengerClient,
   name,
 }: {
-  controller: Partial<MessengerClientsByName>[Name];
+  messengerClient: Partial<MessengerClientsByName>[Name];
   name: Name;
 }): MessengerClientsByName[Name] {
-  if (!controller) {
+  if (!messengerClient) {
     throw new Error(
       `Messenger client requested before it was initialized: ${name}`,
     );
   }
 
-  return controller;
+  return messengerClient;
 }

@@ -31,7 +31,7 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('snapKeyringBuilderInit', () => {
   it('initializes the controller', () => {
-    const { controller } = snapKeyringBuilderInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(Function);
+    const { messengerClient } = snapKeyringBuilderInit(getInitRequestMock());
+    expect(messengerClient).toBeInstanceOf(Function);
   });
 });

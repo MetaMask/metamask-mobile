@@ -16,13 +16,13 @@ export const subjectMetadataControllerInit: MessengerClientInitFunction<
   SubjectMetadataController,
   SubjectMetadataControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {
-  const controller = new SubjectMetadataController({
+  const messengerClient = new SubjectMetadataController({
     messenger: controllerMessenger,
     state: persistedState.SubjectMetadataController || {},
     subjectCacheLimit: 100,
   });
 
   return {
-    controller,
+    messengerClient,
   };
 };

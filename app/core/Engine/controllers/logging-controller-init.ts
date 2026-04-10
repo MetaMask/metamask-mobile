@@ -15,12 +15,12 @@ export const loggingControllerInit: MessengerClientInitFunction<
   LoggingController,
   LoggingControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {
-  const controller = new LoggingController({
+  const messengerClient = new LoggingController({
     messenger: controllerMessenger,
     state: persistedState.LoggingController,
   });
 
   return {
-    controller,
+    messengerClient,
   };
 };

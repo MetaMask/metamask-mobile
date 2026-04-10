@@ -29,7 +29,7 @@ export const SignatureControllerInit: MessengerClientInitFunction<
       trace: trace as unknown as SignatureControllerOptions['trace'],
     });
 
-    return { controller: signatureController };
+    return { messengerClient: signatureController };
   } catch (error) {
     Logger.error(error as Error, 'Failed to initialize SignatureController');
     throw error;
@@ -40,6 +40,6 @@ function getControllers(
   request: MessengerClientInitRequest<SignatureControllerMessenger>,
 ) {
   return {
-    preferencesController: request.getController('PreferencesController'),
+    preferencesController: request.getMessengerClient('PreferencesController'),
   };
 }

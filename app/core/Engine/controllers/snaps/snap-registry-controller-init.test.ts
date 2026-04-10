@@ -33,8 +33,9 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('SnapRegistryControllerInit', () => {
   it('initializes the controller', () => {
-    const { controller } = snapRegistryControllerInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(SnapRegistryController);
+    const { messengerClient } =
+      snapRegistryControllerInit(getInitRequestMock());
+    expect(messengerClient).toBeInstanceOf(SnapRegistryController);
   });
 
   it('passes the proper arguments to the controller', () => {

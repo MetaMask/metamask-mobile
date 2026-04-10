@@ -41,8 +41,8 @@ describe('geolocationApiServiceInit', () => {
   });
 
   it('initializes the service', () => {
-    const { controller } = geolocationApiServiceInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(GeolocationApiService);
+    const { messengerClient } = geolocationApiServiceInit(getInitRequestMock());
+    expect(messengerClient).toBeInstanceOf(GeolocationApiService);
   });
 
   it('passes Env.PRD for production environment', () => {

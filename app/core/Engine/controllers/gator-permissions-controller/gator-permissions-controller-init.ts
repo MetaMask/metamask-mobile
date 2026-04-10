@@ -36,13 +36,13 @@ export const GatorPermissionsControllerInit: MessengerClientInitFunction<
   GatorPermissionsController,
   GatorPermissionsControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {
-  const controller = new GatorPermissionsController({
+  const messengerClient = new GatorPermissionsController({
     messenger: controllerMessenger,
     config: createGatorPermissionsConfig(),
     state: persistedState.GatorPermissionsController,
   });
 
   return {
-    controller,
+    messengerClient,
   };
 };

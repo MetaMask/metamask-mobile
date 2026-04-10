@@ -18,14 +18,19 @@ export const tokensControllerInit: MessengerClientInitFunction<
   TokensController,
   TokensControllerMessenger,
   TokensControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, persistedState, getController }) => {
-  const networkController = getController('NetworkController');
+> = ({
+  controllerMessenger,
+  initMessenger,
+  persistedState,
+  getMessengerClient,
+}) => {
+  const networkController = getMessengerClient('NetworkController');
   const { provider } =
     initMessenger.call('NetworkController:getSelectedNetworkClient') ?? {};
 
   assert(provider, 'Provider is required to initialize `TokensController`.');
 
-  const controller = new TokensController({
+  const messengerClient = new TokensController({
     state: persistedState.TokensController,
     messenger: controllerMessenger,
     chainId: getGlobalChainId(networkController),
@@ -33,6 +38,6 @@ export const tokensControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    controller,
+    messengerClient,
   };
 };

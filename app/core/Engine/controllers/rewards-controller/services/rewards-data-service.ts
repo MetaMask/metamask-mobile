@@ -640,9 +640,9 @@ export class RewardsDataService {
     const url = `${envBaseUrl}${endpoint}`;
 
     // Create AbortController for timeout handling
-    const controller = new AbortController();
+    const messengerClient = new AbortController();
     const timeoutId = setTimeout(() => {
-      controller.abort();
+      messengerClient.abort();
     }, timeoutMs);
 
     try {
@@ -653,7 +653,7 @@ export class RewardsDataService {
           ...headers,
           ...options.headers,
         },
-        signal: controller.signal,
+        signal: messengerClient.signal,
       });
 
       clearTimeout(timeoutId);

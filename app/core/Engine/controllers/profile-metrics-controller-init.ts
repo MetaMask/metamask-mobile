@@ -36,7 +36,7 @@ export const profileMetricsControllerInit: MessengerClientInitFunction<
     );
   };
 
-  const controller = new ProfileMetricsController({
+  const messengerClient = new ProfileMetricsController({
     messenger: controllerMessenger,
     state: persistedState.ProfileMetricsController,
     assertUserOptedIn,
@@ -45,6 +45,6 @@ export const profileMetricsControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    controller,
+    messengerClient,
   };
 };

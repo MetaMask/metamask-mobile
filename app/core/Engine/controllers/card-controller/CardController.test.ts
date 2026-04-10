@@ -171,18 +171,18 @@ const mockTokenSet: CardAuthTokens = {
 
 describe('CardController', () => {
   it('initializes with default state when no state is provided', () => {
-    const controller = new CardController({
+    const messengerClient = new CardController({
       messenger: buildMessenger(),
       providers: {},
     });
 
-    expect(controller.state).toStrictEqual(defaultCardControllerState);
-    expect(controller.state.cardHomeData).toBeNull();
-    expect(controller.state.cardHomeDataStatus).toBe('idle');
+    expect(messengerClient.state).toStrictEqual(defaultCardControllerState);
+    expect(messengerClient.state.cardHomeData).toBeNull();
+    expect(messengerClient.state.cardHomeDataStatus).toBe('idle');
   });
 
   it('initializes with provided state merged over defaults', () => {
-    const controller = new CardController({
+    const messengerClient = new CardController({
       messenger: buildMessenger(),
       providers: {},
       state: {
@@ -192,7 +192,7 @@ describe('CardController', () => {
       },
     });
 
-    expect(controller.state).toStrictEqual({
+    expect(messengerClient.state).toStrictEqual({
       selectedCountry: 'US',
       activeProviderId: 'baanx',
       isAuthenticated: true,
@@ -204,7 +204,7 @@ describe('CardController', () => {
   });
 
   it('preserves default values for fields not in partial state', () => {
-    const controller = new CardController({
+    const messengerClient = new CardController({
       messenger: buildMessenger(),
       providers: {},
       state: {
@@ -212,15 +212,15 @@ describe('CardController', () => {
       },
     });
 
-    expect(controller.state.selectedCountry).toBe('GB');
-    expect(controller.state.activeProviderId).toBe('baanx');
-    expect(controller.state.isAuthenticated).toBe(false);
-    expect(controller.state.cardholderAccounts).toStrictEqual([]);
-    expect(controller.state.providerData).toStrictEqual({});
+    expect(messengerClient.state.selectedCountry).toBe('GB');
+    expect(messengerClient.state.activeProviderId).toBe('baanx');
+    expect(messengerClient.state.isAuthenticated).toBe(false);
+    expect(messengerClient.state.cardholderAccounts).toStrictEqual([]);
+    expect(messengerClient.state.providerData).toStrictEqual({});
   });
 
   it('initializes with full persisted state including providerData', () => {
-    const controller = new CardController({
+    const messengerClient = new CardController({
       messenger: buildMessenger(),
       providers: {},
       state: {
@@ -234,10 +234,10 @@ describe('CardController', () => {
       },
     });
 
-    expect(controller.state.cardholderAccounts).toStrictEqual([
+    expect(messengerClient.state.cardholderAccounts).toStrictEqual([
       'eip155:1:0xabc',
     ]);
-    expect(controller.state.providerData).toStrictEqual({
+    expect(messengerClient.state.providerData).toStrictEqual({
       baanx: { location: 'us' },
     });
   });
@@ -252,24 +252,24 @@ describe('CardController — auth methods', () => {
     it('delegates to the active provider and stores the session internally', async () => {
       const provider = buildMockProvider();
       provider.initiateAuth.mockResolvedValue(mockSession);
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      await controller.initiateAuth('US');
+      await messengerClient.initiateAuth('US');
 
       expect(provider.initiateAuth).toHaveBeenCalledWith('US');
-      expect(controller.getCurrentAuthStep()).toStrictEqual(
+      expect(messengerClient.getCurrentAuthStep()).toStrictEqual(
         mockSession.currentStep,
       );
     });
 
     it('throws CardProviderError when there is no active provider', async () => {
-      const controller = new CardController({
+      const messengerClient = new CardController({
         messenger: buildMessenger(),
         providers: {},
         state: { activeProviderId: null },
       });
 
-      await expect(controller.initiateAuth('US')).rejects.toBeInstanceOf(
+      await expect(messengerClient.initiateAuth('US')).rejects.toBeInstanceOf(
         CardProviderError,
       );
     });
@@ -278,10 +278,10 @@ describe('CardController — auth methods', () => {
   describe('submitCredentials', () => {
     it('throws when no session has been initiated', async () => {
       const provider = buildMockProvider();
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
       await expect(
-        controller.submitCredentials({
+        messengerClient.submitCredentials({
           type: 'email_password',
           email: 'a@b.com',
           password: 'pass',
@@ -297,18 +297,18 @@ describe('CardController — auth methods', () => {
         tokenSet: mockTokenSet,
       });
       mockTokenStore.set.mockResolvedValue(true);
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      await controller.initiateAuth('US');
-      const result = await controller.submitCredentials({
+      await messengerClient.initiateAuth('US');
+      const result = await messengerClient.submitCredentials({
         type: 'email_password',
         email: 'a@b.com',
         password: 'pass',
       });
 
       expect(mockTokenStore.set).toHaveBeenCalledWith('baanx', mockTokenSet);
-      expect(controller.state.isAuthenticated).toBe(true);
-      expect(controller.state.providerData.baanx).toStrictEqual({
+      expect(messengerClient.state.isAuthenticated).toBe(true);
+      expect(messengerClient.state.providerData.baanx).toStrictEqual({
         location: 'international',
       });
       expect(result.done).toBe(true);
@@ -322,16 +322,16 @@ describe('CardController — auth methods', () => {
         tokenSet: mockTokenSet,
       });
       mockTokenStore.set.mockResolvedValue(false);
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      await controller.initiateAuth('US');
-      await controller.submitCredentials({
+      await messengerClient.initiateAuth('US');
+      await messengerClient.submitCredentials({
         type: 'email_password',
         email: 'a@b.com',
         password: 'pass',
       });
 
-      expect(controller.state.isAuthenticated).toBe(true);
+      expect(messengerClient.state.isAuthenticated).toBe(true);
     });
 
     it('updates currentSession step when OTP step is required', async () => {
@@ -341,18 +341,18 @@ describe('CardController — auth methods', () => {
         done: false,
         nextStep: { type: 'otp', destination: '+1555****90' },
       });
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      await controller.initiateAuth('US');
-      const result = await controller.submitCredentials({
+      await messengerClient.initiateAuth('US');
+      const result = await messengerClient.submitCredentials({
         type: 'email_password',
         email: 'a@b.com',
         password: 'pass',
       });
 
-      expect(controller.state.isAuthenticated).toBe(false);
+      expect(messengerClient.state.isAuthenticated).toBe(false);
       expect(result.done).toBe(false);
-      expect(controller.getCurrentAuthStep()).toStrictEqual({
+      expect(messengerClient.getCurrentAuthStep()).toStrictEqual({
         type: 'otp',
         destination: '+1555****90',
       });
@@ -365,27 +365,27 @@ describe('CardController — auth methods', () => {
         done: false,
         onboardingRequired: { sessionId: 'ob-session', phase: 'kyc' },
       });
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      await controller.initiateAuth('US');
-      const result = await controller.submitCredentials({
+      await messengerClient.initiateAuth('US');
+      const result = await messengerClient.submitCredentials({
         type: 'email_password',
         email: 'a@b.com',
         password: 'pass',
       });
 
-      expect(controller.state.isAuthenticated).toBe(false);
+      expect(messengerClient.state.isAuthenticated).toBe(false);
       expect(result.onboardingRequired?.phase).toBe('kyc');
-      expect(controller.getCurrentAuthStep()).toBeNull();
+      expect(messengerClient.getCurrentAuthStep()).toBeNull();
     });
   });
 
   describe('executeStepAction', () => {
     it('throws when no session has been initiated', async () => {
       const provider = buildMockProvider();
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      await expect(controller.executeStepAction()).rejects.toMatchObject({
+      await expect(messengerClient.executeStepAction()).rejects.toMatchObject({
         code: CardProviderErrorCode.Unknown,
       });
     });
@@ -394,10 +394,10 @@ describe('CardController — auth methods', () => {
       const provider = buildMockProvider();
       provider.initiateAuth.mockResolvedValue(mockSession);
       (provider.executeStepAction as jest.Mock).mockResolvedValue(undefined);
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      await controller.initiateAuth('US');
-      await controller.executeStepAction();
+      await messengerClient.initiateAuth('US');
+      await messengerClient.executeStepAction();
 
       expect(provider.executeStepAction).toHaveBeenCalledWith(mockSession);
     });
@@ -405,10 +405,12 @@ describe('CardController — auth methods', () => {
     it('is a no-op when the provider does not implement executeStepAction', async () => {
       const provider = buildMockProvider({ executeStepAction: undefined });
       provider.initiateAuth.mockResolvedValue(mockSession);
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      await controller.initiateAuth('US');
-      await expect(controller.executeStepAction()).resolves.toBeUndefined();
+      await messengerClient.initiateAuth('US');
+      await expect(
+        messengerClient.executeStepAction(),
+      ).resolves.toBeUndefined();
     });
   });
 
@@ -418,13 +420,15 @@ describe('CardController — auth methods', () => {
       provider.logout.mockResolvedValue(undefined);
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       mockTokenStore.remove.mockResolvedValue(true);
-      const controller = buildController(provider, { isAuthenticated: true });
+      const messengerClient = buildController(provider, {
+        isAuthenticated: true,
+      });
 
-      await controller.logout();
+      await messengerClient.logout();
 
       expect(provider.logout).toHaveBeenCalledWith(mockTokenSet);
       expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
-      expect(controller.state.isAuthenticated).toBe(false);
+      expect(messengerClient.state.isAuthenticated).toBe(false);
     });
 
     it('still clears local state when provider.logout throws', async () => {
@@ -432,21 +436,23 @@ describe('CardController — auth methods', () => {
       provider.logout.mockRejectedValue(new Error('Server error'));
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       mockTokenStore.remove.mockResolvedValue(true);
-      const controller = buildController(provider, { isAuthenticated: true });
+      const messengerClient = buildController(provider, {
+        isAuthenticated: true,
+      });
 
-      await controller.logout();
+      await messengerClient.logout();
 
       expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
-      expect(controller.state.isAuthenticated).toBe(false);
+      expect(messengerClient.state.isAuthenticated).toBe(false);
     });
 
     it('skips provider.logout call when no tokens exist', async () => {
       const provider = buildMockProvider();
       mockTokenStore.get.mockResolvedValue(null);
       mockTokenStore.remove.mockResolvedValue(true);
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      await controller.logout();
+      await messengerClient.logout();
 
       expect(provider.logout).not.toHaveBeenCalled();
       expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
@@ -474,27 +480,27 @@ describe('CardController — auth methods', () => {
     it('returns isAuthenticated:false when no tokens exist', async () => {
       const provider = buildMockProvider();
       mockTokenStore.get.mockResolvedValue(null);
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      const result = await controller.validateAndRefreshSession();
+      const result = await messengerClient.validateAndRefreshSession();
 
       expect(result).toStrictEqual({ isAuthenticated: false });
-      expect(controller.state.isAuthenticated).toBe(false);
+      expect(messengerClient.state.isAuthenticated).toBe(false);
     });
 
     it('returns isAuthenticated:true with location when tokens are valid', async () => {
       const provider = buildMockProvider();
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       provider.validateTokens.mockReturnValue('valid');
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      const result = await controller.validateAndRefreshSession();
+      const result = await messengerClient.validateAndRefreshSession();
 
       expect(result).toStrictEqual({
         isAuthenticated: true,
         location: 'international',
       });
-      expect(controller.state.isAuthenticated).toBe(true);
+      expect(messengerClient.state.isAuthenticated).toBe(true);
     });
 
     it('refreshes tokens and returns authenticated when needs_refresh', async () => {
@@ -507,9 +513,9 @@ describe('CardController — auth methods', () => {
       provider.validateTokens.mockReturnValue('needs_refresh');
       provider.refreshTokens.mockResolvedValue(refreshedTokens);
       mockTokenStore.set.mockResolvedValue(true);
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      const result = await controller.validateAndRefreshSession();
+      const result = await messengerClient.validateAndRefreshSession();
 
       expect(provider.refreshTokens).toHaveBeenCalledWith(mockTokenSet);
       expect(mockTokenStore.set).toHaveBeenCalledWith('baanx', refreshedTokens);
@@ -525,13 +531,13 @@ describe('CardController — auth methods', () => {
       provider.validateTokens.mockReturnValue('needs_refresh');
       provider.refreshTokens.mockRejectedValue(new Error('Refresh failed'));
       mockTokenStore.remove.mockResolvedValue(true);
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      const result = await controller.validateAndRefreshSession();
+      const result = await messengerClient.validateAndRefreshSession();
 
       expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
       expect(result).toStrictEqual({ isAuthenticated: false });
-      expect(controller.state.isAuthenticated).toBe(false);
+      expect(messengerClient.state.isAuthenticated).toBe(false);
     });
 
     it('clears tokens and returns unauthenticated when tokens are expired', async () => {
@@ -539,24 +545,24 @@ describe('CardController — auth methods', () => {
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       provider.validateTokens.mockReturnValue('expired');
       mockTokenStore.remove.mockResolvedValue(true);
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      const result = await controller.validateAndRefreshSession();
+      const result = await messengerClient.validateAndRefreshSession();
 
       expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
       expect(result).toStrictEqual({ isAuthenticated: false });
-      expect(controller.state.isAuthenticated).toBe(false);
+      expect(messengerClient.state.isAuthenticated).toBe(false);
     });
 
     it('persists location in providerData when tokens are valid', async () => {
       const provider = buildMockProvider();
       mockTokenStore.get.mockResolvedValue({ ...mockTokenSet, location: 'us' });
       provider.validateTokens.mockReturnValue('valid');
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      await controller.validateAndRefreshSession();
+      await messengerClient.validateAndRefreshSession();
 
-      expect(controller.state.providerData.baanx).toStrictEqual({
+      expect(messengerClient.state.providerData.baanx).toStrictEqual({
         location: 'us',
       });
     });
@@ -572,11 +578,11 @@ describe('CardController — auth methods', () => {
       provider.validateTokens.mockReturnValue('needs_refresh');
       provider.refreshTokens.mockResolvedValue(refreshedTokens);
       mockTokenStore.set.mockResolvedValue(true);
-      const controller = buildController(provider);
+      const messengerClient = buildController(provider);
 
-      await controller.validateAndRefreshSession();
+      await messengerClient.validateAndRefreshSession();
 
-      expect(controller.state.providerData.baanx).toStrictEqual({
+      expect(messengerClient.state.providerData.baanx).toStrictEqual({
         location: 'us',
       });
     });
@@ -657,14 +663,14 @@ describe('CardController — event subscriptions', () => {
       return undefined;
     });
 
-    const controller = new CardController({
+    const messengerClient = new CardController({
       messenger: mockMessenger,
       providers: { baanx: provider },
       state: { activeProviderId: 'baanx' },
     });
 
     const validateSpy = jest
-      .spyOn(controller, 'validateAndRefreshSession')
+      .spyOn(messengerClient, 'validateAndRefreshSession')
       .mockResolvedValue({ isAuthenticated: false });
 
     // Simulate unlock event
@@ -700,11 +706,11 @@ describe('CardController — checkCardholderAccounts', () => {
     });
 
     const provider = buildMockProvider();
-    const controller = buildController(provider);
+    const messengerClient = buildController(provider);
 
-    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
+    await messengerClient.checkCardholderAccounts(caipIds, accountsApiUrl);
 
-    expect(controller.state.cardholderAccounts).toStrictEqual([
+    expect(messengerClient.state.cardholderAccounts).toStrictEqual([
       'eip155:0:0xabc',
     ]);
   });
@@ -717,21 +723,21 @@ describe('CardController — checkCardholderAccounts', () => {
     });
 
     const provider = buildMockProvider();
-    const controller = buildController(provider);
+    const messengerClient = buildController(provider);
 
-    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
+    await messengerClient.checkCardholderAccounts(caipIds, accountsApiUrl);
 
-    expect(controller.state.cardholderAccounts).toStrictEqual([]);
+    expect(messengerClient.state.cardholderAccounts).toStrictEqual([]);
   });
 
   it('is a no-op when caipAccountIds is empty', async () => {
     const provider = buildMockProvider();
-    const controller = buildController(provider);
+    const messengerClient = buildController(provider);
 
-    await controller.checkCardholderAccounts([], accountsApiUrl);
+    await messengerClient.checkCardholderAccounts([], accountsApiUrl);
 
     expect(global.fetch).not.toHaveBeenCalled();
-    expect(controller.state.cardholderAccounts).toStrictEqual([]);
+    expect(messengerClient.state.cardholderAccounts).toStrictEqual([]);
   });
 
   it('leaves state unchanged and logs error when API call fails', async () => {
@@ -742,13 +748,13 @@ describe('CardController — checkCardholderAccounts', () => {
     });
 
     const provider = buildMockProvider();
-    const controller = buildController(provider, {
+    const messengerClient = buildController(provider, {
       cardholderAccounts: ['eip155:0:0xprev'],
     });
 
-    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
+    await messengerClient.checkCardholderAccounts(caipIds, accountsApiUrl);
 
-    expect(controller.state.cardholderAccounts).toStrictEqual([
+    expect(messengerClient.state.cardholderAccounts).toStrictEqual([
       'eip155:0:0xprev',
     ]);
   });
@@ -765,9 +771,9 @@ describe('CardController — checkCardholderAccounts', () => {
     });
 
     const provider = buildMockProvider();
-    const controller = buildController(provider);
+    const messengerClient = buildController(provider);
 
-    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
+    await messengerClient.checkCardholderAccounts(caipIds, accountsApiUrl);
 
     // 55 accounts → 2 batches (50 + 5)
     expect(global.fetch).toHaveBeenCalledTimes(2);
@@ -785,9 +791,9 @@ describe('CardController — checkCardholderAccounts', () => {
     });
 
     const provider = buildMockProvider();
-    const controller = buildController(provider);
+    const messengerClient = buildController(provider);
 
-    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
+    await messengerClient.checkCardholderAccounts(caipIds, accountsApiUrl);
 
     expect(global.fetch).toHaveBeenCalledTimes(3);
   });

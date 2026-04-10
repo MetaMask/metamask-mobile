@@ -20,7 +20,7 @@ export const snapRegistryControllerInit: MessengerClientInitFunction<
 > = ({ controllerMessenger, persistedState }) => {
   const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
 
-  const controller = new SnapRegistryController({
+  const messengerClient = new SnapRegistryController({
     // @ts-expect-error: `persistedState.SnapRegistryController` is not compatible
     // with the expected type.
     // TODO: Look into the type mismatch.
@@ -34,6 +34,6 @@ export const snapRegistryControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    controller,
+    messengerClient,
   };
 };

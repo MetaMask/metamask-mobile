@@ -20,10 +20,10 @@ export const multichainAssetsControllerInit: MessengerClientInitFunction<
   const multichainAssetsControllerState =
     persistedState.MultichainAssetsController as MultichainAssetsControllerState;
 
-  const controller = new MultichainAssetsController({
+  const messengerClient = new MultichainAssetsController({
     messenger: controllerMessenger,
     state: multichainAssetsControllerState,
   });
 
-  return { controller };
+  return { messengerClient };
 };

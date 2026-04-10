@@ -53,7 +53,7 @@ export const multichainRoutingServiceInit: MessengerClientInitFunction<
     return operation({ keyring });
   };
 
-  const controller = new MultichainRoutingService({
+  const messengerClient = new MultichainRoutingService({
     messenger: controllerMessenger,
 
     // @ts-expect-error: Type for `withSnapKeyring` is different.
@@ -61,6 +61,6 @@ export const multichainRoutingServiceInit: MessengerClientInitFunction<
   });
 
   return {
-    controller,
+    messengerClient,
   };
 };

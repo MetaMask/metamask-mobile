@@ -27,7 +27,7 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('WebSocketServiceInit', () => {
   it('initializes the controller', () => {
-    const { controller } = WebSocketServiceInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(WebSocketService);
+    const { messengerClient } = WebSocketServiceInit(getInitRequestMock());
+    expect(messengerClient).toBeInstanceOf(WebSocketService);
   });
 });

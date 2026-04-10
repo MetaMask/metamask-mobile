@@ -44,25 +44,27 @@ function getInitRequestMock(): jest.Mocked<
   };
 
   // @ts-expect-error: Partial implementation.
-  requestMock.getController.mockImplementation((controllerName: string) => {
-    if (controllerName === 'SnapKeyringBuilder') {
-      return jest.fn();
-    }
+  requestMock.getMessengerClient.mockImplementation(
+    (controllerName: string) => {
+      if (controllerName === 'SnapKeyringBuilder') {
+        return jest.fn();
+      }
 
-    if (controllerName === 'PreferencesController') {
-      return jest.fn();
-    }
+      if (controllerName === 'PreferencesController') {
+        return jest.fn();
+      }
 
-    if (controllerName === 'KeyringController') {
-      return { withKeyringUnsafe: mockWithKeyringUnsafe };
-    }
+      if (controllerName === 'KeyringController') {
+        return { withKeyringUnsafe: mockWithKeyringUnsafe };
+      }
 
-    if (controllerName === 'RemoteFeatureFlagController') {
-      return { state: { remoteFeatureFlags: {} } };
-    }
+      if (controllerName === 'RemoteFeatureFlagController') {
+        return { state: { remoteFeatureFlags: {} } };
+      }
 
-    throw new Error(`Controller "${controllerName}" not found.`);
-  });
+      throw new Error(`Controller "${controllerName}" not found.`);
+    },
+  );
 
   return requestMock;
 }
@@ -74,8 +76,8 @@ describe('keyringControllerInit', () => {
   });
 
   it('initializes the controller', () => {
-    const { controller } = keyringControllerInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(KeyringController);
+    const { messengerClient } = keyringControllerInit(getInitRequestMock());
+    expect(messengerClient).toBeInstanceOf(KeyringController);
   });
 
   it('passes the proper arguments to the controller', () => {

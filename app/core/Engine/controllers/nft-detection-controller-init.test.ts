@@ -25,7 +25,7 @@ function getInitRequestMock(): jest.Mocked<
   };
 
   // @ts-expect-error: Partial mock.
-  requestMock.getController.mockImplementation((name: string) => {
+  requestMock.getMessengerClient.mockImplementation((name: string) => {
     if (name === 'NftController') {
       return {
         addNfts: jest.fn(),
@@ -41,8 +41,9 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('NftDetectionControllerInit', () => {
   it('initializes the controller', () => {
-    const { controller } = nftDetectionControllerInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(NftDetectionController);
+    const { messengerClient } =
+      nftDetectionControllerInit(getInitRequestMock());
+    expect(messengerClient).toBeInstanceOf(NftDetectionController);
   });
 
   it('passes the proper arguments to the controller', () => {

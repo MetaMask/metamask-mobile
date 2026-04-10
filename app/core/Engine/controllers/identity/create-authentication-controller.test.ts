@@ -82,11 +82,11 @@ describe('Authentication Controller', () => {
 
   it('returns controller instance', () => {
     const { messenger, metametrics } = arrange();
-    const controller = createAuthenticationController({
+    const messengerClient = createAuthenticationController({
       messenger,
       metametrics,
     });
-    expect(controller).toBeInstanceOf(AuthenticationController);
+    expect(messengerClient).toBeInstanceOf(AuthenticationController);
   });
 
   it('can pass undefined as initial state', () => {

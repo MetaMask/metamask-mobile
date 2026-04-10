@@ -147,9 +147,9 @@ describe('assetsControllerInit', () => {
   });
 
   it('initializes the controller', () => {
-    const { controller } = assetsControllerInit(getInitRequestMock());
+    const { messengerClient } = assetsControllerInit(getInitRequestMock());
 
-    expect(controller).toBeInstanceOf(AssetsController);
+    expect(messengerClient).toBeInstanceOf(AssetsController);
   });
 
   it('passes the correct arguments to the controller', () => {

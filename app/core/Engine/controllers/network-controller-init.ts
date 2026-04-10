@@ -121,7 +121,7 @@ export const networkControllerInit: MessengerClientInitFunction<
 > = ({ controllerMessenger, initMessenger, persistedState, analyticsId }) => {
   const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
 
-  const controller = new NetworkController({
+  const messengerClient = new NetworkController({
     infuraProjectId,
     state: getInitialNetworkControllerState(persistedState),
     messenger: controllerMessenger,
@@ -241,16 +241,16 @@ export const networkControllerInit: MessengerClientInitFunction<
     },
   );
 
-  controller.initializeProvider();
+  messengerClient.initializeProvider();
 
   // TODO: Move this to `network-controller`
   const toggleRpcFailover = (isRpcFailoverEnabled: Json) => {
     if (isRpcFailoverEnabled) {
       Logger.log('Enabling RPC failover.');
-      controller.enableRpcFailover();
+      messengerClient.enableRpcFailover();
     } else {
       Logger.log('Disabling RPC failover.');
-      controller.disableRpcFailover();
+      messengerClient.disableRpcFailover();
     }
   };
 
@@ -270,6 +270,6 @@ export const networkControllerInit: MessengerClientInitFunction<
   );
 
   return {
-    controller,
+    messengerClient,
   };
 };

@@ -25,7 +25,7 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
       state: persistedState.TransactionPayController,
     });
 
-    return { controller: transactionPayController };
+    return { messengerClient: transactionPayController };
   } catch (error) {
     Logger.error(
       error as Error,

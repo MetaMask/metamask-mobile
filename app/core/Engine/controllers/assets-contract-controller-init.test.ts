@@ -25,7 +25,7 @@ function getInitRequestMock(): jest.Mocked<
   };
 
   // @ts-expect-error: Partial mock.
-  requestMock.getController.mockImplementation((name) => {
+  requestMock.getMessengerClient.mockImplementation((name) => {
     if (name === 'NetworkController') {
       return {
         state: {
@@ -56,8 +56,9 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('AssetsContractControllerInit', () => {
   it('initializes the controller', () => {
-    const { controller } = assetsContractControllerInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(AssetsContractController);
+    const { messengerClient } =
+      assetsContractControllerInit(getInitRequestMock());
+    expect(messengerClient).toBeInstanceOf(AssetsContractController);
   });
 
   it('passes the proper arguments to the controller', () => {

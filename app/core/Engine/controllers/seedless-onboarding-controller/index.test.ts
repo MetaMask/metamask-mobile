@@ -152,7 +152,7 @@ describe('seedless onboarding controller init', () => {
 
   it('returns controller instance', () => {
     expect(
-      seedlessOnboardingControllerInit(initRequestMock).controller,
+      seedlessOnboardingControllerInit(initRequestMock).messengerClient,
     ).toBeInstanceOf(SeedlessOnboardingController);
   });
 

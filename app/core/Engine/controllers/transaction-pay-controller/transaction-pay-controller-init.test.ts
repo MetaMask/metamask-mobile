@@ -73,9 +73,9 @@ describe('Transaction Pay Controller Init', () => {
   it('returns controller instance', () => {
     const requestMock = buildInitRequestMock();
 
-    expect(TransactionPayControllerInit(requestMock).controller).toBeInstanceOf(
-      TransactionPayController,
-    );
+    expect(
+      TransactionPayControllerInit(requestMock).messengerClient,
+    ).toBeInstanceOf(TransactionPayController);
   });
 
   it('initialize with correct state', () => {

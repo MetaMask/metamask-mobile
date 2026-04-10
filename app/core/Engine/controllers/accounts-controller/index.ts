@@ -27,10 +27,10 @@ export const accountsControllerInit: MessengerClientInitFunction<
 
   logAccountsControllerCreation(accountControllerState);
 
-  const controller = new AccountsController({
+  const messengerClient = new AccountsController({
     messenger: controllerMessenger,
     state: accountControllerState,
   });
 
-  return { controller };
+  return { messengerClient };
 };

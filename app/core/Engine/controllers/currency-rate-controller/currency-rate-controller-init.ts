@@ -45,7 +45,7 @@ export const currencyRateControllerInit: MessengerClientInitFunction<
     };
   });
 
-  const controller = new CurrencyRateController({
+  const messengerClient = new CurrencyRateController({
     includeUsdRate: true,
     messenger: controllerMessenger,
     state: {
@@ -56,5 +56,5 @@ export const currencyRateControllerInit: MessengerClientInitFunction<
     tokenPricesService: codefiTokenApiV2,
   });
 
-  return { controller };
+  return { messengerClient };
 };

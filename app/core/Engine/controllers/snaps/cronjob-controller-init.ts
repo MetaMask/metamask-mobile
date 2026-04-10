@@ -17,7 +17,7 @@ export const cronjobControllerInit: MessengerClientInitFunction<
 > = ({ controllerMessenger, persistedState }) => {
   const stateManager = new CronjobControllerStorageManager();
 
-  const controller = new CronjobController({
+  const messengerClient = new CronjobController({
     // @ts-expect-error: `persistedState.CronjobController` is not compatible
     // with the expected type.
     // TODO: Look into the type mismatch.
@@ -27,7 +27,7 @@ export const cronjobControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    controller,
+    messengerClient,
     persistedStateKey: null,
   };
 };

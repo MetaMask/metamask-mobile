@@ -65,7 +65,7 @@ export const smartTransactionsControllerInit: MessengerClientInitFunction<
   // Use same bearer token for Sentinel API (networks, relay) as for Transaction API
   setSentinelApiAuth(getBearerToken);
 
-  const controller = new SmartTransactionsController({
+  const messengerClient = new SmartTransactionsController({
     messenger: controllerMessenger,
     state: persistedState.SmartTransactionsController,
     supportedChainIds: getAllowedSmartTransactionsChainIds(),
@@ -81,6 +81,6 @@ export const smartTransactionsControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    controller,
+    messengerClient,
   };
 };

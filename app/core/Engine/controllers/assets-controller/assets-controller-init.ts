@@ -95,7 +95,7 @@ export const assetsControllerInit: MessengerClientInitFunction<
   controllerMessenger,
   persistedState,
   initMessenger,
-  getController: _getController,
+  getMessengerClient: _getController,
 }) => {
   /**
    * Check if the AssetsController feature is enabled based on the remote feature flag.
@@ -126,7 +126,7 @@ export const assetsControllerInit: MessengerClientInitFunction<
   };
 
   // Create the controller - it now creates all data sources internally
-  const controller = new AssetsController({
+  const messengerClient = new AssetsController({
     messenger: controllerMessenger,
     state: persistedState?.AssetsController ?? {
       assetPreferences: {},
@@ -153,5 +153,5 @@ export const assetsControllerInit: MessengerClientInitFunction<
     trace,
   });
 
-  return { controller };
+  return { messengerClient };
 };

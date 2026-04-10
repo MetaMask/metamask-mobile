@@ -46,8 +46,8 @@ describe('geolocationControllerInit', () => {
   });
 
   it('initializes the controller', () => {
-    const { controller } = geolocationControllerInit(getInitRequestMock());
-    expect(controller).toBeDefined();
+    const { messengerClient } = geolocationControllerInit(getInitRequestMock());
+    expect(messengerClient).toBeDefined();
     expect(GeolocationController).toHaveBeenCalledTimes(1);
   });
 
@@ -63,12 +63,12 @@ describe('geolocationControllerInit', () => {
   });
 
   it('triggers eager fetch when location is UNKNOWN', () => {
-    const { controller } = geolocationControllerInit(getInitRequestMock());
-    expect(controller.getGeolocation).toHaveBeenCalled();
+    const { messengerClient } = geolocationControllerInit(getInitRequestMock());
+    expect(messengerClient.getGeolocation).toHaveBeenCalled();
   });
 
   it('skips eager fetch when persisted state has a known location', () => {
-    const { controller } = geolocationControllerInit(
+    const { messengerClient } = geolocationControllerInit(
       getInitRequestMock({
         persistedState: {
           GeolocationController: {
@@ -80,7 +80,7 @@ describe('geolocationControllerInit', () => {
         },
       }),
     );
-    expect(controller.getGeolocation).not.toHaveBeenCalled();
+    expect(messengerClient.getGeolocation).not.toHaveBeenCalled();
   });
 
   it('hydrates controller state from persisted state', () => {

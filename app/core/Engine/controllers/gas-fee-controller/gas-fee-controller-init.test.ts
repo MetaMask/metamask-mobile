@@ -53,8 +53,8 @@ function buildInitRequestMock(
     ...initRequestProperties,
   };
 
-  if (!initRequestProperties.getController) {
-    requestMock.getController = jest
+  if (!initRequestProperties.getMessengerClient) {
+    requestMock.getMessengerClient = jest
       .fn()
       .mockReturnValue(buildControllerMock());
   }
@@ -75,14 +75,14 @@ describe('GasFeeController Init', () => {
 
   it('returns controller instance', () => {
     const requestMock = buildInitRequestMock();
-    expect(GasFeeControllerInit(requestMock).controller).toBeInstanceOf(
+    expect(GasFeeControllerInit(requestMock).messengerClient).toBeInstanceOf(
       GasFeeController,
     );
   });
 
   it('throws error if requested controller is not found', () => {
     const requestMock = buildInitRequestMock({
-      getController: () => {
+      getMessengerClient: () => {
         throw new Error('Controller not found');
       },
     });
@@ -106,7 +106,7 @@ describe('GasFeeController Init', () => {
     it('correctly sets up getProvider option', () => {
       const MOCK_PROVIDER = { someProvider: true };
       const requestMock = buildInitRequestMock({
-        getController: () =>
+        getMessengerClient: () =>
           buildControllerMock({
             getProviderAndBlockTracker: jest
               .fn()
@@ -123,7 +123,7 @@ describe('GasFeeController Init', () => {
 
     it('correctly sets up getCurrentNetworkEIP1559Compatibility option', async () => {
       const requestMock = buildInitRequestMock({
-        getController: () =>
+        getMessengerClient: () =>
           buildControllerMock({
             getEIP1559Compatibility: jest.fn().mockResolvedValue(true),
           }),
@@ -139,7 +139,7 @@ describe('GasFeeController Init', () => {
 
     it('handles undefined EIP1559 compatibility', async () => {
       const requestMock = buildInitRequestMock({
-        getController: () =>
+        getMessengerClient: () =>
           buildControllerMock({
             getEIP1559Compatibility: jest.fn().mockResolvedValue(undefined),
           }),

@@ -18,13 +18,13 @@ export function appMetadataControllerInit(
     currentMigrationVersion: 0,
   };
 
-  const controller = new AppMetadataController({
+  const messengerClient = new AppMetadataController({
     state: currentState,
     messenger: initRequest.controllerMessenger,
     currentAppVersion: currentVersion,
     currentMigrationVersion: migrationVersion,
   });
 
-  logAppMetadataControllerCreation(controller.state);
-  return { controller };
+  logAppMetadataControllerCreation(messengerClient.state);
+  return { messengerClient };
 }

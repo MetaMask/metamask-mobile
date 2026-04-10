@@ -29,8 +29,9 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('AuthenticationControllerInit', () => {
   it('initializes the controller', () => {
-    const { controller } = authenticationControllerInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(AuthenticationController);
+    const { messengerClient } =
+      authenticationControllerInit(getInitRequestMock());
+    expect(messengerClient).toBeInstanceOf(AuthenticationController);
   });
 
   it('passes the proper arguments to the controller', () => {

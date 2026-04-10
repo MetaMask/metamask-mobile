@@ -17,10 +17,12 @@ import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagC
 export const accountTrackerControllerInit: MessengerClientInitFunction<
   AccountTrackerController,
   AccountTrackerControllerMessenger
-> = ({ controllerMessenger, persistedState, getController, getState }) => {
-  const assetsContractController = getController('AssetsContractController');
+> = ({ controllerMessenger, persistedState, getMessengerClient, getState }) => {
+  const assetsContractController = getMessengerClient(
+    'AssetsContractController',
+  );
 
-  const controller = new AccountTrackerController({
+  const messengerClient = new AccountTrackerController({
     messenger: controllerMessenger,
     state: persistedState.AccountTrackerController ?? {
       accountsByChainId: {},
@@ -38,6 +40,6 @@ export const accountTrackerControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    controller,
+    messengerClient,
   };
 };

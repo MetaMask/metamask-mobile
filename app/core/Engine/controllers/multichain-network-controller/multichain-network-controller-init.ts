@@ -28,11 +28,11 @@ export const multichainNetworkControllerInit = ({
   const multichainNetworkControllerState =
     persistedState.MultichainNetworkController as MultichainNetworkControllerState;
 
-  const controller = new MultichainNetworkController({
+  const messengerClient = new MultichainNetworkController({
     messenger: controllerMessenger,
     state: multichainNetworkControllerState,
     networkService,
   });
 
-  return { controller };
+  return { messengerClient };
 };

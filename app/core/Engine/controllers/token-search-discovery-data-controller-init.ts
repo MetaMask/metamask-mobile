@@ -15,12 +15,12 @@ export const tokenSearchDiscoveryDataControllerInit: MessengerClientInitFunction
   TokenSearchDiscoveryDataController,
   TokenSearchDiscoveryDataControllerMessenger
 > = ({ controllerMessenger, codefiTokenApiV2 }) => {
-  const controller = new TokenSearchDiscoveryDataController({
+  const messengerClient = new TokenSearchDiscoveryDataController({
     messenger: controllerMessenger,
     tokenPricesService: codefiTokenApiV2,
   });
 
   return {
-    controller,
+    messengerClient,
   };
 };

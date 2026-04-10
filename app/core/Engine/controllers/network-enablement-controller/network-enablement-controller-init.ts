@@ -20,10 +20,10 @@ export const networkEnablementControllerInit: MessengerClientInitFunction<
   const networkEnablementControllerState =
     persistedState.NetworkEnablementController as NetworkEnablementControllerState;
 
-  const controller = new NetworkEnablementController({
+  const messengerClient = new NetworkEnablementController({
     messenger: controllerMessenger,
     state: networkEnablementControllerState,
   });
 
-  return { controller };
+  return { messengerClient };
 };

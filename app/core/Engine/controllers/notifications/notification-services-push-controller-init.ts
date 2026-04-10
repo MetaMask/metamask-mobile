@@ -37,10 +37,10 @@ export const notificationServicesPushControllerInit: MessengerClientInitFunction
   const state =
     persistedState.NotificationServicesPushController ?? defaultState;
 
-  const controller = createNotificationServicesPushController({
+  const messengerClient = createNotificationServicesPushController({
     messenger: controllerMessenger,
     initialState: state,
   });
 
-  return { controller };
+  return { messengerClient };
 };

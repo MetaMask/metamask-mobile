@@ -20,10 +20,10 @@ export const predictControllerInit: MessengerClientInitFunction<
   const predictControllerState =
     persistedState.PredictController ?? getDefaultPredictControllerState();
 
-  const controller = new PredictController({
+  const messengerClient = new PredictController({
     messenger: controllerMessenger,
     state: predictControllerState,
   });
 
-  return { controller };
+  return { messengerClient };
 };

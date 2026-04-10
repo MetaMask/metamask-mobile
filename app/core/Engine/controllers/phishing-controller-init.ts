@@ -15,11 +15,11 @@ export const phishingControllerInit: MessengerClientInitFunction<
   PhishingController,
   PhishingControllerMessenger
 > = ({ controllerMessenger }) => {
-  const controller = new PhishingController({
+  const messengerClient = new PhishingController({
     messenger: controllerMessenger,
   });
 
   return {
-    controller,
+    messengerClient,
   };
 };

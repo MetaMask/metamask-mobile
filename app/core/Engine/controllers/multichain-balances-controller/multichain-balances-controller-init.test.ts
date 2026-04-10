@@ -32,7 +32,7 @@ describe('multichain balances controller init', () => {
 
   it('returns controller instance', () => {
     expect(
-      multichainBalancesControllerInit(initRequestMock).controller,
+      multichainBalancesControllerInit(initRequestMock).messengerClient,
     ).toBeInstanceOf(MultichainBalancesController);
   });
 

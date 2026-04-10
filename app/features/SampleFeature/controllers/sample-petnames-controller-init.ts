@@ -16,10 +16,10 @@ export const samplePetnamesControllerInit: MessengerClientInitFunction<
   const initialState = persistedState.SamplePetnamesController;
   log('Initializing SamplePetnamesController', initialState);
 
-  const controller = new SamplePetnamesController({
+  const messengerClient = new SamplePetnamesController({
     messenger: controllerMessenger,
     state: initialState,
   });
 
-  return { controller };
+  return { messengerClient };
 };

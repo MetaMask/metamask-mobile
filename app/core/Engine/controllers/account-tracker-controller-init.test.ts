@@ -41,7 +41,7 @@ function getInitRequestMock(): jest.Mocked<
   };
 
   // @ts-expect-error: Partial mock.
-  requestMock.getController.mockImplementation((name: string) => {
+  requestMock.getMessengerClient.mockImplementation((name: string) => {
     if (name === 'AssetsContractController') {
       return {
         getStakedBalanceForChain: jest.fn(),
@@ -56,8 +56,9 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('AccountTrackerControllerInit', () => {
   it('initializes the controller', () => {
-    const { controller } = accountTrackerControllerInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(AccountTrackerController);
+    const { messengerClient } =
+      accountTrackerControllerInit(getInitRequestMock());
+    expect(messengerClient).toBeInstanceOf(AccountTrackerController);
   });
 
   it('passes the proper arguments to the controller including isHomepageSectionsV1Enabled', () => {

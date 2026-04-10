@@ -55,8 +55,8 @@ function buildInitRequestMock(
     ...initRequestProperties,
   };
 
-  if (!initRequestProperties.getController) {
-    requestMock.getController = jest
+  if (!initRequestProperties.getMessengerClient) {
+    requestMock.getMessengerClient = jest
       .fn()
       .mockReturnValue(buildControllerMock());
   }
@@ -73,14 +73,14 @@ describe('SignatureController Init', () => {
 
   it('returns controller instance', () => {
     const requestMock = buildInitRequestMock();
-    expect(SignatureControllerInit(requestMock).controller).toBeInstanceOf(
+    expect(SignatureControllerInit(requestMock).messengerClient).toBeInstanceOf(
       SignatureController,
     );
   });
 
   it('throws error if requested controller is not found', () => {
     const requestMock = buildInitRequestMock({
-      getController: () => {
+      getMessengerClient: () => {
         throw new Error('Controller not found');
       },
     });
@@ -103,7 +103,7 @@ describe('SignatureController Init', () => {
   describe('SignatureController constructor options', () => {
     it('correctly sets up isDecodeSignatureRequestEnabled option', () => {
       const requestMock = buildInitRequestMock({
-        getController: () =>
+        getMessengerClient: () =>
           buildControllerMock({
             state: { useTransactionSimulations: true } as PreferencesState,
           }),

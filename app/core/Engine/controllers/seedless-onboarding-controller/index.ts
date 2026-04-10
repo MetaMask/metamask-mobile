@@ -124,7 +124,7 @@ export const seedlessOnboardingControllerInit: MessengerClientInitFunction<
     persistedState.SeedlessOnboardingController ??
     getDefaultSeedlessOnboardingControllerState();
 
-  const controller = new SeedlessOnboardingController({
+  const messengerClient = new SeedlessOnboardingController({
     messenger: controllerMessenger,
     state:
       seedlessOnboardingControllerState as SeedlessOnboardingControllerState,
@@ -136,5 +136,5 @@ export const seedlessOnboardingControllerInit: MessengerClientInitFunction<
     revokeRefreshToken: AuthTokenHandler.revokeRefreshToken,
   });
 
-  return { controller };
+  return { messengerClient };
 };

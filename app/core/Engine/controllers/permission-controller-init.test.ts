@@ -32,29 +32,31 @@ function getInitRequestMock(): jest.Mocked<
   };
 
   // @ts-expect-error: Partial implementation.
-  requestMock.getController.mockImplementation((controllerName: string) => {
-    if (controllerName === 'ApprovalController') {
-      return {
-        addAndShowApprovalRequest: jest.fn(),
-      };
-    }
+  requestMock.getMessengerClient.mockImplementation(
+    (controllerName: string) => {
+      if (controllerName === 'ApprovalController') {
+        return {
+          addAndShowApprovalRequest: jest.fn(),
+        };
+      }
 
-    if (controllerName === 'KeyringController') {
-      return {
-        addNewKeyring: jest.fn(),
-      };
-    }
+      if (controllerName === 'KeyringController') {
+        return {
+          addNewKeyring: jest.fn(),
+        };
+      }
 
-    throw new Error(`Controller "${controllerName}" not found.`);
-  });
+      throw new Error(`Controller "${controllerName}" not found.`);
+    },
+  );
 
   return requestMock;
 }
 
 describe('permissionControllerInit', () => {
   it('initializes the controller', () => {
-    const { controller } = permissionControllerInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(PermissionController);
+    const { messengerClient } = permissionControllerInit(getInitRequestMock());
+    expect(messengerClient).toBeInstanceOf(PermissionController);
   });
 
   it('passes the proper arguments to the controller', () => {

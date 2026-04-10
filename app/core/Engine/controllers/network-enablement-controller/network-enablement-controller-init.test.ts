@@ -34,7 +34,7 @@ describe('networkEnablementControllerInit', () => {
   it('returns controller instance', () => {
     const result = networkEnablementControllerInit(initRequestMock);
 
-    expect(result.controller).toBeInstanceOf(NetworkEnablementController);
+    expect(result.messengerClient).toBeInstanceOf(NetworkEnablementController);
   });
 
   it('initializes controller with messenger from request', () => {

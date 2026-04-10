@@ -16,11 +16,11 @@ export const complianceServiceInit: MessengerClientInitFunction<
   ComplianceService,
   ComplianceServiceMessenger
 > = ({ controllerMessenger }) => {
-  const controller = new ComplianceService({
+  const messengerClient = new ComplianceService({
     messenger: controllerMessenger,
     fetch,
     env: isProduction() ? 'production' : 'development',
   });
 
-  return { controller };
+  return { messengerClient };
 };

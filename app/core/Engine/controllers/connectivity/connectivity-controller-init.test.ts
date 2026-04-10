@@ -48,8 +48,9 @@ describe('ConnectivityControllerInit', () => {
   });
 
   it('initializes the controller', () => {
-    const { controller } = connectivityControllerInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(ConnectivityController);
+    const { messengerClient } =
+      connectivityControllerInit(getInitRequestMock());
+    expect(messengerClient).toBeInstanceOf(ConnectivityController);
   });
 
   it('creates NetInfoConnectivityAdapter instance', () => {
@@ -60,18 +61,19 @@ describe('ConnectivityControllerInit', () => {
 
   it('initializes controller with correct name and state', () => {
     const requestMock = getInitRequestMock();
-    const { controller } = connectivityControllerInit(requestMock);
+    const { messengerClient } = connectivityControllerInit(requestMock);
 
-    expect(controller.name).toBe('ConnectivityController');
-    expect(controller.state).toBeDefined();
-    expect(controller.state.connectivityStatus).toBeDefined();
+    expect(messengerClient.name).toBe('ConnectivityController');
+    expect(messengerClient.state).toBeDefined();
+    expect(messengerClient.state.connectivityStatus).toBeDefined();
   });
 
   it('initializes with online status by default', () => {
-    const { controller } = connectivityControllerInit(getInitRequestMock());
+    const { messengerClient } =
+      connectivityControllerInit(getInitRequestMock());
 
     // NetInfoConnectivityAdapter defaults to online until state is fetched
-    expect(controller.state.connectivityStatus).toBe(
+    expect(messengerClient.state.connectivityStatus).toBe(
       CONNECTIVITY_STATUSES.Online,
     );
   });

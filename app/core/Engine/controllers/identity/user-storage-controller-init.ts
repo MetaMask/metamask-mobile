@@ -21,7 +21,7 @@ export const userStorageControllerInit: MessengerClientInitFunction<
   UserStorageControllerMessenger,
   UserStorageControllerInitMessenger
 > = ({ controllerMessenger, initMessenger, persistedState }) => {
-  const controller = new UserStorageController({
+  const messengerClient = new UserStorageController({
     messenger: controllerMessenger,
 
     // @ts-expect-error: `UserStorageController` does not accept partial state.
@@ -73,6 +73,6 @@ export const userStorageControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    controller,
+    messengerClient,
   };
 };

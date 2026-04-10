@@ -42,9 +42,9 @@ export const keyringControllerInit: MessengerClientInitFunction<
   persistedState,
   initialKeyringState,
   qrKeyringScanner,
-  getController,
+  getMessengerClient,
 }) => {
-  const { remoteFeatureFlags } = getController(
+  const { remoteFeatureFlags } = getMessengerClient(
     'RemoteFeatureFlagController',
   ).state;
 
@@ -90,7 +90,7 @@ export const keyringControllerInit: MessengerClientInitFunction<
           // This builder needs the controller itself, so we re-use `getController` to access
           // the controller instance as it will be available when this method gets called.
           // NOTE: This is required since we cannot self-use our own actions with the init messenger.
-          getController('KeyringController').withKeyringUnsafe(
+          getMessengerClient('KeyringController').withKeyringUnsafe(
             {
               filter: (keyring, metadata): keyring is HdKeyring =>
                 keyring.type === KeyringTypes.hd &&
@@ -112,11 +112,11 @@ export const keyringControllerInit: MessengerClientInitFunction<
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const snapKeyringBuilder = getController('SnapKeyringBuilder');
+  const snapKeyringBuilder = getMessengerClient('SnapKeyringBuilder');
   additionalKeyrings.push(snapKeyringBuilder);
   ///: END:ONLY_INCLUDE_IF
 
-  const controller = new KeyringController({
+  const messengerClient = new KeyringController({
     encryptor,
     messenger: controllerMessenger,
     state: initialKeyringState || persistedState.KeyringController,
@@ -126,6 +126,6 @@ export const keyringControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    controller,
+    messengerClient,
   };
 };

@@ -82,8 +82,8 @@ describe('networkControllerInit', () => {
     );
 
   it('initializes the controller', () => {
-    const { controller } = networkControllerInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(NetworkController);
+    const { messengerClient } = networkControllerInit(getInitRequestMock());
+    expect(messengerClient).toBeInstanceOf(NetworkController);
   });
 
   it('passes the proper arguments to the controller', () => {

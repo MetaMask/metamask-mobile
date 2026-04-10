@@ -123,8 +123,8 @@ function buildInitRequestMock(
     ...initRequestProperties,
   };
 
-  if (!initRequestProperties.getController) {
-    requestMock.getController.mockReturnValue(buildControllerMock());
+  if (!initRequestProperties.getMessengerClient) {
+    requestMock.getMessengerClient.mockReturnValue(buildControllerMock());
   }
 
   return requestMock;
@@ -176,7 +176,7 @@ describe('Transaction Controller Init', () => {
   ): TransactionControllerOptions[T] {
     const requestMock = buildInitRequestMock(initRequestProperties);
 
-    requestMock.getController.mockReturnValue(
+    requestMock.getMessengerClient.mockReturnValue(
       buildControllerMock(dependencyProperties),
     );
 
@@ -211,9 +211,9 @@ describe('Transaction Controller Init', () => {
 
   it('returns controller instance', () => {
     const requestMock = buildInitRequestMock();
-    expect(TransactionControllerInit(requestMock).controller).toBeInstanceOf(
-      TransactionController,
-    );
+    expect(
+      TransactionControllerInit(requestMock).messengerClient,
+    ).toBeInstanceOf(TransactionController);
   });
 
   it('initialize with correct state', () => {
@@ -232,7 +232,7 @@ describe('Transaction Controller Init', () => {
   describe('throws error', () => {
     it('if requested controller is not found', () => {
       const requestMock = buildInitRequestMock({
-        getController: () => {
+        getMessengerClient: () => {
           throw new Error('Controller not found');
         },
       });

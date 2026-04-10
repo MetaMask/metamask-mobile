@@ -23,8 +23,8 @@ export const tokenDetectionControllerInit: MessengerClientInitFunction<
   TokenDetectionController,
   TokenDetectionControllerMessenger,
   TokenDetectionControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, getController, getState }) => {
-  const networkController = getController('NetworkController');
+> = ({ controllerMessenger, initMessenger, getMessengerClient, getState }) => {
+  const networkController = getMessengerClient('NetworkController');
 
   const getBalancesInSingleCall = (
     selectedAddress: string,
@@ -40,7 +40,7 @@ export const tokenDetectionControllerInit: MessengerClientInitFunction<
       AssetsContractControllerGetBalancesInSingleCallAction['handler']
     >;
 
-  const controller = new TokenDetectionController({
+  const messengerClient = new TokenDetectionController({
     messenger: controllerMessenger,
     disabled: false,
     getBalancesInSingleCall,
@@ -67,6 +67,6 @@ export const tokenDetectionControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    controller,
+    messengerClient,
   };
 };

@@ -97,7 +97,7 @@ describe('rewardsControllerInit', () => {
   describe('basic initialization', () => {
     it('returns controller instance', () => {
       const result = rewardsControllerInit(initRequestMock);
-      expect(result.controller).toBe(mockControllerInstance);
+      expect(result.messengerClient).toBe(mockControllerInstance);
     });
 
     it('creates RewardsController with correct messenger', () => {
