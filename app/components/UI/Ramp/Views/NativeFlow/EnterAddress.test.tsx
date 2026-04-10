@@ -272,16 +272,18 @@ describe('V2EnterAddress', () => {
     expect(getByTestId('address-continue-button')).toBeOnTheScreen();
   });
 
-  it('state field is editable and pre-filled from userRegion', () => {
+  it('state field is pre-filled from previousFormData', () => {
     const { getByTestId } = renderWithTheme(<V2EnterAddress />);
     const stateInput = getByTestId('state-input');
 
-    // Pre-filled from previousFormData which has 'California'
     expect(stateInput.props.value).toBe('California');
+  });
 
-    // Verify the field accepts text input (not disabled)
+  it('state field accepts text input', () => {
+    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
+    const stateInput = getByTestId('state-input');
+
     fireEvent.changeText(stateInput, 'New York');
-    // The mock useForm updates state, re-render picks it up
     expect(getByTestId('state-input').props.value).toBe('New York');
   });
 
