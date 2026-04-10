@@ -94,6 +94,7 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
+import { consumeSuppressedNetworkAddedToast } from '../../../util/networks/networkToastSuppression';
 
 const Stack = createStackNavigator();
 
@@ -298,11 +299,9 @@ const Main = (props) => {
     );
 
     // Emit network addition/deletion toast if network list changes
-    // Bridge routes are skipped as they interfere with bridge UI
     if (
       previousNetworkValues.length &&
-      currentNetworkValues.length !== previousNetworkValues.length &&
-      !isOnBridgeRoute
+      currentNetworkValues.length !== previousNetworkValues.length
     ) {
       // Find the newly added network by comparing chainIds
       const newNetwork = currentNetworkValues.find(
@@ -318,24 +317,29 @@ const Main = (props) => {
           ),
       );
 
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [
-          {
-            label: `${
-              (newNetwork?.name || deletedNetwork?.name) ??
-              strings('asset_details.network')
-            } `,
-            isBold: true,
-          },
-          {
-            label: deletedNetwork
-              ? strings('toast.network_removed')
-              : strings('toast.network_added'),
-          },
-        ],
-        networkImageSource: networkImage,
-      });
+      const shouldShowNetworkAddedToast =
+        newNetwork && !consumeSuppressedNetworkAddedToast(newNetwork?.chainId);
+      const shouldShowToast = shouldShowNetworkAddedToast || deletedNetwork;
+      if (shouldShowToast) {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Plain,
+          labelOptions: [
+            {
+              label: `${
+                (newNetwork?.name || deletedNetwork?.name) ??
+                strings('asset_details.network')
+              } `,
+              isBold: true,
+            },
+            {
+              label: deletedNetwork
+                ? strings('toast.network_removed')
+                : strings('toast.network_added'),
+            },
+          ],
+          networkImageSource: networkImage,
+        });
+      }
     }
     previousNetworkConfigurations.current = networkConfigurations;
   }, [isOnBridgeRoute, networkConfigurations, networkImage, toastRef]);

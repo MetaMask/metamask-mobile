@@ -2,6 +2,8 @@ import { handleSwapUrl } from '../handleSwapUrl';
 import NavigationService from '../../../../NavigationService';
 import { BridgeViewMode } from '../../../../../components/UI/Bridge/types';
 import { fetchAssetMetadata } from '../../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { resetSuppressedNetworkAddedToasts } from '../../../../../util/networks/networkToastSuppression';
 
 jest.mock('../../../../NavigationService', () => ({
   navigation: {
@@ -24,14 +26,11 @@ jest.mock(
 jest.mock('../../../../Engine', () => ({
   context: {
     NetworkController: {
-      getNetworkConfigurationByChainId: jest.fn().mockReturnValue({
-        rpcEndpoints: [
-          {
-            networkClientId: 'mainnetNetworkClientId',
-          },
-        ],
-        defaultRpcEndpointIndex: 0,
-      }),
+      getNetworkConfigurationByChainId: jest.fn(),
+      addNetwork: jest.fn(),
+    },
+    NetworkEnablementController: {
+      enableNetwork: jest.fn(),
     },
     MultichainNetworkController: {
       state: {
@@ -41,8 +40,32 @@ jest.mock('../../../../Engine', () => ({
   },
 }));
 
+const mockEngine = jest.requireMock('../../../../Engine') as {
+  context: {
+    NetworkController: {
+      getNetworkConfigurationByChainId: jest.Mock;
+      addNetwork: jest.Mock;
+    };
+    NetworkEnablementController: {
+      enableNetwork: jest.Mock;
+    };
+  };
+};
 const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
 const mockFetchAssetMetadata = fetchAssetMetadata as jest.Mock;
+const mockGetNetworkConfigurationByChainId =
+  mockEngine.context.NetworkController.getNetworkConfigurationByChainId;
+const mockAddNetwork = mockEngine.context.NetworkController.addNetwork;
+const mockEnableNetwork =
+  mockEngine.context.NetworkEnablementController.enableNetwork;
+const availableNetworkConfig = {
+  rpcEndpoints: [
+    {
+      networkClientId: 'mainnetNetworkClientId',
+    },
+  ],
+  defaultRpcEndpointIndex: 0,
+};
 
 describe('handleSwapUrl', () => {
   const expectedSourceToken = {
@@ -64,12 +87,17 @@ describe('handleSwapUrl', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetSuppressedNetworkAddedToasts();
+    mockGetNetworkConfigurationByChainId.mockReturnValue(
+      availableNetworkConfig,
+    );
     // Mock fetchAssetMetadata to return token data based on the address
     mockFetchAssetMetadata.mockImplementation(async (address) => {
+      const assetId = String(address);
       // Parse the address from CAIP format if needed
-      const tokenAddress = address.includes('/')
-        ? address.split(':')[2]
-        : address;
+      const tokenAddress = assetId.includes('/')
+        ? (assetId.split(':').at(-1) ?? assetId)
+        : assetId;
 
       if (
         tokenAddress.toLowerCase() ===
@@ -119,6 +147,7 @@ describe('handleSwapUrl', () => {
         location: 'Main View',
       },
     });
+    expect(mockEnableNetwork).toHaveBeenCalledWith(CHAIN_IDS.MAINNET);
   });
 
   it('navigates to Bridge view with partial parameters (only source token)', async () => {
@@ -133,6 +162,83 @@ describe('handleSwapUrl', () => {
         sourceToken: expectedSourceToken,
         destToken: undefined,
         sourceAmount: undefined,
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+      },
+    });
+  });
+
+  it('adds and enables supported missing EVM source networks before navigating', async () => {
+    const expectedOptimismSourceToken = {
+      address: '0x1111111111111111111111111111111111111111',
+      chainId: CHAIN_IDS.OPTIMISM,
+      decimals: 6,
+      name: 'Optimism USDC',
+      symbol: 'USDC',
+      image: 'https://example.com/op-usdc.png',
+    };
+    const expectedOptimismDestToken = {
+      address: '0x2222222222222222222222222222222222222222',
+      chainId: CHAIN_IDS.OPTIMISM,
+      decimals: 6,
+      name: 'Optimism USDT',
+      symbol: 'USDT',
+      image: 'https://example.com/op-usdt.png',
+    };
+
+    mockFetchAssetMetadata.mockImplementation(async (address) => {
+      const assetId = String(address);
+      const tokenAddress = assetId.includes('/')
+        ? (assetId.split(':').at(-1) ?? assetId)
+        : assetId;
+
+      if (
+        tokenAddress.toLowerCase() ===
+        '0x1111111111111111111111111111111111111111'
+      ) {
+        return {
+          ...expectedOptimismSourceToken,
+          assetId: 'eip155:10/erc20:0x1111111111111111111111111111111111111111',
+        };
+      }
+
+      if (
+        tokenAddress.toLowerCase() ===
+        '0x2222222222222222222222222222222222222222'
+      ) {
+        return {
+          ...expectedOptimismDestToken,
+          assetId: 'eip155:10/erc20:0x2222222222222222222222222222222222222222',
+        };
+      }
+
+      return undefined;
+    });
+
+    mockGetNetworkConfigurationByChainId
+      .mockReturnValueOnce(undefined)
+      .mockReturnValue(availableNetworkConfig);
+
+    const swapPath =
+      'from=eip155:10/erc20:0x1111111111111111111111111111111111111111&to=eip155:10/erc20:0x2222222222222222222222222222222222222222&amount=1000000';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockAddNetwork).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chainId: CHAIN_IDS.OPTIMISM,
+        name: 'OP',
+        nativeCurrency: 'ETH',
+      }),
+    );
+    expect(mockEnableNetwork).toHaveBeenCalledWith(CHAIN_IDS.OPTIMISM);
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: expectedOptimismSourceToken,
+        destToken: expectedOptimismDestToken,
+        sourceAmount: '1.0',
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
@@ -187,6 +293,37 @@ describe('handleSwapUrl', () => {
 
     await handleSwapUrl({ swapPath });
 
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+      },
+    });
+  });
+
+  it('falls back when the source chain is configured but not swap supported', async () => {
+    mockFetchAssetMetadata.mockResolvedValueOnce({
+      address: '0x3333333333333333333333333333333333333333',
+      chainId: '0x1234',
+      symbol: 'TEST',
+      name: 'Unsupported Token',
+      decimals: 18,
+      image: 'https://example.com/test.png',
+      assetId: 'eip155:4660/erc20:0x3333333333333333333333333333333333333333',
+    });
+
+    const swapPath =
+      'from=eip155:4660/erc20:0x3333333333333333333333333333333333333333';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockEnableNetwork).not.toHaveBeenCalledWith('0x1234');
+    expect(mockAddNetwork).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
