@@ -3,8 +3,8 @@
 # Slack RC Notification (reusable)
 #
 # Posts an RC build notification to the release Slack channel.
-# Reads semver and build numbers directly from the checked-out branch so callers
-# only need to supply the source branch.
+# When build-rc-auto.yml uploads artifact `rc-cherry-pick-changelog-md`, it is downloaded
+# here and passed to slack-rc-notification.mjs as rc-cherry-pick-changelog.md.
 #
 ##############################################################################################
 name: Slack RC Notification
@@ -26,6 +26,12 @@ jobs:
         with:
           ref: ${{ inputs.source_branch }}
           fetch-depth: 1
+      - name: Download RC cherry-pick changelog (from build-rc-auto when present)
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: rc-cherry-pick-changelog-md
+          path: .
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'

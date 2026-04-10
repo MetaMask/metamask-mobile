@@ -1,45 +1,101 @@
 /**
  * Slack RC Build Notification Script
  *
- * This script posts a notification to Slack after an RC build completes.
- * It reads the CHANGELOG.md using @metamask/auto-changelog to extract entries
- * for the current version and formats them into a Slack message with PR links.
+ * Cherry-pick section: reads markdown from rc-cherry-pick-changelog.sh (written in CI by
+ * scripts/write-rc-cherry-pick-changelog-artifact.sh, e.g. build-rc-auto.yml → artifact).
+ * If that file is missing, falls back to CHANGELOG.md via @metamask/auto-changelog (other
+ * workflows that do not upload the artifact).
  *
- * Required Environment Variables:
- *   - SEMVER: The semantic version (e.g., "7.40.0")
- *   - IOS_BUILD_NUMBER: iOS build number
- *   - ANDROID_BUILD_NUMBER: Android build number
- *   - SLACK_BOT_TOKEN: Slack Bot OAuth token for API calls
- *
- * Optional Environment Variables:
- *   - ANDROID_PUBLIC_URL: Public URL for Android APK download
- *   - IOS_PUBLIC_URL: Public URL for iOS build
- *   - BUILD_PIPELINE_URL: URL to the GitHub Actions pipeline
- *   - GITHUB_REPOSITORY: Repository in format "owner/repo"
- *   - TEST_CHANNEL: Override channel for testing (e.g., "#mm-test-channel")
+ * Required: SEMVER, SLACK_BOT_TOKEN, IOS_BUILD_NUMBER, ANDROID_BUILD_NUMBER
+ * Optional: RC_CHERRY_PICK_CHANGELOG_PATH (defaults to rc-cherry-pick-changelog.md in repo root)
  */
 
-import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
+import { readFileSync, existsSync } from 'fs';
+import { join, dirname, isAbsolute } from 'path';
 import { fileURLToPath } from 'url';
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import { parseChangelog } from '@metamask/auto-changelog';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const REPO_ROOT = join(__dirname, '..');
 
-// Configuration
 const REPO_URL = process.env.GITHUB_REPOSITORY
   ? `https://github.com/${process.env.GITHUB_REPOSITORY}`
   : 'https://github.com/MetaMask/metamask-mobile';
 
+const MAX_SLACK_CHANGELOG_CHARS = 2800;
+const DEFAULT_CHERRY_PICK_FILE = 'rc-cherry-pick-changelog.md';
+
+function resolvePath(p) {
+  return isAbsolute(p) ? p : join(REPO_ROOT, p);
+}
+
 /**
- * Extract changelog entries for a specific version using auto-changelog
- * @param {string} version - The version to extract entries for
- * @returns {Object|null} The release changes or null if not found
+ * Convert rc-cherry-pick-changelog.sh markdown to Slack mrkdwn.
  */
+function cherryPickMarkdownToSlack(markdown) {
+  const body = markdown.replace(/^##[^\n]*\n\n?/m, '').trim();
+  if (
+    !body ||
+    /_No cherry-pick commits/i.test(body) ||
+    /Could not find a previous bump/i.test(body) ||
+    /range unavailable/i.test(body)
+  ) {
+    return { text: '', isEmpty: true };
+  }
+
+  const lines = body.split('\n').filter((line) => line.length > 0);
+  const slackLines = [];
+
+  for (const line of lines) {
+    const prLink = line.match(/^-\s*\[#(\d+)\]\(([^)]+)\):\s*(.*)$/);
+    if (prLink) {
+      slackLines.push(`• <${prLink[2]}|#${prLink[1]}>: ${prLink[3]}`);
+      continue;
+    }
+    const commitLink = line.match(/^-\s*\[`([^`]+)`\]\(([^)]+)\):\s*(.*)$/);
+    if (commitLink) {
+      slackLines.push(`• <${commitLink[2]}|\`${commitLink[1]}\`>: ${commitLink[3]}`);
+      continue;
+    }
+    slackLines.push(line);
+  }
+
+  let text = slackLines.join('\n');
+  if (text.length > MAX_SLACK_CHANGELOG_CHARS) {
+    text = `${text.slice(0, MAX_SLACK_CHANGELOG_CHARS - 40)}\n_…truncated_`;
+  }
+
+  return { text, isEmpty: false };
+}
+
+/**
+ * Load cherry-pick section from pre-generated file (CI artifact) if present.
+ */
+function loadCherryPickChangelogForSlack() {
+  const pathEnv = process.env.RC_CHERRY_PICK_CHANGELOG_PATH || DEFAULT_CHERRY_PICK_FILE;
+  const path = resolvePath(pathEnv);
+  if (!existsSync(path)) {
+    return null;
+  }
+  try {
+    const markdown = readFileSync(path, 'utf8');
+    const converted = cherryPickMarkdownToSlack(markdown);
+    if (converted.isEmpty || !converted.text) {
+      console.log(`\n📖 Cherry-pick file ${pathEnv} present but empty after filters; trying CHANGELOG.md`);
+      return null;
+    }
+    console.log(`\n📖 Using cherry-pick changelog file: ${pathEnv}`);
+    return converted;
+  } catch (e) {
+    console.warn(`⚠️ Could not read ${path}: ${e.message}`);
+    return null;
+  }
+}
+
 function extractChangelogEntries(version) {
-  const changelogPath = join(__dirname, '..', 'CHANGELOG.md');
+  const changelogPath = join(REPO_ROOT, 'CHANGELOG.md');
 
   let changelogContent;
   try {
@@ -56,7 +112,6 @@ function extractChangelogEntries(version) {
       shouldExtractPrLinks: true,
     });
 
-    // Get changes for this specific version
     const releaseChanges = changelog.getReleaseChanges(version);
 
     if (!releaseChanges) {
@@ -71,16 +126,9 @@ function extractChangelogEntries(version) {
   }
 }
 
-/**
- * Format changelog entries for Slack
- * @param {Object} changes - The changelog changes object
- * @param {number} maxEntries - Maximum entries to display
- * @returns {string} Formatted changelog text for Slack
- */
 function formatChangesForSlack(changes, maxEntries = 15) {
   const formattedEntries = [];
 
-  // Priority order for categories
   const categoryOrder = [
     'Added',
     'Fixed',
@@ -97,10 +145,8 @@ function formatChangesForSlack(changes, maxEntries = 15) {
         break;
       }
 
-      // Build description with PR links
       let description = entry.description;
 
-      // If we have PR numbers from auto-changelog, format them for Slack
       if (entry.prNumbers && entry.prNumbers.length > 0) {
         const prLinks = entry.prNumbers
           .map((prNum) => `<${REPO_URL}/pull/${prNum}|#${prNum}>`)
@@ -112,7 +158,6 @@ function formatChangesForSlack(changes, maxEntries = 15) {
     }
   }
 
-  // Count remaining entries
   const allEntriesCount = Object.values(changes)
     .flat()
     .filter(Boolean).length;
@@ -125,11 +170,6 @@ function formatChangesForSlack(changes, maxEntries = 15) {
   return formattedEntries.join('\n');
 }
 
-/**
- * Check if a URL is valid
- * @param {string|undefined} url - The URL to check
- * @returns {boolean} Whether the URL is valid
- */
 function isValidUrl(url) {
   if (!url || typeof url !== 'string') {
     return false;
@@ -146,11 +186,6 @@ function isValidUrl(url) {
   }
 }
 
-/**
- * Build the Slack message payload
- * @param {Object} options - Message options
- * @returns {Object} Slack message payload
- */
 function buildSlackMessage(options) {
   const {
     version,
@@ -160,7 +195,13 @@ function buildSlackMessage(options) {
     pipelineUrl,
     changelogText,
     hasChangelog,
+    changelogSource,
   } = options;
+
+  const sectionTitle =
+    changelogSource === 'cherry-pick'
+      ? '*📋 Cherry-picks since last RC bump:*'
+      : '*📋 What\'s in this RC:*';
 
   const blocks = [
     {
@@ -210,7 +251,6 @@ function buildSlackMessage(options) {
     },
   ];
 
-  // Add changelog section if we have entries
   if (hasChangelog && changelogText) {
     blocks.push(
       {
@@ -220,7 +260,7 @@ function buildSlackMessage(options) {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*📋 What's in this RC:*\n${changelogText}`,
+          text: `${sectionTitle}\n${changelogText}`,
         },
       },
     );
@@ -229,12 +269,11 @@ function buildSlackMessage(options) {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: '_No changelog entries found for this version. Check CHANGELOG.md_',
+        text: '_No changelog entries found. See CHANGELOG.md or rc-cherry-pick-changelog output._',
       },
     });
   }
 
-  // Add pipeline link
   if (pipelineUrl) {
     blocks.push(
       {
@@ -245,7 +284,7 @@ function buildSlackMessage(options) {
         elements: [
           {
             type: 'mrkdwn',
-            text: `<${pipelineUrl}|View Build Pipeline> | <${REPO_URL}/blob/release/${version}/CHANGELOG.md|View Full Changelog>`,
+            text: `<${pipelineUrl}|View Build Pipeline> | <${REPO_URL}/blob/release/${version}/CHANGELOG.md|CHANGELOG.md>`,
           },
         ],
       },
@@ -254,17 +293,10 @@ function buildSlackMessage(options) {
 
   return {
     blocks,
-    text: `🚀 Mobile RC Build v${version} (${buildNumber}) is ready!`, // Fallback text
+    text: `🚀 Mobile RC Build v${version} (${buildNumber}) is ready!`,
   };
 }
 
-/**
- * Post message to Slack channel using Web API
- * @param {string} botToken - Slack bot token
- * @param {string} channelName - Channel name to post to
- * @param {Object} payload - Slack message payload
- * @returns {Promise<{success: boolean, channelNotFound: boolean}>}
- */
 async function postToSlack(botToken, channelName, payload) {
   try {
     const response = await fetch('https://slack.com/api/chat.postMessage', {
@@ -283,7 +315,6 @@ async function postToSlack(botToken, channelName, payload) {
     const data = await response.json();
 
     if (!data.ok) {
-      // Check if channel doesn't exist
       if (data.error === 'channel_not_found') {
         return { success: false, channelNotFound: true };
       }
@@ -298,21 +329,12 @@ async function postToSlack(botToken, channelName, payload) {
   }
 }
 
-/**
- * Get the Slack channel name for a release version
- * @param {string} version - The version string
- * @returns {string} The channel name
- */
 function getSlackChannel(version) {
   const formattedVersion = version.replace(/\./g, '-');
   return `#release-mobile-${formattedVersion}`;
 }
 
-/**
- * Main function
- */
 async function main() {
-  // Validate required environment variables (fail open - just log and return)
   const requiredEnvVars = ['SEMVER', 'SLACK_BOT_TOKEN'];
   const missingVars = requiredEnvVars.filter((v) => !process.env[v]);
 
@@ -331,7 +353,6 @@ async function main() {
   const pipelineUrl = process.env.BUILD_PIPELINE_URL;
   const botToken = process.env.SLACK_BOT_TOKEN;
 
-  // TEST_CHANNEL allows overriding the channel for local testing
   const testChannel = process.env.TEST_CHANNEL;
   const expectedChannelName = testChannel || getSlackChannel(version);
   const isTestMode = Boolean(testChannel);
@@ -343,28 +364,33 @@ async function main() {
     console.log(`📍 Target channel: ${expectedChannelName}`);
   }
 
-  // Extract changelog entries using auto-changelog
-  console.log('\n📖 Reading CHANGELOG.md...');
-  const changes = extractChangelogEntries(version);
-
   let changelogText = '';
   let hasChangelog = false;
+  let changelogSource = 'none';
 
-  if (changes) {
-    const totalChanges = Object.values(changes)
-      .flat()
-      .filter(Boolean).length;
-    console.log(`   Found ${totalChanges} changelog entries for v${version}`);
-
-    if (totalChanges > 0) {
-      hasChangelog = true;
-      changelogText = formatChangesForSlack(changes);
-    }
+  const cherry = loadCherryPickChangelogForSlack();
+  if (cherry && cherry.text) {
+    changelogText = cherry.text;
+    hasChangelog = true;
+    changelogSource = 'cherry-pick';
   } else {
-    console.log('   ⚠️ Could not read changelog');
+    console.log('\n📖 Reading CHANGELOG.md (no rc-cherry-pick-changelog.md in workspace)...');
+    const changes = extractChangelogEntries(version);
+    if (changes) {
+      const totalChanges = Object.values(changes)
+        .flat()
+        .filter(Boolean).length;
+      if (totalChanges > 0) {
+        hasChangelog = true;
+        changelogText = formatChangesForSlack(changes);
+        changelogSource = 'changelog-md';
+        console.log(`   Found ${totalChanges} changelog entries for v${version}`);
+      }
+    } else {
+      console.log('   ⚠️ Could not read changelog');
+    }
   }
 
-  // Build and send the message
   console.log('\n📤 Posting to Slack...');
 
   const payload = buildSlackMessage({
@@ -375,6 +401,7 @@ async function main() {
     pipelineUrl,
     changelogText,
     hasChangelog,
+    changelogSource,
   });
 
   const result = await postToSlack(botToken, expectedChannelName, payload);
@@ -383,20 +410,12 @@ async function main() {
     console.log(`\n✅ RC notification sent to ${expectedChannelName}`);
   } else if (result.channelNotFound) {
     console.warn(`\n⚠️ Channel ${expectedChannelName} not found in Slack workspace`);
-    console.warn('   This could mean:');
-    console.warn('   - The release channel has not been created yet');
-    console.warn('   - The bot does not have access to the channel');
-    console.warn('   - The channel name pattern is different');
     console.warn('Skipping Slack notification (non-critical)');
   } else {
-    // Fail open - log the error but don't exit with error code
     console.log('\n⚠️ RC notification failed but continuing (non-critical)');
   }
 }
 
-// Run - fail open on errors (non-critical notification)
 main().catch((error) => {
   console.error('⚠️ Unexpected error (non-critical):', error);
-  // Don't exit with error code - this is a non-critical notification
 });
-

@@ -146,12 +146,41 @@ jobs:
           ANDROID_BUILD_NUMBER: ${{ steps.build-meta.outputs.android_version_code }}
           BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
+  generate-rc-cherry-pick-changelog:
+    name: Generate RC cherry-pick changelog
+    runs-on: ubuntu-latest
+    needs:
+      - validate-and-check-label
+      - trigger-ios-rc-build
+      - trigger-android-rc-build
+    if: always() && needs.trigger-android-rc-build.result == 'success'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-and-check-label.outputs.branch-name }}
+          fetch-depth: 0
+      - name: Read build metadata from repo
+        id: build-meta
+        run: ./scripts/get-build-metadata.sh --ci
+      - name: Write rc-cherry-pick-changelog.md
+        env:
+          SEMVER: ${{ steps.build-meta.outputs.semantic_version }}
+          IOS_BUILD_NUMBER: ${{ steps.build-meta.outputs.ios_version_code }}
+          ANDROID_BUILD_NUMBER: ${{ steps.build-meta.outputs.android_version_code }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: ./scripts/write-rc-cherry-pick-changelog-artifact.sh rc-cherry-pick-changelog.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rc-cherry-pick-changelog-md
+          path: rc-cherry-pick-changelog.md
+
   slack-notification:
     name: Slack RC Notification
     needs:
       - validate-and-check-label
       - trigger-ios-rc-build
       - trigger-android-rc-build
+      - generate-rc-cherry-pick-changelog
     if: always() && needs.trigger-android-rc-build.result == 'success'
     uses: ./.github/workflows/slack-rc-notification.yml
     with:
