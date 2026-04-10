@@ -157,6 +157,7 @@ describe('rampsServiceInit', () => {
   const originalBuildsEnabled =
     process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
   const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
+  const originalBaseUrlOverride = process.env.RAMPS_BASE_URL_OVERRIDE;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -180,6 +181,11 @@ describe('rampsServiceInit', () => {
       process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
     } else {
       delete process.env.RAMPS_ENVIRONMENT;
+    }
+    if (originalBaseUrlOverride !== undefined) {
+      process.env.RAMPS_BASE_URL_OVERRIDE = originalBaseUrlOverride;
+    } else {
+      delete process.env.RAMPS_BASE_URL_OVERRIDE;
     }
   });
 
@@ -407,6 +413,41 @@ describe('rampsServiceInit', () => {
         context: 'mobile-android',
         fetch,
       });
+    });
+  });
+
+  describe('baseUrlOverride configuration', () => {
+    it('passes baseUrlOverride when RAMPS_BASE_URL_OVERRIDE is set', () => {
+      process.env.RAMPS_BASE_URL_OVERRIDE = 'https://custom.api.example.com';
+      rampsServiceInit(initRequestMock);
+
+      expect(rampsServiceClassMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          baseUrlOverride: 'https://custom.api.example.com',
+        }),
+      );
+    });
+
+    it('does not pass baseUrlOverride when RAMPS_BASE_URL_OVERRIDE is not set', () => {
+      delete process.env.RAMPS_BASE_URL_OVERRIDE;
+      rampsServiceInit(initRequestMock);
+
+      expect(rampsServiceClassMock).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          baseUrlOverride: expect.anything(),
+        }),
+      );
+    });
+
+    it('does not pass baseUrlOverride when RAMPS_BASE_URL_OVERRIDE is empty string', () => {
+      process.env.RAMPS_BASE_URL_OVERRIDE = '';
+      rampsServiceInit(initRequestMock);
+
+      expect(rampsServiceClassMock).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          baseUrlOverride: expect.anything(),
+        }),
+      );
     });
   });
 });
