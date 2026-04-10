@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
@@ -24,6 +25,8 @@ const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 const TEMP_ALERT_HANDLER = () => alert('Under construction 🚧');
 
 const MoneyHomeView = () => {
+  // TODO: wire to initiateDeposit(amount) once the amount entry UI is ready
+  const { initiateDeposit } = useMoneyAccountDeposit();
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 
@@ -35,8 +38,7 @@ const MoneyHomeView = () => {
 
   // eslint-disable-next-line no-alert
   const handleMenuPress = () => alert('Under construction 🚧');
-
-  const handleAddPress = TEMP_ALERT_HANDLER;
+  const handleAddPress = () => initiateDeposit(1_000_000n);
   const handleTransferPress = TEMP_ALERT_HANDLER;
   const handleCardPress = TEMP_ALERT_HANDLER;
   const handleAddMusdPress = TEMP_ALERT_HANDLER;
