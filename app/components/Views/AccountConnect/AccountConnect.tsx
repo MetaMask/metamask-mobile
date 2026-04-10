@@ -417,7 +417,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             chain_id_list: chainIds,
             referrer: channelIdOrHostname,
             ...getApiAnalyticsProperties(isMultichainRequest),
-            ...(anonId ? { anon_id: anonId } : {}),
+            ...(anonId ? { remote_session_id: anonId } : {}),
           })
           .build(),
       );
@@ -527,7 +527,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             chain_id_list: selectedChainIds,
             referrer,
             ...getApiAnalyticsProperties(isMultichainRequest),
-            ...(anonId ? { anon_id: anonId } : {}),
+            ...(anonId ? { remote_session_id: anonId } : {}),
           })
           .build(),
       );

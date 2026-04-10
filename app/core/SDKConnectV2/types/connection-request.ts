@@ -154,8 +154,8 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     if (
       typeof metadata.analytics !== 'object' ||
       metadata.analytics === null ||
-      typeof metadata.analytics.anon_id !== 'string' ||
-      !isUUID(metadata.analytics.anon_id)
+      typeof metadata.analytics.remote_session_id !== 'string' ||
+      !isUUID(metadata.analytics.remote_session_id)
     ) {
       delete (metadata as unknown as Record<string, unknown>).analytics;
     }

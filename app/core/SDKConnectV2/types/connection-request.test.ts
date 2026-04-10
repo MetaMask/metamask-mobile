@@ -344,14 +344,14 @@ describe('isConnectionRequest', () => {
     expect(isConnectionRequest(req)).toBe(true);
   });
 
-  it('preserves valid metadata.analytics.anon_id (UUID)', () => {
+  it('preserves valid metadata.analytics.remote_session_id (UUID)', () => {
     const req = validRequest();
     (req.metadata as unknown as Record<string, unknown>).analytics = {
-      anon_id: 'aabbccdd-1122-3344-5566-778899aabbcc',
+      remote_session_id: 'aabbccdd-1122-3344-5566-778899aabbcc',
     };
     expect(isConnectionRequest(req)).toBe(true);
     expect(req.metadata.analytics).toEqual({
-      anon_id: 'aabbccdd-1122-3344-5566-778899aabbcc',
+      remote_session_id: 'aabbccdd-1122-3344-5566-778899aabbcc',
     });
   });
 
@@ -369,26 +369,26 @@ describe('isConnectionRequest', () => {
     expect(req.metadata.analytics).toBeUndefined();
   });
 
-  it('strips analytics when anon_id is missing', () => {
+  it('strips analytics when remote_session_id is missing', () => {
     const req = validRequest();
     (req.metadata as unknown as Record<string, unknown>).analytics = {};
     expect(isConnectionRequest(req)).toBe(true);
     expect(req.metadata.analytics).toBeUndefined();
   });
 
-  it('strips analytics when anon_id is not a string', () => {
+  it('strips analytics when remote_session_id is not a string', () => {
     const req = validRequest();
     (req.metadata as unknown as Record<string, unknown>).analytics = {
-      anon_id: 42,
+      remote_session_id: 42,
     };
     expect(isConnectionRequest(req)).toBe(true);
     expect(req.metadata.analytics).toBeUndefined();
   });
 
-  it('strips analytics when anon_id is not a valid UUID', () => {
+  it('strips analytics when remote_session_id is not a valid UUID', () => {
     const req = validRequest();
     (req.metadata as unknown as Record<string, unknown>).analytics = {
-      anon_id: 'not-a-uuid',
+      remote_session_id: 'not-a-uuid',
     };
     expect(isConnectionRequest(req)).toBe(true);
     expect(req.metadata.analytics).toBeUndefined();

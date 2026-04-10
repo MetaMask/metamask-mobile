@@ -350,13 +350,13 @@ describe('HostApplicationAdapter', () => {
       expect(setSdkV2Connections).toHaveBeenCalledWith(expectedSessions);
     });
 
-    it('includes anonId in originatorInfo when analytics.anon_id is present', () => {
+    it('includes anonId in originatorInfo when analytics.remote_session_id is present', () => {
       const connInfoWithAnon: ConnectionInfo = {
         ...createMockConnectionInfo('conn-anon', 'AnonTest'),
         metadata: {
           ...createMockConnectionInfo('conn-anon', 'AnonTest').metadata,
           analytics: {
-            anon_id: 'aabbccdd-1122-3344-5566-778899aabbcc',
+            remote_session_id: 'aabbccdd-1122-3344-5566-778899aabbcc',
           },
         },
       };

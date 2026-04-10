@@ -78,7 +78,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
           source: eventSource,
           chain_id_list: chainIds,
           ...getApiAnalyticsProperties(isMultichainRequest),
-          ...(anonId ? { anon_id: anonId } : {}),
+          ...(anonId ? { remote_session_id: anonId } : {}),
         })
         .build(),
     );

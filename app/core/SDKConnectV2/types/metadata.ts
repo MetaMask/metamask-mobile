@@ -12,6 +12,6 @@ export interface Metadata {
     platform: string;
   };
   analytics?: {
-    anon_id: string;
+    remote_session_id: string;
   };
 }
