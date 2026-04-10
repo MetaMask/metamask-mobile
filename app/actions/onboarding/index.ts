@@ -13,6 +13,7 @@ export const SET_SEEDLESS_ONBOARDING = 'SET_SEEDLESS_ONBOARDING';
 export const CLEAR_SEEDLESS_ONBOARDING = 'CLEAR_SEEDLESS_ONBOARDING';
 export const SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT =
   'SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT';
+export const CLEAR_ONBOARDING = 'CLEAR_ONBOARDING';
 
 interface SaveEventAction {
   type: typeof SAVE_EVENT;
@@ -58,6 +59,10 @@ export interface SetIosGoogleWarningSheetLastDismissedAtAction {
   iosGoogleWarningSheetLastDismissedAt: number;
 }
 
+export interface ClearOnboardingAction {
+  type: typeof CLEAR_ONBOARDING;
+}
+
 export type OnboardingActionTypes =
   | SaveEventAction
   | ClearEventsAction
@@ -67,7 +72,8 @@ export type OnboardingActionTypes =
   | SetPendingSocialLoginMarketingConsentBackfillAction
   | SetSeedlessOnboardingAction
   | ClearSeedlessOnboardingAction
-  | SetIosGoogleWarningSheetLastDismissedAtAction;
+  | SetIosGoogleWarningSheetLastDismissedAtAction
+  | ClearOnboardingAction;
 
 export function saveOnboardingEvent(
   eventArgs: [ITrackingEvent],
@@ -142,5 +148,11 @@ export function setIosGoogleWarningSheetLastDismissedAt(
   return {
     type: SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT,
     iosGoogleWarningSheetLastDismissedAt,
+  };
+}
+
+export function clearOnboarding(): ClearOnboardingAction {
+  return {
+    type: CLEAR_ONBOARDING,
   };
 }

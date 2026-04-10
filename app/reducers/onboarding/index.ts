@@ -11,6 +11,7 @@ import {
   SET_SEEDLESS_ONBOARDING,
   CLEAR_SEEDLESS_ONBOARDING,
   SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT,
+  CLEAR_ONBOARDING,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 import { AccountType } from '../../constants/onboarding';
@@ -103,6 +104,8 @@ const onboardingReducer = (
         iosGoogleWarningSheetLastDismissedAt:
           action.iosGoogleWarningSheetLastDismissedAt,
       };
+    case CLEAR_ONBOARDING:
+      return { ...initialOnboardingState };
     default:
       return state;
   }
