@@ -391,6 +391,7 @@ export const NETWORK_CHAIN_ID: {
   readonly TEMPO_MAINNET: '0x1079';
   readonly CHILIZ: '0x15b38';
   readonly STABLE_MAINNET: '0x3dc';
+  readonly KONET_MAINNET: '0x4341';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -437,6 +438,7 @@ export const NETWORK_CHAIN_ID: {
   TEMPO_MAINNET: '0x1079',
   CHILIZ: '0x15b38',
   STABLE_MAINNET: '0x3dc',
+  KONET_MAINNET: '0x4341',
   ...CHAIN_IDS,
 };
 
@@ -488,4 +490,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.TEMPO_MAINNET]: require('../../images/tempo.png'),
   [NETWORK_CHAIN_ID.CHILIZ]: require('../../images/chiliz.png'),
   [NETWORK_CHAIN_ID.STABLE_MAINNET]: require('../../images/stable.png'),
+  [NETWORK_CHAIN_ID.KONET_MAINNET]: require('../../images/konet.png'),
 };
