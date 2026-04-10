@@ -69,9 +69,9 @@ describe('toCardTokenAllowance', () => {
   });
 
   describe('availableBalance mapping', () => {
-    it("sets availableBalance to undefined when balance is '0'", () => {
+    it("preserves availableBalance when provider balance is '0'", () => {
       const result = toCardTokenAllowance(makeAsset({ balance: '0' }));
-      expect(result.availableBalance).toBeUndefined();
+      expect(result.availableBalance).toBe('0');
     });
 
     it('sets availableBalance when balance is a non-zero string', () => {

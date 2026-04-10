@@ -20,8 +20,7 @@ export function toCardTokenAllowance(
       STATUS_TO_ALLOWANCE_STATE[asset.status] ?? AllowanceState.NotEnabled,
     allowance: asset.balance ?? '0',
     totalAllowance: asset.allowance ?? '0',
-    availableBalance:
-      asset.balance && asset.balance !== '0' ? asset.balance : undefined,
+    availableBalance: asset.balance || undefined,
     walletAddress: asset.walletAddress,
     priority:
       asset.priority >= Number.MAX_SAFE_INTEGER ? undefined : asset.priority,

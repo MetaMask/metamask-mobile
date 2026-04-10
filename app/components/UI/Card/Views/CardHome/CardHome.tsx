@@ -273,19 +273,21 @@ const CardHome = () => {
         {strings('card.card_home.title')}
       </Text>
 
-      <CardAlertSection
-        alerts={(data?.alerts ?? []).filter(
-          (a) =>
-            !(
-              a.type === 'close_to_spending_limit' &&
-              isSpendingLimitWarningDismissed
-            ),
-        )}
-        onNavigateToSpendingLimit={actions.manageSpendingLimitAction}
-        onDismissSpendingLimitWarning={() =>
-          setIsSpendingLimitWarningDismissed(true)
-        }
-      />
+      <Box twClassName="mx-4 mt-2">
+        <CardAlertSection
+          alerts={(data?.alerts ?? []).filter(
+            (a) =>
+              !(
+                a.type === 'close_to_spending_limit' &&
+                isSpendingLimitWarningDismissed
+              ),
+          )}
+          onNavigateToSpendingLimit={actions.manageSpendingLimitAction}
+          onDismissSpendingLimitWarning={() =>
+            setIsSpendingLimitWarningDismissed(true)
+          }
+        />
+      </Box>
 
       <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
         <Box twClassName="w-full relative">
