@@ -2,7 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import usePrevious from '../../../hooks/usePrevious';
 import { BigNumber } from 'bignumber.js';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import type { OrderFill } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -11,6 +14,7 @@ import { areAddressesEqual } from '../../../../util/address';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { PerpsTransaction } from '../types/transactionHistory';
+import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { useUserHistory } from './useUserHistory';
 import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
 import {
@@ -19,8 +23,20 @@ import {
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
   transformWalletPerpsDepositsToTransactions,
+  transformWithdrawalRequestsToTransactions,
+  walletPerpsWithdrawalsToRequests,
   mergeOrderFills,
 } from '../utils/transactionTransforms';
+
+function deduplicateByTxHash(
+  walletTxs: PerpsTransaction[],
+  restHashes: Set<string>,
+) {
+  return walletTxs.filter((tx) => {
+    const h = tx.depositWithdrawal?.txHash?.toLowerCase?.()?.trim() ?? '';
+    return h === '' || !restHashes.has(h);
+  });
+}
 
 interface UsePerpsTransactionHistoryParams {
   startTime?: number;
@@ -64,21 +80,47 @@ export const usePerpsTransactionHistory = ({
   // This ensures new trades appear immediately without waiting for REST refetch
   const { fills: liveFills } = usePerpsLiveFills({ throttleMs: 0 });
 
-  // Wallet perps deposits (TransactionType.perpsDeposit / perpsDepositAndOrder) for the Deposits tab
+  // Wallet perps deposits and withdrawals for the Deposits tab
   const walletTransactions = useSelector(selectNonReplacedTransactions);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const walletDepositTransactions = useMemo(() => {
-    const filtered = walletTransactions.filter(
-      (tx) =>
-        selectedAddress &&
-        areAddressesEqual(tx.txParams?.from ?? '', selectedAddress) &&
-        (tx.type === TransactionType.perpsDeposit ||
-          tx.type === TransactionType.perpsDepositAndOrder),
-    );
-    return transformWalletPerpsDepositsToTransactions(filtered);
-  }, [walletTransactions, selectedAddress]);
+  const { walletDepositTransactions, walletWithdrawalTransactions } =
+    useMemo(() => {
+      if (!selectedAddress) {
+        return {
+          walletDepositTransactions: [] as PerpsTransaction[],
+          walletWithdrawalTransactions: [] as PerpsTransaction[],
+        };
+      }
+
+      const deposits: TransactionMeta[] = [];
+      const withdrawals: TransactionMeta[] = [];
+
+      for (const tx of walletTransactions) {
+        if (!areAddressesEqual(tx.txParams?.from ?? '', selectedAddress)) {
+          continue;
+        }
+        if (
+          hasTransactionType(tx, [
+            TransactionType.perpsDeposit,
+            TransactionType.perpsDepositAndOrder,
+          ])
+        ) {
+          deposits.push(tx);
+        } else if (hasTransactionType(tx, [TransactionType.perpsWithdraw])) {
+          withdrawals.push(tx);
+        }
+      }
+
+      return {
+        walletDepositTransactions:
+          transformWalletPerpsDepositsToTransactions(deposits),
+        walletWithdrawalTransactions: transformWithdrawalRequestsToTransactions(
+          walletPerpsWithdrawalsToRequests(withdrawals),
+        ),
+      };
+    }, [walletTransactions, selectedAddress]);
 
   // Store userHistory in ref to avoid recreating fetchAllTransactions callback
   const userHistoryRef = useRef(userHistory);
@@ -246,33 +288,46 @@ export const usePerpsTransactionHistory = ({
       (tx) => tx.type !== 'trade',
     );
 
-    // Deduplicate wallet deposits against REST (user history) deposits by txHash.
-    // When a wallet-originated deposit is bridged and recorded by the perps backend,
+    // Deduplicate wallet deposits/withdrawals against REST (user history) by txHash.
+    // When a wallet-originated transaction is bridged and recorded by the perps backend,
     // it appears in both sources; we keep the REST version and drop the wallet duplicate.
-    const restDepositTxHashes = new Set(
-      nonTradeTransactions
-        .filter(
-          (tx) =>
-            tx.type === 'deposit' &&
-            tx.depositWithdrawal?.txHash?.trim() !== '',
-        )
-        .map((tx) => (tx.depositWithdrawal?.txHash ?? '').toLowerCase().trim()),
+    const restDepositTxHashes = new Set<string>();
+    const restWithdrawalTxHashes = new Set<string>();
+    for (const tx of nonTradeTransactions) {
+      const h = tx.depositWithdrawal?.txHash?.trim();
+      if (!h) continue;
+      const normalized = h.toLowerCase();
+      if (tx.type === 'deposit') {
+        restDepositTxHashes.add(normalized);
+      } else if (tx.type === 'withdrawal') {
+        restWithdrawalTxHashes.add(normalized);
+      }
+    }
+
+    const walletDepositsDeduplicated = deduplicateByTxHash(
+      walletDepositTransactions,
+      restDepositTxHashes,
     );
-    const walletDepositsDeduplicated = walletDepositTransactions.filter(
-      (tx) => {
-        const h = tx.depositWithdrawal?.txHash?.toLowerCase?.()?.trim() ?? '';
-        return h === '' || !restDepositTxHashes.has(h);
-      },
+    const walletWithdrawalsDeduplicated = deduplicateByTxHash(
+      walletWithdrawalTransactions,
+      restWithdrawalTxHashes,
     );
 
     const allTransactions = [
       ...mergedFillTransactions,
       ...nonTradeTransactions,
       ...walletDepositsDeduplicated,
+      ...walletWithdrawalsDeduplicated,
     ];
 
     return allTransactions.sort((a, b) => b.timestamp - a.timestamp);
-  }, [liveFills, restFills, transactions, walletDepositTransactions]);
+  }, [
+    liveFills,
+    restFills,
+    transactions,
+    walletDepositTransactions,
+    walletWithdrawalTransactions,
+  ]);
 
   return {
     transactions: mergedTransactions,
