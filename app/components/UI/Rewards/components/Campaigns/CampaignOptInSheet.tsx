@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from 'react';
-import { noop } from 'lodash';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -86,7 +85,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   }, [optInToCampaign, campaign.id, showToast, RewardsToastOptions, onClose]);
 
   return (
-    <BottomSheet shouldNavigateBack={false} goBack={noop} onClose={onClose}>
+    <BottomSheet onClose={onClose}>
       <Box twClassName="px-4 pb-4">
         {/* Header: centered title + close button */}
         <Box
