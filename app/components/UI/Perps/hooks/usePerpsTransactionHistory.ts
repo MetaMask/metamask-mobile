@@ -13,7 +13,10 @@ import type { CaipAccountId } from '@metamask/utils';
 import { areAddressesEqual } from '../../../../util/address';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { PerpsTransaction } from '../types/transactionHistory';
+import {
+  PerpsTransaction,
+  PerpsTransactionType,
+} from '../types/transactionHistory';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { useUserHistory } from './useUserHistory';
 import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
@@ -33,8 +36,9 @@ function deduplicateByTxHash(
   restHashes: Set<string>,
 ) {
   return walletTxs.filter((tx) => {
-    const h = tx.depositWithdrawal?.txHash?.toLowerCase?.()?.trim() ?? '';
-    return h === '' || !restHashes.has(h);
+    const walletTxHash =
+      tx.depositWithdrawal?.txHash?.toLowerCase?.()?.trim() ?? '';
+    return walletTxHash === '' || !restHashes.has(walletTxHash);
   });
 }
 
@@ -285,7 +289,7 @@ export const usePerpsTransactionHistory = ({
 
     // Separate non-trade transactions (orders, funding, user history deposits)
     const nonTradeTransactions = transactions.filter(
-      (tx) => tx.type !== 'trade',
+      (tx) => tx.type !== PerpsTransactionType.Trade,
     );
 
     // Deduplicate wallet deposits/withdrawals against REST (user history) by txHash.
@@ -294,13 +298,13 @@ export const usePerpsTransactionHistory = ({
     const restDepositTxHashes = new Set<string>();
     const restWithdrawalTxHashes = new Set<string>();
     for (const tx of nonTradeTransactions) {
-      const h = tx.depositWithdrawal?.txHash?.trim();
-      if (!h) continue;
-      const normalized = h.toLowerCase();
-      if (tx.type === 'deposit') {
-        restDepositTxHashes.add(normalized);
-      } else if (tx.type === 'withdrawal') {
-        restWithdrawalTxHashes.add(normalized);
+      const restTxHash = tx.depositWithdrawal?.txHash?.trim();
+      if (!restTxHash) continue;
+      const normalizedHash = restTxHash.toLowerCase();
+      if (tx.type === PerpsTransactionType.Deposit) {
+        restDepositTxHashes.add(normalizedHash);
+      } else if (tx.type === PerpsTransactionType.Withdrawal) {
+        restWithdrawalTxHashes.add(normalizedHash);
       }
     }
 

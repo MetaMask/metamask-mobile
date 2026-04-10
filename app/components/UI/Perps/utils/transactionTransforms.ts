@@ -750,7 +750,7 @@ export function transformWithdrawalRequestsToTransactions(
         });
 
     return {
-      id: `withdrawal-${id}`,
+      id,
       type: 'withdrawal' as const,
       category: 'withdrawal' as const,
       title,
@@ -793,7 +793,7 @@ export function walletPerpsWithdrawalsToRequests(
         : new BigNumber(0);
 
     return {
-      id: `wallet-${tx.id}`,
+      id: `wallet-withdrawal-${tx.id}`,
       timestamp: tx.time ?? 0,
       amount: amountBN.toFixed(2),
       asset: ARBITRUM_USDC.symbol,

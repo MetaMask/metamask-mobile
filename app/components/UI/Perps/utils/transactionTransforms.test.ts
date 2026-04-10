@@ -1628,7 +1628,7 @@ describe('transactionTransforms', () => {
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
-        id: 'withdrawal-withdrawal1',
+        id: 'withdrawal1',
         type: 'withdrawal' as const,
         category: 'withdrawal',
         title: 'Withdrew 500 USDC',
@@ -1969,7 +1969,7 @@ describe('transactionTransforms', () => {
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
-        id: 'wallet-tx-1',
+        id: 'wallet-withdrawal-tx-1',
         timestamp: 1640995200000,
         amount: '0.26',
         asset: 'USDC',
@@ -2018,7 +2018,7 @@ describe('transactionTransforms', () => {
         createMockWithdrawTx({ id: 'my-tx-id' }),
       ] as never);
 
-      expect(result[0].id).toBe('wallet-my-tx-id');
+      expect(result[0].id).toBe('wallet-withdrawal-my-tx-id');
     });
   });
 });
