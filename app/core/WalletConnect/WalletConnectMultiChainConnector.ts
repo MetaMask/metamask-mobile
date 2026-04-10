@@ -147,6 +147,54 @@ interface SnapMappedRequest {
   params: unknown;
 }
 
+const extractTronRawDataHex = (value: unknown): string | undefined => {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const candidate = value as {
+    raw_data_hex?: unknown;
+    rawDataHex?: unknown;
+    transaction?: unknown;
+    tx?: unknown;
+  };
+
+  if (typeof candidate.raw_data_hex === 'string') {
+    return candidate.raw_data_hex;
+  }
+  if (typeof candidate.rawDataHex === 'string') {
+    return candidate.rawDataHex;
+  }
+  return (
+    extractTronRawDataHex(candidate.transaction) ??
+    extractTronRawDataHex(candidate.tx)
+  );
+};
+
+const extractTronType = (value: unknown): string | undefined => {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const candidate = value as {
+    type?: unknown;
+    transaction?: unknown;
+    tx?: unknown;
+    raw_data?: { contract?: { type?: unknown }[] };
+  };
+
+  if (typeof candidate.type === 'string' && candidate.type.length > 0) {
+    return candidate.type;
+  }
+  const contractType = candidate.raw_data?.contract?.[0]?.type;
+  if (typeof contractType === 'string' && contractType.length > 0) {
+    return contractType;
+  }
+  return (
+    extractTronType(candidate.transaction) ?? extractTronType(candidate.tx)
+  );
+};
+
 /**
  * Adapts WalletConnect Tron methods to the canonical Tron Snap RPC surface.
  * Non-Tron methods are passed through unchanged.
@@ -158,8 +206,13 @@ export const adaptWalletConnectRequestForSnap = ({
   method: string;
   params: unknown;
 }): SnapMappedRequest => {
-  const firstParam =
-    Array.isArray(params) && params.length > 0 ? params[0] : undefined;
+  const firstParam = Array.isArray(params)
+    ? params.length > 0
+      ? params[0]
+      : undefined
+    : params && typeof params === 'object'
+      ? params
+      : undefined;
 
   if (method === 'tron_signMessage') {
     const mappedParams: Record<string, string> = {};
@@ -204,20 +257,8 @@ export const adaptWalletConnectRequestForSnap = ({
               }
             | undefined);
 
-    const rawDataHex =
-      transaction &&
-      typeof transaction === 'object' &&
-      'raw_data_hex' in transaction
-        ? transaction.raw_data_hex
-        : transaction &&
-            typeof transaction === 'object' &&
-            'rawDataHex' in transaction
-          ? transaction.rawDataHex
-          : undefined;
-    const type =
-      transaction && typeof transaction === 'object' && 'type' in transaction
-        ? transaction.type
-        : undefined;
+    const rawDataHex = extractTronRawDataHex(firstParam ?? transaction);
+    const type = extractTronType(firstParam ?? transaction);
 
     const mappedTransaction: Record<string, string> = {};
     if (typeof rawDataHex === 'string') {
