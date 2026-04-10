@@ -106,6 +106,11 @@ let capturedOnNavigationStateChange:
   | ((state: { url: string; loading?: boolean }) => void)
   | undefined;
 
+let capturedOnLoadStart: (() => void) | undefined;
+let capturedOnLoadEnd:
+  | ((e: { nativeEvent: { url: string } }) => void)
+  | undefined;
+
 jest.mock('@metamask/react-native-webview', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- jest mock factory
   const { View, Button } = require('react-native');
@@ -117,6 +122,8 @@ jest.mock('@metamask/react-native-webview', () => {
       onNavigationStateChange,
       onHttpError,
       onShouldStartLoadWithRequest,
+      onLoadStart,
+      onLoadEnd,
       testID,
     }: {
       onNavigationStateChange?: (state: {
@@ -127,9 +134,13 @@ jest.mock('@metamask/react-native-webview', () => {
         nativeEvent: { url: string; statusCode: number };
       }) => void;
       onShouldStartLoadWithRequest?: (req: { url: string }) => boolean;
+      onLoadStart?: () => void;
+      onLoadEnd?: (e: { nativeEvent: { url: string } }) => void;
       testID?: string;
     }) => {
       capturedOnNavigationStateChange = onNavigationStateChange;
+      capturedOnLoadStart = onLoadStart;
+      capturedOnLoadEnd = onLoadEnd;
       return (
         <View testID={testID ?? 'checkout-webview'}>
           <Button
@@ -679,6 +690,111 @@ describe('Checkout', () => {
       expect(shouldStartLoadWithRequest).toHaveBeenCalledWith(
         'https://provider.example.com/next-hop',
         Logger,
+      );
+    });
+  });
+
+  describe('checkout URL tracking analytics', () => {
+    it('tracks RAMPS_CHECKOUT_URL_CHANGE on navigation state change (callback flow)', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'MoonPay',
+        providerCode: 'moonpay',
+        walletAddress: '0xabc',
+        orderId: 'order-1',
+      });
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        capturedOnNavigationStateChange?.({
+          url: 'https://provider.example.com/step-2?email=user@test.com',
+          loading: false,
+        });
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.RAMPS_CHECKOUT_URL_CHANGE,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: 'Checkout',
+          ramp_type: 'UNIFIED_BUY_2',
+          provider_name: 'MoonPay',
+          url_path: 'https://provider.example.com/step-2',
+          is_callback_url: false,
+          order_id: 'order-1',
+        }),
+      );
+    });
+
+    it('tracks RAMPS_CHECKOUT_URL_CHANGE via dedup handler (callbackKey flow)', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+        callbackKey: 'some-key',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-dedup-navigation'));
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.RAMPS_CHECKOUT_URL_CHANGE,
+      );
+    });
+
+    it('tracks RAMPS_CHECKOUT_LOAD_COMPLETE on load end', () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      act(() => {
+        capturedOnLoadStart?.();
+      });
+      act(() => {
+        capturedOnLoadEnd?.({
+          nativeEvent: { url: 'https://provider.example.com/checkout' },
+        });
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETE,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: 'Checkout',
+          url_path: 'https://provider.example.com/checkout',
+        }),
+      );
+    });
+
+    it('tracks RAMPS_CHECKOUT_HTTP_ERROR on HTTP error', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-http-error-main-uri'));
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.RAMPS_CHECKOUT_HTTP_ERROR,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: 'Checkout',
+          status_code: 502,
+          is_initial_url: true,
+        }),
       );
     });
   });

@@ -7,6 +7,7 @@ import { useParams } from '../../../../../../../util/navigation/navUtils';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import Logger from '../../../../../../../util/Logger';
+import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -29,10 +30,29 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
+const mockCreateEventBuilder = jest
+  .fn()
+  .mockReturnValue({ addProperties: mockAddProperties, build: mockBuild });
+
+jest.mock(
+  '../../../../../../../components/hooks/useAnalytics/useAnalytics',
+  () => ({
+    useAnalytics: () => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    }),
+  }),
+);
+
 const mockWebViewProps = {
   onNavigationStateChange: jest.fn(),
   onHttpError: jest.fn(),
   onShouldStartLoadWithRequest: jest.fn(),
+  onLoadStart: jest.fn(),
+  onLoadEnd: jest.fn(),
 };
 
 jest.mock('@metamask/react-native-webview', () => ({
@@ -41,11 +61,15 @@ jest.mock('@metamask/react-native-webview', () => ({
       onNavigationStateChange,
       onHttpError,
       onShouldStartLoadWithRequest,
+      onLoadStart,
+      onLoadEnd,
     }) => {
       mockWebViewProps.onNavigationStateChange = onNavigationStateChange;
       mockWebViewProps.onHttpError = onHttpError;
       mockWebViewProps.onShouldStartLoadWithRequest =
         onShouldStartLoadWithRequest;
+      mockWebViewProps.onLoadStart = onLoadStart;
+      mockWebViewProps.onLoadEnd = onLoadEnd;
       return null;
     },
   ),
@@ -337,6 +361,78 @@ describe('WebviewModal Component', () => {
       expect(mockLoggerError).toHaveBeenCalledWith(
         mockError,
         'Failed to open payment URL: upi://pay?pa=company@ypbiz',
+      );
+    });
+  });
+
+  describe('checkout URL tracking analytics', () => {
+    it('tracks RAMPS_CHECKOUT_URL_CHANGE on navigation to a new URL', () => {
+      renderWithProvider(WebviewModal);
+
+      act(() => {
+        mockWebViewProps.onNavigationStateChange({
+          url: 'https://example.com/step-2?token=secret',
+        });
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.RAMPS_CHECKOUT_URL_CHANGE,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: 'WebviewModal',
+          ramp_type: 'UNIFIED_BUY_2',
+          url_path: 'https://example.com/step-2',
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks RAMPS_CHECKOUT_LOAD_COMPLETE on load end', () => {
+      renderWithProvider(WebviewModal);
+
+      act(() => {
+        mockWebViewProps.onLoadStart?.();
+      });
+
+      act(() => {
+        mockWebViewProps.onLoadEnd?.({
+          nativeEvent: { url: 'https://example.com/loaded' },
+        });
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETE,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: 'WebviewModal',
+          url_path: 'https://example.com/loaded',
+        }),
+      );
+    });
+
+    it('tracks RAMPS_CHECKOUT_HTTP_ERROR on HTTP error', () => {
+      renderWithProvider(WebviewModal);
+
+      act(() => {
+        mockWebViewProps.onHttpError({
+          nativeEvent: {
+            url: mockSourceUrl,
+            statusCode: 500,
+          },
+        });
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.RAMPS_CHECKOUT_HTTP_ERROR,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: 'WebviewModal',
+          status_code: 500,
+          is_initial_url: true,
+        }),
       );
     });
   });
