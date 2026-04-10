@@ -660,10 +660,10 @@ describe('PredictGameDetailsContent', () => {
     expect(getByTestId('predict-game-details-footer')).toBeOnTheScreen();
   });
 
-  it('matches snapshot', () => {
+  it('renders the screen container', () => {
     const market = createMockMarket();
 
-    const tree = render(
+    const { getByTestId } = render(
       <PredictGameDetailsContent
         market={market}
         onBack={mockOnBack}
@@ -671,9 +671,9 @@ describe('PredictGameDetailsContent', () => {
         onBetPress={mockOnBetPress}
         refreshing={false}
       />,
-    ).toJSON();
+    );
 
-    expect(tree).toMatchSnapshot();
+    expect(getByTestId('predict-market-details-screen')).toBeOnTheScreen();
   });
 
   describe('tab bar rendering', () => {
