@@ -1,6 +1,6 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Alert, Platform, StatusBar } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
@@ -770,11 +770,9 @@ describe('OAuthRehydration', () => {
 
   describe('Platform configuration', () => {
     let originalPlatform: string;
-    let originalStatusBarHeight: number | undefined;
 
     beforeEach(() => {
       originalPlatform = Platform.OS;
-      originalStatusBarHeight = StatusBar.currentHeight;
     });
 
     afterEach(() => {
@@ -782,15 +780,13 @@ describe('OAuthRehydration', () => {
         value: originalPlatform,
         writable: true,
       });
-      StatusBar.currentHeight = originalStatusBarHeight;
     });
 
-    it('applies Android-specific layout spacing and status bar padding', () => {
+    it('applies Android-specific layout spacing without duplicate status bar padding', () => {
       Object.defineProperty(Platform, 'OS', {
         value: 'android',
         writable: true,
       });
-      StatusBar.currentHeight = 42;
 
       const { UNSAFE_root } = renderWithProvider(<OAuthRehydration />);
       const safeAreaView = UNSAFE_root.findByType(SafeAreaView);
@@ -806,9 +802,20 @@ describe('OAuthRehydration', () => {
           expect.objectContaining({
             backgroundColor: expect.any(String),
           }),
-          { paddingTop: 42 },
         ]),
       );
+      const styleArray = Array.isArray(safeAreaView.props.style)
+        ? safeAreaView.props.style
+        : [safeAreaView.props.style];
+      expect(
+        styleArray.filter(
+          (s: object) =>
+            s !== null &&
+            typeof s === 'object' &&
+            !Array.isArray(s) &&
+            'paddingTop' in s,
+        ),
+      ).toHaveLength(0);
       expect(keyboardAwareScrollView.props.extraScrollHeight).toBe(-200);
       expect(ctaWrapper).toBeDefined();
     });

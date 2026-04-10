@@ -12,7 +12,6 @@ import {
   TouchableOpacity,
   Platform,
   Image,
-  StatusBar,
 } from 'react-native';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -387,14 +386,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   return (
     <ErrorBoundary navigation={navigation} view="Login">
-      <SafeAreaView
-        style={[
-          tw.style('flex-1'),
-          Platform.OS === 'android' && {
-            paddingTop: StatusBar.currentHeight ?? 0,
-          },
-        ]}
-      >
+      <SafeAreaView style={[tw.style('flex-1')]}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           style={tw.style('flex-1')}

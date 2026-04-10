@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   Platform,
   Alert,
-  StatusBar,
 } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -806,9 +805,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         style={[
           tw.style('flex-1'),
           { backgroundColor: colors.background.default },
-          Platform.OS === 'android' && {
-            paddingTop: StatusBar.currentHeight ?? 0,
-          },
         ]}
       >
         <KeyboardAwareScrollView
