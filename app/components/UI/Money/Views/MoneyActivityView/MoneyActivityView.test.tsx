@@ -113,6 +113,28 @@ describe('MoneyActivityView', () => {
     expect(getByTestId('activity-mock-tx-money-tx-1')).toBeOnTheScreen();
   });
 
+  it('shows only deposit rows when the Deposits filter is selected', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityView />,
+    );
+
+    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS));
+
+    expect(getByTestId('activity-mock-tx-money-tx-1')).toBeOnTheScreen();
+    expect(queryByTestId('activity-mock-tx-money-tx-4')).toBeNull();
+  });
+
+  it('shows only transfer rows when the Transfers filter is selected', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityView />,
+    );
+
+    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS));
+
+    expect(getByTestId('activity-mock-tx-money-tx-4')).toBeOnTheScreen();
+    expect(queryByTestId('activity-mock-tx-money-tx-1')).toBeNull();
+  });
+
   it('renders empty state when there are no transactions', () => {
     mockUseMoneyAccountTransactions.mockReturnValue({
       allTransactions: [],

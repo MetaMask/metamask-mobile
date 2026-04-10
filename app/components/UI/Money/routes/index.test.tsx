@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable @typescript-eslint/no-var-requires */
 import React from 'react';
+import { Text as MockText, View as MockView } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../util/theme';
 import { MoneyScreenStack } from './index';
@@ -18,51 +17,43 @@ const themeWithCustomBackground = {
   },
 };
 
-jest.mock('@react-navigation/stack', () => {
-  const { View, Text } = require('react-native');
-  return {
-    createStackNavigator: () => ({
-      Navigator: ({
-        children,
-        screenOptions,
-      }: {
-        children: React.ReactNode;
-        screenOptions?: {
-          headerShown?: boolean;
-          cardStyle?: { backgroundColor?: string };
-        };
-      }) => (
-        <View testID="money-stack-navigator">
-          <Text testID="money-card-background-color">
-            {screenOptions?.cardStyle?.backgroundColor ?? 'none'}
-          </Text>
-          {screenOptions?.headerShown === false && (
-            <Text testID="money-header-hidden">header-hidden</Text>
-          )}
-          {children}
-        </View>
-      ),
-      Screen: ({ name }: { name: string }) => {
-        const { View: V, Text: T } = require('react-native');
-        return (
-          <V testID={`money-screen-${name}`}>
-            <T>{name}</T>
-          </V>
-        );
-      },
-    }),
-  };
-});
+jest.mock('@react-navigation/stack', () => ({
+  createStackNavigator: () => ({
+    Navigator: ({
+      children,
+      screenOptions,
+    }: {
+      children: React.ReactNode;
+      screenOptions?: {
+        headerShown?: boolean;
+        cardStyle?: { backgroundColor?: string };
+      };
+    }) => (
+      <MockView testID="money-stack-navigator">
+        <MockText testID="money-card-background-color">
+          {screenOptions?.cardStyle?.backgroundColor ?? 'none'}
+        </MockText>
+        {screenOptions?.headerShown === false && (
+          <MockText testID="money-header-hidden">header-hidden</MockText>
+        )}
+        {children}
+      </MockView>
+    ),
+    Screen: ({ name }: { name: string }) => (
+      <MockView testID={`money-screen-${name}`}>
+        <MockText>{name}</MockText>
+      </MockView>
+    ),
+  }),
+}));
 
-jest.mock('../Views/MoneyHomeView', () => {
-  const { View } = require('react-native');
-  return () => <View testID="mock-money-home-view" />;
-});
+jest.mock('../Views/MoneyHomeView', () => () => (
+  <MockView testID="mock-money-home-view" />
+));
 
-jest.mock('../Views/MoneyActivityView', () => {
-  const { View } = require('react-native');
-  return () => <View testID="mock-money-activity-view" />;
-});
+jest.mock('../Views/MoneyActivityView', () => () => (
+  <MockView testID="mock-money-activity-view" />
+));
 
 describe('MoneyScreenStack', () => {
   it('registers Money home and activity screens', () => {
@@ -70,8 +61,8 @@ describe('MoneyScreenStack', () => {
       theme: themeWithCustomBackground,
     });
 
-    expect(getByTestId('money-screen-MoneyHome')).toBeTruthy();
-    expect(getByTestId('money-screen-MoneyActivity')).toBeTruthy();
+    expect(getByTestId('money-screen-MoneyHome')).toBeOnTheScreen();
+    expect(getByTestId('money-screen-MoneyActivity')).toBeOnTheScreen();
   });
 
   it('sets stack card background from theme to avoid flash during inner navigation', () => {
@@ -89,6 +80,6 @@ describe('MoneyScreenStack', () => {
       theme: themeWithCustomBackground,
     });
 
-    expect(getByTestId('money-header-hidden')).toBeTruthy();
+    expect(getByTestId('money-header-hidden')).toBeOnTheScreen();
   });
 });

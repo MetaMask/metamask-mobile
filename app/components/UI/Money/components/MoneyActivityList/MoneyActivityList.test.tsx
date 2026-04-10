@@ -54,13 +54,13 @@ describe('MoneyActivityList', () => {
       <MoneyActivityList transactions={MOCK_MONEY_TRANSACTIONS} />,
     );
 
-    expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeTruthy();
+    expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
     expect(
       getByTestId(`${MoneyActivityItemTestIds.ROW}-money-tx-1`),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(`${MoneyActivityItemTestIds.ROW}-money-tx-5`),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('does not render more than 5 items', () => {
@@ -86,7 +86,7 @@ describe('MoneyActivityList', () => {
       <MoneyActivityList transactions={MOCK_MONEY_TRANSACTIONS} />,
     );
 
-    expect(getByTestId('section-header')).toBeTruthy();
+    expect(getByTestId('section-header')).toBeOnTheScreen();
   });
 
   it('renders View all button when onViewAllPress is provided', () => {
@@ -99,7 +99,7 @@ describe('MoneyActivityList', () => {
     );
 
     const button = getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON);
-    expect(button).toBeTruthy();
+    expect(button).toBeOnTheScreen();
     fireEvent.press(button);
     expect(mockPress).toHaveBeenCalledTimes(1);
   });

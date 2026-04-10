@@ -2907,6 +2907,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyActivityMockDataEnabled: {
+    name: 'moneyActivityMockDataEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyEnableMoneyAccount: {
     name: 'moneyEnableMoneyAccount',
     type: FeatureFlagType.Remote,
@@ -2926,14 +2934,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: false,
       minimumVersion: '0.0.0',
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  moneyActivityMockDataEnabled: {
-    name: 'moneyActivityMockDataEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 

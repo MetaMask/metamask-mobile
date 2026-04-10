@@ -53,7 +53,6 @@ export function isIncomingMoneyTransactionMeta(tx: TransactionMeta): boolean {
   return (
     t === EvmTransactionType.incoming ||
     t === EvmTransactionType.moneyAccountDeposit ||
-    t === EvmTransactionType.musdConversion ||
-    t === EvmTransactionType.swap
+    t === EvmTransactionType.musdConversion
   );
 }

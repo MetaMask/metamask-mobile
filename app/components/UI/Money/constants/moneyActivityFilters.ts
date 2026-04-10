@@ -20,14 +20,11 @@ export function isMoneyActivityTransfer(tx: TransactionMeta): boolean {
   );
 }
 
+/**
+ * Money activity only lists types we can classify as deposit or transfer.
+ * {@link TransactionType.swap} is excluded until direction (e.g. mUSD in vs out) is defined.
+ */
 export function isMoneyActivityTransaction(tx: TransactionMeta): boolean {
-  const t = tx.type;
-  if (!t) {
-    return false;
-  }
-  if (t === TransactionType.swap) {
-    return true;
-  }
   return isMoneyActivityDeposit(tx) || isMoneyActivityTransfer(tx);
 }
 

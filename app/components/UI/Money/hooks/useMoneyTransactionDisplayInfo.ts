@@ -61,7 +61,6 @@ function getLabelForTransactionType(type: TransactionType | undefined): string {
     case TransactionType.simpleSend:
       return strings('money.transaction.sent');
     case TransactionType.musdConversion:
-    case TransactionType.swap:
       return strings('money.transaction.converted');
     default:
       return strings('money.transaction.received');
