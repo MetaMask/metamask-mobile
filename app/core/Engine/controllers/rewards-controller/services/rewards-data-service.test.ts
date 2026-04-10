@@ -4719,4 +4719,152 @@ describe('RewardsDataService', () => {
       );
     });
   });
+
+  describe('getOndoCampaignActivity', () => {
+    const mockCampaignId = 'campaign-ondo-activity';
+    const mockSubscriptionId = 'sub-activity-1';
+    const mockToken = 'test-bearer-token';
+    const mockActivity = {
+      has_more: true,
+      cursor: 'next-page-cursor',
+      results: [
+        {
+          type: 'DEPOSIT',
+          srcToken: {
+            tokenAsset: 'eip155:59144/erc20:0xabc',
+            tokenSymbol: 'USDC',
+            tokenName: 'USD Coin',
+          },
+          destToken: {
+            tokenAsset: 'eip155:59144/erc20:0xdef',
+            tokenSymbol: 'AAPLon',
+            tokenName: 'Apple Inc.',
+          },
+          destAddress: null,
+          usdAmount: '5000.000000',
+          timestamp: '2026-03-28T14:30:00.000Z',
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockActivity),
+      } as unknown as Response);
+    });
+
+    it('calls the correct authenticated endpoint with GET and returns activity', async () => {
+      const result = await service.getOndoCampaignActivity(
+        mockCampaignId,
+        mockSubscriptionId,
+        null,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/activity/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockActivity);
+    });
+
+    it('appends cursor query param when provided', async () => {
+      await service.getOndoCampaignActivity(
+        mockCampaignId,
+        mockSubscriptionId,
+        'page-2-cursor',
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/activity/me?cursor=page-2-cursor`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getOndoCampaignActivity(
+          mockCampaignId,
+          mockSubscriptionId,
+          null,
+        ),
+      ).rejects.toThrow('Get campaign activity failed: 500');
+    });
+  });
+
+  describe('getOndoCampaignActivityLastUpdated', () => {
+    const mockCampaignId = 'campaign-ondo-activity-lu';
+    const mockSubscriptionId = 'sub-activity-lu-1';
+    const mockToken = 'test-bearer-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('should successfully get activity last updated timestamp', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest
+          .fn()
+          .mockResolvedValue({ lastUpdated: '2026-03-28T14:30:00Z' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getOndoCampaignActivityLastUpdated(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(new Date('2026-03-28T14:30:00Z'));
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/activity/me/last-updated`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+    });
+
+    it('should return null when lastUpdated is not present', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({}),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getOndoCampaignActivityLastUpdated(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('should throw when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getOndoCampaignActivityLastUpdated(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Get campaign activity last updated failed: 500');
+    });
+  });
 });

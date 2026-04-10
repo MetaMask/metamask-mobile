@@ -92,6 +92,21 @@ jest.mock('../../../../UI/Tokens/util/refreshTokens', () => ({
   refreshTokens: (...args: unknown[]) => mockRefreshTokens(...args),
 }));
 
+const mockFetchTrendingTokens = jest.fn().mockResolvedValue(undefined);
+const mockUseTrendingRequest = jest.fn(() => ({
+  results: [] as Record<string, unknown>[],
+  isLoading: false,
+  error: null,
+  fetch: mockFetchTrendingTokens,
+}));
+jest.mock(
+  '../../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest',
+  () => ({
+    useTrendingRequest: (...args: unknown[]) =>
+      Reflect.apply(mockUseTrendingRequest, undefined, args),
+  }),
+);
+
 const mockShouldShowTokenListItemCta = jest.fn().mockReturnValue(false);
 jest.mock('../../../../UI/Earn/hooks/useMusdCtaVisibility', () => ({
   useMusdCtaVisibility: () => ({
@@ -127,6 +142,30 @@ jest.mock('./components/PopularTokensSkeleton', () => {
     default: () => <View testID="skeleton-placeholder" />,
   };
 });
+
+jest.mock(
+  '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem',
+  () => {
+    const { Text } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ token }: { token: { assetId: string; name: string } }) => (
+        <Text testID={`trending-token-row-${token.assetId}`}>{token.name}</Text>
+      ),
+    };
+  },
+);
+
+jest.mock(
+  '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () => <View testID="trending-token-skeleton" />,
+    };
+  },
+);
 
 // Mock TokenListItem to avoid complex import chains
 const MockTokenListItem = ({
@@ -262,6 +301,21 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock('../../hooks/useHomeViewedEvent', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({ onLayout: jest.fn() })),
+  HomeSectionNames: {
+    TOKENS: 'tokens',
+    PERPS: 'perps',
+    DEFI: 'defi',
+    PREDICT: 'predict',
+    NFTS: 'nfts',
+    TRENDING_TOKENS: 'trending_tokens',
+    TRENDING_PERPS: 'trending_perps',
+    TRENDING_PREDICT: 'trending_predict',
+  },
+}));
+
 // Mock token removal utilities
 jest.mock('../../../../UI/Tokens/util', () => ({
   removeEvmToken: jest.fn().mockResolvedValue(undefined),
@@ -291,10 +345,40 @@ const mockPopularTokens = [
   },
 ];
 
+const mockTrendingTokenData = [
+  {
+    assetId: 'eip155:1/slip44:60',
+    name: 'Ethereum',
+    symbol: 'ETH',
+    price: '3000',
+    decimals: 18,
+  },
+  {
+    assetId: 'eip155:1/erc20:0xabc',
+    name: 'TokenA',
+    symbol: 'TKA',
+    price: '10',
+    decimals: 18,
+  },
+  {
+    assetId: 'eip155:1/erc20:0xdef',
+    name: 'TokenB',
+    symbol: 'TKB',
+    price: '5',
+    decimals: 18,
+  },
+];
+
 describe('TokensSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRefreshTokens.mockResolvedValue(undefined);
+    mockUseTrendingRequest.mockReturnValue({
+      results: [],
+      isLoading: false,
+      error: null,
+      fetch: mockFetchTrendingTokens,
+    });
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([]);
     mockPopularNetworks = ['eip155:1', '0xa'];
@@ -323,6 +407,39 @@ describe('TokensSection', () => {
     );
 
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
+  });
+
+  it('uses useTrendingRequest only in trending-only mode', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+
+    const { unmount: unmountDefault } = renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+    expect(mockUseTrendingRequest).not.toHaveBeenCalled();
+    unmountDefault();
+
+    mockUseTrendingRequest.mockClear();
+
+    const { unmount: unmountPositions } = renderWithProvider(
+      <TokensSection
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+        mode="positions-only"
+      />,
+    );
+    expect(mockUseTrendingRequest).not.toHaveBeenCalled();
+    unmountPositions();
+
+    mockUseTrendingRequest.mockClear();
+
+    renderWithProvider(
+      <TokensSection
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+        mode="trending-only"
+      />,
+    );
+    expect(mockUseTrendingRequest).toHaveBeenCalled();
   });
 
   it('renders "Tokens" title for zero balance account', () => {
@@ -709,5 +826,172 @@ describe('TokensSection', () => {
         isSolanaSelected: false,
       }),
     );
+  });
+
+  describe('mode="positions-only"', () => {
+    it('returns null when account has zero balance', () => {
+      mockUseIsZeroBalanceAccount.mockReturnValue(true);
+
+      const { toJSON } = renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="positions-only"
+        />,
+      );
+
+      expect(toJSON()).toBeNull();
+    });
+
+    it('renders token items when account has balance', () => {
+      mockUseIsZeroBalanceAccount.mockReturnValue(false);
+      mockSortedTokenKeys.mockReturnValue([
+        { chainId: '0x1', address: '0xtoken1', isStaked: false },
+      ]);
+
+      renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="positions-only"
+        />,
+      );
+
+      expect(screen.getByTestId('token-item-0xtoken1')).toBeOnTheScreen();
+    });
+  });
+
+  describe('mode="trending-only"', () => {
+    it('renders trending token row items', () => {
+      mockUseTrendingRequest.mockReturnValue({
+        results: mockTrendingTokenData,
+        isLoading: false,
+        error: null,
+        fetch: mockFetchTrendingTokens,
+      });
+
+      renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="trending-only"
+        />,
+      );
+
+      expect(
+        screen.getByTestId('trending-token-row-eip155:1/slip44:60'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('trending-token-row-eip155:1/erc20:0xabc'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders skeletons while trending data is loading', () => {
+      mockUseTrendingRequest.mockReturnValue({
+        results: [],
+        isLoading: true,
+        error: null,
+        fetch: mockFetchTrendingTokens,
+      });
+
+      renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="trending-only"
+        />,
+      );
+
+      expect(screen.getAllByTestId('trending-token-skeleton')).toHaveLength(3);
+    });
+
+    it('returns null when trending list is empty after loading', () => {
+      mockUseTrendingRequest.mockReturnValue({
+        results: [],
+        isLoading: false,
+        error: null,
+        fetch: mockFetchTrendingTokens,
+      });
+
+      const { toJSON } = renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="trending-only"
+          titleOverride="Trending tokens"
+        />,
+      );
+
+      expect(toJSON()).toBeNull();
+    });
+
+    it('uses titleOverride when provided', () => {
+      mockUseTrendingRequest.mockReturnValue({
+        results: mockTrendingTokenData,
+        isLoading: false,
+        error: null,
+        fetch: mockFetchTrendingTokens,
+      });
+
+      renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="trending-only"
+          titleOverride="Trending tokens"
+        />,
+      );
+
+      expect(screen.getByText('Trending tokens')).toBeOnTheScreen();
+    });
+
+    it('navigates to trending tokens full view on title press', () => {
+      mockUseTrendingRequest.mockReturnValue({
+        results: mockTrendingTokenData,
+        isLoading: false,
+        error: null,
+        fetch: mockFetchTrendingTokens,
+      });
+
+      renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="trending-only"
+          titleOverride="Trending tokens"
+        />,
+      );
+
+      fireEvent.press(screen.getByLabelText('Trending tokens'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+      );
+    });
+
+    it('calls fetchTrendingTokens on refresh', async () => {
+      mockUseTrendingRequest.mockReturnValue({
+        results: mockTrendingTokenData,
+        isLoading: false,
+        error: null,
+        fetch: mockFetchTrendingTokens,
+      });
+
+      const ref = React.createRef<{ refresh: () => Promise<void> }>();
+      renderWithProvider(
+        <TokensSection
+          ref={ref}
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="trending-only"
+        />,
+      );
+
+      await act(async () => {
+        await ref.current?.refresh();
+      });
+
+      expect(mockFetchTrendingTokens).toHaveBeenCalledTimes(1);
+    });
   });
 });

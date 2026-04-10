@@ -2,7 +2,6 @@
 import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
-import AccountRightButton from '../AccountRightButton';
 import {
   Alert,
   Image,
@@ -141,52 +140,6 @@ const styles = StyleSheet.create({
 
 const metamask_name = require('../../../images/branding/metamask-name.png'); // eslint-disable-line
 const metamask_fox = require('../../../images/branding/fox.png'); // eslint-disable-line
-/**
- * Function that returns the navigation options
- * This is used by views that will show our custom navbar
- * which contains accounts icon, Title or MetaMask Logo and current network, and settings icon
- *
- * @param {string} title - Title in string format
- * @param {Object} navigation - Navigation object required to push new views
- * @param {bool} disableNetwork - Boolean that specifies if the network can be changed, defaults to false
- * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft, headerTruncatedBackTitle and headerRight
- */
-export function getTransactionsNavbarOptions(
-  title,
-  themeColors,
-  _,
-  selectedAddress,
-  handleRightButtonPress,
-) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
-    headerButtonText: {
-      color: themeColors.primary.default,
-      fontSize: 14,
-      ...fontStyles.normal,
-    },
-  });
-
-  return {
-    headerTitle: () => <NavbarTitle title={title} />,
-    headerLeft: null,
-    headerRight: () => (
-      <AccountRightButton
-        selectedAddress={selectedAddress}
-        onPress={handleRightButtonPress}
-      />
-    ),
-    headerStyle: innerStyles.headerStyle,
-    headerTintColor: themeColors.primary.default,
-  };
-}
 
 /**
  * Function that returns the navigation options
@@ -1177,7 +1130,7 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
 
   return getHeaderCompactStandardNavbarOptions({
     title,
-    onClose: () => navigation.getParent()?.pop(),
+    onBack: () => navigation.goBack(),
     includesTopInset: true,
   });
 }

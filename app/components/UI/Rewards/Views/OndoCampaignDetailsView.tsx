@@ -29,19 +29,17 @@ import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
 import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
-import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
-import {
-  getCampaignStatus,
-  isOptinAllowed,
-} from '../components/Campaigns/CampaignTile.utils';
+import OndoAccountPickerSheet from '../components/Campaigns/OndoAccountPickerSheet';
+import OndoCampaignCTA from '../components/Campaigns/OndoCampaignCTA';
+import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import { formatComputedAt } from '../components/Campaigns/OndoLeaderboard.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
-import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+import { useOndoAccountPicker } from '../hooks/useOndoAccountPicker';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { OndoCampaignHowItWorks } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -65,11 +63,13 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
 
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<RewardsCampaignStackParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
   const { campaignId } = route.params;
+
+  const { pendingPicker, setPendingPicker, sheetRef, handleGroupSelect } =
+    useOndoAccountPicker(campaignId);
 
   const {
     campaigns,
@@ -96,28 +96,15 @@ const OndoCampaignDetailsView: React.FC = () => {
 
   const isOptedIn = participantStatusData?.optedIn === true;
 
-  // Campaign is active but the deposit cutoff date has passed — user can no longer opt in
-  const areEntriesClosed = useMemo(
-    () =>
-      campaign !== null &&
-      getCampaignStatus(campaign) === 'active' &&
-      !isOptinAllowed(campaign),
-    [campaign],
-  );
-
-  // Single fetch point for portfolio — data is passed to both the portfolio section and
-  // used to gate the leaderboard rank section visibility
+  // Single fetch point for portfolio — only fetches when opted in
   const {
     portfolio: portfolioData,
     isLoading: isPortfolioLoading,
     hasError: hasPortfolioError,
-    hasFetched: portfolioHasFetched,
     refetch: refetchPortfolio,
   } = useGetOndoPortfolioPosition(isOptedIn ? campaignId : undefined);
 
   const hasPositions = Boolean(portfolioData?.positions.length);
-
-  const isOptinClosed = campaign !== null && !isOptinAllowed(campaign);
 
   const {
     tierNames,
@@ -143,7 +130,6 @@ const OndoCampaignDetailsView: React.FC = () => {
 
   const {
     showHowItWorksSection,
-    showCompetitionEndedBanner,
     showLeaderboardSection,
     showLeaderboardPositionSection,
     showPortfolioSection,
@@ -151,59 +137,26 @@ const OndoCampaignDetailsView: React.FC = () => {
     if (!campaign) {
       return {
         showHowItWorksSection: false,
-        showCompetitionEndedBanner: false,
         showLeaderboardSection: false,
         showLeaderboardPositionSection: false,
         showPortfolioSection: false,
       };
     }
 
-    const showCompetitionEndedBanner =
-      getCampaignStatus(campaign) === 'complete' ||
-      (!isParticipantStatusLoading &&
-        isOptinClosed &&
-        (!isOptedIn ||
-          (portfolioHasFetched && !hasPositions && !hasPortfolioError)));
+    const showHowItWorksSection =
+      Boolean(campaign.details?.howItWorks) &&
+      !hasPositions &&
+      getCampaignStatus(campaign) === 'active';
 
     const showLeaderboardPositionSection = isOptedIn && hasPositions;
-    const showPortfolioSection =
-      isOptedIn &&
-      (!showCompetitionEndedBanner ||
-        (hasPositions && getCampaignStatus(campaign) === 'complete') ||
-        isPortfolioLoading ||
-        (hasPortfolioError && !hasPositions));
 
     return {
-      showHowItWorksSection:
-        Boolean(campaign.details?.howItWorks) &&
-        !isParticipantStatusLoading &&
-        !isOptedIn &&
-        !areEntriesClosed &&
-        getCampaignStatus(campaign) === 'active',
-
-      showCompetitionEndedBanner,
+      showHowItWorksSection,
       showLeaderboardPositionSection,
-      showLeaderboardSection:
-        (showCompetitionEndedBanner &&
-          !showLeaderboardPositionSection &&
-          !showPortfolioSection) ||
-        (isOptedIn &&
-          !showCompetitionEndedBanner &&
-          !hasPositions &&
-          !isPortfolioLoading),
-      showPortfolioSection,
+      showPortfolioSection: isOptedIn,
+      showLeaderboardSection: !showLeaderboardPositionSection,
     };
-  }, [
-    campaign,
-    isOptedIn,
-    hasPositions,
-    areEntriesClosed,
-    isParticipantStatusLoading,
-    isOptinClosed,
-    portfolioHasFetched,
-    hasPortfolioError,
-    isPortfolioLoading,
-  ]);
+  }, [campaign, isOptedIn, hasPositions]);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignDetailsView">
@@ -266,31 +219,11 @@ const OndoCampaignDetailsView: React.FC = () => {
               {/* Phase 1: Not opted in, show how it works section */}
               {showHowItWorksSection && (
                 <>
-                  <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="px-4 py-4">
                     <CampaignHowItWorks
                       howItWorks={
                         campaign.details?.howItWorks as OndoCampaignHowItWorks
                       }
-                    />
-                  </Box>
-                </>
-              )}
-
-              {/* Competition closed banner
-                  - for when cutoff date has passed and user is not opted in
-                  - or when the campaign is complete */}
-              {showCompetitionEndedBanner && (
-                <>
-                  <Box twClassName="border-b border-border-muted" />
-                  <Box twClassName="px-4 py-4 gap-4">
-                    <RewardsInfoBanner
-                      title={strings(
-                        'rewards.campaign_details.competition_closed_title',
-                      )}
-                      description={strings(
-                        'rewards.campaign_details.competition_closed_description',
-                      )}
                     />
                   </Box>
                 </>
@@ -363,12 +296,58 @@ const OndoCampaignDetailsView: React.FC = () => {
                 <>
                   <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="p-4">
+                    <Pressable
+                      onPress={() =>
+                        navigation.navigate(
+                          Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW,
+                          { campaignId },
+                        )
+                      }
+                    >
+                      <Box
+                        flexDirection={BoxFlexDirection.Row}
+                        alignItems={BoxAlignItems.Center}
+                        twClassName="gap-2 mb-4"
+                      >
+                        <Text variant={TextVariant.HeadingMd}>
+                          {strings(
+                            'rewards.ondo_campaign_portfolio.positions_title',
+                          )}
+                        </Text>
+                        <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+                        {portfolioData?.computedAt &&
+                          portfolioData.positions.length > 0 && (
+                            <Box
+                              twClassName="flex-1"
+                              alignItems={BoxAlignItems.End}
+                            >
+                              <Text
+                                variant={TextVariant.BodyXs}
+                                color={TextColor.TextAlternative}
+                              >
+                                {strings(
+                                  'rewards.ondo_campaign_portfolio.updated_at',
+                                  {
+                                    time: formatComputedAt(
+                                      portfolioData.computedAt,
+                                    ),
+                                  },
+                                )}
+                              </Text>
+                            </Box>
+                          )}
+                      </Box>
+                    </Pressable>
                     <OndoPortfolio
                       portfolio={portfolioData}
                       isLoading={isPortfolioLoading}
                       hasError={hasPortfolioError}
-                      hasFetched={portfolioHasFetched}
                       refetch={refetchPortfolio}
+                      campaignId={campaignId}
+                      onOpenAccountPicker={setPendingPicker}
+                      isCampaignComplete={
+                        getCampaignStatus(campaign) === 'complete'
+                      }
                     />
                   </Box>
                 </>
@@ -422,12 +401,23 @@ const OndoCampaignDetailsView: React.FC = () => {
         </ScrollView>
 
         {campaign && (
-          <CampaignJoinCTA
+          <OndoCampaignCTA
             campaign={campaign}
             participantStatus={{
               status: participantStatusData,
               isLoading: isParticipantStatusLoading,
             }}
+            hasPositions={hasPositions}
+            campaignId={campaignId}
+          />
+        )}
+
+        {pendingPicker && (
+          <OndoAccountPickerSheet
+            pendingPicker={pendingPicker}
+            sheetRef={sheetRef}
+            onClose={() => setPendingPicker(null)}
+            onGroupSelect={handleGroupSelect}
           />
         )}
       </SafeAreaView>

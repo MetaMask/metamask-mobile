@@ -18,7 +18,7 @@ import {
 import { PredictClaimConfirmationSelectorsIDs } from '../../../../../UI/Predict/Predict.testIds';
 import styleSheet from './predict-claim-amount.styles';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 
 export function PredictClaimAmount() {
   const { styles } = useStyles(styleSheet, {});

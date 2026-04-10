@@ -6,9 +6,14 @@ import { simpleSendTransactionControllerMock } from '../../../__mocks__/controll
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import {
   useIsTransactionPayLoading,
+  useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
-import { TransactionPayTotals } from '@metamask/transaction-pay-controller';
+import {
+  TransactionPayQuote,
+  TransactionPayTotals,
+} from '@metamask/transaction-pay-controller';
+import { Json } from '@metamask/utils';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
@@ -35,6 +40,7 @@ describe('ReceiveRow', () => {
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
+  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -48,6 +54,9 @@ describe('ReceiveRow', () => {
     } as unknown as TransactionPayTotals);
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useTransactionPayQuotesMock.mockReturnValue([
+      {} as TransactionPayQuote<Json>,
+    ]);
   });
 
   it('renders the receive amount (input minus all fees)', () => {
@@ -86,5 +95,12 @@ describe('ReceiveRow', () => {
 
     const { queryByText } = render();
     expect(queryByText(EXPECTED_RECEIVE_MOCK)).toBeNull();
+  });
+
+  it('renders empty receive amount when there are no quotes', () => {
+    useTransactionPayQuotesMock.mockReturnValue([]);
+
+    const { getByTestId } = render();
+    expect(getByTestId('receive-row')).toBeDefined();
   });
 });

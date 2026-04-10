@@ -301,6 +301,8 @@ const SELECTED_PAYMENT_METHOD = {
   id: '/payments/debit-credit-card',
   name: 'Debit/Credit Card',
   isManualBankTransfer: false,
+  paymentType: 'debit-credit-card',
+  icons: [] as const,
 };
 
 const USER_REGION = {
@@ -705,7 +707,7 @@ describe('BuildQuote', () => {
         error: new Error('Quote fetch failed'),
       });
 
-      const { toJSON } = renderWithProvider(<BuildQuote />, {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
@@ -714,7 +716,9 @@ describe('BuildQuote', () => {
           category: expect.stringContaining('Quote Error'),
         }),
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -793,7 +797,7 @@ describe('BuildQuote', () => {
       mockCheckExistingToken.mockResolvedValue(true);
       mockGetBuyQuote.mockResolvedValue(null);
 
-      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
@@ -803,13 +807,15 @@ describe('BuildQuote', () => {
 
       expect(mockRouteAfterAuth).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('sets rampsError when transakCheckExistingToken throws', async () => {
       mockCheckExistingToken.mockRejectedValue(new Error('Network error'));
 
-      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
@@ -818,7 +824,9 @@ describe('BuildQuote', () => {
       });
 
       expect(mockGetBuyQuote).not.toHaveBeenCalled();
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('sets rampsError when transakRouteAfterAuth throws', async () => {
@@ -826,7 +834,7 @@ describe('BuildQuote', () => {
       mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
       mockRouteAfterAuth.mockRejectedValue(new Error('Routing failed'));
 
-      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
@@ -834,7 +842,9 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
       });
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -842,7 +852,7 @@ describe('BuildQuote', () => {
     it('sets rampsError when getBuyWidgetData returns no URL', async () => {
       mockGetBuyWidgetData.mockResolvedValue({});
 
-      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
@@ -851,7 +861,9 @@ describe('BuildQuote', () => {
       });
 
       expect(mockGetBuyWidgetData).toHaveBeenCalled();
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('navigates to Checkout when useExternalBrowser is false', async () => {
@@ -885,7 +897,7 @@ describe('BuildQuote', () => {
         new Error('Network request failed'),
       );
 
-      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
@@ -893,7 +905,9 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
       });
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 

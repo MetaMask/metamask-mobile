@@ -1,29 +1,22 @@
 import React, {
   useEffect,
-  useRef,
   useState,
   useMemo,
   useCallback,
+  useContext,
+  useRef,
 } from 'react';
 import {
-  View,
   SafeAreaView,
   Image,
   BackHandler,
   TouchableOpacity,
-  TextInput,
   Platform,
   Alert,
+  StatusBar,
 } from 'react-native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import OldButton, {
-  ButtonVariants,
-  ButtonSize as OldButtonSize,
-} from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import {
@@ -52,9 +45,8 @@ import {
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
-  DENY_PIN_ERROR_ANDROID,
 } from '../Login/constants';
-import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
+import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
 import {
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
@@ -67,8 +59,6 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { useStyles } from '../../../component-library/hooks/useStyles';
-import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -81,36 +71,43 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
-  Label,
   FontWeight,
-  TextColor as DSTextColor,
+  TextField,
+  Label,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
-import { useAuthentication } from '../../../core/Authentication';
+import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import type { AuthData } from '../../../core/Authentication/Authentication';
+import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { getSocialAccountType } from '../../../constants/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { analytics } from '../../../util/analytics/analytics';
-import { getSocialAccountType } from '../../../constants/onboarding';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
+import { ThemeContext } from '../../../util/theme';
+import Device from '../../../util/device';
+import type { OAuthRehydrationRouteParams } from './OAuthRehydration.types';
 
-const EmptyRecordConstant = {};
-
-interface OAuthRehydrationRouteParams {
-  locked: boolean;
-  oauthLoginSuccess: boolean;
-  onboardingTraceCtx?: TraceContext;
-  isSeedlessPasswordOutdated?: boolean;
-}
+const FOX_IMAGE_SIZE = Device.isIos() ? 175 : 150;
+const foxImageStyle = {
+  alignSelf: 'center' as const,
+  width: FOX_IMAGE_SIZE,
+  height: FOX_IMAGE_SIZE,
+};
 
 interface OAuthRehydrationProps {
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
@@ -120,12 +117,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   saveOnboardingEvent,
 }) => {
   const { isEnabled: isMetricsEnabled } = useAnalytics();
+  const accountType = useSelector(selectOnboardingAccountType) ?? 'social';
   const dispatch = useDispatch();
-
   const authConnection =
     useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
-
-  const fieldRef = useRef<TextInput>(null);
+  const tw = useTailwind();
+  const { colors, themeAppearance } = useContext(ThemeContext);
 
   const route =
     useRoute<RouteProp<{ params: OAuthRehydrationRouteParams }, 'params'>>();
@@ -152,12 +149,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     () => loading || isDeletingInProgress,
     [loading, isDeletingInProgress],
   );
-
   const navigation = useNavigation();
-  const {
-    styles,
-    theme: { themeAppearance },
-  } = useStyles(stylesheet, EmptyRecordConstant);
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
@@ -199,18 +191,18 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       const marketingOptInStatus = await OAuthService.getMarketingOptInStatus();
       dispatch(setDataCollectionForMarketing(marketingOptInStatus.is_opt_in));
       analytics.identify({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]:
-          marketingOptInStatus.is_opt_in
-            ? UserProfileProperty.ON
-            : UserProfileProperty.OFF,
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
+          marketingOptInStatus.is_opt_in,
+        ),
       });
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
         )
           .addProperties({
-            [UserProfileProperty.HAS_MARKETING_CONSENT]:
+            [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
               marketingOptInStatus.is_opt_in,
+            ),
             updated_after_onboarding: true,
             location: 'oauth_rehydration',
             account_type: getSocialAccountType(authConnection, true),
@@ -345,7 +337,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         ) {
           if (isComingFromOauthOnboarding) {
             track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: 'social',
+              account_type: accountType,
               failed_attempts: rehydrationFailedAttempts,
               error_type: 'incorrect_password',
             });
@@ -362,7 +354,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           }
           if (isComingFromOauthOnboarding) {
             track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: 'social',
+              account_type: accountType,
               failed_attempts:
                 seedlessError.data?.numberOfAttempts ??
                 rehydrationFailedAttempts,
@@ -383,7 +375,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         ) {
           if (isComingFromOauthOnboarding) {
             track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: 'social',
+              account_type: accountType,
               failed_attempts: rehydrationFailedAttempts,
               error_type: 'unknown_error',
             });
@@ -417,7 +409,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       if (isComingFromOauthOnboarding) {
         track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: 'social',
+          account_type: accountType,
           failed_attempts: rehydrationFailedAttempts,
           error_type: 'unknown_error',
         });
@@ -447,6 +439,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setErrorToThrow,
       promptSeedlessRelogin,
       isComingFromOauthOnboarding,
+      accountType,
     ],
   );
 
@@ -490,7 +483,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       if (isWrongPasswordError) {
         if (isComingFromOauthOnboarding) {
           track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-            account_type: 'social',
+            account_type: accountType,
             failed_attempts: rehydrationFailedAttempts,
             error_type: 'incorrect_password',
           });
@@ -500,11 +493,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       }
 
       const isBiometricCancellation =
-        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
-        containsErrorMessage(
-          loginError,
-          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
-        );
+        isBiometricUnlockCancelledByUser(loginError);
 
       if (isBiometricCancellation) {
         setBiometryChoice(false);
@@ -525,7 +514,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       if (isComingFromOauthOnboarding) {
         track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: 'social',
+          account_type: accountType,
           failed_attempts: rehydrationFailedAttempts,
           error_type: isPasscodeNotSet ? 'passcode_not_set' : 'unknown_error',
         });
@@ -542,13 +531,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setBiometryChoice,
       route.params?.onboardingTraceCtx,
       isComingFromOauthOnboarding,
+      accountType,
     ],
   );
 
   const onRehydrateLogin = useCallback(async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
     track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
-      account_type: 'social',
+      account_type: accountType,
       biometrics: biometryChoice,
     });
 
@@ -569,14 +559,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference: authData });
+          await unlockWallet({
+            password,
+            authPreference: authData,
+            onBeforeNavigate: upgradeKeychainAuthAfterSuccessfulUnlock,
+          });
         },
       );
 
       // run syncMarketingOptInAfterUnlock in the background
       syncMarketingOptInAfterUnlock();
-
-      await upgradeKeychainAuthAfterSuccessfulUnlock();
 
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.
@@ -587,7 +579,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       }
 
       track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
-        account_type: 'social',
+        account_type: accountType,
         biometrics: biometryChoice,
         failed_attempts: rehydrationFailedAttempts,
       });
@@ -615,6 +607,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     promptBiometricFailedAlert,
     unlockWallet,
     upgradeKeychainAuthAfterSuccessfulUnlock,
+    accountType,
     syncMarketingOptInAfterUnlock,
   ]);
 
@@ -636,11 +629,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference: authData });
+          await unlockWallet({
+            password,
+            authPreference: authData,
+            onBeforeNavigate: upgradeKeychainAuthAfterSuccessfulUnlock,
+          });
         },
       );
-
-      await upgradeKeychainAuthAfterSuccessfulUnlock();
 
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.
@@ -706,7 +701,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const handleUseOtherMethod = () => {
     track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
-      account_type: 'social',
+      account_type: accountType,
     });
     navigation.goBack();
     OAuthService.resetOauthState();
@@ -737,7 +732,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       await onRehydrateLogin();
     }
     setPassword('');
-    fieldRef.current?.clear();
   };
 
   const toggleWarningModal = () => {
@@ -750,6 +744,57 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       },
     });
   };
+
+  const renderPasswordField = () => (
+    <TextField
+      placeholder={strings('login.password_placeholder')}
+      testID={LoginViewSelectors.PASSWORD_INPUT}
+      returnKeyType={'done'}
+      autoCapitalize="none"
+      secureTextEntry
+      onChangeText={handlePasswordChange}
+      value={password}
+      onSubmitEditing={handleLogin}
+      keyboardAppearance={themeAppearance}
+      isDisabled={disabledInput}
+      isError={!!error}
+    />
+  );
+
+  const renderHelperText = () =>
+    !!error && (
+      <HelpText
+        severity={HelpTextSeverity.Error}
+        testID={LoginViewSelectors.PASSWORD_ERROR}
+      >
+        {error}
+      </HelpText>
+    );
+
+  const renderFooterAction = () =>
+    isSeedlessPasswordOutdated ? (
+      <Button
+        variant={ButtonVariant.Tertiary}
+        size={ButtonSize.Lg}
+        testID={LoginViewSelectors.RESET_WALLET}
+        onPress={toggleWarningModal}
+        isDisabled={loading}
+        twClassName="self-center my-3.5"
+      >
+        {strings('login.forgot_password')}
+      </Button>
+    ) : (
+      <Button
+        variant={ButtonVariant.Tertiary}
+        size={ButtonSize.Lg}
+        onPress={handleUseOtherMethod}
+        isDisabled={finalLoading}
+        testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
+        twClassName="self-center mt-6"
+      >
+        {strings('login.other_methods')}
+      </Button>
+    );
   return (
     <ErrorBoundary
       navigation={navigation}
@@ -757,83 +802,88 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       useOnboardingErrorHandling={!!errorToThrow && !isMetricsEnabled()}
     >
       <ThrowErrorIfNeeded />
-      <SafeAreaView style={styles.mainWrapper}>
+      <SafeAreaView
+        style={[
+          tw.style('flex-1'),
+          { backgroundColor: colors.background.default },
+          Platform.OS === 'android' && {
+            paddingTop: StatusBar.currentHeight ?? 0,
+          },
+        ]}
+      >
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           resetScrollToCoords={{ x: 0, y: 0 }}
-          style={styles.wrapper}
-          contentContainerStyle={styles.scrollContentContainer}
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('flex-1')}
           extraScrollHeight={Platform.OS === 'android' ? -200 : 0}
           enableResetScrollToCoords={false}
         >
-          <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
-            <View style={styles.oauthContentWrapper}>
+          <Box
+            testID={LoginViewSelectors.CONTAINER}
+            alignItems={BoxAlignItems.Center}
+            paddingHorizontal={6}
+            twClassName="flex-1 w-full"
+          >
+            <Box
+              alignItems={BoxAlignItems.Center}
+              twClassName="w-full flex-1 mt-2.5"
+            >
               <Image
                 source={METAMASK_NAME}
-                style={styles.metamaskName}
+                style={[
+                  tw.style('w-20 h-10 self-center mt-2.5'),
+                  { tintColor: colors.icon.default },
+                ]}
                 resizeMode="contain"
                 resizeMethod={'auto'}
               />
 
               <TouchableOpacity
-                style={styles.foxWrapper}
+                style={tw.style('self-center mt-12')}
                 delayLongPress={10 * 1000}
                 onLongPress={handleDownloadStateLogs}
                 activeOpacity={1}
               >
                 <Image
                   source={FOX_LOGO}
-                  style={styles.image}
+                  style={foxImageStyle}
                   resizeMethod={'auto'}
                 />
               </TouchableOpacity>
 
               <Text
-                variant={TextVariant.DisplayMD}
-                color={TextColor.Default}
-                style={styles.title}
+                variant={TextVariant.DisplayMd}
+                color={TextColor.TextDefault}
+                twClassName="my-6 text-center"
                 testID={LoginViewSelectors.TITLE_ID}
               >
                 {strings('login.title')}
               </Text>
 
-              <View style={styles.field}>
+              <Box gap={2} twClassName="w-full">
                 <Label
                   fontWeight={FontWeight.Medium}
-                  color={DSTextColor.TextDefault}
-                  style={styles.label}
+                  color={TextColor.TextDefault}
+                  twClassName="-mb-1"
                 >
                   {strings('login.password')}
                 </Label>
-                <TextField
-                  placeholder={strings('login.password_placeholder')}
-                  testID={LoginViewSelectors.PASSWORD_INPUT}
-                  returnKeyType={'done'}
-                  autoCapitalize="none"
-                  secureTextEntry
-                  ref={fieldRef}
-                  onChangeText={handlePasswordChange}
-                  value={password}
-                  onSubmitEditing={handleLogin}
-                  keyboardAppearance={themeAppearance || undefined}
-                  isDisabled={disabledInput}
-                  isError={!!error}
-                />
-              </View>
+                {renderPasswordField()}
+              </Box>
 
-              <View style={styles.helperTextContainer}>
-                {!!error && (
-                  <HelpText
-                    severity={HelpTextSeverity.Error}
-                    variant={TextVariant.BodyMD}
-                    testID={LoginViewSelectors.PASSWORD_ERROR}
-                  >
-                    {error}
-                  </HelpText>
-                )}
-              </View>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="self-start gap-y-0.5"
+              >
+                {renderHelperText()}
+              </Box>
 
-              <View style={styles.ctaWrapperRehydration}>
+              <Box
+                alignItems={BoxAlignItems.Center}
+                twClassName={`w-full mt-4${Platform.OS === 'android' ? ' gap-4' : ''}`}
+                pointerEvents="box-none"
+              >
                 <Button
                   variant={ButtonVariant.Primary}
                   isFullWidth
@@ -847,36 +897,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 >
                   {strings('login.unlock_button')}
                 </Button>
-              </View>
 
-              {isSeedlessPasswordOutdated ? (
-                <OldButton
-                  style={styles.goBack}
-                  variant={ButtonVariants.Link}
-                  onPress={toggleWarningModal}
-                  testID={LoginViewSelectors.RESET_WALLET}
-                  label={strings('login.forgot_password')}
-                  isDisabled={loading}
-                  size={OldButtonSize.Lg}
-                />
-              ) : (
-                <View style={styles.footer}>
-                  <TouchableOpacity
-                    onPress={handleUseOtherMethod}
-                    disabled={finalLoading}
-                    testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
-                  >
-                    <Text
-                      variant={TextVariant.BodyMDMedium}
-                      color={TextColor.Primary}
-                    >
-                      {strings('login.other_methods')}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          </View>
+                {renderFooterAction()}
+              </Box>
+            </Box>
+          </Box>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
       </SafeAreaView>

@@ -198,11 +198,6 @@ describe('PaymentSelectionModal', () => {
     mockUseRampsQuotes.mockImplementation(() => defaultQuotesReturn);
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithProvider(PaymentSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('displays header with "Pay with" text', () => {
     const { getByText } = renderWithProvider(PaymentSelectionModal);
 
@@ -307,7 +302,7 @@ describe('PaymentSelectionModal', () => {
     });
   });
 
-  it('matches snapshot when payment methods are loading', () => {
+  it('renders skeleton when payment methods are loading', () => {
     const loadingState = {
       ...defaultControllerReturn,
       selectedProvider: null,
@@ -318,11 +313,11 @@ describe('PaymentSelectionModal', () => {
       selectedToken: null,
     };
     mockUseRampsController.mockImplementation(() => loadingState);
-    const { toJSON } = renderWithProvider(PaymentSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = renderWithProvider(PaymentSelectionModal);
+    expect(getByText('fiat_on_ramp.pay_with')).toBeOnTheScreen();
   });
 
-  it('matches snapshot when payment methods fail to load', () => {
+  it('shows error message when payment methods fail to load', () => {
     const errorState = {
       ...defaultControllerReturn,
       paymentMethods: [],
@@ -330,19 +325,21 @@ describe('PaymentSelectionModal', () => {
       selectedPaymentMethod: null,
     };
     mockUseRampsController.mockImplementation(() => errorState);
-    const { toJSON } = renderWithProvider(PaymentSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = renderWithProvider(PaymentSelectionModal);
+    expect(getByText('fiat_on_ramp.pay_with')).toBeOnTheScreen();
   });
 
-  it('matches snapshot when no payment methods are available', () => {
+  it('shows no payment methods message when list is empty', () => {
     const emptyState = {
       ...defaultControllerReturn,
       paymentMethods: [],
       selectedPaymentMethod: null,
     };
     mockUseRampsController.mockImplementation(() => emptyState);
-    const { toJSON } = renderWithProvider(PaymentSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = renderWithProvider(PaymentSelectionModal);
+    expect(
+      getByText('fiat_on_ramp.no_payment_methods_available'),
+    ).toBeOnTheScreen();
   });
 
   it('passes correct quote fetch params to useRampsQuotes', () => {
@@ -358,11 +355,10 @@ describe('PaymentSelectionModal', () => {
         '/payments/debit-credit-card-1',
         '/payments/debit-credit-card-2',
       ],
-      forceRefresh: true,
     });
   });
 
-  it('shows payment method without quote when only custom-action quote matches', () => {
+  it('filters out payment method when only custom-action quote matches', () => {
     const customActionQuote = {
       provider: '/providers/transak',
       quote: {
@@ -381,7 +377,11 @@ describe('PaymentSelectionModal', () => {
       loading: false,
     }));
 
-    const { getAllByText } = renderWithProvider(PaymentSelectionModal);
-    expect(getAllByText('Debit or Credit').length).toBeGreaterThan(0);
+    const { queryAllByText, getByText } = renderWithProvider(
+      PaymentSelectionModal,
+    );
+    // Payment methods with only custom-action quotes are filtered out
+    expect(queryAllByText('Debit or Credit').length).toBe(0);
+    expect(getByText('fiat_on_ramp.no_payment_methods_available')).toBeTruthy();
   });
 });

@@ -29,6 +29,7 @@ export const PERPS_CONSTANTS = {
   ConnectionAttemptTimeoutMs: 30_000, // 30 seconds timeout for connection attempts to prevent indefinite hanging
   WebsocketPingTimeoutMs: 5_000, // 5 seconds timeout for WebSocket health check ping
   ConnectRetryDelayMs: 200, // Delay before retrying connect() when connection isn't ready yet
+  ForegroundPingRetryDelayMs: 500, // Delay before retrying ping in resumeFromForeground — JS thread may be sluggish right after foregrounding
   ReconnectionCleanupDelayMs: 500, // Platform-agnostic delay to ensure WebSocket is ready
   ReconnectionDelayAndroidMs: 300, // Android-specific reconnection delay for better reliability on slower devices
   ReconnectionDelayIosMs: 100, // iOS-specific reconnection delay for optimal performance
@@ -129,6 +130,10 @@ export const PERFORMANCE_CONFIG = {
   // Liquidation price debounce delay (milliseconds)
   // Prevents excessive liquidation price calls during rapid form input changes
   LiquidationPriceDebounceMs: 500,
+
+  // Candle subscription debounce delay (milliseconds)
+  // Prevents WS subscription churn during rapid market switching (#28141)
+  CandleConnectDebounceMs: 500,
 
   // Navigation params delay (milliseconds)
   // Required for React Navigation to complete state transitions before setting params
@@ -344,6 +349,19 @@ export const MARKET_SORTING_CONFIG = {
  */
 export type SortOptionId =
   (typeof MARKET_SORTING_CONFIG.SortOptions)[number]['id'];
+
+/**
+ * Funding rate display configuration
+ * Controls how funding rates are formatted and displayed
+ */
+export const FUNDING_RATE_CONFIG = {
+  // Number of decimal places to display for funding rates
+  Decimals: 4,
+  // Default display value when funding rate is zero or unavailable
+  ZeroDisplay: '0.0000%',
+  // Multiplier to convert decimal funding rate to percentage
+  PercentageMultiplier: 100,
+} as const;
 
 /**
  * Provider configuration for multi-provider support

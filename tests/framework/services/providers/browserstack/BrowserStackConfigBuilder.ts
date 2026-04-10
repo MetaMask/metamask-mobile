@@ -1,7 +1,13 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import path from 'path';
-import type { BrowserStackConfig } from '../../../types.ts';
-import type { ProjectConfig } from '../../common/types.ts';
+import type { BrowserStackConfig } from '../../../types';
+import type { ProjectConfig } from '../../common/types';
+import { createLogger, LogLevel } from '../../../logger';
+
+const logger = createLogger({
+  name: 'BrowserStackConfigBuilder',
+  level: LogLevel.INFO,
+});
 
 /**
  * Builder for BrowserStack WebDriver configuration
@@ -35,6 +41,28 @@ export class BrowserStackConfigBuilder {
       );
     }
 
+    logger.debug(
+      `Building BrowserStack config with device name: ${device.name}`,
+    );
+    logger.debug(
+      `Building BrowserStack config with device os version: ${device.osVersion}`,
+    );
+    logger.debug(
+      `Building BrowserStack config with device orientation: ${device.orientation}`,
+    );
+    logger.debug(
+      `Building BrowserStack config with device platform name: ${platformName}`,
+    );
+    logger.debug(
+      `Building BrowserStack config with device build name: ${process.env.BROWSERSTACK_BUILD_NAME || `${projectName} ${platformName}`}`,
+    );
+    logger.debug(
+      `Building BrowserStack config with device session name: ${`${projectName} ${platformName} test`}`,
+    );
+    logger.debug(
+      `Building BrowserStack config with device build identifier: ${process.env.GITHUB_ACTIONS === 'true' ? `CI ${process.env.GITHUB_RUN_ID}` : process.env.USER}`,
+    );
+
     return {
       port: 443,
       path: '/wd/hub',
@@ -52,7 +80,7 @@ export class BrowserStackConfigBuilder {
             captureContent: true,
           },
           networkLogs: true,
-          appiumVersion: '2.6.0', // BrowserStack doesn't support Appium 3 yet
+          appiumVersion: '3.1.0',
           idleTimeout: 180,
           deviceName: device.name,
           osVersion: device.osVersion,
@@ -63,9 +91,7 @@ export class BrowserStackConfigBuilder {
             `${projectName} ${platformName}`,
           sessionName: `${projectName} ${platformName} test`,
           buildIdentifier:
-            process.env.GITHUB_ACTIONS === 'true'
-              ? `CI ${process.env.GITHUB_RUN_ID}`
-              : process.env.USER,
+            process.env.GITHUB_ACTIONS === 'true' ? '' : process.env.USER,
           appProfiling: true,
           selfHeal: true,
           networkProfile: '4g-lte-advanced-good',
@@ -78,6 +104,15 @@ export class BrowserStackConfigBuilder {
             ? { otherApps: [process.env.BROWSERSTACK_RN_PLAYGROUND_URL] }
             : {}),
         },
+        ...(platformName === 'android'
+          ? {
+              'appium:appPackage': this.project.use.app?.packageName,
+              'appium:appActivity': this.project.use.app?.launchableActivity,
+            }
+          : {
+              'appium:bundleId': this.project.use.app?.appId,
+            }),
+        'appium:newCommandTimeout': 300,
         'appium:autoGrantPermissions': true,
         'appium:app': appBsUrl,
         'appium:autoAcceptAlerts': true,
