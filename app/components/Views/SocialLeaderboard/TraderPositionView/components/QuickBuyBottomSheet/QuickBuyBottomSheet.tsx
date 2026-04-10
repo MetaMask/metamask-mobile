@@ -58,10 +58,15 @@ import {
 } from '../../../../../../core/redux/slices/bridge';
 import { useBridgeQuoteRequest } from '../../../../../UI/Bridge/hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../../../../UI/Bridge/hooks/useBridgeQuoteData';
+import { useRewards } from '../../../../../UI/Bridge/hooks/useRewards';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
 import { useInitialSlippage } from '../../../../../UI/Bridge/hooks/useInitialSlippage';
+import RewardsAnimations, {
+  RewardAnimationState,
+} from '../../../../../UI/Rewards/components/RewardPointsAnimation';
+import AddRewardsAccount from '../../../../../UI/Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import useSubmitBridgeTx from '../../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { useRefreshSmartTransactionsLiveness } from '../../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
@@ -187,6 +192,17 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   } = useBridgeQuoteData({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
+  const {
+    estimatedPoints,
+    isLoading: isRewardsLoading,
+    shouldShowRewardsRow,
+    hasError: hasRewardsError,
+    accountOptedIn,
+    rewardsAccountScope,
+  } = useRewards({
+    activeQuote,
+    isQuoteLoading,
+  });
 
   // Validation
   const hasInsufficientBalance = useIsInsufficientBalance({
@@ -196,6 +212,20 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   });
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const shouldShowLiveRewardsEstimate = Boolean(
+    shouldShowRewardsRow && accountOptedIn,
+  );
+  const shouldShowRewardsOptInCta = Boolean(
+    shouldShowRewardsRow && !accountOptedIn && rewardsAccountScope,
+  );
+  const hasRewardsQuoteContext = Boolean(
+    sourceTokenAmount && walletAddress && activeQuote,
+  );
+  const shouldShowRewardsFallbackZero = Boolean(
+    hasRewardsQuoteContext &&
+      !shouldShowLiveRewardsEstimate &&
+      !shouldShowRewardsOptInCta,
+  );
 
   // Tx submission
   const { submitBridgeTx } = useSubmitBridgeTx();
@@ -586,12 +616,39 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
                       color={colors.icon.alternative}
                     />
                   </Box>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                  >
-                    0
-                  </Text>
+                  <Box alignItems={BoxAlignItems.End}>
+                    {shouldShowLiveRewardsEstimate ? (
+                      <RewardsAnimations
+                        value={estimatedPoints ?? 0}
+                        state={
+                          isRewardsLoading
+                            ? RewardAnimationState.Loading
+                            : hasRewardsError
+                              ? RewardAnimationState.ErrorState
+                              : RewardAnimationState.Idle
+                        }
+                      />
+                    ) : shouldShowRewardsOptInCta ? (
+                      <AddRewardsAccount
+                        testID="quick-buy-add-rewards-account"
+                        account={rewardsAccountScope ?? undefined}
+                      />
+                    ) : shouldShowRewardsFallbackZero ? (
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.TextDefault}
+                      >
+                        0
+                      </Text>
+                    ) : (
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.TextAlternative}
+                      >
+                        -
+                      </Text>
+                    )}
+                  </Box>
                 </Box>
               </Box>
 
