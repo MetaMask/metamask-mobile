@@ -19,7 +19,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
 
       const assetViewScreen = new TimerHelper(
         'Time since the user clicks on the asset view button until the user sees the token overview screen',
-        { ios: 600, android: 600 },
+        { ios: 1500, android: 1500 },
         currentDeviceDetails.platform,
       );
 

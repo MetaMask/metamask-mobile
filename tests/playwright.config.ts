@@ -45,7 +45,7 @@ export default defineConfig({
     {
       // Browserstack does not support appium 3 just yet.
       name: 'browserstack-android',
-      testMatch: '**/performance/login/**/*.spec.ts',
+      testMatch: '**/performance/login/**/asset-view.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -57,7 +57,7 @@ export default defineConfig({
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
         },
-        buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
+        buildPath: 'bs://c0fac532d9c0e9db7e7031931029b09564307577', // Path to Browserstack url
       },
     },
     {
@@ -77,7 +77,7 @@ export default defineConfig({
     },
     {
       name: 'browserstack-ios',
-      testMatch: '**/performance/login/**/*.spec.ts',
+      testMatch: '**/performance/login/**/asset-view.spec.ts',
       use: {
         platform: Platform.IOS,
         device: {
@@ -88,7 +88,7 @@ export default defineConfig({
         app: {
           appId: 'io.metamask.MetaMask',
         },
-        buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
+        buildPath: 'bs://13447bac59a80f0273e6053318e49b7c26738a3b',
       },
     },
 

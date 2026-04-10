@@ -2,6 +2,7 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import { TokensSectionTestIds } from '../../../app/components/Views/Homepage/Sections/Tokens/TokensSection.testIds';
 import { EARN_TEST_IDS } from '../../../app/components/UI/Earn/constants/testIds';
 import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
 import {
@@ -27,6 +28,7 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { getDriver } from '../../framework/PlaywrightUtilities';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 
 class WalletView {
@@ -190,10 +192,18 @@ class WalletView {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
+      appium: async () => {
+        const isIOS = await PlatformDetector.isIOS();
+        if (isIOS) {
+          // Use accessibility id selector (~) which is faster and more reliable
+          return PlaywrightMatchers.getElementByAccessibilityId(
+            WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT,
+          );
+        }
+        return PlaywrightMatchers.getElementById(
           WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT,
-        ),
+        );
+      },
     });
   }
 
@@ -420,10 +430,17 @@ class WalletView {
   tokenRow(token: string, index = 0): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(token, index),
-      appium: () =>
-        PlaywrightMatchers.getElementById(getAssetTestId(token), {
+      appium: async () => {
+        const isIOS = await PlatformDetector.isIOS();
+        if (isIOS) {
+          return PlaywrightMatchers.getElementByAccessibilityId(
+            getAssetTestId(token),
+          );
+        }
+        return PlaywrightMatchers.getElementById(getAssetTestId(token), {
           exact: true,
-        }),
+        });
+      },
     });
   }
 
@@ -762,12 +779,9 @@ class WalletView {
 
   get tokensSection(): EncapsulatedElementType {
     return encapsulated({
-      detox: () =>
-        Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION),
+      detox: () => Matchers.getElementByID(TokensSectionTestIds.SECTION_HEADER),
       appium: () =>
-        PlaywrightMatchers.getElementByText(
-          WalletViewSelectorsText.TOKENS_SECTION,
-        ),
+        PlaywrightMatchers.getElementById(TokensSectionTestIds.SECTION_HEADER),
     });
   }
 
@@ -970,27 +984,66 @@ class WalletView {
       appium: async () => {
         const startTime = Date.now();
         const isIOS = await PlatformDetector.isIOS();
+        const drv = getDriver();
+        if (!drv) throw new Error('Driver is not available');
 
         if (isIOS) {
-          // iOS: Element lookups are extremely slow (15-30s each).
-          // Skip stability loop and just wait for a valid balance once.
-          let previousBalance = '';
+          // iOS: Wait for the empty state banner to disappear (faster than searching for balance)
+          // The "Fund your wallet" banner has testID="balance-empty-state"
+          const emptyStateLocator = `-ios class chain:**/XCUIElementTypeOther[\`name == "balance-empty-state"\`]`;
+
+          // Phase 1: Wait for empty state to disappear
           while (Date.now() - startTime < maxWaitTime) {
+            try {
+              const elements = await drv.$$(emptyStateLocator);
+              const count = await elements.length;
+              if (count === 0) {
+                break;
+              }
+            } catch {
+              // Error checking, continue
+            }
+            await new Promise((r) => setTimeout(r, 500));
+          }
+
+          // Phase 2: Stability polling (same as Android)
+          let previousBalance = '';
+          let sameResultStartTime: number | null = null;
+
+          while (Date.now() - startTime < maxWaitTime) {
+            let currentBalance: string;
             try {
               const balanceEl = await asPlaywrightElement(this.totalBalance);
               const rawBalance = await balanceEl.textContent();
-              const balance = (rawBalance || '').trim();
-              previousBalance = balance;
+              currentBalance = (rawBalance || '').trim();
+            } catch {
+              await new Promise((r) => setTimeout(r, pollInterval));
+              continue;
+            }
 
-              if (balance && balance !== '' && balance !== '$0.00') {
-                result = balance;
+            if (
+              !currentBalance ||
+              currentBalance === '' ||
+              currentBalance === '$0.00'
+            ) {
+              await new Promise((r) => setTimeout(r, pollInterval));
+              continue;
+            }
+
+            if (currentBalance === previousBalance && sameResultStartTime) {
+              const timeSinceSameResult = Date.now() - sameResultStartTime;
+              if (timeSinceSameResult >= sameResultTimeout) {
+                result = currentBalance;
                 return;
               }
-            } catch {
-              // Element not found yet, retry
+            } else {
+              sameResultStartTime = Date.now();
+              previousBalance = currentBalance;
             }
-            await new Promise((r) => setTimeout(r, 1000));
+
+            await new Promise((r) => setTimeout(r, pollInterval));
           }
+
           result = previousBalance;
           return;
         }

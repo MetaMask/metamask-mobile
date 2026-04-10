@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import { TokensSectionTestIds } from './TokensSection.testIds';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
@@ -240,7 +241,11 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllTokens} />
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllTokens}
+            testID={TokensSectionTestIds.SECTION_HEADER}
+          />
           {showTokensError ? (
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
@@ -352,7 +357,11 @@ const TokensSectionTrendingOnly = forwardRef<
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllTokens} />
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllTokens}
+            testID={TokensSectionTestIds.SECTION_HEADER}
+          />
           <SectionRow>
             {isTrendingLoading
               ? Array.from({ length: 3 }, (_, i) => (
