@@ -327,7 +327,7 @@ const Main = (props) => {
           labelOptions: [
             {
               label: `${
-                (newNetwork?.name || deletedNetwork?.name) ??
+                (deletedNetwork?.name || newNetwork?.name) ??
                 strings('asset_details.network')
               } `,
               isBold: true,
