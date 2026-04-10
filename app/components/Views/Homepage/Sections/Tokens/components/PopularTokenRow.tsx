@@ -97,6 +97,7 @@ const parseAssetIdForNavigation = (
 
 interface PopularTokenRowProps {
   token: PopularToken;
+  onBeforeNavigate?: () => void;
 }
 
 /**
@@ -143,13 +144,17 @@ const formatPercentageChange = (
  * Shows token icon, name, price, percentage change, and a Buy button.
  * Tapping the row navigates to asset details, tapping Buy navigates to buy flow.
  */
-const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
+const PopularTokenRow: React.FC<PopularTokenRowProps> = ({
+  token,
+  onBeforeNavigate,
+}) => {
   const navigation = useNavigation();
   const { goToBuy } = useRampNavigation();
   const { trackBuyButtonClicked } = useRampsButtonClickedEvent();
   const currentCurrency = useSelector(selectCurrentCurrency);
 
   const handleRowPress = useCallback(() => {
+    onBeforeNavigate?.();
     const { chainId, address, isNative } = parseAssetIdForNavigation(
       token.assetId,
     );
@@ -164,7 +169,7 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
       isNative,
       source: TokenDetailsSource.MobileTokenList,
     });
-  }, [navigation, token.assetId, token.symbol]);
+  }, [navigation, onBeforeNavigate, token.assetId, token.symbol]);
 
   const handleBuy = useCallback(() => {
     trackBuyButtonClicked();

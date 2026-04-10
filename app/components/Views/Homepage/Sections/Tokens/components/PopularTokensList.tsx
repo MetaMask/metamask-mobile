@@ -17,6 +17,8 @@ interface PopularTokensListProps {
    * at section level (outside SectionRow to avoid double-padding).
    */
   onError?: (hasError: boolean) => void;
+  /** Runs before navigating to asset details from a row (e.g. clear stale tx AB tests). */
+  onBeforeNavigate?: () => void;
 }
 
 /**
@@ -32,7 +34,7 @@ interface PopularTokensListProps {
 const PopularTokensList = forwardRef<
   SectionRefreshHandle,
   PopularTokensListProps
->(({ onError }, ref) => {
+>(({ onError, onBeforeNavigate }, ref) => {
   const { tokens, isInitialLoading, error, refetch } = usePopularTokens();
 
   // Error state: initial load failed and we have no price data to show.
@@ -72,7 +74,11 @@ const PopularTokensList = forwardRef<
   return (
     <>
       {tokens.map((token) => (
-        <PopularTokenRow key={token.assetId} token={token} />
+        <PopularTokenRow
+          key={token.assetId}
+          token={token}
+          onBeforeNavigate={onBeforeNavigate}
+        />
       ))}
     </>
   );

@@ -147,6 +147,8 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
+    const { clearTransactionAbTests } =
+      useHomepageTrendingSectionTransactionAbTests();
 
     // Only exclude mUSD when Cash section is enabled (then mUSD is shown there). Otherwise include all.
     const displayTokenKeys = useMemo(
@@ -233,8 +235,9 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     });
 
     const handleViewAllTokens = useCallback(() => {
+      clearTransactionAbTests();
       navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
-    }, [navigation]);
+    }, [clearTransactionAbTests, navigation]);
 
     const handleTokensRetry = useCallback(async () => {
       setHasTokensError(false);
@@ -262,6 +265,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
               <PopularTokensList
                 ref={popularTokensListRef}
                 onError={setHasTokensError}
+                onBeforeNavigate={clearTransactionAbTests}
               />
             </SectionRow>
           ) : (
@@ -279,6 +283,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
                     showPercentageChange
                     shouldShowTokenListItemCta={shouldShowTokenListItemCta}
                     isVisible
+                    onBeforeNavigate={clearTransactionAbTests}
                   />
                 ))
               )}

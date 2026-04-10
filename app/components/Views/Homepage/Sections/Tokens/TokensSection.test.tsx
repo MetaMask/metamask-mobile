@@ -195,9 +195,11 @@ jest.mock(
 const MockTokenListItem = ({
   assetKey,
   showRemoveMenu,
+  onBeforeNavigate,
 }: {
   assetKey: { address: string; chainId?: string };
   showRemoveMenu?: (token: unknown) => void;
+  onBeforeNavigate?: () => void;
 }) => {
   const ReactActual = jest.requireActual('react');
   const { Text, TouchableOpacity } = jest.requireActual('react-native');
@@ -205,6 +207,7 @@ const MockTokenListItem = ({
     TouchableOpacity,
     {
       testID: `token-item-${assetKey.address}`,
+      onPress: () => onBeforeNavigate?.(),
       onLongPress: () =>
         showRemoveMenu?.({
           address: assetKey.address,
@@ -228,6 +231,7 @@ jest.mock(
     TokenListItem: (props: {
       assetKey: { address: string; chainId?: string };
       showRemoveMenu?: (token: unknown) => void;
+      onBeforeNavigate?: () => void;
     }) => MockTokenListItem(props),
   }),
 );
@@ -596,6 +600,7 @@ describe('TokensSection', () => {
 
     fireEvent.press(screen.getByLabelText('Tokens'));
 
+    expect(mockClearTransactionAbTests).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
   });
 
@@ -936,6 +941,26 @@ describe('TokensSection', () => {
       );
 
       expect(screen.getByTestId('token-item-0xtoken1')).toBeOnTheScreen();
+    });
+
+    it('clears staged tx AB tests when a positions token row is pressed', () => {
+      mockUseIsZeroBalanceAccount.mockReturnValue(false);
+      mockSortedTokenKeys.mockReturnValue([
+        { chainId: '0x1', address: '0xtoken1', isStaked: false },
+      ]);
+
+      renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="positions-only"
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('token-item-0xtoken1'));
+
+      expect(mockClearTransactionAbTests).toHaveBeenCalled();
+      expect(mockApplyTagForDedicatedTrendingSection).not.toHaveBeenCalled();
     });
   });
 
