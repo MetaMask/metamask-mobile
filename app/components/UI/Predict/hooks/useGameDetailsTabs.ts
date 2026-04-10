@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectExtendedSportsMarketsLeagues } from '../selectors/featureFlags';
@@ -38,13 +38,6 @@ export function useGameDetailsTabs({
     });
     return result;
   }, [hasPositions]);
-
-  useEffect(() => {
-    if (!enabled) return;
-    if (activeTab >= tabs.length) {
-      setActiveTab(0);
-    }
-  }, [tabs, activeTab, enabled]);
 
   const handleTabPress = useCallback((tabIndex: number) => {
     setActiveTab(tabIndex);
