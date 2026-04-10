@@ -375,7 +375,7 @@ describe('CustomAmountInfo', () => {
     },
   );
 
-  it('calls overrideContent with amountHuman and hides default content', () => {
+  it('calls overrideContent with amountHuman and hides default PayTokenAmount', () => {
     const mockOverrideContent = jest.fn().mockReturnValue(null);
 
     useTransactionCustomAmountMock.mockReturnValue({
@@ -395,7 +395,7 @@ describe('CustomAmountInfo', () => {
     expect(queryByText('0 TST')).toBeNull();
     expect(
       queryByText(new RegExp(strings('confirm.label.pay_with'))),
-    ).toBeNull();
+    ).toBeOnTheScreen();
   });
 
   it('calls onAmountSubmit when Done button is pressed', async () => {
