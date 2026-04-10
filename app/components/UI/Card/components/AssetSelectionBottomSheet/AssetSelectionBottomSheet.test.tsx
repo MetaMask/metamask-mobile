@@ -287,7 +287,7 @@ describe('AssetSelectionBottomSheet', () => {
       });
 
       expect(UNSAFE_getByType('ActivityIndicator' as never)).toBeTruthy();
-      expect(queryByText('No tokens available')).toBeNull();
+      expect(queryByText('No tokens available')).not.toBeOnTheScreen();
     });
 
     it('displays no tokens message when no tokens available', () => {
@@ -1084,7 +1084,7 @@ describe('AssetSelectionBottomSheet', () => {
         delegationSettings,
       });
 
-      expect(queryByText(/0x/)).toBeNull();
+      expect(queryByText(/0x/)).not.toBeOnTheScreen();
     });
   });
 
