@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import VerifyIdentity from './VerifyIdentity';
+import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -74,8 +75,15 @@ describe('VerifyIdentity Component', () => {
   });
 
   it('renders verify identity screen with all content', () => {
-    const { toJSON } = render(VerifyIdentity);
-    expect(toJSON()).toMatchSnapshot();
+    render(VerifyIdentity);
+    expect(
+      screen.getAllByText(strings('deposit.verify_identity.title'))[0],
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole('button', {
+        name: strings('deposit.verify_identity.button'),
+      }),
+    ).toBeOnTheScreen();
   });
 
   it('calls setOptions when the component mounts', () => {

@@ -215,10 +215,10 @@ const TokenDetails: React.FC<{
     comparePrice,
     prices,
     isLoading,
+    currentCurrency,
     timePeriod,
     setTimePeriod,
     chartNavigationButtons,
-    currentCurrency,
   } = useTokenPrice({ token });
 
   const {
@@ -226,7 +226,6 @@ const TokenDetails: React.FC<{
     fiatBalance,
     tokenFormattedBalance,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    isTronNative,
     stakedTrxAsset,
     inLockPeriodBalance,
     readyForWithdrawalBalance,
@@ -317,7 +316,6 @@ const TokenDetails: React.FC<{
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        isTronNative={isTronNative}
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
         readyForWithdrawalBalance={readyForWithdrawalBalance}

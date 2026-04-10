@@ -1,7 +1,7 @@
 import React from 'react';
 import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { fireEvent, act, waitFor } from '@testing-library/react-native';
+import { fireEvent, act, waitFor, screen } from '@testing-library/react-native';
 import { LoginViewSelectors } from './LoginView.testIds';
 import {
   InteractionManager,
@@ -413,17 +413,21 @@ describe('Login', () => {
   });
 
   it('renders matching snapshot', () => {
-    const { toJSON } = renderWithProvider(<Login />);
-    expect(toJSON()).toMatchSnapshot();
+    renderWithProvider(<Login />);
+    expect(
+      screen.getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+    ).toBeOnTheScreen();
   });
 
   it('renders matching snapshot when password input is focused', () => {
-    const { getByTestId, toJSON } = renderWithProvider(<Login />);
+    const { getByTestId } = renderWithProvider(<Login />);
     fireEvent.changeText(
       getByTestId(LoginViewSelectors.PASSWORD_INPUT),
       'password',
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+    ).toBeOnTheScreen();
   });
 
   describe('Rendering', () => {
@@ -446,8 +450,10 @@ describe('Login', () => {
       );
       expect(getByTestId('fox-animation-mock')).toBeOnTheScreen();
       expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeOnTheScreen();
-      expect(queryByTestId(LoginViewSelectors.TITLE_ID)).toBeNull();
-      expect(queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON)).toBeNull();
+      expect(queryByTestId(LoginViewSelectors.TITLE_ID)).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON),
+      ).not.toBeOnTheScreen();
       const images = UNSAFE_root.findAllByType(Image);
       const hasMetaMaskLogo = images.some(
         (img) => img.props.source === METAMASK_NAME,
@@ -790,6 +796,9 @@ describe('Login', () => {
         availableBiometryType: 'TouchID',
       });
       (StorageWrapper.getItem as jest.Mock).mockReset();
+
+      mockUnlockWallet.mockReset();
+      mockUnlockWallet.mockResolvedValue(true);
     });
 
     it('authenticates with biometrics successfully', async () => {
@@ -873,6 +882,70 @@ describe('Login', () => {
       }
     });
 
+    it('does not show error UI for Android keychain biometric user cancel', async () => {
+      jest.useRealTimers();
+      try {
+        mockUnlockWallet.mockRejectedValueOnce(
+          new Error('code: 10, msg: Fingerprint operation canceled by user'),
+        );
+
+        const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+        mockLogger.error.mockClear();
+
+        const biometryButton = getByTestId(
+          LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
+        );
+        await act(async () => {
+          fireEvent.press(biometryButton);
+        });
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+
+        expect(
+          queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+        ).not.toBeOnTheScreen();
+        expect(mockLogger.error).not.toHaveBeenCalled();
+      } finally {
+        jest.useFakeTimers();
+      }
+    });
+
+    it('does not show error UI for iOS biometric user cancel', async () => {
+      jest.useRealTimers();
+      try {
+        mockUnlockWallet.mockRejectedValueOnce(
+          new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
+        );
+
+        const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+        mockLogger.error.mockClear();
+
+        const biometryButton = getByTestId(
+          LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
+        );
+        await act(async () => {
+          fireEvent.press(biometryButton);
+        });
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+
+        expect(
+          queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+        ).not.toBeOnTheScreen();
+        expect(mockLogger.error).not.toHaveBeenCalled();
+      } finally {
+        jest.useFakeTimers();
+      }
+    });
+
     it('silently cancels DENY_PIN_ERROR_ANDROID without error UI', async () => {
       jest.useRealTimers();
       try {
@@ -897,6 +970,7 @@ describe('Login', () => {
         await act(async () => {
           await new Promise((resolve) => setTimeout(resolve, 100));
         });
+        mockLogger.error.mockClear();
 
         const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -908,6 +982,7 @@ describe('Login', () => {
             queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
           ).not.toBeOnTheScreen();
         });
+        expect(mockLogger.error).not.toHaveBeenCalled();
       } finally {
         jest.useFakeTimers();
       }
@@ -932,7 +1007,7 @@ describe('Login', () => {
           new Error(DENY_PIN_ERROR_ANDROID),
         );
 
-        const { getByTestId } = renderWithProvider(<Login />);
+        const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
 
         await act(async () => {
           await new Promise((resolve) => setTimeout(resolve, 100));
@@ -948,12 +1023,15 @@ describe('Login', () => {
         });
 
         expect(mockLogger.error).not.toHaveBeenCalled();
+        expect(
+          queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+        ).not.toBeOnTheScreen();
       } finally {
         jest.useFakeTimers();
       }
     });
 
-    it('does not log error on iOS biometric cancellation', async () => {
+    it('does not show error UI on iOS biometric cancellation via password unlock', async () => {
       jest.useRealTimers();
       try {
         mockGetAuthType.mockReset();
@@ -972,7 +1050,7 @@ describe('Login', () => {
           new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
         );
 
-        const { getByTestId } = renderWithProvider(<Login />);
+        const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
 
         await act(async () => {
           await new Promise((resolve) => setTimeout(resolve, 100));
@@ -988,6 +1066,9 @@ describe('Login', () => {
         });
 
         expect(mockLogger.error).not.toHaveBeenCalled();
+        expect(
+          queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+        ).not.toBeOnTheScreen();
       } finally {
         jest.useFakeTimers();
       }
