@@ -152,6 +152,8 @@ const FlaskBuildTests = (testName) =>
 const SmokePerformance = (testName) => `${otherTags.performance} ${testName}`;
 const FixtureValidation = (testName) =>
   `${otherTags.fixtureValidation} ${testName}`;
+// CI sanity check — minimal navigation test used when validating the CI pipeline itself
+const CiSanityCheck = (testName) => `CiSanityCheck: ${testName}`;
 
 export {
   smokeTags,
@@ -183,4 +185,5 @@ export {
   FlaskBuildTests,
   SmokePerformance,
   FixtureValidation,
+  CiSanityCheck,
 };

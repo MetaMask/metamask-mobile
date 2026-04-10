@@ -19,6 +19,22 @@ permissions:
   id-token: write
 
 jobs:
+  # CI pipeline sanity check — runs a single minimal navigation test.
+  # Only triggered when selected_tags contains 'CiSanityCheck'.
+  ci-sanity-check-ios:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'CiSanityCheck')
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: ci-sanity-check-ios
+      platform: ios
+      test_suite_tag: 'CiSanityCheck:'
+      split_number: 1
+      total_splits: 1
+      changed_files: ${{ inputs.changed_files }}
+      build_type: 'main'
+      metamask_environment: 'qa'
+    secrets: inherit
+
   confirmations-ios-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeConfirmations')
     strategy:
