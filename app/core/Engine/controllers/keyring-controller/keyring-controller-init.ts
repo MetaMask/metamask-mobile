@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
 import { CryptographicFunctions } from '@metamask/key-tree';
 import { encodeMnemonic } from '@metamask/keyring-sdk';
@@ -34,7 +34,7 @@ const encryptor = new Encryptor({
  * @param request.persistedState - The persisted state of the client.
  * @returns The initialized controller.
  */
-export const keyringControllerInit: ControllerInitFunction<
+export const keyringControllerInit: MessengerClientInitFunction<
   KeyringController,
   KeyringControllerMessenger
 > = ({

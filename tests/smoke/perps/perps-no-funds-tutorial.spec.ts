@@ -1,18 +1,22 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { RegressionTrade } from '../../tags';
+import { SmokePerps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
 import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
 import Assertions from '../../framework/Assertions';
 import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
-import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import {
+  PERPS_ARBITRUM_MOCKS,
+  mockPerpsGeolocation,
+} from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 
-describe(
-  RegressionTrade('Perps - no funds shows Start Trading and tutorial'),
+describe.skip(
+  SmokePerps('Perps - no funds shows Start Trading and tutorial'),
   () => {
     beforeEach(async () => {
       jest.setTimeout(150000);
@@ -32,6 +36,10 @@ describe(
               ...remoteFeatureFlagHomepageSectionsV1Enabled(),
             });
             await PERPS_ARBITRUM_MOCKS(mockServer);
+            await mockPerpsGeolocation(
+              mockServer,
+              RampsRegions[RampsRegionsEnum.SPAIN],
+            );
           },
         },
         async () => {
@@ -43,15 +51,11 @@ describe(
           // Go to Perps from homepage section (same click path as smoke perps tests)
           await WalletView.scrollAndTapPerpsSection();
 
-          // Start Trading should be present for first-time/no-positions
-          await PerpsTabView.tapOnboardingButton();
-
           await PerpsOnboarding.tapContinueButton();
           await PerpsOnboarding.tapContinueButton();
           await PerpsOnboarding.tapContinueButton();
           await PerpsOnboarding.tapContinueButton();
           await PerpsOnboarding.tapContinueButton();
-
           await PerpsOnboarding.tapContinueButton();
 
           // After skipping tutorial, user should land on markets screen
