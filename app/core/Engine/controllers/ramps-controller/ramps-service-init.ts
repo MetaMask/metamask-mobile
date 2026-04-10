@@ -52,14 +52,11 @@ export const rampsServiceInit: ControllerInitFunction<
   RampsService,
   RampsServiceMessenger
 > = ({ controllerMessenger }) => {
-  const baseUrlOverride = process.env.RAMPS_BASE_URL_OVERRIDE || undefined;
-
   const service = new RampsService({
     messenger: controllerMessenger,
     environment: getRampsEnvironment(),
     context: getRampsContext(),
     fetch,
-    ...(baseUrlOverride ? { baseUrlOverride } : {}),
   });
 
   return {
