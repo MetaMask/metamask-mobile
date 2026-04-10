@@ -346,17 +346,10 @@ if [ "$PLAT" = "ios" ]; then
         fail "Build timed out after ${BUILD_TIMEOUT}s — see $BUILD_LOG"
       fi
 
-      # Surface fatal CLI errors early (e.g. CommandError, xcodebuild failure).
-      if grep -qE 'CommandError:|Something went wrong|BUILD FAILED' "$BUILD_LOG" 2>/dev/null; then
-        kill_tree "$EXPO_PID"
-        wait $EXPO_PID 2>/dev/null || true
-        echo ""
-        echo -e "  ${RED}Build log tail:${NC}"
-        tail -30 "$BUILD_LOG" | sed 's/^/    /'
-        fail "Build failed — see $BUILD_LOG"
-      fi
-
       # Look for a freshly-built .app (mtime >= build start) once xcodebuild reports success.
+      # Check success BEFORE errors: the cumulative log may contain non-fatal warnings
+      # matching "Something went wrong" early in the build that would false-positive if
+      # we checked errors first.
       # Iterate all MetaMask-* dirs in DerivedData — multiple worktrees produce separate
       # dirs with different hashes, and `head -1` could pick a stale one that always fails
       # the mtime check, causing a 900s timeout despite a successful build.
@@ -375,6 +368,16 @@ if [ "$PLAT" = "ios" ]; then
           wait $EXPO_PID 2>/dev/null || true
           break
         fi
+      fi
+
+      # Surface fatal CLI errors only after confirming build hasn't succeeded.
+      if grep -qE 'CommandError:|BUILD FAILED' "$BUILD_LOG" 2>/dev/null; then
+        kill_tree "$EXPO_PID"
+        wait $EXPO_PID 2>/dev/null || true
+        echo ""
+        echo -e "  ${RED}Build log tail:${NC}"
+        tail -30 "$BUILD_LOG" | sed 's/^/    /'
+        fail "Build failed — see $BUILD_LOG"
       fi
 
       # If expo exited on its own before we found a fresh .app, treat as failure.
@@ -572,7 +575,8 @@ if [ $CDP_RETRY -ge $CDP_TIMEOUT ]; then
       curl -s --max-time 2 "http://localhost:${probe_port}/json/list" 2>/dev/null \
         | python3 -c 'import sys,json
 for p in json.loads(sys.stdin.read() or "[]"):
-    print(f"      - {p.get(\"title\",\"?\")} (device={p.get(\"deviceName\",\"?\")})")' 2>/dev/null || true
+    t = p.get("title","?"); d = p.get("deviceName","?")
+    print("      - %s (device=%s)" % (t, d))' 2>/dev/null || true
     fi
     if [ "$probe_port" = "$PORT" ]; then count_self=$count; else count_other=$count; fi
   done
