@@ -88,8 +88,12 @@ const isSwapSupportedChain = (chainId: Hex | CaipChainId) =>
     ALLOWED_BRIDGE_CHAIN_IDS as readonly (Hex | CaipChainId | string)[]
   ).includes(chainId);
 
-const enableChainInBackground = (chainId: Hex | CaipChainId) => {
-  Engine.context.NetworkEnablementController?.enableNetwork?.(chainId);
+const enableChainInBackground = async (chainId: Hex | CaipChainId) => {
+  try {
+    await Engine.context.NetworkEnablementController?.enableNetwork?.(chainId);
+  } catch {
+    // Best-effort only. Chain availability is re-checked independently.
+  }
 };
 
 const addEvmNetworkFromPopularList = async (chainId: Hex) => {
@@ -134,12 +138,12 @@ const ensureChainAvailable = async (chainId: Hex | CaipChainId) => {
   }
 
   if (isChainAvailable(chainId)) {
-    enableChainInBackground(chainId);
+    await enableChainInBackground(chainId);
     return true;
   }
 
   if (isCaipChainId(chainId)) {
-    enableChainInBackground(chainId);
+    await enableChainInBackground(chainId);
     return isChainAvailable(chainId);
   }
 
@@ -153,7 +157,7 @@ const ensureChainAvailable = async (chainId: Hex | CaipChainId) => {
     return false;
   }
 
-  enableChainInBackground(chainId);
+  await enableChainInBackground(chainId);
   return true;
 };
 
