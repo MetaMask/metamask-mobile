@@ -1,12 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  const { colors } = theme;
-
-  return StyleSheet.create({
-    container: {},
+const styleSheet = () =>
+  StyleSheet.create({
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -32,6 +28,5 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 0,
     },
   });
-};
 
 export default styleSheet;
