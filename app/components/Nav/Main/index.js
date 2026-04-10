@@ -94,7 +94,7 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
-import { consumeSuppressedNetworkAddedToast } from '../../../util/networks/networkToastSuppression';
+import { shouldShowNetworkListToast } from './utils';
 
 const Stack = createStackNavigator();
 
@@ -317,9 +317,10 @@ const Main = (props) => {
           ),
       );
 
-      const shouldShowNetworkAddedToast =
-        newNetwork && !consumeSuppressedNetworkAddedToast(newNetwork?.chainId);
-      const shouldShowToast = shouldShowNetworkAddedToast || deletedNetwork;
+      const shouldShowToast = shouldShowNetworkListToast({
+        newNetworkChainId: newNetwork?.chainId,
+        hasDeletedNetwork: Boolean(deletedNetwork),
+      });
       if (shouldShowToast) {
         toastRef?.current?.showToast({
           variant: ToastVariants.Plain,
