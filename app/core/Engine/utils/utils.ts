@@ -9,7 +9,7 @@ import type {
   MessengerClientInitRequest,
   MessengerClientInitFunction,
 } from '../types';
-import { CONTROLLER_MESSENGERS } from '../messengers';
+import { MESSENGER_FACTORIES } from '../messengers';
 
 const log = createProjectLogger('controller-init');
 
@@ -21,8 +21,8 @@ type BaseControllerInitRequest = MessengerClientInitRequest<
 type InitFunction<Name extends MessengerClientsToInitialize> =
   MessengerClientInitFunction<
     MessengerClientsByName[Name],
-    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
-    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
+    ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getMessenger']>,
+    ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getInitMessenger']>
   >;
 
 /**
@@ -64,7 +64,7 @@ export const initModularizedControllers: InitMessengerClientsFunction = ({
     >;
 
     // Get the messenger for the controller
-    const messengerCallbacks = CONTROLLER_MESSENGERS[controllerName];
+    const messengerCallbacks = MESSENGER_FACTORIES[controllerName];
 
     const controllerMessengerCallback =
       messengerCallbacks.getMessenger as ControllerMessengerCallback;
