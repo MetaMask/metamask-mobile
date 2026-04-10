@@ -39,7 +39,8 @@ export function PredictPayWithRow({
   const { payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const from = transactionMeta?.txParams?.from;
-  const canEdit = !isHardwareAccount((from as string) ?? '') && !disabled;
+  const canEdit =
+    !isHardwareAccount((from as string) ?? '') && !disabled && transactionMeta;
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
 
@@ -72,7 +73,7 @@ export function PredictPayWithRow({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName={`rounded-full py-2 pl-[9px] pr-[16px] mt-2 ${disabled ? '' : 'bg-muted'} mx-auto`}
+          twClassName={`rounded-full py-2 pl-[9px] pr-[16px] mt-2 ${!canEdit ? '' : 'bg-muted'} mx-auto`}
           gap={3}
         >
           {tokenIconAddress && tokenIconChainId && (

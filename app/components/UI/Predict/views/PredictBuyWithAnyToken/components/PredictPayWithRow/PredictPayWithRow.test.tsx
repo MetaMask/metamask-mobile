@@ -199,6 +199,56 @@ describe('PredictPayWithRow', () => {
     expect(screen.getByText('Pay with USDC')).toBeOnTheScreen();
   });
 
+  it('does not navigate when transactionMeta is null', () => {
+    mockTransactionMeta = null;
+
+    renderWithProvider(<PredictPayWithRow />);
+    fireEvent.press(screen.getByText('Pay with USDC'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('hides arrow icon when transactionMeta is null', () => {
+    mockTransactionMeta = null;
+
+    const { toJSON } = renderWithProvider(<PredictPayWithRow />);
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).not.toContain('ArrowDown');
+  });
+
+  it('applies muted background when canEdit is true', () => {
+    const { toJSON } = renderWithProvider(<PredictPayWithRow />);
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).toContain('backgroundColor');
+  });
+
+  it('does not apply muted background when disabled', () => {
+    const { toJSON } = renderWithProvider(<PredictPayWithRow disabled />);
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).not.toContain('"backgroundColor":"#b4b4b528"');
+  });
+
+  it('does not apply muted background when transactionMeta is null', () => {
+    mockTransactionMeta = null;
+
+    const { toJSON } = renderWithProvider(<PredictPayWithRow />);
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).not.toContain('"backgroundColor":"#b4b4b528"');
+  });
+
+  it('does not apply muted background for hardware accounts', () => {
+    mockIsHardwareAccount.mockReturnValue(true);
+
+    const { toJSON } = renderWithProvider(<PredictPayWithRow />);
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).not.toContain('"backgroundColor":"#b4b4b528"');
+  });
+
   it('renders predict balance first hint when external token selected', () => {
     mockIsPredictBalanceSelected = false;
 
