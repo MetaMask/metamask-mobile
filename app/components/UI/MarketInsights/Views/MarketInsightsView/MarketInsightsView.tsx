@@ -14,6 +14,7 @@ import {
   Animated,
   Image,
   Modal,
+  View,
   useColorScheme,
 } from 'react-native';
 import Video from 'react-native-video';
@@ -895,14 +896,17 @@ const MarketInsightsView: React.FC = () => {
       ) : null}
 
       {isEligibilityModalVisible && (
-        <Modal visible transparent animationType="none" statusBarTranslucent>
-          <PerpsBottomSheetTooltip
-            isVisible
-            onClose={closeEligibilityModal}
-            contentKey="geo_block"
-            testID="market-insights-geo-block-tooltip"
-          />
-        </Modal>
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={closeEligibilityModal}
+              contentKey="geo_block"
+              testID="market-insights-geo-block-tooltip"
+            />
+          </Modal>
+        </View>
       )}
     </Box>
   );
