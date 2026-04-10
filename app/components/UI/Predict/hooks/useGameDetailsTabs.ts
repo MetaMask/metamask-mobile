@@ -19,7 +19,7 @@ export function useGameDetailsTabs({
   const extendedLeagues = useSelector(selectExtendedSportsMarketsLeagues);
   const enabled = league ? extendedLeagues.includes(league) : false;
 
-  const [activeTab, setActiveTab] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
 
   const hasPositions =
     activePositions.length > 0 || claimablePositions.length > 0;
@@ -41,10 +41,6 @@ export function useGameDetailsTabs({
 
   useEffect(() => {
     if (!enabled) return;
-    if (activeTab === null) {
-      setActiveTab(0);
-      return;
-    }
     if (activeTab >= tabs.length) {
       setActiveTab(0);
     }

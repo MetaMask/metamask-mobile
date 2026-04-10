@@ -79,10 +79,10 @@ describe('useGameDetailsTabs', () => {
       expect(result.current.showTabBar).toBe(false);
     });
 
-    it('defaults activeTab to null', () => {
+    it('defaults activeTab to 0', () => {
       const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
 
-      expect(result.current.activeTab).toBeNull();
+      expect(result.current.activeTab).toBe(0);
     });
 
     it('returns undefined stickyHeaderIndices', () => {

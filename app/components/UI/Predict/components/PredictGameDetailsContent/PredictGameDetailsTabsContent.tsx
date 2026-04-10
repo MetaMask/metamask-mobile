@@ -15,7 +15,7 @@ import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsConte
 
 interface PredictGameDetailsTabsContentProps {
   market: PredictMarket;
-  activeTab: number | null;
+  activeTab: number;
   tabs: { label: string; key: PredictMarketDetailsTabKey }[];
   enabled: boolean;
   showTabBar: boolean;
@@ -72,7 +72,7 @@ const PredictGameDetailsTabsContent = memo(
       return <OutcomesPlaceholder />;
     }
 
-    const currentKey = activeTab !== null ? tabs[activeTab]?.key : undefined;
+    const currentKey = tabs[activeTab]?.key;
 
     return (
       <>

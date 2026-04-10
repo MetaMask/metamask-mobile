@@ -109,7 +109,7 @@ describe('PredictGameDetailsTabs', () => {
       const { toJSON } = render(
         <PredictGameDetailsTabsContent
           market={market}
-          activeTab={null}
+          activeTab={0}
           tabs={[]}
           enabled={false}
           showTabBar={false}
@@ -127,7 +127,7 @@ describe('PredictGameDetailsTabs', () => {
       const { getByText } = render(
         <PredictGameDetailsTabsContent
           market={market}
-          activeTab={null}
+          activeTab={0}
           tabs={[]}
           enabled={false}
           showTabBar={false}
@@ -145,7 +145,7 @@ describe('PredictGameDetailsTabs', () => {
       const { getByTestId } = render(
         <PredictGameDetailsTabsContent
           market={market}
-          activeTab={null}
+          activeTab={0}
           tabs={[]}
           enabled={false}
           showTabBar={false}
@@ -168,7 +168,7 @@ describe('PredictGameDetailsTabs', () => {
       const { queryByTestId } = render(
         <PredictGameDetailsTabsContent
           market={market}
-          activeTab={null}
+          activeTab={0}
           tabs={[]}
           enabled={false}
           showTabBar={false}
@@ -192,7 +192,7 @@ describe('PredictGameDetailsTabs', () => {
       const { getByTestId, getByText } = render(
         <PredictGameDetailsTabsContent
           market={market}
-          activeTab={null}
+          activeTab={0}
           tabs={[]}
           enabled
           showTabBar={false}
@@ -213,7 +213,7 @@ describe('PredictGameDetailsTabs', () => {
       const { queryByTestId } = render(
         <PredictGameDetailsTabsContent
           market={market}
-          activeTab={null}
+          activeTab={0}
           tabs={[]}
           enabled
           showTabBar={false}
@@ -233,7 +233,7 @@ describe('PredictGameDetailsTabs', () => {
       const { queryByText } = render(
         <PredictGameDetailsTabsContent
           market={market}
-          activeTab={null}
+          activeTab={0}
           tabs={[]}
           enabled
           showTabBar={false}
@@ -297,13 +297,13 @@ describe('PredictGameDetailsTabs', () => {
       expect(getByText('Outcomes coming soon')).toBeOnTheScreen();
     });
 
-    it('renders nothing when activeTab is null', () => {
+    it('renders nothing when activeTab is out of bounds', () => {
       const market = createMockMarket();
 
       const { queryByTestId } = render(
         <PredictGameDetailsTabsContent
           market={market}
-          activeTab={null}
+          activeTab={99}
           tabs={positionsTabs}
           enabled
           showTabBar
