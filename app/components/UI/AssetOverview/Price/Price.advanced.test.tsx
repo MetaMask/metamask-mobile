@@ -128,7 +128,6 @@ describe('PriceAdvanced', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSetIsChartBeingTouched.mockClear();
     const analyticsHook = createMockUseAnalyticsHook();
     mockTrackEvent = analyticsHook.trackEvent as jest.Mock;
     jest.mocked(useAnalytics).mockReturnValue(analyticsHook);
