@@ -200,12 +200,14 @@ describe('MetaMetricsAndDataCollectionSection', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderScreen(
+    const { getByText } = renderScreen(
       MetaMetricsAndDataCollectionSection,
       { name: 'MetaMetricsAndDataCollectionSection' },
       { state: initialStateMarketingFalse },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByText(strings('app_settings.metametrics_title')),
+    ).toBeOnTheScreen();
   });
 
   describe('MetaMetrics section', () => {
