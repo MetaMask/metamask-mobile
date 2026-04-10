@@ -203,33 +203,29 @@ const HomepagePredictPositions = ({
         />
       )}
     </Box>
-    <Box>
-      {isLoadingPositions ? (
-        <>
-          <PredictPositionRowSkeleton />
-          <PredictPositionRowSkeleton />
-        </>
-      ) : (
-        positions.map((position) => (
-          <PredictPositionRow
-            key={`${position.outcomeId}:${position.outcomeIndex}`}
-            position={position}
-            onPress={onPositionPress}
-            privacyMode={Boolean(privacyMode)}
-          />
-        ))
-      )}
-      {!isLoadingPositions &&
-        !isLoadingClaimable &&
-        totalClaimableValue > 0 && (
-          <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
-            <PredictClaimButton
-              amount={privacyMode ? undefined : totalClaimableValue}
-              onPress={onClaim}
-            />
-          </Box>
-        )}
-    </Box>
+    {isLoadingPositions ? (
+      <>
+        <PredictPositionRowSkeleton />
+        <PredictPositionRowSkeleton />
+      </>
+    ) : (
+      positions.map((position) => (
+        <PredictPositionRow
+          key={`${position.outcomeId}:${position.outcomeIndex}`}
+          position={position}
+          onPress={onPositionPress}
+          privacyMode={Boolean(privacyMode)}
+        />
+      ))
+    )}
+    {!isLoadingPositions && !isLoadingClaimable && totalClaimableValue > 0 && (
+      <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
+        <PredictClaimButton
+          amount={privacyMode ? undefined : totalClaimableValue}
+          onPress={onClaim}
+        />
+      </Box>
+    )}
   </Box>
 );
 

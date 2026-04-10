@@ -38,18 +38,16 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
         <Box gap={3}>
           {/* Category badge */}
           {item.category && (
-            <Box twClassName="self-start">
-              <Box twClassName="rounded-full bg-background-default px-2 py-0.5">
-                <Text
-                  variant={TextVariant.BodyXs}
-                  color={TextColor.TextAlternative}
-                  fontWeight={FontWeight.Medium}
-                >
-                  {strings(
-                    `homepage.sections.whats_happening_categories.${item.category}`,
-                  )}
-                </Text>
-              </Box>
+            <Box twClassName="self-start rounded-full bg-background-default px-2 py-0.5">
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
+              >
+                {strings(
+                  `homepage.sections.whats_happening_categories.${item.category}`,
+                )}
+              </Text>
             </Box>
           )}
 

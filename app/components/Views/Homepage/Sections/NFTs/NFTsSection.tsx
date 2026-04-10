@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
@@ -35,6 +35,10 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 const MAX_NFTS_DISPLAYED = 6;
 const NFTS_PER_ROW = 3;
+
+const styles = StyleSheet.create({
+  sectionGap: { gap: 12 },
+});
 
 const NftSkeletonRow = () => {
   const { colors } = useTheme();
@@ -164,56 +168,52 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     });
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllNfts} />
-          {hasNfts ? (
-            <SectionRow>
-              <Box gap={3}>
-                {nftRows.map((row, rowIndex) => (
+      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+        <SectionHeader title={title} onPress={handleViewAllNfts} />
+        {hasNfts ? (
+          <SectionRow gap={3}>
+            {nftRows.map((row, rowIndex) => (
+              <Box
+                key={`nft-row-${rowIndex}`}
+                flexDirection={BoxFlexDirection.Row}
+                gap={3}
+              >
+                {row.map((nft) => (
                   <Box
-                    key={`nft-row-${rowIndex}`}
-                    flexDirection={BoxFlexDirection.Row}
-                    gap={3}
+                    key={`${nft.address}-${nft.tokenId}`}
+                    twClassName="flex-1"
                   >
-                    {row.map((nft) => (
-                      <Box
-                        key={`${nft.address}-${nft.tokenId}`}
-                        twClassName="flex-1"
-                      >
-                        <NftGridItem
-                          item={nft}
-                          onLongPress={handleLongPress}
-                          source="mobile-nft-list"
-                        />
-                      </Box>
-                    ))}
-                    {/* Add empty boxes to maintain grid alignment for incomplete rows */}
-                    {row.length < NFTS_PER_ROW &&
-                      Array.from({ length: NFTS_PER_ROW - row.length }).map(
-                        (__, i) => (
-                          <Box
-                            key={`empty-${rowIndex}-${i}`}
-                            twClassName="flex-1"
-                          />
-                        ),
-                      )}
+                    <NftGridItem
+                      item={nft}
+                      onLongPress={handleLongPress}
+                      source="mobile-nft-list"
+                    />
                   </Box>
                 ))}
+                {/* Add empty boxes to maintain grid alignment for incomplete rows */}
+                {row.length < NFTS_PER_ROW &&
+                  Array.from({ length: NFTS_PER_ROW - row.length }).map(
+                    (__, i) => (
+                      <Box
+                        key={`empty-${rowIndex}-${i}`}
+                        twClassName="flex-1"
+                      />
+                    ),
+                  )}
               </Box>
-            </SectionRow>
-          ) : showSkeleton ? (
-            <SectionRow>
-              <NftSkeletonRow />
-            </SectionRow>
-          ) : (
-            <CollectiblesEmptyState
-              onAction={handleImportNfts}
-              actionButtonProps={{ isDisabled: !isAddNFTEnabled }}
-              twClassName="mx-auto mt-2"
-            />
-          )}
-        </Box>
+            ))}
+          </SectionRow>
+        ) : showSkeleton ? (
+          <SectionRow>
+            <NftSkeletonRow />
+          </SectionRow>
+        ) : (
+          <CollectiblesEmptyState
+            onAction={handleImportNfts}
+            actionButtonProps={{ isDisabled: !isAddNFTEnabled }}
+            twClassName="mx-auto mt-2"
+          />
+        )}
         <NftGridItemBottomSheet
           isVisible={longPressedNft !== null}
           onClose={() => setLongPressedNft(null)}

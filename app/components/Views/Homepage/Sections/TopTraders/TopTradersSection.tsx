@@ -4,11 +4,10 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import { SectionRefreshHandle } from '../../types';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
@@ -18,6 +17,10 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+
+const styles = StyleSheet.create({
+  sectionGap: { gap: 12 },
+});
 
 interface TopTradersSectionProps {
   sectionIndex: number;
@@ -78,16 +81,15 @@ const TopTradersSection = forwardRef<
       ref={sectionViewRef}
       onLayout={onLayout}
       testID="homepage-top-traders-section-root"
+      style={styles.sectionGap}
     >
-      <Box gap={3}>
-        <SectionHeader title={title} onPress={handleViewAll} />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-2.5')}
-          testID="homepage-top-traders-carousel"
-        />
-      </Box>
+      <SectionHeader title={title} onPress={handleViewAll} />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 gap-2.5')}
+        testID="homepage-top-traders-carousel"
+      />
     </View>
   );
 });

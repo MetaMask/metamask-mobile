@@ -5,10 +5,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -26,6 +25,10 @@ import MusdAggregatedRow from './MusdAggregatedRow';
 import CashGetMusdEmptyState from './CashGetMusdEmptyState';
 import Logger from '../../../../../util/Logger';
 import { SectionRefreshHandle } from '../../types';
+
+const styles = StyleSheet.create({
+  sectionGap: { gap: 12 },
+});
 
 interface CashSectionProps {
   sectionIndex: number;
@@ -93,19 +96,17 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     const title = strings('homepage.sections.cash');
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewCashTokens} />
-          {!hasMusdBalanceOnAnyChain ? (
-            <SectionRow>
-              <CashGetMusdEmptyState key={`cash-empty-${refreshVersion}`} />
-            </SectionRow>
-          ) : (
-            <SectionRow>
-              <MusdAggregatedRow key={`cash-row-${refreshVersion}`} />
-            </SectionRow>
-          )}
-        </Box>
+      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+        <SectionHeader title={title} onPress={handleViewCashTokens} />
+        {!hasMusdBalanceOnAnyChain ? (
+          <SectionRow>
+            <CashGetMusdEmptyState key={`cash-empty-${refreshVersion}`} />
+          </SectionRow>
+        ) : (
+          <SectionRow>
+            <MusdAggregatedRow key={`cash-row-${refreshVersion}`} />
+          </SectionRow>
+        )}
       </View>
     );
   },
