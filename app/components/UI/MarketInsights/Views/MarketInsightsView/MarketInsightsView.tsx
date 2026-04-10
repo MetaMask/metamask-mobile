@@ -13,6 +13,8 @@ import {
   Pressable,
   Animated,
   Image,
+  Modal,
+  View,
   useColorScheme,
 } from 'react-native';
 import Video from 'react-native-video';
@@ -83,6 +85,15 @@ import MarketInsightsFeedbackBottomSheet, {
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import parseRampIntent from '../../../Ramp/utils/parseRampIntent';
 import { getDecimalChainId } from '../../../../../util/networks';
+import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
+import { useComplianceGate } from '../../../Compliance';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import PerpsBottomSheetTooltip from '../../../Perps/components/PerpsBottomSheetTooltip';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+import { usePerpsEventTracking } from '../../../Perps/hooks/usePerpsEventTracking';
 
 const feedbackByDigest = new Map<string, 'up' | 'down'>();
 
@@ -212,6 +223,13 @@ const MarketInsightsView: React.FC = () => {
     [isDarkMode],
   );
 
+  const isEligible = useSelector(selectPerpsEligibility);
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const { gate } = useComplianceGate(selectedAddress ?? '');
+  const { track } = usePerpsEventTracking();
+
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
@@ -328,25 +346,44 @@ const MarketInsightsView: React.FC = () => {
     assetSymbolProperty,
   ]);
 
-  const handlePerpsDirectionPress = useCallback(
-    (direction: 'long' | 'short') => {
-      const event = createEventBuilder(
-        MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
-      )
-        .addProperties({
-          ...assetIdProperty,
-          ...assetSymbolProperty,
-          interaction_type: direction,
-        })
-        .build();
-      trackEvent(event);
+  const closeEligibilityModal = useCallback(() => {
+    setIsEligibilityModalVisible(false);
+  }, []);
 
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.ORDER_REDIRECT,
-        params: { direction, asset: assetSymbol },
-      });
-    },
+  const handlePerpsDirectionPress = useCallback(
+    (direction: 'long' | 'short') =>
+      gate(async () => {
+        if (!isEligible) {
+          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.MARKET_INSIGHTS,
+          });
+          setIsEligibilityModalVisible(true);
+          return;
+        }
+
+        const event = createEventBuilder(
+          MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        )
+          .addProperties({
+            ...assetIdProperty,
+            ...assetSymbolProperty,
+            interaction_type: direction,
+          })
+          .build();
+        trackEvent(event);
+
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.ORDER_REDIRECT,
+          params: { direction, asset: assetSymbol },
+        });
+      }),
     [
+      gate,
+      isEligible,
+      track,
       navigation,
       trackEvent,
       createEventBuilder,
@@ -844,6 +881,20 @@ const MarketInsightsView: React.FC = () => {
           onSubmit={handleFeedbackSubmit}
         />
       ) : null}
+
+      {isEligibilityModalVisible && (
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={closeEligibilityModal}
+              contentKey="geo_block"
+              testID="market-insights-geo-block-tooltip"
+            />
+          </Modal>
+        </View>
+      )}
     </Box>
   );
 };
