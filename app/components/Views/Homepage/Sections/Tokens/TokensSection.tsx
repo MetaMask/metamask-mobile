@@ -316,7 +316,7 @@ const TokensSectionTrendingOnly = forwardRef<
     const navigation = useNavigation();
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
-    const { applyTagForDedicatedTrendingSection } =
+    const { applyTagForDedicatedTrendingSection, clearTransactionAbTests } =
       useHomepageTrendingSectionTransactionAbTests();
     const {
       results: trendingTokens,
@@ -353,8 +353,9 @@ const TokensSectionTrendingOnly = forwardRef<
     });
 
     const handleViewAllTokens = useCallback(() => {
+      clearTransactionAbTests();
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
-    }, [navigation]);
+    }, [clearTransactionAbTests, navigation]);
 
     if (!isTrendingLoading && itemCount === 0) {
       return null;

@@ -107,6 +107,17 @@ jest.mock(
   }),
 );
 
+const mockApplyTagForDedicatedTrendingSection = jest.fn();
+const mockClearTransactionAbTests = jest.fn();
+
+jest.mock('../../hooks/useHomepageTrendingSectionTransactionAbTests', () => ({
+  useHomepageTrendingSectionTransactionAbTests: () => ({
+    applyTagForDedicatedTrendingSection:
+      mockApplyTagForDedicatedTrendingSection,
+    clearTransactionAbTests: mockClearTransactionAbTests,
+  }),
+}));
+
 const mockShouldShowTokenListItemCta = jest.fn().mockReturnValue(false);
 jest.mock('../../../../UI/Earn/hooks/useMusdCtaVisibility', () => ({
   useMusdCtaVisibility: () => ({
@@ -146,12 +157,25 @@ jest.mock('./components/PopularTokensSkeleton', () => {
 jest.mock(
   '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem',
   () => {
-    const { Text } = jest.requireActual('react-native');
+    const ReactActual = jest.requireActual('react');
+    const { Text, TouchableOpacity } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({ token }: { token: { assetId: string; name: string } }) => (
-        <Text testID={`trending-token-row-${token.assetId}`}>{token.name}</Text>
-      ),
+      default: ({
+        token,
+        onBeforeNavigate,
+      }: {
+        token: { assetId: string; name: string };
+        onBeforeNavigate?: () => void;
+      }) =>
+        ReactActual.createElement(
+          TouchableOpacity,
+          {
+            testID: `trending-token-row-${token.assetId}`,
+            onPress: () => onBeforeNavigate?.(),
+          },
+          ReactActual.createElement(Text, null, token.name),
+        ),
     };
   },
 );
@@ -1018,9 +1042,35 @@ describe('TokensSection', () => {
 
       fireEvent.press(screen.getByLabelText('Trending tokens'));
 
+      expect(mockClearTransactionAbTests).toHaveBeenCalled();
+      expect(mockApplyTagForDedicatedTrendingSection).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
       );
+    });
+
+    it('tags homepage trending AB when a trending-only row is pressed', () => {
+      mockUseTrendingRequest.mockReturnValue({
+        results: mockTrendingTokenData,
+        isLoading: false,
+        error: null,
+        fetch: mockFetchTrendingTokens,
+      });
+
+      renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="trending-only"
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId('trending-token-row-eip155:1/slip44:60'),
+      );
+
+      expect(mockApplyTagForDedicatedTrendingSection).toHaveBeenCalled();
+      expect(mockClearTransactionAbTests).not.toHaveBeenCalled();
     });
 
     it('calls fetchTrendingTokens on refresh', async () => {
