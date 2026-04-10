@@ -20,8 +20,6 @@
     "scripts/setup.mjs",
     "patches/**",
     ".yarn/patches/**",
-    ".github/workflows/**",
-    ".github/scripts/**",
     "react-native.config.js"
   ],
   "ignore": [
