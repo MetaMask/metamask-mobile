@@ -46,23 +46,23 @@ export const SafeAreaView = forwardRef<
       edges == null
         ? { ...defaultEdges }
         : (() => {
-          const edgesObj: EdgeRecord = Array.isArray(edges)
-            ? (edges as readonly Edge[]).reduce<EdgeRecord>(
-              (acc, edge: Edge) => {
-                acc[edge] = 'additive';
-                return acc;
-              },
-              {},
-            )
-            : (edges as EdgeRecord);
+            const edgesObj: EdgeRecord = Array.isArray(edges)
+              ? (edges as readonly Edge[]).reduce<EdgeRecord>(
+                  (acc, edge: Edge) => {
+                    acc[edge] = 'additive';
+                    return acc;
+                  },
+                  {},
+                )
+              : (edges as EdgeRecord);
 
-          return {
-            top: edgesObj.top ?? 'off',
-            right: edgesObj.right ?? 'off',
-            bottom: edgesObj.bottom ?? 'off',
-            left: edgesObj.left ?? 'off',
-          };
-        })();
+            return {
+              top: edgesObj.top ?? 'off',
+              right: edgesObj.right ?? 'off',
+              bottom: edgesObj.bottom ?? 'off',
+              left: edgesObj.left ?? 'off',
+            };
+          })();
 
     // Defers top inset to be applied via styles instead
     const topMode = nativeEdgesInternal.top;
@@ -90,8 +90,7 @@ export const SafeAreaView = forwardRef<
     if (!applyHookTopInset) {
       return style;
     }
-    const edgeKey =
-      resolvedMode === 'margin' ? 'marginTop' : 'paddingTop';
+    const edgeKey = resolvedMode === 'margin' ? 'marginTop' : 'paddingTop';
     const flat = StyleSheet.flatten(style) ?? {};
     const existing = numericInsetContribution(flat[edgeKey]);
     const combinedTop =
@@ -99,13 +98,7 @@ export const SafeAreaView = forwardRef<
         ? Math.max(existing, insets.top)
         : existing + insets.top;
     return [style, { [edgeKey]: combinedTop } as ViewStyle];
-  }, [
-    applyHookTopInset,
-    hookTopEdgeMode,
-    insets.top,
-    resolvedMode,
-    style,
-  ]);
+  }, [applyHookTopInset, hookTopEdgeMode, insets.top, resolvedMode, style]);
 
   return (
     <NativeSafeAreaView

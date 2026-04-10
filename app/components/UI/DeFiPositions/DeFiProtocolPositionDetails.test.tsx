@@ -55,7 +55,6 @@ const mockInitialState = {
 };
 
 describe('DeFiProtocolPositionDetails', () => {
-
   it('renders the protocol name header and aggregated balance', async () => {
     const { findByText, findByTestId } = renderWithProvider(
       <DeFiProtocolPositionDetails />,
