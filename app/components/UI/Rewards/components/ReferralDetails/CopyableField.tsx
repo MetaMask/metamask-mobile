@@ -2,16 +2,14 @@ import React, { useState } from 'react';
 import {
   Box,
   BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+  IconName,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon/Icon.types';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 
 interface CopyableFieldProps {
@@ -56,13 +54,13 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
       </Box>
       <ButtonIcon
         iconName={isCopied ? IconName.CopySuccess : IconName.Copy}
-        size={ButtonIconSizes.Md}
+        size={ButtonIconSize.Md}
         onPress={handleCopy}
         isDisabled={!value}
         accessibilityLabel={isCopied ? 'Copied' : 'Copy'}
         accessibilityRole="button"
         testID="copy-button"
-        iconColor={isCopied ? IconColor.Success : undefined}
+        iconProps={isCopied ? { color: IconColor.SuccessDefault } : undefined}
       />
     </Box>
   );
