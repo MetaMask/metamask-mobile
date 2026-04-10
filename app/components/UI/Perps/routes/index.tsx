@@ -59,6 +59,7 @@ function getRedesignedConfirmationsHeaderOptions({
         headerLeft: () => null,
         headerShown: true,
         title: '',
+        presentation: 'transparentModal',
       }
     : { header: () => null };
 }
