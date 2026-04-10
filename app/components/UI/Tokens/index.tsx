@@ -318,12 +318,14 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         }
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
-        <TokenListControlBar
-          goToAddToken={goToAddToken}
-          showAddToken={!showOnlyMusd}
-          hideSort={showOnlyMusd}
-          style={isFullView ? tw`px-4 pb-4` : undefined}
-        />
+        {!showOnlyMusd && (
+          <TokenListControlBar
+            goToAddToken={goToAddToken}
+            showAddToken={!showOnlyMusd}
+            hideSort={showOnlyMusd}
+            style={isFullView ? tw`px-4 pb-4` : undefined}
+          />
+        )}
         {tokenContent}
         <ScamWarningModal
           showScamWarningModal={showScamWarningModal}
