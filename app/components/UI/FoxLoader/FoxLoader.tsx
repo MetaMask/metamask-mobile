@@ -12,6 +12,7 @@ import { hideAsync } from 'expo-splash-screen';
 import { useStyles } from '../../../component-library/hooks';
 import Logger from '../../../util/Logger';
 import styleSheet from './FoxLoader.styles';
+import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const splashRiveFile = require('../../../animations/splash_screen.riv');
