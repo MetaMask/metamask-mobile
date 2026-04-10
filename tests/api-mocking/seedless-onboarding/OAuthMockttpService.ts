@@ -16,7 +16,19 @@ import {
   SSSNodeKeyPairs,
 } from './constants';
 
+import { OAUTH_CONFIG } from '../../../app/core/OAuthService/OAuthLoginHandlers/config';
+
 import { OAuthMockttpServiceOptions, SecretType } from './types';
+
+const UAT_GROUPED_AUTH = OAUTH_CONFIG.main_uat;
+
+function defaultMockGroupedAuthClientId(
+  loginProvider: E2ELoginProvider,
+): string {
+  return loginProvider === E2ELoginProvider.APPLE
+    ? UAT_GROUPED_AUTH.APPLE_GROUPED_AUTH_CONNECTION_ID
+    : UAT_GROUPED_AUTH.GOOGLE_GROUPED_AUTH_CONNECTION_ID;
+}
 
 /**
  * Configuration for E2E OAuth mock
@@ -265,7 +277,9 @@ export class OAuthMockttpService {
 
           const mockRequestBody = {
             email_id: emailForMock,
-            client_id: body.client_id || 'e2e-mock-client-id',
+            client_id:
+              body.client_id ||
+              defaultMockGroupedAuthClientId(this.config.loginProvider),
             login_provider: this.config.loginProvider,
             access_type: 'offline',
           };
@@ -361,7 +375,9 @@ export class OAuthMockttpService {
 
           const mockRequestBody = {
             email_id: emailForMock,
-            client_id: body.client_id || 'e2e-mock-client-id',
+            client_id:
+              body.client_id ||
+              defaultMockGroupedAuthClientId(this.config.loginProvider),
             login_provider: this.config.loginProvider,
           };
 
@@ -433,7 +449,9 @@ export class OAuthMockttpService {
 
           const mockRequestBody = {
             email_id: emailForMock,
-            client_id: body.client_id || 'e2e-mock-client-id',
+            client_id:
+              body.client_id ||
+              defaultMockGroupedAuthClientId(this.config.loginProvider),
             login_provider: this.config.loginProvider,
             refresh_token: body.refresh_token,
           };

@@ -6,7 +6,7 @@ import { OAuthError, OAuthErrorType } from './error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { TraceName, TraceOperation } from '../../util/trace';
 import { signOut as acmSignOut } from '@metamask/react-native-acm';
-import { SET_SEEDLESS_ONBOARDING } from '../../actions/onboarding';
+import { OAUTH_CONFIG } from './OAuthLoginHandlers/config';
 
 const MOCK_JWT_TOKEN =
   'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN3bmFtOTA5QGdtYWlsLmNvbSIsInN1YiI6InN3bmFtOTA5QGdtYWlsLmNvbSIsImlzcyI6Im1ldGFtYXNrIiwiYXVkIjoibWV0YW1hc2siLCJpYXQiOjE3NDUyMDc1NjYsImVhdCI6MTc0NTIwNzg2NiwiZXhwIjoxNzQ1MjA3ODY2fQ.nXRRLB7fglRll7tMzFFCU0u7Pu6EddqEYf_DMyRgOENQ6tJ8OLtVknNf83_5a67kl_YKHFO-0PEjvJviPID6xg';
@@ -121,7 +121,7 @@ const mockGetAuthTokens = jest.fn().mockImplementation(() => ({
 const mockCreateLoginHandler = jest.fn().mockImplementation(() => ({
   authConnection: AuthConnection.Google,
   options: {
-    clientId: 'e2e-mock-google-client-id',
+    clientId: OAUTH_CONFIG.main_uat.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
     authServerUrl: 'https://auth.example.com',
     web3AuthNetwork: 'sapphire_mainnet',
   },
@@ -219,7 +219,7 @@ describe('OAuth login service', () => {
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith({
-      type: SET_SEEDLESS_ONBOARDING,
+      type: 'SET_SEEDLESS_ONBOARDING',
       clientId: 'clientId',
       authConnection: AuthConnection.Google,
     });
@@ -654,7 +654,9 @@ describe('OAuth login service', () => {
       const body = JSON.parse(
         (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
       );
-      expect(body.client_id).toBe('e2e-mock-google-client-id');
+      expect(body.client_id).toBe(
+        OAUTH_CONFIG.main_uat.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
+      );
       expect(body.login_provider).toBe(AuthConnection.Google);
       expect(body.access_type).toBe('offline');
       expect(body.email_id).toMatch(/^[a-z0-9]+\d+\+e2e@web3auth\.io$/);

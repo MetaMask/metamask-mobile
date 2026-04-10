@@ -13,7 +13,10 @@ import {
   AuthServerUrl,
   web3AuthNetwork,
 } from '../../../../app/core/OAuthService/OAuthLoginHandlers/constants';
+import { OAUTH_CONFIG } from '../../../../app/core/OAuthService/OAuthLoginHandlers/config';
 import type { BaseHandlerOptions } from '../../../../app/core/OAuthService/OAuthLoginHandlers/baseHandler';
+
+const UAT_GROUPED_AUTH = OAUTH_CONFIG.main_uat;
 
 /**
  * Login result type
@@ -247,12 +250,12 @@ export function createLoginHandler(
   switch (provider) {
     case 'google':
       return new MockGoogleLoginHandler({
-        clientId: 'e2e-mock-google-client-id',
+        clientId: UAT_GROUPED_AUTH.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
         redirectUri: 'metamask://e2e',
       });
     case 'apple':
       return new MockAppleLoginHandler({
-        clientId: 'e2e-mock-apple-client-id',
+        clientId: UAT_GROUPED_AUTH.APPLE_GROUPED_AUTH_CONNECTION_ID,
       });
     default:
       throw new Error(`[E2E Mock] Unsupported provider: ${provider}`);

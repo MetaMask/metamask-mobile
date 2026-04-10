@@ -29,12 +29,13 @@ jest.mock('./OAuthLoginHandlers/constants', () => {
 });
 
 import { QAMockOAuthService } from './QAMockOAuthService';
+import { OAUTH_CONFIG } from './OAuthLoginHandlers/config';
 
 const createStubLoginHandler = (): BaseLoginHandler =>
   ({
     authConnection: AuthConnection.Google,
     options: {
-      clientId: 'e2e-mock-google-client-id',
+      clientId: OAUTH_CONFIG.main_uat.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
       authServerUrl: 'https://auth.example.com',
       web3AuthNetwork: 'sapphire_mainnet',
     },
@@ -148,6 +149,9 @@ describe('QAMockOAuthService', () => {
     });
 
     it('POSTs QA mock URL and returns data userId and accountName', async () => {
+      mockGetE2EMockOAuthEmailForQaMock.mockReturnValue(
+        'newuser+e2e@web3auth.io',
+      );
       const envelope = {
         success: true,
         data: {
@@ -185,7 +189,7 @@ describe('QAMockOAuthService', () => {
       );
       expect(body).toMatchObject({
         email_id: 'newuser+e2e@web3auth.io',
-        client_id: 'e2e-mock-google-client-id',
+        client_id: OAUTH_CONFIG.main_uat.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
         login_provider: AuthConnection.Google,
         access_type: 'offline',
       });
