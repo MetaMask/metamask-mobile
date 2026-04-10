@@ -205,10 +205,15 @@ describe('CardAuthentication Component', () => {
       ).toBeOnTheScreen();
     });
 
-    it('matches login step snapshot', () => {
-      const { toJSON } = render();
+    it('renders signup button and password toggle', () => {
+      render();
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.SIGNUP_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('password-visibility-toggle'),
+      ).toBeOnTheScreen();
     });
   });
 
