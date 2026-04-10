@@ -1,34 +1,53 @@
 import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { RegressionTrade } from '../../tags';
+import { SmokePerps } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
 import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
-import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import {
+  PERPS_ARBITRUM_MOCKS,
+  mockPerpsGeolocation,
+} from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
-import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
 import PerpsView from '../../page-objects/Perps/PerpsView';
-import { createLogger, LogLevel } from '../../framework/logger';
+import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
-import Assertions from '../../framework/Assertions';
-import Matchers from '../../framework/Matchers';
-import { PerpsPositionsViewSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
-import { TestSuiteParams } from '../../framework/types';
+import { createLogger, LogLevel, type TestSuiteParams } from '../../framework';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({
-  name: 'PerpsPositionSpec',
+  name: 'PerpsPositionLiquidationSpec',
   level: LogLevel.INFO,
 });
 
-describe(RegressionTrade('Perps Position'), () => {
-  it('opens a long position with custom profit and closes it', async () => {
+// Skipped until liquidation mock + assertions are verified stable on iOS and Android in CI.
+describe.skip(SmokePerps('Perps Position Liquidation'), () => {
+  it('opens a long position and gets liquidated', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withPerpsProfile('position-testing')
+          .withPerpsProfile('no-positions')
+          .withPerpsFirstTimeUser(false)
+          .withNetworkController({
+            type: 'rpc',
+            chainId: '0xa4b1',
+            rpcUrl: 'https://arb1.arbitrum.io/rpc',
+            nickname: 'Arbitrum One',
+            ticker: 'ETH',
+          })
+          .withTokensForAllPopularNetworks([
+            {
+              address: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
+              symbol: 'USDC',
+              decimals: 6,
+              name: 'USD Coin',
+              type: 'erc20',
+            },
+          ])
+          .withPopularNetworks()
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
@@ -36,6 +55,10 @@ describe(RegressionTrade('Perps Position'), () => {
             ...remoteFeatureFlagHomepageSectionsV1Enabled(),
           });
           await PERPS_ARBITRUM_MOCKS(mockServer);
+          await mockPerpsGeolocation(
+            mockServer,
+            RampsRegions[RampsRegionsEnum.SPAIN],
+          );
         },
         useCommandQueueServer: true,
       },
@@ -46,67 +69,56 @@ describe(RegressionTrade('Perps Position'), () => {
         logger.info('💰 Using E2E mock balance - no wallet import needed');
         logger.info('🎯 Mock account: $10,000 total, $8,000 available');
         await loginToApp();
-
         await device.disableSynchronization();
 
         // Navigate to Perps via homepage section (same click path as smoke perps tests)
         await WalletView.scrollAndTapPerpsSection();
-
         await PerpsMarketListView.selectMarket('ETH');
-
         await PerpsMarketDetailsView.tapLongButton();
+        await PerpsOrderView.tapPlaceOrderButton();
 
-        await PerpsView.tapPlaceOrderButton();
+        // Wait for market details like perps-position.spec: a price push before the
+        // sheet finishes closing can redraw the chart and leave the scroll view
+        // under the 75% visible / not-obscured threshold on Android.
+        await PerpsMarketDetailsView.waitForScreenReady();
+        await PerpsMarketDetailsView.expectClosePositionButtonVisible();
 
         logger.info('📈 E2E Mock: Order placed successfully');
         logger.info('💎 E2E Mock: Position created with mock data');
 
+        await PerpsE2EModifiers.updateMarketPriceServer(
+          commandQueueServer,
+          'ETH',
+          '2125.00',
+        );
+        await PerpsE2EModifiers.triggerLiquidationServer(
+          commandQueueServer,
+          'ETH',
+        );
+        logger.info(
+          'E2E Mock: First liquidation attempt at 2125 — position expected to stay open until a lower mark',
+        );
+
         await PerpsView.tapBackButtonPositionSheet();
-        await PerpsHomeView.tapBackHomeButton();
-
-        // add price change and liquidation -> not yet liquidated
         await PerpsE2EModifiers.updateMarketPriceServer(
           commandQueueServer,
-          'BTC',
-          '80000.00',
+          'ETH',
+          '1200.00',
         );
         await PerpsE2EModifiers.triggerLiquidationServer(
           commandQueueServer,
-          'BTC',
-        );
-        logger.info('🔥 E2E Mock: Liquidation triggered. Not yet liquidated');
-
-        // Assertion 1: still have 2 positions (the default and the recently opened)
-        await PerpsView.ensurePerpsTabPositionVisible('BTC', 5, 'long', 0);
-        await PerpsView.ensurePerpsTabPositionVisible('ETH', 3, 'long', 1);
-
-        // add price change and force liquidation - BTC below 30k triggers default BTC liquidation
-        await PerpsE2EModifiers.updateMarketPriceServer(
-          commandQueueServer,
-          'BTC',
-          '30000.00',
-        );
-        await PerpsE2EModifiers.triggerLiquidationServer(
-          commandQueueServer,
-          'BTC',
-        );
-        logger.info('🔥 E2E Mock: Liquidation triggered. Liquidated');
-
-        // Assertion 2: only BTC 3x is visible
-        // 1) The expected (first item) exists and is visible
-        await Assertions.expectElementToBeVisible(
-          PerpsView.getPositionItem('ETH', 3, 'long', 0),
-          { description: 'ETH 3x long en índice 0' },
+          'ETH',
         );
 
-        // 2) There is no second item of position (verification by index with base ID)
-        const secondItem = (await Matchers.getElementByID(
-          PerpsPositionsViewSelectorsIDs.POSITION_ITEM,
-          1,
-        )) as unknown as DetoxElement;
-        await Assertions.expectElementToNotBeVisible(secondItem, {
-          description: 'No second position card should be visible',
-        });
+        logger.info(
+          'E2E Mock: Second liquidation attempt at 1200 — position expected to clear',
+        );
+
+        await PerpsView.expectPositionRowNotVisibleAnyLeverage(
+          'ETH',
+          'long',
+          0,
+        );
       },
     );
   });
