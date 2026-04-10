@@ -9037,9 +9037,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-controller@npm:@metamask-previews/money-account-controller@0.1.0-preview-aa31fa3":
-  version: 0.1.0-preview-aa31fa3
-  resolution: "@metamask-previews/money-account-controller@npm:0.1.0-preview-aa31fa3"
+"@metamask/money-account-controller@npm:@metamask-previews/money-account-controller@0.1.0-preview-6e596eb":
+  version: 0.1.0-preview-6e596eb
+  resolution: "@metamask-previews/money-account-controller@npm:0.1.0-preview-6e596eb"
   dependencies:
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
@@ -9056,7 +9056,7 @@ __metadata:
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.9.0"
     async-mutex: "npm:^0.5.0"
-  checksum: 10/441769f897ef14c2c59e72d8e16d3afb2f2e16cf1805222a35ee37ac6adc776cecbe2fce5028f63a37b5a1646317d273e8e2f3280e69f25aefa627957fc86e4c
+  checksum: 10/bf65cc212312618988284716f3283c7a2e038af8653a7d8a1a047dbe9dd15bb8eeecd0403ab469dde700e442bf2039f20e0e83260002d7acb932245e25e63b10
   languageName: node
   linkType: hard
 

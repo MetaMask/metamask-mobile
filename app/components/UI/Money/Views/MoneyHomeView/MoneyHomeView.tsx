@@ -32,9 +32,15 @@ const MoneyHomeView = () => {
     musdBalanceResult,
     musdShfvdBalanceResult,
     exchangeRateResult,
-    // vaultApyResult,
+    vaultApyResult,
     musdEquivalentBalanceResult,
+    musdFiatFormatted,
+    musdSHFvdFiatFormatted,
+    totalFiatFormatted,
+    tokenTotal,
   } = useMoneyAccountBalance();
+
+  console.log('vaultApyResult: ', vaultApyResult);
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
 

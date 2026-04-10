@@ -803,7 +803,7 @@
   "previewBuilds": {
     "@metamask/money-account-controller": {
       "type": "non-breaking",
-      "previewVersion": "0.1.0-preview-aa31fa3"
+      "previewVersion": "0.1.0-preview-6e596eb"
     }
   }
 }
