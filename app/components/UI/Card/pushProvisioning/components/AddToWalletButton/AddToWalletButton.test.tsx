@@ -11,12 +11,16 @@ jest.mock('react-native/Libraries/Components/Touchable/TouchableOpacity', () =>
 const mockNativeAddToWalletButton = jest.fn(
   (_props: Record<string, unknown>) => null,
 );
-jest.mock('@expensify/react-native-wallet', () => ({
-  AddToWalletButton: (props: Record<string, unknown>) => {
-    mockNativeAddToWalletButton(props);
-    return null;
-  },
-}));
+jest.mock(
+  '@expensify/react-native-wallet',
+  () => ({
+    AddToWalletButton: (props: Record<string, unknown>) => {
+      mockNativeAddToWalletButton(props);
+      return null;
+    },
+  }),
+  { virtual: true },
+);
 
 import AddToWalletButton, {
   getGoogleWalletButtonSvg,

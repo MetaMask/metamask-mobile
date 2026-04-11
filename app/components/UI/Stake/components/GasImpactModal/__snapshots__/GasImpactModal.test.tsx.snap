@@ -88,7 +88,7 @@ exports[`GasImpactModal render matches snapshot 1`] = `
               "borderTopLeftRadius": 24,
               "borderTopRightRadius": 24,
               "borderWidth": 1,
-              "maxHeight": 640,
+              "maxHeight": 0,
               "overflow": "hidden",
               "paddingBottom": 0,
               "shadowColor": "#0000001a",
@@ -102,7 +102,7 @@ exports[`GasImpactModal render matches snapshot 1`] = `
             {
               "transform": [
                 {
-                  "translateY": 640,
+                  "translateY": 0,
                 },
               ],
             },
@@ -177,7 +177,7 @@ exports[`GasImpactModal render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,

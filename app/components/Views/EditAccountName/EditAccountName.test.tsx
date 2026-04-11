@@ -120,10 +120,10 @@ describe('EditAccountName', () => {
 
     fireEvent.changeText(input, '');
 
-    expect(saveButton).toBeDisabled();
+    expect(saveButton.props.disabled).toBe(true);
     fireEvent.changeText(input, 'Account');
 
-    expect(saveButton).toBeEnabled();
+    expect(saveButton.props.disabled).toBe(false);
   });
 
   it('should call goBack when cancel button is pressed', () => {

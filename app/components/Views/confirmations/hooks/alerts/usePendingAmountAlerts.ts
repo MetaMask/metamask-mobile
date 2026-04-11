@@ -3,7 +3,6 @@ import { Alert } from '../../types/alerts';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { usePerpsHardwareAccountAlert } from './usePerpsHardwareAccountAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
-import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
 
 export function usePendingAmountAlerts({
   pendingTokenAmount,
@@ -20,22 +19,16 @@ export function usePendingAmountAlerts({
     pendingAmount: pendingTokenAmount ?? '0',
   });
 
-  const insufficientPerpsBalanceAlert = useInsufficientPerpsBalanceAlert({
-    pendingAmount: pendingTokenAmount ?? '0',
-  });
-
   return useMemo(
     () => [
       ...perpsHardwareAccountAlert,
       ...insufficientTokenFundsAlert,
       ...insufficientPredictBalanceAlert,
-      ...insufficientPerpsBalanceAlert,
     ],
     [
       insufficientTokenFundsAlert,
       perpsHardwareAccountAlert,
       insufficientPredictBalanceAlert,
-      insufficientPerpsBalanceAlert,
     ],
   );
 }

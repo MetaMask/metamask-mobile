@@ -60,8 +60,9 @@ const createMockSDK = (tokensByChain: Record<string, unknown[]> = {}) => ({
   }),
 });
 
-// Default mock value for selectIsCardAuthenticated
+// Default mock values for selectors (order: isAuthenticated, userCardLocation)
 let mockIsAuthenticated = true;
+let mockUserCardLocation: string | null = 'international';
 
 describe('useSpendingLimitData', () => {
   const mockFetchDelegationSettings = jest.fn();
@@ -69,9 +70,15 @@ describe('useSpendingLimitData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsAuthenticated = true;
+    mockUserCardLocation = 'international';
 
-    // useSelector is called once: selectIsCardAuthenticated
-    mockUseSelector.mockImplementation(() => mockIsAuthenticated);
+    // useSelector is called in order: selectIsAuthenticatedCard, selectUserCardLocation
+    let selectorCallCount = 0;
+    mockUseSelector.mockImplementation(() => {
+      selectorCallCount++;
+      if (selectorCallCount % 2 === 1) return mockIsAuthenticated;
+      return mockUserCardLocation;
+    });
 
     mockUseCardSDK.mockReturnValue({
       sdk: createMockSDK(),
@@ -657,6 +664,8 @@ describe('useSpendingLimitData', () => {
     });
 
     it('handles multiple tokens across multiple networks', () => {
+      mockUserCardLocation = 'international';
+
       mockUseGetDelegationSettings.mockReturnValue({
         data: createMockDelegationSettings({
           networks: [

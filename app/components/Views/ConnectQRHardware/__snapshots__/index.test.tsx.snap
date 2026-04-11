@@ -155,7 +155,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                   },
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                   },
                 ]
               }
@@ -205,7 +205,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                     },
                     {
                       "color": "#4459ff",
-                      "fontFamily": "Geist-SemiBold",
+                      "fontFamily": "Geist-Bold",
                     },
                     {
                       "marginRight": 16,
@@ -227,7 +227,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                     },
                     {
                       "color": "#4459ff",
-                      "fontFamily": "Geist-SemiBold",
+                      "fontFamily": "Geist-Bold",
                     },
                   ]
                 }
@@ -266,7 +266,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                     },
                     {
                       "color": "#4459ff",
-                      "fontFamily": "Geist-SemiBold",
+                      "fontFamily": "Geist-Bold",
                     },
                     {
                       "marginRight": 16,
@@ -288,7 +288,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                     },
                     {
                       "color": "#4459ff",
-                      "fontFamily": "Geist-SemiBold",
+                      "fontFamily": "Geist-Bold",
                     },
                   ]
                 }
@@ -342,7 +342,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },

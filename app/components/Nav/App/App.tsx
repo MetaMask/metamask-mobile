@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
@@ -38,7 +38,6 @@ import PerpsWebSocketHealthToast, {
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
-import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
@@ -78,6 +77,7 @@ import SecurityBadgeBottomSheet from '../../UI/TokenDetails/components/SecurityB
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
+import CardNotification from '../../Views/CardNotification';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
 import LockScreen from '../../Views/LockScreen';
@@ -181,10 +181,17 @@ const OnboardingSuccessFlow = () => {
   const { colors } = useTheme();
 
   return (
-    <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
+    <Stack.Navigator
+      initialRouteName={Routes.ONBOARDING.SUCCESS}
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+        headerStyle: { backgroundColor: colors.background.default },
+        headerShadowVisible: false,
+      }}
+    >
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS}
-        component={OnboardingSuccess}
+        component={OnboardingSuccess as ScreenComponent}
         options={{
           headerShown: false,
         }}
@@ -192,10 +199,6 @@ const OnboardingSuccessFlow = () => {
       <Stack.Screen
         name={Routes.ONBOARDING.DEFAULT_SETTINGS}
         component={DefaultSettings}
-        options={{
-          headerStyle: { backgroundColor: colors.background.default },
-          cardStyle: { backgroundColor: colors.background.default },
-        }}
       />
       <Stack.Screen
         name={Routes.ONBOARDING.GENERAL_SETTINGS}
@@ -221,7 +224,12 @@ const OnboardingNav = () => {
   const { colors } = useTheme();
 
   return (
-    <Stack.Navigator initialRouteName={'Onboarding'}>
+    <Stack.Navigator
+      initialRouteName={'Onboarding'}
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
       <Stack.Screen name="Onboarding" component={Onboarding} />
       <Stack.Screen
         name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
@@ -245,7 +253,7 @@ const OnboardingNav = () => {
       />
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS}
-        component={OnboardingSuccess}
+        component={OnboardingSuccess as ScreenComponent}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -253,7 +261,6 @@ const OnboardingNav = () => {
         component={DefaultSettings}
         options={{
           headerStyle: { backgroundColor: colors.background.default },
-          cardStyle: { backgroundColor: colors.background.default },
         }}
       />
       <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
@@ -280,13 +287,13 @@ const OnboardingNav = () => {
       />
       <Stack.Screen
         name="AccountAlreadyExists"
-        component={AccountStatus}
+        component={AccountStatus as ScreenComponent}
         initialParams={{ type: 'found' }}
         options={{ headerShown: false }}
       />
       <Stack.Screen
         name="AccountNotFound"
-        component={AccountStatus}
+        component={AccountStatus as ScreenComponent}
         initialParams={{ type: 'not_exist' }}
         options={{ headerShown: false }}
       />
@@ -395,9 +402,7 @@ interface RootModalFlowProps {
   };
 }
 const RootModalFlow = (props: RootModalFlowProps) => (
-  <Stack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
-  >
+  <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions }}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
       component={WalletActions}
@@ -432,7 +437,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ONBOARDING_SHEET}
-      component={OnboardingSheet}
+      component={OnboardingSheet as ScreenComponent}
     />
     <Stack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
@@ -473,7 +478,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ADD_ACCOUNT}
-      component={AddNewAccountBottomSheet}
+      component={AddNewAccountBottomSheet as ScreenComponent}
     />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
@@ -482,7 +487,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
-      component={SDKSessionModal}
+      component={SDKSessionModal as ScreenComponent}
     />
     <Stack.Screen
       name={Routes.SHEET.EXPERIENCE_ENHANCER}
@@ -494,7 +499,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_DISCONNECT}
-      component={SDKDisconnectModal}
+      component={SDKDisconnectModal as ScreenComponent}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}
@@ -630,6 +635,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}
       component={ReturnToAppNotification}
       initialParams={{ ...props.route.params }}
+    />
+    <Stack.Screen
+      name={Routes.CARD.NOTIFICATION}
+      component={CardNotification}
     />
     <Stack.Screen
       name={Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS}
@@ -943,6 +952,7 @@ const AppFlow = () => {
       screenOptions={{
         headerShown: false,
         animationEnabled: false,
+        presentation: 'transparentModal',
       }}
     >
       <Stack.Screen name={Routes.ONBOARDING.HOME_NAV} component={Main} />
@@ -958,7 +968,6 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
         component={MaxBrowserTabsModal}
-        options={{ presentation: 'modal' }}
       />
       <Stack.Screen name="OnboardingRootNav" component={OnboardingRootNav} />
       <Stack.Screen
@@ -972,10 +981,6 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.MODAL.ROOT_MODAL_FLOW}
         component={RootModalFlow as ScreenComponent}
-        options={{
-          presentation: 'modal',
-          detachPreviousScreen: false,
-        }}
       />
       <Stack.Screen
         name="ImportPrivateKeyView"
@@ -1030,7 +1035,7 @@ const AppFlow = () => {
       />
       <Stack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-        component={RevealPrivateCredential}
+        component={RevealPrivateCredential as ScreenComponent}
         options={{
           headerShown: false,
           animationEnabled: true,
@@ -1084,52 +1089,18 @@ const AppFlow = () => {
         }}
       />
       <Stack.Screen
-        options={{
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          presentation: 'modal',
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
         name={Routes.LEDGER_TRANSACTION_MODAL}
         component={LedgerTransactionModal}
       />
       <Stack.Screen
-        options={{
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          presentation: 'modal',
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
         name={Routes.QR_SIGNING_TRANSACTION_MODAL}
         component={QRSigningTransactionModal}
       />
       <Stack.Screen
-        options={{
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          presentation: 'modal',
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
         name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
         component={LedgerMessageSignModal}
       />
-      <Stack.Screen
-        name={Routes.OPTIONS_SHEET}
-        component={OptionsSheet}
-        options={{ presentation: 'modal' }}
-      />
+      <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
       <Stack.Screen
         name={Routes.EDIT_ACCOUNT_NAME}
         component={EditAccountName}
@@ -1173,12 +1144,10 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
         component={ModalSwitchAccountType}
-        options={{ presentation: 'modal' }}
       />
       <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_MODAL}
         component={PayWithModal}
-        options={{ presentation: 'modal' }}
       />
     </Stack.Navigator>
   );
@@ -1193,11 +1162,6 @@ const App: React.FC = () => {
 
   useOTAUpdates();
   const predictRegistrations = usePredictToastRegistrations();
-  const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
-  const toastRegistrations = useMemo(
-    () => [...predictRegistrations, ...perpsWithdrawRegistrations],
-    [predictRegistrations, perpsWithdrawRegistrations],
-  );
 
   if (isFirstRender.current) {
     trace({
@@ -1277,7 +1241,7 @@ const App: React.FC = () => {
         <Toast ref={toastRef} />
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
-        <ControllerEventToastBridge registrations={toastRegistrations} />
+        <ControllerEventToastBridge registrations={predictRegistrations} />
         <ProfilerManager />
       </WebSocketHealthToastProvider>
     </AccessRestrictedProvider>

@@ -21,8 +21,7 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import styleSheet from './TokenNotAvailableModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { useRampsProviders } from '../../../hooks/useRampsProviders';
-import { useRampsTokens } from '../../../hooks/useRampsTokens';
+import { useRampsController } from '../../../hooks/useRampsController';
 import { createProviderSelectionModalNavigationDetails } from '../ProviderSelectionModal';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -49,8 +48,7 @@ function TokenNotAvailableModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
 
-  const { selectedProvider } = useRampsProviders();
-  const { selectedToken } = useRampsTokens();
+  const { selectedProvider, selectedToken } = useRampsController();
 
   const tokenName = selectedToken?.name ?? '';
   const providerName = selectedProvider?.name ?? '';

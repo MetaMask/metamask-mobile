@@ -4,6 +4,10 @@
 # It runs on every commit pushed to a release branch, but only when the release PR
 # has the 'auto-rc-builds' label.
 #
+# Rolling builds: when a new run starts for the same release branch, any queued or
+# in-progress run of this workflow for that branch is cancelled (same behavior as
+# Bitrise “Rolling builds” / “Abort running builds” for one branch + one workflow).
+#
 # Builds are triggered via the Runway OTA/build pipeline (runway-ota-build-core.yml):
 # - iOS runs first and performs the version bump.
 # - Android runs after, skipping the version bump (already done by iOS).
@@ -15,6 +19,10 @@ on:
   push:
     branches:
       - 'release/*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -123,16 +131,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Fetch the release branch after the iOS build's version-bump commit.
           ref: ${{ needs.validate-and-check-label.outputs.branch-name }}
           fetch-depth: 1
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - name: Read build metadata from repo
-        id: build-meta
-        run: ./scripts/get-build-metadata.sh --ci
       - name: Install dependencies
         run: yarn install --immutable
       - name: Post RC Build Comment
@@ -142,8 +146,8 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ needs.validate-and-check-label.outputs.pr-number }}
           SEMVER: ${{ needs.validate-and-check-label.outputs.semver }}
-          IOS_BUILD_NUMBER: ${{ steps.build-meta.outputs.ios_version_code }}
-          ANDROID_BUILD_NUMBER: ${{ steps.build-meta.outputs.android_version_code }}
+          IOS_BUILD_NUMBER: ${{ needs.trigger-ios-rc-build.outputs.ios_version_code }}
+          ANDROID_BUILD_NUMBER: ${{ needs.trigger-android-rc-build.outputs.android_version_code }}
           BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
   slack-notification:
@@ -156,4 +160,7 @@ jobs:
     uses: ./.github/workflows/slack-rc-notification.yml
     with:
       source_branch: ${{ needs.validate-and-check-label.outputs.branch-name }}
+      semver: ${{ needs.trigger-ios-rc-build.outputs.semantic_version }}
+      ios_build_number: ${{ needs.trigger-ios-rc-build.outputs.ios_version_code }}
+      android_build_number: ${{ needs.trigger-android-rc-build.outputs.android_version_code }}
     secrets: inherit

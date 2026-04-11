@@ -49,7 +49,7 @@ exports[`PhishingModal should render correctly 1`] = `
     style={
       {
         "color": "#131416",
-        "fontFamily": "Geist-SemiBold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 24,
         "marginBottom": 16,
         "textAlign": "left",

@@ -21,11 +21,15 @@ import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
 import { predictQueries } from '../queries';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
+import type { Hex } from '@metamask/utils';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
-import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
+import { selectTickerByChainId } from '../../../../selectors/networkController';
+import type { RootState } from '../../../../reducers';
 
 const showPendingToast = ({
   showToast,
@@ -298,6 +302,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         if (status === 'confirmed') {
           const fallbackAmount = amount ?? withdrawTransaction?.amount ?? 0;
           const { title, description } = getWithdrawConfirmedMessage(
+            store.getState(), // TODO: Refactor the hook to react to status changes instead of using it as a callback.
             transactionId,
             fallbackAmount,
           );
@@ -408,17 +413,18 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
  * original USDC-only message.
  */
 function getWithdrawConfirmedMessage(
+  state: RootState,
   transactionId: string | undefined,
   fallbackAmount: number,
 ): { title: string; description: string } {
   const title = strings('predict.withdraw.withdraw_completed');
 
-  const { isPostQuote, targetFiat, tokenSymbol } = resolveWithdrawTokenInfo(
-    store.getState(),
-    transactionId,
-  );
+  const txMeta = transactionId
+    ? selectTransactionMetadataById(state, transactionId)
+    : undefined;
+  const { metamaskPay } = txMeta ?? {};
 
-  if (!isPostQuote) {
+  if (!metamaskPay?.isPostQuote) {
     return {
       title,
       description: strings('predict.withdraw.withdraw_completed_subtitle', {
@@ -427,7 +433,27 @@ function getWithdrawConfirmedMessage(
     };
   }
 
-  const withdrawAmount = targetFiat ?? fallbackAmount;
+  const targetFiat = Number(metamaskPay.targetFiat);
+  const withdrawAmount =
+    Number.isFinite(targetFiat) && targetFiat > 0 ? targetFiat : fallbackAmount;
+
+  const chainId = metamaskPay.chainId as Hex | undefined;
+  const tokenAddress = metamaskPay.tokenAddress as Hex | undefined;
+
+  let tokenSymbol: string | undefined;
+  if (tokenAddress && chainId) {
+    tokenSymbol = selectSingleTokenByAddressAndChainId(
+      state,
+      tokenAddress,
+      chainId,
+    )?.symbol;
+  }
+  if (!tokenSymbol && chainId) {
+    tokenSymbol = selectTickerByChainId(state, chainId);
+  }
+  if (!tokenSymbol) {
+    tokenSymbol = 'USDC';
+  }
 
   return {
     title,

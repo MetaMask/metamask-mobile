@@ -72,6 +72,7 @@ jest.mock('../hooks/useTokenPrice', () => ({
     comparePrice: 95,
     prices: [],
     isLoading: false,
+    timePeriod: '1d',
     setTimePeriod: jest.fn(),
     chartNavigationButtons: ['1d', '1w', '1m'],
     currentCurrency: 'USD',
