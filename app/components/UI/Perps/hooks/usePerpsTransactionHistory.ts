@@ -95,6 +95,7 @@ export const usePerpsTransactionHistory = ({
   const fetchGenerationRef = useRef(0);
   const [hasFundingMore, setHasFundingMore] = useState(true);
   const [isFetchingMoreFunding, setIsFetchingMoreFunding] = useState(false);
+  const isFetchingMoreFundingRef = useRef(false);
 
   // Get user history (includes deposits/withdrawals) - single source of truth
   const {
@@ -276,7 +277,7 @@ export const usePerpsTransactionHistory = ({
   }, [fetchAllTransactions, refetchUserHistory]);
 
   const loadMoreFunding = useCallback(async () => {
-    if (!hasFundingMore || isFetchingMoreFunding) return;
+    if (!hasFundingMore || isFetchingMoreFundingRef.current) return;
 
     const controller = Engine.context.PerpsController;
     if (!controller) return;
@@ -302,6 +303,7 @@ export const usePerpsTransactionHistory = ({
     });
 
     const generation = fetchGenerationRef.current;
+    isFetchingMoreFundingRef.current = true;
     setIsFetchingMoreFunding(true);
     try {
       const olderFunding = await provider.getFunding({
@@ -345,9 +347,10 @@ export const usePerpsTransactionHistory = ({
       DevLogger.log('[PERPS-FUNDING] loadMoreFunding error:', err);
       // Existing transactions remain valid; user can scroll again to retry
     } finally {
+      isFetchingMoreFundingRef.current = false;
       setIsFetchingMoreFunding(false);
     }
-  }, [accountId, hasFundingMore, isFetchingMoreFunding]);
+  }, [accountId, hasFundingMore]);
 
   useEffect(() => {
     // Detect transition from skipping (not connected) to not skipping (connected)
