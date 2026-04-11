@@ -8,8 +8,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,14 +333,13 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -1541,7 +1539,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1551,6 +1549,6 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TestForm renders correctly 1`] = `
-<RCTSafeAreaView>
+<View>
   <Text
     accessibilityRole="text"
     style={
@@ -63,5 +63,5 @@ exports[`TestForm renders correctly 1`] = `
       random button label
     </Text>
   </TouchableOpacity>
-</RCTSafeAreaView>
+</View>
 `;
