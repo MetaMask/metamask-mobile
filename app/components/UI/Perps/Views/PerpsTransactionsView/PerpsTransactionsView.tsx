@@ -1,7 +1,12 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  View,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -77,6 +82,9 @@ const PerpsTransactionsView: React.FC = () => {
     transactions: allTransactions,
     isLoading: transactionsLoading,
     refetch: refreshTransactions,
+    loadMoreFunding,
+    hasFundingMore,
+    isFetchingMoreFunding,
   } = usePerpsTransactionHistory({
     skipInitialFetch: !isConnected,
     accountId,
@@ -490,9 +498,26 @@ const PerpsTransactionsView: React.FC = () => {
           item.type === 'header' ? 'header' : 'transaction'
         }
         ListEmptyComponent={shouldShowEmptyState ? renderEmptyState : null}
+        ListFooterComponent={
+          activeFilter === 'Funding' && isFetchingMoreFunding ? (
+            <View style={styles.loadMoreContainer}>
+              <ActivityIndicator
+                testID={
+                  PerpsTransactionsViewSelectorsIDs.FUNDING_LOAD_MORE_SPINNER
+                }
+              />
+            </View>
+          ) : null
+        }
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        onEndReached={
+          activeFilter === 'Funding' && hasFundingMore
+            ? loadMoreFunding
+            : undefined
+        }
+        onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
         drawDistance={
           PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FLASH_LIST_DRAW_DISTANCE

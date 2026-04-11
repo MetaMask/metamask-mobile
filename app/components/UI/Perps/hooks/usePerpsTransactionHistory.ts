@@ -6,7 +6,23 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import type { OrderFill } from '@metamask/perps-controller';
+import {
+  PERPS_TRANSACTIONS_HISTORY_CONSTANTS,
+  type OrderFill,
+} from '@metamask/perps-controller';
+
+const PAGE_WINDOW_MS =
+  PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_PAGE_WINDOW_DAYS *
+  24 *
+  60 *
+  60 *
+  1000;
+const MAX_LOOKBACK_MS =
+  PERPS_TRANSACTIONS_HISTORY_CONSTANTS.DEFAULT_FUNDING_HISTORY_DAYS *
+  24 *
+  60 *
+  60 *
+  1000;
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
@@ -43,8 +59,6 @@ function deduplicateByTxHash(
 }
 
 interface UsePerpsTransactionHistoryParams {
-  startTime?: number;
-  endTime?: number;
   accountId?: CaipAccountId;
   skipInitialFetch?: boolean;
 }
@@ -54,6 +68,9 @@ interface UsePerpsTransactionHistoryResult {
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  loadMoreFunding: () => Promise<void>;
+  hasFundingMore: boolean;
+  isFetchingMoreFunding: boolean;
 }
 
 /**
@@ -62,8 +79,6 @@ interface UsePerpsTransactionHistoryResult {
  * Uses HyperLiquid user history as the single source of truth for withdrawals
  */
 export const usePerpsTransactionHistory = ({
-  startTime,
-  endTime,
   accountId,
   skipInitialFetch = false,
 }: UsePerpsTransactionHistoryParams = {}): UsePerpsTransactionHistoryResult => {
@@ -72,13 +87,19 @@ export const usePerpsTransactionHistory = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Cursor tracks the startTime of the oldest funding window already fetched.
+  // null = initial fetch not done yet.
+  const fundingCursorRef = useRef<number | null>(null);
+  const [hasFundingMore, setHasFundingMore] = useState(true);
+  const [isFetchingMoreFunding, setIsFetchingMoreFunding] = useState(false);
+
   // Get user history (includes deposits/withdrawals) - single source of truth
   const {
     userHistory,
     isLoading: userHistoryLoading,
     error: userHistoryError,
     refetch: refetchUserHistory,
-  } = useUserHistory({ startTime, endTime, accountId });
+  } = useUserHistory({ accountId });
 
   // Subscribe to live WebSocket fills for instant trade updates
   // This ensures new trades appear immediately without waiting for REST refetch
@@ -154,6 +175,8 @@ export const usePerpsTransactionHistory = ({
 
       DevLogger.log('Fetching comprehensive transaction history...');
 
+      const fetchEndTime = Date.now();
+
       // Fetch all transaction data in parallel
       const [fills, orders, funding] = await Promise.all([
         provider.getOrderFills({
@@ -161,11 +184,7 @@ export const usePerpsTransactionHistory = ({
           aggregateByTime: false,
         }),
         provider.getOrders({ accountId }),
-        provider.getFunding({
-          accountId,
-          startTime,
-          endTime,
-        }),
+        provider.getFunding({ accountId }),
       ]);
 
       DevLogger.log('Transaction data fetched:', { fills, orders, funding });
@@ -226,6 +245,10 @@ export const usePerpsTransactionHistory = ({
 
       DevLogger.log('Combined transactions:', uniqueTransactions);
       setTransactions(uniqueTransactions);
+
+      // Reset funding pagination cursor to the start of the first (most recent) window
+      fundingCursorRef.current = fetchEndTime - PAGE_WINDOW_MS;
+      setHasFundingMore(true);
     } catch (err) {
       const errorMessage =
         err instanceof Error
@@ -238,7 +261,7 @@ export const usePerpsTransactionHistory = ({
     } finally {
       setIsLoading(false);
     }
-  }, [startTime, endTime, accountId]);
+  }, [accountId]);
 
   const refetch = useCallback(async () => {
     // Fetch user history first, then fetch all transactions
@@ -246,6 +269,67 @@ export const usePerpsTransactionHistory = ({
     userHistoryRef.current = freshUserHistory;
     await fetchAllTransactions();
   }, [fetchAllTransactions, refetchUserHistory]);
+
+  const loadMoreFunding = useCallback(async () => {
+    if (!hasFundingMore || isFetchingMoreFunding) return;
+
+    const controller = Engine.context.PerpsController;
+    if (!controller) return;
+
+    const provider = controller.getActiveProviderOrNull();
+    if (!provider) return;
+
+    const cursorEndTime = fundingCursorRef.current;
+    if (cursorEndTime === null) return;
+
+    const cursorStartTime = cursorEndTime - PAGE_WINDOW_MS;
+    const maxStartTime = Date.now() - MAX_LOOKBACK_MS;
+
+    if (cursorStartTime <= maxStartTime) {
+      setHasFundingMore(false);
+      return;
+    }
+
+    DevLogger.log('[PERPS-FUNDING] loadMoreFunding: fetching older window', {
+      cursorStartTime,
+      cursorEndTime,
+      windowDays: Math.round(PAGE_WINDOW_MS / (24 * 60 * 60 * 1000)),
+    });
+
+    setIsFetchingMoreFunding(true);
+    try {
+      const olderFunding = await provider.getFunding({
+        accountId,
+        startTime: Math.max(cursorStartTime, maxStartTime),
+        endTime: cursorEndTime,
+      });
+
+      DevLogger.log('[PERPS-FUNDING] loadMoreFunding: older records loaded', {
+        count: olderFunding.length,
+        newCursor: cursorStartTime,
+        hasMore: olderFunding.length > 0,
+      });
+
+      if (olderFunding.length === 0) {
+        setHasFundingMore(false);
+        return;
+      }
+
+      fundingCursorRef.current = cursorStartTime;
+
+      const olderFundingTxs = transformFundingToTransactions(olderFunding);
+      setTransactions((prev) => {
+        const combined = [...prev, ...olderFundingTxs];
+        return combined.sort((a, b) => b.timestamp - a.timestamp);
+      });
+
+      if (Math.max(cursorStartTime, maxStartTime) <= maxStartTime) {
+        setHasFundingMore(false);
+      }
+    } finally {
+      setIsFetchingMoreFunding(false);
+    }
+  }, [accountId, hasFundingMore, isFetchingMoreFunding]);
 
   useEffect(() => {
     // Detect transition from skipping (not connected) to not skipping (connected)
@@ -338,5 +422,8 @@ export const usePerpsTransactionHistory = ({
     isLoading: combinedIsLoading,
     error: combinedError,
     refetch,
+    loadMoreFunding,
+    hasFundingMore,
+    isFetchingMoreFunding,
   };
 };

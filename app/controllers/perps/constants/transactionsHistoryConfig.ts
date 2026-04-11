@@ -14,8 +14,9 @@ export const PERPS_TRANSACTIONS_HISTORY_CONSTANTS = {
   DEFAULT_FUNDING_HISTORY_DAYS: 365,
   /**
    * Number of days per pagination window when fetching funding history.
-   * Each window is fetched in parallel. A 30-day window stays well under the
-   * API limit for any realistic number of open positions.
+   * Each window is fetched via fetchWindowWithAutoSplit, which recursively
+   * halves any window that hits FUNDING_HISTORY_API_LIMIT, guaranteeing
+   * complete results regardless of position count or trading activity.
    */
   FUNDING_HISTORY_PAGE_WINDOW_DAYS: 30,
   /**

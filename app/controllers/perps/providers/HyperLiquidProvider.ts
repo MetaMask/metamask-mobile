@@ -5502,7 +5502,9 @@ export class HyperLiquidProvider implements PerpsProvider {
       // timestamp falls exactly on a boundary can appear in both adjacent calls.
       const seen = new Set<string>();
       const allRaw = pages.flat().filter((record) => {
-        if (seen.has(record.hash)) {return false;}
+        if (seen.has(record.hash)) {
+          return false;
+        }
         seen.add(record.hash);
         return true;
       });
