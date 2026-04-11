@@ -285,7 +285,7 @@ export const usePerpsTransactionHistory = ({
     const cursorStartTime = cursorEndTime - PAGE_WINDOW_MS;
     const maxStartTime = Date.now() - MAX_LOOKBACK_MS;
 
-    if (cursorStartTime <= maxStartTime) {
+    if (cursorEndTime <= maxStartTime) {
       setHasFundingMore(false);
       return;
     }
@@ -320,7 +320,13 @@ export const usePerpsTransactionHistory = ({
       const olderFundingTxs = transformFundingToTransactions(olderFunding);
       setTransactions((prev) => {
         const combined = [...prev, ...olderFundingTxs];
-        return combined.sort((a, b) => b.timestamp - a.timestamp);
+        const seen = new Set<string>();
+        const deduped = combined.filter((tx) => {
+          if (seen.has(tx.id)) return false;
+          seen.add(tx.id);
+          return true;
+        });
+        return deduped.sort((a, b) => b.timestamp - a.timestamp);
       });
 
       if (Math.max(cursorStartTime, maxStartTime) <= maxStartTime) {
