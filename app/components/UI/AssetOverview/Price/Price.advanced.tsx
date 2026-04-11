@@ -45,6 +45,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
 import { setTokenOverviewChartType } from '../../../../actions/user';
+import { usePriceChart } from '../PriceChart/PriceChart.context';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
 
@@ -135,11 +136,20 @@ const PriceAdvanced = ({
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
+  const { setIsChartBeingTouched } = usePriceChart();
 
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
     [],
   );
+
+  const handleTouchStart = useCallback(() => {
+    setIsChartBeingTouched(true);
+  }, [setIsChartBeingTouched]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsChartBeingTouched(false);
+  }, [setIsChartBeingTouched]);
 
   const handleChartInteracted = useCallback(
     (payload: ChartInteractedPayload) => {
@@ -346,7 +356,13 @@ const PriceAdvanced = ({
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}
-        <View style={[styles.chartContainer, { height: CHART_HEIGHT }]}>
+        <View
+          testID="advanced-chart-touch-container"
+          style={[styles.chartContainer, { height: CHART_HEIGHT }]}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+        >
           {showEmptyState ? (
             <NoDataOverlay
               hasInsufficientData={hasInsufficientData}

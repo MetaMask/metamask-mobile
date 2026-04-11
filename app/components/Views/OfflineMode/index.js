@@ -1,6 +1,7 @@
 'use strict';
 import React from 'react';
-import { SafeAreaView, Image, View, StyleSheet } from 'react-native';
+import { Image, View, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Text from '../../Base/Text';
 import NetInfo from '@react-native-community/netinfo';
 import { baseStyles, fontStyles } from '../../../styles/common';

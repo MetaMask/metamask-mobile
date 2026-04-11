@@ -97,8 +97,10 @@ export const usePerpsHomeData = ({
   // Note: We don't track loading state - WebSocket data displays immediately,
   // REST fills merge silently in the background via mergedFills
   useEffect(() => {
-    // Guard: Skip REST fetch until connection is ready
-    if (!isConnected || !isInitialized) {
+    // Clear REST history whenever the perps context is reconnecting so we
+    // never blend the previous account/provider's fills into the new context.
+    if (!isConnected || !isInitialized || isConnecting) {
+      setRestFills([]);
       return;
     }
 
@@ -124,7 +126,7 @@ export const usePerpsHomeData = ({
     return () => {
       isMounted = false;
     };
-  }, [isConnected, isInitialized]);
+  }, [isConnected, isInitialized, isConnecting]);
 
   const mergedFills = useMemo(
     () => mergeOrderFills(restFills, liveFills),
@@ -349,14 +351,15 @@ export const usePerpsHomeData = ({
     forexMarkets: searchedForexMarkets,
     recentActivity: limitedActivity,
     sortBy,
+    // Hooks handle reconnection internally: clearCache() sends null →
+    // callback sets isInitialLoading=true. No need to override with
+    // isConnecting, which would defeat disk-cache instant display on
+    // cold start (isConnecting is true while WS connects, but cached
+    // data is already available).
     isLoading: {
-      // During reconnection, treat WebSocket-backed data as loading so the UI
-      // shows skeletons instead of briefly flashing "no positions" → positions.
-      positions: isPositionsLoading || isConnecting,
-      orders: isOrdersLoading || isConnecting,
+      positions: isPositionsLoading,
+      orders: isOrdersLoading,
       markets: isMarketsLoading,
-      // Only wait for WebSocket fills (fast ~100ms), not REST fills (slow 3s+)
-      // REST fills merge in background via mergedFills without blocking initial render
       activity: isFillsLoading || isConnecting,
     },
     refresh,

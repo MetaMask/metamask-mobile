@@ -88,7 +88,9 @@ describe('Portfolio & Account Flow', () => {
 
     // ── PHASE 2: "See all perps" navigates to market list ────────────────
     cleanup();
-    renderPerpsTabView({ extraRoutes: [{ name: MARKET_LIST_ROUTE }] });
+    renderPerpsTabView({
+      extraRoutes: [{ name: MARKET_LIST_ROUTE, mount: 'perps-root' }],
+    });
     const seeAllPerps = await screen.findByText(
       SEE_ALL_PERPS,
       {},

@@ -5,7 +5,7 @@ import {
 } from '@metamask/network-enablement-controller';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { networkEnablementControllerInit } from './network-enablement-controller-init';
-import type { ControllerInitRequest } from '../../types';
+import type { MessengerClientInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { ChainId } from '@metamask/controller-utils';
@@ -18,7 +18,7 @@ describe('networkEnablementControllerInit', () => {
   const networkEnablementControllerClassMock = jest.mocked(
     NetworkEnablementController,
   );
-  let initRequestMock: ControllerInitRequest<NetworkEnablementControllerMessenger>;
+  let initRequestMock: MessengerClientInitRequest<NetworkEnablementControllerMessenger>;
 
   beforeEach(() => {
     jest.resetAllMocks();

@@ -1,7 +1,7 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getTokenSearchDiscoveryDataControllerMessenger } from '../messengers/token-search-discovery-data-controller-messenger';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { tokenSearchDiscoveryDataControllerInit } from './token-search-discovery-data-controller-init';
 import {
   TokenSearchDiscoveryDataController,
@@ -12,7 +12,7 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/assets-controllers');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<TokenSearchDiscoveryDataControllerMessenger>
+  MessengerClientInitRequest<TokenSearchDiscoveryDataControllerMessenger>
 > {
   const rootMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,

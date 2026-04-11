@@ -17,12 +17,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
-  useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
-  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
-
 jest.mock('../../../../../util/networks', () => ({
   ...jest.requireActual('../../../../../util/networks'),
   getNetworkImageSource: jest.fn(() => ({ uri: 'mock-image-uri' })),
