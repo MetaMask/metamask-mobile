@@ -138,7 +138,7 @@ describe('CardMessageBox', () => {
         />
       ));
 
-      expect(queryByTestId('confirm-button')).toBeNull();
+      expect(queryByTestId('confirm-button')).not.toBeOnTheScreen();
     });
   });
 
@@ -172,7 +172,7 @@ describe('CardMessageBox', () => {
         />
       ));
 
-      expect(queryByTestId('confirm-button')).toBeNull();
+      expect(queryByTestId('confirm-button')).not.toBeOnTheScreen();
     });
 
     it('renders with info variant styling (blue background)', () => {
@@ -214,8 +214,8 @@ describe('CardMessageBox', () => {
         <CardMessageBox messageType={CardMessageBoxType.CloseSpendingLimit} />
       ));
 
-      expect(queryByTestId('confirm-button')).toBeNull();
-      expect(queryByTestId('dismiss-button')).toBeNull();
+      expect(queryByTestId('confirm-button')).not.toBeOnTheScreen();
+      expect(queryByTestId('dismiss-button')).not.toBeOnTheScreen();
     });
 
     it('calls onDismiss when dismiss button is pressed', () => {

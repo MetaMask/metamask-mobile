@@ -8,8 +8,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1111,6 +1110,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

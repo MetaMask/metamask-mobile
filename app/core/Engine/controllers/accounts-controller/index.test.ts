@@ -2,7 +2,7 @@ import {
   AccountsController,
   type AccountsControllerMessenger,
 } from '@metamask/accounts-controller';
-import type { ControllerInitRequest } from '../../types';
+import type { MessengerClientInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { accountsControllerInit } from '.';
 import { defaultAccountsControllerState } from './constants';
@@ -23,7 +23,7 @@ jest.mock('@metamask/accounts-controller');
 describe('accounts controller init', () => {
   const accountsControllerClassMock = jest.mocked(AccountsController);
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<AccountsControllerMessenger>
+    MessengerClientInitRequest<AccountsControllerMessenger>
   >;
 
   beforeEach(() => {

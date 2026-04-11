@@ -12,7 +12,7 @@ import {
   getBridgeControllerMessenger,
   BridgeControllerInitMessenger,
 } from '../../messengers/bridge-controller-messenger';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import {
   bridgeControllerInit,
   handleBridgeFetch,
@@ -59,7 +59,7 @@ function buildTransactionControllerMock(
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     BridgeControllerMessenger,
     BridgeControllerInitMessenger
   >

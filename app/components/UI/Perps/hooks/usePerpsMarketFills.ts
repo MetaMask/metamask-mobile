@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsLiveFills } from './stream';
 import { PERPS_CONSTANTS, type OrderFill } from '@metamask/perps-controller';
+import { mergeOrderFills } from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
@@ -133,34 +134,14 @@ export const usePerpsMarketFills = ({
   }, [fetchRestFills]);
 
   // Merge REST + WebSocket fills with deduplication, filtered by symbol
-  // Live fills take precedence over REST fills (more up-to-date)
-  const fills = useMemo(() => {
-    // Use Map for efficient deduplication
-    const fillsMap = new Map<string, OrderFill>();
-
-    // Add REST fills first
-    for (const fill of restFills) {
-      // Only add fills for the requested symbol
-      if (fill.symbol === symbol) {
-        const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
-        fillsMap.set(key, fill);
-      }
-    }
-
-    // Add live fills (overwrites duplicates from REST - live data is fresher)
-    for (const fill of liveFills) {
-      // Only add fills for the requested symbol
-      if (fill.symbol === symbol) {
-        const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
-        fillsMap.set(key, fill);
-      }
-    }
-
-    // Convert back to array and sort by timestamp descending (newest first)
-    return Array.from(fillsMap.values()).sort(
-      (a, b) => b.timestamp - a.timestamp,
-    );
-  }, [restFills, liveFills, symbol]);
+  const fills = useMemo(
+    () =>
+      mergeOrderFills(
+        restFills.filter((f) => f.symbol === symbol),
+        liveFills.filter((f) => f.symbol === symbol),
+      ),
+    [restFills, liveFills, symbol],
+  );
 
   return {
     fills,

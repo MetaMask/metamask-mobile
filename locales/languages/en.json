@@ -2023,6 +2023,7 @@
       "trade_again": "Trade again",
       "activity": {
         "deposit_title": "Deposit",
+        "withdrawal_title": "Withdrawal",
         "deposited_amount": "Deposited {{amount}} {{symbol}}",
         "withdrew_amount": "Withdrew {{amount}} {{symbol}}",
         "status_completed": "Completed",
@@ -6247,6 +6248,23 @@
     },
     "footer": {
       "add_money": "Add money"
+    },
+    "activity": {
+      "title": "Activity",
+      "view_all": "View all",
+      "empty": "No activity yet",
+      "filter_all": "All",
+      "filter_deposits": "Deposits",
+      "filter_transfers": "Transfers"
+    },
+    "transaction": {
+      "added": "Added",
+      "deposited": "Deposited",
+      "received": "Received",
+      "sent": "Sent",
+      "transferred": "Transferred",
+      "card_transaction": "Card transaction",
+      "converted": "Converted"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
