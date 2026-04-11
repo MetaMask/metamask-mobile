@@ -19,12 +19,14 @@ const shortenedEthAddress = '0x4FeC2...fdcB5';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
 const mockIsFocused = jest.fn().mockReturnValue(true);
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    setOptions: mockSetOptions,
     isFocused: mockIsFocused,
     dispatch: jest.fn(),
   }),

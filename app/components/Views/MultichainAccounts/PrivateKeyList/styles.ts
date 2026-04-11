@@ -11,20 +11,9 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
 
-    container: {
+    listContainer: {
+      flex: 1,
       padding: 16,
-      flexGrow: 1,
-      flexDirection: 'row',
-      marginBottom: 50,
-      maxHeight: '75%',
-    },
-
-    header: {
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      margin: 16,
     },
 
     password: {
@@ -60,16 +49,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 16,
       paddingHorizontal: 16,
       ...fontStyles.normal,
-    },
-
-    sheet: {
-      marginVertical: 16,
-      marginHorizontal: 16,
-    },
-
-    bottomSheetContent: {
-      backgroundColor: colors.background.default,
-      display: 'flex',
     },
   });
 };
