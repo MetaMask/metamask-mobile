@@ -24,7 +24,7 @@ import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
 import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
-import { getProviderBuyLimit } from '../../utils/providerLimits';
+import { useProviderLimits } from '../../hooks/useProviderLimits';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
@@ -408,55 +408,13 @@ function BuildQuote() {
   const debouncedPollingAmount = useDebouncedValue(amountAsNumber, 500);
   const hasAmount = amountAsNumber > 0;
 
-  const selectedProviderBuyLimit = useMemo(
-    () =>
-      getProviderBuyLimit(
-        selectedProvider,
-        userRegion?.country?.currency,
-        selectedPaymentMethod?.id,
-      ),
-    [
-      selectedProvider,
-      selectedPaymentMethod?.id,
-      userRegion?.country?.currency,
-    ],
-  );
-
-  const amountLimitError = useMemo(() => {
-    if (!hasAmount || !selectedProviderBuyLimit) {
-      return null;
-    }
-
-    if (
-      selectedProviderBuyLimit.minAmount != null &&
-      amountAsNumber < selectedProviderBuyLimit.minAmount
-    ) {
-      return strings('fiat_on_ramp.min_purchase_limit', {
-        amount: formatCurrency(selectedProviderBuyLimit.minAmount, currency, {
-          currencyDisplay: 'narrowSymbol',
-        }),
-      });
-    }
-
-    if (
-      selectedProviderBuyLimit.maxAmount != null &&
-      amountAsNumber > selectedProviderBuyLimit.maxAmount
-    ) {
-      return strings('fiat_on_ramp.max_purchase_limit', {
-        amount: formatCurrency(selectedProviderBuyLimit.maxAmount, currency, {
-          currencyDisplay: 'narrowSymbol',
-        }),
-      });
-    }
-
-    return null;
-  }, [
-    amountAsNumber,
+  const { amountLimitError } = useProviderLimits({
+    provider: selectedProvider,
+    fiatCurrency: userRegion?.country?.currency,
+    paymentMethodId: selectedPaymentMethod?.id,
+    amount: amountAsNumber,
     currency,
-    formatCurrency,
-    hasAmount,
-    selectedProviderBuyLimit,
-  ]);
+  });
   const quoteFetchEnabled = !!(
     walletAddress &&
     selectedPaymentMethod &&
@@ -926,6 +884,17 @@ function BuildQuote() {
         />
       );
     }
+    if (inlineQuoteError) {
+      return (
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.ErrorDefault}
+          style={{ textAlign: 'center' as const }}
+        >
+          {inlineQuoteError}
+        </Text>
+      );
+    }
     if (hasGenericNoQuotes) {
       return (
         <TruncatedError
@@ -935,7 +904,7 @@ function BuildQuote() {
         />
       );
     }
-    if (!inlineQuoteError && selectedProvider) {
+    if (selectedProvider) {
       return (
         <Text variant={TextVariant.BodySm} style={styles.poweredByText}>
           {strings('fiat_on_ramp.powered_by_provider', {
@@ -1028,16 +997,6 @@ function BuildQuote() {
                 />
               </View>
             </View>
-            {inlineQuoteError ? (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.ErrorDefault}
-                style={styles.limitErrorText}
-              >
-                {inlineQuoteError}
-              </Text>
-            ) : null}
-
             {quoteFetchError && (
               <BannerAlert
                 severity={BannerAlertSeverity.Error}

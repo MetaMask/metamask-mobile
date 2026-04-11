@@ -35,9 +35,6 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
       color: theme.colors.text.alternative,
     },
-    limitErrorText: {
-      textAlign: 'center' as const,
-    },
   });
 };
 

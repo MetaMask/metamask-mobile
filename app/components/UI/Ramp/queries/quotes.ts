@@ -2,6 +2,7 @@ import { queryOptions } from '@tanstack/react-query';
 import type { QuotesResponse } from '@metamask/ramps-controller';
 import type { GetQuotesOptions } from '../hooks/useRampsQuotes';
 import Engine from '../../../../core/Engine';
+
 /** Aligns with `DEFAULT_QUOTES_TTL` in RampsController (15s controller-side cache). */
 export const RAMPS_QUOTES_STALE_TIME_MS = 15_000;
 
@@ -33,8 +34,8 @@ export const rampsQuotesKeys = {
 export const rampsQuotesOptions = (params: RampsQuotesQueryParams) =>
   queryOptions({
     queryKey: rampsQuotesKeys.detail(params),
-    queryFn: async (): Promise<QuotesResponse> => {
-      const response = await Engine.context.RampsController.getQuotes({
+    queryFn: async (): Promise<QuotesResponse> =>
+      Engine.context.RampsController.getQuotes({
         assetId: params.assetId,
         amount: params.amount,
         walletAddress: params.walletAddress,
@@ -43,8 +44,6 @@ export const rampsQuotesOptions = (params: RampsQuotesQueryParams) =>
         providers: params.providers,
         forceRefresh: params.forceRefresh,
         ttl: params.ttl,
-      });
-      return response;
-    },
+      }),
     staleTime: RAMPS_QUOTES_STALE_TIME_MS,
   });
