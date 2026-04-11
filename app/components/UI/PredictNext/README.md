@@ -51,7 +51,10 @@ PredictNext/
 │       └── phase-5-*.md
 │       └── phase-6-*.md
 │       └── phase-7-*.md
-│       └── phase-8-*.md
+├── compat/                           # Temporary translation layer (deleted in Phase 7)
+│   ├── mappers.ts
+│   ├── types.ts
+│   └── index.ts
 ├── types/
 ├── controller/
 ├── services/
@@ -120,4 +123,4 @@ Modules are deep with slim interfaces. We use compound components similar to the
 
 ## Migration Status
 
-This feature is being built using a strangler fig migration from the original Predict directory. Check the [migration documentation](docs/migration/README.md) for details.
+This feature is being built using an inside-out migration from the original Predict directory. The new adapter and services replace internals first while the old UI stays unchanged, then UI migrates as vertical slices. Check the [migration documentation](docs/migration/README.md) for details.

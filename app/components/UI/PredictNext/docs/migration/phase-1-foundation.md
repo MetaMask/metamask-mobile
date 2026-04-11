@@ -2,7 +2,7 @@
 
 ## Goal
 
-Establish the canonical data model, ubiquitous language, adapter contract, and shared error primitives that every later PredictNext module depends on.
+Establish the canonical data model, ubiquitous language, adapter contract, shared error primitives, and bidirectional translation layer that every later PredictNext module depends on.
 
 ## Prerequisites
 
@@ -15,6 +15,7 @@ Establish the canonical data model, ubiquitous language, adapter contract, and s
 - PredictNext package overview in `app/components/UI/PredictNext/README.md`
 - Adapter contract in `app/components/UI/PredictNext/adapters/types.ts`
 - Shared error class in `app/components/UI/PredictNext/errors/PredictError.ts`
+- Translation layer in `app/components/UI/PredictNext/compat/`
 - PredictNext public barrel exports in `app/components/UI/PredictNext/index.ts` and related subdirectory barrels
 
 ## Step-by-Step Tasks
@@ -73,27 +74,44 @@ Establish the canonical data model, ubiquitous language, adapter contract, and s
    - Export `PredictError` class with fields such as `code`, `cause`, `recoverable`, `context`, and `displayMessage`.
    - Add constructors/helpers that make downstream code prefer typed errors over string matching.
 
-5. Create barrel exports so later phases import from a stable surface.
+5. Create the translation layer in `app/components/UI/PredictNext/compat/`.
+   - Create `app/components/UI/PredictNext/compat/mappers.ts` with bidirectional mapping functions:
+     - **Canonical to legacy** (used when old controller/provider needs to return old-shaped data to old consumers):
+       - `toOldMarket(event: PredictEvent): LegacyMarket`
+       - `toOldOutcome(market: PredictMarket): LegacyOutcome`
+       - `toOldOutcomeToken(outcome: PredictOutcome): LegacyOutcomeToken`
+       - Additional mappers for positions, orders, activity items as needed.
+     - **Legacy to canonical** (used when old code passes commands to new services):
+       - `toCanonicalEvent(market: LegacyMarket): PredictEvent`
+       - `toCanonicalMarket(outcome: LegacyOutcome): PredictMarket`
+       - `toCanonicalOutcome(token: LegacyOutcomeToken): PredictOutcome`
+       - Additional mappers for order params, navigation params as needed.
+   - Create `app/components/UI/PredictNext/compat/types.ts` to re-export or alias the legacy types that the mappers depend on. Import these from the old `Predict/types/` module rather than redefining them.
+   - The data shapes are structurally identical — the mappers are field renames, not structural transformations.
+   - This module is intentionally temporary. It will be deleted in Phase 7.
+
+6. Create barrel exports so later phases import from a stable surface.
    - Update or create:
      - `app/components/UI/PredictNext/index.ts`
      - `app/components/UI/PredictNext/types/index.ts` if split into multiple files
      - `app/components/UI/PredictNext/adapters/index.ts`
      - `app/components/UI/PredictNext/errors/index.ts`
+     - `app/components/UI/PredictNext/compat/index.ts`
    - Export only contracts and safe primitives; do not expose service internals yet.
 
-6. Cross-check the glossary against the old codebase.
+7. Cross-check the glossary against the old codebase.
    - Read `app/components/UI/Predict/README.md` and `app/components/UI/Predict/types/index.ts`.
    - Confirm every ambiguous term used there has one canonical replacement in `UBIQUITOUS_LANGUAGE.md`.
    - Ensure the same term is used in type names, comments, and folder names.
 
-7. Add foundational tests.
+8. Add foundational tests.
    - Write `app/components/UI/PredictNext/errors/PredictError.test.ts` if the error class has logic.
+   - Write `app/components/UI/PredictNext/compat/mappers.test.ts` to verify bidirectional translation correctness. These mappers are pure functions and benefit from thorough unit tests since every later phase depends on them.
    - Write `app/components/UI/PredictNext/adapters/types.test-d.ts` only if the repo already uses type assertion tests; otherwise keep contract verification through compile-time usage in later service tests.
-   - Validate barrel export usage from a small smoke test if needed.
 
-8. Freeze the contract before service work starts.
+9. Freeze the contract before delegation work starts.
    - Review this phase with owners of controller, hooks, and UI migration work.
-   - Do not begin Phase 2 or Phase 6 until the canonical names and adapter methods are agreed.
+   - Do not begin Phase 2 until the canonical names, adapter methods, and translation mappers are agreed.
 
 ## Files Created
 
@@ -106,6 +124,10 @@ Establish the canonical data model, ubiquitous language, adapter contract, and s
 | `app/components/UI/PredictNext/adapters/index.ts`      | Adapter barrel exports                              |            5-15 |
 | `app/components/UI/PredictNext/errors/PredictError.ts` | Shared error enum and class                         |          80-140 |
 | `app/components/UI/PredictNext/errors/index.ts`        | Error barrel exports                                |            5-10 |
+| `app/components/UI/PredictNext/compat/mappers.ts`      | Bidirectional canonical-to-legacy type mappers      |          80-140 |
+| `app/components/UI/PredictNext/compat/types.ts`        | Legacy type aliases imported from old Predict       |           20-40 |
+| `app/components/UI/PredictNext/compat/index.ts`        | Compat barrel exports                               |            5-10 |
+| `app/components/UI/PredictNext/compat/mappers.test.ts` | Translation mapper unit tests                       |         100-180 |
 | `app/components/UI/PredictNext/index.ts`               | Public package entry point for foundational exports |           20-40 |
 
 ## Files Affected in Old Code
@@ -122,6 +144,7 @@ Establish the canonical data model, ubiquitous language, adapter contract, and s
 - Every core domain concept has exactly one canonical exported type in `PredictNext/types/`.
 - `PredictAdapter` can describe the full scope needed by later read, write, and live-data services.
 - `PredictError` eliminates stringly typed error handling for new code.
+- Translation mappers in `PredictNext/compat/` correctly convert between canonical and legacy types in both directions, verified by unit tests.
 - `PredictNext/index.ts` exposes a stable foundational API without leaking implementation internals.
 - `UBIQUITOUS_LANGUAGE.md` and the exported types use the same terminology.
 - No production files outside `PredictNext/` are switched yet.
@@ -129,6 +152,6 @@ Establish the canonical data model, ubiquitous language, adapter contract, and s
 ## Estimated PRs
 
 - 2-3 PRs total.
-  1. Types and navigation contracts.
+  1. Types, navigation contracts, and translation layer with tests.
   2. Adapter interface and error model.
   3. Optional cleanup PR for barrels and doc alignment if review scope needs to stay small.
