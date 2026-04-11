@@ -90,6 +90,9 @@ export const usePerpsTransactionHistory = ({
   // Cursor tracks the startTime of the oldest funding window already fetched.
   // null = initial fetch not done yet.
   const fundingCursorRef = useRef<number | null>(null);
+  // Bumped on every fetchAllTransactions so in-flight loadMoreFunding calls
+  // can detect a concurrent refresh and discard stale results.
+  const fetchGenerationRef = useRef(0);
   const [hasFundingMore, setHasFundingMore] = useState(true);
   const [isFetchingMoreFunding, setIsFetchingMoreFunding] = useState(false);
 
@@ -246,8 +249,10 @@ export const usePerpsTransactionHistory = ({
       DevLogger.log('Combined transactions:', uniqueTransactions);
       setTransactions(uniqueTransactions);
 
-      // Reset funding pagination cursor to the start of the first (most recent) window
+      // Reset funding pagination cursor and bump generation to invalidate
+      // any in-flight loadMoreFunding calls from a previous scroll.
       fundingCursorRef.current = fetchEndTime - PAGE_WINDOW_MS;
+      fetchGenerationRef.current += 1;
       setHasFundingMore(true);
     } catch (err) {
       const errorMessage =
@@ -296,6 +301,7 @@ export const usePerpsTransactionHistory = ({
       windowDays: Math.round(PAGE_WINDOW_MS / (24 * 60 * 60 * 1000)),
     });
 
+    const generation = fetchGenerationRef.current;
     setIsFetchingMoreFunding(true);
     try {
       const olderFunding = await provider.getFunding({
@@ -303,6 +309,9 @@ export const usePerpsTransactionHistory = ({
         startTime: Math.max(cursorStartTime, maxStartTime),
         endTime: cursorEndTime,
       });
+
+      // A refresh fired while we were awaiting — discard stale results
+      if (fetchGenerationRef.current !== generation) return;
 
       DevLogger.log('[PERPS-FUNDING] loadMoreFunding: older records loaded', {
         count: olderFunding.length,
@@ -332,6 +341,9 @@ export const usePerpsTransactionHistory = ({
       if (Math.max(cursorStartTime, maxStartTime) <= maxStartTime) {
         setHasFundingMore(false);
       }
+    } catch (err) {
+      DevLogger.log('[PERPS-FUNDING] loadMoreFunding error:', err);
+      // Existing transactions remain valid; user can scroll again to retry
     } finally {
       setIsFetchingMoreFunding(false);
     }
