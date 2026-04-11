@@ -2,12 +2,15 @@
 
 ## Philosophy
 
-PredictNext reduces hook surface area by using a small number of deep hooks rather than many view-specific wrappers. The target is seven deep hooks aligned to service domains.
+PredictNext organizes hooks by domain using co-located folders with barrel exports. Data-fetching hooks are granular — each hook triggers exactly one query, so components only pay for the data they actually need. Imperative hooks (trading, transactions, live data) remain deep since they manage complex stateful workflows.
+
+The old Predict codebase had 37 hooks, many 100-300 lines each with duplicated caching, error handling, and state management. With BaseDataService handling the heavy lifting at the service level, data hooks shrink to 3-5 lines each. Having 12-15 granular hooks is not the same problem as 37 complex ones.
 
 Guiding rules:
 
-- Data hooks are thin and query-oriented
+- Each data hook triggers exactly one query — no wasted API calls
 - Imperative hooks are deep and own async workflows
+- Related hooks are co-located in domain folders with barrel exports
 - View-specific derivation stays local to the view
 - Components never import services directly
 
@@ -18,59 +21,78 @@ Related docs:
 - [error handling](./error-handling.md)
 - [testing](./testing.md)
 
-## Hook Catalog
+## Hook Directory Structure
 
-### useEvents
-
-Purpose:
-
-- Read event lists, featured content, and paginated market data
-
-Maps to:
-
-- `MarketDataService`, implemented as a `BaseDataService`
-
-Return contract:
-
-```typescript
-function useEvents(params?: EventsParams): {
-  events: PredictEvent[];
-  featured: PredictEvent[];
-  search: (query: string) => void;
-  fetchMore: () => void;
-  isLoading: boolean;
-  isError: boolean;
-};
+```
+hooks/
+├── events/
+│   ├── useFeaturedEvents.ts       # carousel/featured events
+│   ├── useEventList.ts            # paginated event feed
+│   ├── useEventSearch.ts          # search results
+│   ├── useEventDetail.ts          # single event by ID
+│   ├── usePriceHistory.ts         # price history for a market
+│   ├── usePrices.ts               # current prices for markets
+│   └── index.ts                   # barrel export
+├── portfolio/
+│   ├── usePositions.ts            # user positions
+│   ├── useBalance.ts              # prediction market balance
+│   ├── useActivity.ts             # transaction history
+│   ├── usePnL.ts                  # unrealized P&L
+│   └── index.ts                   # barrel export
+├── trading/
+│   ├── useTrading.ts              # deep — order state machine
+│   └── index.ts
+├── transactions/
+│   ├── useTransactions.ts         # deep — deposit/withdraw/claim
+│   └── index.ts
+├── live-data/
+│   ├── useLiveData.ts             # deep — WebSocket lifecycle
+│   └── index.ts
+├── navigation/
+│   ├── usePredictNavigation.ts
+│   └── index.ts
+├── guard/
+│   ├── usePredictGuard.ts
+│   └── index.ts
+└── index.ts                       # top-level barrel
 ```
 
-Implementation sketch:
+Components import from the domain barrel or the top-level barrel:
 
 ```typescript
-import { useCallback, useMemo, useState } from 'react';
-import { useInfiniteQuery, useQuery } from '@metamask/react-data-query';
-import type { EventsParams, PredictEvent } from '../types';
+import { useFeaturedEvents } from '../hooks/events';
+import { useBalance } from '../hooks/portfolio';
 
-interface EventsResult {
-  events: PredictEvent[];
-  featured: PredictEvent[];
-  search: (query: string) => void;
-  fetchMore: () => void;
-  isLoading: boolean;
-  isError: boolean;
-}
+// or from the top-level barrel
+import { useFeaturedEvents, useBalance } from '../hooks';
+```
 
-export function useEvents(initialParams?: EventsParams): EventsResult {
-  const [searchQuery, setSearchQuery] = useState('');
-  const params = useMemo(
-    () => ({ ...initialParams, searchQuery }),
-    [initialParams, searchQuery],
-  );
+## Hook Catalog — Event Queries
 
-  const featuredQuery = useQuery<PredictEvent[]>({
+All event hooks map to `MarketDataService` (BaseDataService). Each triggers exactly one query.
+
+### useFeaturedEvents
+
+```typescript
+import { useQuery } from '@metamask/react-data-query';
+import type { PredictEvent } from '../../types';
+
+export function useFeaturedEvents() {
+  return useQuery<PredictEvent[]>({
     queryKey: ['PredictMarketData:getCarouselEvents'],
   });
+}
+```
 
-  const eventsQuery = useInfiniteQuery<{
+### useEventList
+
+```typescript
+import { useCallback, useMemo } from 'react';
+import { useInfiniteQuery } from '@metamask/react-data-query';
+import type { PredictEvent, FetchEventsParams } from '../../types';
+
+export function useEventList(params: FetchEventsParams) {
+  const query = useInfiniteQuery<{
     items: PredictEvent[];
     nextCursor?: string;
   }>({
@@ -80,107 +102,140 @@ export function useEvents(initialParams?: EventsParams): EventsResult {
   });
 
   const events = useMemo(
-    () => eventsQuery.data?.pages.flatMap((page) => page.items) ?? [],
-    [eventsQuery.data],
+    () => query.data?.pages.flatMap((page) => page.items) ?? [],
+    [query.data],
   );
 
   const fetchMore = useCallback(() => {
-    if (eventsQuery.hasNextPage && !eventsQuery.isFetchingNextPage) {
-      void eventsQuery.fetchNextPage();
+    if (query.hasNextPage && !query.isFetchingNextPage) {
+      void query.fetchNextPage();
     }
-  }, [eventsQuery]);
+  }, [query]);
 
   return {
     events,
-    featured: featuredQuery.data ?? [],
-    search: setSearchQuery,
     fetchMore,
-    isLoading: featuredQuery.isLoading || eventsQuery.isLoading,
-    isError: featuredQuery.isError || eventsQuery.isError,
+    isLoading: query.isLoading,
+    isError: query.isError,
   };
+}
+```
+
+### useEventSearch
+
+```typescript
+import { useQuery } from '@metamask/react-data-query';
+import type { PredictEvent } from '../../types';
+
+export function useEventSearch(query: string) {
+  return useQuery<PredictEvent[]>({
+    queryKey: ['PredictMarketData:searchEvents', query],
+    enabled: query.length > 0,
+  });
+}
+```
+
+### useEventDetail
+
+```typescript
+import { useQuery } from '@metamask/react-data-query';
+import type { PredictEvent } from '../../types';
+
+export function useEventDetail(eventId: string) {
+  return useQuery<PredictEvent>({
+    queryKey: ['PredictMarketData:getEvent', eventId],
+  });
+}
+```
+
+### usePriceHistory
+
+```typescript
+import { useQuery } from '@metamask/react-data-query';
+import type { PricePoint, TimePeriod } from '../../types';
+
+export function usePriceHistory(marketId: string, period: TimePeriod) {
+  return useQuery<PricePoint[]>({
+    queryKey: ['PredictMarketData:getPriceHistory', marketId, period],
+  });
+}
+```
+
+### usePrices
+
+```typescript
+import { useQuery } from '@metamask/react-data-query';
+import type { MarketPrices } from '../../types';
+
+export function usePrices(marketIds: string[]) {
+  return useQuery<Map<string, MarketPrices>>({
+    queryKey: ['PredictMarketData:getPrices', marketIds],
+    enabled: marketIds.length > 0,
+  });
 }
 ```
 
 Notes:
 
-- query keys are the contract between UI and service cache
-- no `queryFn` is supplied in UI code
-- the messenger-backed query client resolves the data source
+- Query keys are the contract between UI and service cache.
+- No `queryFn` is supplied — the messenger-backed query client resolves the data source.
+- Each hook can be imported independently. A component needing only featured events does not trigger the event list or search queries.
 
-### usePortfolio
+## Hook Catalog — Portfolio Queries
 
-Purpose:
+All portfolio hooks map to `PortfolioService` (BaseDataService). Same pattern — one query per hook.
 
-- Read positions, activity, balance, and aggregate P&L for one account
-
-Maps to:
-
-- `PortfolioService`, implemented as a `BaseDataService`
-
-Return contract:
+### usePositions
 
 ```typescript
-function usePortfolio(accountId: string): {
-  positions: PredictPosition[];
-  activity: ActivityItem[];
-  balance: Balance;
-  pnl: UnrealizedPnL;
-  refresh: () => void;
-};
-```
+import { useQuery } from '@metamask/react-data-query';
+import type { PredictPosition } from '../../types';
 
-Implementation sketch:
-
-```typescript
-import { useCallback } from 'react';
-import { useQuery, useQueryClient } from '@metamask/react-data-query';
-import type {
-  ActivityItem,
-  Balance,
-  PredictPosition,
-  UnrealizedPnL,
-} from '../types';
-
-export function usePortfolio(accountId: string) {
-  const queryClient = useQueryClient();
-
-  const positionsQuery = useQuery<PredictPosition[]>({
+export function usePositions(accountId: string) {
+  return useQuery<PredictPosition[]>({
     queryKey: ['PredictPortfolio:getPositions', accountId],
   });
-  const activityQuery = useQuery<ActivityItem[]>({
-    queryKey: ['PredictPortfolio:getActivity', accountId],
-  });
-  const balanceQuery = useQuery<Balance>({
+}
+```
+
+### useBalance
+
+```typescript
+import { useQuery } from '@metamask/react-data-query';
+import type { Balance } from '../../types';
+
+export function useBalance(accountId: string) {
+  return useQuery<Balance>({
     queryKey: ['PredictPortfolio:getBalance', accountId],
   });
-  const pnlQuery = useQuery<UnrealizedPnL>({
+}
+```
+
+### useActivity
+
+```typescript
+import { useInfiniteQuery } from '@metamask/react-data-query';
+import type { ActivityItem } from '../../types';
+
+export function useActivity(accountId: string) {
+  return useInfiniteQuery<{ items: ActivityItem[]; nextCursor?: string }>({
+    queryKey: ['PredictPortfolio:getActivity', accountId],
+    initialPageParam: undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  });
+}
+```
+
+### usePnL
+
+```typescript
+import { useQuery } from '@metamask/react-data-query';
+import type { UnrealizedPnL } from '../../types';
+
+export function usePnL(accountId: string) {
+  return useQuery<UnrealizedPnL>({
     queryKey: ['PredictPortfolio:getUnrealizedPnl', accountId],
   });
-
-  const refresh = useCallback(() => {
-    void Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: ['PredictPortfolio:getPositions', accountId],
-      }),
-      queryClient.invalidateQueries({
-        queryKey: ['PredictPortfolio:getActivity', accountId],
-      }),
-      queryClient.invalidateQueries({
-        queryKey: ['PredictPortfolio:getBalance', accountId],
-      }),
-      queryClient.invalidateQueries({
-        queryKey: ['PredictPortfolio:getUnrealizedPnl', accountId],
-      }),
-    ]);
-  }, [accountId, queryClient]);
-
-  return {
-    positions: positionsQuery.data ?? [],
-    activity: activityQuery.data ?? [],
-    balance: balanceQuery.data ?? { available: '0', currency: 'USDC' },
-    pnl: pnlQuery.data ?? { amount: '0', percentage: 0 },
-    refresh,
-  };
 }
 ```
 
@@ -577,25 +632,23 @@ This pattern keeps deep hooks stable and reusable while allowing view code to st
 ```tsx
 import React from 'react';
 import { ScrollView } from 'react-native';
-import { EventCard } from '../components/primitives/EventCard';
-import { Chart } from '../components/primitives/Chart';
-import { PositionCard } from '../components/primitives/PositionCard';
-import { useEvents } from '../hooks/useEvents';
-import { usePortfolio } from '../hooks/usePortfolio';
-import { useLiveData } from '../hooks/useLiveData';
+import { EventCard } from '../components/EventCard';
+import { Chart } from '../components/Chart';
+import { PositionCard } from '../components/PositionCard';
+import { useEventDetail } from '../hooks/events';
+import { usePositions } from '../hooks/portfolio';
+import { useLiveData } from '../hooks/live-data';
 
 export function EventDetails({
   route,
 }: {
   route: { params: { eventId: string; accountId: string } };
 }) {
-  const { events } = useEvents({ eventId: route.params.eventId });
-  const { positions } = usePortfolio(route.params.accountId);
+  const { data: event } = useEventDetail(route.params.eventId);
+  const { data: positions } = usePositions(route.params.accountId);
   const { data: livePrices } = useLiveData('event-prices', {
     eventId: route.params.eventId,
   });
-
-  const event = events[0];
 
   if (!event) {
     return null;
@@ -612,7 +665,7 @@ export function EventDetails({
         data={(livePrices as { timestamp: number; value: number }[]) ?? []}
         variant="price"
       />
-      {positions.map((position) => (
+      {(positions ?? []).map((position) => (
         <PositionCard key={position.id} position={position} />
       ))}
     </ScrollView>
@@ -620,4 +673,4 @@ export function EventDetails({
 }
 ```
 
-The important boundary is that views orchestrate and primitives render. The service layer remains hidden behind hook APIs that are stable enough for broad reuse and deep enough to absorb complexity.
+The view imports exactly the hooks it needs — `useEventDetail` and `usePositions` — triggering only two queries instead of the full event and portfolio query sets. The service layer remains hidden behind hook APIs that are stable enough for broad reuse and deep enough to absorb complexity.

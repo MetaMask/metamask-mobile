@@ -209,23 +209,23 @@ See [services.md](./services.md) for detail.
 
 Hooks provide React-friendly access to the service layer while preserving service ownership of business complexity.
 
-Target hooks:
+Hooks are organized by domain in co-located folders with barrel exports:
 
-- `useEvents`
-- `usePortfolio`
-- `useTrading`
-- `useTransactions`
-- `useLiveData`
-- `usePredictNavigation`
-- `usePredictGuard`
+- `hooks/events/` — `useFeaturedEvents`, `useEventList`, `useEventSearch`, `useEventDetail`, `usePriceHistory`, `usePrices`
+- `hooks/portfolio/` — `usePositions`, `useBalance`, `useActivity`, `usePnL`
+- `hooks/trading/` — `useTrading`
+- `hooks/transactions/` — `useTransactions`
+- `hooks/live-data/` — `useLiveData`
+- `hooks/navigation/` — `usePredictNavigation`
+- `hooks/guard/` — `usePredictGuard`
 
-#### Thin query hooks
+#### Granular query hooks
 
-`useEvents` and `usePortfolio` should be thin wrappers around `useQuery` from `@metamask/react-data-query`. They provide query keys and parameters; the actual read logic lives in BaseDataService-backed services via messenger.
+Event and portfolio hooks are granular — each hook triggers exactly one `useQuery` or `useInfiniteQuery` call from `@metamask/react-data-query`. This means a component that only needs the balance does not trigger position, activity, or P&L queries. The actual read logic lives in BaseDataService-backed services via messenger.
 
 #### Deep imperative hooks
 
-`useTrading`, `useTransactions`, and `useLiveData` remain somewhat deeper because they wrap imperative service operations and lifecycle concerns.
+`useTrading`, `useTransactions`, and `useLiveData` remain deep because they wrap imperative service operations and lifecycle concerns (order state machines, transaction orchestration, WebSocket subscriptions).
 
 #### Navigation and guard hooks
 
@@ -281,7 +281,7 @@ See [components.md](./components.md) for detail.
 ### Reading data: events list
 
 ```text
-PredictHome → useEvents → useQuery({ queryKey: ['PredictMarketData:getEvents', params] })
+PredictHome → useEventList(params) → useInfiniteQuery({ queryKey: ['PredictMarketData:getEvents', params] })
                                     ↕ (messenger bridge)
                           MarketDataService.getEvents() → this.fetchQuery() → PolymarketAdapter.fetchEvents() → Polymarket Gamma API
 ```
@@ -509,15 +509,28 @@ export {
   TransactionsView,
 } from './views';
 export { EventCard, PositionCard, OutcomeButton } from './components';
+// Event query hooks
 export {
-  useEvents,
-  usePortfolio,
-  useTrading,
-  useTransactions,
-  useLiveData,
-  usePredictNavigation,
-  usePredictGuard,
-} from './hooks';
+  useFeaturedEvents,
+  useEventList,
+  useEventSearch,
+  useEventDetail,
+  usePriceHistory,
+  usePrices,
+} from './hooks/events';
+// Portfolio query hooks
+export {
+  usePositions,
+  useBalance,
+  useActivity,
+  usePnL,
+} from './hooks/portfolio';
+// Imperative hooks
+export { useTrading } from './hooks/trading';
+export { useTransactions } from './hooks/transactions';
+export { useLiveData } from './hooks/live-data';
+export { usePredictNavigation } from './hooks/navigation';
+export { usePredictGuard } from './hooks/guard';
 export {
   selectPredictActiveOrder,
   selectPredictSelectedPaymentToken,

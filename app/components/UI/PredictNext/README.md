@@ -20,7 +20,7 @@ Protocol adapters like PolymarketAdapter and the future KalshiAdapter handle ext
 
 ### Hooks
 
-Seven hooks provide data and functionality to components. These include useEvents, usePortfolio, useTrading, useTransactions, useLiveData, usePredictNavigation, and usePredictGuard.
+Hooks are organized by domain in co-located folders with barrel exports. Data hooks are granular — each triggers exactly one query so components only fetch what they need. Imperative hooks (useTrading, useTransactions, useLiveData) remain deep since they manage complex stateful workflows. Domains include events, portfolio, trading, transactions, live-data, navigation, and guard.
 
 ### Components
 
@@ -66,6 +66,13 @@ PredictNext/
 │   ├── polymarket/
 │   └── kalshi/ (future)
 ├── hooks/
+│   ├── events/
+│   ├── portfolio/
+│   ├── trading/
+│   ├── transactions/
+│   ├── live-data/
+│   ├── navigation/
+│   └── guard/
 ├── components/
 │   ├── EventCard/
 │   ├── OutcomeButton/
