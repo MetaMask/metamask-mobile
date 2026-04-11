@@ -85,12 +85,14 @@ function channelWithInitialValue<T>(initialValue: T) {
       }
       return noopUnsubscribe;
     },
+    getSnapshot: () => null,
   };
 }
 
 /** No-op channel for streams not needed by view tests */
 const noopChannel = () => ({
   subscribe: (): (() => void) => noopUnsubscribe,
+  getSnapshot: () => null,
 });
 
 /** Top-of-book channel: usePerpsTopOfBook calls subscribeToSymbol (e.g. PerpsClosePositionView, PerpsOrderBookView) */
@@ -106,6 +108,7 @@ function topOfBookChannel() {
       }
       return noopUnsubscribe;
     },
+    getSnapshot: () => null,
   };
 }
 
@@ -113,6 +116,7 @@ function topOfBookChannel() {
 const pricesChannel = () => ({
   subscribe: (): (() => void) => noopUnsubscribe,
   subscribeToSymbols: (): (() => void) => noopUnsubscribe,
+  getSnapshot: () => null,
 });
 
 /** Optional stream data overrides for view tests (e.g. initial positions for Market Details Close/Modify). */
