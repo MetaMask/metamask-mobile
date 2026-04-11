@@ -141,45 +141,41 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   return (
     <View style={styles.activitiesButton}>
       {displayBuyButton && (
-        <View style={styles.buttonContainer}>
-          <MainActionButton
-            iconName={IconName.AttachMoney}
-            label={strings('asset_overview.buy_button')}
-            onPress={handleBuyPress}
-            isDisabled={!isBuyingAvailable}
-            testID={buyButtonActionID}
-          />
-        </View>
+        <MainActionButton
+          iconName={IconName.AttachMoney}
+          label={strings('asset_overview.buy_button')}
+          onPress={handleBuyPress}
+          isDisabled={!isBuyingAvailable}
+          testID={buyButtonActionID}
+          containerStyle={styles.buttonContainer}
+        />
       )}
       {displaySwapsButton && (
-        <View style={styles.buttonContainer}>
-          <MainActionButton
-            iconName={IconName.SwapVertical}
-            label={strings('asset_overview.swap')}
-            onPress={handleSwapPress}
-            isDisabled={!isSwapsEnabled}
-            testID={swapButtonActionID}
-          />
-        </View>
+        <MainActionButton
+          iconName={IconName.SwapVertical}
+          label={strings('asset_overview.swap')}
+          onPress={handleSwapPress}
+          isDisabled={!isSwapsEnabled}
+          testID={swapButtonActionID}
+          containerStyle={styles.buttonContainer}
+        />
       )}
-      <View style={styles.buttonContainer}>
-        <MainActionButton
-          iconName={IconName.Send}
-          label={strings('asset_overview.send_button')}
-          onPress={handleSendPress}
-          isDisabled={!canSignTransactions}
-          testID={sendButtonActionID}
-        />
-      </View>
-      <View style={styles.buttonContainer}>
-        <MainActionButton
-          iconName={IconName.Received}
-          label={strings('asset_overview.receive_button')}
-          onPress={handleReceivePress}
-          isDisabled={false}
-          testID={receiveButtonActionID}
-        />
-      </View>
+      <MainActionButton
+        iconName={IconName.Send}
+        label={strings('asset_overview.send_button')}
+        onPress={handleSendPress}
+        isDisabled={!canSignTransactions}
+        testID={sendButtonActionID}
+        containerStyle={styles.buttonContainer}
+      />
+      <MainActionButton
+        iconName={IconName.Received}
+        label={strings('asset_overview.receive_button')}
+        onPress={handleReceivePress}
+        isDisabled={false}
+        testID={receiveButtonActionID}
+        containerStyle={styles.buttonContainer}
+      />
     </View>
   );
 };
