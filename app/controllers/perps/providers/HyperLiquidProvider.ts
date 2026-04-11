@@ -5429,27 +5429,60 @@ export class HyperLiquidProvider implements PerpsProvider {
         params?.accountId,
       );
 
-      // Divide the full history range into 30-day windows and fetch all in
-      // parallel. The HyperLiquid API returns records in ascending order and
-      // caps each call at FUNDING_HISTORY_API_LIMIT (500) records. A single
-      // large window therefore returns only the oldest 500 items, silently
-      // dropping the most recent payments. Parallel small windows guarantee
-      // every window is under the cap so the latest records are always present.
+      // On-demand loading: the default window is one 30-day page so the
+      // initial fetch costs exactly 1 API call (~24 weight vs 312 previously).
+      // When loadMoreFunding in usePerpsTransactionHistory passes explicit
+      // startTime/endTime for an older 30-day page the while-loop below still
+      // produces exactly 1 chunk. The 365-day max lookback is enforced by the
+      // caller.
+      //
+      // Each chunk is fetched via fetchWindowWithAutoSplit: if a call returns
+      // FUNDING_HISTORY_API_LIMIT records the window has hit the API cap and
+      // the oldest records would be silently dropped. The function splits the
+      // window in half and recurses until every sub-window is under the cap,
+      // guaranteeing complete results regardless of position count or activity.
       const finalEndTime = params?.endTime ?? Date.now();
-      const finalStartTime =
-        params?.startTime ??
-        finalEndTime -
-          PERPS_TRANSACTIONS_HISTORY_CONSTANTS.DEFAULT_FUNDING_HISTORY_DAYS *
-            24 *
-            60 *
-            60 *
-            1000;
       const pageWindowMs =
         PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_PAGE_WINDOW_DAYS *
         24 *
         60 *
         60 *
         1000;
+      const finalStartTime = params?.startTime ?? finalEndTime - pageWindowMs; // Default: most recent 30-day window only
+
+      // Minimum window size to bound recursion depth. The HyperLiquid funding
+      // interval is 8 h, so a 1-hour window holds at most a fraction of one
+      // event per position — well under the 500-record cap in any scenario.
+      const minSplitWindowMs = 60 * 60 * 1000;
+      const apiLimit =
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_API_LIMIT;
+
+      // Fetches a single window. If the result hits the API cap the window is
+      // split in half and both halves are fetched in parallel, recursively,
+      // until every sub-window is under the cap.
+      const fetchWindowWithAutoSplit = async (
+        windowStart: number,
+        windowEnd: number,
+      ): Promise<Awaited<ReturnType<typeof infoClient.userFunding>>> => {
+        const result = await infoClient.userFunding({
+          user: userAddress,
+          startTime: windowStart,
+          endTime: windowEnd,
+        });
+        const records = result ?? [];
+        if (
+          records.length >= apiLimit &&
+          windowEnd - windowStart > minSplitWindowMs
+        ) {
+          const mid = windowStart + Math.floor((windowEnd - windowStart) / 2);
+          const [left, right] = await Promise.all([
+            fetchWindowWithAutoSplit(windowStart, mid),
+            fetchWindowWithAutoSplit(mid, windowEnd),
+          ]);
+          return [...(left ?? []), ...(right ?? [])];
+        }
+        return records;
+      };
 
       const chunks: { start: number; end: number }[] = [];
       let chunkEnd = finalEndTime;
@@ -5460,21 +5493,24 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
 
       const pages = await Promise.all(
-        chunks.map((chunk) =>
-          infoClient.userFunding({
-            user: userAddress,
-            startTime: chunk.start,
-            endTime: chunk.end,
-          }),
-        ),
+        chunks.map((chunk) => fetchWindowWithAutoSplit(chunk.start, chunk.end)),
       );
 
-      const allRaw = pages.flatMap((page) => page ?? []);
+      // Deduplicate by hash before sorting — adjacent chunk windows share their
+      // boundary timestamp (chunkEnd of chunk N === chunkStart of chunk N+1),
+      // and the HyperLiquid API is inclusive on both sides, so a record whose
+      // timestamp falls exactly on a boundary can appear in both adjacent calls.
+      const seen = new Set<string>();
+      const allRaw = pages.flat().filter((record) => {
+        if (seen.has(record.hash)) {return false;}
+        seen.add(record.hash);
+        return true;
+      });
       allRaw.sort((a, b) => a.time - b.time);
 
       this.#deps.debugLogger.log('User funding received:', {
         count: allRaw.length,
-        pages: chunks.length,
+        chunks: chunks.length,
       });
 
       // Transform HyperLiquid funding to abstract Funding type
