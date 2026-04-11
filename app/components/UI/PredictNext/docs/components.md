@@ -17,6 +17,7 @@ Core rules:
 - Use the MetaMask Mobile design system first: `useTailwind`, `Box`, and `Text`
 - Use compound components where a parent can provide shared context to related children
 - Keep domain formatting and rendering logic inside primitives when it improves reuse
+- Primitives are pure (no hooks) — widgets wire data hooks to primitives — views compose widgets
 
 Related docs:
 
@@ -412,7 +413,9 @@ export function Skeleton({ layout }: SkeletonProps) {
 
 ## Tier 2: Composed Widgets
 
-Widgets combine Tier 1 primitives with deep hooks from [hooks](./hooks.md). Each widget maps to a major screen section and contains the section-level state needed to operate.
+Widgets are the integration layer between data and presentation. They call data query hooks internally and render Tier 1 primitives with the results. Each widget maps to a major screen section and owns the section-level state needed to operate.
+
+See [hooks — Hook Usage by Component Tier](./hooks.md#hook-usage-by-component-tier) for the full tier/hook relationship.
 
 ### EventFeed
 
@@ -425,16 +428,17 @@ Composes:
 - `EventCard`
 - `Skeleton`
 
-Hooks:
+Hooks (called internally by the widget):
 
-- `useEvents`
-- optional local filter state hook inside the widget
+- `useEventList` from `hooks/events` — paginated event feed
+- `useEventSearch` from `hooks/events` — search results
+- optional local filter/tab state hook co-located with the widget
 
 Typical responsibilities:
 
 - search box input
 - category tab state
-- pagination trigger
+- pagination trigger via `fetchMore`
 - empty and loading states
 
 ### FeaturedCarousel
@@ -447,10 +451,10 @@ Composes:
 
 - `EventCard`
 
-Hooks:
+Hooks (called internally by the widget):
 
-- `useEvents` for `featured`
-- `usePredictNavigation`
+- `useFeaturedEvents` from `hooks/events` — carousel events
+- `usePredictNavigation` from `hooks/navigation` — tap-to-details navigation
 
 Typical responsibilities:
 
@@ -470,10 +474,11 @@ Composes:
 - `PriceDisplay`
 - `Skeleton`
 
-Hooks:
+Hooks (called internally by the widget):
 
-- `usePortfolio`
-- `useTransactions`
+- `usePositions` from `hooks/portfolio` — open and resolved positions
+- `useBalance` from `hooks/portfolio` — prediction market balance
+- `usePnL` from `hooks/portfolio` — unrealized P&L
 
 Typical responsibilities:
 
@@ -492,11 +497,11 @@ Composes:
 - `OutcomeButton`
 - `PriceDisplay`
 
-Hooks:
+Hooks (called internally by the widget):
 
-- `useTrading`
-- `usePredictGuard`
-- local keypad state hook
+- `useTrading` from `hooks/trading` — order preview and placement
+- `usePredictGuard` from `hooks/guard` — eligibility check
+- local keypad state hook co-located with the widget
 
 Typical responsibilities:
 
@@ -516,10 +521,10 @@ Composes:
 - `PriceDisplay`
 - `Skeleton`
 
-Hooks:
+Hooks (called internally by the widget):
 
-- `usePortfolio`
-- `usePredictNavigation`
+- `useActivity` from `hooks/portfolio` — transaction history
+- `usePredictNavigation` from `hooks/navigation` — detail sheet navigation
 
 Typical responsibilities:
 
@@ -529,24 +534,39 @@ Typical responsibilities:
 
 ## Tier 3: Views
 
-Views remain thin. They arrange widgets, connect route params, and defer behavior to hooks.
+Views remain thin. They arrange widgets, connect route params, and handle cross-cutting concerns (eligibility guards, imperative actions). Views do not fetch data directly — widgets handle that internally.
 
 ### PredictHome
 
 Composition:
 
-- `FeaturedCarousel`
-- `EventFeed`
-- `PortfolioSection`
+- `FeaturedCarousel` (fetches featured events internally)
+- `EventFeed` (fetches event list and search internally)
+- `PortfolioSection` (fetches positions, balance, P&L internally)
 
 Hooks wired at view level:
 
-- `usePredictGuard`
-- `usePredictNavigation`
+- `usePredictGuard` — gate access for geo-blocked or ineligible users
+- `usePredictNavigation` — tab state, scroll management
 
 Route params:
 
 - none required
+
+```tsx
+export function PredictHome() {
+  const { isEligible } = usePredictGuard();
+  if (!isEligible) return <UnavailableModal />;
+
+  return (
+    <ScrollView>
+      <FeaturedCarousel />
+      <EventFeed />
+      <PortfolioSection />
+    </ScrollView>
+  );
+}
+```
 
 ### EventDetails
 
@@ -559,9 +579,12 @@ Composition:
 
 Hooks wired at view level:
 
-- `useEvents`
-- `usePortfolio`
-- `useLiveData`
+- `useEventDetail` from `hooks/events` — single event by ID
+- `usePositions` from `hooks/portfolio` — user positions for this event
+- `useLiveData` from `hooks/live-data` — real-time price updates
+- `usePriceHistory` from `hooks/events` — chart data
+
+Note: EventDetails is a view that directly renders primitives rather than composing widgets, because its layout is unique and not reusable elsewhere. This is fine — not every view needs to delegate to widgets.
 
 Route params:
 
@@ -571,12 +594,11 @@ Route params:
 
 Composition:
 
-- `OrderForm`
+- `OrderForm` (handles trading hooks internally)
 
 Hooks wired at view level:
 
-- `useTrading`
-- `usePredictGuard`
+- `usePredictGuard` — final eligibility check before order entry
 
 Route params:
 
@@ -587,12 +609,11 @@ Route params:
 
 Composition:
 
-- `ActivityList`
+- `ActivityList` (fetches activity internally)
 
 Hooks wired at view level:
 
-- `usePortfolio`
-- `useTransactions`
+- `useTransactions` from `hooks/transactions` — pending transaction state
 
 Route params:
 

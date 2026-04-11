@@ -618,14 +618,38 @@ export function useBuyViewState({
 
 This pattern keeps deep hooks stable and reusable while allowing view code to stay explicit.
 
+## Hook Usage by Component Tier
+
+Not every tier uses hooks. The rule is: primitives are pure, widgets wire data, views orchestrate.
+
+| Tier                                        | Uses hooks?                    | Uses services directly? | Receives props?                |
+| ------------------------------------------- | ------------------------------ | ----------------------- | ------------------------------ |
+| Primitives (EventCard, OutcomeButton, etc.) | No                             | No                      | Yes — data + callbacks         |
+| Widgets (EventFeed, PortfolioSection, etc.) | Yes — data query hooks         | No                      | Yes — config/params from views |
+| Views (PredictHome, EventDetails, etc.)     | Yes — imperative + guard hooks | No                      | Yes — route params             |
+
+**Primitives** are pure render components. They receive domain entities via props and render them. No hooks, no side effects, no data fetching. This is what makes them reusable across feeds, detail screens, and external embed points.
+
+**Widgets** are the integration layer between data and presentation. An `EventFeed` calls `useEventList` and `useEventSearch` internally, then renders `EventCard` primitives. A `PortfolioSection` calls `usePositions`, `useBalance`, and `usePnL`, then renders `PositionCard` and `PriceDisplay` primitives. Widgets own the data wiring so views stay thin.
+
+**Views** compose widgets and handle cross-cutting concerns: route params, eligibility guards, imperative actions (trading, transactions). A view like `PredictHome` mostly arranges widgets — it does not fetch event lists or positions directly.
+
+This split means:
+
+- Changing how events are fetched only touches widget code, not view or primitive code.
+- Primitives can be tested with plain props (no mock hooks needed).
+- Views are easy to test with the component view framework since they mostly compose widgets.
+
 ## Hook Composition Rules
 
-1. Deep hooks compose services, not each other.
-2. Views compose deep hooks and thin local hooks.
-3. Components do not import services directly.
-4. Query hooks use stable query keys and avoid inline cache semantics.
-5. Imperative hooks return a small state machine instead of leaking service internals.
-6. Error translation happens in services or deep hooks, never in presentational components.
+1. Imperative hooks compose services, not each other.
+2. Widgets compose data query hooks with primitives.
+3. Views compose widgets and imperative/guard hooks.
+4. Primitives never use hooks — data arrives via props.
+5. No tier imports services directly — always go through hooks.
+6. Query hooks use stable query keys and avoid inline cache semantics.
+7. Imperative hooks return a small state machine instead of leaking service internals.
+8. Error translation happens in services or imperative hooks, never in primitives.
 
 ## Example View Composition
 
