@@ -4,7 +4,7 @@ import React, {
   type ComponentProps,
   type ComponentRef,
 } from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 // Use package `src/` so Metro runs RN codegen on specs (lib/module bypasses it → "Could not find component config").
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context/src/SafeAreaView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context/src/SafeAreaContext';
@@ -23,18 +23,25 @@ const defaultEdges: Record<Edge, EdgeMode> = {
 
 type NativeSafeAreaViewProps = ComponentProps<typeof NativeSafeAreaView>;
 
+function numericInsetContribution(value: unknown): number {
+  return typeof value === 'number' && !Number.isNaN(value) ? value : 0;
+}
+
 /**
  * SafeAreaView that avoids native top inset (reduces post-mount header jump).
  * When the resolved top edge would apply an inset, top is applied via
- * useSafeAreaInsets + paddingTop instead; other edges stay on the native view.
+ * useSafeAreaInsets + paddingTop or marginTop (per `mode`) instead; other edges
+ * stay on the native view. Top spacing uses existing numeric paddingTop /
+ * marginTop with `insets.top`: **additive** → sum; **maximum** →
+ * `Math.max(existing, insets.top)` (matches native edge modes).
  */
 export const SafeAreaView = forwardRef<
   ComponentRef<typeof NativeSafeAreaView>,
   NativeSafeAreaViewProps
->(({ edges, style, ...props }, ref) => {
+>(({ edges, style, mode, ...props }, ref) => {
   const insets = useSafeAreaInsets();
 
-  const { nativeEdges, applyHookTopPadding } = useMemo(() => {
+  const { nativeEdges, applyHookTopInset, hookTopEdgeMode } = useMemo(() => {
     const nativeEdgesInternal: Record<Edge, EdgeMode> =
       edges == null
         ? { ...defaultEdges }
@@ -64,28 +71,40 @@ export const SafeAreaView = forwardRef<
     if (apply) {
       return {
         nativeEdges: { ...nativeEdgesInternal, top: 'off' as const },
-        applyHookTopPadding: true,
+        applyHookTopInset: true,
+        hookTopEdgeMode: topMode,
       };
     }
 
     return {
       nativeEdges: nativeEdgesInternal,
-      applyHookTopPadding: false,
+      applyHookTopInset: false,
+      hookTopEdgeMode: undefined,
     };
   }, [edges]);
 
-  // Apply top inset as padding style if needed
+  // Match native SafeAreaView default (`mode` defaults to 'padding' on the native view).
+  const resolvedMode = mode ?? 'padding';
+
   const combinedStyle = useMemo((): StyleProp<ViewStyle> => {
-    if (!applyHookTopPadding) {
+    if (!applyHookTopInset) {
       return style;
     }
-    return [{ paddingTop: insets.top }, style];
-  }, [applyHookTopPadding, insets.top, style]);
+    const edgeKey = resolvedMode === 'margin' ? 'marginTop' : 'paddingTop';
+    const flat = StyleSheet.flatten(style) ?? {};
+    const existing = numericInsetContribution(flat[edgeKey]);
+    const combinedTop =
+      hookTopEdgeMode === 'maximum'
+        ? Math.max(existing, insets.top)
+        : existing + insets.top;
+    return [style, { [edgeKey]: combinedTop } as ViewStyle];
+  }, [applyHookTopInset, hookTopEdgeMode, insets.top, resolvedMode, style]);
 
   return (
     <NativeSafeAreaView
       ref={ref}
       {...props}
+      mode={mode}
       edges={nativeEdges as Edges}
       style={combinedStyle}
     />

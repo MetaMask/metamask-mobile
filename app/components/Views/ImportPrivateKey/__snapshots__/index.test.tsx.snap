@@ -8,8 +8,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,13 +333,10 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -766,7 +762,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                           </View>
                         </RCTScrollView>
                         <View />
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -776,6 +772,6 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

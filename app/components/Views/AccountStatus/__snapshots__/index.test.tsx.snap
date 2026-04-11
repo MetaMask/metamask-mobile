@@ -1,14 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountStatus Snapshots android renders correctly with accountName in route params 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -320,18 +318,16 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`AccountStatus Snapshots android renders correctly with type="found" 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -643,18 +639,16 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`AccountStatus Snapshots android renders correctly with type="not_exist" 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -966,18 +960,16 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with accountName in route params 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -1289,18 +1281,16 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -1612,18 +1602,16 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -1935,5 +1923,5 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;

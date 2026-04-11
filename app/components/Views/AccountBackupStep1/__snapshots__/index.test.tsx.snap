@@ -1,14 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -381,18 +379,16 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`AccountBackupStep1 Snapshots android render matches snapshot with status bar height to zero 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -765,18 +761,16 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -1149,18 +1143,16 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by default (dark theme) 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -1533,18 +1525,16 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`AccountBackupStep1 Theme appearance renders light SRP design image for light theme 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -1917,5 +1907,5 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;
