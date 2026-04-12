@@ -51,6 +51,13 @@ jest.mock('../../../store', () => {
   };
 });
 
+const DEFAULT_IFRAME_PROPS = {
+  is_iframe: false,
+  is_cross_origin_iframe: false,
+  iframe_origin: null,
+  top_level_origin: null,
+};
+
 describe('trackDappViewedEvent', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -75,6 +82,7 @@ describe('trackDappViewedEvent', () => {
       number_of_accounts: 2,
       number_of_accounts_connected: 1,
       source: 'in-app browser',
+      ...DEFAULT_IFRAME_PROPS,
     };
 
     trackDappViewedEvent({
@@ -110,6 +118,7 @@ describe('trackDappViewedEvent', () => {
       number_of_accounts: 2,
       number_of_accounts_connected: 1,
       source: 'in-app browser',
+      ...DEFAULT_IFRAME_PROPS,
     };
 
     trackDappViewedEvent({
@@ -144,6 +153,7 @@ describe('trackDappViewedEvent', () => {
       number_of_accounts: 2,
       number_of_accounts_connected: 1,
       source: 'in-app browser',
+      ...DEFAULT_IFRAME_PROPS,
     };
 
     trackDappViewedEvent({
@@ -179,6 +189,7 @@ describe('trackDappViewedEvent', () => {
       number_of_accounts: 1,
       number_of_accounts_connected: 1,
       source: 'in-app browser',
+      ...DEFAULT_IFRAME_PROPS,
     };
 
     trackDappViewedEvent({
@@ -214,6 +225,7 @@ describe('trackDappViewedEvent', () => {
       number_of_accounts_connected: 1,
       source: 'in-app browser',
       Referrer: 'https://uniswap.org',
+      ...DEFAULT_IFRAME_PROPS,
     };
 
     trackDappViewedEvent({
@@ -225,6 +237,84 @@ describe('trackDappViewedEvent', () => {
       MetaMetricsEvents.DAPP_VIEWED,
     )
       .addProperties(expectedMetrics)
+      .build();
+
+    expect(analytics.trackEvent).toHaveBeenCalledWith(expectedEvent);
+  });
+
+  it('includes iframe properties when isIframe is true with cross-origin', () => {
+    mockGetState.mockImplementation(() => ({
+      browser: {
+        visitedDappsByHostname: {},
+      },
+      engine: {
+        backgroundState: {
+          AccountsController: MOCK_DEFAULT_ACCOUNTS_CONTROLLER_STATE,
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+        },
+      },
+    }));
+
+    trackDappViewedEvent({
+      hostname: 'legitimate.com',
+      numberOfConnectedAccounts: 1,
+      isIframe: true,
+      iframeOrigin: 'https://malicious.com',
+    });
+
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.DAPP_VIEWED,
+    )
+      .addProperties({
+        Referrer: 'https://legitimate.com',
+        is_first_visit: true,
+        number_of_accounts: 2,
+        number_of_accounts_connected: 1,
+        source: 'in-app browser',
+        is_iframe: true,
+        is_cross_origin_iframe: true,
+        iframe_origin: 'https://malicious.com',
+        top_level_origin: 'legitimate.com',
+      })
+      .build();
+
+    expect(analytics.trackEvent).toHaveBeenCalledWith(expectedEvent);
+  });
+
+  it('includes same-origin iframe properties when iframe origin matches hostname', () => {
+    mockGetState.mockImplementation(() => ({
+      browser: {
+        visitedDappsByHostname: {},
+      },
+      engine: {
+        backgroundState: {
+          AccountsController: MOCK_DEFAULT_ACCOUNTS_CONTROLLER_STATE,
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+        },
+      },
+    }));
+
+    trackDappViewedEvent({
+      hostname: 'uniswap.org',
+      numberOfConnectedAccounts: 1,
+      isIframe: true,
+      iframeOrigin: 'uniswap.org',
+    });
+
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.DAPP_VIEWED,
+    )
+      .addProperties({
+        Referrer: 'https://uniswap.org',
+        is_first_visit: true,
+        number_of_accounts: 2,
+        number_of_accounts_connected: 1,
+        source: 'in-app browser',
+        is_iframe: true,
+        is_cross_origin_iframe: false,
+        iframe_origin: null,
+        top_level_origin: null,
+      })
       .build();
 
     expect(analytics.trackEvent).toHaveBeenCalledWith(expectedEvent);

@@ -209,6 +209,10 @@ describe('PermissionApproval', () => {
         chain_id_list: [],
         method: MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS,
         api_source: MetaMetricsRequestedThrough.EthereumProvider,
+        is_iframe: false,
+        is_cross_origin_iframe: false,
+        iframe_origin: null,
+        top_level_origin: null,
       })
       .build();
 

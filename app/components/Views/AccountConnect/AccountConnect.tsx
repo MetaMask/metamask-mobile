@@ -103,6 +103,7 @@ import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnap
 import AddNewAccount from '../AddNewAccount';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
+import { getIframeProperties } from '../../../util/metrics/getIframeProperties';
 import { isSnapId } from '@metamask/snaps-utils';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
@@ -365,6 +366,17 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const eventSource = useOriginSource({ origin: channelIdOrHostname });
 
+  const pageMeta = hostInfo?.pageMeta ?? hostInfo?.metadata?.pageMeta;
+  const iframeProps = useMemo(
+    () =>
+      getIframeProperties({
+        isIframe: Boolean(pageMeta?.isIframe),
+        origin: channelIdOrHostname ?? '',
+        topLevelOrigin: pageMeta?.isIframe ? pageMeta?.url : undefined,
+      }),
+    [pageMeta?.isIframe, pageMeta?.url, channelIdOrHostname],
+  );
+
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
     // Extract the address list from the internalAccounts array
@@ -413,6 +425,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             chain_id_list: chainIds,
             referrer: channelIdOrHostname,
             ...getApiAnalyticsProperties(isMultichainRequest),
+            ...iframeProps,
           })
           .build(),
       );
@@ -425,6 +438,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       eventSource,
       hostInfo.metadata.isEip1193Request,
       hostInfo.permissions,
+      iframeProps,
     ],
   );
 
@@ -474,8 +488,10 @@ const AccountConnect = (props: AccountConnectProps) => {
       trackDappViewedEvent({
         hostname: hostnameFromUrlObj,
         numberOfConnectedAccounts,
+        isIframe: pageMeta?.isIframe,
+        iframeOrigin: pageMeta?.iframeOrigin,
       }),
-    [hostnameFromUrlObj],
+    [hostnameFromUrlObj, pageMeta?.isIframe, pageMeta?.iframeOrigin],
   );
 
   const handleConnect = useCallback(async () => {
@@ -522,6 +538,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             chain_id_list: selectedChainIds,
             referrer,
             ...getApiAnalyticsProperties(isMultichainRequest),
+            ...iframeProps,
           })
           .build(),
       );
@@ -558,6 +575,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     selectedChainIds,
     requestedCaip25CaveatValue,
     referrer,
+    iframeProps,
   ]);
 
   // This only handles EVM

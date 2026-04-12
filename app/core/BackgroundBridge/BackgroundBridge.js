@@ -131,6 +131,8 @@ export class BackgroundBridge extends EventEmitter {
     isMMSDK,
     sdkVersion = 'v1',
     channelId,
+    isIframe = false,
+    iframeOrigin,
   }) {
     super();
     this.url = url;
@@ -138,6 +140,8 @@ export class BackgroundBridge extends EventEmitter {
     // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
     this.remoteConnHost = remoteConnHost;
     this.isMainFrame = isMainFrame;
+    this.isIframe = isIframe;
+    this.iframeOrigin = iframeOrigin;
     this.isWalletConnect = isWalletConnect;
     this.isMMSDK = isMMSDK;
     this.sdkVersion = sdkVersion;

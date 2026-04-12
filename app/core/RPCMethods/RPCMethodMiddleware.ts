@@ -101,6 +101,9 @@ export interface RPCMethodsMiddleParameters {
   // For MM SDK
   isMMSDK: boolean;
   analytics: { [key: string]: string | boolean };
+  // Iframe context from injected detection script (in-app browser only)
+  isIframe?: boolean;
+  iframeOrigin?: string;
 }
 
 // Also used by WalletConnect.js.
@@ -294,6 +297,8 @@ export const getRpcMethodMiddlewareHooks = ({
   analytics,
   channelId,
   getSource,
+  isIframe,
+  iframeOrigin,
 }: {
   origin: string;
   url: MutableRefObject<string>;
@@ -302,6 +307,8 @@ export const getRpcMethodMiddlewareHooks = ({
   analytics: { [key: string]: string | boolean };
   channelId?: string;
   getSource: () => string;
+  isIframe?: boolean;
+  iframeOrigin?: string;
 }) => ({
   getCaveat: ({
     target,
@@ -360,6 +367,8 @@ export const getRpcMethodMiddlewareHooks = ({
                     request_source: getSource(),
                     request_platform: analytics?.platform,
                   },
+                  isIframe: Boolean(isIframe),
+                  iframeOrigin,
                 },
               },
             },
@@ -406,6 +415,9 @@ export const getRpcMethodMiddleware = ({
   isMMSDK,
   // For analytics
   analytics,
+  // Iframe context
+  isIframe,
+  iframeOrigin,
 }: RPCMethodsMiddleParameters) => {
   // Make sure to always have the correct origin
   hostname = hostname
@@ -428,6 +440,8 @@ export const getRpcMethodMiddleware = ({
     analytics,
     channelId,
     getSource,
+    isIframe,
+    iframeOrigin,
   });
 
   DevLogger.log(
@@ -475,6 +489,8 @@ export const getRpcMethodMiddleware = ({
               request_source: getSource(),
               request_platform: analytics?.platform,
             },
+            isIframe: Boolean(isIframe),
+            iframeOrigin,
           },
         },
         id: random(),
@@ -650,6 +666,14 @@ export const getRpcMethodMiddleware = ({
                     {
                       metadata: {
                         isEip1193Request: true,
+                        pageMeta: {
+                          url: url.current,
+                          title: title.current,
+                          icon: icon.current,
+                          channelId,
+                          isIframe: Boolean(isIframe),
+                          iframeOrigin,
+                        },
                       },
                     },
                   ),

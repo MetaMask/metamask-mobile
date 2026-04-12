@@ -123,6 +123,26 @@ export const SCROLL_TRACKER_SCRIPT = `
   })();
 `;
 
+export const IFRAME_DETECTION_SCRIPT = `
+  (function() {
+    try {
+      var isIframe = window.self !== window.top;
+      var iframeUrls = [];
+      try {
+        var frames = document.getElementsByTagName('iframe');
+        for (var i = 0; i < frames.length; i++) {
+          try { iframeUrls.push(frames[i].src); } catch(e) {}
+        }
+      } catch(e) {}
+      window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'IFRAME_DETECTED',
+        isIframe: isIframe,
+        iframeUrls: iframeUrls
+      }));
+    } catch(e) {}
+  })();
+`;
+
 export const JS_POST_MESSAGE_TO_PROVIDER = (
   message: object,
   origin: string,

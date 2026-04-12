@@ -12,6 +12,7 @@ import {
   getAllScopesFromPermission,
 } from '@metamask/chain-agnostic-permission';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
+import { getIframeProperties } from '../../../util/metrics/getIframeProperties';
 import { selectPendingApprovals } from '../../../selectors/approvalController';
 import { isEqual } from 'lodash';
 
@@ -67,6 +68,14 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     const isMultichainRequest =
       !approvalRequest?.requestData?.metadata?.isEip1193Request;
 
+    const pageMeta =
+      requestData?.pageMeta ?? requestData?.metadata?.pageMeta ?? {};
+    const iframeProps = getIframeProperties({
+      isIframe: Boolean(pageMeta?.isIframe),
+      origin: approvalRequest?.requestData?.metadata?.origin ?? '',
+      topLevelOrigin: pageMeta?.isIframe ? pageMeta?.url : undefined,
+    });
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_STARTED)
         .addProperties({
@@ -74,6 +83,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
           source: eventSource,
           chain_id_list: chainIds,
           ...getApiAnalyticsProperties(isMultichainRequest),
+          ...iframeProps,
         })
         .build(),
     );

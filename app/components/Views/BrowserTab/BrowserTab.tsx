@@ -29,6 +29,7 @@ import {
   SPA_urlChangeListener,
   JS_DESELECT_TEXT,
   SCROLL_TRACKER_SCRIPT,
+  IFRAME_DETECTION_SCRIPT,
 } from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import { strings } from '../../../../locales/i18n';
@@ -194,6 +195,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       onDisconnect: () => void;
       onMessage: (message: Record<string, unknown>) => void;
     }>();
+    const iframeContextRef = useRef<{
+      isIframe: boolean;
+      iframeOrigin?: string;
+    }>({ isIframe: false });
     const searchEngine = useSelector(selectSearchEngine);
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
@@ -508,7 +513,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         setEntryScriptWeb3(
           entryScriptWeb3Fetched +
             SPA_urlChangeListener +
-            SCROLL_TRACKER_SCRIPT,
+            SCROLL_TRACKER_SCRIPT +
+            IFRAME_DETECTION_SCRIPT,
         );
       };
 
@@ -873,16 +879,24 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             scrollY.value = dataParsed.payload?.scrollY || 0;
             return;
           }
-          if (
-            dataParsed.type === 'IFRAME_DETECTED' &&
-            Array.isArray(dataParsed.iframeUrls) &&
-            dataParsed.iframeUrls.length > 0
-          ) {
-            const validIframeUrls = dataParsed.iframeUrls.filter(
-              (url: unknown): url is string =>
-                typeof url === 'string' && url.trim().length > 0,
-            );
+          if (dataParsed.type === 'IFRAME_DETECTED') {
+            iframeContextRef.current = {
+              isIframe: Boolean(dataParsed.isIframe),
+              iframeOrigin: undefined,
+            };
+
+            const validIframeUrls = Array.isArray(dataParsed.iframeUrls)
+              ? dataParsed.iframeUrls.filter(
+                  (url: unknown): url is string =>
+                    typeof url === 'string' && url.trim().length > 0,
+                )
+              : [];
+
             if (validIframeUrls.length > 0) {
+              const { origin: firstIframeOrigin } = new URLParse(
+                validIframeUrls[0],
+              );
+              iframeContextRef.current.iframeOrigin = firstIframeOrigin;
               checkIFrameUrls(validIframeUrls);
             }
             return;
@@ -908,6 +922,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         backgroundBridgeRef.current?.onDisconnect();
         backgroundBridgeRef.current = undefined;
 
+        const iframeContext = iframeContextRef.current;
+
         //@ts-expect-error - We should type bacgkround bridge js file
         const newBridge = new BackgroundBridge({
           webview: webviewRef,
@@ -930,8 +946,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               isWalletConnect: false,
               isMMSDK: false,
               analytics: {},
+              // Iframe context from injected detection script
+              isIframe: iframeContext.isIframe,
+              iframeOrigin: iframeContext.iframeOrigin,
             }),
           isMainFrame,
+          isIframe: iframeContext.isIframe,
+          iframeOrigin: iframeContext.iframeOrigin,
         });
         backgroundBridgeRef.current = newBridge;
       },
