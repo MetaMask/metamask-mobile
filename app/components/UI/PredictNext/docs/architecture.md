@@ -114,6 +114,47 @@ This keeps interfaces stable even as providers change. Polymarket and Kalshi may
 
 PredictNext is organized into four layers, bottom-up.
 
+4-Layer Architecture Overview:
+
+```text
+                                 (Responses)
+       (Requests)                     ▲
+            │                         │
+            ▼                         │
+┌──────────────────────────────────────────────────────────┐
+│ Layer 4: Components (Views → Widgets → Primitives)       │
+└───────────────────────────┬──────────────────────────────┘
+                            │
+                            ▼
+┌──────────────────────────────────────────────────────────┐
+│ Layer 3: Hooks (events/, portfolio/, trading/, etc.)     │
+└───────────┬───────────────────────────┬──────────────────┘
+            │                           │
+            │             (Read Path)   │
+            ▼             ┌─────────────┘
+┌─────────────────────────┤             ▼
+│ Layer 2: Controller     │   ┌────────────────────────────┐
+│ (PredictController)     │   │ Layer 2: Services          │
+└───────────┬─────────────┘   │ (MarketDataService, etc.)  │
+            │                 └─────────┬──────────────────┘
+            ▼                           │
+┌─────────────────────────┐             │
+│ Layer 2: Services       │             │
+│ (TradingService, etc.)  │             │
+└───────────┬─────────────┘             │
+            └─────────────┬─────────────┘
+                          │
+                          ▼
+┌──────────────────────────────────────────────────────────┐
+│ Layer 1: Adapters (PolymarketAdapter, KalshiAdapter)     │
+└───────────────────────────┬──────────────────────────────┘
+                            │
+                            ▼
+┌──────────────────────────────────────────────────────────┐
+│ External APIs (Polymarket APIs, Kalshi APIs)             │
+└──────────────────────────────────────────────────────────┘
+```
+
 ### Layer 1 — Adapters
 
 Adapters are thin protocol boundaries that translate provider APIs into the canonical Predict model.
@@ -479,6 +520,23 @@ Reference [testing.md](./testing.md).
 ## 7. Module Boundaries
 
 PredictNext should present a deliberate public surface.
+
+Module Boundary:
+
+```text
+┌────────────────────────────────────────────────────────────────┐
+│ PredictNext Module Boundary                                    │
+├───────────────────────────────┬────────────────────────────────┤
+│ PUBLIC (index.ts)             │ INTERNAL                       │
+├───────────────────────────────┼────────────────────────────────┤
+│ • Views                       │ • Services                     │
+│ • Components                  │ • Adapters                     │
+│ • Hooks                       │ • Widgets                      │
+│ • Types                       │ • Utils                        │
+│ • Selectors                   │ • Constants                    │
+│                               │ • Provider DTOs                │
+└───────────────────────────────┴────────────────────────────────┘
+```
 
 ### Public API
 

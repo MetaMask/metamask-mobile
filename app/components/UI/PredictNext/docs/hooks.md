@@ -622,6 +622,28 @@ This pattern keeps deep hooks stable and reusable while allowing view code to st
 
 Not every tier uses hooks. The rule is: primitives are pure, widgets wire data, views orchestrate.
 
+```text
+Views (PredictHome, EventDetails, OrderScreen)
+  │
+  ├── Guard hooks:    usePredictGuard
+  ├── Nav hooks:      usePredictNavigation
+  ├── Imperative:     useTrading, useTransactions
+  │
+  └── Widgets (EventFeed, PortfolioSection, OrderForm)
+        │
+        ├── Data hooks:  useEventList, useFeaturedEvents, usePositions, useBalance
+        │                    │
+        │                    v
+        │              BaseDataService (MarketDataService, PortfolioService)
+        │                    │
+        │                    v
+        │              PredictAdapter
+        │
+        └── Primitives (EventCard, OutcomeButton, PositionCard)
+              │
+              └── No hooks. Pure props only.
+```
+
 | Tier                                        | Uses hooks?                    | Uses services directly? | Receives props?                |
 | ------------------------------------------- | ------------------------------ | ----------------------- | ------------------------------ |
 | Primitives (EventCard, OutcomeButton, etc.) | No                             | No                      | Yes — data + callbacks         |
@@ -641,6 +663,14 @@ This split means:
 - Views are easy to test with the component view framework since they mostly compose widgets.
 
 ## Hook Composition Rules
+
+```text
+Read path:
+  Widget → useEventList → useQuery(queryKey) → messenger → MarketDataService → adapter → API
+
+Write path:
+  View → useTrading → Engine.context.PredictController → TradingService → adapter → API
+```
 
 1. Imperative hooks compose services, not each other.
 2. Widgets compose data query hooks with primitives.

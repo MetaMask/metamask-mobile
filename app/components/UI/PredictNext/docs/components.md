@@ -19,6 +19,31 @@ Core rules:
 - Keep domain formatting and rendering logic inside primitives when it improves reuse
 - Primitives are pure (no hooks) — widgets wire data hooks to primitives — views compose widgets
 
+```text
+TIER 3: Views (route-level)
+┌─────────────┐ ┌──────────────┐ ┌─────────────┐ ┌─────────────────┐
+│ PredictHome │ │ EventDetails │ │ OrderScreen │ │ TransactionsView│
+└──────┬──────┘ └──────┬───────┘ └──────┬──────┘ └────────┬────────┘
+       │               │               │                  │
+       v               v               v                  v
+TIER 2: Widgets (composed sections)
+┌───────────┐ ┌──────────────────┐ ┌─────────────────┐ ┌──────────────┐
+│ EventFeed │ │ FeaturedCarousel │ │ PortfolioSection│ │ OrderForm    │
+└─────┬─────┘ └────────┬─────────┘ └────────┬────────┘ └──────┬───────┘
+      │                │                     │                 │
+      v                v                     v                 v
+TIER 1: Primitives (reusable building blocks)
+┌───────────┐ ┌───────────────┐ ┌──────────────┐ ┌──────────────┐
+│ EventCard │ │ OutcomeButton │ │ PositionCard │ │ PriceDisplay │
+└───────────┘ └───────────────┘ └──────────────┘ └──────────────┘
+```
+
+Legend:
+
+- Primitives: Pure (no hooks), receive data via props
+- Widgets: Wire data hooks to primitives
+- Views: Compose widgets with imperative/guard hooks
+
 Related docs:
 
 - [hooks](./hooks.md)
@@ -50,6 +75,14 @@ Why this shape works:
 - sub-components can be reordered or omitted per screen
 - sport, crypto, binary, and multi-market rendering differences remain internal
 - compact row and full card layouts can share the same public API
+
+```text
+<EventCard event={event}>     ← provides context
+  ├── <EventCard.Header />    ← reads from context
+  ├── <EventCard.Markets />   ← reads from context
+  ├── <EventCard.Footer />    ← reads from context
+  └── <EventCard.Scoreboard/>← reads from context (optional)
+```
 
 Suggested file structure:
 

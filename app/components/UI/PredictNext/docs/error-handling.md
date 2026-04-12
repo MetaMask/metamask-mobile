@@ -64,6 +64,23 @@ The category model keeps UI behavior predictable and limits bespoke handling.
 
 ## Error Handling by Layer
 
+```text
+Layer:      ADAPTER          SERVICE            HOOK           COMPONENT
+            ┌──────┐         ┌──────┐          ┌──────┐       ┌──────┐
+            │      │         │      │          │      │       │      │
+Error:      │ Raw  │────────>│Absorb│────────>│Expose│─────>│Render│
+            │throw │  catch  │retry │  throw   │state │ props │ UI   │
+            │      │         │wrap  │ Predict  │      │       │state │
+            └──────┘         │cache │ Error    └──────┘       └──────┘
+                             │fall  │
+                             │back  │
+                             └──────┘
+
+ Transient failures:    ABSORBED (retry, cache fallback, reconnect)
+ User-actionable:       SURFACED as PredictError with code + recoverable
+ UI renders:            empty | unavailable | action failed | degraded
+```
+
 ### Adapter Layer
 
 Responsibilities:

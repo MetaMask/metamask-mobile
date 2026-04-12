@@ -139,6 +139,22 @@ export interface PredictController {
 
 The controller surface stays intentionally small even if internal services are sophisticated. That is the point of the design.
 
+```text
+Hooks (read path)          Hooks (write path)
+    |                          |
+    |  [bypasses controller]   v
+    |                    PredictController
+    |                    (~10 methods)
+    |                     /    |    \
+    v                    v     v     v
+MarketData  Portfolio  Trading Transaction LiveData Analytics
+Service     Service    Service  Service    Service  Service
+    \          \         |       |          /       /
+     \_________ \________|_______|________/ ______/
+                         |
+                    PredictAdapter
+```
+
 ## 3. MarketDataService (BaseDataService)
 
 `MarketDataService` is the read model for market and discovery data.
@@ -416,6 +432,33 @@ The order lifecycle is modeled inside `TradingService`, not in hooks or screens:
 
 The UI can render the current state, but it should not be responsible for deciding transitions.
 
+```text
+          +-------+          +------------+
+          | ERROR | <------- | ANY STATE  |
+          +-------+          +------------+
+              |
+              | (reset)
+              v
+          +-------+          +------------+
+   +----> | IDLE  | <------> | PREVIEWING |
+   |      +-------+          +------------+
+   |          |                    |
+   |          v                    |
+   |      +------------+           |
+   |      | DEPOSITING | <---------+
+   |      +------------+
+   |          |
+   |          v
+   |      +---------------+
+   |      | PLACING_ORDER |
+   |      +---------------+
+   |          |
+   |          v
+   |      +---------+
+   +----- | SUCCESS |
+          +---------+
+```
+
 ### Internal responsibilities
 
 `TradingService` hides substantial complexity:
@@ -657,6 +700,16 @@ Typical dependencies:
 - `PortfolioService` → `PredictAdapter`
 - `TransactionService` → `PredictAdapter`
 - `LiveDataService` → `PredictAdapter`
+
+```text
+      TradingService          LiveDataService
+       /   |   |   \           /      \
+      v    v   v    v         v        v
+  Transac Market Portfol Analytics  PredictAdapter
+  Service  Data   folio   Service        ^
+     |       \      /                    |
+     +--------+----+---------------------+
+```
 
 `AnalyticsService` should not depend back on feature services. `PredictAdapter` should not depend upward on services.
 

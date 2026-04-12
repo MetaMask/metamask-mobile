@@ -28,6 +28,30 @@ Related docs:
 | Unit Tests                | Pure utility functions      | ~3-5 files   | Jest                            |
 | E2E Tests                 | Full user flows             | ~10 files    | Detox                           |
 
+```text
+                    /\
+                   /  \
+                  / E2E \           ~10 files
+                 / Detox  \         Full user flows
+                /──────────\
+               / Component  \       ~8-10 files
+              / View Tests   \      Views + real Redux
+             /────────────────\
+            / Service Integration\   ~6 files
+           / Mock adapter boundary\  State machines, retries
+          /────────────────────────\
+         /    Adapter Integration   \  ~1-2 files
+        /     Mock HTTP (nock)       \  DTO transformation
+       /──────────────────────────────\
+      /        Pure Unit Tests         \  ~3-5 files
+     /    formatPrice, parseOutcome     \  Isolated logic
+    /────────────────────────────────────\
+
+         More integration ────> More isolation
+         Fewer files     ────> More files (in old arch)
+         Higher signal   ────> Lower signal
+```
+
 This pyramid concentrates coverage where behavior is most meaningful while preserving fast feedback.
 
 ## Component View Tests: Primary Surface

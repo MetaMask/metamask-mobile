@@ -51,6 +51,20 @@ Adapters do not:
 
 The rest of PredictNext treats adapters as swappable protocol implementations behind a stable domain contract.
 
+```text
+ [ Service ]           [ Adapter ]           [ Provider API ]
+      |                     |                      |
+      |--- call method ---->|                      |
+      |                     |--- request --------->|
+      |                     |                      |
+      |                     |<-- provider DTO -----|
+      |                     |                      |
+      |                     | [ Transform DTO ]    |
+      |                     | [ to PredictType ]   |
+      |                     |                      |
+      |<-- PredictType -----|                      |
+```
+
 Adding a new provider should primarily mean implementing one interface.
 
 ## 2. PredictAdapter Interface
@@ -270,6 +284,19 @@ Polymarket requires multiple underlying APIs and transports:
 - CLOB API for order placement and previewing
 - Polymarket account endpoints for balances, positions, and activity
 - WebSocket feeds for live price and status updates
+
+```text
+                PredictAdapter (Interface)
+                          ^
+                          |
+                +-------------------+
+                | PolymarketAdapter |
+                +-------------------+
+                 /        |        \         \
+                v         v         v         v
+          Gamma API   CLOB API   Account   WebSockets
+          (Events)    (Orders)   Endpoints   (Live)
+```
 
 The adapter unifies those sources into the Predict domain model.
 

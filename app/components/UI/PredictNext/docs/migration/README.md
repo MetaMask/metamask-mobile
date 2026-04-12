@@ -53,6 +53,28 @@ Phase 6 — New UI replaces old UI:
   (translation layer no longer needed for migrated screens)
 ```
 
+Inside-Out Migration Order:
+
+```text
+┌──────────────────────────────────────────────────────────┐
+│ Inside-Out Migration Order                               │
+│                                                          │
+│      ┌────────────────────────────────────────────┐      │
+│      │ Phase 6: UI (Hooks, Components, Views)     │      │
+│      │    ┌──────────────────────────────────┐    │      │
+│      │    │ Phase 5: PredictController       │    │      │
+│      │    │    ┌────────────────────────┐    │    │      │
+│      │    │    │ Phase 3-4: Services    │    │    │      │
+│      │    │    │    ┌──────────────┐    │    │    │      │
+│      │    │    │    │ Phase 2:     │    │    │    │      │
+│      │    │    │    │ Adapter      │    │    │    │      │
+│      │    │    │    └──────────────┘    │    │    │      │
+│      │    │    └────────────────────────┘    │    │      │
+│      │    └──────────────────────────────────┘    │      │
+│      └────────────────────────────────────────────┘      │
+└──────────────────────────────────────────────────────────┘
+```
+
 ## 3. PredictNext/ Approach
 
 - New architecture lives in `app/components/UI/PredictNext/`.
@@ -97,6 +119,32 @@ Phase 6 — New UI replaces old UI:
 Note: Phases 3 and 4 can run in parallel because read services and write services are independent. Both depend on the adapter from Phase 2.
 
 ## 5. Parallel Work Streams
+
+Parallel Work Streams:
+
+```text
+┌──────────────────────────────────────────────────────────┐
+│ Parallel Work Streams                                    │
+│                                                          │
+│ Phase 1 (Foundation)                                     │
+│      │                                                   │
+│      ▼                                                   │
+│ Split Streams ──────────────────────────┐                │
+│      │                                  │                │
+│ Stream A (Read Path)             Stream B (Write Path)   │
+│ Phase 2 → Phase 3                Phase 2 → Phase 4       │
+│      │                                  │                │
+│      └────────────────┬─────────────────┘                │
+│                       ▼                                  │
+│               Phase 5 (Merge Point)                      │
+│                       │                                  │
+│                       ▼                                  │
+│               Phase 6 (UI Migration)                     │
+│                       │                                  │
+│                       ▼                                  │
+│               Phase 7 (Cleanup)                          │
+└──────────────────────────────────────────────────────────┘
+```
 
 ### Stream A: Read path
 

@@ -11,6 +11,38 @@ PredictNext uses four state categories, each chosen for a specific kind of respo
 | Transient service state | Service internals                  | Implementation detail not read directly by UI                         | Rate limiting timestamps, optimistic overlays, WebSocket connection state |
 | View-local state        | React `useState` and local hooks   | Dies with the view and stays close to interaction logic               | Keypad input, scroll position, search query, bottom sheet visibility      |
 
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                    PredictNext State Map                     │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─ React Local State ──────────────────────────────┐      │
+│  │  useState / local hooks                           │      │
+│  │  keypad input, scroll, search, tabs               │      │
+│  │  Dies with the view                               │      │
+│  └───────────────────────────────────────────────────┘      │
+│                                                             │
+│  ┌─ Redux (PredictController) ──────────────────────┐      │
+│  │  Session state                                    │      │
+│  │  active order, payment token, pending deposits    │      │
+│  │  Survives navigation                              │      │
+│  └───────────────────────────────────────────────────┘      │
+│                                                             │
+│  ┌─ BaseDataService Cache ──────────────────────────┐      │
+│  │  Server cache (TanStack Query)                    │      │
+│  │  events, markets, positions, balance, activity    │      │
+│  │  Shared, deduplicated, stale-time controlled      │      │
+│  └───────────────────────────────────────────────────┘      │
+│                                                             │
+│  ┌─ Service Internals ──────────────────────────────┐      │
+│  │  Transient operational state                      │      │
+│  │  rate limits, overlays, socket state, circuits    │      │
+│  │  Never exposed to UI                              │      │
+│  └───────────────────────────────────────────────────┘      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
 This division keeps the persistent state footprint small and places each concern where it can be managed most naturally.
 
 Related docs:
