@@ -9409,6 +9409,61 @@ describe('HyperLiquidProvider', () => {
         // clearinghouseState should be called for both main + xyz DEX (from cache)
         expect(infoClient.clearinghouseState).toHaveBeenCalledTimes(2);
       });
+
+      it('filters DEXs via testnet config when in testnet mode', async () => {
+        // Arrange: testnet mode with TESTNET_HIP3_CONFIG.EnabledDexs = ['xyz']
+        (mockClientService.isTestnetMode as jest.Mock).mockReturnValue(true);
+        const testnetProvider = createTestProvider({
+          hip3Enabled: true,
+          isTestnet: true,
+        });
+
+        // perpDexs returns main + xyz + other DEX
+        mockStandaloneInfoClient.perpDexs.mockResolvedValue([
+          null,
+          { name: 'xyz' },
+          { name: 'otherdex' },
+        ]);
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act
+        await testnetProvider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert: clearinghouseState called for main + xyz only (otherdex filtered out)
+        expect(
+          mockStandaloneInfoClient.clearinghouseState,
+        ).toHaveBeenCalledTimes(2);
+        // Restore
+        (mockClientService.isTestnetMode as jest.Mock).mockReturnValue(false);
+      });
+
+      it('updates unified state atomically when standalone perpDexs succeeds', async () => {
+        // Arrange
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act: first standalone call populates dexDiscoveryState
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert: second call reuses cached state — perpDexs NOT called again
+        mockStandaloneInfoClient.perpDexs.mockClear();
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(mockStandaloneInfoClient.perpDexs).not.toHaveBeenCalled();
+      });
     });
   });
 
