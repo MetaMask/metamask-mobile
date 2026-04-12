@@ -1,4 +1,5 @@
 import React from 'react';
+import { TouchableOpacity } from 'react-native';
 import {
   Box,
   Text,
@@ -15,6 +16,7 @@ import type { Position } from '@metamask/social-controllers';
 
 export interface PositionRowProps {
   position: Position;
+  onPress?: (position: Position) => void;
 }
 
 function formatUsd(value: number | null | undefined): string {
@@ -31,11 +33,11 @@ function formatPercent(value: number | null | undefined): string {
   return `${sign}${value.toFixed(0)}%`;
 }
 
-const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
+const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
   const hasPnl = position.pnlPercent != null;
   const isPnlPositive = hasPnl && (position.pnlPercent ?? 0) >= 0;
 
-  return (
+  const content = (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
@@ -97,6 +99,16 @@ const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
       </Box>
     </Box>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity onPress={() => onPress(position)}>
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
 };
 
 export default PositionRow;

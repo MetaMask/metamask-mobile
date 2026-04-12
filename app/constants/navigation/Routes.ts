@@ -342,6 +342,7 @@ const Routes = {
     ROOT: 'SocialLeaderboard',
     VIEW: 'TopTradersView',
     PROFILE: 'TraderProfileView',
+    POSITION: 'TraderPositionView',
   },
   PREDICT: {
     ROOT: 'Predict',
