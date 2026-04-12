@@ -25,9 +25,9 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { CardActions } from '../../util/metrics';
 import { useCardSDK } from '../../sdk';
 import {
-  selectIsCardAuthenticated,
-  selectCardUserLocation,
-} from '../../../../../selectors/cardController';
+  selectIsAuthenticatedCard,
+  selectUserCardLocation,
+} from '../../../../../core/redux/slices/card';
 import {
   selectGalileoAppleWalletProvisioningEnabled,
   selectGalileoGoogleWalletProvisioningEnabled,
@@ -82,8 +82,8 @@ export function usePushProvisioning(
 
   // Get SDK and location
   const { sdk: cardSDK, isLoading: isSDKLoading } = useCardSDK();
-  const userCardLocation = useSelector(selectCardUserLocation);
-  const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const userCardLocation = useSelector(selectUserCardLocation);
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
 
   // Get feature flags for push provisioning
   const isAppleWalletProvisioningEnabled = useSelector(
@@ -383,17 +383,8 @@ export function usePushProvisioning(
         setStatus('provisioning');
         const result = await service.initiateProvisioning(provisioningOptions);
 
-        // Handle all result statuses from the service
-        // Note: On iOS, addCardToAppleWallet resolves with 'success' directly,
-        // but the onCardActivated event may not fire. We handle success here
-        // as the primary path, with the activation listener as a fallback.
         if (result.status === 'success') {
           setStatus('success');
-
-          trackAnalyticsEvent(
-            MetaMetricsEvents.CARD_PUSH_PROVISIONING_COMPLETED,
-            { token_id: result.tokenId },
-          );
           onSuccessRef.current?.({
             status: 'success',
             tokenId: result.tokenId,
@@ -462,15 +453,14 @@ export function usePushProvisioning(
   const canAddToWallet =
     isPushProvisioningFeatureEnabled &&
     isAuthenticated &&
-    isAccountEligible &&
     !isLoading &&
     !!cardDetails &&
     isCardEligible &&
+    isAccountEligible &&
     !!cardAdapter &&
     !!walletAdapter &&
     eligibility?.isAvailable === true &&
-    eligibility?.canAddCard === true &&
-    status !== 'success';
+    eligibility?.canAddCard === true;
 
   return {
     status,

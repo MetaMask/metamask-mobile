@@ -80,6 +80,10 @@ jest.mock(
   '../../../../../images/rewards/rewards-onboarding-step4.png',
   () => 'step4Img',
 );
+jest.mock(
+  '../../../../../images/rewards/rewards-onboarding-step4-bg.svg',
+  () => 'Step4BgImg',
+);
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {

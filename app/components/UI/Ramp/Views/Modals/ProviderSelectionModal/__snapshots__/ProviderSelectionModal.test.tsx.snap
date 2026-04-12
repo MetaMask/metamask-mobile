@@ -478,8 +478,9 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -515,9 +516,6 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                       "width": 90,
                                     },
                                     "name": "Transak",
-                                    "supportedCryptoCurrencies": {
-                                      "eip155:1/slip44:60": true,
-                                    },
                                   },
                                   "type": "provider",
                                 },
@@ -535,9 +533,6 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                       "width": 90,
                                     },
                                     "name": "MoonPay",
-                                    "supportedCryptoCurrencies": {
-                                      "eip155:1/slip44:60": true,
-                                    },
                                   },
                                   "type": "provider",
                                 },
@@ -625,6 +620,7 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                                 "color": "#131416",
                                                 "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
+                                                "fontWeight": 400,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               },
@@ -706,6 +702,7 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                                 "color": "#131416",
                                                 "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
+                                                "fontWeight": 400,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               },

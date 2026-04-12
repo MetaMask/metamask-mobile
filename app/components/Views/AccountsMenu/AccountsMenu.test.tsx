@@ -195,7 +195,43 @@ describe('AccountsMenu', () => {
     expect(getByText('accounts_menu.resources')).toBeOnTheScreen();
   });
 
+  describe('Snapshots', () => {
+    it('match snapshot when MetaMask Card is hidden', () => {
+      (useSelector as jest.Mock).mockReturnValue(false);
+
+      const { toJSON } = render(<AccountsMenu />);
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('match snapshot when MetaMask Card is visible', () => {
+      (useSelector as jest.Mock).mockReturnValue(true);
+
+      const { toJSON } = render(<AccountsMenu />);
+      expect(toJSON()).toMatchSnapshot();
+    });
+  });
+
   describe('MetaMask Card Button', () => {
+    it('render MetaMask Card row when shouldDisplayCardButton is true', () => {
+      (useSelector as jest.Mock).mockReturnValue(true);
+
+      const { getByText, getByTestId } = render(<AccountsMenu />);
+
+      expect(getByText('accounts_menu.card_title')).toBeOnTheScreen();
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD),
+      ).toBeOnTheScreen();
+    });
+
+    it('does NOT render MetaMask Card row when shouldDisplayCardButton is false', () => {
+      (useSelector as jest.Mock).mockReturnValue(false);
+
+      const { queryByText, queryByTestId } = render(<AccountsMenu />);
+
+      expect(queryByText('accounts_menu.card_title')).toBeNull();
+      expect(queryByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD)).toBeNull();
+    });
+
     it('navigate to card and track analytics when MetaMask Card is pressed', () => {
       (useSelector as jest.Mock).mockReturnValue(true);
 

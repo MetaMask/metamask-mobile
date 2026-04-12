@@ -149,6 +149,7 @@ import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/tran
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
+import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -1235,6 +1236,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     setSelectedTooltip(null);
   }, []);
 
+  useInitPerpsPaymentToken(orderForm.asset ?? '');
+
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
   const amountTimesLeverage = Math.floor(availableBalance * orderForm.leverage);
 
@@ -1336,6 +1339,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 const amount = Math.floor(value).toString();
                 setAmount(amount);
               }}
+              key={payToken?.symbol ?? ''}
               minimumValue={0}
               maximumValue={maxPossibleAmount}
               step={1}
@@ -1488,7 +1492,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View style={[styles.detailItem, styles.detailItemLast]}>
                 <PerpsPayRow
                   embeddedInStack
-                  initialAsset={orderForm.asset}
                   onPayWithInfoPress={() => handleTooltipPress('pay_with')}
                 />
               </View>

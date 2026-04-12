@@ -714,7 +714,6 @@
     "campaigns": {},
     "ondoCampaignLeaderboardPositions": {},
     "ondoCampaignPortfolio": {},
-    "ondoCampaignActivity": {},
     "ondoCampaignLeaderboard": {},
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
@@ -796,8 +795,5 @@
     "requests": {},
     "orders": [],
     "providerAutoSelected": false
-  },
-  "MoneyAccountController": {
-    "moneyAccounts": {}
   }
 }

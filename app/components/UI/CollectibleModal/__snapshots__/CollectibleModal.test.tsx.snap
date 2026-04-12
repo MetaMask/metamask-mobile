@@ -314,7 +314,7 @@ exports[`CollectibleModal renders correctly 1`] = `
                     undefined,
                     undefined,
                     {
-                      "fontFamily": "Geist-SemiBold",
+                      "fontFamily": "Geist-Bold",
                     },
                     undefined,
                     undefined,
@@ -537,7 +537,7 @@ exports[`CollectibleModal renders correctly 1`] = `
                     undefined,
                     undefined,
                     {
-                      "fontFamily": "Geist-SemiBold",
+                      "fontFamily": "Geist-Bold",
                     },
                     undefined,
                     {
