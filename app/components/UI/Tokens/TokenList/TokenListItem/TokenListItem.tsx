@@ -709,18 +709,17 @@ export const TokenListItem = React.memo(
             </View>
 
             {/* Token balance */}
-            <Box twClassName="shrink">
-              <SensitiveText
-                variant={CLTextVariant.BodySMMedium}
-                style={styles.secondaryBalance}
-                length={SensitiveTextLength.Short}
-                isHidden={privacyMode}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {tokenBalance}
-              </SensitiveText>
-            </Box>
+            <SensitiveText
+              variant={CLTextVariant.BodySMMedium}
+              style={styles.secondaryBalance}
+              twClassName="shrink"
+              length={SensitiveTextLength.Short}
+              isHidden={privacyMode}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {tokenBalance}
+            </SensitiveText>
           </Box>
         </Box>
       </TouchableOpacity>

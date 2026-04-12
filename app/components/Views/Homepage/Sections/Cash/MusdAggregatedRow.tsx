@@ -95,83 +95,77 @@ const MusdAggregatedRow = () => {
       testID="cash-section-musd-row"
       onPress={handleTokenRowPress}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="flex-1"
-      >
-        <AvatarToken
-          name={MUSD_TOKEN.symbol}
-          src={MUSD_TOKEN.imageSource as number}
-          size={AvatarTokenSize.Lg}
-        />
-        <Box twClassName="flex-1 ml-5">
+      <AvatarToken
+        name={MUSD_TOKEN.symbol}
+        src={MUSD_TOKEN.imageSource as number}
+        size={AvatarTokenSize.Lg}
+      />
+      <Box twClassName="flex-1 ml-5">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="gap-2.5"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+          >
+            {MUSD_TOKEN.name}
+          </Text>
+          <SensitiveText
+            variant={CLTextVariant.BodyMDMedium}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
+          >
+            {fiatBalanceAggregatedFormatted}
+          </SensitiveText>
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="gap-2.5"
+        >
           <Box
             flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-2.5"
+            alignItems={BoxAlignItems.Center}
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-            >
-              {MUSD_TOKEN.name}
-            </Text>
-            <SensitiveText
-              variant={CLTextVariant.BodyMDMedium}
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Medium}
-            >
-              {fiatBalanceAggregatedFormatted}
-            </SensitiveText>
-          </Box>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-2.5"
-          >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-            >
-              {isClaiming ? (
-                <AnimatedSpinner size={SpinnerSize.SM} />
-              ) : hasClaimableBonus ? (
-                <Pressable
-                  onPress={handleClaimBonus}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.PrimaryDefault}
-                  >
-                    {strings('earn.claim_bonus')}
-                  </Text>
-                </Pressable>
-              ) : (
+            {isClaiming ? (
+              <AnimatedSpinner size={SpinnerSize.SM} />
+            ) : hasClaimableBonus ? (
+              <Pressable
+                onPress={handleClaimBonus}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
-                  color={TextColor.SuccessDefault}
+                  color={TextColor.PrimaryDefault}
                 >
-                  {strings('earn.musd_conversion.percentage_bonus', {
-                    percentage: MUSD_CONVERSION_APY,
-                  })}
+                  {strings('earn.claim_bonus')}
                 </Text>
-              )}
-            </Box>
-            <SensitiveText
-              variant={CLTextVariant.BodySMMedium}
-              color={CLTextColor.Alternative}
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Short}
-              numberOfLines={1}
-            >
-              {tokenBalanceDisplay}
-            </SensitiveText>
+              </Pressable>
+            ) : (
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.SuccessDefault}
+              >
+                {strings('earn.musd_conversion.percentage_bonus', {
+                  percentage: MUSD_CONVERSION_APY,
+                })}
+              </Text>
+            )}
           </Box>
+          <SensitiveText
+            variant={CLTextVariant.BodySMMedium}
+            color={CLTextColor.Alternative}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
+            numberOfLines={1}
+          >
+            {tokenBalanceDisplay}
+          </SensitiveText>
         </Box>
       </Box>
     </Pressable>

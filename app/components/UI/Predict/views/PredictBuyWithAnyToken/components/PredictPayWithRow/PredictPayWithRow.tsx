@@ -5,11 +5,11 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../../locales/i18n';
 import Icon, {
@@ -35,6 +35,7 @@ export function PredictPayWithRow({
   disabled = false,
 }: PredictPayWithRowProps) {
   usePredictDefaultPaymentToken();
+  const tw = useTailwind();
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
@@ -67,28 +68,26 @@ export function PredictPayWithRow({
       alignItems={BoxAlignItems.Center}
       gap={3}
     >
-      <TouchableOpacity onPress={handlePress} disabled={!canEdit}>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName={`rounded-full py-2 pl-[9px] pr-[16px] mt-2 ${disabled ? '' : 'bg-muted'} mx-auto`}
-          gap={3}
-        >
-          {tokenIconAddress && tokenIconChainId && (
-            <TokenIcon address={tokenIconAddress} chainId={tokenIconChainId} />
-          )}
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {`${label} ${displaySymbol}`}
-          </Text>
-          {canEdit && (
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={IconColor.Alternative}
-            />
-          )}
-        </Box>
+      <TouchableOpacity
+        onPress={handlePress}
+        disabled={!canEdit}
+        style={tw.style(
+          `flex-row items-center justify-center rounded-full py-2 pl-[9px] pr-[16px] mt-2 mx-auto gap-3 ${disabled ? '' : 'bg-muted'}`,
+        )}
+      >
+        {tokenIconAddress && tokenIconChainId && (
+          <TokenIcon address={tokenIconAddress} chainId={tokenIconChainId} />
+        )}
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+          {`${label} ${displaySymbol}`}
+        </Text>
+        {canEdit && (
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Sm}
+            color={IconColor.Alternative}
+          />
+        )}
       </TouchableOpacity>
       {!isPredictBalanceSelected && (
         <Text

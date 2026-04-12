@@ -53,10 +53,8 @@ const NftSkeletonRow = () => {
         {Array.from({ length: NFTS_PER_ROW }, (_, index) => (
           <View key={index} style={tw.style('flex-1')}>
             <View style={tw.style('w-full aspect-square rounded-xl mb-3')} />
-            <View>
-              <View style={tw.style('h-4 rounded-lg mb-1 w-[60%]')} />
-              <View style={tw.style('h-3.5 rounded-md w-full')} />
-            </View>
+            <View style={tw.style('h-4 rounded-lg mb-1 w-[60%]')} />
+            <View style={tw.style('h-3.5 rounded-md w-full')} />
           </View>
         ))}
       </View>
@@ -179,16 +177,13 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
                 gap={3}
               >
                 {row.map((nft) => (
-                  <Box
+                  <NftGridItem
                     key={`${nft.address}-${nft.tokenId}`}
+                    item={nft}
+                    onLongPress={handleLongPress}
+                    source="mobile-nft-list"
                     twClassName="flex-1"
-                  >
-                    <NftGridItem
-                      item={nft}
-                      onLongPress={handleLongPress}
-                      source="mobile-nft-list"
-                    />
-                  </Box>
+                  />
                 ))}
                 {/* Add empty boxes to maintain grid alignment for incomplete rows */}
                 {row.length < NFTS_PER_ROW &&

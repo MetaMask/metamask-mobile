@@ -309,9 +309,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
                 totalSectionsLoaded={totalSectionsLoaded}
                 mode={sectionMode}
               />
-              <Box gap={8}>
-                {renderTreatmentNonPerpsSections(trendingPerpsSection)}
-              </Box>
+              {renderTreatmentNonPerpsSections(trendingPerpsSection)}
             </PerpsStreamProvider>
           </PerpsConnectionProvider>
         )}

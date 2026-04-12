@@ -4,14 +4,11 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import {
-  Box,
+  Icon,
+  IconSize,
   Text,
-  ButtonIcon,
   IconName,
-  ButtonIconSize,
   TextVariant,
-  BoxFlexDirection,
-  BoxAlignItems,
   TextColor,
   IconColor,
 } from '@metamask/design-system-react-native';
@@ -55,20 +52,18 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 }) => {
   const tw = useTailwind();
 
-  // Default horizontal padding; apply style to this same container so callers can override padding (e.g. paddingHorizontal: 0)
-  const containerTwClassName = twClassName ? `px-4 ${twClassName}` : 'px-4';
+  // Default horizontal padding + row layout; apply style to this same container so callers can override padding (e.g. paddingHorizontal: 0)
+  const containerTwClassName = twClassName
+    ? `px-4 flex-row items-center ${twClassName}`
+    : 'px-4 flex-row items-center';
   const containerStyle = StyleSheet.flatten([
     tw.style(containerTwClassName),
+    justifyContent ? tw.style(justifyContent) : undefined,
     style,
   ]);
 
-  const content = (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={justifyContent}
-      twClassName="flex-1"
-    >
+  const children = (
+    <>
       {typeof title === 'string' ? (
         <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
           {title}
@@ -77,21 +72,19 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         title
       )}
 
-      {/* Arrow icon: 4px right of title, visual indicator only */}
+      {/* Arrow icon: visual indicator only, no touch handling */}
       {onPress && (
-        <View pointerEvents="none" style={tw.style('ml-1')}>
-          <ButtonIcon
-            iconName={endIconName}
-            size={ButtonIconSize.Sm}
-            iconProps={{
-              color: endIconColor,
-            }}
-          />
-        </View>
+        <Icon
+          testID="section-header-arrow-icon"
+          name={endIconName}
+          size={IconSize.Md}
+          color={endIconColor}
+          style={tw.style('ml-1')}
+        />
       )}
 
       {endAccessory}
-    </Box>
+    </>
   );
 
   if (onPress) {
@@ -103,14 +96,14 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         accessibilityLabel={typeof title === 'string' ? title : undefined}
         style={containerStyle}
       >
-        {content}
+        {children}
       </TouchableOpacity>
     );
   }
 
   return (
     <View testID={testID} style={containerStyle}>
-      {content}
+      {children}
     </View>
   );
 };

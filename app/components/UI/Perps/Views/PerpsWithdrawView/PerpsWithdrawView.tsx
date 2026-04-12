@@ -380,38 +380,39 @@ const PerpsWithdrawView: React.FC = () => {
         />
 
         {/* Amount Display */}
-        <Pressable onPress={handleAmountPress}>
-          <Box alignItems={BoxAlignItems.Center} twClassName="py-12 px-4">
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              marginBottom={2}
+        <Pressable
+          onPress={handleAmountPress}
+          style={tw.style('items-center py-12 px-4')}
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            marginBottom={2}
+          >
+            <Text
+              variant={TextVariant.DisplayMD}
+              style={tw.style(
+                'text-[54px] leading-[70px] font-medium mb-2 text-default',
+                withdrawAmount === '0' && 'text-alternative',
+              )}
             >
-              <Text
-                variant={TextVariant.DisplayMD}
-                style={tw.style(
-                  'text-[54px] leading-[70px] font-medium mb-2 text-default',
-                  withdrawAmount === '0' && 'text-alternative',
-                )}
-              >
-                {formatDisplayAmount}
-              </Text>
-              <Animated.View
-                testID="cursor"
-                style={[
-                  tw.style('w-0.5 h-14 bg-text-default ml-1'),
-                  {
-                    opacity: fadeAnim,
-                  },
-                ]}
-              />
-            </Box>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('perps.withdrawal.available_balance', {
-                amount: formattedBalance,
-              })}
+              {formatDisplayAmount}
             </Text>
+            <Animated.View
+              testID="cursor"
+              style={[
+                tw.style('w-0.5 h-14 bg-text-default ml-1'),
+                {
+                  opacity: fadeAnim,
+                },
+              ]}
+            />
           </Box>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('perps.withdrawal.available_balance', {
+              amount: formattedBalance,
+            })}
+          </Text>
         </Pressable>
 
         {/* Receive Section */}

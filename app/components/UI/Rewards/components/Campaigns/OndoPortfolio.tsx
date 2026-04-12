@@ -421,72 +421,64 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
                 isCampaignComplete ? undefined : () => handleRowPress(row)
               }
               activeOpacity={isCampaignComplete ? 1 : 0.7}
+              className="flex-row items-center gap-3"
             >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-3"
+              <BadgeWrapper
+                position={BadgeWrapperPosition.BottomRight}
+                badge={
+                  rowChainHex ? (
+                    <Badge
+                      variant={BadgeVariant.Network}
+                      size={AvatarSize.Xs}
+                      isScaled={false}
+                      imageSource={NetworkBadgeSource(rowChainHex)}
+                    />
+                  ) : null
+                }
               >
-                <BadgeWrapper
-                  position={BadgeWrapperPosition.BottomRight}
-                  badge={
-                    rowChainHex ? (
-                      <Badge
-                        variant={BadgeVariant.Network}
-                        size={AvatarSize.Xs}
-                        isScaled={false}
-                        imageSource={NetworkBadgeSource(rowChainHex)}
-                      />
-                    ) : null
-                  }
+                <TrendingTokenLogo
+                  assetId={row.tokenAsset}
+                  symbol={row.tokenSymbol}
+                  size={36}
+                />
+              </BadgeWrapper>
+              <Box twClassName="flex-1">
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  justifyContent={BoxJustifyContent.Between}
+                  alignItems={BoxAlignItems.Center}
                 >
-                  <TrendingTokenLogo
-                    assetId={row.tokenAsset}
-                    symbol={row.tokenSymbol}
-                    size={36}
-                  />
-                </BadgeWrapper>
-                <Box twClassName="flex-1">
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    justifyContent={BoxJustifyContent.Between}
-                    alignItems={BoxAlignItems.Center}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
                   >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {row.tokenName}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {formatUsd(row.currentValue)}
-                    </Text>
-                  </Box>
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    justifyContent={BoxJustifyContent.Between}
-                    alignItems={BoxAlignItems.Center}
+                    {row.tokenName}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
                   >
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings(
-                        'rewards.ondo_campaign_portfolio.position_units',
-                        {
-                          units: row.units,
-                        },
-                      )}
+                    {formatUsd(row.currentValue)}
+                  </Text>
+                </Box>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  justifyContent={BoxJustifyContent.Between}
+                  alignItems={BoxAlignItems.Center}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('rewards.ondo_campaign_portfolio.position_units', {
+                      units: row.units,
+                    })}
+                  </Text>
+                  {rowPnlPercent ? (
+                    <Text variant={TextVariant.BodySm} color={rowPnlColor}>
+                      {rowPnlPercent}
                     </Text>
-                    {rowPnlPercent ? (
-                      <Text variant={TextVariant.BodySm} color={rowPnlColor}>
-                        {rowPnlPercent}
-                      </Text>
-                    ) : null}
-                  </Box>
+                  ) : null}
                 </Box>
               </Box>
             </TouchableOpacity>

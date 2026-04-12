@@ -6,7 +6,6 @@ import {
   Text,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
   TextVariant,
   TextColor,
   FontWeight,
@@ -61,15 +60,14 @@ const OutcomeRow: React.FC<{
       </Box>
 
       {/* Outcome title - flex to fill space */}
-      <Box twClassName="flex-1">
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-        >
-          {outcome.groupItemTitle || outcome.title}
-        </Text>
-      </Box>
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextDefault}
+        numberOfLines={1}
+        twClassName="flex-1"
+      >
+        {outcome.groupItemTitle || outcome.title}
+      </Text>
 
       {/* Percentage */}
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
@@ -84,6 +82,7 @@ const OutcomeRow: React.FC<{
  * Shows title and top 2 outcomes with prices.
  */
 const PredictMarketCard: React.FC<PredictMarketCardProps> = ({ market }) => {
+  const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
@@ -121,29 +120,27 @@ const PredictMarketCard: React.FC<PredictMarketCardProps> = ({ market }) => {
   }, [market.outcomes]);
 
   return (
-    <TouchableOpacity onPress={handlePress}>
-      <Box
-        twClassName="w-[240px] rounded-2xl bg-background-muted flex-1"
-        padding={4}
-        gap={6}
-        justifyContent={BoxJustifyContent.Between}
+    <TouchableOpacity
+      onPress={handlePress}
+      style={tw.style(
+        'w-[240px] rounded-2xl bg-background-muted flex-1 p-4 gap-6 justify-between',
+      )}
+    >
+      {/* Header: Title */}
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+        numberOfLines={2}
       >
-        {/* Header: Title */}
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          numberOfLines={2}
-        >
-          {market.title}
-        </Text>
+        {market.title}
+      </Text>
 
-        {/* Outcomes */}
-        <Box gap={2}>
-          {displayOutcomes.map((outcome) => (
-            <OutcomeRow key={outcome.id} outcome={outcome} />
-          ))}
-        </Box>
+      {/* Outcomes */}
+      <Box gap={2}>
+        {displayOutcomes.map((outcome) => (
+          <OutcomeRow key={outcome.id} outcome={outcome} />
+        ))}
       </Box>
     </TouchableOpacity>
   );
