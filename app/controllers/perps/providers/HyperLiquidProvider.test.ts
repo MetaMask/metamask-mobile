@@ -7315,9 +7315,9 @@ describe('HyperLiquidProvider', () => {
       // Create a provider instance with equity enabled for this specific test
       const testProvider = createTestProvider({ hip3Enabled: true });
 
-      // Override the private cachedValidatedDexs to simulate already validated state
+      // Override the private dexDiscoveryState to force re-evaluation
       // This avoids the complex initialization flow
-      Object.defineProperty(testProvider, 'cachedValidatedDexs', {
+      Object.defineProperty(testProvider, 'dexDiscoveryState', {
         value: null, // Force re-evaluation
         writable: true,
         configurable: true,
@@ -7634,7 +7634,11 @@ describe('HyperLiquidProvider', () => {
     describe('getAllAvailableDexs', () => {
       interface ProviderWithDexMethods {
         getAllAvailableDexs(): Promise<(string | null)[]>;
-        cachedAllPerpDexs: ({ name: string; url: string } | null)[] | null;
+        dexDiscoveryState: {
+          raw: ({ name: string; url: string } | null)[];
+          validated: (string | null)[];
+          timestamp: number;
+        } | null;
       }
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -7642,17 +7646,21 @@ describe('HyperLiquidProvider', () => {
 
       beforeEach(() => {
         testableProvider = provider as unknown as ProviderWithDexMethods;
-        // Reset cache
-        testableProvider.cachedAllPerpDexs = null;
+        // Reset unified state
+        testableProvider.dexDiscoveryState = null;
       });
 
       it('returns cached DEX list when cache is populated', async () => {
         // Arrange
-        testableProvider.cachedAllPerpDexs = [
-          null,
-          { name: 'dex1', url: 'https://dex1.example' },
-          { name: 'dex2', url: 'https://dex2.example' },
-        ];
+        testableProvider.dexDiscoveryState = {
+          raw: [
+            null,
+            { name: 'dex1', url: 'https://dex1.example' },
+            { name: 'dex2', url: 'https://dex2.example' },
+          ],
+          validated: [null, 'dex1', 'dex2'],
+          timestamp: Date.now(),
+        };
 
         // Act
         const result = await testableProvider.getAllAvailableDexs();
@@ -7680,7 +7688,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null, 'dex1', 'dex2']);
-        expect(testableProvider.cachedAllPerpDexs).toEqual(mockDexs);
+        expect(testableProvider.dexDiscoveryState?.raw).toEqual(mockDexs);
         expect(mockClientService.getInfoClient).toHaveBeenCalledTimes(1);
       });
 
@@ -7697,7 +7705,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+        expect(testableProvider.dexDiscoveryState).toBeNull();
       });
 
       it('returns fallback when API returns non-array', async () => {
@@ -7713,7 +7721,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+        expect(testableProvider.dexDiscoveryState).toBeNull();
       });
 
       it('returns fallback and logs error when API throws', async () => {
@@ -7731,7 +7739,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+        expect(testableProvider.dexDiscoveryState).toBeNull();
         expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
           mockError,
           expect.objectContaining({
@@ -7747,12 +7755,16 @@ describe('HyperLiquidProvider', () => {
 
       it('filters out null entries from cached DEX list', async () => {
         // Arrange
-        testableProvider.cachedAllPerpDexs = [
-          null,
-          { name: 'dex1', url: 'https://dex1.example' },
-          null,
-          { name: 'dex2', url: 'https://dex2.example' },
-        ];
+        testableProvider.dexDiscoveryState = {
+          raw: [
+            null,
+            { name: 'dex1', url: 'https://dex1.example' },
+            null,
+            { name: 'dex2', url: 'https://dex2.example' },
+          ],
+          validated: [null, 'dex1', 'dex2'],
+          timestamp: Date.now(),
+        };
 
         // Act
         const result = await testableProvider.getAllAvailableDexs();
@@ -7763,7 +7775,11 @@ describe('HyperLiquidProvider', () => {
 
       it('returns only main DEX when cached list contains only null', async () => {
         // Arrange
-        testableProvider.cachedAllPerpDexs = [null];
+        testableProvider.dexDiscoveryState = {
+          raw: [null],
+          validated: [null],
+          timestamp: Date.now(),
+        };
 
         // Act
         const result = await testableProvider.getAllAvailableDexs();
