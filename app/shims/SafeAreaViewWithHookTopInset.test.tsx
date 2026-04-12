@@ -19,7 +19,7 @@ jest.mock('react-native-safe-area-context/src/SafeAreaView', () => {
   const { View: RNView } =
     jest.requireActual<typeof import('react-native')>('react-native');
   return {
-    SafeAreaView: forwardRef((props: Record<string, unknown>, ref: unknown) => (
+    SafeAreaView: forwardRef<View>((props, ref) => (
       <RNView ref={ref} {...props} testID="native-safe-area-view" />
     )),
   };

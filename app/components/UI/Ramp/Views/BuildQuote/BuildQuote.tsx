@@ -889,7 +889,7 @@ function BuildQuote() {
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.ErrorDefault}
-          style={{ textAlign: 'center' as const }}
+          style={styles.centeredText}
         >
           {inlineQuoteError}
         </Text>

@@ -42,7 +42,7 @@ describe('useProviderLimits', () => {
     jest.clearAllMocks();
     mockUseFormatters.mockReturnValue({
       formatCurrency: (value: number) => `$${value.toFixed(2)}`,
-    } as ReturnType<typeof useFormatters>);
+    } as unknown as ReturnType<typeof useFormatters>);
     mockGetProviderBuyLimit.mockReturnValue(mockLimit);
   });
 
