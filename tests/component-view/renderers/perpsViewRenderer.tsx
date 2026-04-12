@@ -17,7 +17,6 @@ import {
   PerpsStreamProvider,
   type PerpsStreamManager,
 } from '../../../app/components/UI/Perps/providers/PerpsStreamManager';
-import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
 import PerpsMarketDetailsView from '../../../app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView';
 import PerpsMarketListView from '../../../app/components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView';
 import PerpsSelectModifyActionView from '../../../app/components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView';
@@ -186,13 +185,11 @@ export function renderPerpsView(
   const testStreamManager = createTestStreamManager(streamOverrides);
 
   const WrappedComponent = (props: Record<string, unknown>) => (
-    <AccessRestrictedProvider>
-      <PerpsConnectionContext.Provider value={testConnectionValue}>
-        <PerpsStreamProvider testStreamManager={testStreamManager}>
-          <Component {...props} />
-        </PerpsStreamProvider>
-      </PerpsConnectionContext.Provider>
-    </AccessRestrictedProvider>
+    <PerpsConnectionContext.Provider value={testConnectionValue}>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
+        <Component {...props} />
+      </PerpsStreamProvider>
+    </PerpsConnectionContext.Provider>
   );
 
   if (extraRoutes?.length) {
@@ -683,13 +680,11 @@ export function renderPerpsComponent(
   const testStreamManager = createTestStreamManager(streamOverrides);
 
   const WrappedComponent = () => (
-    <AccessRestrictedProvider>
-      <PerpsConnectionContext.Provider value={testConnectionValue}>
-        <PerpsStreamProvider testStreamManager={testStreamManager}>
-          <Component {...props} />
-        </PerpsStreamProvider>
-      </PerpsConnectionContext.Provider>
-    </AccessRestrictedProvider>
+    <PerpsConnectionContext.Provider value={testConnectionValue}>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
+        <Component {...props} />
+      </PerpsStreamProvider>
+    </PerpsConnectionContext.Provider>
   );
 
   return renderComponentViewScreen(
@@ -724,13 +719,11 @@ export function renderPerpsComponentDisconnected(
   };
 
   const WrappedComponent = () => (
-    <AccessRestrictedProvider>
-      <PerpsConnectionContext.Provider value={disconnectedValue}>
-        <PerpsStreamProvider testStreamManager={testStreamManager}>
-          <Component {...props} />
-        </PerpsStreamProvider>
-      </PerpsConnectionContext.Provider>
-    </AccessRestrictedProvider>
+    <PerpsConnectionContext.Provider value={disconnectedValue}>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
+        <Component {...props} />
+      </PerpsStreamProvider>
+    </PerpsConnectionContext.Provider>
   );
 
   return renderComponentViewScreen(

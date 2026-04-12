@@ -113,22 +113,11 @@ export type PredictMarket = {
   liquidity: number;
   volume: number;
   game?: PredictMarketGame;
-  series?: PredictSeries;
 };
 
 export type PredictSeries = {
-  id: string;
-  slug: string;
-  title: string;
   recurrence: string;
 };
-
-export interface GetSeriesParams {
-  seriesId: string;
-  endDateMin: string; // ISO 8601
-  endDateMax: string; // ISO 8601
-  limit?: number; // Default: 50
-}
 
 export type PredictCategory =
   | 'trending'

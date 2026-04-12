@@ -5,7 +5,6 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { useSelector } from 'react-redux';
 import {
   View,
   Pressable,
@@ -72,8 +71,6 @@ import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import { PredictBalance } from '../../components/PredictBalance';
 import PredictOffline from '../../components/PredictOffline';
-import FeaturedCarousel from '../../components/FeaturedCarousel';
-import { selectPredictFeaturedCarouselEnabledFlag } from '../../selectors/featureFlags';
 import PredictFeedSessionManager from '../../services/PredictFeedSessionManager';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { strings } from '../../../../../../locales/i18n';
@@ -157,9 +154,6 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const isFeaturedCarouselEnabled = useSelector(
-    selectPredictFeaturedCarouselEnabledFlag,
-  );
 
   const animatedContainerStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: headerTranslateY.value }],
@@ -191,11 +185,6 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
         onLayout={onHeaderLayout}
       >
         <PredictFeedHeader />
-        {isFeaturedCarouselEnabled && (
-          <Box twClassName="pb-3">
-            <FeaturedCarousel />
-          </Box>
-        )}
       </Animated.View>
       <View ref={tabBarRef} onLayout={onTabBarLayout}>
         <PredictFeedTabBar

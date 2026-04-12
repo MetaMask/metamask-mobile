@@ -6,7 +6,7 @@ import AppConstants from '../../../../core/AppConstants';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { Consent, ConsentSet } from '../types';
 import { cardQueries } from '../queries';
-import { selectCardUserLocation } from '../../../../selectors/cardController';
+import { selectUserCardLocation } from '../../../../core/redux/slices/card';
 
 interface UseRegisterUserConsentState {
   isLoading: boolean;
@@ -43,7 +43,7 @@ interface UseRegisterUserConsentReturn extends UseRegisterUserConsentState {
 export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
   const { sdk } = useCardSDK();
   const queryClient = useQueryClient();
-  const location = useSelector(selectCardUserLocation) ?? 'international';
+  const location = useSelector(selectUserCardLocation);
   const [state, setState] = useState<UseRegisterUserConsentState>({
     isLoading: false,
     isSuccess: false,

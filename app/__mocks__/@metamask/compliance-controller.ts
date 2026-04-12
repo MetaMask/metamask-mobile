@@ -1,8 +1,9 @@
 /**
  * Manual mock for @metamask/compliance-controller.
  *
- * Reflects the v2.0.0 public API surface: the bulk-fetch blocklist pattern.
- * Compliance status is populated exclusively via per-address checks.
+ * The npm package is published but dist/ artifacts may not yet be available.
+ * This mock provides the public API surface needed for tests and TypeScript
+ * compilation within the mobile repo.
  */
 
 export class ComplianceService {
@@ -15,6 +16,10 @@ export class ComplianceController {
 
   constructor(args: Record<string, unknown>) {
     this.state = (args.state ?? {}) as Record<string, unknown>;
+  }
+
+  async init(): Promise<void> {
+    // noop
   }
 
   async checkWalletCompliance(
@@ -33,6 +38,20 @@ export class ComplianceController {
     }));
   }
 
+  async updateBlockedWallets(): Promise<{
+    addresses: string[];
+    sources: { ofac: number; remote: number };
+    lastUpdated: string;
+    fetchedAt: string;
+  }> {
+    return {
+      addresses: [],
+      sources: { ofac: 0, remote: 0 },
+      lastUpdated: new Date().toISOString(),
+      fetchedAt: new Date().toISOString(),
+    };
+  }
+
   clearComplianceState(): void {
     // noop
   }
@@ -41,15 +60,23 @@ export class ComplianceController {
 export function getDefaultComplianceControllerState() {
   return {
     walletComplianceStatusMap: {},
+    blockedWallets: null,
+    blockedWalletsLastFetched: 0,
     lastCheckedAt: null,
   };
 }
 
 export function selectIsWalletBlocked(address: string) {
   return (state: {
+    blockedWallets?: { addresses: string[] } | null;
     walletComplianceStatusMap?: Record<
       string,
       { blocked: boolean } | undefined
     >;
-  }): boolean => state.walletComplianceStatusMap?.[address]?.blocked ?? false;
+  }): boolean => {
+    if (state.blockedWallets?.addresses.includes(address)) {
+      return true;
+    }
+    return state.walletComplianceStatusMap?.[address]?.blocked ?? false;
+  };
 }

@@ -227,7 +227,7 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 40,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -818,7 +818,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 40,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -1502,7 +1502,7 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 40,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -2093,7 +2093,7 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 40,
                 "letterSpacing": 0,
                 "lineHeight": 40,

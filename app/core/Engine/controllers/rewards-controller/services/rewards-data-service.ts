@@ -31,7 +31,6 @@ import type {
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
   OndoGmPortfolioDto,
-  PaginatedOndoGmActivityDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -239,16 +238,6 @@ export interface RewardsDataServiceGetOndoCampaignPortfolioPositionAction {
   handler: RewardsDataService['getOndoCampaignPortfolioPosition'];
 }
 
-export interface RewardsDataServiceGetOndoCampaignActivityAction {
-  type: `${typeof SERVICE_NAME}:getOndoCampaignActivity`;
-  handler: RewardsDataService['getOndoCampaignActivity'];
-}
-
-export interface RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction {
-  type: `${typeof SERVICE_NAME}:getOndoCampaignActivityLastUpdated`;
-  handler: RewardsDataService['getOndoCampaignActivityLastUpdated'];
-}
-
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -304,9 +293,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetClientVersionRequirementsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
-  | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
-  | RewardsDataServiceGetOndoCampaignActivityAction
-  | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction;
+  | RewardsDataServiceGetOndoCampaignPortfolioPositionAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -464,14 +451,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getOndoCampaignPortfolioPosition`,
       this.getOndoCampaignPortfolioPosition.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getOndoCampaignActivity`,
-      this.getOndoCampaignActivity.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getOndoCampaignActivityLastUpdated`,
-      this.getOndoCampaignActivityLastUpdated.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -1524,64 +1503,5 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as OndoGmPortfolioDto;
-  }
-
-  /**
-   * Get paginated activity for an Ondo GM campaign.
-   * This is an authenticated endpoint.
-   * @param campaignId - The campaign ID.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @param cursor - Pagination cursor, null for the first page.
-   * @returns Paginated activity entries.
-   */
-  async getOndoCampaignActivity(
-    campaignId: string,
-    subscriptionId: string,
-    cursor: string | null,
-  ): Promise<PaginatedOndoGmActivityDto> {
-    const queryParams: string[] = [];
-    if (cursor) queryParams.push(`cursor=${encodeURIComponent(cursor)}`);
-
-    let url = `/ondo-gm/${campaignId}/activity/me`;
-    if (queryParams.length > 0) url += `?${queryParams.join('&')}`;
-
-    const response = await this.makeRequest(
-      url,
-      { method: 'GET' },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      throw new Error(`Get campaign activity failed: ${response.status}`);
-    }
-
-    return (await response.json()) as PaginatedOndoGmActivityDto;
-  }
-
-  /**
-   * Get the last-updated timestamp for Ondo GM campaign activity.
-   * This is an authenticated endpoint.
-   * @param campaignId - The campaign ID.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns The last-updated date, or null if no activity exists.
-   */
-  async getOndoCampaignActivityLastUpdated(
-    campaignId: string,
-    subscriptionId: string,
-  ): Promise<Date | null> {
-    const response = await this.makeRequest(
-      `/ondo-gm/${campaignId}/activity/me/last-updated`,
-      { method: 'GET' },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Get campaign activity last updated failed: ${response.status}`,
-      );
-    }
-
-    const result = await response.json();
-    return result?.lastUpdated ? new Date(result.lastUpdated) : null;
   }
 }
