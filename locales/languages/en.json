@@ -1034,6 +1034,17 @@
       "buy": "Buy",
       "bought": "{{name}} bought",
       "sold": "{{name}} sold"
+    },
+    "quick_buy": {
+      "title": "Buy {{symbol}}",
+      "market_cap_label": "Market cap",
+      "pay_with": "Pay with",
+      "total": "Total",
+      "est_points": "Est. points",
+      "no_quotes": "No quotes available for this token",
+      "loading": "Loading...",
+      "unavailable": "Swap unavailable",
+      "unsupported_chain": "This chain is not supported for Quick Buy yet"
     }
   },
   "perps": {
