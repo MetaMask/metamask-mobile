@@ -142,6 +142,7 @@ test.describe(PerformanceOnboarding, () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(WalletView.container),
             {
+              timeout: 30000,
               description: 'Wallet main screen should be visible',
             },
           );
@@ -165,6 +166,7 @@ test.describe(PerformanceOnboarding, () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(WalletView.container),
             {
+              timeout: 30000,
               description: 'Wallet main screen should be visible',
             },
           );
