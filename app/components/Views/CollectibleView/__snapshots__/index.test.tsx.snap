@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleView Snapshot renders correctly 1`] = `
-<RCTSafeAreaView
+<View
   style={
     {
       "backgroundColor": "#ffffff",
@@ -60,7 +60,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
               }
             />
           </View>
-          <RCTSafeAreaView>
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -84,7 +84,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                       undefined,
                       undefined,
                       {
-                        "fontFamily": "Geist-SemiBold",
+                        "fontFamily": "Geist-Bold",
                       },
                       undefined,
                       undefined,
@@ -304,7 +304,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                       undefined,
                       undefined,
                       {
-                        "fontFamily": "Geist-SemiBold",
+                        "fontFamily": "Geist-Bold",
                       },
                       undefined,
                       {
@@ -395,7 +395,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                 </Text>
               </View>
             </View>
-          </RCTSafeAreaView>
+          </View>
         </View>
       </View>
     </View>
@@ -440,7 +440,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist-SemiBold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 15,
             "marginLeft": 8,
           }
@@ -450,5 +450,5 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
       </Text>
     </TouchableOpacity>
   </View>
-</RCTSafeAreaView>
+</View>
 `;

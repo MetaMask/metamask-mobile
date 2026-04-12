@@ -8,8 +8,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,15 +333,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "additive",
-                          }
-                        }
+                      <View
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -389,7 +380,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                               style={
                                 {
                                   "color": "#131416",
-                                  "fontFamily": "Geist-SemiBold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
@@ -768,7 +759,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             </TouchableOpacity>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -778,7 +769,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -790,8 +781,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1116,15 +1106,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "additive",
-                          }
-                        }
+                      <View
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -1171,7 +1153,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                               style={
                                 {
                                   "color": "#131416",
-                                  "fontFamily": "Geist-SemiBold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
@@ -1550,7 +1532,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             </TouchableOpacity>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1560,7 +1542,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1572,8 +1554,7 @@ exports[`Wallet should render correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1898,15 +1879,7 @@ exports[`Wallet should render correctly 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "additive",
-                          }
-                        }
+                      <View
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -1953,7 +1926,7 @@ exports[`Wallet should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#131416",
-                                  "fontFamily": "Geist-SemiBold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
@@ -2332,7 +2305,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             </TouchableOpacity>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2342,7 +2315,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2354,8 +2327,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2680,15 +2652,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "additive",
-                          }
-                        }
+                      <View
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -2735,7 +2699,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                               style={
                                 {
                                   "color": "#131416",
-                                  "fontFamily": "Geist-SemiBold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
@@ -3114,7 +3078,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             </TouchableOpacity>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -3124,7 +3088,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3136,8 +3100,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3462,15 +3425,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "additive",
-                          }
-                        }
+                      <View
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -3517,7 +3472,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                               style={
                                 {
                                   "color": "#131416",
-                                  "fontFamily": "Geist-SemiBold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
@@ -3896,7 +3851,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             </TouchableOpacity>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -3906,6 +3861,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

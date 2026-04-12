@@ -76,7 +76,10 @@ import {
 } from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectCardUserLocation } from '../../../../../selectors/cardController';
+import {
+  resetAuthenticatedData,
+  selectUserCardLocation,
+} from '../../../../../core/redux/slices/card';
 import { cardQueries } from '../../queries';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
@@ -141,7 +144,7 @@ const CardHome = () => {
   const [isHandlingAuthError, setIsHandlingAuthError] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
-  const userLocation = useSelector(selectCardUserLocation);
+  const userLocation = useSelector(selectUserCardLocation);
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
   );
@@ -188,6 +191,7 @@ const CardHome = () => {
     error: cardError,
     warning,
     isAuthenticated,
+    isBaanxLoginEnabled,
     fetchAllData,
     fetchCardDetails,
     allTokens,
@@ -913,13 +917,15 @@ const CardHome = () => {
 
   const cardSetupState = useMemo(() => {
     const needsSetup =
-      warning === CardStateWarning.NoCard ||
-      warning === CardStateWarning.NeedDelegation;
+      isBaanxLoginEnabled &&
+      (warning === CardStateWarning.NoCard ||
+        warning === CardStateWarning.NeedDelegation);
 
     const isKYCVerified =
       isAuthenticated && kycStatus?.verificationState === 'VERIFIED';
 
     const isKYCPending =
+      isBaanxLoginEnabled &&
       isAuthenticated &&
       (kycStatus?.verificationState === 'PENDING' ||
         kycStatus?.verificationState === 'UNVERIFIED');
@@ -932,7 +938,7 @@ const CardHome = () => {
         : CardHomeSelectors.ENABLE_ASSETS_BUTTON;
 
     return { needsSetup, canEnable, isKYCPending, setupTestId };
-  }, [warning, isAuthenticated, kycStatus, isLoading]);
+  }, [warning, isBaanxLoginEnabled, isAuthenticated, kycStatus, isLoading]);
 
   /**
    * Check if the card is being provisioned.
@@ -953,6 +959,7 @@ const CardHome = () => {
       !cardSetupState.isKYCPending &&
       !isCardProvisioning &&
       isMetalCardCheckoutEnabled &&
+      isBaanxLoginEnabled &&
       isAuthenticated &&
       warning === CardStateWarning.NoCard &&
       userLocation === 'us' &&
@@ -962,6 +969,7 @@ const CardHome = () => {
       cardSetupState.isKYCPending,
       isCardProvisioning,
       isMetalCardCheckoutEnabled,
+      isBaanxLoginEnabled,
       isAuthenticated,
       warning,
       userLocation,
@@ -1006,6 +1014,20 @@ const CardHome = () => {
           style={tw.style('rounded-xl')}
           testID={CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON}
         />
+      );
+    }
+
+    if (!isBaanxLoginEnabled) {
+      return (
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          onPress={addFundsAction}
+          isFullWidth
+          testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
+        >
+          {strings('card.card_home.add_funds')}
+        </Button>
       );
     }
 
@@ -1067,6 +1089,7 @@ const CardHome = () => {
     addFundsAction,
     changeAssetAction,
     cardSetupState,
+    isBaanxLoginEnabled,
     isLoading,
     isSwapEnabledForPriorityToken,
     tw,
@@ -1083,12 +1106,14 @@ const CardHome = () => {
       !cardSetupState.needsSetup &&
       !isCardProvisioning &&
       isMetalCardCheckoutEnabled &&
+      isBaanxLoginEnabled &&
       isAuthenticated &&
       userLocation === 'us' &&
       userShippingAddress &&
       cardDetails?.type === CardType.VIRTUAL,
     [
       isMetalCardCheckoutEnabled,
+      isBaanxLoginEnabled,
       isAuthenticated,
       userLocation,
       userShippingAddress,
@@ -1127,16 +1152,12 @@ const CardHome = () => {
 
       try {
         await removeCardBaanxToken();
-        // Sync controller state: token is now gone so validateAndRefreshSession
-        // will mark CardController.isAuthenticated = false without an API call.
-        await Engine.context.CardController.validateAndRefreshSession().catch(
-          () => undefined,
-        );
 
         if (isComponentUnmountedRef.current) {
           return;
         }
 
+        dispatch(resetAuthenticatedData());
         queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
 
         toastRef?.current?.showToast({
@@ -1160,7 +1181,7 @@ const CardHome = () => {
     };
 
     handleAuthenticationError();
-  }, [cardError, queryClient, isAuthenticated, navigation, toastRef]);
+  }, [cardError, dispatch, queryClient, isAuthenticated, navigation, toastRef]);
 
   useEffect(() => {
     if (isSDKLoading) {
@@ -1558,7 +1579,7 @@ const CardHome = () => {
               testID="freeze-card-list-item"
             />
           )}
-        {!isLoading && (
+        {isBaanxLoginEnabled && !isLoading && (
           <ManageCardListItem
             title={strings(
               'card.card_home.manage_card_options.manage_spending_limit',

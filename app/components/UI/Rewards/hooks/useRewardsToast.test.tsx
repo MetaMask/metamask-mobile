@@ -9,6 +9,7 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 
+// Mock dependencies
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
@@ -76,6 +77,7 @@ describe('useRewardsToast', () => {
 
       await act(async () => {
         result.current.showToast(testConfig);
+        // Wait for any pending promises to settle
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
@@ -100,9 +102,8 @@ describe('useRewardsToast', () => {
         hasNoTimeout: false,
       });
       expect(config.labelOptions).toEqual([
-        { label: 'Test Title', isBold: true },
+        { label: 'Test Title', isBold: false },
       ]);
-      expect(config.descriptionOptions).toBeUndefined();
       expect(config.closeButtonOptions).toMatchObject({
         variant: ButtonIconVariant.Icon,
         iconName: IconName.Close,
@@ -120,13 +121,18 @@ describe('useRewardsToast', () => {
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
         iconColor: mockTheme.colors.success.default,
+        backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Success,
+        hasNoTimeout: false,
       });
       expect(config.labelOptions).toEqual([
-        { label: 'Test Title', isBold: true },
+        { label: 'Test Title', isBold: false },
+        { label: '\n', isBold: false },
+        { label: 'Test Subtitle', isBold: false },
       ]);
-      expect(config.descriptionOptions).toEqual({
-        description: 'Test Subtitle',
+      expect(config.closeButtonOptions).toMatchObject({
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
       });
     });
 
@@ -143,9 +149,8 @@ describe('useRewardsToast', () => {
         hasNoTimeout: false,
       });
       expect(config.labelOptions).toEqual([
-        { label: 'Error Title', isBold: true },
+        { label: 'Error Title', isBold: false },
       ]);
-      expect(config.descriptionOptions).toBeUndefined();
       expect(config.closeButtonOptions).toMatchObject({
         variant: ButtonIconVariant.Icon,
         iconName: IconName.Close,
@@ -163,57 +168,18 @@ describe('useRewardsToast', () => {
         variant: ToastVariants.Icon,
         iconName: IconName.Danger,
         iconColor: mockTheme.colors.error.default,
-        hapticsType: NotificationFeedbackType.Error,
-      });
-      expect(config.labelOptions).toEqual([
-        { label: 'Error Title', isBold: true },
-      ]);
-      expect(config.descriptionOptions).toEqual({
-        description: 'Error Subtitle',
-      });
-    });
-
-    it('returns entriesClosed configuration with title only', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config =
-        result.current.RewardsToastOptions.entriesClosed('Entries closed');
-
-      expect(config).toMatchObject({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Lock,
-        iconColor: mockTheme.colors.icon.muted,
         backgroundColor: 'transparent',
-        hapticsType: NotificationFeedbackType.Warning,
+        hapticsType: NotificationFeedbackType.Error,
         hasNoTimeout: false,
       });
       expect(config.labelOptions).toEqual([
-        { label: 'Entries closed', isBold: true },
+        { label: 'Error Title', isBold: false },
+        { label: '\n', isBold: false },
+        { label: 'Error Subtitle', isBold: false },
       ]);
-      expect(config.descriptionOptions).toBeUndefined();
       expect(config.closeButtonOptions).toMatchObject({
         variant: ButtonIconVariant.Icon,
         iconName: IconName.Close,
-      });
-    });
-
-    it('returns entriesClosed configuration with title and subtitle', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.entriesClosed(
-        'Entries closed',
-        'You missed the opt-in window',
-      );
-
-      expect(config).toMatchObject({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Lock,
-        iconColor: mockTheme.colors.icon.muted,
-        hapticsType: NotificationFeedbackType.Warning,
-      });
-      expect(config.labelOptions).toEqual([
-        { label: 'Entries closed', isBold: true },
-      ]);
-      expect(config.descriptionOptions).toEqual({
-        description: 'You missed the opt-in window',
       });
     });
 
@@ -221,6 +187,7 @@ describe('useRewardsToast', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.success('Test Title');
 
+      // Call the close button's onPress function
       config.closeButtonOptions?.onPress?.();
 
       expect(mockCloseToast).toHaveBeenCalledTimes(1);
@@ -240,16 +207,19 @@ describe('useRewardsToast', () => {
         hasNoTimeout: false,
       };
 
+      // Should not throw error when toastRef is null
       expect(() => {
         act(() => {
           result.current.showToast(testConfig);
         });
       }).not.toThrow();
 
+      // Wait for any pending promises to settle
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
+      // Haptic feedback should still be called
       expect(notificationAsync).toHaveBeenCalledWith(
         NotificationFeedbackType.Success,
       );
@@ -269,16 +239,19 @@ describe('useRewardsToast', () => {
         hasNoTimeout: false,
       };
 
+      // Should not throw error when toastRef.current is null
       expect(() => {
         act(() => {
           result.current.showToast(testConfig);
         });
       }).not.toThrow();
 
+      // Wait for any pending promises to settle
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
+      // Haptic feedback should still be called
       expect(notificationAsync).toHaveBeenCalledWith(
         NotificationFeedbackType.Success,
       );
@@ -289,6 +262,7 @@ describe('useRewardsToast', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.success('Test Title');
 
+      // Should not throw error when toastRef is null
       expect(() => {
         config.closeButtonOptions?.onPress?.();
       }).not.toThrow();
@@ -298,14 +272,14 @@ describe('useRewardsToast', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.success('');
 
-      expect(config.labelOptions).toEqual([{ label: '', isBold: true }]);
+      expect(config.labelOptions).toEqual([{ label: '', isBold: false }]);
     });
 
     it('handles only whitespace title', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.success('   ');
 
-      expect(config.labelOptions).toEqual([{ label: '   ', isBold: true }]);
+      expect(config.labelOptions).toEqual([{ label: '   ', isBold: false }]);
     });
   });
 
@@ -321,11 +295,13 @@ describe('useRewardsToast', () => {
       (useContext as jest.Mock).mockReturnValue({ toastRef: mockToastRef1 });
       const { result, rerender } = renderHook(() => useRewardsToast());
 
+      // Change toastRef
       (useContext as jest.Mock).mockReturnValue({ toastRef: mockToastRef2 });
       rerender();
 
       const newConfig = result.current.RewardsToastOptions.success('Test');
 
+      // Call close button onPress to verify it uses new toastRef
       newConfig.closeButtonOptions?.onPress?.();
       expect(mockToastRef2.current.closeToast).toHaveBeenCalled();
       expect(mockToastRef1.current.closeToast).not.toHaveBeenCalled();
@@ -337,6 +313,7 @@ describe('useRewardsToast', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.success('Test Title');
 
+      // Default options should be applied
       expect(config.hasNoTimeout).toBe(false);
     });
 
@@ -344,69 +321,75 @@ describe('useRewardsToast', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.error('Error Title');
 
-      expect(config.hasNoTimeout).toBe(false);
-    });
-
-    it('applies default options to entriesClosed configuration', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config =
-        result.current.RewardsToastOptions.entriesClosed('Entries closed');
-
+      // Default options should be applied
       expect(config.hasNoTimeout).toBe(false);
     });
   });
 
-  describe('label and description formatting', () => {
-    it('returns bold label with title only', () => {
+  describe('getRewardsToastLabels function', () => {
+    it('formats labels correctly with title only', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.success('Test Title');
 
       expect(config.labelOptions).toHaveLength(1);
       expect(config.labelOptions[0]).toEqual({
         label: 'Test Title',
-        isBold: true,
+        isBold: false,
       });
     });
 
-    it('returns bold label and descriptionOptions with subtitle', () => {
+    it('formats labels correctly with title and subtitle', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.success(
         'Test Title',
         'Test Subtitle',
       );
 
-      expect(config.labelOptions).toHaveLength(1);
+      expect(config.labelOptions).toHaveLength(3);
       expect(config.labelOptions[0]).toEqual({
         label: 'Test Title',
-        isBold: true,
+        isBold: false,
       });
-      expect(config.descriptionOptions).toEqual({
-        description: 'Test Subtitle',
+      expect(config.labelOptions[1]).toEqual({
+        label: '\n',
+        isBold: false,
+      });
+      expect(config.labelOptions[2]).toEqual({
+        label: 'Test Subtitle',
+        isBold: false,
       });
     });
 
-    it('returns undefined descriptionOptions when no subtitle for error', () => {
+    it('formats error labels correctly with title only', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.error('Error Title');
 
       expect(config.labelOptions).toHaveLength(1);
       expect(config.labelOptions[0]).toEqual({
         label: 'Error Title',
-        isBold: true,
+        isBold: false,
       });
-      expect(config.descriptionOptions).toBeUndefined();
     });
 
-    it('returns descriptionOptions for error with subtitle', () => {
+    it('formats error labels correctly with title and subtitle', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.error(
         'Error Title',
         'Error Subtitle',
       );
 
-      expect(config.labelOptions).toHaveLength(1);
-      expect(config.descriptionOptions).toEqual({
-        description: 'Error Subtitle',
+      expect(config.labelOptions).toHaveLength(3);
+      expect(config.labelOptions[0]).toEqual({
+        label: 'Error Title',
+        isBold: false,
+      });
+      expect(config.labelOptions[1]).toEqual({
+        label: '\n',
+        isBold: false,
+      });
+      expect(config.labelOptions[2]).toEqual({
+        label: 'Error Subtitle',
+        isBold: false,
       });
     });
   });

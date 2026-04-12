@@ -4,13 +4,6 @@ import type {
 } from '@metamask/base-controller';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
-import type {
-  AccountTreeControllerGetStateAction,
-  AccountTreeControllerStateChangeEvent,
-} from '@metamask/account-tree-controller';
-import type { AccountsControllerGetStateAction } from '@metamask/accounts-controller';
-import type { KeyringControllerUnlockEvent } from '@metamask/keyring-controller';
-import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 
 export const CARD_CONTROLLER_NAME = 'CardController';
 
@@ -41,17 +34,8 @@ export type CardControllerEvents = ControllerStateChangeEvent<
   CardControllerState
 >;
 
-type CardControllerAllowedActions =
-  | AccountsControllerGetStateAction
-  | AccountTreeControllerGetStateAction
-  | RemoteFeatureFlagControllerGetStateAction;
-
-type CardControllerAllowedEvents =
-  | AccountTreeControllerStateChangeEvent
-  | KeyringControllerUnlockEvent;
-
 export type CardControllerMessenger = Messenger<
   typeof CARD_CONTROLLER_NAME,
-  CardControllerActions | CardControllerAllowedActions,
-  CardControllerEvents | CardControllerAllowedEvents
+  CardControllerActions,
+  CardControllerEvents
 >;

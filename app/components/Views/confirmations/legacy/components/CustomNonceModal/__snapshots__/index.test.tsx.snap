@@ -63,7 +63,7 @@ exports[`CustomNonceModal renders correctly 1`] = `
     keyboardOpeningTime={250}
     viewIsInsideTabBar={false}
   >
-    <RCTSafeAreaView
+    <ForwardRef
       style={
         {
           "backgroundColor": "#ffffff",
@@ -120,7 +120,7 @@ exports[`CustomNonceModal renders correctly 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 36,
                 "marginHorizontal": 24,
                 "maxWidth": 200,
@@ -287,7 +287,7 @@ exports[`CustomNonceModal renders correctly 1`] = `
           Save
         </StyledButton>
       </View>
-    </RCTSafeAreaView>
+    </ForwardRef>
   </KeyboardAwareScrollView>
 </ReactNativeModal>
 `;

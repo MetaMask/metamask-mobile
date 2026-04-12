@@ -1,13 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ChoosePassword renders correctly 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -112,8 +109,9 @@ exports[`ChoosePassword renders correctly 1`] = `
                 [
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 32,
+                    "fontWeight": 700,
                     "letterSpacing": 0,
                     "lineHeight": 40,
                   },
@@ -131,6 +129,7 @@ exports[`ChoosePassword renders correctly 1`] = `
                     "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
+                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   },
@@ -162,6 +161,7 @@ exports[`ChoosePassword renders correctly 1`] = `
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
+                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "marginBottom": -4,
@@ -294,6 +294,7 @@ exports[`ChoosePassword renders correctly 1`] = `
                     "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
+                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   },
@@ -325,6 +326,7 @@ exports[`ChoosePassword renders correctly 1`] = `
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
+                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "marginBottom": -4,
@@ -585,6 +587,7 @@ exports[`ChoosePassword renders correctly 1`] = `
                       "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 14,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     },
@@ -600,6 +603,7 @@ exports[`ChoosePassword renders correctly 1`] = `
                         "color": "#66676a",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 14,
+                        "fontWeight": 400,
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       },
@@ -617,6 +621,7 @@ exports[`ChoosePassword renders correctly 1`] = `
                           "color": "#4459ff",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 14,
+                          "fontWeight": 400,
                           "letterSpacing": 0,
                           "lineHeight": 22,
                         },
@@ -721,6 +726,7 @@ exports[`ChoosePassword renders correctly 1`] = `
                       "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                       "textAlign": "center",
@@ -737,5 +743,5 @@ exports[`ChoosePassword renders correctly 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;

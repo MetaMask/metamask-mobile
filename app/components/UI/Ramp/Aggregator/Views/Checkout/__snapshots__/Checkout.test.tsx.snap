@@ -1199,7 +1199,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                           style={
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1916,7 +1916,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                           style={
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3242,7 +3242,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                           style={
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -4003,7 +4003,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                           style={
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -5329,7 +5329,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                           style={
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -6090,7 +6090,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                           style={
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -6851,7 +6851,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                           style={
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,

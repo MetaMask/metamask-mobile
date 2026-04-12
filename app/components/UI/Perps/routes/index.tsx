@@ -1,4 +1,7 @@
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  type StackNavigationOptions,
+} from '@react-navigation/stack';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import type { PerpsNavigationParamList } from '../types/navigation';
@@ -52,14 +55,15 @@ const styles = StyleSheet.create({
 
 function getRedesignedConfirmationsHeaderOptions({
   showPerpsHeader = CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader,
-}: PerpsNavigationParamList['RedesignedConfirmations'] = {}) {
+}: PerpsNavigationParamList['RedesignedConfirmations'] = {}): StackNavigationOptions {
   return showPerpsHeader
-    ? {
+    ? ({
         headerLeft: () => null,
         headerShown: true,
         title: '',
-      }
-    : { header: () => null };
+        presentation: 'transparentModal',
+      } as const)
+    : ({ header: () => null, presentation: 'transparentModal' } as const);
 }
 
 const PerpsConfirmScreen = () => {

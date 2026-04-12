@@ -31,8 +31,7 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import Title from '../../../Base/Title';
-import { TOKEN_OVERVIEW_CHART_HEIGHT } from '../Price/tokenOverviewChart.constants';
-import styleSheet from './PriceChart.styles';
+import styleSheet, { CHART_HEIGHT } from './PriceChart.styles';
 import { placeholderData } from './utils';
 import PriceChartContext from './PriceChart.context';
 
@@ -45,20 +44,13 @@ interface TooltipProps {
   x: (index: number) => number;
   y: (value: number) => number;
   ticks: number[];
-  width?: number;
-  height?: number;
 }
-
-/** Design: 16×16 logical px circle (TradingView-style last-point marker). */
-const END_DOT_DIAMETER = 16;
 
 interface PriceChartProps {
   prices: TokenPrice[];
   priceDiff: number;
   isLoading: boolean;
   onChartIndexChange: (index: number) => void;
-  /** Match token overview AdvancedChart height. */
-  chartHeight?: number;
 }
 
 const PriceChart = ({
@@ -66,25 +58,25 @@ const PriceChart = ({
   priceDiff,
   isLoading,
   onChartIndexChange,
-  chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
 }: PriceChartProps) => {
   const { setIsChartBeingTouched } = useContext(PriceChartContext);
 
   const [positionX, setPositionX] = useState(-1); // The currently selected X coordinate position
-  /** Laid-out width of the chart row — used for touch mapping and skeleton (not screen width). */
-  const [chartRowWidth, setChartRowWidth] = useState(0);
-  const { styles, theme } = useStyles(styleSheet, { chartHeight });
+  const { styles, theme } = useStyles(styleSheet, {});
 
   useEffect(() => {
     setPositionX(-1);
   }, [prices]);
 
-  /** Align with AdvancedChart / TradingView line: success up, error down (not legacy primary blue). */
   const chartColor =
     priceDiff > 0
-      ? theme.colors.success.default
+      ? theme.themeAppearance === 'dark'
+        ? theme.brandColors.blue300
+        : theme.colors.primary.default
       : priceDiff < 0
-        ? theme.colors.error.default
+        ? theme.themeAppearance === 'dark'
+          ? theme.brandColors.blue300
+          : theme.colors.primary.default
         : theme.colors.text.alternative;
 
   const apx = (size = 0) => {
@@ -146,8 +138,7 @@ const PriceChart = ({
       onActiveIndexChange(-1);
       return;
     }
-    const chartWidth =
-      chartRowWidth > 0 ? chartRowWidth : Dimensions.get('window').width;
+    const chartWidth = Dimensions.get('window').width;
     const xDistance = chartWidth / priceList.length;
     if (x <= 0) {
       x = 0;
@@ -214,6 +205,21 @@ const PriceChart = ({
     );
   };
 
+  const DataGradient = () => (
+    <Defs key="dataGradient">
+      <LinearGradient
+        id="dataGradient"
+        x1="0"
+        y1="0%"
+        x2="0%"
+        y2={`${CHART_HEIGHT}px`}
+      >
+        <Stop offset="0%" stopColor={chartColor} stopOpacity={0.25} />
+        <Stop offset="90%" stopColor={chartColor} stopOpacity={0} />
+      </LinearGradient>
+    </Defs>
+  );
+
   const NoDataGradient = () => {
     // gradient with transparent center and grey edges
     const gradient = (
@@ -244,10 +250,8 @@ const PriceChart = ({
         <Rect
           x="0"
           y="0"
-          width={
-            chartRowWidth > 0 ? chartRowWidth : Dimensions.get('window').width
-          }
-          height={chartHeight}
+          width={Dimensions.get('screen').width}
+          height={CHART_HEIGHT}
           fill="url(#gradient)"
         />
       </G>
@@ -298,18 +302,16 @@ const PriceChart = ({
     );
   };
 
-  const Tooltip = ({ x, y, height: svgHeight }: Partial<TooltipProps>) => {
+  const Tooltip = ({ x, y }: Partial<TooltipProps>) => {
     if (positionX < 0) {
       return null;
     }
-    const lineHeight =
-      typeof svgHeight === 'number' && svgHeight > 0 ? svgHeight : chartHeight;
     return (
       <G x={x?.(positionX)} key="tooltip">
         <G>
           <SvgLine
             y1={1}
-            y2={lineHeight}
+            y2={CHART_HEIGHT}
             stroke={styles.tooltipLine.color}
             strokeWidth={1}
           />
@@ -322,40 +324,6 @@ const PriceChart = ({
           />
         </G>
       </G>
-    );
-  };
-
-  const endDotRadius = END_DOT_DIAMETER / 2;
-  const endDotInsetRight = endDotRadius + 8;
-
-  /** Last-point marker — TradingView-style line end dot. Requires right contentInset or SVG clips half the circle. */
-  const EndDot = ({ x, y }: Partial<TooltipProps>) => {
-    if (priceList.length < 2 || x === undefined || y === undefined) {
-      return null;
-    }
-    const lastIdx = priceList.length - 1;
-    const lastY = priceList[lastIdx];
-    const cx = x(lastIdx);
-    const cy = y(lastY);
-    if (
-      typeof cx !== 'number' ||
-      typeof cy !== 'number' ||
-      Number.isNaN(cx) ||
-      Number.isNaN(cy)
-    ) {
-      return null;
-    }
-    return (
-      <Circle
-        key="end-dot"
-        testID="price-chart-end-dot"
-        cx={cx}
-        cy={cy}
-        r={endDotRadius}
-        fill={chartColor}
-        stroke={theme.colors.background.default}
-        strokeWidth={Math.max(1.5, apx(2))}
-      />
     );
   };
 
@@ -372,12 +340,8 @@ const PriceChart = ({
         highlightColor={theme.colors.background.subsection}
       >
         <SkeletonPlaceholder.Item
-          width={
-            chartRowWidth > 0
-              ? chartRowWidth
-              : Dimensions.get('window').width - 32
-          }
-          height={chartHeight}
+          width={Dimensions.get('screen').width - 32}
+          height={CHART_HEIGHT}
           borderRadius={6}
         ></SkeletonPlaceholder.Item>
       </SkeletonPlaceholder>
@@ -387,15 +351,7 @@ const PriceChart = ({
   const chartHasData = priceList.length > 1;
 
   return (
-    <View
-      style={styles.chart}
-      onLayout={(e) => {
-        const w = e.nativeEvent.layout.width;
-        if (w > 0) {
-          setChartRowWidth(w);
-        }
-      }}
-    >
+    <View style={styles.chart}>
       <View
         style={styles.chartArea}
         testID={chartHasData ? 'price-chart-area' : undefined}
@@ -406,19 +362,18 @@ const PriceChart = ({
         <AreaChart
           style={styles.chartArea}
           data={chartHasData ? priceList : placeholderData}
-          contentInset={{
-            top: apx(40),
-            bottom: apx(40),
-            ...(chartHasData ? { right: endDotInsetRight } : {}),
-          }}
-          svg={chartHasData && !isLoading ? { fill: 'none' } : undefined}
+          contentInset={{ top: apx(40), bottom: apx(40) }}
+          svg={
+            chartHasData && !isLoading
+              ? { fill: `url(#dataGradient)` }
+              : undefined
+          }
           yMin={isStablecoin && chartHasData ? yMin : undefined}
           yMax={isStablecoin && chartHasData ? yMax : undefined}
         >
           {!isLoading && <Line chartHasData={chartHasData} />}
-          {chartHasData ? null : <NoDataGradient />}
-          {chartHasData ? <Tooltip /> : null}
-          {chartHasData ? <EndDot /> : null}
+          {chartHasData ? <Tooltip /> : <NoDataGradient />}
+          {chartHasData && <DataGradient />}
         </AreaChart>
       </View>
     </View>
