@@ -438,8 +438,7 @@ function handleSetOHLCVData(payload) {
     payload.visibleFromMs != null ? payload.visibleFromMs : null;
   window.visibleFromMs = visibleFromMs;
 
-  var visibleToMs =
-    payload.visibleToMs != null ? payload.visibleToMs : null;
+  var visibleToMs = payload.visibleToMs != null ? payload.visibleToMs : null;
   window.visibleToMs = visibleToMs;
 
   var newResolution = detectResolution(window.ohlcvData);
@@ -1433,19 +1432,20 @@ function subscribeLastCloseLabelUpdates() {
  * Candle: small offset so createLastPriceLine isn’t clipped at the Y-axis.
  * https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.ITimeScaleApi/
  */
-var LINE_CHART_RIGHT_OFFSET_BARS = 1;
-var CANDLE_CHART_RIGHT_GAP_BARS = 1;
+var LINE_CHART_RIGHT_OFFSET_BARS = 3;
+var CANDLE_CHART_RIGHT_GAP_BARS = 3;
 
 function syncTimeScaleRightMargin(isLineChart) {
   if (!window.chartWidget) return;
   try {
     var ts = window.chartWidget.activeChart().getTimeScale();
     ts.usePercentageRightOffset().setValue(false);
-    var gap = window.visibleFromMs != null
-      ? 0
-      : isLineChart
+    var gap =
+      window.visibleFromMs != null
         ? LINE_CHART_RIGHT_OFFSET_BARS
-        : CANDLE_CHART_RIGHT_GAP_BARS;
+        : isLineChart
+          ? LINE_CHART_RIGHT_OFFSET_BARS
+          : CANDLE_CHART_RIGHT_GAP_BARS;
     ts.defaultRightOffset().setValue(gap);
     ts.setRightOffset(gap);
   } catch (e) {}
@@ -3449,7 +3449,6 @@ function initChart() {
                 applyChartContainerOverflowUnclip();
                 scheduleLastCloseLabelUpdate();
                 if (window.currentChartType === 2) {
-                  syncTimeScaleRightMargin(true);
                   try {
                     requestAnimationFrame(refreshLineChartOverlays);
                   } catch (rafDot) {}
