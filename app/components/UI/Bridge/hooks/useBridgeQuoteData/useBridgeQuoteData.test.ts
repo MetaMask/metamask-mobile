@@ -395,6 +395,70 @@ describe('useBridgeQuoteData', () => {
     expect(result.current.destTokenAmount).toBeUndefined();
   });
 
+  it('isActiveQuoteForCurrentTokenPair is false when stale quote dest does not match selected destToken', () => {
+    // Regression guard: after changing the destination token, the bridge controller
+    // keeps the old quote in state until the first new quote arrives. The confirm
+    // button must stay disabled during this window.
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuoteWithMetadata, // quote is for Solana USDC
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotesLoadingStatus: RequestStatus.LOADING,
+        quoteFetchError: null,
+      },
+      bridgeReducerOverrides: {
+        destToken: {
+          symbol: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: 18,
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+    expect(result.current.isActiveQuoteForCurrentTokenPair).toBe(false);
+  });
+
+  it('isActiveQuoteForCurrentTokenPair is true when active quote matches both selected tokens', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuoteWithMetadata,
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+      },
+      bridgeReducerOverrides: {
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+    expect(result.current.isActiveQuoteForCurrentTokenPair).toBe(true);
+  });
+
   it('handles expired quotes correctly', () => {
     // Set up mock for this specific test
     (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
