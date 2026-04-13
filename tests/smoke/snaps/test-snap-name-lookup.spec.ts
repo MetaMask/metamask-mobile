@@ -49,7 +49,7 @@ describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
         await TabBarComponent.tapHome();
         await device.disableSynchronization();
         await WalletView.waitForTokenToBeReady(TOKEN);
-        await WalletView.tapOnToken(TOKEN);
+        // await WalletView.tapOnToken(TOKEN);
         await TokenOverview.tapSendButton();
 
         const domain = 'metamask.domain';
