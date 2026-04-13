@@ -113,11 +113,22 @@ export type PredictMarket = {
   liquidity: number;
   volume: number;
   game?: PredictMarketGame;
+  series?: PredictSeries;
 };
 
 export type PredictSeries = {
+  id: string;
+  slug: string;
+  title: string;
   recurrence: string;
 };
+
+export interface GetSeriesParams {
+  seriesId: string;
+  endDateMin: string; // ISO 8601
+  endDateMax: string; // ISO 8601
+  limit?: number; // Default: 50
+}
 
 export type PredictCategory =
   | 'trending'
@@ -240,6 +251,12 @@ export interface PriceUpdate {
   price: number;
   bestBid: number;
   bestAsk: number;
+}
+
+export interface CryptoPriceUpdate {
+  symbol: string;
+  price: number;
+  timestamp: number;
 }
 
 export type PredictOutcome = {
@@ -587,10 +604,12 @@ export interface GeoBlockResponse {
 export interface ConnectionStatus {
   sportsConnected: boolean;
   marketConnected: boolean;
+  rtdsConnected: boolean;
 }
 
 export type GameUpdateCallback = (update: GameUpdate) => void;
 export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
+export type CryptoPriceUpdateCallback = (update: CryptoPriceUpdate) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareDepositParams {}

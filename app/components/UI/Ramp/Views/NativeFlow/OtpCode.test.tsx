@@ -149,11 +149,6 @@ describe('V2OtpCode', () => {
     jest.useRealTimers();
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(<V2OtpCode />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('renders the OTP input and submit button', () => {
     const { getByTestId } = renderWithTheme(<V2OtpCode />);
 

@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "WorktreeCreate": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import sys,json,shutil; d=json.load(sys.stdin); src=d.get('cwd',''); wt=d.get('tool_input',{}).get('worktree_path','') or d.get('cwd',''); shutil.copy2(src+'/.js.env', wt+'/.js.env')\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
