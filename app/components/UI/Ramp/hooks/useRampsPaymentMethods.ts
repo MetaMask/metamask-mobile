@@ -121,8 +121,8 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const isAutoSelecting = Boolean(
     paymentMethodsQuery.data?.length &&
       (!selectedPaymentMethod ||
-        !paymentMethodsQuery.data.some(
-          (m) => m.id === selectedPaymentMethod.id,
+        paymentMethodsQuery.data.every(
+          (m) => m.id !== selectedPaymentMethod.id,
         )),
   );
 
