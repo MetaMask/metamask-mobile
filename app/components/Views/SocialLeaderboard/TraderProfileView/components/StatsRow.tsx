@@ -12,6 +12,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import type { TraderStats } from '@metamask/social-controllers';
 import { formatPnl } from '../../../Homepage/Sections/TopTraders/utils/formatPnl';
+import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 
 export interface StatsRowProps {
   stats: TraderStats;
@@ -25,16 +26,16 @@ const StatsRow: React.FC<StatsRowProps> = ({ stats }) => {
   const isWinRatePositive = (stats.winRate30d ?? 0) > 0;
 
   const hasPnl = stats.pnl30d != null;
-  const pnl = hasPnl ? formatPnl(stats.pnl30d) : '\u2014';
-  const isPnlPositive = hasPnl && stats.pnl30d >= 0;
+  const pnl = stats.pnl30d != null ? formatPnl(stats.pnl30d) : '\u2014';
+  const isPnlPositive = stats.pnl30d != null && stats.pnl30d >= 0;
 
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.SpaceAround}
+      justifyContent={BoxJustifyContent.Around}
       twClassName="px-4 py-3"
-      testID="trader-profile-stats-row"
+      testID={TraderProfileViewSelectorsIDs.STATS_ROW}
     >
       <Box alignItems={BoxAlignItems.Center} twClassName="flex-1">
         <Text

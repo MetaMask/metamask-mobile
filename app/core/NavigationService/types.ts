@@ -548,6 +548,10 @@ export interface RootStackParamList extends ParamListBase {
   PredictAddFundsSheet: undefined;
   PredictGTMModal: undefined;
 
+  // Social Leaderboard routes
+  TopTradersView: undefined;
+  TraderProfileView: { traderId: string; traderName: string };
+
   // Misc routes
   LockScreen: undefined;
   ConfirmationRequestModal: undefined;

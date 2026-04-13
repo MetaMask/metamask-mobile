@@ -84,13 +84,10 @@ const TopTradersView = () => {
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
-      navigation.navigate(
-        Routes.SOCIAL_LEADERBOARD.PROFILE as never,
-        {
-          traderId,
-          traderName,
-        } as never,
-      );
+      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+        traderId,
+        traderName,
+      });
     },
     [navigation],
   );

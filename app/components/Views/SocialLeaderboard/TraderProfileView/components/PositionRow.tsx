@@ -28,6 +28,14 @@ function formatUsd(value: number | null | undefined): string {
   return `${sign}$${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${'.'}${paddedFrac}`;
 }
 
+function formatTokenAmount(value: number): string {
+  const sign = value < 0 ? '-' : '';
+  const abs = Math.abs(value);
+  const [whole, frac = ''] = abs.toString().split('.');
+  const commaWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return frac ? `${sign}${commaWhole}.${frac}` : `${sign}${commaWhole}`;
+}
+
 function formatPercent(value: number | null | undefined): string {
   if (value == null) return '\u2014';
   const sign = value >= 0 ? '+' : '';
@@ -78,12 +86,12 @@ const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
             color={TextColor.TextMuted}
             numberOfLines={1}
           >
-            {`${position.positionAmount.toLocaleString()} ${position.tokenSymbol}`}
+            {`${formatTokenAmount(position.positionAmount)} ${position.tokenSymbol}`}
           </Text>
         </Box>
       </Box>
 
-      <Box alignItems={BoxAlignItems.FlexEnd}>
+      <Box alignItems={BoxAlignItems.End}>
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}

@@ -6,6 +6,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
@@ -31,13 +32,6 @@ import { useTraderProfile, useTraderPositions } from './hooks';
 import ProfileHeader from './components/ProfileHeader';
 import StatsRow from './components/StatsRow';
 import PositionRow from './components/PositionRow';
-
-interface TraderProfileRouteParams {
-  TraderProfileView: {
-    traderId: string;
-    traderName: string;
-  };
-}
 
 const POSITION_SKELETON_COUNT = 4;
 const POSITION_SKELETON_KEYS = Array.from(
@@ -149,8 +143,7 @@ const PositionRowSkeleton: React.FC<SkeletonProps> = ({ colors, tw }) => (
 
 const TraderProfileView = () => {
   const navigation = useNavigation();
-  const route =
-    useRoute<RouteProp<TraderProfileRouteParams, 'TraderProfileView'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'TraderProfileView'>>();
   const tw = useTailwind();
   const { colors } = useTheme();
 
@@ -238,7 +231,7 @@ const TraderProfileView = () => {
             }
             isFullWidth
             onPress={toggleFollow}
-            testID="trader-profile-follow-button"
+            testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
           >
             {isFollowing
               ? strings('social_leaderboard.following')
@@ -257,13 +250,13 @@ const TraderProfileView = () => {
             label={strings('social_leaderboard.trader_profile.open')}
             isActive={activeTab === 'open'}
             onPress={() => setActiveTab('open')}
-            testID="trader-profile-tab-open"
+            testID={TraderProfileViewSelectorsIDs.TAB_OPEN}
           />
           <TabButton
             label={strings('social_leaderboard.trader_profile.closed')}
             isActive={activeTab === 'closed'}
             onPress={() => setActiveTab('closed')}
-            testID="trader-profile-tab-closed"
+            testID={TraderProfileViewSelectorsIDs.TAB_CLOSED}
           />
         </Box>
 
