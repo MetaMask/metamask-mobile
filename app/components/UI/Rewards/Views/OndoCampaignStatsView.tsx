@@ -149,11 +149,11 @@ const OndoCampaignStatsView: React.FC = () => {
 
   const tierMinDeposit = useMemo(
     () =>
-      leaderboardPosition && leaderboardData
+      leaderboardPosition && leaderboardData && isCampaignActive
         ? (leaderboardData.tiers[leaderboardPosition.projectedTier]
             ?.minDeposit ?? null)
         : null,
-    [leaderboardData, leaderboardPosition],
+    [leaderboardData, leaderboardPosition, isCampaignActive],
   );
 
   const showQualifyCard =

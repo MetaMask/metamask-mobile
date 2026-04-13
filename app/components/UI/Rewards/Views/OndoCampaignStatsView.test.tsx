@@ -140,6 +140,20 @@ jest.mock('../utils/formatUtils', () => ({
     })}`,
 }));
 
+// Mock Engine to prevent @metamask/social-controllers resolution chain
+jest.mock('../../../../core/Engine/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      AccountTreeController: { setSelectedAccountGroup: jest.fn() },
+    },
+    controllerMessenger: {
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
+    },
+  },
+}));
+
 jest.mock('../components/Campaigns/CampaignTile.utils');
 jest.mock('../hooks/useRewardCampaigns');
 jest.mock('../hooks/useGetCampaignParticipantStatus');
@@ -524,5 +538,45 @@ describe('OndoCampaignStatsView', () => {
     expect(
       getByText('rewards.ondo_campaign_stats.qualified_title'),
     ).toBeDefined();
+  });
+
+  it('hides qualified card when campaign is complete even if position is qualified', () => {
+    mockGetCampaignStatus.mockReturnValue('complete');
+    mockUseRewardCampaigns.mockReturnValue({
+      campaigns: [createTestCampaign()],
+      categorizedCampaigns: { active: [], upcoming: [], previous: [] },
+      isLoading: false,
+      hasLoaded: true,
+      hasError: false,
+      fetchCampaigns: jest.fn(),
+    });
+    mockUseGetCampaignParticipantStatus.mockReturnValue({
+      status: { optedIn: true, participantCount: 1 },
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetOndoLeaderboardPosition.mockReturnValue({
+      ...positionDefaults,
+      position: makeQualifiedPosition({ projectedTier: 'MID' }),
+    });
+    mockUseGetOndoLeaderboard.mockReturnValue({
+      ...leaderboardDefaults,
+      leaderboard: {
+        campaignId: 'campaign-ondo-123',
+        tiers: {
+          MID: {
+            minDeposit: 1000,
+            entries: [],
+            totalParticipants: 50,
+          },
+        },
+        computedAt: '2024-01-01T00:00:00Z',
+      },
+    });
+    const { queryByText } = render(<OndoCampaignStatsView />);
+    expect(
+      queryByText('rewards.ondo_campaign_stats.qualified_title'),
+    ).toBeNull();
   });
 });
