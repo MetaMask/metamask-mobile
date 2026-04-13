@@ -28,9 +28,7 @@ jest.mock('../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
 }));
 
-const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
-  typeof isHardwareAccount
->;
+const mockIsHardwareAccount = jest.mocked(isHardwareAccount);
 
 describe('BridgeTransactionDetails', () => {
   const mockEVMTx = {
