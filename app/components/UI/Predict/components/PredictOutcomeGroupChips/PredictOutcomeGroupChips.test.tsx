@@ -8,6 +8,14 @@ import {
 } from './PredictOutcomeGroupChips.testIds';
 import type { PredictOutcomeGroup } from '../../types';
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: (...classes: (string | boolean | undefined)[]) => ({
+      testStyle: classes.filter(Boolean).join(' '),
+    }),
+  }),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const labels: Record<string, string> = {
