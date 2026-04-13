@@ -1694,12 +1694,14 @@ async function main() {
         const origLog = console.log.bind(console);
         const origError = console.error.bind(console);
         console.log = (...args) => {
-          origLog(...args);
-          logStream.write(formatArgs(args) + '\n');
+          const formatted = formatArgs(args);
+          origLog(formatted);
+          logStream.write(formatted + '\n');
         };
         console.error = (...args) => {
-          origError(...args);
-          logStream.write(formatArgs(args) + '\n');
+          const formatted = formatArgs(args);
+          origError(formatted);
+          logStream.write(formatted + '\n');
         };
         teardownLog = () => {
           console.log = origLog;
