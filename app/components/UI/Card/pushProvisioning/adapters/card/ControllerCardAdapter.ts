@@ -1,34 +1,27 @@
 /**
- * Galileo Card Provider Adapter
+ * Controller-backed Card Provider Adapter
  *
- * Implementation of ICardProviderAdapter for Galileo card issuing platform.
- *
- * @see https://docs.galileo-ft.com/pro/docs/setup-for-push-provisioning
+ * Implementation of ICardProviderAdapter that delegates to CardController
+ * instead of directly using CardSDK. Used after the SDK-to-Controller migration.
  */
 
 import {
-  CardProviderId,
   ProvisioningError,
   ProvisioningErrorCode,
-  ApplePayEncryptedPayload,
+  type CardProviderId,
+  type ApplePayEncryptedPayload,
 } from '../../types';
-import { ICardProviderAdapter } from './ICardProviderAdapter';
-import { CardSDK } from '../../../sdk/CardSDK';
+import type { ICardProviderAdapter } from './ICardProviderAdapter';
+import Engine from '../../../../../../core/Engine';
 import { strings } from '../../../../../../../locales/i18n';
 
-export class GalileoCardAdapter implements ICardProviderAdapter {
+export class ControllerCardAdapter implements ICardProviderAdapter {
   readonly providerId: CardProviderId = 'galileo';
-
-  private cardSDK: CardSDK;
-
-  constructor(cardSDK: CardSDK) {
-    this.cardSDK = cardSDK;
-  }
 
   async getOpaquePaymentCard(): Promise<{ opaquePaymentCard: string }> {
     try {
       const response =
-        await this.cardSDK.createGoogleWalletProvisioningRequest();
+        await Engine.context.CardController.createGoogleWalletProvisioningRequest();
 
       if (!response?.opaquePaymentCard) {
         throw new ProvisioningError(
@@ -37,14 +30,9 @@ export class GalileoCardAdapter implements ICardProviderAdapter {
         );
       }
 
-      return {
-        opaquePaymentCard: response.opaquePaymentCard,
-      };
+      return { opaquePaymentCard: response.opaquePaymentCard };
     } catch (error) {
-      if (error instanceof ProvisioningError) {
-        throw error;
-      }
-
+      if (error instanceof ProvisioningError) throw error;
       throw new ProvisioningError(
         ProvisioningErrorCode.ENCRYPTION_FAILED,
         strings('card.push_provisioning.error_encryption_failed'),
@@ -53,15 +41,10 @@ export class GalileoCardAdapter implements ICardProviderAdapter {
     }
   }
 
-  /** Convert Base64-encoded string to hex (PassKit provides Base64, API expects hex) */
   private base64ToHex(base64: string): string {
     return Buffer.from(base64, 'base64').toString('hex');
   }
 
-  /**
-   * Get encrypted payload for Apple Pay in-app provisioning.
-   * Converts PassKit's Base64-encoded nonce/certificates to hex before sending to Galileo.
-   */
   async getApplePayEncryptedPayload(
     nonce: string,
     nonceSignature: string,
@@ -80,12 +63,13 @@ export class GalileoCardAdapter implements ICardProviderAdapter {
       const nonceHex = this.base64ToHex(nonce);
       const nonceSignatureHex = this.base64ToHex(nonceSignature);
 
-      const response = await this.cardSDK.createApplePayProvisioningRequest({
-        leafCertificate,
-        intermediateCertificate,
-        nonce: nonceHex,
-        nonceSignature: nonceSignatureHex,
-      });
+      const response =
+        await Engine.context.CardController.createApplePayProvisioningRequest({
+          leafCertificate,
+          intermediateCertificate,
+          nonce: nonceHex,
+          nonceSignature: nonceSignatureHex,
+        });
 
       if (
         !response?.encryptedPassData ||
@@ -104,10 +88,7 @@ export class GalileoCardAdapter implements ICardProviderAdapter {
         ephemeralPublicKey: response.ephemeralPublicKey,
       };
     } catch (error) {
-      if (error instanceof ProvisioningError) {
-        throw error;
-      }
-
+      if (error instanceof ProvisioningError) throw error;
       throw new ProvisioningError(
         ProvisioningErrorCode.ENCRYPTION_FAILED,
         strings('card.push_provisioning.error_encryption_failed'),
