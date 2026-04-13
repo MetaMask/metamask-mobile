@@ -235,8 +235,12 @@ export const usePerpsTransactionHistory = ({
         ...userHistoryTransactions,
       ];
 
-      // Sort by timestamp descending (newest first)
-      allTransactions.sort((a, b) => b.timestamp - a.timestamp);
+      // Sort by timestamp descending (newest first), then by asset alphabetically
+      allTransactions.sort(
+        (a, b) =>
+          b.timestamp - a.timestamp ||
+          (a.asset ?? '').localeCompare(b.asset ?? ''),
+      );
 
       // Remove duplicates based on ID
       const uniqueTransactions = allTransactions.reduce((acc, transaction) => {
@@ -261,9 +265,10 @@ export const usePerpsTransactionHistory = ({
           ? err.message
           : 'Failed to fetch transaction history';
       DevLogger.log('Error fetching transaction history:', errorMessage);
+      // Preserve existing transactions on error so a transient API failure
+      // (rate limit, network hiccup) during pull-to-refresh does not wipe
+      // the user's already-loaded funding history with an empty state.
       setError(errorMessage);
-      setTransactions([]);
-      setRestFills([]);
     } finally {
       setIsLoading(false);
     }
@@ -337,7 +342,11 @@ export const usePerpsTransactionHistory = ({
           seen.add(tx.id);
           return true;
         });
-        return deduped.sort((a, b) => b.timestamp - a.timestamp);
+        return deduped.sort(
+          (a, b) =>
+            b.timestamp - a.timestamp ||
+            (a.asset ?? '').localeCompare(b.asset ?? ''),
+        );
       });
 
       if (Math.max(cursorStartTime, maxStartTime) <= maxStartTime) {
@@ -431,7 +440,11 @@ export const usePerpsTransactionHistory = ({
       ...walletWithdrawalsDeduplicated,
     ];
 
-    return allTransactions.sort((a, b) => b.timestamp - a.timestamp);
+    return allTransactions.sort(
+      (a, b) =>
+        b.timestamp - a.timestamp ||
+        (a.asset ?? '').localeCompare(b.asset ?? ''),
+    );
   }, [
     liveFills,
     restFills,

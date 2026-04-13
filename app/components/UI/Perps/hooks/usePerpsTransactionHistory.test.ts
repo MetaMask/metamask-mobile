@@ -1378,7 +1378,7 @@ describe('usePerpsTransactionHistory', () => {
     const olderFundingTx = {
       id: 'funding-1638403200000-ETH',
       type: 'funding' as const,
-      category: 'funding_fee',
+      category: 'funding_fee' as const,
       title: 'Paid funding fee',
       subtitle: 'ETH',
       timestamp: 1638403200000,

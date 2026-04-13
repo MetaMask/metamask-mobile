@@ -559,7 +559,9 @@ export function transformFundingToTransactions(
   funding: Funding[],
 ): PerpsTransaction[] {
   // Sort funding by timestamp in descending order (newest first) to match Orders and Trades
-  const sortedFunding = [...funding].sort((a, b) => b.timestamp - a.timestamp);
+  const sortedFunding = [...funding].sort(
+    (a, b) => b.timestamp - a.timestamp || a.symbol.localeCompare(b.symbol),
+  );
 
   return sortedFunding.map((fundingItem) => {
     const { symbol, amountUsd, rate, timestamp } = fundingItem;
