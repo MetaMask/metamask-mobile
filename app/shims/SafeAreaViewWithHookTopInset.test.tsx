@@ -15,13 +15,21 @@ jest.mock('react-native-safe-area-context/src/SafeAreaContext', () => ({
 }));
 
 jest.mock('react-native-safe-area-context/src/SafeAreaView', () => {
+  /* eslint-disable @typescript-eslint/no-require-imports -- Jest mock factories must not close over imports */
   const { forwardRef } = require('react');
   const { View: RNView } = require('react-native');
+  /* eslint-enable @typescript-eslint/no-require-imports */
   return {
     SafeAreaView: forwardRef((props: Record<string, unknown>, ref: unknown) => (
       <RNView ref={ref} {...props} testID="native-safe-area-view" />
     )),
   };
+});
+
+const testStyles = StyleSheet.create({
+  paddingTop10: { paddingTop: 10 },
+  paddingTop100: { paddingTop: 100 },
+  marginTop6: { marginTop: 6 },
 });
 
 function getNativeViewProps(root: ReturnType<typeof render>) {
@@ -63,9 +71,7 @@ describe('SafeAreaViewWithHookTopInset', () => {
 
     it('passes through a record of edges, turning top off for hook handling', () => {
       const props = getNativeViewProps(
-        render(
-          <SafeAreaView edges={{ top: 'maximum', bottom: 'additive' }} />,
-        ),
+        render(<SafeAreaView edges={{ top: 'maximum', bottom: 'additive' }} />),
       );
       expect(props.edges).toEqual({
         top: 'off',
@@ -77,9 +83,7 @@ describe('SafeAreaViewWithHookTopInset', () => {
 
     it('leaves edges unchanged when top is explicitly off', () => {
       const props = getNativeViewProps(
-        render(
-          <SafeAreaView edges={{ top: 'off', bottom: 'additive' }} />,
-        ),
+        render(<SafeAreaView edges={{ top: 'off', bottom: 'additive' }} />),
       );
       expect(props.edges).toEqual({
         top: 'off',
@@ -111,7 +115,7 @@ describe('SafeAreaViewWithHookTopInset', () => {
 
     it('sums existing paddingTop with insets.top in additive mode', () => {
       const props = getNativeViewProps(
-        render(<SafeAreaView style={{ paddingTop: 10 }} />),
+        render(<SafeAreaView style={testStyles.paddingTop10} />),
       );
       const flat = StyleSheet.flatten(props.style);
       expect(flat).toMatchObject({ paddingTop: 54 });
@@ -122,7 +126,7 @@ describe('SafeAreaViewWithHookTopInset', () => {
         render(
           <SafeAreaView
             edges={{ top: 'maximum', bottom: 'additive' }}
-            style={{ paddingTop: 100 }}
+            style={testStyles.paddingTop100}
           />,
         ),
       );
@@ -135,7 +139,7 @@ describe('SafeAreaViewWithHookTopInset', () => {
         render(
           <SafeAreaView
             edges={{ top: 'maximum' }}
-            style={{ paddingTop: 10 }}
+            style={testStyles.paddingTop10}
           />,
         ),
       );
@@ -153,9 +157,7 @@ describe('SafeAreaViewWithHookTopInset', () => {
 
     it('sums existing marginTop with insets.top in additive mode', () => {
       const props = getNativeViewProps(
-        render(
-          <SafeAreaView mode="margin" style={{ marginTop: 6 }} />,
-        ),
+        render(<SafeAreaView mode="margin" style={testStyles.marginTop6} />),
       );
       const flat = StyleSheet.flatten(props.style);
       expect(flat).toMatchObject({ marginTop: 50 });
@@ -200,9 +202,7 @@ describe('SafeAreaViewWithHookTopInset', () => {
     it('treats string paddingTop as 0', () => {
       const props = getNativeViewProps(
         render(
-          <SafeAreaView
-            style={{ paddingTop: '20%' as unknown as number }}
-          />,
+          <SafeAreaView style={{ paddingTop: '20%' as unknown as number }} />,
         ),
       );
       const flat = StyleSheet.flatten(props.style);
@@ -221,17 +221,13 @@ describe('SafeAreaViewWithHookTopInset', () => {
   describe('prop passthrough', () => {
     it('passes arbitrary props to the native SafeAreaView', () => {
       const props = getNativeViewProps(
-        render(
-          <SafeAreaView testID="custom" accessibilityLabel="test" />,
-        ),
+        render(<SafeAreaView testID="custom" accessibilityLabel="test" />),
       );
       expect(props.accessibilityLabel).toBe('test');
     });
 
     it('passes mode through to the native SafeAreaView', () => {
-      const props = getNativeViewProps(
-        render(<SafeAreaView mode="margin" />),
-      );
+      const props = getNativeViewProps(render(<SafeAreaView mode="margin" />));
       expect(props.mode).toBe('margin');
     });
   });
@@ -249,7 +245,9 @@ describe('SafeAreaViewWithHookTopInset', () => {
 
       rerender(<SafeAreaView />);
 
-      const flat = StyleSheet.flatten(getByTestId('native-safe-area-view').props.style);
+      const flat = StyleSheet.flatten(
+        getByTestId('native-safe-area-view').props.style,
+      );
       expect(flat).toMatchObject({ paddingTop: 20 });
     });
   });
