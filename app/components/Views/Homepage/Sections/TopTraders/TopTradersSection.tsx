@@ -26,6 +26,7 @@ const SKELETON_KEYS = Array.from(
   { length: HOME_TRADER_LIMIT },
   (_, i) => `home-trader-skeleton-${i}`,
 );
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 
 interface TopTradersSectionProps {
   sectionIndex: number;
@@ -70,6 +71,13 @@ const TopTradersSection = forwardRef<
     totalSectionsLoaded,
     isEmpty: traders.length === 0,
     itemCount: traders.length,
+  });
+
+  useSectionPerformance({
+    sectionId: HomeSectionNames.TOP_TRADERS,
+    contentReady: isEnabled,
+    isEmpty: true,
+    enabled: isEnabled,
   });
 
   const handleViewAll = useCallback(() => {

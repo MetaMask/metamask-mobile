@@ -8,8 +8,7 @@ exports[`NftDetails renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,7 +333,7 @@ exports[`NftDetails renders correctly 1`] = `
                         }
                       }
                     >
-                      <RCTSafeAreaView
+                      <View
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -388,7 +387,7 @@ exports[`NftDetails renders correctly 1`] = `
                                       onLayout={[Function]}
                                       style={
                                         {
-                                          "alignSelf": "flex-start",
+                                          "alignSelf": "auto",
                                           "position": "relative",
                                         }
                                       }
@@ -534,7 +533,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Bold",
+                                        "fontFamily": "Geist-SemiBold",
                                         "fontSize": 20,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1081,7 +1080,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
+                                    "fontFamily": "Geist-SemiBold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1139,7 +1138,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
+                                    "fontFamily": "Geist-SemiBold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1226,7 +1225,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
+                                    "fontFamily": "Geist-SemiBold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1412,7 +1411,6 @@ exports[`NftDetails renders correctly 1`] = `
                                     "flexWrap": "wrap",
                                     "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": 400,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -1425,7 +1423,7 @@ exports[`NftDetails renders correctly 1`] = `
                             </Text>
                           </View>
                         </View>
-                      </RCTSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1435,6 +1433,6 @@ exports[`NftDetails renders correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

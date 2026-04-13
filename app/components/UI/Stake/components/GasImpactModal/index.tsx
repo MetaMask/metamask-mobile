@@ -26,7 +26,8 @@ import { useStyles } from '../../../../hooks/useStyles';
 import Routes from '../../../../../constants/navigation/Routes';
 import { GasImpactModalRouteParams } from './GasImpactModal.types';
 import { strings } from '../../../../../../locales/i18n';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { EVM_SCOPE } from '../../../Earn/constants/networks';
@@ -43,7 +44,7 @@ const GasImpactModal = () => {
   );
   const { navigate } = useNavigation();
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const sheetRef = useRef<BottomSheetRef>(null);
 

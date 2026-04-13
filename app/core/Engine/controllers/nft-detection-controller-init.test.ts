@@ -1,7 +1,7 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getNftDetectionControllerMessenger } from '../messengers/nft-detection-controller-messenger';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { nftDetectionControllerInit } from './nft-detection-controller-init';
 import {
   NftDetectionController,
@@ -12,7 +12,7 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/assets-controllers');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<NftDetectionControllerMessenger>
+  MessengerClientInitRequest<NftDetectionControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,

@@ -7,6 +7,8 @@ import {
   OrderPreview,
   PlaceOrderParams,
 } from '../../../types';
+import { TransactionStatus } from '@metamask/transaction-controller';
+import { providerErrors } from '@metamask/rpc-errors';
 import useApprovalRequest from '../../../../../Views/confirmations/hooks/useApprovalRequest';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import Engine from '../../../../../../core/Engine';
@@ -17,8 +19,28 @@ import { usePredictTrading } from '../../../hooks/usePredictTrading';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
-import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 
+/**
+ * Rejects all unapproved transactions to prevent stale approvals from
+ * interfering with the new deposit-and-order transaction batch.
+ * Mirrors the cleanup logic in useConfirmNavigation.
+ */
+function rejectPendingTransactions() {
+  const { ApprovalController, TransactionController } = Engine.context;
+  const unapprovedTxs = TransactionController.state.transactions.filter(
+    (tx) => tx.status === TransactionStatus.unapproved,
+  );
+  for (const tx of unapprovedTxs) {
+    try {
+      ApprovalController.rejectRequest(
+        tx.id,
+        providerErrors.userRejectedRequest(),
+      );
+    } catch {
+      // Approval may already be resolved
+    }
+  }
+}
 interface UsePredictBuyActionsParams {
   preview?: OrderPreview | null;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
@@ -38,7 +60,6 @@ export const usePredictBuyActions = ({
   const { activeOrder, clearActiveOrderTransactionId } =
     usePredictActiveOrder();
   const { placeOrder, initPayWithAnyToken } = usePredictTrading();
-  const { resetSelectedPaymentToken } = usePredictPaymentToken();
   const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
   const { PredictController } = Engine.context;
   const payWithAnyTokenEnabled = useSelector(
@@ -68,7 +89,7 @@ export const usePredictBuyActions = ({
     const unsubscribe = navigation.addListener('transitionEnd', (e) => {
       if (!e.data.closing && !hasInitializedPayWithAnyTokenRef.current) {
         hasInitializedPayWithAnyTokenRef.current = true;
-        resetSelectedPaymentToken();
+        rejectPendingTransactions();
         initPayWithAnyToken();
       }
     });
@@ -79,7 +100,6 @@ export const usePredictBuyActions = ({
     initPayWithAnyToken,
     payWithAnyTokenEnabled,
     PredictController,
-    resetSelectedPaymentToken,
   ]);
 
   useEffect(() => {
@@ -178,6 +198,15 @@ export const usePredictBuyActions = ({
       }
     }
   }, [PredictController, currentState, navigation]);
+
+  useEffect(() => {
+    if (currentState === ActiveOrderState.DEPOSITING) {
+      if (didInitiateOrderRef.current) {
+        didInitiateOrderRef.current = false;
+        navigation.dispatch(StackActions.pop());
+      }
+    }
+  }, [currentState, navigation]);
 
   return {
     handleConfirm,

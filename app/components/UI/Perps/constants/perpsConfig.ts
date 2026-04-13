@@ -129,18 +129,7 @@ export const LIMIT_PRICE_CONFIG = {
   ShortPresets: [1, 2], // Sell above market for short orders
 } as const;
 
-/**
- * Funding rate display configuration
- * Controls how funding rates are formatted and displayed across the app
- */
-export const FUNDING_RATE_CONFIG = {
-  // Number of decimal places to display for funding rates
-  Decimals: 4,
-  // Default display value when funding rate is zero or unavailable
-  ZeroDisplay: '0.0000%',
-  // Multiplier to convert decimal funding rate to percentage
-  PercentageMultiplier: 100,
-} as const;
+export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
 
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
@@ -302,3 +291,21 @@ export function getPerpsProviderChainId(
 ): string | undefined {
   return PERPS_PROVIDER_CHAIN_IDS[provider]?.[network];
 }
+
+// Re-export disk cache constants from controller layer
+export {
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
+  PERPS_DISK_CACHE_THROTTLE_MS,
+} from '@metamask/perps-controller/constants/perpsConfig';
+
+/** Source identifiers for PerpsConnectionManager.connect/ensureConnected/resumeFromForeground calls. */
+export const PERPS_CONNECTION_SOURCE = {
+  WALLET_ROOT_MOUNT: 'wallet_root_mount',
+  WALLET_ROOT_RETRY: 'wallet_root_retry',
+  WALLET_ROOT_FOREGROUND: 'wallet_root_foreground',
+  TUTORIAL_PRELOAD: 'tutorial_preload',
+  PERPS_FULLSCREEN_ENTRY: 'perps_fullscreen_entry',
+  PERPS_CONNECTION_PROVIDER: 'perps_connection_provider',
+  UNSPECIFIED: 'unspecified',
+} as const;
