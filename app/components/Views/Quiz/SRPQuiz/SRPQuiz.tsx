@@ -66,9 +66,7 @@ const SRPQuiz = () => {
 
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
-  const LEARN_MORE_URL = isSocialLogin
-    ? SRP_DOS_AND_DONTS_URL
-    : SRP_GUIDE_URL;
+  const LEARN_MORE_URL = isSocialLogin ? SRP_DOS_AND_DONTS_URL : SRP_GUIDE_URL;
 
   const openSupportArticle = useCallback((): void => {
     Linking.openURL(LEARN_MORE_URL);

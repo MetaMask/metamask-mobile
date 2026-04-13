@@ -74,9 +74,7 @@ const ImportPrivateKey = () => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: isSRP
-          ? IMPORT_WALLET_PRIVATE_KEY_URL
-          : IMPORT_WALLET_GUIDE_URL,
+        url: isSRP ? IMPORT_WALLET_PRIVATE_KEY_URL : IMPORT_WALLET_GUIDE_URL,
         title: strings('drawer.metamask_support'),
       },
     });
