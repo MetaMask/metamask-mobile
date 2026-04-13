@@ -17,6 +17,13 @@ module.exports = {
           const pathsToInclude = [
             'app/components/Nav',
             'app/components/UI/DeepLinkModal',
+            'app/components/Views/Onboarding',
+            'app/components/Views/ChoosePassword',
+            'app/components/Views/SocialLoginIosUser',
+            'app/components/Views/OAuthRehydration',
+            'app/components/Views/Login',
+            'app/components/Views/WalletRecovery',
+            'app/components/Views/WalletCreationError',
           ];
           return pathsToInclude.some((path) => filename.includes(path));
         },
