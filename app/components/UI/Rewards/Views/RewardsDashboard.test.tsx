@@ -79,27 +79,6 @@ const mockSelectSelectedAccountGroup =
   >;
 
 // Mock react-native-safe-area-context
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    SafeAreaView: ({
-      children,
-      testID,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { ...props, testID }, children),
-  };
-});
-
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../../core/Analytics';

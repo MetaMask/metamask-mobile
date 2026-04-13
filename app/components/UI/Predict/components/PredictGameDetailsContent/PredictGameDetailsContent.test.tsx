@@ -14,20 +14,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  ...jest.requireActual('react-native-safe-area-context'),
-  SafeAreaView: ({ children, ...props }: { children: React.ReactNode }) => {
-    const { View } = jest.requireActual('react-native');
-    return <View {...props}>{children}</View>;
-  },
-  useSafeAreaInsets: () => ({
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-  }),
-}));
-
 jest.mock('../PredictShareButton/PredictShareButton', () => {
   const { View } = jest.requireActual('react-native');
   return function MockPredictShareButton({ marketId }: { marketId?: string }) {

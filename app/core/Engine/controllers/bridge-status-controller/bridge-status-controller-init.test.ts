@@ -7,7 +7,7 @@ import { TransactionController } from '@metamask/transaction-controller';
 import { handleFetch } from '@metamask/controller-utils';
 
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { getBridgeStatusControllerMessenger } from '../../messengers/bridge-status-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
 import { bridgeStatusControllerInit } from './bridge-status-controller-init';
@@ -46,7 +46,7 @@ function buildInitRequestMock(
     namespace: MOCK_ANY_NAMESPACE,
   });
   const requestMock = {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     controllerMessenger: getBridgeStatusControllerMessenger(
       baseControllerMessenger,
     ),

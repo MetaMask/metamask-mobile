@@ -32,14 +32,14 @@ const MoneyBalanceSummary = ({ apy }: MoneyBalanceSummaryProps) => (
     <Box twClassName="px-4">
       <Text
         variant={TextVariant.DisplayLg}
-        fontWeight={FontWeight.Medium}
+        fontWeight={FontWeight.Bold}
         testID={MoneyBalanceSummaryTestIds.BALANCE}
         twClassName="mb-1"
       >
         {HARDCODED_BALANCE}
       </Text>
       <Text
-        variant={TextVariant.BodySm}
+        variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         color={TextColor.SuccessDefault}
         testID={MoneyBalanceSummaryTestIds.APY}
