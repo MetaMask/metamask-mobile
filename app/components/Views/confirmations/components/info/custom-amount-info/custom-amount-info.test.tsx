@@ -12,7 +12,8 @@ import { otherControllersMock } from '../../../__mocks__/controllers/other-contr
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import { Alert } from '../../../types/alerts';
+import { Alert, Severity } from '../../../types/alerts';
+import { AlertKeys } from '../../../constants/alerts';
 import {
   AlertsContextParams,
   useAlerts,
@@ -24,7 +25,9 @@ import { AssetType } from '../../../types/token';
 import {
   useTransactionPayRequiredTokens,
   useIsTransactionPayLoading,
+  useTransactionPayQuotes,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
 import { strings } from '../../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
@@ -47,6 +50,8 @@ jest.mock('../../../hooks/pay/useTransactionPayMetrics');
 jest.mock('../../../hooks/send/useAccountTokens');
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/pay/useTransactionPayHasSourceAmount');
+jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
 jest.mock('../../../hooks/transactions/useTransactionConfirm');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
@@ -104,15 +109,6 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  return {
-    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-    useSafeAreaInsets: () => inset,
-    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
-  };
-});
 
 jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   ...jest.requireActual('../../../../../UI/Ramp/hooks/useRampNavigation'),
@@ -182,6 +178,12 @@ describe('CustomAmountInfo', () => {
 
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
+  );
+
+  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
+
+  const useTransactionPayHasSourceAmountMock = jest.mocked(
+    useTransactionPayHasSourceAmount,
   );
 
   const useTransactionCustomAmountAlertsMock = jest.mocked(
@@ -255,6 +257,8 @@ describe('CustomAmountInfo', () => {
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
     useTransactionConfirmMock.mockReturnValue({} as never);
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useTransactionPayQuotesMock.mockReturnValue([]);
+    useTransactionPayHasSourceAmountMock.mockReturnValue(false);
     useTokenFiatRatesMock.mockReturnValue([1, 1]);
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.contractInteraction,
@@ -521,6 +525,57 @@ describe('CustomAmountInfo', () => {
 
     expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
       from: '0xTestRecipient',
+    });
+  });
+
+  describe('showPaymentDetails', () => {
+    async function pressDone(
+      getByText: ReturnType<typeof render>['getByText'],
+    ) {
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+    }
+
+    it('shows fee rows for same-chain payment without quotes', async () => {
+      useTransactionPayHasSourceAmountMock.mockReturnValue(false);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { getByText, getByTestId } = render();
+      await pressDone(getByText);
+
+      expect(getByTestId('bridge-fee-row')).toBeOnTheScreen();
+    });
+
+    it('hides fee rows when no-quotes alert is present', async () => {
+      useTransactionPayHasSourceAmountMock.mockReturnValue(false);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+      useAlertsMock.mockReturnValue({
+        alerts: [
+          {
+            key: AlertKeys.NoPayTokenQuotes,
+            severity: Severity.Danger,
+            isBlocking: true,
+          },
+        ] as Alert[],
+        generalAlerts: [] as Alert[],
+        fieldAlerts: [] as Alert[],
+      } as AlertsContextParams);
+
+      const { getByText, queryByTestId } = render();
+      await pressDone(getByText);
+
+      expect(queryByTestId('bridge-fee-row')).toBeNull();
+    });
+
+    it('shows fee rows when quotes exist regardless of source amount', async () => {
+      useTransactionPayHasSourceAmountMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([{} as never]);
+
+      const { getByText, getByTestId } = render();
+      await pressDone(getByText);
+
+      expect(getByTestId('bridge-fee-row')).toBeOnTheScreen();
     });
   });
 });

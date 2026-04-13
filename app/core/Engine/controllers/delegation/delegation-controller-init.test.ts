@@ -16,7 +16,7 @@ import {
   DelegationControllerInit,
   awaitDeleteDelegationEntry,
 } from './delegation-controller-init';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import {
   DelegationControllerInitMessenger,
   getDelegationControllerInitMessenger,
@@ -29,7 +29,7 @@ import { Hex } from '@metamask/utils';
 jest.mock('@metamask/delegation-controller');
 
 function buildInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     DelegationControllerMessenger,
     DelegationControllerInitMessenger
   >

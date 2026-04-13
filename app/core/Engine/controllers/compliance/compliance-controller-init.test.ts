@@ -1,7 +1,7 @@
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getComplianceControllerMessenger } from '../../messengers/compliance/compliance-controller-messenger';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { complianceControllerInit } from './compliance-controller-init';
 import {
   ComplianceController,
@@ -13,7 +13,7 @@ function getInitRequestMock(
   overrides: {
     persistedState?: Record<string, unknown>;
   } = {},
-): jest.Mocked<ControllerInitRequest<ComplianceControllerMessenger>> {
+): jest.Mocked<MessengerClientInitRequest<ComplianceControllerMessenger>> {
   const { persistedState = {} } = overrides;
 
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({

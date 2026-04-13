@@ -372,3 +372,43 @@ export const PROVIDER_CONFIG = {
   /** Force MYX to testnet only (mainnet credentials not yet available) */
   MYX_TESTNET_ONLY: false,
 } as const;
+
+// Disk-backed cold-start cache keys and throttle interval
+export const PERPS_DISK_CACHE_MARKETS = 'PERPS_DISK_CACHE_MARKETS';
+export const PERPS_DISK_CACHE_USER_DATA = 'PERPS_DISK_CACHE_USER_DATA';
+export const PERPS_DISK_CACHE_THROTTLE_MS = 30_000;
+
+/**
+ * Build the standard provider:network cache key from controller state.
+ *
+ * @param state - Controller state containing provider and network info.
+ * @param state.activeProvider - Active perps provider name.
+ * @param state.isTestnet - Whether testnet mode is active.
+ * @returns Cache key in the format "provider:mainnet" or "provider:testnet".
+ */
+export function getProviderNetworkKey(state: {
+  activeProvider?: string;
+  isTestnet?: boolean;
+}): string {
+  return `${state.activeProvider ?? PROVIDER_CONFIG.DefaultProvider}:${state.isTestnet ? 'testnet' : 'mainnet'}`;
+}
+
+/**
+ * Build a provider:network cache key for a specific provider id.
+ * Accounts for MYX_TESTNET_ONLY: MYX is always on testnet regardless of the
+ * global network flag.
+ *
+ * @param providerId - The provider identifier (e.g. "hyperliquid", "myx").
+ * @param isTestnet - Global testnet flag from controller state.
+ * @returns Cache key in the format "provider:mainnet" or "provider:testnet".
+ */
+export function buildProviderCacheKey(
+  providerId: string,
+  isTestnet: boolean,
+): string {
+  const effectiveTestnet =
+    providerId === 'myx'
+      ? PROVIDER_CONFIG.MYX_TESTNET_ONLY || isTestnet
+      : isTestnet;
+  return `${providerId}:${effectiveTestnet ? 'testnet' : 'mainnet'}`;
+}

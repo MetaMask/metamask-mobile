@@ -403,6 +403,7 @@ const Routes = {
   MONEY: {
     ROOT: 'MoneyScreens',
     HOME: 'MoneyHome',
+    ACTIVITY: 'MoneyActivity',
   },
   MONEY_ACCOUNT: {
     ROOT: 'MoneyAccountScreens',
