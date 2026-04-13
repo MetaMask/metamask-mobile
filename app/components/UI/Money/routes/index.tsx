@@ -26,7 +26,7 @@ const MoneyScreenStack = () => {
         component={MoneyActivityView}
       />
       <Stack.Screen
-        name={Routes.MONEY.CONFIRMATION}
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         options={emptyNavHeaderOptions}
         component={Confirm}
       />
