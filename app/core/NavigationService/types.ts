@@ -482,6 +482,7 @@ export interface RootStackParamList extends ParamListBase {
   NftFullView: undefined;
   TokensFullView: undefined;
   CashTokensFullView: undefined;
+  MoneyScreens: undefined;
   TrendingTokensFullView: undefined;
   RWATokensFullView: undefined;
 

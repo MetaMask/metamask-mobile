@@ -38,7 +38,7 @@ const MoneySectionHeader = ({ title, onPress }: MoneySectionHeaderProps) => {
     >
       <Text
         variant={TextVariant.HeadingMd}
-        fontWeight={FontWeight.Regular}
+        fontWeight={FontWeight.Medium}
         testID={MoneySectionHeaderTestIds.TITLE}
       >
         {title}

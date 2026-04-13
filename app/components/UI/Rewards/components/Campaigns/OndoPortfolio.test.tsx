@@ -70,10 +70,6 @@ jest.mock('../../../../../selectors/tokenBalancesController', () => ({
   selectAllTokenBalances: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../../../selectors/tokenListController', () => ({
-  selectERC20TokensByChain: jest.fn(() => ({})),
-}));
-
 jest.mock('../../../../../selectors/tokensController', () => ({
   selectAllTokens: jest.fn(() => ({})),
 }));
@@ -177,37 +173,12 @@ jest.mock('./OndoLeaderboard.utils', () => ({
   formatComputedAt: jest.fn(),
 }));
 
-jest.mock('../RewardsInfoBanner', () => {
+jest.mock('../../../../../images/rewards/rewards-no-positions.svg', () => {
   const ReactActual = jest.requireActual('react');
-  const { View, Text, Pressable } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      title,
-      onConfirm,
-      confirmButtonLabel,
-    }: {
-      title: string;
-      description: string;
-      onConfirm?: () => void;
-      confirmButtonLabel?: string;
-    }) =>
-      ReactActual.createElement(
-        View,
-        { testID: 'rewards-info-banner' },
-        ReactActual.createElement(Text, null, title),
-        onConfirm &&
-          ReactActual.createElement(
-            Pressable,
-            { onPress: onConfirm, testID: 'info-banner-confirm' },
-            ReactActual.createElement(
-              Text,
-              null,
-              confirmButtonLabel ?? 'Confirm',
-            ),
-          ),
-      ),
-  };
+  const { View } = jest.requireActual('react-native');
+  const RewardsNoPositionsImage = () =>
+    ReactActual.createElement(View, { testID: 'rewards-no-positions-image' });
+  return { __esModule: true, default: RewardsNoPositionsImage };
 });
 
 jest.mock(
@@ -283,7 +254,6 @@ const baseProps = {
   portfolio: null as OndoGmPortfolioDto | null,
   isLoading: false,
   hasError: false,
-  hasFetched: false,
   refetch: mockRefetch,
   campaignId: 'campaign-1',
   onOpenAccountPicker: jest.fn(),
@@ -305,12 +275,7 @@ describe('OndoPortfolio', () => {
 
     it('does not render skeleton when loading but portfolio data already present', () => {
       const { queryByTestId } = render(
-        <OndoPortfolio
-          {...baseProps}
-          portfolio={MOCK_PORTFOLIO}
-          isLoading
-          hasFetched
-        />,
+        <OndoPortfolio {...baseProps} portfolio={MOCK_PORTFOLIO} isLoading />,
       );
 
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeNull();
@@ -322,16 +287,15 @@ describe('OndoPortfolio', () => {
           {...baseProps}
           portfolio={{ ...MOCK_PORTFOLIO, positions: [] }}
           isLoading
-          hasFetched
         />,
       );
 
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeDefined();
     });
 
-    it('renders skeleton during retry (isLoading=true, hasFetched=true, no portfolio)', () => {
+    it('renders skeleton during retry (isLoading=true, no portfolio)', () => {
       const { getByTestId, queryByTestId } = render(
-        <OndoPortfolio {...baseProps} isLoading hasFetched />,
+        <OndoPortfolio {...baseProps} isLoading />,
       );
 
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeDefined();
@@ -341,16 +305,14 @@ describe('OndoPortfolio', () => {
 
   describe('error state', () => {
     it('renders error banner when has error and no data', () => {
-      const { getByTestId } = render(
-        <OndoPortfolio {...baseProps} hasError hasFetched />,
-      );
+      const { getByTestId } = render(<OndoPortfolio {...baseProps} hasError />);
 
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.ERROR)).toBeDefined();
     });
 
     it('does not show empty banner on error even after fetch', () => {
       const { queryByTestId } = render(
-        <OndoPortfolio {...baseProps} hasError hasFetched />,
+        <OndoPortfolio {...baseProps} hasError />,
       );
 
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeNull();
@@ -358,12 +320,7 @@ describe('OndoPortfolio', () => {
 
     it('shows cached portfolio data instead of error banner when portfolio exists', () => {
       const { queryByTestId, getByTestId } = render(
-        <OndoPortfolio
-          {...baseProps}
-          portfolio={MOCK_PORTFOLIO}
-          hasError
-          hasFetched
-        />,
+        <OndoPortfolio {...baseProps} portfolio={MOCK_PORTFOLIO} hasError />,
       );
 
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.ERROR)).toBeNull();
@@ -373,16 +330,14 @@ describe('OndoPortfolio', () => {
 
   describe('empty state', () => {
     it('renders empty banner when fetch completed with no portfolio', () => {
-      const { getByTestId } = render(
-        <OndoPortfolio {...baseProps} hasFetched />,
-      );
+      const { getByTestId } = render(<OndoPortfolio {...baseProps} />);
 
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeDefined();
     });
 
     it('does not render empty banner when portfolio data is present', () => {
       const { queryByTestId } = render(
-        <OndoPortfolio {...baseProps} portfolio={MOCK_PORTFOLIO} hasFetched />,
+        <OndoPortfolio {...baseProps} portfolio={MOCK_PORTFOLIO} />,
       );
 
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeNull();
@@ -390,12 +345,12 @@ describe('OndoPortfolio', () => {
   });
 
   describe('initial/unfetched state', () => {
-    it('renders nothing before any fetch has completed', () => {
+    it('renders the empty state before any fetch has completed', () => {
       const { queryByTestId } = render(<OndoPortfolio {...baseProps} />);
 
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeNull();
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.ERROR)).toBeNull();
-      expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeNull();
+      expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeDefined();
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.CONTAINER)).toBeNull();
     });
   });
@@ -406,7 +361,6 @@ describe('OndoPortfolio', () => {
       portfolio: MOCK_PORTFOLIO,
       isLoading: false,
       hasError: false,
-      hasFetched: true,
     };
 
     it('renders portfolio container', () => {
@@ -426,7 +380,6 @@ describe('OndoPortfolio', () => {
     const loadedProps = {
       ...baseProps,
       portfolio: MOCK_PORTFOLIO,
-      hasFetched: true,
     };
 
     beforeEach(() => {
@@ -434,11 +387,7 @@ describe('OndoPortfolio', () => {
         const { selectAllTokens } = jest.requireMock(
           '../../../../../selectors/tokensController',
         );
-        const { selectERC20TokensByChain } = jest.requireMock(
-          '../../../../../selectors/tokenListController',
-        );
         if (selector === selectAllTokens) return {};
-        if (selector === selectERC20TokensByChain) return {};
         return null;
       });
     });
@@ -458,7 +407,6 @@ describe('OndoPortfolio', () => {
         <OndoPortfolio
           {...baseProps}
           portfolio={{ ...MOCK_PORTFOLIO, positions: [] }}
-          hasFetched
         />,
       );
 
@@ -487,9 +435,6 @@ describe('OndoPortfolio', () => {
         const { selectAllTokenBalances } = jest.requireMock(
           '../../../../../selectors/tokenBalancesController',
         );
-        const { selectERC20TokensByChain } = jest.requireMock(
-          '../../../../../selectors/tokenListController',
-        );
         const { selectAllTokens } = jest.requireMock(
           '../../../../../selectors/tokensController',
         );
@@ -504,7 +449,6 @@ describe('OndoPortfolio', () => {
               '0x1': { [TOKEN_ADDRESS]: rawHexBalance },
             },
           };
-        if (selector === selectERC20TokensByChain) return {};
         if (selector === selectAllTokens) return {};
         if (selector === selectInternalAccountByAddresses) return () => [];
         return null;
@@ -513,7 +457,6 @@ describe('OndoPortfolio', () => {
       return {
         ...baseProps,
         portfolio: MOCK_PORTFOLIO,
-        hasFetched: true,
         onOpenAccountPicker: mockOnOpenAccountPicker,
       };
     };
@@ -562,7 +505,6 @@ describe('OndoPortfolio', () => {
     const loadedProps = {
       ...baseProps,
       portfolio: MOCK_PORTFOLIO,
-      hasFetched: true,
     };
 
     it('renders the units text', () => {
@@ -583,7 +525,6 @@ describe('OndoPortfolio', () => {
             ...MOCK_PORTFOLIO,
             positions: [{ ...MOCK_POSITION, unrealizedPnlPercent: '-0.05' }],
           }}
-          hasFetched
         />,
       );
       expect(getByText('-5.00%')).toBeDefined();
@@ -597,7 +538,6 @@ describe('OndoPortfolio', () => {
             ...MOCK_PORTFOLIO,
             positions: [{ ...MOCK_POSITION, unrealizedPnlPercent: '—' }],
           }}
-          hasFetched
         />,
       );
       expect(queryByText('—')).toBeNull();
@@ -605,19 +545,19 @@ describe('OndoPortfolio', () => {
   });
 
   describe('empty state CTA', () => {
-    it('triggers navigate when empty state confirm button is pressed', () => {
-      const { getByTestId } = render(
-        <OndoPortfolio {...baseProps} hasFetched />,
+    it('triggers navigate when empty state CTA is pressed', () => {
+      const { getByText, getByTestId } = render(
+        <OndoPortfolio {...baseProps} />,
       );
-      fireEvent.press(getByTestId('info-banner-confirm'));
+      fireEvent.press(getByText('Explore tokens'));
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeOnTheScreen();
     });
 
-    it('does not render CTA button when campaign is complete', () => {
-      const { queryByTestId } = render(
-        <OndoPortfolio {...baseProps} hasFetched isCampaignComplete />,
+    it('does not render CTA when campaign is complete', () => {
+      const { queryByText } = render(
+        <OndoPortfolio {...baseProps} isCampaignComplete />,
       );
-      expect(queryByTestId('info-banner-confirm')).toBeNull();
+      expect(queryByText('Explore tokens')).toBeNull();
     });
   });
 
@@ -625,7 +565,6 @@ describe('OndoPortfolio', () => {
     const loadedProps = {
       ...baseProps,
       portfolio: MOCK_PORTFOLIO,
-      hasFetched: true,
       isCampaignComplete: true,
     };
 
@@ -702,9 +641,6 @@ describe('OndoPortfolio', () => {
         const { selectAllTokenBalances } = jest.requireMock(
           '../../../../../selectors/tokenBalancesController',
         );
-        const { selectERC20TokensByChain } = jest.requireMock(
-          '../../../../../selectors/tokenListController',
-        );
         const { selectAllTokens } = jest.requireMock(
           '../../../../../selectors/tokensController',
         );
@@ -724,7 +660,6 @@ describe('OndoPortfolio', () => {
               '0x1': { [TOKEN_ADDRESS]: '0x56bc75e2d63100000' },
             },
           };
-        if (selector === selectERC20TokensByChain) return {};
         if (selector === selectAllTokens) return {};
         if (selector === selectInternalAccountByAddresses)
           return () => [{ id: 'acc-1', address: ACCOUNT_1 }];
@@ -737,7 +672,6 @@ describe('OndoPortfolio', () => {
         <OndoPortfolio
           {...baseProps}
           portfolio={MOCK_PORTFOLIO}
-          hasFetched
           onOpenAccountPicker={onOpenAccountPicker}
         />,
       );
@@ -757,9 +691,6 @@ describe('OndoPortfolio', () => {
         );
         const { selectAllTokenBalances } = jest.requireMock(
           '../../../../../selectors/tokenBalancesController',
-        );
-        const { selectERC20TokensByChain } = jest.requireMock(
-          '../../../../../selectors/tokenListController',
         );
         const { selectAllTokens } = jest.requireMock(
           '../../../../../selectors/tokensController',
@@ -783,7 +714,6 @@ describe('OndoPortfolio', () => {
               '0x1': { [TOKEN_ADDRESS]: '0x56bc75e2d63100000' },
             },
           };
-        if (selector === selectERC20TokensByChain) return {};
         if (selector === selectAllTokens) return {};
         if (selector === selectInternalAccountByAddresses)
           return () => [
@@ -800,7 +730,6 @@ describe('OndoPortfolio', () => {
         <OndoPortfolio
           {...baseProps}
           portfolio={MOCK_PORTFOLIO}
-          hasFetched
           onOpenAccountPicker={onOpenAccountPicker}
         />,
       );

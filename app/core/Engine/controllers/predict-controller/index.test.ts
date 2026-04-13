@@ -1,6 +1,6 @@
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import {
   PredictController,
   PredictControllerMessenger,
@@ -29,7 +29,7 @@ jest.mock(
 describe('predict controller init', () => {
   const predictControllerClassMock = jest.mocked(PredictController);
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<PredictControllerMessenger>
+    MessengerClientInitRequest<PredictControllerMessenger>
   >;
 
   beforeEach(() => {

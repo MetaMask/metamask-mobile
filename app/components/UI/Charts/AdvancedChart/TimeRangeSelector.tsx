@@ -52,14 +52,16 @@ export interface TimeRangeConfig {
   timePeriod: OHLCVTimePeriod;
   /** Optional interval override. When undefined, API uses its default for the timePeriod. */
   interval?: string;
+  /** Duration of this time range in milliseconds (used to compute the initial visible viewport). */
+  durationMs: number;
 }
 
 export const TIME_RANGE_CONFIGS: Record<TimeRange, TimeRangeConfig> = {
-  '1H': { timePeriod: '1h' },
-  '1D': { timePeriod: '1d' },
-  '1W': { timePeriod: '1w' },
-  '1M': { timePeriod: '1m' },
-  '1Y': { timePeriod: '1y' },
+  '1H': { timePeriod: '1h', durationMs: 60 * 60 * 1000 },
+  '1D': { timePeriod: '1d', durationMs: 24 * 60 * 60 * 1000 },
+  '1W': { timePeriod: '1w', durationMs: 7 * 24 * 60 * 60 * 1000 },
+  '1M': { timePeriod: '1m', durationMs: 30 * 24 * 60 * 60 * 1000 },
+  '1Y': { timePeriod: '1y', durationMs: 365 * 24 * 60 * 60 * 1000 },
 };
 
 const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];

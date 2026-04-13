@@ -4,7 +4,7 @@ import {
   getUserStorageControllerMessenger,
   getUserStorageControllerInitMessenger,
 } from '../../messengers/identity/user-storage-controller-messenger';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { userStorageControllerInit } from './user-storage-controller-init';
 import {
   Controller as UserStorageController,
@@ -21,7 +21,7 @@ jest.mock('../../utils/analytics');
 jest.mock('../../../../util/analytics/AnalyticsEventBuilder');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     UserStorageControllerMessenger,
     ReturnType<typeof getUserStorageControllerInitMessenger>
   >
