@@ -270,9 +270,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!isResultReady && disablePay !== true && hasTokens && <PayWithRow />}
           {isResultReady && (
             <Box>
-              {disablePay !== true && hasTokens && (
-                <PayWithRow />
-              )}
+              {disablePay !== true && hasTokens && <PayWithRow />}
               {showPaymentDetails && (
                 <>
                   <BridgeFeeRow />
