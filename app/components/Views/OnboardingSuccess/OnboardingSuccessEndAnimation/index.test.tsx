@@ -26,15 +26,12 @@ jest.mock('rive-react-native', () => {
   };
 });
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: { default: '#000000' },
-      background: { default: '#ffffff' },
-    },
-    themeAppearance: 'light',
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 // Mock E2E utils
 let mockIsE2EValue = false;

@@ -33,18 +33,19 @@ import createStyles from './SecuritySettings.styles';
 import { HeadingProps, SecuritySettingsParams } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../util/navigation/navUtils';
-import {
-  CLEAR_BROWSER_HISTORY_SECTION,
-  SDK_SECTION,
-} from './SecuritySettings.constants';
+import { CLEAR_BROWSER_HISTORY_SECTION } from './SecuritySettings.constants';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonWidthTypes,
+} from '@metamask/design-system-react-native';
+import OldButton, {
+  ButtonVariants,
+  ButtonSize as OldButtonSize,
 } from '../../../../component-library/components/Buttons/Button';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
@@ -61,8 +62,6 @@ import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSetti
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
-import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
-
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { styles } = useStyles(createStyles, {});
 
@@ -92,8 +91,6 @@ const Settings: React.FC = () => {
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
-  const isAccountMenuEnabled = useAccountMenuEnabled();
-
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
   const {
@@ -215,34 +212,6 @@ const Settings: React.FC = () => {
     }
   };
 
-  const goToSDKSessionManager = () => {
-    navigation.navigate('SDKSessionsManager');
-  };
-
-  const renderSDKSettings = () => (
-    <View style={styles.halfSetting} testID={SDK_SECTION}>
-      <Text variant={TextVariant.BodyLGMedium}>
-        {strings('app_settings.manage_sdk_connections_title')}
-      </Text>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.desc}
-      >
-        {strings('app_settings.manage_sdk_connections_text')}
-      </Text>
-      <View style={styles.accessory}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('app_settings.manage_sdk_connections_title')}
-          onPress={goToSDKSessionManager}
-        />
-      </View>
-    </View>
-  );
-
   const toggleClearBrowserHistoryModal = () => {
     setBrowserHistoryModalVisible(!browserHistoryModalVisible);
   };
@@ -261,13 +230,14 @@ const Settings: React.FC = () => {
       </Text>
       <View style={styles.accessory}>
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('app_settings.clear_browser_history_desc')}
+          isFullWidth
           onPress={toggleClearBrowserHistoryModal}
           isDisabled={browserHistory.length === 0}
-        />
+        >
+          {strings('app_settings.clear_browser_history_desc')}
+        </Button>
       </View>
     </View>
   );
@@ -329,9 +299,9 @@ const Settings: React.FC = () => {
           style={styles.desc}
         >
           {strings('app_settings.simulation_details_description')}
-          <Button
+          <OldButton
             variant={ButtonVariants.Link}
-            size={ButtonSize.Auto}
+            size={OldButtonSize.Auto}
             onPress={() => {
               Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
               trackEvent(
@@ -424,7 +394,6 @@ const Settings: React.FC = () => {
           >
             {strings('app_settings.privacy_browser_subheading')}
           </Text>
-          {!isAccountMenuEnabled && renderSDKSettings()}
           <ClearPrivacy />
           {renderClearBrowserHistorySection()}
           <ClearCookiesSection />

@@ -131,7 +131,8 @@ describe('useSendTokens', () => {
 
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
-      includeAllTokens: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(4);
   });
@@ -154,7 +155,8 @@ describe('useSendTokens', () => {
 
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
-      includeAllTokens: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockEvmToken);
@@ -178,7 +180,8 @@ describe('useSendTokens', () => {
 
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
-      includeAllTokens: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockSolanaToken);
@@ -202,7 +205,8 @@ describe('useSendTokens', () => {
 
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
-      includeAllTokens: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockTronToken);
@@ -226,7 +230,8 @@ describe('useSendTokens', () => {
 
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
-      includeAllTokens: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockBitcoinToken);
@@ -239,7 +244,42 @@ describe('useSendTokens', () => {
 
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: true,
-      includeAllTokens: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: undefined,
+    });
+  });
+
+  it('forwards tokenFilter to useAccountTokens', () => {
+    mockUseAccountTokens.mockReturnValue([mockEvmToken]);
+    const filter = jest.fn(() => true);
+
+    renderHook(() =>
+      useSendTokens({
+        tokenFilter: filter,
+      }),
+    );
+
+    expect(mockUseAccountTokens).toHaveBeenCalledWith({
+      includeNoBalance: false,
+      tokenFilter: filter,
+      enrichTokenRequests: undefined,
+    });
+  });
+
+  it('forwards enrichTokenRequests to useAccountTokens', () => {
+    mockUseAccountTokens.mockReturnValue([mockEvmToken]);
+    const requests = [{ chainId: '0x1' as const, address: '0xabc' }];
+
+    renderHook(() =>
+      useSendTokens({
+        enrichTokenRequests: requests,
+      }),
+    );
+
+    expect(mockUseAccountTokens).toHaveBeenCalledWith({
+      includeNoBalance: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: requests,
     });
   });
 

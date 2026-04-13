@@ -7,7 +7,7 @@ import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 
 const ScreenshotDeterrentWithoutNavigation = ({
   enabled,
@@ -36,7 +36,7 @@ const ScreenshotDeterrentWithNavigation = ({
   enabled: boolean;
   isSRP: boolean;
 }) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [alertPresent, setAlertPresent] = useState<boolean>(false);
   const navigation = useNavigation();
 

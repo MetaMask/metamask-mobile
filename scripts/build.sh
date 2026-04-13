@@ -551,6 +551,14 @@ generateIosBinary() {
 	if [ "$IS_SIM_BUILD" = "true" ]; then
     	echo "Binary build type: Simulator"
 		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
+
+		# Also generate an .ipa to run on devices
+		if [ "$IS_DEVICE_BUILD" = "true" ]; then
+			echo "Binary build type: Device"
+			xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
+			echo "Generating ipa for $scheme"
+			xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
+		fi
 	else
 		echo "Binary build type: Device"
 		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
@@ -719,6 +727,9 @@ createEnvFile() {
 		"QUICKNODE_POLYGON_URL"
 		"QUICKNODE_HYPEREVM_URL"
 		"MM_CHARTING_LIBRARY_URL"
+		"MM_BRAZE_API_KEY_IOS"
+		"MM_BRAZE_API_KEY_ANDROID"
+		"MM_BRAZE_SDK_ENDPOINT"
 	)
 
 	# Create .env file and export to GITHUB_ENV

@@ -135,6 +135,7 @@ describe('useBridgeQuoteData', () => {
         estimatedTime: '5 seconds',
         rate: '1 ETH = 0.0000000000000000571 USDC',
         priceImpact: '-0.20%',
+        priceImpactFiat: undefined,
         slippage: '0.5%',
       },
       isLoading: false,
@@ -278,6 +279,7 @@ describe('useBridgeQuoteData', () => {
       quotesLoadingStatus: RequestStatus.FETCHED,
       quotesLastFetched: 123,
       quoteFetchError: null,
+      quoteStreamComplete: { hasQuotes: false, quoteCount: 0 },
     };
 
     const testState = createBridgeTestState({
@@ -304,6 +306,52 @@ describe('useBridgeQuoteData', () => {
       quotesLoadingStatus: RequestStatus.FETCHED,
       validQuotes: [],
     });
+  });
+
+  it('isNoQuotesAvailable is false when quoteStreamComplete is null', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: null,
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotes: [],
+        quotesLoadingStatus: RequestStatus.LOADING,
+        quotesLastFetched: null,
+        quoteFetchError: null,
+        quoteStreamComplete: null,
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.isNoQuotesAvailable).toBe(false);
+  });
+
+  it('isNoQuotesAvailable is false when quoteStreamComplete.hasQuotes is true', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: null,
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotes: [],
+        quotesLoadingStatus: RequestStatus.FETCHED,
+        quotesLastFetched: 123,
+        quoteFetchError: null,
+        quoteStreamComplete: { hasQuotes: true, quoteCount: 3 },
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.isNoQuotesAvailable).toBe(false);
   });
 
   it('returns undefined destTokenAmount when quote destAsset does not match selected destToken', () => {
@@ -379,6 +427,7 @@ describe('useBridgeQuoteData', () => {
         estimatedTime: '5 seconds',
         networkFee: '-',
         priceImpact: '-0.20%',
+        priceImpactFiat: undefined,
         rate: '--',
         slippage: '0.5%',
       },

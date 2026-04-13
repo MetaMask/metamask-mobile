@@ -20,18 +20,18 @@ import {
   getWidgetRedirectConfig,
 } from '../../utils/buildQuoteWithRedirectUrl';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
-import { extractOrderCode } from '../../utils/extractOrderCode';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
+import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import {
+  FontWeight,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -43,6 +43,7 @@ import HeaderCompactStandard from '../../../../../component-library/components-t
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
+import { getFontSizeForInputLength } from './getFontSizeForInputLength';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import {
@@ -81,6 +82,7 @@ import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
 } from '../../../../../reducers/fiatOrders';
+import { selectProviderAutoSelected } from '../../../../../selectors/rampsController';
 import Device from '../../../../../util/device';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
@@ -109,6 +111,8 @@ export interface BuildQuoteParams {
   nativeFlowError?: string;
   /** Which flow the user used to enter the Buy screen. */
   buyFlowOrigin?: BuyFlowOrigin;
+  /** Pre-fill the amount input (e.g. when restoring state after a navigation reset). */
+  amount?: number;
 }
 
 /**
@@ -148,13 +152,17 @@ function BuildQuote() {
   const { formatCurrency } = useFormatters();
   const cursorOpacity = useBlinkingCursor();
 
-  const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
-  const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
-  const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
+  const params = useParams<BuildQuoteParams>();
+  const initialAmount = params?.amount ?? DEFAULT_AMOUNT;
+
+  const [amount, setAmount] = useState<string>(() => String(initialAmount));
+  const [amountAsNumber, setAmountAsNumber] = useState<number>(initialAmount);
+  const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(
+    params?.amount != null,
+  );
   const [keyboardIsDirty, setKeyboardIsDirty] = useState(false);
   const [isContinueLoading, setIsContinueLoading] = useState(false);
   const [rampsError, setRampsError] = useState<string | null>(null);
-  const params = useParams<BuildQuoteParams>();
 
   useEffect(() => {
     if (params?.nativeFlowError) {
@@ -165,13 +173,13 @@ function BuildQuote() {
 
   const {
     userRegion,
+    providers,
     selectedProvider,
+    setSelectedProvider,
     selectedToken,
     paymentMethods,
     getBuyWidgetData,
     addPrecreatedOrder,
-    addOrder,
-    getOrderFromCallback,
     paymentMethodsLoading,
     paymentMethodsFetching,
     paymentMethodsStatus,
@@ -180,6 +188,7 @@ function BuildQuote() {
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const providerAutoSelected = useSelector(selectProviderAutoSelected);
   const prevSelectedProviderRef = useRef(selectedProvider);
 
   /*
@@ -204,10 +213,7 @@ function BuildQuote() {
       return false;
     }
 
-    if (
-      selectedProvider.supportedCryptoCurrencies &&
-      !selectedProvider.supportedCryptoCurrencies[effectiveAssetId]
-    ) {
+    if (!providerSupportsAsset(selectedProvider, effectiveAssetId)) {
       return true;
     }
 
@@ -256,14 +262,51 @@ function BuildQuote() {
     }, []),
   );
 
-  // Show "Token Not Available" modal when the selected token is unavailable
-  // for the current provider. Debounced to let the query settle — prevents
-  // the modal from flashing when isTokenUnavailable is briefly true due to
-  // stale cached data before the fresh response arrives.
+  // When no provider is selected (e.g. first-time user in a region without
+  // Transak), pick the first provider that supports the selected token.
+  useEffect(() => {
+    if (
+      !isOnBuildQuoteScreen ||
+      selectedProvider ||
+      !effectiveAssetId ||
+      providers.length === 0
+    ) {
+      return;
+    }
+    const supportingProvider = providers.find((p) =>
+      providerSupportsAsset(p, effectiveAssetId),
+    );
+    if (supportingProvider) {
+      setSelectedProvider(supportingProvider, { autoSelected: true });
+    }
+  }, [
+    isOnBuildQuoteScreen,
+    selectedProvider,
+    effectiveAssetId,
+    providers,
+    setSelectedProvider,
+  ]);
+
+  // When the selected token is unavailable for the current provider:
+  // - If the provider was auto-selected (soft), silently switch to the best
+  //   provider that supports the token.
+  // - Otherwise, show the "Token Not Available" modal so the user can decide.
   useEffect(() => {
     if (!isOnBuildQuoteScreen || !isTokenUnavailable) {
       lastShownUnavailableKeyRef.current = '';
       return;
+    }
+
+    if (providerAutoSelected && effectiveAssetId) {
+      const supportingProvider = providers.find(
+        (p) =>
+          p.id !== selectedProvider?.id &&
+          providerSupportsAsset(p, effectiveAssetId),
+      );
+      if (supportingProvider) {
+        setSelectedProvider(supportingProvider, { autoSelected: true });
+        return;
+      }
     }
 
     const key = `${selectedProvider?.id}:${effectiveAssetId}`;
@@ -288,6 +331,9 @@ function BuildQuote() {
     navigation,
     selectedProvider?.id,
     focusTrigger,
+    providerAutoSelected,
+    providers,
+    setSelectedProvider,
   ]);
 
   const {
@@ -311,6 +357,13 @@ function BuildQuote() {
     };
   }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
+
+  const amountDisplayString = useMemo(
+    () => `${currencyPrefix}${amount}${currencySuffix}`,
+    [currencyPrefix, currencySuffix, amount],
+  );
+  const amountFontSize = getFontSizeForInputLength(amountDisplayString.length);
+  const amountLineHeight = amountFontSize + 10;
 
   /*
    * Tracks RAMPS_SCREEN_VIEWED
@@ -379,7 +432,6 @@ function BuildQuote() {
             redirectUrl: getRampCallbackBaseUrl(),
             paymentMethods: [selectedPaymentMethod.id],
             providers: [selectedProvider.id],
-            forceRefresh: true,
           }
         : null,
     [
@@ -441,10 +493,19 @@ function BuildQuote() {
   ]);
 
   const selectedQuote = useMemo(() => {
-    if (!quotesResponse?.success || !selectedProvider || !selectedPaymentMethod)
+    if (
+      !quotesResponse?.success ||
+      !selectedProvider ||
+      !selectedPaymentMethod
+    ) {
       return null;
-    const [quote] = quotesResponse.success;
-    return quote?.provider === selectedProvider.id ? quote : null;
+    }
+    const targetProvider = normalizeProviderCode(selectedProvider.id);
+    return (
+      quotesResponse.success.find(
+        (quote) => normalizeProviderCode(quote.provider) === targetProvider,
+      ) ?? null
+    );
   }, [quotesResponse, selectedProvider, selectedPaymentMethod]);
 
   const networkInfo = useMemo(() => {
@@ -573,7 +634,7 @@ function BuildQuote() {
         if (!quote) {
           throw new Error(strings('deposit.buildQuote.unexpectedError'));
         }
-        await transakRouteAfterAuth(quote);
+        await transakRouteAfterAuth(quote, amountAsNumber);
       } else {
         navigation.navigate(
           ...createV2VerifyIdentityNavDetails({
@@ -677,36 +738,17 @@ function BuildQuote() {
             return;
           }
 
-          try {
-            const order = await getOrderFromCallback(
-              providerCode,
-              result.url,
-              effectiveWallet,
-            );
-
-            if (!order || isBailedOrderStatus(order.status)) {
-              navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
-              return;
-            }
-
-            addOrder(order);
-
-            const rawOrderId = order.providerOrderId ?? effectiveOrderId;
-            if (!rawOrderId) {
-              navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
-              return;
-            }
-
-            const orderCode = extractOrderCode(rawOrderId);
-            navigateAfterExternalBrowser({
-              returnDestination: 'order',
-              orderCode,
-              providerCode,
-              walletAddress: effectiveWallet || undefined,
-            });
-          } catch {
+          if (!effectiveWallet) {
             navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
+            return;
           }
+
+          navigateAfterExternalBrowser({
+            returnDestination: 'order',
+            callbackUrl: result.url,
+            providerCode,
+            walletAddress: effectiveWallet,
+          });
         } finally {
           InAppBrowser.closeAuth();
         }
@@ -751,8 +793,6 @@ function BuildQuote() {
     navigation,
     getBuyWidgetData,
     addPrecreatedOrder,
-    getOrderFromCallback,
-    addOrder,
     navigateAfterExternalBrowser,
   ]);
 
@@ -850,31 +890,38 @@ function BuildQuote() {
                 <View style={styles.amountRow}>
                   <Text
                     testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                    variant={TextVariant.HeadingLG}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Regular}
                     color={
                       rampsError || hasNoQuotes || quoteFetchError
-                        ? TextColor.Error
+                        ? TextColor.ErrorDefault
                         : undefined
                     }
-                    style={styles.mainAmount}
+                    twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
                     numberOfLines={1}
-                    adjustsFontSizeToFit
                   >
                     {currencyPrefix}
                     {amount}
                   </Text>
                   <Animated.View
-                    style={[styles.cursor, { opacity: cursorOpacity }]}
+                    style={[
+                      styles.cursor,
+                      {
+                        height: Math.max(amountLineHeight - 4, 16),
+                        opacity: cursorOpacity,
+                      },
+                    ]}
                   />
                   {currencySuffix ? (
                     <Text
-                      variant={TextVariant.HeadingLG}
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Regular}
                       color={
                         rampsError || hasNoQuotes || quoteFetchError
-                          ? TextColor.Error
+                          ? TextColor.ErrorDefault
                           : undefined
                       }
-                      style={styles.mainAmount}
+                      twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
                     >
                       {currencySuffix}
                     </Text>
@@ -885,6 +932,7 @@ function BuildQuote() {
                     selectedPaymentMethod?.name ||
                     strings('fiat_on_ramp.select_payment_method')
                   }
+                  paymentMethod={selectedPaymentMethod}
                   isLoading={paymentMethodsLoading}
                   onPress={
                     isTokenUnavailable ? undefined : handlePaymentPillPress
@@ -927,7 +975,7 @@ function BuildQuote() {
                   ) : (
                     selectedProvider && (
                       <Text
-                        variant={TextVariant.BodySM}
+                        variant={TextVariant.BodySm}
                         style={styles.poweredByText}
                       >
                         {strings('fiat_on_ramp.powered_by_provider', {

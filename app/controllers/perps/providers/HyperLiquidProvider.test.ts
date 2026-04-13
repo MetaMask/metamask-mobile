@@ -5,7 +5,10 @@ import {
   createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import { CandlePeriod } from '../constants/chartConfig';
-import { REFERRAL_CONFIG } from '../constants/hyperLiquidConfig';
+import {
+  BUILDER_FEE_CONFIG,
+  REFERRAL_CONFIG,
+} from '../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import { HyperLiquidClientService } from '../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
@@ -14,6 +17,7 @@ import { TradingReadinessCache } from '../services/TradingReadinessCache';
 import type {
   ClosePositionParams,
   DepositParams,
+  Order,
   PerpsPlatformDependencies,
   LiveDataConfig,
   OrderParams,
@@ -261,6 +265,9 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
     ],
     universe: [],
   }),
+  historicalOrders: jest.fn().mockResolvedValue([]),
+  userFills: jest.fn().mockResolvedValue([]),
+  userFillsByTime: jest.fn().mockResolvedValue([]),
   ...overrides,
 });
 
@@ -3564,6 +3571,138 @@ describe('HyperLiquidProvider', () => {
           ],
         });
       });
+
+      it('cache path: only cancels positionTpsl orders, not normalTpsl children of limit orders', async () => {
+        provider = createTestProvider({
+          initialAssetMapping: [['BTC', 0]],
+        });
+
+        // Simulate WS cache with mixed orders: normalTpsl children (isPositionTpsl: false)
+        // from a pending limit order AND positionTpsl orders (isPositionTpsl: true)
+        const cachedOrders: Order[] = [
+          {
+            orderId: '500',
+            symbol: 'BTC',
+            side: 'buy',
+            orderType: 'limit',
+            size: '0.01',
+            originalSize: '0.01',
+            price: '50000',
+            filledSize: '0',
+            remainingSize: '0.01',
+            status: 'open',
+            timestamp: 1000,
+            isTrigger: false,
+            reduceOnly: false,
+            isPositionTpsl: false,
+          },
+          {
+            orderId: '501',
+            symbol: 'BTC',
+            side: 'sell',
+            orderType: 'limit',
+            size: '0.01',
+            originalSize: '0.01',
+            price: '60000',
+            filledSize: '0',
+            remainingSize: '0.01',
+            status: 'open',
+            timestamp: 1001,
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: false,
+            detailedOrderType: 'Take Profit Limit',
+          },
+          {
+            orderId: '502',
+            symbol: 'BTC',
+            side: 'sell',
+            orderType: 'market',
+            size: '0.01',
+            originalSize: '0.01',
+            price: '40000',
+            filledSize: '0',
+            remainingSize: '0.01',
+            status: 'open',
+            timestamp: 1002,
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: false,
+            detailedOrderType: 'Stop Market',
+          },
+          {
+            orderId: '503',
+            symbol: 'BTC',
+            side: 'sell',
+            orderType: 'limit',
+            size: '0',
+            originalSize: '0',
+            price: '58000',
+            filledSize: '0',
+            remainingSize: '0',
+            status: 'open',
+            timestamp: 1003,
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: true,
+            detailedOrderType: 'Take Profit Limit',
+          },
+          {
+            orderId: '504',
+            symbol: 'BTC',
+            side: 'sell',
+            orderType: 'market',
+            size: '0',
+            originalSize: '0',
+            price: '42000',
+            filledSize: '0',
+            remainingSize: '0',
+            status: 'open',
+            timestamp: 1004,
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: true,
+            detailedOrderType: 'Stop Market',
+          },
+        ];
+
+        mockSubscriptionService.getOrdersCacheIfInitialized = jest
+          .fn()
+          .mockReturnValue(cachedOrders);
+
+        const mockCancel = jest.fn().mockResolvedValue({
+          status: 'ok',
+          response: { data: { statuses: ['success', 'success'] } },
+        });
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+          createMockExchangeClient({
+            cancel: mockCancel,
+            order: jest.fn().mockResolvedValue({
+              status: 'ok',
+              response: {
+                data: { statuses: [{ resting: { oid: '999' } }] },
+              },
+            }),
+          }),
+        );
+
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
+
+        const result = await provider.updatePositionTPSL({
+          symbol: 'BTC',
+          takeProfitPrice: '60000',
+          stopLossPrice: '40000',
+        });
+
+        expect(result.success).toBe(true);
+        // Must cancel positionTpsl orders (503, 504) only — not normalTpsl children (501, 502)
+        expect(mockCancel).toHaveBeenCalledWith({
+          cancels: [
+            { a: 0, o: 503 },
+            { a: 0, o: 504 },
+          ],
+        });
+      });
     });
 
     describe('getAccountState error handling', () => {
@@ -5657,6 +5796,39 @@ describe('HyperLiquidProvider', () => {
         mockClientService.getExchangeClient().setReferrer,
       ).not.toHaveBeenCalled();
     });
+
+    it('uses testnet builder address when in testnet mode', async () => {
+      // Arrange — flip to testnet mode
+      mockClientService.isTestnetMode.mockReturnValue(true);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest.fn().mockResolvedValue(1), // Already approved
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      // Act
+      const result = await provider.placeOrder(orderParams);
+
+      // Assert — order placed with the testnet builder address
+      expect(result.success).toBe(true);
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          builder: {
+            b: BUILDER_FEE_CONFIG.TestnetBuilder,
+            f: expect.any(Number),
+          },
+        }),
+      );
+    });
   });
 
   // TODO: Refactor to test through public API — ES # private fields prevent direct access
@@ -6509,6 +6681,115 @@ describe('HyperLiquidProvider', () => {
         endTime,
         aggregateByTime: true,
       });
+    });
+  });
+
+  describe('getOrderFills enrichment with detailedOrderType', () => {
+    it('enriches fills with detailedOrderType from historical orders', async () => {
+      const mockUserFills = jest.fn().mockResolvedValue([
+        {
+          oid: 100,
+          coin: 'BTC',
+          side: 'A',
+          sz: '0.5',
+          px: '50000',
+          fee: '5',
+          feeToken: 'USDC',
+          time: Date.now(),
+          closedPnl: '-200',
+          dir: 'Close Long',
+          startPosition: '0.5',
+        },
+        {
+          oid: 101,
+          coin: 'ETH',
+          side: 'B',
+          sz: '1.0',
+          px: '3000',
+          fee: '3',
+          feeToken: 'USDC',
+          time: Date.now(),
+          closedPnl: '100',
+          dir: 'Close Short',
+          startPosition: '-1.0',
+        },
+      ]);
+
+      const mockHistoricalOrders = jest.fn().mockResolvedValue([
+        {
+          order: {
+            oid: 100,
+            coin: 'BTC',
+            side: 'A',
+            sz: '0',
+            origSz: '0.5',
+            limitPx: '50000',
+            orderType: 'Stop Market',
+            reduceOnly: true,
+            isTrigger: true,
+          },
+          status: 'filled',
+          statusTimestamp: Date.now(),
+        },
+        {
+          order: {
+            oid: 101,
+            coin: 'ETH',
+            side: 'B',
+            sz: '0',
+            origSz: '1.0',
+            limitPx: '3000',
+            orderType: 'Take Profit Limit',
+            reduceOnly: true,
+            isTrigger: true,
+          },
+          status: 'filled',
+          statusTimestamp: Date.now(),
+        },
+      ]);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userFills: mockUserFills,
+          historicalOrders: mockHistoricalOrders,
+        }),
+      );
+
+      const fills = await provider.getOrderFills();
+
+      expect(fills).toHaveLength(2);
+      expect(fills[0].detailedOrderType).toBe('Stop Market');
+      expect(fills[1].detailedOrderType).toBe('Take Profit Limit');
+    });
+
+    it('gracefully handles historicalOrders failure', async () => {
+      const mockUserFills = jest.fn().mockResolvedValue([
+        {
+          oid: 200,
+          coin: 'BTC',
+          side: 'B',
+          sz: '0.1',
+          px: '60000',
+          fee: '6',
+          feeToken: 'USDC',
+          time: Date.now(),
+          closedPnl: '0',
+          dir: 'Open Long',
+          startPosition: '0',
+        },
+      ]);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userFills: mockUserFills,
+          historicalOrders: jest.fn().mockRejectedValue(new Error('API error')),
+        }),
+      );
+
+      const fills = await provider.getOrderFills();
+
+      expect(fills).toHaveLength(1);
+      expect(fills[0].detailedOrderType).toBeUndefined();
     });
   });
 

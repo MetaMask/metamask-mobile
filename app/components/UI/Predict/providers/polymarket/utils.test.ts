@@ -68,6 +68,7 @@ import {
   roundOrderAmount,
   previewOrder,
   getAllowanceCalls,
+  fetchCarouselFromPolymarketApi,
   isSportEvent,
   isSpreadMarket,
   sortSportMarkets,
@@ -137,6 +138,8 @@ describe('polymarket utils', () => {
         CLOB_ENDPOINT: 'https://clob.polymarket.com',
         DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
         GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
+        HOMEPAGE_CAROUSEL_ENDPOINT:
+          'https://polymarket.com/api/homepage/carousel',
         CLOB_RELAYER: 'https://predict.api.cx.metamask.io',
       });
     });
@@ -1064,7 +1067,7 @@ describe('polymarket utils', () => {
       icon: 'https://example.com/icon.png',
       closed: false,
       tags: [],
-      series: [{ recurrence: 'daily' }],
+      series: [{ id: '1', slug: 'test', title: 'Test', recurrence: 'daily' }],
       markets: [
         {
           conditionId: 'market-1',
@@ -1105,7 +1108,14 @@ describe('polymarket utils', () => {
         image: 'https://example.com/icon.png',
         status: 'open',
         recurrence: 'daily',
+        series: {
+          id: '1',
+          slug: 'test',
+          title: 'Test',
+          recurrence: 'daily',
+        },
         endDate: undefined,
+        game: undefined,
         category: mockCategory,
         tags: [],
         outcomes: [
@@ -1117,6 +1127,7 @@ describe('polymarket utils', () => {
             description: 'A test event',
             image: 'https://example.com/market-icon.png',
             groupItemTitle: 'Weather',
+            groupItemThreshold: undefined,
             status: 'open',
             volume: 1000,
             resolutionStatus: 'unresolved',
@@ -1959,12 +1970,12 @@ describe('polymarket utils', () => {
       expect(result.map((m) => m.conditionId)).toEqual(['first', 'second']);
     });
 
-    it('prioritizes sortBy parameter over sport event sorting', () => {
+    it('prioritizes sport event sorting over sortBy parameter', () => {
       const markets = [
-        createMarket('totals-low-price', '["0.3", "0.7"]', 100, 100, 'totals'),
+        createMarket('totals-high-price', '["0.9", "0.1"]', 100, 100, 'totals'),
         createMarket(
-          'moneyline-high-price',
-          '["0.9", "0.1"]',
+          'moneyline-low-price',
+          '["0.3", "0.7"]',
           100,
           100,
           'moneyline',
@@ -1975,10 +1986,79 @@ describe('polymarket utils', () => {
 
       const result = sortMarkets(event, 'price');
 
-      // Price sorting overrides sport sorting
       expect(result.map((m) => m.conditionId)).toEqual([
-        'moneyline-high-price',
-        'totals-low-price',
+        'moneyline-low-price',
+        'totals-high-price',
+      ]);
+    });
+
+    it('places moneyline first for sport events even when moneyline has lower price', () => {
+      const markets = [
+        createMarket(
+          'spreads-high-price',
+          '["0.9", "0.1"]',
+          200,
+          200,
+          'spreads',
+        ),
+        createMarket('totals-mid-price', '["0.7", "0.3"]', 150, 150, 'totals'),
+        createMarket(
+          'moneyline-low-price',
+          '["0.3", "0.7"]',
+          100,
+          100,
+          'moneyline',
+        ),
+      ];
+      const sportTags = [{ id: '1', label: 'Sports', slug: 'sports' }];
+      const event = createEvent(sportTags, markets);
+
+      const result = sortMarkets(event, 'price');
+
+      // Moneyline first despite having the lowest price
+      expect(result.map((m) => m.conditionId)).toEqual([
+        'moneyline-low-price',
+        'spreads-high-price',
+        'totals-mid-price',
+      ]);
+    });
+
+    it('uses sortBy parameter for non-sport events when sortBy is provided', () => {
+      const markets = [
+        createMarket('low-price', '["0.2", "0.8"]', 100, 100),
+        createMarket('high-price', '["0.8", "0.2"]', 100, 100),
+      ];
+      const event = createEvent([], markets);
+
+      const result = sortMarkets(event, 'price');
+
+      // Non-sport events still respect sortBy
+      expect(result.map((m) => m.conditionId)).toEqual([
+        'high-price',
+        'low-price',
+      ]);
+    });
+
+    it('ignores event.sortBy for sport events', () => {
+      const markets = [
+        createMarket('totals-high-price', '["0.9", "0.1"]', 100, 100, 'totals'),
+        createMarket(
+          'moneyline-low-price',
+          '["0.2", "0.8"]',
+          100,
+          100,
+          'moneyline',
+        ),
+      ];
+      const sportTags = [{ id: '1', label: 'Sports', slug: 'sports' }];
+      const event = createEvent(sportTags, markets, 'price');
+
+      const result = sortMarkets(event);
+
+      // Sport sorting wins over event.sortBy
+      expect(result.map((m) => m.conditionId)).toEqual([
+        'moneyline-low-price',
+        'totals-high-price',
       ]);
     });
   });
@@ -2314,6 +2394,135 @@ describe('polymarket utils', () => {
       expect(result).toEqual([]);
       expect(mockFetch).not.toHaveBeenCalled();
     });
+
+    describe('negRisk outcome label resolution', () => {
+      it('non-negRisk position outcome stays as original', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: false,
+            outcome: 'Yes',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('Yes');
+      });
+
+      it('negRisk position without eventSlug outcome stays as original', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: undefined,
+            outcome: 'Yes',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('Yes');
+      });
+
+      it('negRisk position with non-draw-capable league eventSlug outcome stays as original', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'politics-election-2024',
+            slug: 'politics-election-2024-candidate-a',
+            outcome: 'Yes',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('Yes');
+      });
+
+      it('negRisk position with UCL eventSlug and draw suffix resolves to Draw', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'ucl-final-2024',
+            slug: 'ucl-final-2024-draw',
+            outcome: 'Draw',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('Draw');
+      });
+
+      it('negRisk position with UCL eventSlug and team abbreviation with teamLookup resolves to team name', async () => {
+        const mockTeamLookup = jest.fn(
+          (league: string, abbreviation: string) => {
+            if (league === 'ucl' && abbreviation === 'mci') {
+              return {
+                id: 'team-1',
+                name: 'Manchester City',
+                logo: 'https://example.com/mci.png',
+                abbreviation: 'mci',
+                color: 'team-blue',
+                alias: 'City',
+              };
+            }
+            return undefined;
+          },
+        );
+
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'ucl-final-2024',
+            slug: 'ucl-final-2024-mci',
+            outcome: 'Manchester City',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({
+          positions,
+          teamLookup: mockTeamLookup,
+        });
+
+        expect(result[0].outcome).toBe('Manchester City');
+        expect(mockTeamLookup).toHaveBeenCalledWith('ucl', 'mci');
+      });
+
+      it('negRisk position with UCL eventSlug and team abbreviation without teamLookup resolves to uppercase abbreviation', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'ucl-final-2024',
+            slug: 'ucl-final-2024-mci',
+            outcome: 'MCI',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('MCI');
+      });
+
+      it('negRisk position with UCL eventSlug and team abbreviation with teamLookup returning undefined resolves to uppercase abbreviation', async () => {
+        const mockTeamLookup = jest.fn(() => undefined);
+
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'ucl-final-2024',
+            slug: 'ucl-final-2024-xyz',
+            outcome: 'XYZ',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({
+          positions,
+          teamLookup: mockTeamLookup,
+        });
+
+        expect(result[0].outcome).toBe('XYZ');
+      });
+    });
   });
 
   describe('getPredictPositionStatus', () => {
@@ -2341,7 +2550,7 @@ describe('polymarket utils', () => {
       icon: 'https://example.com/icon.png',
       closed: false,
       tags: [],
-      series: [{ recurrence: 'daily' }],
+      series: [{ id: '1', slug: 'test', title: 'Test', recurrence: 'daily' }],
       markets: [
         {
           conditionId: 'market-1',
@@ -3617,6 +3826,156 @@ describe('polymarket utils', () => {
     });
   });
 
+  describe('fetchCarouselFromPolymarketApi', () => {
+    const carouselEndpoint = 'https://polymarket.com/api/homepage/carousel';
+
+    const createCarouselItem = (overrides = {}) => ({
+      event: {
+        id: 'event-1',
+        slug: 'event-1',
+        title: 'Event 1',
+        description: 'event description',
+        icon: 'https://example.com/icon.png',
+        closed: false,
+        tags: [],
+        series: [],
+        markets: [
+          {
+            conditionId: 'market-1',
+            question: 'Question?',
+            description: 'market description',
+            icon: 'https://example.com/market-icon.png',
+            image: 'https://example.com/market-image.png',
+            groupItemTitle: 'Option group',
+            status: 'open',
+            volumeNum: 100,
+            liquidity: 100,
+            negRisk: false,
+            clobTokenIds: ['1', '2'],
+            outcomes: ['Yes', 'No'],
+            outcomePrices: ['0.6', '0.4'],
+            closed: false,
+            active: true,
+            resolvedBy: '',
+            orderPriceMinTickSize: 0.01,
+            umaResolutionStatus: 'unresolved',
+          },
+        ],
+        liquidity: 100,
+        volume: 200,
+      },
+      type: 'sports',
+      shortName: 'S',
+      options: [],
+      ...overrides,
+    });
+
+    it('fetches from the carousel endpoint and returns items', async () => {
+      const responseItems = [createCarouselItem()];
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => responseItems,
+      });
+
+      const result = await fetchCarouselFromPolymarketApi();
+
+      expect(mockFetch).toHaveBeenCalledWith(carouselEndpoint);
+      expect(result).toHaveLength(1);
+      expect(result[0].event.id).toBe('event-1');
+    });
+
+    it('returns empty array when response is not an array', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [createCarouselItem()] }),
+      });
+
+      const result = await fetchCarouselFromPolymarketApi();
+
+      expect(result).toEqual([]);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({}),
+      });
+
+      await expect(fetchCarouselFromPolymarketApi()).rejects.toThrow(
+        'Failed to fetch carousel data',
+      );
+    });
+
+    it('normalizes array-type outcomes to JSON strings', async () => {
+      const responseItems = [createCarouselItem()];
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => responseItems,
+      });
+
+      const result = await fetchCarouselFromPolymarketApi();
+
+      expect(result[0].event.markets[0].outcomes).toBe('["Yes","No"]');
+    });
+
+    it('normalizes array-type outcomePrices to JSON strings', async () => {
+      const responseItems = [createCarouselItem()];
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => responseItems,
+      });
+
+      const result = await fetchCarouselFromPolymarketApi();
+
+      expect(result[0].event.markets[0].outcomePrices).toBe('["0.6","0.4"]');
+    });
+
+    it('normalizes array-type clobTokenIds to JSON strings', async () => {
+      const responseItems = [createCarouselItem()];
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => responseItems,
+      });
+
+      const result = await fetchCarouselFromPolymarketApi();
+
+      expect(result[0].event.markets[0].clobTokenIds).toBe('["1","2"]');
+    });
+
+    it('leaves string-type fields unchanged', async () => {
+      const responseItems = [
+        createCarouselItem({
+          event: {
+            ...createCarouselItem().event,
+            markets: [
+              {
+                ...createCarouselItem().event.markets[0],
+                outcomes: '["Yes","No"]',
+                outcomePrices: '["0.6","0.4"]',
+                clobTokenIds: '["1","2"]',
+              },
+            ],
+          },
+        }),
+      ];
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => responseItems,
+      });
+
+      const result = await fetchCarouselFromPolymarketApi();
+
+      expect(result[0].event.markets[0].outcomes).toBe('["Yes","No"]');
+      expect(result[0].event.markets[0].outcomePrices).toBe('["0.6","0.4"]');
+      expect(result[0].event.markets[0].clobTokenIds).toBe('["1","2"]');
+    });
+  });
+
   describe('getAllowanceCalls', () => {
     it('returns array of allowance transaction calls', () => {
       const calls = getAllowanceCalls({ address: mockAddress });
@@ -3636,6 +3995,90 @@ describe('polymarket utils', () => {
     it('includes all necessary approval calls', () => {
       const calls = getAllowanceCalls({ address: mockAddress });
       expect(calls.length).toBe(6);
+    });
+  });
+
+  describe('parsePolymarketEvents - series metadata', () => {
+    const mockCategory: PredictCategory = 'trending';
+
+    const createMockEvent = (
+      overrides: Partial<PolymarketApiEvent> = {},
+    ): PolymarketApiEvent => ({
+      id: 'series-event-1',
+      slug: 'series-event',
+      title: 'Series Event',
+      description: 'Series event description',
+      icon: 'https://example.com/series-icon.png',
+      closed: false,
+      tags: [],
+      series: [],
+      markets: [
+        {
+          conditionId: 'series-market-1',
+          question: 'Will BTC move up?',
+          description: 'Series event description',
+          icon: 'https://example.com/market-icon.png',
+          image: 'https://example.com/market-image.png',
+          groupItemTitle: 'Crypto',
+          closed: false,
+          volumeNum: 1000,
+          liquidity: 500,
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomes: '["Yes", "No"]',
+          outcomePrices: '["0.6", "0.4"]',
+          negRisk: true,
+          orderPriceMinTickSize: 0.01,
+          status: 'open',
+          active: true,
+          resolvedBy: '0x0000000000000000000000000000000000000000',
+          umaResolutionStatus: 'unresolved',
+        },
+      ],
+      liquidity: 1000000,
+      volume: 1000000,
+      ...overrides,
+    });
+
+    it('maps the first series item onto the parsed market', () => {
+      const series = {
+        id: '10684',
+        slug: 'btc-up-or-down-5m',
+        title: 'BTC Up or Down 5m',
+        recurrence: '5m',
+      };
+      const event = createMockEvent({ series: [series] });
+
+      const result = parsePolymarketEvents([event], mockCategory);
+
+      expect(result[0].series).toEqual(series);
+    });
+
+    it('omits series when the event series array is empty', () => {
+      const event = createMockEvent({ series: [] });
+
+      const result = parsePolymarketEvents([event], mockCategory);
+
+      expect(result[0].series).toBeUndefined();
+    });
+
+    it('uses the first series item when multiple series are present', () => {
+      const firstSeries = {
+        id: '10684',
+        slug: 'btc-up-or-down-5m',
+        title: 'BTC Up or Down 5m',
+        recurrence: '5m',
+      };
+      const secondSeries = {
+        id: '10685',
+        slug: 'eth-up-or-down-15m',
+        title: 'ETH Up or Down 15m',
+        recurrence: '15m',
+      };
+      const event = createMockEvent({ series: [firstSeries, secondSeries] });
+
+      const result = parsePolymarketEvents([event], mockCategory);
+
+      expect(result[0].series).toEqual(firstSeries);
     });
   });
 });

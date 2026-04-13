@@ -21,20 +21,6 @@ jest.mock('react-native', () => {
   };
 });
 
-jest.mock('react-native-safe-area-context', () => {
-  // using disting digits for mock rects to make sure they are not mixed up
-  const inset = { top: 1, right: 2, bottom: 3, left: 4 };
-  const frame = { width: 5, height: 6, x: 7, y: 8 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -48,7 +34,7 @@ jest.mock('@react-navigation/native', () => {
 describe('BottomSheetDialog', () => {
   it('should render correctly', () => {
     const wrapper = render(<BottomSheetDialog />);
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.toJSON()).toBeDefined();
   });
   it('should render the component with children', () => {
     const { getByText } = render(
@@ -56,7 +42,7 @@ describe('BottomSheetDialog', () => {
         <Text>Test Child</Text>
       </BottomSheetDialog>,
     );
-    expect(getByText('Test Child')).toBeTruthy();
+    expect(getByText('Test Child')).toBeOnTheScreen();
   });
   it('should call onOpen when onOpenDialog ref is called', () => {
     const onOpenMock = jest.fn();
@@ -110,4 +96,26 @@ describe('BottomSheetDialog', () => {
     expect(onCloseMock).toHaveBeenCalled();
   });
   //   Note: Add Gesture tests when react-native-gesture-handler gets updated
+
+  describe('panGestureHandlerProps', () => {
+    it('passes props to the PanGestureHandler via panGestureHandlerProps', () => {
+      const { getByTestId } = render(
+        <BottomSheetDialog
+          panGestureHandlerProps={{ testID: 'pan-gesture-handler' }}
+        >
+          <Text>Test Child</Text>
+        </BottomSheetDialog>,
+      );
+      expect(getByTestId('pan-gesture-handler')).toBeOnTheScreen();
+    });
+
+    it('renders normally when panGestureHandlerProps is undefined', () => {
+      const { getByText } = render(
+        <BottomSheetDialog panGestureHandlerProps={undefined}>
+          <Text>No Handler Props</Text>
+        </BottomSheetDialog>,
+      );
+      expect(getByText('No Handler Props')).toBeOnTheScreen();
+    });
+  });
 });

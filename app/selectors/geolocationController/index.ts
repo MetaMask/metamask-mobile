@@ -5,3 +5,6 @@ export const selectGeolocationControllerState = (state: RootState) =>
 
 export const selectGeolocationLocation = (state: RootState) =>
   state.engine?.backgroundState?.GeolocationController?.location;
+
+export const selectGeolocationStatus = (state: RootState) =>
+  state.engine?.backgroundState?.GeolocationController?.status;

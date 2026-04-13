@@ -7,65 +7,15 @@ import { mockTheme, ThemeContext } from '../../../util/theme';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import { ProtectWalletModalSelectorsIDs } from './ProtectWalletModal.testIds';
+import { analytics } from '../../../util/analytics/analytics';
 
-const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn().mockImplementation(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({
-    name: 'Wallet Security Reminder Engaged',
-    properties: { source: 'Modal', wallet_protection_required: false },
-    saveDataRecording: true,
-    sensitiveProperties: {},
-  }),
-}));
-
-// Mock whenEngineReady to prevent Engine access after Jest teardown
-jest.mock('../../../util/analytics/whenEngineReady', () => ({
-  whenEngineReady: jest.fn().mockResolvedValue(undefined),
-}));
-
-// Mock analytics module
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
-    isEnabled: jest.fn(() => false),
     trackEvent: jest.fn(),
-    optIn: jest.fn().mockResolvedValue(undefined),
-    optOut: jest.fn().mockResolvedValue(undefined),
-    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
-    identify: jest.fn(),
-    trackView: jest.fn(),
-    isOptedIn: jest.fn().mockResolvedValue(false),
   },
 }));
 
-// Mock useAnalytics hook which is used by withAnalyticsAwareness HOC
-jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-    isEnabled: mockMetricsIsEnabled,
-  }),
-}));
-
-jest.mock(
-  '../../../components/hooks/useAnalytics/withAnalyticsAwareness',
-  () => ({
-    withAnalyticsAwareness:
-      (Component: React.ComponentType) => (props: Record<string, unknown>) => (
-        <Component
-          {...props}
-          {...({
-            analytics: {
-              trackEvent: mockTrackEvent,
-              createEventBuilder: mockCreateEventBuilder,
-              isEnabled: mockMetricsIsEnabled,
-            },
-          } as Record<string, unknown>)}
-        />
-      ),
-  }),
-);
+const mockTrackEvent = jest.mocked(analytics.trackEvent);
 
 const mockStore = configureMockStore();
 
@@ -194,7 +144,7 @@ describe('ProtectYourWalletModal', () => {
           expect.objectContaining({
             name: 'Wallet Security Reminder Engaged',
             properties: { source: 'Modal', wallet_protection_required: false },
-            saveDataRecording: true,
+            saveDataRecording: false,
             sensitiveProperties: {},
           }),
         );

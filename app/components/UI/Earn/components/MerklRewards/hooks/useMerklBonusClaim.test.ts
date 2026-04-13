@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMerklBonusClaim } from './useMerklBonusClaim';
 import { TokenI } from '../../../../Tokens/types';
@@ -9,6 +9,7 @@ const mockClaimRewards = jest.fn().mockResolvedValue(undefined);
 const mockUseMerklRewards = jest.fn((_opts?: unknown) => ({
   claimableReward: null as string | null,
   hasClaimedBefore: false,
+  rewardsFetchVersion: 0,
 }));
 
 jest.mock('./useMerklRewards', () => ({
@@ -140,6 +141,7 @@ describe('useMerklBonusClaim', () => {
     mockUseMerklRewards.mockReturnValue({
       claimableReward: null,
       hasClaimedBefore: false,
+      rewardsFetchVersion: 0,
     });
     mockUsePendingMerklClaim.mockReturnValue({ hasPendingClaim: false });
     mockUseMerklClaimTransaction.mockReturnValue({
@@ -165,6 +167,7 @@ describe('useMerklBonusClaim', () => {
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
     expect(result.current.isClaiming).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
   it('returns default claim data when feature flag is disabled', () => {
@@ -176,6 +179,7 @@ describe('useMerklBonusClaim', () => {
 
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
   it('returns default claim data when user is geo-blocked', () => {
@@ -187,6 +191,7 @@ describe('useMerklBonusClaim', () => {
 
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
   it('returns default claim data for ineligible token', () => {
@@ -196,6 +201,7 @@ describe('useMerklBonusClaim', () => {
 
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
   it('passes eligible asset to underlying hooks', () => {
@@ -207,10 +213,121 @@ describe('useMerklBonusClaim', () => {
     expect(mockUseMerklClaimTransaction).toHaveBeenCalledWith(eligibleAsset);
   });
 
+  it('hides CTA after successful claim submission until remount', async () => {
+    const mockSuccessfulClaimRewards = jest.fn().mockResolvedValue({
+      txHash: '0x123',
+      transactionMeta: {},
+    });
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: '1.50',
+      hasClaimedBefore: false,
+      rewardsFetchVersion: 0,
+    });
+    mockUseMerklClaimTransaction.mockReturnValue({
+      claimRewards: mockSuccessfulClaimRewards,
+      isClaiming: false,
+      error: null,
+    });
+
+    const { result } = renderHook(() =>
+      useMerklBonusClaim(eligibleAsset, 'test_location'),
+    );
+
+    expect(result.current.claimableReward).toBe('1.50');
+
+    await act(async () => {
+      await result.current.claimRewards();
+    });
+
+    expect(result.current.claimableReward).toBeNull();
+  });
+
+  it('unlocks CTA after rewards refetch version changes', async () => {
+    const mockSuccessfulClaimRewards = jest.fn().mockResolvedValue({
+      txHash: '0x123',
+      transactionMeta: {},
+    });
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: '1.50',
+      hasClaimedBefore: false,
+      rewardsFetchVersion: 0,
+    });
+    mockUseMerklClaimTransaction.mockReturnValue({
+      claimRewards: mockSuccessfulClaimRewards,
+      isClaiming: false,
+      error: null,
+    });
+
+    const { result, rerender } = renderHook(() =>
+      useMerklBonusClaim(eligibleAsset, 'test_location'),
+    );
+
+    await act(async () => {
+      await result.current.claimRewards();
+    });
+
+    expect(result.current.claimableReward).toBeNull();
+
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: '1.50',
+      hasClaimedBefore: false,
+      rewardsFetchVersion: 1,
+    });
+    rerender();
+
+    expect(result.current.claimableReward).toBe('1.50');
+  });
+
+  it('locks CTA even when rewardsFetchVersion changes while claim is in flight', async () => {
+    let resolveClaim:
+      | ((value: {
+          txHash: string;
+          transactionMeta: Record<string, unknown>;
+        }) => void)
+      | undefined;
+    const delayedClaim = new Promise<{
+      txHash: string;
+      transactionMeta: Record<string, unknown>;
+    }>((resolve) => {
+      resolveClaim = resolve;
+    });
+    const mockDelayedClaimRewards = jest.fn().mockReturnValue(delayedClaim);
+
+    let mockedRewardsFetchVersion = 0;
+    mockUseMerklRewards.mockImplementation(() => ({
+      claimableReward: '1.50',
+      hasClaimedBefore: false,
+      rewardsFetchVersion: mockedRewardsFetchVersion,
+    }));
+    mockUseMerklClaimTransaction.mockReturnValue({
+      claimRewards: mockDelayedClaimRewards,
+      isClaiming: false,
+      error: null,
+    });
+
+    const { result, rerender } = renderHook(() =>
+      useMerklBonusClaim(eligibleAsset, 'test_location'),
+    );
+
+    const claimPromise = result.current.claimRewards();
+
+    mockedRewardsFetchVersion = 1;
+    rerender();
+    expect(result.current.claimableReward).toBe('1.50');
+
+    await act(async () => {
+      resolveClaim?.({ txHash: '0x123', transactionMeta: {} });
+      await claimPromise;
+    });
+
+    expect(result.current.claimableReward).toBeNull();
+  });
+
   it('returns composed data from underlying hooks for eligible asset', () => {
     mockUseMerklRewards.mockReturnValue({
       claimableReward: '1.50',
       hasClaimedBefore: false,
+      rewardsFetchVersion: 0,
     });
     mockUsePendingMerklClaim.mockReturnValue({ hasPendingClaim: true });
     mockUseMerklClaimTransaction.mockReturnValue({
@@ -226,13 +343,15 @@ describe('useMerklBonusClaim', () => {
     expect(result.current.claimableReward).toBe('1.50');
     expect(result.current.hasPendingClaim).toBe(true);
     expect(result.current.isClaiming).toBe(true);
-    expect(result.current.claimRewards).toBe(mockClaimRewards);
+    expect(typeof result.current.claimRewards).toBe('function');
+    expect(result.current.error).toBeNull();
   });
 
   it('returns claimableReward null when raw value is "< 0.01" (below threshold)', () => {
     mockUseMerklRewards.mockReturnValue({
       claimableReward: '< 0.01',
       hasClaimedBefore: false,
+      rewardsFetchVersion: 0,
     });
 
     const { result } = renderHook(() =>
@@ -240,12 +359,14 @@ describe('useMerklBonusClaim', () => {
     );
 
     expect(result.current.claimableReward).toBeNull();
+    expect(result.current.error).toBeNull();
   });
 
   it('returns claimableReward null when raw value is below 0.01', () => {
     mockUseMerklRewards.mockReturnValue({
       claimableReward: '0.005',
       hasClaimedBefore: false,
+      rewardsFetchVersion: 0,
     });
 
     const { result } = renderHook(() =>
@@ -253,6 +374,7 @@ describe('useMerklBonusClaim', () => {
     );
 
     expect(result.current.claimableReward).toBeNull();
+    expect(result.current.error).toBeNull();
   });
 
   describe('CTA available analytics event', () => {
@@ -260,6 +382,7 @@ describe('useMerklBonusClaim', () => {
       mockUseMerklRewards.mockReturnValue({
         claimableReward: '5.00',
         hasClaimedBefore: false,
+        rewardsFetchVersion: 0,
       });
 
       renderHook(() =>
@@ -273,6 +396,7 @@ describe('useMerklBonusClaim', () => {
       mockUseMerklRewards.mockReturnValue({
         claimableReward: '5.00',
         hasClaimedBefore: false,
+        rewardsFetchVersion: 0,
       });
 
       renderHook(() =>
@@ -286,6 +410,7 @@ describe('useMerklBonusClaim', () => {
       mockUseMerklRewards.mockReturnValue({
         claimableReward: '5.00',
         hasClaimedBefore: false,
+        rewardsFetchVersion: 0,
       });
       mockUsePendingMerklClaim.mockReturnValue({ hasPendingClaim: true });
 
@@ -300,6 +425,7 @@ describe('useMerklBonusClaim', () => {
       mockUseMerklRewards.mockReturnValue({
         claimableReward: null,
         hasClaimedBefore: false,
+        rewardsFetchVersion: 0,
       });
 
       renderHook(() =>
@@ -313,6 +439,7 @@ describe('useMerklBonusClaim', () => {
       mockUseMerklRewards.mockReturnValue({
         claimableReward: '< 0.01',
         hasClaimedBefore: false,
+        rewardsFetchVersion: 0,
       });
 
       renderHook(() =>
@@ -326,6 +453,7 @@ describe('useMerklBonusClaim', () => {
       mockUseMerklRewards.mockReturnValue({
         claimableReward: '0.005',
         hasClaimedBefore: false,
+        rewardsFetchVersion: 0,
       });
 
       renderHook(() =>
@@ -339,6 +467,7 @@ describe('useMerklBonusClaim', () => {
       mockUseMerklRewards.mockReturnValue({
         claimableReward: '5.00',
         hasClaimedBefore: false,
+        rewardsFetchVersion: 0,
       });
 
       const { rerender } = renderHook(() =>
@@ -354,6 +483,7 @@ describe('useMerklBonusClaim', () => {
       mockUseMerklRewards.mockReturnValue({
         claimableReward: '5.00',
         hasClaimedBefore: true,
+        rewardsFetchVersion: 0,
       });
 
       renderHook(() =>
@@ -394,6 +524,7 @@ describe('useMerklBonusClaim', () => {
         mockUseMerklRewards.mockReturnValue({
           claimableReward: bonusValue,
           hasClaimedBefore: false,
+          rewardsFetchVersion: 0,
         });
 
         renderHook(() =>

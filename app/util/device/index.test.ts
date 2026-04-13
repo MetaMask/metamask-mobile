@@ -1,3 +1,5 @@
+import compareVersions from 'compare-versions';
+import { Platform } from 'react-native';
 import Device from '.';
 
 describe('Device', () => {
@@ -8,6 +10,40 @@ describe('Device', () => {
       }));
       expect(Device.isAndroid()).toBe(true);
       expect(Device.isIos()).toBe(false);
+    });
+  });
+  describe('comparePlatformVersionTo', () => {
+    const platformVersionDescriptor = Object.getOwnPropertyDescriptor(
+      Platform,
+      'Version',
+    );
+
+    afterEach(() => {
+      if (platformVersionDescriptor) {
+        Object.defineProperty(Platform, 'Version', platformVersionDescriptor);
+      }
+    });
+
+    it('compares dotted platform versions with the shared compare-versions behavior', () => {
+      Object.defineProperty(Platform, 'Version', {
+        configurable: true,
+        value: '17.3.1',
+      });
+
+      expect(Device.comparePlatformVersionTo('17.4')).toBe(
+        compareVersions('17.3.1', '17.4'),
+      );
+    });
+
+    it('supports Android-style numeric platform versions and numeric references', () => {
+      Object.defineProperty(Platform, 'Version', {
+        configurable: true,
+        value: 34,
+      });
+
+      expect(Device.comparePlatformVersionTo(33)).toBe(
+        compareVersions('34', '33'),
+      );
     });
   });
   describe('isIpad', () => {

@@ -6,16 +6,12 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
-  Text,
-  TextVariant,
   Icon,
+  IconColor,
   IconName,
   IconSize,
-  FontWeight,
-  Button,
-  ButtonVariant,
-  ButtonSize,
+  Text,
+  TextVariant,
   Skeleton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -25,36 +21,29 @@ import { strings } from '../../../../../../locales/i18n';
 import { useRewardCampaigns } from '../../hooks/useRewardCampaigns';
 import CampaignTile from './CampaignTile';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 /**
- * CampaignsPreview shows a snapshot of campaigns on the dashboard:
- * the first active campaign as a tile and the first upcoming campaign
- * as a compact banner with "Coming soon".
+ * CampaignsPreview shows featured campaigns on the dashboard.
+ * Only campaigns marked as featured are displayed, in the order returned by the API.
  */
 const CampaignsPreview: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const { categorizedCampaigns, isLoading, hasError, fetchCampaigns } =
+  const { campaigns, isLoading, hasError, hasLoaded, fetchCampaigns } =
     useRewardCampaigns();
 
-  const activeCampaign = useMemo(
-    () => categorizedCampaigns.active[0] ?? null,
-    [categorizedCampaigns.active],
+  const featuredCampaign = useMemo(
+    (): CampaignDto | undefined => (campaigns ?? []).find((c) => c.featured),
+    [campaigns],
   );
 
-  const upcomingCampaign = useMemo(
-    () => categorizedCampaigns.upcoming[0] ?? null,
-    [categorizedCampaigns.upcoming],
-  );
+  const hasFeaturedCampaigns = Boolean(featuredCampaign);
 
   const handleNavigateToCampaigns = useCallback(() => {
-    navigation.navigate(Routes.CAMPAIGNS_VIEW);
+    navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW);
   }, [navigation]);
-
-  if (!isLoading && !hasError && !activeCampaign && !upcomingCampaign) {
-    return null;
-  }
 
   return (
     <Box
@@ -67,21 +56,25 @@ const CampaignsPreview: React.FC = () => {
           alignItems={BoxAlignItems.Center}
           twClassName="gap-2"
         >
-          {isLoading && !activeCampaign && !upcomingCampaign && (
+          {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
             <ActivityIndicator size="small" color={colors.primary.default} />
           )}
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.campaigns_preview.title')}
           </Text>
-          <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Md}
+            color={IconColor.IconAlternative}
+          />
         </Box>
       </Pressable>
 
-      {isLoading && !activeCampaign && !upcomingCampaign && (
+      {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
         <Skeleton style={tw.style('h-50 rounded-xl')} />
       )}
 
-      {!isLoading && hasError && !activeCampaign && !upcomingCampaign && (
+      {!isLoading && hasLoaded && hasError && !hasFeaturedCampaigns && (
         <RewardsErrorBanner
           title={strings('rewards.campaigns_view.error_title')}
           description={strings('rewards.campaigns_view.error_description')}
@@ -90,46 +83,7 @@ const CampaignsPreview: React.FC = () => {
         />
       )}
 
-      {activeCampaign && <CampaignTile campaign={activeCampaign} />}
-
-      {upcomingCampaign && (
-        <Pressable
-          style={({ pressed }) =>
-            tw.style('rounded-xl bg-muted px-4 py-3', pressed && 'opacity-70')
-          }
-          testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW_UPCOMING_BANNER}
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-          >
-            <Box twClassName="flex-1">
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-                {strings('rewards.campaigns_preview.coming_soon')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                twClassName="text-default"
-                numberOfLines={1}
-              >
-                {upcomingCampaign.name}
-              </Text>
-            </Box>
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Md}
-              startIconName={IconName.Notification}
-              onPress={() => {
-                // TODO: implement notification opt-in
-              }}
-            >
-              {strings('rewards.campaigns_preview.notify_me')}
-            </Button>
-          </Box>
-        </Pressable>
-      )}
+      {featuredCampaign && <CampaignTile campaign={featuredCampaign} />}
     </Box>
   );
 };

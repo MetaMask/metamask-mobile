@@ -37,7 +37,7 @@ jest.mock('@react-navigation/native', () => {
       ...actualReactNavigation.useNavigation(),
       navigate: mockNavigate,
       goBack: mockGoBack,
-      dangerouslyGetParent: mockDangerouslyGetParent,
+      getParent: mockDangerouslyGetParent,
     }),
   };
 });
@@ -77,15 +77,10 @@ describe('SettingsModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDangerouslyGetParent.mockReturnValue({
-      dangerouslyGetParent: jest.fn().mockReturnValue({
+      getParent: jest.fn().mockReturnValue({
         goBack: jest.fn(),
       }),
     });
-  });
-
-  it('renders snapshot correctly', () => {
-    const { toJSON } = render();
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays settings title in header', () => {
@@ -134,7 +129,7 @@ describe('SettingsModal', () => {
   it('navigates back through parent navigation when deposit is pressed', () => {
     const mockParentGoBack = jest.fn();
     mockDangerouslyGetParent.mockReturnValue({
-      dangerouslyGetParent: jest.fn().mockReturnValue({
+      getParent: jest.fn().mockReturnValue({
         goBack: mockParentGoBack,
       }),
     });

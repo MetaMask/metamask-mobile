@@ -3,7 +3,7 @@ import { setupMockRequest } from '../../helpers/mockHelpers.ts';
 import { MockApiEndpoint, RampsRegion } from '../../../framework/types.ts';
 import { getDecodedProxiedURL } from '../../../smoke/notifications/utils/helpers.ts';
 import { RAMPS_NETWORKS_RESPONSE } from './responses/ramps-networks-response.ts';
-import { RAMPS_COUNTRIES_RESPONSE } from './responses/ramps-countries-response.ts';
+import { getCountryResponseForUrl } from './responses/countries-contracts.ts';
 import {
   RAMPS_REGION_CONFIG_RESPONSE,
   RAMPS_AMOUNT_RESPONSE,
@@ -82,13 +82,6 @@ export const RAMPS_CATALOG_MOCKS = async (mockServer: Mockttp) => {
       responseCode: 200,
       response: RAMPS_NETWORKS_RESPONSE,
     },
-    // Countries (V1 + V2)
-    {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io(\/v2)?\/regions\/countries\?.*$/,
-      responseCode: 200,
-      response: RAMPS_COUNTRIES_RESPONSE,
-    },
     // Region config (payment methods, crypto/fiat options, limits)
     {
       urlEndpoint:
@@ -139,6 +132,32 @@ export const RAMPS_CATALOG_MOCKS = async (mockServer: Mockttp) => {
       response: RAMPS_TOP_TOKENS_RESPONSE,
     },
   ]);
+
+  // Countries split by actual client contract:
+  // - /v2/regions/countries => @metamask/ramps-controller Country.supported
+  // - /regions/countries?action=deposit => NativeRampsSdk DepositRegion.supported:boolean
+  // - /regions/countries => legacy aggregator flow (sell): OnRampSdk Country.support
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = getDecodedProxiedURL(request.url);
+      const parsedUrl = new URL(url);
+
+      return (
+        parsedUrl.hostname === 'on-ramp-cache.uat-api.cx.metamask.io' &&
+        (parsedUrl.pathname === '/v2/regions/countries' ||
+          parsedUrl.pathname === '/regions/countries')
+      );
+    })
+    .asPriority(999)
+    .thenCallback((request) => {
+      const url = getDecodedProxiedURL(request.url);
+
+      return {
+        statusCode: 200,
+        json: getCountryResponseForUrl(url),
+      };
+    });
 };
 
 /**

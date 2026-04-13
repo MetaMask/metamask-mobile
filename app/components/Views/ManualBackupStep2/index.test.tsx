@@ -14,6 +14,7 @@ import {
   ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import { ReactTestInstance } from 'react-test-renderer';
+import { brandColor } from '@metamask/design-tokens';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -36,18 +37,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        default: '#000000',
-      },
-      background: {
-        default: '#FFFFFF',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
@@ -333,9 +328,11 @@ describe('ManualBackupStep2', () => {
         fireEvent.press(click);
       });
 
-      expect(missingWordItemOne.props.style.color).not.toBe('#4459ff');
-      expect(missingWordItemTwo.props.style.color).not.toBe('#4459ff');
-      expect(missingWordItemThree.props.style.color).not.toBe('#4459ff');
+      expect(missingWordItemOne.props.style.color).not.toBe(brandColor.blue500);
+      expect(missingWordItemTwo.props.style.color).not.toBe(brandColor.blue500);
+      expect(missingWordItemThree.props.style.color).not.toBe(
+        brandColor.blue500,
+      );
 
       // Press continue button
       const continueButton = wrapper.getByTestId(
@@ -549,7 +546,7 @@ describe('ManualBackupStep2', () => {
       fireEvent.press(emptySlots[0]);
       fireEvent.press(missingWordOne);
 
-      expect(missingWordOne).toHaveStyle({ borderColor: '#4459ff' });
+      expect(missingWordOne).toHaveStyle({ borderColor: brandColor.blue500 });
     });
 
     it('highlights empty slot with blue border when pressed', async () => {
@@ -579,7 +576,7 @@ describe('ManualBackupStep2', () => {
 
       fireEvent.press(emptySlots[0]);
 
-      expect(emptySlots[0]).toHaveStyle({ borderColor: '#4459ff' });
+      expect(emptySlots[0]).toHaveStyle({ borderColor: brandColor.blue500 });
     });
   });
 

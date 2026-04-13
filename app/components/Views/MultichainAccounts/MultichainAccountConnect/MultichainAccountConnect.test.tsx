@@ -27,6 +27,8 @@ import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { RpcEndpointType, NetworkStatus } from '@metamask/network-controller';
 import { WC2VerifyValidation } from '../../../../actions/sdk/state';
 import { AccountConnectMaliciousWarningSelectorsIDs } from '../../AccountConnect/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning.testIds';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -56,12 +58,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+jest.mocked(useAnalytics).mockReturnValue(
+  createMockUseAnalyticsHook({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
-}));
+);
 
 jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
   __esModule: true,
@@ -70,21 +73,6 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
     <>{children}</>
   ),
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    SafeAreaView: View,
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
 
 const mockRejectPermissionsRequest = jest.fn();
 const mockAcceptPermissionsRequest = jest.fn().mockResolvedValue(undefined);
@@ -408,6 +396,7 @@ const createMockState = (): DeepPartial<RootState> => ({
         MOCK_ADDRESS_1,
       ),
       AccountTreeController: {
+        selectedAccountGroup: MOCK_ACCOUNT_GROUP_1_ID,
         accountTree: {
           wallets: {
             [MOCK_WALLET_ID]: {
@@ -427,7 +416,6 @@ const createMockState = (): DeepPartial<RootState> => ({
               },
             },
           },
-          selectedAccountGroup: MOCK_ACCOUNT_GROUP_1_ID,
         },
       },
       NetworkController: {
@@ -502,6 +490,12 @@ mockIsUUID.mockReturnValue(false);
 describe('MultichainAccountConnect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   it('renders correctly with base request when there is no existing CAIP endowment', () => {
@@ -732,6 +726,12 @@ describe('MultichainAccountConnect', () => {
       mockUseSDKV2Connection.mockReset();
       mockUseSDKV2Connection.mockReturnValue(undefined);
       jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
     });
 
     it('handles MMSDK remote connection origin correctly', () => {
@@ -1396,6 +1396,12 @@ describe('MultichainAccountConnect', () => {
   describe('Phishing modal navigation functions coverage', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
     });
 
     it('creates phishing navigation callback functions', () => {
@@ -1483,6 +1489,12 @@ describe('MultichainAccountConnect', () => {
   describe('handleNetworksSelected function and network tab functionality', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
     });
 
     it('navigates to network selector screen when editing networks', async () => {
@@ -1831,6 +1843,12 @@ describe('MultichainAccountConnect', () => {
   describe('handleAccountGroupsSelected function tests', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
     });
 
     it('verifies handleAccountGroupsSelected updates component state after account selection', async () => {
@@ -2190,6 +2208,12 @@ describe('MultichainAccountConnect', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
       mockGetConnection.mockReturnValue(undefined);
       mockIsUUID.mockReturnValue(false);
     });

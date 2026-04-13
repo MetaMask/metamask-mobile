@@ -105,21 +105,6 @@ jest.mock('../../components/CardImage/CardImage', () => {
   };
 });
 
-// Mock react-native-safe-area-context
-jest.mock('react-native-safe-area-context', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(View, props, children),
-    SafeAreaProvider: View,
-  };
-});
-
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: jest.fn(() => ({})),
@@ -132,6 +117,8 @@ jest.mock('@metamask/design-system-react-native', () => {
   const React = jest.requireActual('react');
   const { View, Text: RNText } = jest.requireActual('react-native');
 
+  const { TouchableOpacity } = jest.requireActual('react-native');
+
   return {
     Box: ({
       children,
@@ -143,6 +130,19 @@ jest.mock('@metamask/design-system-react-native', () => {
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(RNText, props, children),
+    Button: ({
+      children,
+      onPress,
+      label,
+      isDisabled,
+      disabled,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(
+        TouchableOpacity,
+        { onPress, disabled: disabled || isDisabled, ...props },
+        React.createElement(RNText, {}, children || label),
+      ),
     TextVariant: {
       HeadingLg: 'HeadingLg',
       HeadingMd: 'HeadingMd',
@@ -153,6 +153,16 @@ jest.mock('@metamask/design-system-react-native', () => {
       Regular: 'Regular',
       Medium: 'Medium',
       Bold: 'Bold',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
   };
 });

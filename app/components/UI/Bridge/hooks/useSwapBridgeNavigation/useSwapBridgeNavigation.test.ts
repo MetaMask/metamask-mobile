@@ -1272,4 +1272,28 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
+
+  it('includes scrollToTopOnNav in bridge params when requested', () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useSwapBridgeNavigation({
+          location: SwapBridgeNavigationLocation.TokenView,
+          sourcePage: mockSourcePage,
+          sourceToken: mockSourceToken,
+        }),
+      { state: initialState },
+    );
+
+    result.current.goToSwaps(undefined, undefined, undefined, true);
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: expect.objectContaining({
+        sourceToken: mockSourceToken,
+        sourcePage: mockSourcePage,
+        location: 'Token View',
+        scrollToTopOnNav: true,
+      }),
+    });
+  });
 });

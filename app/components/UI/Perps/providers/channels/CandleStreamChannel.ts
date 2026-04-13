@@ -4,6 +4,7 @@ import {
   TimeDuration,
   calculateCandleCount,
   PERPS_CONSTANTS,
+  PERFORMANCE_CONFIG,
   type CandleData,
 } from '@metamask/perps-controller';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -28,6 +29,15 @@ abstract class StreamChannel<T> {
   protected subscribers = new Map<string, StreamSubscription<T>>();
   protected wsSubscriptions = new Map<string, () => void>();
   protected isPaused = false;
+  readonly #onDataPersist?: () => void;
+
+  constructor(onDataPersist?: () => void) {
+    this.#onDataPersist = onDataPersist;
+  }
+
+  protected triggerPersist(): void {
+    this.#onDataPersist?.();
+  }
 
   protected notifySubscribers(cacheKey: string, updates: T) {
     if (this.isPaused) {
@@ -116,9 +126,16 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
    * Injected to avoid circular dependency:
    * CandleStreamChannel → PerpsConnectionManager → PerpsStreamManager → CandleStreamChannel
    */
-  constructor(getIsInitialized: () => boolean) {
-    super();
+  constructor(getIsInitialized: () => boolean, onDataPersist?: () => void) {
+    super(onDataPersist);
     this.getIsInitialized = getIsInitialized;
+  }
+
+  public override clearCache(): void {
+    this.deferConnectTimers.forEach((timer) => clearTimeout(timer));
+    this.deferConnectTimers.clear();
+    this.connectRetryCounts.clear();
+    super.clearCache();
   }
 
   /**
@@ -158,7 +175,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       cacheKey,
       setTimeout(() => {
         this.deferConnectTimers.delete(cacheKey);
-        this.connect(symbol, interval, cacheKey);
+        this.connectNow(symbol, interval, cacheKey);
       }, delayMs),
     );
   }
@@ -233,9 +250,9 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }
 
   /**
-   * Connect to WebSocket for specific symbol and interval.
-   * Always uses YEAR_TO_DATE duration to fetch maximum candles (500) on initial load.
-   * This ensures all subscribers get the full dataset regardless of their individual duration needs.
+   * Schedule a WebSocket connection for specific symbol and interval.
+   * Always defers via a short debounce to avoid subscription churn
+   * during rapid market switching (#28141).
    */
   private connect(
     symbol: string,
@@ -247,31 +264,56 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       return;
     }
 
-    // Check if controller is reinitializing - wait before attempting connection
+    let delay: number = PERFORMANCE_CONFIG.CandleConnectDebounceMs;
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
+      delay = PERPS_CONSTANTS.ReconnectionCleanupDelayMs;
+    } else if (!this.getIsInitialized()) {
+      delay = PERFORMANCE_CONFIG.NavigationParamsDelayMs;
+    }
+
+    this.deferConnect(symbol, interval, cacheKey, delay);
+  }
+
+  /**
+   * Execute the actual WebSocket subscription (called after debounce/defer).
+   * Always uses YEAR_TO_DATE duration to fetch maximum candles (500) on initial load.
+   */
+  private connectNow(
+    symbol: string,
+    interval: CandlePeriod,
+    cacheKey: string,
+  ): void {
+    // Re-check guards: state may have changed during the debounce window
+    if (this.wsSubscriptions.has(cacheKey)) {
+      return;
+    }
+    if (
+      !this.getIsInitialized() ||
+      Engine.context.PerpsController.isCurrentlyReinitializing()
+    ) {
+      // Not ready yet — re-defer
       this.deferConnect(
         symbol,
         interval,
         cacheKey,
-        PERPS_CONSTANTS.ReconnectionCleanupDelayMs,
+        PERPS_CONSTANTS.ConnectRetryDelayMs,
       );
-      return;
-    }
-
-    // Check if controller is not yet initialized - defer until ready
-    if (!this.getIsInitialized()) {
-      this.deferConnect(symbol, interval, cacheKey, 200);
       return;
     }
 
     this.connectRetryCounts.delete(cacheKey);
 
-    // Subscribe to candle updates via controller
-    // Always use YEAR_TO_DATE to fetch maximum candles (500) regardless of subscriber's duration
+    // Use a light initial fetch to conserve rate limit budget (#28141).
+    // OneWeek provides enough candles for the visible chart area; users
+    // can lazy-load more history via fetchHistoricalCandles on scroll.
+    // When cache already has data (revisit), use an even lighter fetch.
+    const hasCachedData = this.cache.has(cacheKey);
+    const duration = hasCachedData ? TimeDuration.OneDay : TimeDuration.OneWeek;
+
     const unsubscribe = Engine.context.PerpsController.subscribeToCandles({
       symbol,
       interval,
-      duration: TimeDuration.YearToDate, // Always fetch max candles
+      duration,
       callback: (candleData: CandleData) => {
         // Update cache
         this.cache.set(cacheKey, candleData);

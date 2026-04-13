@@ -16,29 +16,6 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: { campaignId: 'campaign-1' } }),
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const actual = jest.requireActual('react-native-safe-area-context');
-  return {
-    ...actual,
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    SafeAreaView: ({
-      children,
-      testID,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { ...props, testID }, children),
-  };
-});
-
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   return { ...actual };
@@ -140,8 +117,8 @@ const createTestCampaign = (
   endDate: '2027-12-31T23:59:59.999Z',
   termsAndConditions: null,
   excludedRegions: [],
-  statusLabel: 'Active',
   details: null,
+  featured: true,
   ...overrides,
 });
 
@@ -151,6 +128,7 @@ const hookDefaults = {
   categorizedCampaigns: emptyCategorized,
   isLoading: false,
   hasError: false,
+  hasLoaded: false,
   fetchCampaigns: jest.fn(),
 };
 
@@ -183,14 +161,10 @@ describe('CampaignMechanicsView', () => {
         campaigns: [
           createTestCampaign({
             details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
               },
             },
           }),
@@ -244,14 +218,10 @@ describe('CampaignMechanicsView', () => {
         campaigns: [
           createTestCampaign({
             details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
                 notes: richTextNotes,
               },
             },
@@ -270,14 +240,10 @@ describe('CampaignMechanicsView', () => {
         campaigns: [
           createTestCampaign({
             details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
                 notes: null,
               },
             },
@@ -296,14 +262,10 @@ describe('CampaignMechanicsView', () => {
         campaigns: [
           createTestCampaign({
             details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
               },
             },
           }),
@@ -321,14 +283,10 @@ describe('CampaignMechanicsView', () => {
         campaigns: [
           createTestCampaign({
             details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
                 notes: { title: 'Only title' },
               },
             },
@@ -347,14 +305,10 @@ describe('CampaignMechanicsView', () => {
         campaigns: [
           createTestCampaign({
             details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
                 notes: 'just a string',
               },
             },

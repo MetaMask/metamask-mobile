@@ -1,13 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ManualBackupStep1 matches snapshot 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -331,7 +328,8 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
                   accessibilityIgnoresInvertColors={true}
                   style={
                     [
-                      "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1 opacity-50",
+                      "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1",
+                      "opacity-50",
                     ]
                   }
                 >
@@ -361,29 +359,29 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
                     [
                       [
                         "flex",
-                        "flex-col",
                         undefined,
-                        false,
-                        "items-center",
-                        "justify-center",
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        "px-6",
-                        false,
+                        undefined,
                         false,
                         undefined,
                         undefined,
-                        "rounded-lg py-[45px] gap-y-4 h-full flex-1",
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                        undefined,
+                        "items-center justify-center rounded-lg px-6 py-[45px] gap-y-4 h-full flex-1",
                       ],
                       undefined,
                     ]
@@ -538,7 +536,7 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
                   "text-body-md",
                   "font-default-medium",
                   "text-default",
-                  "shrink grow-0 flex-wrap text-center  text-primary-inverse",
+                  "shrink grow-0 flex-wrap text-center  text-primary-inverse ",
                 ],
                 undefined,
               ]
@@ -551,17 +549,14 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
     </View>
   </View>
   <View />
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -885,7 +880,8 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
                   accessibilityIgnoresInvertColors={true}
                   style={
                     [
-                      "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1 opacity-50",
+                      "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1",
+                      "opacity-50",
                     ]
                   }
                 >
@@ -915,29 +911,29 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
                     [
                       [
                         "flex",
-                        "flex-col",
                         undefined,
-                        false,
-                        "items-center",
-                        "justify-center",
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        "px-6",
-                        false,
+                        undefined,
                         false,
                         undefined,
                         undefined,
-                        "rounded-lg py-[45px] gap-y-4 h-full flex-1",
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                        undefined,
+                        "items-center justify-center rounded-lg px-6 py-[45px] gap-y-4 h-full flex-1",
                       ],
                       undefined,
                     ]
@@ -1092,7 +1088,7 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
                   "text-body-md",
                   "font-default-medium",
                   "text-default",
-                  "shrink grow-0 flex-wrap text-center  text-primary-inverse",
+                  "shrink grow-0 flex-wrap text-center  text-primary-inverse ",
                 ],
                 undefined,
               ]
@@ -1105,17 +1101,14 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
     </View>
   </View>
   <View />
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`ManualBackupStep1 theme appearance renders with light theme on Android 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -1439,7 +1432,8 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
                   accessibilityIgnoresInvertColors={true}
                   style={
                     [
-                      "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1 opacity-50",
+                      "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1",
+                      "opacity-50",
                     ]
                   }
                 >
@@ -1469,29 +1463,29 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
                     [
                       [
                         "flex",
-                        "flex-col",
                         undefined,
-                        false,
-                        "items-center",
-                        "justify-center",
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        "px-6",
-                        false,
+                        undefined,
                         false,
                         undefined,
                         undefined,
-                        "rounded-lg py-[45px] gap-y-4 h-full flex-1",
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                        undefined,
+                        "items-center justify-center rounded-lg px-6 py-[45px] gap-y-4 h-full flex-1",
                       ],
                       undefined,
                     ]
@@ -1646,7 +1640,7 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
                   "text-body-md",
                   "font-default-medium",
                   "text-default",
-                  "shrink grow-0 flex-wrap text-center  text-primary-inverse",
+                  "shrink grow-0 flex-wrap text-center  text-primary-inverse ",
                 ],
                 undefined,
               ]
@@ -1659,5 +1653,5 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
     </View>
   </View>
   <View />
-</RNCSafeAreaView>
+</View>
 `;

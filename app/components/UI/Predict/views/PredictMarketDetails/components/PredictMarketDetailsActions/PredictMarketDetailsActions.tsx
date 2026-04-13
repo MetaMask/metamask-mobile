@@ -23,6 +23,12 @@ import {
   type PredictOutcomeToken,
 } from '../../../../types';
 
+const LONG_OUTCOME_LABEL_THRESHOLD = 12;
+const TALL_ACTION_BUTTON_MIN_HEIGHT = 48;
+
+const shouldUseStackedActionButtonLabel = (title?: string) =>
+  Boolean(title && title.length > LONG_OUTCOME_LABEL_THRESHOLD);
+
 export interface PredictMarketDetailsActionsProps {
   isClaimablePositionsLoading: boolean;
   hasPositivePnl: boolean;
@@ -53,6 +59,42 @@ const PredictMarketDetailsActions = memo(
   }: PredictMarketDetailsActionsProps) => {
     const tw = useTailwind();
 
+    const renderActionButtonLabel = ({
+      title,
+      price,
+      color,
+      useStackedLabels,
+    }: {
+      title: string;
+      price: number;
+      color: TextColor;
+      useStackedLabels: boolean;
+    }) => {
+      if (useStackedLabels) {
+        return (
+          <Box twClassName="w-full items-center py-0.5">
+            <Text
+              style={tw.style('font-bold text-center')}
+              color={color}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {title}
+            </Text>
+            <Text style={tw.style('font-bold text-center')} color={color}>
+              {price}¢
+            </Text>
+          </Box>
+        );
+      }
+
+      return (
+        <Text style={tw.style('font-bold text-center')} color={color}>
+          {title} • {price}¢
+        </Text>
+      );
+    };
+
     return (
       <>
         {(() => {
@@ -72,6 +114,27 @@ const PredictMarketDetailsActions = memo(
           ) {
             // use openOutcomes for real-time (CLOB) prices
             const firstOpenOutcome = openOutcomes[0];
+            const yesToken =
+              firstOpenOutcome?.tokens?.[0] ??
+              market?.outcomes?.[0]?.tokens?.[0];
+            const noToken =
+              firstOpenOutcome?.tokens?.[1] ??
+              market?.outcomes?.[0]?.tokens?.[1];
+            const yesTitle = yesToken?.title ?? '';
+            const noTitle = noToken?.title ?? '';
+            const useStackedLabels =
+              shouldUseStackedActionButtonLabel(yesTitle) ||
+              shouldUseStackedActionButtonLabel(noTitle);
+            const getActionButtonStyle = (backgroundClassName: string) =>
+              tw.style(
+                'flex-1',
+                backgroundClassName,
+                useStackedLabels && {
+                  height: 'auto',
+                  minHeight: TALL_ACTION_BUTTON_MIN_HEIGHT,
+                  paddingVertical: 8,
+                },
+              );
             return (
               <Box
                 flexDirection={BoxFlexDirection.Row}
@@ -83,42 +146,35 @@ const PredictMarketDetailsActions = memo(
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
-                  style={tw.style('flex-1 bg-success-muted')}
-                  label={
-                    <Text
-                      style={tw.style('font-bold')}
-                      color={TextColor.SuccessDefault}
-                    >
-                      {firstOpenOutcome?.tokens[0].title} • {yesPercentage}¢
-                    </Text>
-                  }
-                  onPress={() =>
-                    onBuyPress(
-                      firstOpenOutcome?.tokens[0] ??
-                        market?.outcomes[0].tokens[0],
-                    )
-                  }
+                  style={getActionButtonStyle('bg-success-muted')}
+                  label={renderActionButtonLabel({
+                    title: yesTitle,
+                    price: yesPercentage,
+                    color: TextColor.SuccessDefault,
+                    useStackedLabels,
+                  })}
+                  onPress={() => {
+                    if (yesToken) {
+                      onBuyPress(yesToken);
+                    }
+                  }}
                 />
                 <Button
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
-                  style={tw.style('flex-1 bg-error-muted')}
-                  label={
-                    <Text
-                      style={tw.style('font-bold')}
-                      color={TextColor.ErrorDefault}
-                    >
-                      {firstOpenOutcome?.tokens[1].title} •{' '}
-                      {100 - yesPercentage}¢
-                    </Text>
-                  }
-                  onPress={() =>
-                    onBuyPress(
-                      firstOpenOutcome?.tokens[1] ??
-                        market?.outcomes[0].tokens[1],
-                    )
-                  }
+                  style={getActionButtonStyle('bg-error-muted')}
+                  label={renderActionButtonLabel({
+                    title: noTitle,
+                    price: 100 - yesPercentage,
+                    color: TextColor.ErrorDefault,
+                    useStackedLabels,
+                  })}
+                  onPress={() => {
+                    if (noToken) {
+                      onBuyPress(noToken);
+                    }
+                  }}
                 />
               </Box>
             );

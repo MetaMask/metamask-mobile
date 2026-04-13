@@ -116,6 +116,17 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       analytics.identify(consolidatedTraits);
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.METRICS_OPT_IN,
+        )
+          .addProperties({
+            updated_after_onboarding: true,
+            location: analyticsLocation,
+            ...(accountType && { account_type: accountType }),
+          })
+          .build(),
+      );
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
         )
           .addProperties({
@@ -162,9 +173,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
   const addMarketingConsentToTraits = (marketingOptIn: boolean) => {
     analytics.identify({
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn
-        ? UserProfileProperty.ON
-        : UserProfileProperty.OFF,
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn,
     });
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(

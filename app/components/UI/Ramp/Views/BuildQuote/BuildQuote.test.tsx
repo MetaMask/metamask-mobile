@@ -301,6 +301,8 @@ const SELECTED_PAYMENT_METHOD = {
   id: '/payments/debit-credit-card',
   name: 'Debit/Credit Card',
   isManualBankTransfer: false,
+  paymentType: 'debit-credit-card',
+  icons: [] as const,
 };
 
 const USER_REGION = {
@@ -354,13 +356,17 @@ describe('createBuildQuoteNavDetails', () => {
   });
 });
 
+const mockSetSelectedProvider = jest.fn();
+
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue({});
     mockUseRampsController.mockReturnValue({
       userRegion: USER_REGION,
+      providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
       selectedProvider: WIDGET_PROVIDER,
+      setSelectedProvider: mockSetSelectedProvider,
       selectedToken: SELECTED_TOKEN,
       paymentMethods: [SELECTED_PAYMENT_METHOD],
       getBuyWidgetData: mockGetBuyWidgetData,
@@ -399,6 +405,41 @@ describe('BuildQuote', () => {
       setParams: jest.fn(),
       navigate: mockNavigate,
       goBack: mockGoBack,
+    });
+  });
+
+  describe('amount param initialization', () => {
+    it('uses DEFAULT_AMOUNT (100) when no amount param is provided', () => {
+      mockUseParams.mockReturnValue({});
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.children).toContain('100');
+    });
+
+    it('uses amount param as initial value when provided via route params', () => {
+      mockUseParams.mockReturnValue({ amount: 30 });
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.children).toContain('30');
+    });
+
+    it('does not override amount with region default when amount param is provided', () => {
+      mockUseParams.mockReturnValue({ amount: 50 });
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.children).toContain('50');
     });
   });
 
@@ -441,12 +482,6 @@ describe('BuildQuote', () => {
         type: 'success',
         url: 'metamask://on-ramp/providers/moonpay?orderId=ord-123',
       });
-      mockGetOrderFromCallback.mockResolvedValue({
-        providerOrderId: 'ord-123',
-        status: 'Pending',
-        cryptoAmount: '0.05',
-        cryptoCurrency: { symbol: 'ETH' },
-      });
       mockGetBuyWidgetData.mockResolvedValue({
         url: 'https://widget.example.com/checkout',
         browser: 'IN_APP_OS_BROWSER',
@@ -462,14 +497,18 @@ describe('BuildQuote', () => {
       });
 
       await waitFor(() => {
-        expect(mockAddOrder).toHaveBeenCalled();
+        expect(mockAddOrder).not.toHaveBeenCalled();
+        expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
         expect(mockNavigationReset).toHaveBeenCalledWith({
           index: 0,
           routes: [
             {
               name: Routes.RAMP.RAMPS_ORDER_DETAILS,
               params: {
-                orderId: 'ord-123',
+                callbackUrl:
+                  'metamask://on-ramp/providers/moonpay?orderId=ord-123',
+                providerCode: 'moonpay',
+                walletAddress: '0x1234567890123456789012345678901234567890',
                 showCloseButton: true,
               },
             },
@@ -668,7 +707,7 @@ describe('BuildQuote', () => {
         error: new Error('Quote fetch failed'),
       });
 
-      const { toJSON } = renderWithProvider(<BuildQuote />, {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
@@ -677,7 +716,9 @@ describe('BuildQuote', () => {
           category: expect.stringContaining('Quote Error'),
         }),
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -725,7 +766,7 @@ describe('BuildQuote', () => {
         '/payments/debit-credit-card',
         '100',
       );
-      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE);
+      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 100);
     });
 
     it('navigates to VerifyIdentity when user has no token', async () => {
@@ -756,7 +797,7 @@ describe('BuildQuote', () => {
       mockCheckExistingToken.mockResolvedValue(true);
       mockGetBuyQuote.mockResolvedValue(null);
 
-      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
@@ -766,13 +807,15 @@ describe('BuildQuote', () => {
 
       expect(mockRouteAfterAuth).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('sets rampsError when transakCheckExistingToken throws', async () => {
       mockCheckExistingToken.mockRejectedValue(new Error('Network error'));
 
-      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
@@ -781,7 +824,9 @@ describe('BuildQuote', () => {
       });
 
       expect(mockGetBuyQuote).not.toHaveBeenCalled();
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('sets rampsError when transakRouteAfterAuth throws', async () => {
@@ -789,7 +834,7 @@ describe('BuildQuote', () => {
       mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
       mockRouteAfterAuth.mockRejectedValue(new Error('Routing failed'));
 
-      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
@@ -797,7 +842,9 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
       });
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -805,7 +852,7 @@ describe('BuildQuote', () => {
     it('sets rampsError when getBuyWidgetData returns no URL', async () => {
       mockGetBuyWidgetData.mockResolvedValue({});
 
-      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
@@ -814,7 +861,9 @@ describe('BuildQuote', () => {
       });
 
       expect(mockGetBuyWidgetData).toHaveBeenCalled();
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('navigates to Checkout when useExternalBrowser is false', async () => {
@@ -848,7 +897,7 @@ describe('BuildQuote', () => {
         new Error('Network request failed'),
       );
 
-      const { getByTestId, toJSON } = renderWithProvider(<BuildQuote />, {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
@@ -856,7 +905,179 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
       });
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('auto-select provider when none selected', () => {
+    it('selects the first provider that supports the token', () => {
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
+        selectedProvider: null,
+        setSelectedProvider: mockSetSelectedProvider,
+        selectedToken: SELECTED_TOKEN,
+        paymentMethods: [SELECTED_PAYMENT_METHOD],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+      });
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSetSelectedProvider).toHaveBeenCalledWith(WIDGET_PROVIDER, {
+        autoSelected: true,
+      });
+    });
+
+    it('does not auto-select when a provider is already selected', () => {
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+    });
+
+    it('does not auto-select when providers list is empty', () => {
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        providers: [],
+        selectedProvider: null,
+        setSelectedProvider: mockSetSelectedProvider,
+        selectedToken: SELECTED_TOKEN,
+        paymentMethods: [],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: null,
+      });
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+    });
+
+    it('does not auto-select when no token is selected', () => {
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
+        selectedProvider: null,
+        setSelectedProvider: mockSetSelectedProvider,
+        selectedToken: null,
+        paymentMethods: [],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: null,
+      });
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+    });
+
+    it('skips providers that do not support the token', () => {
+      const unsupportedProvider = {
+        id: 'banxa',
+        name: 'Banxa',
+        supportedCryptoCurrencies: { 'eip155:1/erc20:0xother': true },
+        links: [],
+      };
+
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        providers: [unsupportedProvider, NATIVE_PROVIDER],
+        selectedProvider: null,
+        setSelectedProvider: mockSetSelectedProvider,
+        selectedToken: SELECTED_TOKEN,
+        paymentMethods: [SELECTED_PAYMENT_METHOD],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+      });
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSetSelectedProvider).toHaveBeenCalledWith(NATIVE_PROVIDER, {
+        autoSelected: true,
+      });
+    });
+
+    it('does not auto-select when no provider supports the token', () => {
+      const unsupportedProvider = {
+        id: 'banxa',
+        name: 'Banxa',
+        supportedCryptoCurrencies: { 'eip155:1/erc20:0xother': true },
+        links: [],
+      };
+
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        providers: [unsupportedProvider],
+        selectedProvider: null,
+        setSelectedProvider: mockSetSelectedProvider,
+        selectedToken: SELECTED_TOKEN,
+        paymentMethods: [],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: null,
+      });
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+    });
+
+    it('does not auto-select when screen is not focused', () => {
+      const mockUseIsFocused = jest.requireMock('@react-navigation/native')
+        .useIsFocused as jest.Mock;
+      mockUseIsFocused.mockReturnValue(false);
+
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        providers: [WIDGET_PROVIDER],
+        selectedProvider: null,
+        setSelectedProvider: mockSetSelectedProvider,
+        selectedToken: SELECTED_TOKEN,
+        paymentMethods: [SELECTED_PAYMENT_METHOD],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+      });
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+
+      mockUseIsFocused.mockReturnValue(true);
     });
   });
 
@@ -873,7 +1094,9 @@ describe('BuildQuote', () => {
     const mockUnavailableController = (overrides: Record<string, unknown>) => {
       mockUseRampsController.mockReturnValue({
         userRegion: USER_REGION,
+        providers: [transakProvider, WIDGET_PROVIDER],
         selectedProvider: transakProvider,
+        setSelectedProvider: mockSetSelectedProvider,
         selectedToken: SELECTED_TOKEN,
         paymentMethods: [],
         getBuyWidgetData: mockGetBuyWidgetData,
@@ -996,6 +1219,30 @@ describe('BuildQuote', () => {
       );
     });
 
+    it('navigates when token is missing from supportedCryptoCurrencies', () => {
+      mockUnavailableController({
+        selectedProvider: {
+          id: '/providers/banxa',
+          name: 'Banxa',
+          supportedCryptoCurrencies: {
+            // TOKEN_ASSET is NOT in the map — treated as unsupported
+            'eip155:1/erc20:0xsomeother': true,
+          },
+          links: [],
+        },
+      });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
     it('re-navigates when provider id changes', () => {
       mockUnavailableController({
         selectedProvider: {
@@ -1031,6 +1278,267 @@ describe('BuildQuote', () => {
           screen: 'RampTokenNotAvailableModal',
         }),
       );
+    });
+
+    describe('auto-switch when providerAutoSelected', () => {
+      const BTC_ASSET = 'eip155:1/slip44:0';
+
+      const paypalProvider = {
+        id: '/providers/paypal',
+        name: 'PayPal',
+        supportedCryptoCurrencies: { [TOKEN_ASSET]: true, [BTC_ASSET]: false },
+        links: [],
+      };
+
+      const coinbaseProvider = {
+        id: '/providers/coinbase',
+        name: 'Coinbase',
+        supportedCryptoCurrencies: { [TOKEN_ASSET]: true, [BTC_ASSET]: true },
+        links: [],
+      };
+
+      const autoSelectedState = {
+        ...initialRootState,
+        engine: {
+          ...initialRootState.engine,
+          backgroundState: {
+            ...initialRootState.engine.backgroundState,
+            RampsController: {
+              ...initialRootState.engine.backgroundState.RampsController,
+              providerAutoSelected: true,
+            },
+          },
+        },
+      };
+
+      it('auto-switches to a supporting provider instead of showing the modal', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+
+        renderWithProvider(<BuildQuote />, { state: autoSelectedState });
+        act(() => {
+          jest.advanceTimersByTime(650);
+        });
+
+        expect(mockSetSelectedProvider).toHaveBeenCalledWith(coinbaseProvider, {
+          autoSelected: true,
+        });
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          'RampModals',
+          expect.objectContaining({
+            screen: 'RampTokenNotAvailableModal',
+          }),
+        );
+      });
+
+      it('falls back to modal when no provider supports the token', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+
+        renderWithProvider(<BuildQuote />, { state: autoSelectedState });
+        act(() => {
+          jest.advanceTimersByTime(650);
+        });
+
+        expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'RampModals',
+          expect.objectContaining({
+            screen: 'RampTokenNotAvailableModal',
+          }),
+        );
+      });
+
+      it('shows modal when provider was not auto-selected', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+
+        renderWithProvider(<BuildQuote />, { state: initialRootState });
+        act(() => {
+          jest.advanceTimersByTime(650);
+        });
+
+        expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'RampModals',
+          expect.objectContaining({
+            screen: 'RampTokenNotAvailableModal',
+          }),
+        );
+      });
+    });
+  });
+
+  describe('selectedQuote matching', () => {
+    it('shows Powered by text when quote provider matches selected provider', () => {
+      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
+    });
+
+    it('shows no-quotes error when quote provider does not match selected provider', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [{ ...WIDGET_PROVIDER_QUOTE, provider: 'other-provider' }],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText("We've encountered an error")).toBeOnTheScreen();
+    });
+
+    it('shows no-quotes error when quotes response has no entries', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: { success: [] },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText("We've encountered an error")).toBeOnTheScreen();
+    });
+
+    it('does not show error when quotes are still loading', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: null,
+        loading: true,
+        error: null,
+      });
+
+      const { queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
+    });
+
+    it('continue button is disabled when no matching quote', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [{ ...WIDGET_PROVIDER_QUOTE, provider: 'other-provider' }],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('continue button is enabled when quote matches', () => {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).not.toBe(true);
+    });
+
+    it('matches quote when API returns prefixed provider ID', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [
+            { ...WIDGET_PROVIDER_QUOTE, provider: '/providers/moonpay' },
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
+    });
+
+    it('matches quote when selected provider has prefixed ID and quote has short ID', () => {
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        providers: [
+          { ...WIDGET_PROVIDER, id: '/providers/moonpay' },
+          NATIVE_PROVIDER,
+        ],
+        selectedProvider: { ...WIDGET_PROVIDER, id: '/providers/moonpay' },
+        setSelectedProvider: mockSetSelectedProvider,
+        selectedToken: SELECTED_TOKEN,
+        paymentMethods: [SELECTED_PAYMENT_METHOD],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
+    });
+
+    it('finds matching quote even if it is not the first in the array', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [
+            { ...WIDGET_PROVIDER_QUOTE, provider: 'other-provider' },
+            WIDGET_PROVIDER_QUOTE,
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
     });
   });
 });

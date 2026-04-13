@@ -24,6 +24,7 @@ import Icon, {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { PerpsAdjustMarginViewSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
@@ -347,7 +348,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                   })}
                 </Text>
                 <Icon
-                  name={IconName.Arrow2Right}
+                  name={IconName.ArrowRight}
                   size={IconSize.Sm}
                   color={colors.icon.alternative}
                 />
@@ -395,7 +396,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                   )}
                 </Text>
                 <Icon
-                  name={IconName.Arrow2Right}
+                  name={IconName.ArrowRight}
                   size={IconSize.Sm}
                   color={colors.icon.alternative}
                 />
@@ -422,6 +423,7 @@ const PerpsAdjustMarginView: React.FC = () => {
       {!isInputFocused ? (
         <View style={styles.footer}>
           <Button
+            testID={PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON}
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
@@ -460,6 +462,7 @@ const PerpsAdjustMarginView: React.FC = () => {
               style={styles.percentageButton}
             />
             <Button
+              testID={PerpsAdjustMarginViewSelectorsIDs.DONE_BUTTON}
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
               label={strings('perps.deposit.done_button')}

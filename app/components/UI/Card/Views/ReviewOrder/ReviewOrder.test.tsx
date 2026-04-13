@@ -82,20 +82,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(View, props, children),
-    SafeAreaProvider: View,
-  };
-});
-
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: jest.fn(() => ({})),
@@ -106,6 +92,8 @@ jest.mock('@metamask/design-system-react-native', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
   const { View, Text: RNText } = jest.requireActual('react-native');
+
+  const { TouchableOpacity } = jest.requireActual('react-native');
 
   return {
     Box: ({
@@ -118,6 +106,19 @@ jest.mock('@metamask/design-system-react-native', () => {
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(RNText, props, children),
+    Button: ({
+      children,
+      onPress,
+      label,
+      isDisabled,
+      disabled,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(
+        TouchableOpacity,
+        { onPress, disabled: disabled || isDisabled, ...props },
+        React.createElement(RNText, {}, children || label),
+      ),
     TextVariant: {
       HeadingLg: 'HeadingLg',
       HeadingSm: 'HeadingSm',
@@ -128,6 +129,16 @@ jest.mock('@metamask/design-system-react-native', () => {
       Regular: 'Regular',
       Medium: 'Medium',
       Bold: 'Bold',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
   };
 });
@@ -306,7 +317,9 @@ describe('ReviewOrder without line2', () => {
     expect(getByTestId(ReviewOrderSelectors.ADDRESS_LINE_1)).toHaveTextContent(
       '456 Oak Ave',
     );
-    expect(queryByTestId(ReviewOrderSelectors.ADDRESS_LINE_2)).toBeNull();
+    expect(
+      queryByTestId(ReviewOrderSelectors.ADDRESS_LINE_2),
+    ).not.toBeOnTheScreen();
     expect(
       getByTestId(ReviewOrderSelectors.ADDRESS_CITY_STATE_ZIP),
     ).toHaveTextContent('Los Angeles, CA 90001');

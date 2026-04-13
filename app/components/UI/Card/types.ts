@@ -36,6 +36,7 @@ export enum CardMessageBoxType {
   CloseSpendingLimit = 'close_spending_limit',
   KYCPending = 'kyc_pending',
   CardProvisioning = 'card_provisioning',
+  AuthPrompt = 'auth_prompt',
 }
 
 export type CardUserPhase =
@@ -453,6 +454,17 @@ export interface DelegationSettingsResponse {
   _links: {
     self: string;
   };
+}
+
+export interface DelegationPostApprovalParams {
+  address: string;
+  network: CardNetwork;
+  currency: string;
+  amount: string;
+  txHash: string;
+  sigHash: string;
+  sigMessage: string;
+  token: string;
 }
 
 /**
