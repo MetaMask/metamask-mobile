@@ -669,6 +669,7 @@ const ChoosePassword = () => {
           <KeyboardAwareScrollView
             contentContainerStyle={tw.style('flex-1 px-4')}
             resetScrollToCoords={{ x: 0, y: 0 }}
+            keyboardShouldPersistTaps="handled"
           >
             <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
               <Box
