@@ -4272,12 +4272,8 @@ describe('polymarket utils', () => {
       expect(GROUP_ORDER.indexOf('first-half')).toBeLessThan(
         GROUP_ORDER.indexOf('touchdowns'),
       );
-      expect(SPORTS_MARKET_TYPE_TO_GROUP.first_half_spreads).toBe(
-        'first-half',
-      );
-      expect(SPORTS_MARKET_TYPE_TO_GROUP.anytime_touchdowns).toBe(
-        'touchdowns',
-      );
+      expect(SPORTS_MARKET_TYPE_TO_GROUP.first_half_spreads).toBe('first-half');
+      expect(SPORTS_MARKET_TYPE_TO_GROUP.anytime_touchdowns).toBe('touchdowns');
     });
   });
 
