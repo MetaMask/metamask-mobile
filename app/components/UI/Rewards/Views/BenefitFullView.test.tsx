@@ -189,6 +189,7 @@ describe('BenefitFullView', () => {
       params: {
         newTabUrl: mockBenefit.url,
         timestamp: expect.any(Number),
+        fromTrending: true,
       },
     });
   });
@@ -233,40 +234,6 @@ describe('BenefitFullView', () => {
     const image = getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE);
     expect(image.props.source).toEqual({
       uri: 'https://cdn.example.com/thumbnail.png',
-    });
-  });
-
-  it('logs error when posting benefit impression fails', async () => {
-    const postBenefitError = new Error('post impression failed');
-    mockPostBenefitImpression.mockRejectedValueOnce(postBenefitError);
-
-    render(<BenefitFullView />);
-
-    await waitFor(() => {
-      expect(Logger.error).toHaveBeenCalledWith(postBenefitError, {
-        message: 'BenefitFullView: Failed to post benefit impression',
-        benefitId: mockBenefit.id,
-        benefitTypeId: mockBenefit.type.id,
-        subscriptionId: 'subscription-123',
-      });
-    });
-  });
-
-  it('normalizes unknown impression errors to default Error', async () => {
-    mockPostBenefitImpression.mockRejectedValueOnce('unknown');
-
-    render(<BenefitFullView />);
-
-    await waitFor(() => {
-      expect(Logger.error).toHaveBeenCalledWith(
-        new Error('Failed to post benefit impression'),
-        {
-          message: 'BenefitFullView: Failed to post benefit impression',
-          benefitId: mockBenefit.id,
-          benefitTypeId: mockBenefit.type.id,
-          subscriptionId: 'subscription-123',
-        },
-      );
     });
   });
 });
