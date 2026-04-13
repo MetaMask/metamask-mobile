@@ -25,4 +25,10 @@ export const PERPS_TRANSACTIONS_HISTORY_CONSTANTS = {
    * the pagination strategy avoids this by using small enough windows.
    */
   FUNDING_HISTORY_API_LIMIT: 500,
+  /**
+   * Minimum window size (ms) for the auto-split recursion in getFunding.
+   * HyperLiquid's funding interval is 8 h, so a 1-hour window holds at most
+   * a fraction of one event per position — well under the 500-record cap.
+   */
+  MIN_SPLIT_WINDOW_MS: 60 * 60 * 1000,
 } as const;

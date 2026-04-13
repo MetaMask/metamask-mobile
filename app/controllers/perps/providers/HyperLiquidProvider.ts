@@ -5450,10 +5450,8 @@ export class HyperLiquidProvider implements PerpsProvider {
         1000;
       const finalStartTime = params?.startTime ?? finalEndTime - pageWindowMs; // Default: most recent 30-day window only
 
-      // Minimum window size to bound recursion depth. The HyperLiquid funding
-      // interval is 8 h, so a 1-hour window holds at most a fraction of one
-      // event per position — well under the 500-record cap in any scenario.
-      const minSplitWindowMs = 60 * 60 * 1000;
+      const minSplitWindowMs =
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.MIN_SPLIT_WINDOW_MS;
       const apiLimit =
         PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_API_LIMIT;
 

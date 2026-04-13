@@ -427,7 +427,11 @@ export const usePerpsTransactionHistory = ({
     return allTransactions.sort(
       (a, b) =>
         b.timestamp - a.timestamp ||
-        (a.asset ?? '').localeCompare(b.asset ?? ''),
+        ((a.asset ?? '') < (b.asset ?? '')
+          ? -1
+          : (a.asset ?? '') > (b.asset ?? '')
+            ? 1
+            : 0),
     );
   }, [
     liveFills,
