@@ -72,10 +72,16 @@ class QuoteView {
     });
   }
 
-  get searchToken(): Promise<Detox.IndexableNativeElement> {
-    return Matchers.getElementByID(
-      QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT,
-    ) as Promise<Detox.IndexableNativeElement>;
+  get searchToken(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT,
+          { exact: true },
+        ),
+    });
   }
 
   get seeAllButton(): DetoxElement {
@@ -148,8 +154,21 @@ class QuoteView {
   }
 
   async tapSearchToken(): Promise<void> {
-    await Gestures.waitAndTap(this.searchToken, {
-      elemDescription: 'Tap on token search input element',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(asDetoxElement(this.searchToken), {
+          elemDescription: 'Tap on token search input element',
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.searchToken),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          },
+        );
+      },
     });
   }
 
@@ -200,8 +219,16 @@ class QuoteView {
   }
 
   async typeSearchToken(symbol: string): Promise<void> {
-    await Gestures.typeText(this.searchToken, symbol, {
-      elemDescription: `Search Token with symbol ${symbol}`,
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.typeText(asDetoxElement(this.searchToken), symbol, {
+          elemDescription: `Search Token with symbol ${symbol}`,
+        });
+      },
+      appium: async () => {
+        const searchField = await asPlaywrightElement(this.searchToken);
+        await searchField.fill(symbol);
+      },
     });
   }
 
@@ -378,6 +405,7 @@ class QuoteView {
     if (network !== 'Ethereum') {
       await this.selectNetwork(network);
     }
+    await this.typeSearchToken(token);
     const chainId = getChainIdForNetwork(network);
     await this.tapToken(chainId, token);
   }

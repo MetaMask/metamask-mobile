@@ -101,6 +101,7 @@ test.describe(PerformancePreps, () => {
       );
 
       await PerpsOrderView.setLeverageAppium(40);
+      await PerpsOrderView.setAmountUSD('10');
       await PerpsOrderView.tapPlaceOrder();
 
       await openPositionTimer.measure(
