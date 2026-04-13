@@ -59,23 +59,20 @@ const selectAccountTreeStateForBalances = createSelector(
   [selectAccountTreeControllerState],
   (accountTreeControllerState): AccountTreeControllerState =>
     ({
-      accountTree: accountTreeControllerState.accountTree,
+      accountTree: {
+        wallets: accountTreeControllerState.accountTree?.wallets ?? {},
+      },
       selectedAccountGroup:
         accountTreeControllerState.selectedAccountGroup ?? '',
-      // Mobile may not define these metadata fields yet; fall back to empty objects
-      // They are optional in the pure function usage path we take
+      isAccountTreeSyncingInProgress:
+        accountTreeControllerState.isAccountTreeSyncingInProgress ?? false,
+      hasAccountTreeSyncingSyncedAtLeastOnce:
+        accountTreeControllerState.hasAccountTreeSyncingSyncedAtLeastOnce ??
+        false,
       accountGroupsMetadata:
-        (
-          accountTreeControllerState as unknown as {
-            accountGroupsMetadata?: AccountTreeControllerState['accountGroupsMetadata'];
-          }
-        ).accountGroupsMetadata ?? {},
+        accountTreeControllerState.accountGroupsMetadata ?? {},
       accountWalletsMetadata:
-        (
-          accountTreeControllerState as unknown as {
-            accountWalletsMetadata?: AccountTreeControllerState['accountWalletsMetadata'];
-          }
-        ).accountWalletsMetadata ?? {},
+        accountTreeControllerState.accountWalletsMetadata ?? {},
     }) as AccountTreeControllerState,
 );
 

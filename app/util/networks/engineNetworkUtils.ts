@@ -82,13 +82,23 @@ export const deprecatedGetNetworkId = async (): Promise<string> => {
     throw new Error('Provider has not been initialized');
   }
 
+  type EthQueryWithSendAsync = {
+    sendAsync: (
+      payload: { method: string },
+      callback: (error: unknown, result?: unknown) => void,
+    ) => void;
+  };
+
   return new Promise((resolve, reject) => {
-    ethQuery.sendAsync({ method: 'net_version' }, (error, result) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(convertNetworkId(result as string | number));
-      }
-    });
+    (ethQuery as EthQueryWithSendAsync).sendAsync(
+      { method: 'net_version' },
+      (error: unknown, result?: unknown) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(convertNetworkId(result as string | number));
+        }
+      },
+    );
   });
 };

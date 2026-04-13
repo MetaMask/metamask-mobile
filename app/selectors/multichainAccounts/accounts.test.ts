@@ -119,15 +119,42 @@ const mockEntropySolanaAccount: InternalAccount = {
 };
 
 const createMockState = (
-  accountTreeController:
-    | DeepPartial<AccountTreeControllerState>
-    | undefined = {},
+  /** Hoists `selectedAccountGroup` from nested `accountTree` to controller root when needed. */
+  accountTreeController: unknown = {},
   internalAccounts: Record<AccountId, InternalAccount> = {},
-): RootState =>
-  ({
+): RootState => {
+  const normalizedAccountTree = (() => {
+    if (!accountTreeController || typeof accountTreeController !== 'object') {
+      return accountTreeController as
+        | DeepPartial<AccountTreeControllerState>
+        | undefined;
+    }
+    const c = accountTreeController as Record<string, unknown>;
+    const at = c.accountTree as Record<string, unknown> | undefined;
+    const nestedSelected =
+      at && typeof at === 'object' && 'selectedAccountGroup' in at
+        ? at.selectedAccountGroup
+        : undefined;
+    if (
+      nestedSelected !== undefined &&
+      c.selectedAccountGroup === undefined &&
+      at &&
+      typeof at === 'object'
+    ) {
+      const { selectedAccountGroup: _removed, ...restAt } = at;
+      return {
+        ...c,
+        accountTree: restAt,
+        selectedAccountGroup: nestedSelected,
+      } as DeepPartial<AccountTreeControllerState>;
+    }
+    return accountTreeController as DeepPartial<AccountTreeControllerState>;
+  })();
+
+  return {
     engine: {
       backgroundState: {
-        AccountTreeController: accountTreeController,
+        AccountTreeController: normalizedAccountTree,
         AccountsController: {
           internalAccounts: {
             accounts: internalAccounts,
@@ -135,19 +162,19 @@ const createMockState = (
         },
         NetworkController: {
           networkConfigurationsByChainId: {
-            0x1: {
+            '0x1': {
               chainId: '0x1',
               name: 'Ethereum',
             },
-            0xaa36a7: {
+            '0xaa36a7': {
               chainId: '0xaa36a7',
               name: 'Sepolia Test Network',
             },
-            0x2105: {
+            '0x2105': {
               chainId: '0x2105',
               name: 'Base',
             },
-            0xa4b1: {
+            '0xa4b1': {
               chainId: '0xa4b1',
               name: 'Arbitrum One',
             },
@@ -178,7 +205,8 @@ const createMockState = (
         },
       },
     },
-  }) as unknown as RootState;
+  } as unknown as RootState;
+};
 
 // Additional test utility functions
 const createStateWithNetworkConfigurations = (
@@ -190,10 +218,16 @@ const createStateWithNetworkConfigurations = (
     engine: {
       backgroundState: {
         AccountTreeController: {
-          accountTree: accountTreeBody,
+          accountTree: {
+            ...accountTreeBody,
+          },
           ...(selectedAccountGroup !== undefined
             ? { selectedAccountGroup }
             : {}),
+          isAccountTreeSyncingInProgress: false,
+          hasAccountTreeSyncingSyncedAtLeastOnce: false,
+          accountGroupsMetadata: {},
+          accountWalletsMetadata: {},
         },
         AccountsController: {
           internalAccounts: accountsState,

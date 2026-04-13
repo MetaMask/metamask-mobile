@@ -13,7 +13,15 @@ const waitForSmartTransactionConfirmationDone = (
   controllerMessenger: RootExtendedMessenger,
 ): Promise<SmartTransaction | undefined> =>
   new Promise((resolve) => {
-    controllerMessenger.subscribe(
+    // RootExtendedMessenger typing may omit SmartTransactions events; subscription is valid at runtime.
+    (
+      controllerMessenger as {
+        subscribe(
+          eventType: string,
+          handler: (payload: SmartTransaction) => void | Promise<void>,
+        ): void;
+      }
+    ).subscribe(
       'SmartTransactionsController:smartTransactionConfirmationDone',
       async (smartTransaction: SmartTransaction) => {
         resolve(smartTransaction);

@@ -57,6 +57,10 @@ const mockState = ({
             },
           },
           selectedAccountGroup: 'entropy:01K1TJY9QPSCKNBSVGZNG510GJ/0',
+          isAccountTreeSyncingInProgress: false,
+          hasAccountTreeSyncingSyncedAtLeastOnce: false,
+          accountGroupsMetadata: {},
+          accountWalletsMetadata: {},
         },
         AccountsController: {
           internalAccounts: {
