@@ -815,18 +815,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             asset={token}
             prices={prices}
             timePeriod={timePeriod}
+            chartNavigationButtons={chartNavigationButtons}
+            setTimePeriod={setTimePeriod}
             priceDiff={priceDiff}
             currentCurrency={currentCurrency}
             currentPrice={currentPrice}
             comparePrice={comparePrice}
             isLoading={isLoading}
           />
-          {/* Same as main: chart period tabs under the legacy line chart. Omitted when the advanced chart is on (range selector lives inside Price). */}
-          {!isTokenOverviewAdvancedChartEnabled && (
-            <View style={styles.chartNavigationWrapper}>
-              {renderChartNavigationButton()}
-            </View>
-          )}
           {!isTokenTradingOpen(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
               <MarketClosedActionButton

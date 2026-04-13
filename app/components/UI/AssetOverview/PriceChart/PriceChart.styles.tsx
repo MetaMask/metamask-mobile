@@ -34,21 +34,6 @@ const styleSheet = (params: {
       paddingHorizontal: 16,
       paddingTop: 10,
     },
-    noDataOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 96,
-      zIndex: 1,
-    },
-    noDataOverlayTitle: {
-      ...typography.sHeadingMD,
-      fontFamily: getFontFamily(TextVariant.HeadingMD),
-      textAlign: 'center',
-    } as TextStyle,
-    noDataOverlayText: {
-      textAlign: 'center',
-    } as TextStyle,
     tooltipLine: {
       color: theme.colors.icon.alternative,
     },

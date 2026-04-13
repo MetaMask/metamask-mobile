@@ -46,33 +46,25 @@ describe('PriceChart', () => {
         getByText('We could not fetch any data for this token'),
       ).toBeOnTheScreen();
 
-      // Should render no data overlay with icon
+      // Should render no data overlay (without icon in new design)
       expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
-      expect(getByTestId('price-chart-no-data-icon')).toBeOnTheScreen();
     });
 
-    it('shows simplified message when there is only 1 data point', () => {
+    it('shows same overlay when there is only 1 data point', () => {
       const singleDataPoint: TokenPrice[] = [['1736761237983', 100]];
 
-      const { getByText, queryByText, getByTestId } = render(
+      const { getByText, getByTestId } = render(
         <PriceChart {...defaultProps} prices={singleDataPoint} />,
       );
 
-      // Should show insufficient data overlay
+      // Should show insufficient data overlay with same design as empty data
       expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
 
-      // Should show insufficient data message
+      // Should show same title and description as empty state
+      expect(getByText('No chart data')).toBeOnTheScreen();
       expect(
-        getByText('Data is not available for this time period'),
+        getByText('We could not fetch any data for this token'),
       ).toBeOnTheScreen();
-
-      // Should NOT show full description
-      expect(
-        queryByText('We could not fetch any data for this token'),
-      ).not.toBeOnTheScreen();
-
-      // Should NOT show title as a Title component
-      expect(queryByText('No chart data')).not.toBeOnTheScreen();
     });
 
     it('does not show overlay when there are 2 data points', () => {

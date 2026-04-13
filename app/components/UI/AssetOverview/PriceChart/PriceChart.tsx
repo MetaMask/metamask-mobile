@@ -20,21 +20,12 @@ import {
 import { AreaChart } from 'react-native-svg-charts';
 
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { strings } from '../../../../../locales/i18n';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import Title from '../../../Base/Title';
 import { TOKEN_OVERVIEW_CHART_HEIGHT } from '../Price/tokenOverviewChart.constants';
 import styleSheet from './PriceChart.styles';
 import { placeholderData } from './utils';
 import PriceChartContext from './PriceChart.context';
+import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
 
 interface LineProps {
   line: string;
@@ -254,49 +245,7 @@ const PriceChart = ({
     );
   };
 
-  const NoDataOverlay = () => {
-    const hasInsufficientData = priceList.length > 0 && priceList.length <= 1;
-
-    if (hasInsufficientData) {
-      // Show simplified message for 1 data point
-      return (
-        <View
-          style={styles.noDataOverlay}
-          testID="price-chart-insufficient-data"
-        >
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            style={styles.noDataOverlayText}
-          >
-            {strings('asset_overview.no_chart_data.insufficient_data')}
-          </Text>
-        </View>
-      );
-    }
-
-    // Show full overlay for no data
-    return (
-      <View style={styles.noDataOverlay} testID="price-chart-no-data">
-        <Text>
-          <Icon
-            name={IconName.Warning}
-            color={IconColor.Muted}
-            size={IconSize.Xl}
-            testID="price-chart-no-data-icon"
-          />
-        </Text>
-        <Title style={styles.noDataOverlayTitle}>
-          {strings('asset_overview.no_chart_data.title')}
-        </Title>
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          style={styles.noDataOverlayText}
-        >
-          {strings('asset_overview.no_chart_data.description')}
-        </Text>
-      </View>
-    );
-  };
+  const hasInsufficientData = priceList.length > 0 && priceList.length <= 1;
 
   const Tooltip = ({ x, y, height: svgHeight }: Partial<TooltipProps>) => {
     if (positionX < 0) {
@@ -401,7 +350,17 @@ const PriceChart = ({
         testID={chartHasData ? 'price-chart-area' : undefined}
         {...panResponder.current.panHandlers}
       >
-        {isLoading ? <LoadingOverlay /> : !chartHasData && <NoDataOverlay />}
+        {isLoading ? (
+          <LoadingOverlay />
+        ) : (
+          !chartHasData && (
+            <NoDataOverlay
+              chartHeight={chartHeight}
+              chartPlaceholderFill={theme.colors.border.muted}
+              hasInsufficientData={hasInsufficientData}
+            />
+          )
+        )}
         {/* Chart is always rendered to avoid Android rendering bug; visible elements are conditionally hidden during loading. See: https://github.com/MetaMask/metamask-mobile/issues/20854 */}
         <AreaChart
           style={styles.chartArea}

@@ -51,11 +51,9 @@ describe('PriceLegacy', () => {
     expect(label).toBeOnTheScreen();
   });
 
-  it('hides price diff text when prices array is empty', () => {
-    const { queryByTestId } = render(
-      <PriceLegacy {...baseProps} prices={[]} />,
-    );
-    expect(queryByTestId('price-label')).not.toBeOnTheScreen();
+  it('shows price diff text even when prices array is empty', () => {
+    const { getByTestId } = render(<PriceLegacy {...baseProps} prices={[]} />);
+    expect(getByTestId('price-label')).toBeOnTheScreen();
   });
 
   it('does not render token price when currentPrice is NaN', () => {
