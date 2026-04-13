@@ -451,22 +451,6 @@ export function useCardHomeActions({
     data?.account?.shippingAddress,
   ]);
 
-  const navigateToCardPageAction = useCallback(() => {
-    if (isAuthenticated) {
-      navigateToCardPage();
-    } else {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
-    }
-  }, [isAuthenticated, navigateToCardPage, navigation]);
-
-  const navigateToTravelPageAction = useCallback(() => {
-    if (isAuthenticated) {
-      navigateToTravelPage();
-    } else {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
-    }
-  }, [isAuthenticated, navigateToTravelPage, navigation]);
-
   const cashbackAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -499,8 +483,8 @@ export function useCardHomeActions({
     logoutAction,
     orderMetalCardAction,
     cashbackAction,
-    navigateToCardPage: navigateToCardPageAction,
-    navigateToTravelPage: navigateToTravelPageAction,
+    navigateToCardPage,
+    navigateToTravelPage,
     navigateToCardTosPage,
   };
 }

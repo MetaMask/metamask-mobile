@@ -58,6 +58,7 @@ import type {
 } from './types.ts';
 import type { PreferencesState } from '@metamask/preferences-controller';
 import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
+import { CardControllerState } from '../../../app/core/Engine/controllers/card-controller/types.ts';
 
 export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -2064,6 +2065,62 @@ class FixtureBuilder {
         );
     }
 
+    return this;
+  }
+
+  /**
+   * Pre-populates CardController state for a cardholder with a USDC funding
+   * asset on Linea. Sets cardHomeDataStatus to 'success' so tests start with
+   * deterministic data without waiting for fetchCardHomeData.
+   *
+   * @param isAuthenticated - Whether the cardholder is authenticated (default: false).
+   * @param walletAddress - EVM address of the cardholder (default: standard fixture account).
+   * @returns - The FixtureBuilder instance for method chaining.
+   */
+  withCardController(
+    input: {
+      isAuthenticated: boolean;
+      walletAddress: string;
+    } = {
+      isAuthenticated: false,
+      walletAddress: DEFAULT_FIXTURE_ACCOUNT,
+    },
+  ) {
+    const { isAuthenticated, walletAddress } = input;
+    const usdcAsset = {
+      symbol: 'USDC',
+      name: 'USD Coin',
+      address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+      walletAddress,
+      decimals: 6,
+      chainId: 'eip155:59144',
+      balance: '0',
+      allowance: '999999999999',
+      priority: 1,
+      status: 'active',
+    };
+
+    merge(this.fixture.state.engine.backgroundState.CardController, {
+      selectedCountry: null,
+      providerData: {},
+      isAuthenticated,
+      cardholderAccounts: [`eip155:0:${walletAddress}`],
+      activeProviderId: 'baanx',
+      cardHomeDataStatus: 'success',
+      cardHomeData: {
+        primaryAsset: usdcAsset,
+        assets: [usdcAsset],
+        supportedTokens: [usdcAsset],
+        card: null,
+        account: null,
+        alerts: [],
+        actions: [
+          { type: 'add_funds', enabled: true },
+          { type: 'change_asset' },
+        ],
+        delegationSettings: null,
+      } as unknown as CardControllerState['cardHomeData'],
+    });
     return this;
   }
 
