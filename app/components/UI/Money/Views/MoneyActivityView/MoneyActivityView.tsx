@@ -13,7 +13,6 @@ import {
   ButtonIcon,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
   IconName,
   Text,
   TextColor,
