@@ -109,7 +109,7 @@ const hookDefaults = {
   isLeaderboardNotYetComputed: false,
   tierNames: ['STARTER', 'MID'],
   selectedTier: 'STARTER',
-  selectedTierData: { entries: [], totalParticipants: 10 },
+  selectedTierData: { entries: [], totalParticipants: 10, minDeposit: 500 },
   computedAt: '2024-03-20T12:00:00.000Z',
   setSelectedTier: jest.fn(),
   refetch: jest.fn(),
@@ -341,6 +341,7 @@ describe('OndoLeaderboardView', () => {
       mockUseGetOndoLeaderboard.mockReturnValue({
         ...hookDefaults,
         leaderboard: {
+          campaignId: 'campaign-ondo-123',
           tiers: {
             STARTER: {
               minDeposit: 500,
@@ -392,6 +393,7 @@ describe('OndoLeaderboardView', () => {
       mockUseGetOndoLeaderboard.mockReturnValue({
         ...hookDefaults,
         leaderboard: {
+          campaignId: 'campaign-ondo-123',
           tiers: {
             MID: { minDeposit: 1000, entries: [], totalParticipants: 50 },
           },

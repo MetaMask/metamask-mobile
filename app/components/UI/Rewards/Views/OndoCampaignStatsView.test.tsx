@@ -424,6 +424,7 @@ describe('OndoCampaignStatsView', () => {
     mockUseGetOndoLeaderboard.mockReturnValue({
       ...leaderboardDefaults,
       leaderboard: {
+        campaignId: 'campaign-ondo-123',
         tiers: {
           STARTER: {
             minDeposit: 500,
@@ -465,6 +466,7 @@ describe('OndoCampaignStatsView', () => {
     mockUseGetOndoLeaderboard.mockReturnValue({
       ...leaderboardDefaults,
       leaderboard: {
+        campaignId: 'campaign-ondo-123',
         tiers: {
           STARTER: {
             minDeposit: 500,
@@ -507,6 +509,7 @@ describe('OndoCampaignStatsView', () => {
     mockUseGetOndoLeaderboard.mockReturnValue({
       ...leaderboardDefaults,
       leaderboard: {
+        campaignId: 'campaign-ondo-123',
         tiers: {
           MID: {
             minDeposit: 1000,

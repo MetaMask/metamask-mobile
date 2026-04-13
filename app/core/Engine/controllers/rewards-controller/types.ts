@@ -696,6 +696,7 @@ export type CampaignLeaderboardState = {
         qualified: boolean;
       }[];
       totalParticipants: number;
+      minDeposit: number;
     };
   };
   lastFetched: number;
