@@ -304,6 +304,93 @@ builds:
     code_fencing: *code_fencing_main
 
   # ---------------------------------------------------------------------------
+  # PERFORMANCE E2E BUILDS (for BrowserStack performance tests)
+  # Two variants per build type:
+  #   with-srp    → imported wallet tests (ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD baked in)
+  #   without-srp → onboarding tests (E2E_MOCK_OAUTH + BYOA secrets baked in)
+  # rc  = release-candidate signing + production APIs
+  # exp = UAT signing + dev/staging APIs + experimental code fencing
+  # ---------------------------------------------------------------------------
+
+  main-perf-rc-with-srp:
+    github_environment: build-rc
+    signing: *signing_rc
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_BUILD_TYPE: 'main'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+    secrets:
+      <<: *secrets
+      ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
+      PREDEFINED_PASSWORD: 'E2E_PASSWORD'
+    code_fencing: *code_fencing_main
+
+  main-perf-rc-without-srp:
+    github_environment: build-rc
+    signing: *signing_rc
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_BUILD_TYPE: 'main'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      E2E_MOCK_OAUTH: 'true'
+    secrets:
+      <<: *secrets
+      E2E_BYOA_AUTH_SECRET: 'E2E_BYOA_AUTH_SECRET'
+      E2E_MOCK_OAUTH_EMAIL: 'E2E_MOCK_OAUTH_EMAIL'
+    code_fencing: *code_fencing_main
+
+  main-perf-exp-with-srp:
+    github_environment: build-exp
+    signing: *signing_uat
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'exp'
+      METAMASK_BUILD_TYPE: 'main'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMPS_ENVIRONMENT: 'staging'
+      RAMP_INTERNAL_BUILD: 'true'
+      RAMP_DEV_BUILD: 'true'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+    secrets:
+      <<: *secrets
+      ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
+      PREDEFINED_PASSWORD: 'E2E_PASSWORD'
+    code_fencing: *code_fencing_experimental
+
+  main-perf-exp-without-srp:
+    github_environment: build-exp
+    signing: *signing_uat
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'exp'
+      METAMASK_BUILD_TYPE: 'main'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      E2E_MOCK_OAUTH: 'true'
+      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMPS_ENVIRONMENT: 'staging'
+      RAMP_INTERNAL_BUILD: 'true'
+      RAMP_DEV_BUILD: 'true'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+    secrets:
+      <<: *secrets
+      E2E_BYOA_AUTH_SECRET: 'E2E_BYOA_AUTH_SECRET'
+      E2E_MOCK_OAUTH_EMAIL: 'E2E_MOCK_OAUTH_EMAIL'
+    code_fencing: *code_fencing_experimental
+
+  # ---------------------------------------------------------------------------
   # FLASK BUILDS
   # ---------------------------------------------------------------------------
 

@@ -73,7 +73,7 @@ on:
         required: false
         type: string
       build_variant:
-        description: 'Build variant for Bitrise (rc = release, exp = experimental)'
+        description: 'Build variant (rc = release candidate, exp = experimental)'
         required: false
         type: string
         default: 'rc'
@@ -103,7 +103,7 @@ env:
 
 jobs:
   determine-branch-name:
-    name: Determine Branch Name for Bitrise
+    name: Determine Branch Name
     runs-on: ubuntu-latest
     outputs:
       branch_name: ${{ steps.get-branch.outputs.branch_name }}
@@ -134,7 +134,7 @@ jobs:
           fi
 
           echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
-          echo "Branch for Bitrise: $BRANCH_NAME"
+          echo "Branch for build: $BRANCH_NAME"
 
   read-device-matrix:
     name: Read Device Matrix
