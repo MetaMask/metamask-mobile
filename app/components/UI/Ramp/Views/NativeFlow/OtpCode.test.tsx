@@ -406,7 +406,7 @@ describe('V2OtpCode', () => {
     });
   });
 
-  it('ignores OTP input changes and disables field while verification is in-flight', async () => {
+  it('ignores OTP input changes while verification request is in-flight', async () => {
     jest.useRealTimers();
 
     let resolveAttempt: (value: unknown) => void = () => undefined;
@@ -420,10 +420,6 @@ describe('V2OtpCode', () => {
 
     const otpInput = getByTestId('otp-code-input');
 
-    // Input should be editable before submission
-    expect(otpInput.props.editable).not.toBe(false);
-
-    // Enter OTP — triggers submission
     await act(async () => {
       fireEvent.changeText(otpInput, '123456');
     });
@@ -432,18 +428,43 @@ describe('V2OtpCode', () => {
       expect(mockVerifyUserOtp).toHaveBeenCalledTimes(1);
     });
 
-    // Input should be non-editable while request is in-flight
-    expect(otpInput.props.editable).toBe(false);
-
-    // Attempt to change the value while request is in-flight — should be ignored
     await act(async () => {
       fireEvent.changeText(otpInput, '654321');
     });
 
-    // Value should still be the original code
     expect(otpInput.props.value).toBe('123456');
 
-    // Settle the request
+    await act(async () => {
+      resolveAttempt(null);
+    });
+  });
+
+  it('sets input to non-editable while verification request is in-flight', async () => {
+    jest.useRealTimers();
+
+    let resolveAttempt: (value: unknown) => void = () => undefined;
+    const attemptPromise = new Promise((resolve) => {
+      resolveAttempt = resolve;
+    });
+
+    mockVerifyUserOtp.mockImplementationOnce(() => attemptPromise);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    const otpInput = getByTestId('otp-code-input');
+
+    expect(otpInput.props.editable).not.toBe(false);
+
+    await act(async () => {
+      fireEvent.changeText(otpInput, '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockVerifyUserOtp).toHaveBeenCalledTimes(1);
+    });
+
+    expect(otpInput.props.editable).toBe(false);
+
     await act(async () => {
       resolveAttempt(null);
     });
