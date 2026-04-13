@@ -1243,7 +1243,8 @@ export class BackgroundBridge extends EventEmitter {
         }, 1000);
       }
     } catch (err) {
-      // noop - origin may not have the permission
+      // PermissionController.getCaveat() throws if the origin does not have a CAIP-25 permission.
+      // This is a perfectly valid scenario and the error should instead be ignored.
     }
   };
 
