@@ -276,7 +276,7 @@ export type PredictOutcome = {
   status: 'open' | 'closed' | 'resolved';
   tokens: PredictOutcomeToken[];
   volume: number;
-  liquidity: number;
+  liquidity?: number;
   groupItemTitle: string;
   groupItemThreshold?: number;
   negRisk?: boolean;
