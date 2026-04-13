@@ -24,8 +24,9 @@ const StatsRow: React.FC<StatsRowProps> = ({ stats }) => {
       : '\u2014';
   const isWinRatePositive = (stats.winRate30d ?? 0) > 0;
 
-  const pnl = stats.pnl30d != null ? formatPnl(stats.pnl30d) : '\u2014';
-  const isPnlPositive = (stats.pnl30d ?? 0) >= 0;
+  const hasPnl = stats.pnl30d != null;
+  const pnl = hasPnl ? formatPnl(stats.pnl30d) : '\u2014';
+  const isPnlPositive = hasPnl && stats.pnl30d >= 0;
 
   return (
     <Box
@@ -57,8 +58,13 @@ const StatsRow: React.FC<StatsRowProps> = ({ stats }) => {
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
+          color={hasPnl ? undefined : TextColor.TextDefault}
           twClassName={
-            isPnlPositive ? 'text-success-default' : 'text-error-default'
+            hasPnl
+              ? isPnlPositive
+                ? 'text-success-default'
+                : 'text-error-default'
+              : undefined
           }
         >
           {pnl}

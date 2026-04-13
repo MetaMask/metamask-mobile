@@ -23,10 +23,10 @@ export interface PositionRowProps {
 
 function formatUsd(value: number | null | undefined): string {
   if (value == null) return '\u2014';
-  return `$${value.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+  const rounded = Math.round(value * 100) / 100;
+  const [whole, frac = ''] = rounded.toString().split('.');
+  const paddedFrac = frac.padEnd(2, '0').slice(0, 2);
+  return `$${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${'.'}${paddedFrac}`;
 }
 
 function formatPercent(value: number | null | undefined): string {

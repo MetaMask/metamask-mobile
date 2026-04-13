@@ -63,7 +63,7 @@ const TabButton: React.FC<TabButtonProps> = ({
   testID,
 }) => (
   <TouchableOpacity onPress={onPress} testID={testID}>
-    <Box twClassName={`pb-2 ${isActive ? 'border-b-2 border-white' : ''}`}>
+    <Box twClassName={`pb-2 ${isActive ? 'border-b-2 border-default' : ''}`}>
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
