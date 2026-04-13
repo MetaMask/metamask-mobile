@@ -1,4 +1,4 @@
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getGeolocationControllerMessenger } from '../../messengers/geolocation-controller-messenger';
 import type { MessengerClientInitRequest } from '../../types';
@@ -33,7 +33,7 @@ function getInitRequestMock(
   });
 
   return {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getGeolocationControllerMessenger(baseMessenger),
     initMessenger: undefined,
     ...overrides,
