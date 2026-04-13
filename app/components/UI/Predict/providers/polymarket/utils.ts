@@ -478,11 +478,6 @@ export const submitClobOrder = async ({
   }
 };
 
-export const isSportEvent = (event: PolymarketApiEvent): boolean =>
-  (Array.isArray(event.tags) ? event.tags : []).some(
-    (tag) => tag.slug === 'sports',
-  );
-
 const normalizeSportsMarketType = (type: string): string => {
   const lower = type.toLowerCase();
   if (lower.startsWith('first_half_')) {
