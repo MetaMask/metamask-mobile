@@ -1,7 +1,7 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getSelectedNetworkControllerMessenger } from '../messengers/selected-network-controller-messenger';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { selectedNetworkControllerInit } from './selected-network-controller-init';
 import {
   SelectedNetworkController,
@@ -13,7 +13,7 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/selected-network-controller');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<SelectedNetworkControllerMessenger>
+  MessengerClientInitRequest<SelectedNetworkControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,

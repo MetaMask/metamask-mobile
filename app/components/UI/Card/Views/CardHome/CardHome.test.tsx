@@ -819,17 +819,17 @@ describe('CardHome Component', () => {
     setupMockSelectors();
   });
 
-  it('renders correctly and matches snapshot', async () => {
+  it('renders correctly', async () => {
     // Given: default state with priority token
     // When: component renders
-    const { toJSON } = render();
+    render();
 
-    // Then: should match snapshot
+    // Then: key UI elements should be present
     await waitFor(() => {
-      expect(toJSON()).toBeDefined();
+      expect(
+        screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+      ).toBeOnTheScreen();
     });
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with privacy mode enabled', async () => {
@@ -837,15 +837,13 @@ describe('CardHome Component', () => {
     setupMockSelectors({ privacyMode: true });
 
     // When: component renders
-    const { toJSON } = render();
+    render();
 
-    // Then: should show privacy indicators and match snapshot
+    // Then: should show privacy indicators
     expect(
       screen.getByTestId(CardHomeSelectors.PRIVACY_TOGGLE_BUTTON),
-    ).toBeTruthy();
-    expect(screen.getByText('••••••••••••')).toBeTruthy();
-
-    expect(toJSON()).toMatchSnapshot();
+    ).toBeOnTheScreen();
+    expect(screen.getByText('••••••••••••')).toBeOnTheScreen();
   });
 
   it('navigates to add funds modal when add funds button is pressed with USDC token', async () => {

@@ -8,6 +8,14 @@ import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock'
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
+const mockSetIsChartBeingTouched = jest.fn();
+jest.mock('../PriceChart/PriceChart.context', () => ({
+  usePriceChart: () => ({
+    isChartBeingTouched: false,
+    setIsChartBeingTouched: mockSetIsChartBeingTouched,
+  }),
+}));
+
 jest.mock('react-redux', () => {
   const actual = jest.requireActual('react-redux');
   return {
@@ -504,5 +512,55 @@ describe('PriceAdvanced', () => {
     // Should use close=100 from the first visible candle, NOT close=200 from 3 days ago
     // (105 - 100) / 100 * 100 = 5.00%
     expect(getByText(/5\.00%/)).toBeOnTheScreen();
+  });
+
+  describe('touch gesture handling', () => {
+    it('sets isChartBeingTouched to true on touch start', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+
+      fireEvent(chartContainer, 'touchStart');
+
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+    });
+
+    it('sets isChartBeingTouched to false on touch end', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+
+      fireEvent(chartContainer, 'touchStart');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+
+      fireEvent(chartContainer, 'touchEnd');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+    });
+
+    it('sets isChartBeingTouched to false on touch cancel', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+
+      fireEvent(chartContainer, 'touchStart');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+
+      fireEvent(chartContainer, 'touchCancel');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+    });
+
+    it('handles multiple touch start/end cycles', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+
+      fireEvent(chartContainer, 'touchStart');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+
+      fireEvent(chartContainer, 'touchEnd');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+
+      fireEvent(chartContainer, 'touchStart');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+
+      fireEvent(chartContainer, 'touchEnd');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+    });
   });
 });

@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictionsSection from './PredictionsSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PREDICT_CLAIM_BUTTON_TEST_IDS } from '../../../../UI/Predict/components/PredictActionButtons/PredictClaimButton.testIds';
+import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 
 const mockNavigate = jest.fn();
 const mockClaim = jest.fn();
@@ -231,6 +232,33 @@ describe('PredictionsSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
+    });
+  });
+
+  it('navigates with homepage_positions entry_point when positions section title is pressed', () => {
+    mockUsePredictPositionsForHomepage.mockImplementation(
+      ({
+        claimable = false,
+      }: { maxPositions?: number; claimable?: boolean } = {}) => ({
+        positions: claimable ? [] : mockActivePositions,
+        isLoading: false,
+        error: null,
+        totalClaimableValue: 0,
+        refetch: jest.fn(),
+      }),
+    );
+
+    renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    fireEvent.press(screen.getByText('Predictions'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+      },
     });
   });
 
@@ -637,6 +665,32 @@ describe('PredictionsSection', () => {
       );
 
       expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
+    });
+
+    it('navigates with homepage_positions entry_point on title press', () => {
+      mockUsePredictPositionsForHomepage.mockReturnValue({
+        positions: mockActivePositions,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      fireEvent.press(screen.getByText('Predictions'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        },
+      });
     });
 
     it('returns null when no positions after loading', () => {

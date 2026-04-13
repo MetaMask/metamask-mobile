@@ -6638,7 +6638,6 @@
     "nested_transaction_heading": "Transaksyon {{index}}",
     "transaction": "Transaksyon",
     "available_balance": "Available na balanse: ",
-    "available_perps_balance": "Available na balanse sa Perps: ",
     "edit_amount_done": "Magpatuloy",
     "deposit_edit_amount_done": "Magdagdag ng pondo",
     "deposit_edit_amount_predict_withdraw": "Mag-withdraw",
