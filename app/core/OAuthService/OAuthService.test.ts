@@ -629,7 +629,7 @@ describe('OAuth login service', () => {
       delete process.env.E2E_MOCK_OAUTH_EMAIL;
     });
 
-    it('exchanges QA mock tokens and returns mock success without seedless authenticate', async () => {
+    it('exchanges QA mock tokens, calls seedless authenticate, and dispatches seedless onboarding', async () => {
       const loginHandler = mockCreateLoginHandler();
 
       const result = await OAuthLoginService.handleOAuthLogin(
@@ -657,10 +657,15 @@ describe('OAuth login service', () => {
       expect(body.client_id).toBe(MOCK_GOOGLE_OAUTH_CLIENT_ID);
       expect(body.login_provider).toBe(AuthConnection.Google);
       expect(body.access_type).toBe('offline');
-      expect(body.email_id).toMatch(/^[a-z0-9]+\d+\+e2e@web3auth\.io$/);
+      expect(body.email_id).toMatch(/^[a-f0-9]+\d+\+e2e@web3auth\.io$/);
       expect(mockAuthenticate).toHaveBeenCalledTimes(1);
       expect(mockLoginHandlerResponse).not.toHaveBeenCalled();
       expect(mockGetAuthTokens).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'SET_SEEDLESS_ONBOARDING',
+        clientId: MOCK_GOOGLE_OAUTH_CLIENT_ID,
+        authConnection: AuthConnection.Google,
+      });
     });
 
     it('uses E2E_MOCK_OAUTH_EMAIL for email_id when set', async () => {
@@ -725,6 +730,11 @@ describe('OAuth login service', () => {
       expect(mockLoginHandlerResponse).not.toHaveBeenCalled();
       expect(mockGetAuthTokens).not.toHaveBeenCalled();
       expect(mockAuthenticate).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'SET_SEEDLESS_ONBOARDING',
+        clientId: MOCK_GOOGLE_OAUTH_CLIENT_ID,
+        authConnection: AuthConnection.Google,
+      });
     });
   });
 });

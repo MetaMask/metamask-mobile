@@ -4,7 +4,7 @@ import ReduxService from '../../redux';
 import { isQa } from '../../../util/test/utils';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
-import { OAUTH_CONFIG } from './config';
+import { BUILD_TYPE, OAUTH_CONFIG } from './config';
 import {
   DEFAULT_LEGACY_IOS_GOOGLE_CONFIG_ENABLED,
   selectLegacyIosGoogleConfigEnabled,
@@ -48,12 +48,26 @@ const buildTypeMapping = (buildType: string, isDev: boolean) => {
   }
 };
 
-const BuildType =
-  (process.env.OAUTH_BUILD_TYPE as keyof typeof OAUTH_CONFIG) ||
-  buildTypeMapping(
+const resolveOAuthConfigKey = (): keyof typeof OAUTH_CONFIG => {
+  const fromEnv = process.env.OAUTH_BUILD_TYPE;
+  if (
+    typeof fromEnv === 'string' &&
+    fromEnv.length > 0 &&
+    fromEnv in OAUTH_CONFIG
+  ) {
+    return fromEnv as keyof typeof OAUTH_CONFIG;
+  }
+  const mapped = buildTypeMapping(
     AppConstants.METAMASK_BUILD_TYPE || 'main',
     AppConstants.IS_DEV,
   );
+  if (mapped in OAUTH_CONFIG) {
+    return mapped as keyof typeof OAUTH_CONFIG;
+  }
+  return BUILD_TYPE.development;
+};
+
+const BuildType = resolveOAuthConfigKey();
 const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
 
 export const web3AuthNetwork = CURRENT_OAUTH_CONFIG.WEB3AUTH_NETWORK;

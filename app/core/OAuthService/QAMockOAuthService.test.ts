@@ -28,6 +28,15 @@ jest.mock('../../util/environment', () => ({
   getE2EMockOAuthEmailForQaMock: () => mockGetE2EMockOAuthEmailForQaMock(),
 }));
 
+jest.mock('react-native-quick-crypto', () => ({
+  __esModule: true,
+  default: {
+    randomBytes: jest.fn((size: number) =>
+      Buffer.from(Array.from({ length: size }, (_, i) => (i % 255) + 1)),
+    ),
+  },
+}));
+
 import { QAMockOAuthService } from './QAMockOAuthService';
 
 const MOCK_GOOGLE_OAUTH_CLIENT_ID =

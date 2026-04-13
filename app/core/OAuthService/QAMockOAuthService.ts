@@ -11,6 +11,7 @@ import {
   getE2EByoaAuthSecret,
   getE2EMockOAuthEmailForQaMock,
 } from '../../util/environment';
+import QuickCrypto from 'react-native-quick-crypto';
 
 export interface QAMockTokenExchangeResult {
   data: AuthResponse;
@@ -21,7 +22,7 @@ export interface QAMockTokenExchangeResult {
 const DEFAULT_E2E_BYOA_AUTH_SECRET = '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42';
 
 const generateUniqueE2EEmail = (): string => {
-  const rand = Math.random().toString(36).slice(2, 8);
+  const rand = QuickCrypto.randomBytes(4).toString('hex').slice(0, 8);
   return `${rand}${Date.now()}+e2e@web3auth.io`;
 };
 

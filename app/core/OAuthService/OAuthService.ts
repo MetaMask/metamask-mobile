@@ -209,6 +209,14 @@ export class OAuthService {
     );
 
     this.#dispatchPostLogin(result);
+
+    ReduxService.store.dispatch(
+      setSeedlessOnboarding({
+        clientId: loginHandler.options.clientId,
+        authConnection: loginHandler.authConnection,
+      }),
+    );
+
     return result;
   };
 
