@@ -8,10 +8,14 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  AvatarBase,
-  AvatarBaseSize,
 } from '@metamask/design-system-react-native';
+import { StyleSheet } from 'react-native';
 import type { Position } from '@metamask/social-controllers';
+import TokenImage from '../../../../UI/TokenImage';
+
+const styles = StyleSheet.create({
+  tokenIcon: { width: 40, height: 40 },
+});
 
 export interface PositionRowProps {
   position: Position;
@@ -49,9 +53,12 @@ const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
         gap={4}
         twClassName="flex-1 min-w-0 mr-3"
       >
-        <AvatarBase
-          size={AvatarBaseSize.Lg}
-          fallbackText={position.tokenSymbol.charAt(0).toUpperCase()}
+        <TokenImage
+          asset={{
+            address: position.tokenAddress,
+            symbol: position.tokenSymbol,
+          }}
+          containerStyle={styles.tokenIcon}
         />
 
         <Box twClassName="flex-1 min-w-0">
