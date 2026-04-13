@@ -159,4 +159,4 @@ const TraderRow: React.FC<TraderRowProps> = ({
   );
 };
 
-export default TraderRow;
+export default React.memo(TraderRow);
