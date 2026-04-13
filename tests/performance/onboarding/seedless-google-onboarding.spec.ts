@@ -1,6 +1,10 @@
 import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import {
+  asPlaywrightElement,
+  PlaywrightAssertions,
+  PlaywrightGestures,
+} from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
 import { PerformanceOnboarding } from '../../tags.performance.js';
@@ -116,7 +120,7 @@ test.describe(PerformanceOnboarding, () => {
         await CreatePasswordView.reEnterPassword(password);
         await CreatePasswordView.tapIUnderstandCheckBox();
         await CreatePasswordView.tapCreatePasswordButton();
-
+        await PlaywrightGestures.hideKeyboard();
         await timer4.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(OnboardingSuccessView.doneButton),
