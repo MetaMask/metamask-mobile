@@ -1,5 +1,4 @@
 import { REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL } from '../constants';
-import { REWARDS_LEARN_MORE_URL } from '../../../../../../constants/urls';
 
 describe('Onboarding Constants', () => {
   describe('REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL', () => {
@@ -16,7 +15,7 @@ describe('Onboarding Constants', () => {
 
     it('should point to the correct MetaMask support URL', () => {
       expect(REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL).toBe(
-        REWARDS_LEARN_MORE_URL,
+        'https://support.metamask.io/manage-crypto/metamask-rewards/?utm_source=mobile_app',
       );
     });
   });

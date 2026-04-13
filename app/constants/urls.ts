@@ -70,7 +70,7 @@ export const MULTICHAIN_ACCOUNTS_URL =
 
 // Tokens & Swaps
 export const MUSD_LEARN_MORE_URL =
-  'https://support.metamask.io/manage-crypto/tokens/musd';
+  'https://support.metamask.io/manage-crypto/tokens/musd?utm_source=mobile_app';
 export const MISSING_TOKENS_URL =
   'https://support.metamask.io/managing-my-tokens/custom-tokens/how-to-display-tokens-in-metamask/?utm_source=mobile_app';
 export const SWAP_ISSUES_URL =
