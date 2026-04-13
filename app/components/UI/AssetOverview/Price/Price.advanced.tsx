@@ -238,8 +238,8 @@ const PriceAdvanced = ({
     );
   }, [showEmptyState, createEventBuilder, trackEvent]);
 
-  // Fallback to legacy chart if OHLCV data is not available for this asset
-  if (hasEmptyData && !chartLoading) {
+  // Fallback to legacy chart if OHLCV data is not available or if there's an error
+  if ((hasEmptyData || chartError) && !chartLoading) {
     return (
       <PriceLegacy
         prices={prices}
