@@ -5,8 +5,18 @@ import type { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 const MOCK_JWT_TOKEN =
   'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN3bmFtOTA5QGdtYWlsLmNvbSIsInN1YiI6InN3bmFtOTA5QGdtYWlsLmNvbSIsImlzcyI6Im1ldGFtYXNrIiwiYXVkIjoibWV0YW1hc2siLCJpYXQiOjE3NDUyMDc1NjYsImVhdCI6MTc0NTIwNzg2NiwiZXhwIjoxNzQ1MjA3ODY2fQ.nXRRLB7fglRll7tMzFFCU0u7Pu6EddqEYf_DMyRgOENQ6tJ8OLtVknNf83_5a67kl_YKHFO-0PEjvJviPID6xg';
 
+jest.mock('./OAuthLoginHandlers/constants', () => {
+  const actual = jest.requireActual<
+    typeof import('./OAuthLoginHandlers/constants')
+  >('./OAuthLoginHandlers/constants');
+  return {
+    ...actual,
+    E2E_QA_MOCK_OAUTH_TOKEN_URL: 'https://test.qa.mock/oauth/token',
+  };
+});
+
 const mockGetE2EByoaAuthSecret = jest.fn<string | undefined, []>(
-  () => 'test-byoa-secret',
+  () => undefined,
 );
 const mockGetE2EMockOAuthEmailForQaMock = jest.fn<string | undefined, []>(
   () => undefined,
@@ -18,24 +28,18 @@ jest.mock('../../util/environment', () => ({
   getE2EMockOAuthEmailForQaMock: () => mockGetE2EMockOAuthEmailForQaMock(),
 }));
 
-jest.mock('./OAuthLoginHandlers/constants', () => {
-  const actual = jest.requireActual<
-    typeof import('./OAuthLoginHandlers/constants')
-  >('./OAuthLoginHandlers/constants');
-  return {
-    ...actual,
-    E2E_QA_MOCK_OAUTH_TOKEN_URL: 'https://test.qa.mock/oauth/token',
-  };
-});
-
 import { QAMockOAuthService } from './QAMockOAuthService';
-import { OAUTH_CONFIG } from './OAuthLoginHandlers/config';
+
+const MOCK_GOOGLE_OAUTH_CLIENT_ID =
+  process.env.IOS_GOOGLE_CLIENT_ID ||
+  process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID ||
+  'abc.apps.googleusercontent.com';
 
 const createStubLoginHandler = (): BaseLoginHandler =>
   ({
     authConnection: AuthConnection.Google,
     options: {
-      clientId: OAUTH_CONFIG.main_uat.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
+      clientId: MOCK_GOOGLE_OAUTH_CLIENT_ID,
       authServerUrl: 'https://auth.example.com',
       web3AuthNetwork: 'sapphire_mainnet',
     },
@@ -54,7 +58,7 @@ const createStubLoginHandler = (): BaseLoginHandler =>
 describe('QAMockOAuthService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetE2EByoaAuthSecret.mockReturnValue('test-byoa-secret');
+    mockGetE2EByoaAuthSecret.mockReturnValue(undefined);
     mockGetE2EMockOAuthEmailForQaMock.mockReturnValue(undefined);
   });
 
@@ -102,20 +106,8 @@ describe('QAMockOAuthService', () => {
     });
   });
 
-  describe('mockSeedlessHandleResult', () => {
-    it('returns success with existingUser false and accountName', () => {
-      const result =
-        QAMockOAuthService.mockSeedlessHandleResult('user@example.com');
-
-      expect(result.type).toBe(OAuthLoginResultType.SUCCESS);
-      expect(result.existingUser).toBe(false);
-      expect(result.accountName).toBe('user@example.com');
-    });
-  });
-
   describe('exchangeTokens', () => {
     it('uses default BYOA secret when env secret is unset', async () => {
-      mockGetE2EByoaAuthSecret.mockReturnValue(undefined);
       const envelope = {
         success: true,
         data: {
@@ -149,6 +141,7 @@ describe('QAMockOAuthService', () => {
     });
 
     it('POSTs QA mock URL and returns data userId and accountName', async () => {
+      mockGetE2EByoaAuthSecret.mockReturnValue('test-byoa-secret');
       mockGetE2EMockOAuthEmailForQaMock.mockReturnValue(
         'newuser+e2e@web3auth.io',
       );
@@ -189,7 +182,7 @@ describe('QAMockOAuthService', () => {
       );
       expect(body).toMatchObject({
         email_id: 'newuser+e2e@web3auth.io',
-        client_id: OAUTH_CONFIG.main_uat.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
+        client_id: MOCK_GOOGLE_OAUTH_CLIENT_ID,
         login_provider: AuthConnection.Google,
         access_type: 'offline',
       });

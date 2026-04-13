@@ -1,7 +1,3 @@
-import {
-  getE2EByoaAuthSecret,
-  getE2EMockOAuthEmailForQaMock,
-} from '../../util/environment';
 import { E2E_QA_MOCK_OAUTH_TOKEN_URL } from './OAuthLoginHandlers/constants';
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
@@ -11,6 +7,10 @@ import {
   type HandleOAuthLoginResult,
   type OAuthUserInfo,
 } from './OAuthInterface';
+import {
+  getE2EByoaAuthSecret,
+  getE2EMockOAuthEmailForQaMock,
+} from '../../util/environment';
 
 export interface QAMockTokenExchangeResult {
   data: AuthResponse;
@@ -66,16 +66,6 @@ export class QAMockOAuthService {
     const accountName = jwtPayload.email ?? emailForMock;
 
     return { data, userId, accountName };
-  }
-
-  static mockSeedlessHandleResult(
-    accountName?: string,
-  ): HandleOAuthLoginResult {
-    return {
-      type: OAuthLoginResultType.SUCCESS,
-      existingUser: false,
-      accountName,
-    };
   }
 
   static parseAuthServiceResponse(raw: unknown): AuthResponse {
