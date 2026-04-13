@@ -7,8 +7,10 @@ import {
   parseCaipAssetType,
   parseCaipChainId,
 } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
 import I18n from '../../../../../locales/i18n';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
+import formatFiat from '../../../../util/formatFiat';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
 /**
@@ -45,6 +47,37 @@ export const formatRewardsDate = (
   new Intl.DateTimeFormat(locale, {
     month: 'short',
     day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
+
+/**
+ * Formats a date as a date-only label for section headers.
+ * @param date - Date object
+ * @returns Formatted date string without time
+ * @example 'Apr 23, 2025'
+ */
+export const formatRewardsDateLabel = (
+  date: Date,
+  locale: string = I18n.locale,
+): string =>
+  new Intl.DateTimeFormat(locale, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
+
+/**
+ * Formats a date as a time-only string.
+ * @param date - Date object
+ * @returns Formatted time string
+ * @example '10:30 AM'
+ */
+export const formatRewardsTimeOnly = (
+  date: Date,
+  locale: string = I18n.locale,
+): string =>
+  new Intl.DateTimeFormat(locale, {
     hour: 'numeric',
     minute: '2-digit',
   }).format(date);
@@ -194,6 +227,58 @@ const emailRegex =
 export const validateEmail = (email: string): boolean => {
   if (!email || email.split('@').length !== 2) return false;
   return emailRegex.test(email);
+};
+
+// ── USD formatting ──────────────────────────────────────────────────────
+
+/**
+ * Formats a numeric string as a USD amount using locale-aware fiat formatting.
+ *
+ * @example formatUsd('11500.000000') // '$11,500.00'
+ * @example formatUsd(12500.5)        // '$12,500.50'
+ */
+export const formatUsd = (value: string | number): string =>
+  formatFiat(new BigNumber(value), 'USD');
+
+/**
+ * Formats a USD amount in compact notation (e.g. $1.5M, $350K).
+ * Implemented manually because Hermes does not support `notation: 'compact'`.
+ *
+ * @example formatCompactUsd(1500000) // '$1.5M'
+ * @example formatCompactUsd(6000000) // '$6M'
+ * @example formatCompactUsd(25000)   // '$25K'
+ * @example formatCompactUsd(500)     // '$500'
+ */
+export const formatCompactUsd = (value: number): string => {
+  const abs = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+
+  if (abs >= 1_000_000) {
+    const compact = abs / 1_000_000;
+    const formatted = compact % 1 === 0 ? `${compact}` : compact.toFixed(1);
+    return `${sign}$${formatted}M`;
+  }
+  if (abs >= 1_000) {
+    const compact = abs / 1_000;
+    const formatted = compact % 1 === 0 ? `${compact}` : compact.toFixed(1);
+    return `${sign}$${formatted}K`;
+  }
+  return `${sign}$${abs}`;
+};
+
+/**
+ * Formats a USD amount with a +/- sign prefix. Returns '—' for null.
+ *
+ * @example formatSignedUsd('5000.000000')  // '+$5,000.00'
+ * @example formatSignedUsd('-1250.50')     // '-$1,250.50'
+ * @example formatSignedUsd(null)           // '—'
+ */
+export const formatSignedUsd = (value: string | null): string => {
+  if (value === null) return '—';
+  const num = parseFloat(value);
+  if (Number.isNaN(num)) return value;
+  const sign = num > 0 ? '+' : '';
+  return `${sign}${formatUsd(value)}`;
 };
 
 // ── Percent / rate formatting ───────────────────────────────────────────

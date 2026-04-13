@@ -149,6 +149,7 @@ const Routes = {
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
+    REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -403,6 +404,7 @@ const Routes = {
   MONEY: {
     ROOT: 'MoneyScreens',
     HOME: 'MoneyHome',
+    ACTIVITY: 'MoneyActivity',
   },
   MONEY_ACCOUNT: {
     ROOT: 'MoneyAccountScreens',

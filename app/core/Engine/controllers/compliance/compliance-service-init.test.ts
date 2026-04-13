@@ -6,7 +6,7 @@ import {
   ComplianceService,
   type ComplianceServiceMessenger,
 } from '@metamask/compliance-controller';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('../../../../util/environment', () => ({
@@ -20,7 +20,7 @@ const mockIsProduction = isProduction as jest.MockedFunction<
 >;
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<ComplianceServiceMessenger>
+  MessengerClientInitRequest<ComplianceServiceMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
     namespace: MOCK_ANY_NAMESPACE,

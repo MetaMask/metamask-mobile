@@ -2,7 +2,7 @@ import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getAccountTrackerControllerMessenger } from '../messengers/account-tracker-controller-messenger';
 
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { accountTrackerControllerInit } from './account-tracker-controller-init';
 import {
   AccountTrackerController,
@@ -28,7 +28,7 @@ jest.mock('../../../selectors/settings', () => ({
 }));
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<AccountTrackerControllerMessenger>
+  MessengerClientInitRequest<AccountTrackerControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,

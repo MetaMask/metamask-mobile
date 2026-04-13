@@ -1,6 +1,6 @@
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import {
   PerpsController,
   PerpsControllerMessenger,
@@ -47,7 +47,7 @@ jest.mock('@metamask/perps-controller', () => {
 describe('perps controller init', () => {
   const perpsControllerClassMock = jest.mocked(PerpsController);
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<PerpsControllerMessenger>
+    MessengerClientInitRequest<PerpsControllerMessenger>
   >;
 
   beforeEach(() => {

@@ -142,9 +142,21 @@ export type PredictControllerSubscribeToMarketPricesAction = {
 };
 
 /**
+ * Subscribes to real-time crypto price updates via RTDS WebSocket.
+ *
+ * @param symbols - Array of crypto symbols to subscribe to (e.g., ['btcusdt'])
+ * @param callback - Function invoked when a crypto price update is received
+ * @returns Unsubscribe function to clean up the subscription
+ */
+export type PredictControllerSubscribeToCryptoPricesAction = {
+  type: `PredictController:subscribeToCryptoPrices`;
+  handler: PredictController['subscribeToCryptoPrices'];
+};
+
+/**
  * Gets the current WebSocket connection status for live data feeds.
  *
- * @returns Connection status for sports and market data WebSocket channels
+ * @returns Connection status for sports, market, and RTDS data WebSocket channels
  */
 export type PredictControllerGetConnectionStatusAction = {
   type: `PredictController:getConnectionStatus`;
@@ -257,6 +269,7 @@ export type PredictControllerMethodActions =
   | PredictControllerRefreshEligibilityAction
   | PredictControllerSubscribeToGameUpdatesAction
   | PredictControllerSubscribeToMarketPricesAction
+  | PredictControllerSubscribeToCryptoPricesAction
   | PredictControllerGetConnectionStatusAction
   | PredictControllerClearOrderErrorAction
   | PredictControllerOnPlaceOrderSuccessAction

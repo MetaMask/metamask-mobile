@@ -1,5 +1,5 @@
 import { CronjobController } from '@metamask/snaps-controllers';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import {
   CronjobControllerMessenger,
   getCronjobControllerMessenger,
@@ -12,7 +12,7 @@ import configureStore from '../../../../util/test/configureStore';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<CronjobControllerMessenger>
+  MessengerClientInitRequest<CronjobControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
