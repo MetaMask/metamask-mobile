@@ -1243,7 +1243,12 @@ export class BackgroundBridge extends EventEmitter {
         }, 1000);
       }
     } catch (err) {
-      // noop - origin may not have the permission
+      if (err instanceof PermissionDoesNotExistError) {
+        // suppress expected error in case that the origin
+        // does not have the target permission yet
+      } else {
+        throw err;
+      }
     }
   };
 

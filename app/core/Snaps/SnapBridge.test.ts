@@ -103,9 +103,7 @@ jest.mock('../Engine/Engine', () => ({
           requiredScopes: {},
           optionalScopes: {
             'eip155:1': {
-              accounts: [
-                'eip155:1:0x1234567890123456789012345678901234567890',
-              ],
+              accounts: ['eip155:1:0x1234567890123456789012345678901234567890'],
             },
           },
           sessionProperties: {},
