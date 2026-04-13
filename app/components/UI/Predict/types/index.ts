@@ -263,6 +263,7 @@ export interface CryptoPriceUpdate {
 export type PredictOutcomeGroup = {
   key: string;
   outcomes: PredictOutcome[];
+  subgroups?: PredictOutcomeGroup[];
 };
 
 export type PredictOutcome = {
@@ -279,6 +280,7 @@ export type PredictOutcome = {
   groupItemThreshold?: number;
   negRisk?: boolean;
   tickSize?: string;
+  sportsMarketType?: string;
   resolvedBy?: string;
   resolutionStatus?: string;
 };

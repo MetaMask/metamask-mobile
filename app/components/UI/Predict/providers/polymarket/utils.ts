@@ -486,14 +486,25 @@ export const isSportEvent = (event: PolymarketApiEvent): boolean =>
  * Get the sort priority for a sports market type
  * moneyline: 0, spreads: 1, totals: 2, others: 3 (then alphabetically)
  */
-const getSportsMarketTypePriority = (type: string): number => {
-  const priorities: Record<string, number> = {
-    moneyline: 0,
-    spreads: 1,
-    totals: 2,
-  };
-  return priorities[type.toLowerCase()] ?? 3;
+const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
+  moneyline: 0,
+  spreads: 1,
+  totals: 2,
 };
+
+const normalizeSportsMarketType = (type: string): string => {
+  const lower = type.toLowerCase();
+  const prefixes = ['first_half_'];
+  for (const prefix of prefixes) {
+    if (lower.startsWith(prefix)) {
+      return lower.slice(prefix.length);
+    }
+  }
+  return lower;
+};
+
+const getSportsMarketTypePriority = (type: string): number =>
+  SPORTS_MARKET_TYPE_PRIORITIES[normalizeSportsMarketType(type)] ?? 3;
 
 export function buildOutcomeGroups(
   outcomes: PredictOutcome[],
@@ -532,36 +543,23 @@ export function buildOutcomeGroups(
     }
   }
 
-  for (const [groupKey, groupOutcomes] of groupMap) {
-    if (groupKey === DEFAULT_GROUP_KEY) {
-      groupOutcomes.sort((a, b) => {
-        const aType = marketLookup.get(a.id)?.sportsMarketType ?? '';
-        const bType = marketLookup.get(b.id)?.sportsMarketType ?? '';
-        const priorityDiff =
-          getSportsMarketTypePriority(aType) -
-          getSportsMarketTypePriority(bType);
-        if (priorityDiff !== 0) {
-          return priorityDiff;
-        }
-        const aScore =
-          (marketLookup.get(a.id)?.liquidity ?? 0) +
-          (marketLookup.get(a.id)?.volumeNum ?? 0);
-        const bScore =
-          (marketLookup.get(b.id)?.liquidity ?? 0) +
-          (marketLookup.get(b.id)?.volumeNum ?? 0);
-        return bScore - aScore;
-      });
-    } else {
-      groupOutcomes.sort((a, b) => {
-        const aScore =
-          (marketLookup.get(a.id)?.liquidity ?? 0) +
-          (marketLookup.get(a.id)?.volumeNum ?? 0);
-        const bScore =
-          (marketLookup.get(b.id)?.liquidity ?? 0) +
-          (marketLookup.get(b.id)?.volumeNum ?? 0);
-        return bScore - aScore;
-      });
-    }
+  for (const [, groupOutcomes] of groupMap) {
+    groupOutcomes.sort((a, b) => {
+      const aType = marketLookup.get(a.id)?.sportsMarketType ?? '';
+      const bType = marketLookup.get(b.id)?.sportsMarketType ?? '';
+      const priorityDiff =
+        getSportsMarketTypePriority(aType) - getSportsMarketTypePriority(bType);
+      if (priorityDiff !== 0) {
+        return priorityDiff;
+      }
+      const aScore =
+        (marketLookup.get(a.id)?.liquidity ?? 0) +
+        (marketLookup.get(a.id)?.volumeNum ?? 0);
+      const bScore =
+        (marketLookup.get(b.id)?.liquidity ?? 0) +
+        (marketLookup.get(b.id)?.volumeNum ?? 0);
+      return bScore - aScore;
+    });
   }
 
   const groupEntries = [...groupMap.entries()];
@@ -576,10 +574,37 @@ export function buildOutcomeGroups(
     return a[0].localeCompare(b[0]);
   });
 
-  return groupEntries.map(([key, groupOutcomes]) => ({
-    key,
-    outcomes: groupOutcomes,
-  }));
+  return groupEntries.map(([key, groupOutcomes]) => {
+    const typeMap = new Map<string, PredictOutcome[]>();
+    for (const outcome of groupOutcomes) {
+      const type = marketLookup.get(outcome.id)?.sportsMarketType ?? key;
+      const bucket = typeMap.get(type);
+      if (bucket) {
+        bucket.push(outcome);
+      } else {
+        typeMap.set(type, [outcome]);
+      }
+    }
+
+    if (typeMap.size < 2) {
+      return { key, outcomes: groupOutcomes };
+    }
+
+    const subgroupEntries = [...typeMap.entries()];
+    subgroupEntries.sort(
+      (a, b) =>
+        getSportsMarketTypePriority(a[0]) - getSportsMarketTypePriority(b[0]),
+    );
+
+    return {
+      key,
+      outcomes: [],
+      subgroups: subgroupEntries.map(([subKey, subOutcomes]) => ({
+        key: subKey,
+        outcomes: subOutcomes,
+      })),
+    };
+  });
 }
 
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
@@ -801,6 +826,7 @@ export const parsePolymarketMarket = (
   status: market.closed ? PredictMarketStatus.CLOSED : PredictMarketStatus.OPEN,
   volume: market.volumeNum ?? 0,
   tokens: parsePolymarketMarketOutcomes(market, event),
+  sportsMarketType: market.sportsMarketType,
   negRisk: market.negRisk,
   tickSize: market.orderPriceMinTickSize.toString(),
   resolvedBy: market.resolvedBy,
