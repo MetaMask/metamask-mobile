@@ -21,12 +21,8 @@ import {
 import styleSheet from './EditMultichainAccountName.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
-import {
-  TextInput,
-  SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { EditAccountNameIds } from '../EditAccountName.testIds';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RootState } from '../../../../../reducers';

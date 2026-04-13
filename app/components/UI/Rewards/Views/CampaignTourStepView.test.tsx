@@ -75,10 +75,6 @@ jest.mock('../components/Onboarding/ProgressIndicator', () => {
   };
 });
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-}));
-
 const mockGoToPage = jest.fn();
 jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
   const { View } = jest.requireActual('react-native');

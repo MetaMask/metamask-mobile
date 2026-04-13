@@ -62,19 +62,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(View, props, children),
-  };
-});
-
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: jest.fn((...args) =>

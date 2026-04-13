@@ -35,39 +35,45 @@ const LINEA_MOCK_RESPONSES: Record<string, unknown> = {
 };
 
 /**
- * Generate ABI-encoded response for spendersAllowancesForTokens
- * Returns Result[][] where Result is (bool success, bytes data)
- * Each token has 2 spenders (global and US), each returning allowance of 0
+ * Generate ABI-encoded response for spendersAllowancesForTokens.
+ * Returns Result[][] where Result is (bool success, bytes data).
+ * Each token has 2 spenders (global and US).
+ *
+ * @param tokenAllowances - Per-token allowances (0=USDC,1=USDT,2=WETH,3=EURe,4=GBPe,5=aUSDC). Used for spender[0] (global); spender[1] (us) is always 0.
  */
-const generateSpendersAllowancesResponse = (numTokens: number): string => {
-  // ABI encode uint256(0) for allowance data
-  const zeroAllowanceData = ethers.utils.defaultAbiCoder.encode(
-    ['uint256'],
-    [0],
-  );
+const generateSpendersAllowancesResponse = (
+  tokenAllowances: (number | string)[],
+): string => {
+  const zeroData = ethers.utils.defaultAbiCoder.encode(['uint256'], [0]);
 
-  // Create Result tuples: (true, encodedZeroAllowance) for each spender
-  // 2 spenders per token: [global, us]
-  const resultTuple = [true, zeroAllowanceData];
+  const innerArrays = tokenAllowances.map((allowance) => {
+    const allowanceData = ethers.utils.defaultAbiCoder.encode(
+      ['uint256'],
+      [allowance],
+    );
+    return [
+      [true, allowanceData], // spender 0 (global)
+      [true, zeroData], // spender 1 (us)
+    ] as [boolean, string][];
+  });
 
-  // Create inner arrays (one per token, each with 2 Result tuples)
-  const innerArrays: [boolean, string][][] = [];
-  for (let i = 0; i < numTokens; i++) {
-    innerArrays.push([resultTuple, resultTuple] as [boolean, string][]);
-  }
-
-  // ABI encode the outer array of Result[][]
-  // Result is tuple(bool, bytes)
-  const encoded = ethers.utils.defaultAbiCoder.encode(
+  return ethers.utils.defaultAbiCoder.encode(
     ['tuple(bool,bytes)[][]'],
     [innerArrays],
   );
-
-  return encoded;
 };
 
-// Pre-compute the response for 6 tokens (matching clientConfig mock)
-const SPENDERS_ALLOWANCES_RESPONSE = generateSpendersAllowancesResponse(6);
+// USDC (index 0): allowance 200000000000 > ARBITRARY_ALLOWANCE (100000000000) → Active
+// All other tokens: 0 → Inactive
+// With USDC as the only Active token, BaanxProvider sets it as primaryAsset.
+const SPENDERS_ALLOWANCES_RESPONSE = generateSpendersAllowancesResponse([
+  200000000000, // USDC — Active
+  0, // USDT — Inactive
+  0, // WETH — Inactive
+  0, // EURe — Inactive
+  0, // GBPe — Inactive
+  0, // aUSDC — Inactive
+]);
 
 const clientConfig = {
   urlEndpoint:

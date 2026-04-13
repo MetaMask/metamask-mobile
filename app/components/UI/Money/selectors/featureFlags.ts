@@ -17,6 +17,18 @@ export const selectMoneyHomeScreenEnabledFlag = createSelector(
   },
 );
 
+/** Temporary flag: remote value is a boolean only. */
+export const selectMoneyActivityMockDataEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remote = remoteFeatureFlags?.moneyActivityMockDataEnabled;
+    if (typeof remote === 'boolean') {
+      return remote;
+    }
+    return process.env.MM_MONEY_ACTIVITY_MOCK_DATA_ENABLED === 'true';
+  },
+);
+
 export const selectMoneyEnableMoneyAccountFlag = createSelector(
   selectRemoteFeatureFlags,
   isMoneyAccountEnabled,

@@ -1,4 +1,7 @@
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  type StackNavigationOptions,
+} from '@react-navigation/stack';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import type { PerpsNavigationParamList } from '../types/navigation';
@@ -40,6 +43,7 @@ import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWa
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
+import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
 const Stack = createStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createStackNavigator();
@@ -52,14 +56,15 @@ const styles = StyleSheet.create({
 
 function getRedesignedConfirmationsHeaderOptions({
   showPerpsHeader = CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader,
-}: PerpsNavigationParamList['RedesignedConfirmations'] = {}) {
+}: PerpsNavigationParamList['RedesignedConfirmations'] = {}): StackNavigationOptions {
   return showPerpsHeader
-    ? {
+    ? ({
         headerLeft: () => null,
         headerShown: true,
         title: '',
-      }
-    : { header: () => null };
+        presentation: 'transparentModal',
+      } as const)
+    : ({ header: () => null, presentation: 'transparentModal' } as const);
 }
 
 const PerpsConfirmScreen = () => {
@@ -93,16 +98,8 @@ const PerpsModalStack = () => {
       <PerpsStreamProvider>
         <ModalStack.Navigator
           screenOptions={{
-            headerShown: false,
-            presentation: 'modal',
-            cardStyle: {
-              backgroundColor: 'transparent',
-            },
-            cardStyleInterpolator: () => ({
-              overlayStyle: {
-                opacity: 0,
-              },
-            }),
+            ...clearStackNavigatorOptions,
+            presentation: 'transparentModal',
           }}
         >
           <ModalStack.Screen
