@@ -23,6 +23,7 @@ import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useTheme } from '../../../util/theme';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
+import { useReferralDetails } from './hooks/useReferralDetails';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
 const Stack = createStackNavigator();
 
@@ -42,6 +43,9 @@ const RewardsNavigator: React.FC = () => {
 
   // Fetch geo rewards metadata so optinAllowedForGeo is available across all rewards screens
   useGeoRewardsMetadata({});
+
+  // Fetch referral details so referral code is available across all rewards screens
+  useReferralDetails();
 
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {
