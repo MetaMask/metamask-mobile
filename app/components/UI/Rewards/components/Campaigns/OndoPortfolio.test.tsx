@@ -227,8 +227,8 @@ const MOCK_POSITION: OndoGmPortfolioPositionDto = {
   tokenName: 'Apple Inc.',
   tokenAsset: 'eip155:1/erc20:0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c',
   units: '45.2',
-  costBasis: '9040.000000',
-  avgCostPerUnit: '200.000000',
+  bookPrice: '200.000000',
+  bookValue: '9040.000000',
   currentPrice: '215.500000',
   currentValue: '9740.600000',
   unrealizedPnl: '700.600000',
@@ -237,9 +237,10 @@ const MOCK_POSITION: OndoGmPortfolioPositionDto = {
 
 const MOCK_SUMMARY: OndoGmPortfolioSummaryDto = {
   totalCurrentValue: '9740.600000',
-  totalCostBasis: '9040.000000',
+  totalBookValue: '9040.000000',
   totalUsdDeposited: '9040.000000',
   netDeposit: '9040.000000',
+  totalCashedOut: '600.000000',
   portfolioPnl: '700.600000',
   portfolioPnlPercent: '0.0775',
 };

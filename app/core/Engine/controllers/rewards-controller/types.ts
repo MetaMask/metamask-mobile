@@ -275,6 +275,18 @@ export interface CampaignLeaderboardEntry {
    * @example 0.15
    */
   rateOfReturn: number;
+
+  /**
+   * Non-consecutive qualifying days at projected tier
+   * @example 8
+   */
+  qualifiedDays: number;
+
+  /**
+   * Whether hold requirement is met
+   * @example false
+   */
+  qualified: boolean;
 }
 
 /**
@@ -365,6 +377,23 @@ export interface CampaignLeaderboardPositionDto {
   netDeposit: number;
 
   /**
+   * Non-consecutive qualifying days at projected tier
+   * @example 8
+   */
+  qualifiedDays: number;
+
+  /**
+   * Whether hold requirement is met
+   * @example false
+   */
+  qualified: boolean;
+
+  /**
+   * Neighboring entries around the user's rank (up to 1 before/after)
+   */
+  neighbors: CampaignLeaderboardEntry[];
+
+  /**
    * When the leaderboard was last computed (ISO timestamp)
    * @example '2024-03-20T12:00:00.000Z'
    */
@@ -397,14 +426,16 @@ export interface OndoGmPortfolioPositionDto {
   units: string;
 
   /**
-   * @example '9040.000000'
-   */
-  costBasis: string;
-
-  /**
+   * Weighted-average book price per whole token (USD)
    * @example '200.000000'
    */
-  avgCostPerUnit: string;
+  bookPrice: string;
+
+  /**
+   * Derived book value: units * bookPrice (USD)
+   * @example '9040.000000'
+   */
+  bookValue: string;
 
   /**
    * @example '215.500000'
@@ -437,9 +468,10 @@ export interface OndoGmPortfolioSummaryDto {
   totalCurrentValue: string;
 
   /**
+   * Sum of all position book values (USD)
    * @example '9040.000000'
    */
-  totalCostBasis: string;
+  totalBookValue: string;
 
   /**
    * @example '9040.000000'
@@ -450,6 +482,12 @@ export interface OndoGmPortfolioSummaryDto {
    * @example '9040.000000'
    */
   netDeposit: string;
+
+  /**
+   * Cumulative market value already cashed out from the portfolio
+   * @example '600.000000'
+   */
+  totalCashedOut: string;
 
   /**
    * @example '700.600000'
@@ -484,8 +522,8 @@ export type OndoGmPortfolioPositionState = {
   tokenName: string;
   tokenAsset: string;
   units: string;
-  costBasis: string;
-  avgCostPerUnit: string;
+  bookPrice: string;
+  bookValue: string;
   currentPrice: string;
   currentValue: string;
   unrealizedPnl: string;
@@ -498,11 +536,20 @@ export type OndoGmPortfolioPositionState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OndoGmPortfolioSummaryState = {
   totalCurrentValue: string;
-  totalCostBasis: string;
+  totalBookValue: string;
   totalUsdDeposited: string;
   netDeposit: string;
+  totalCashedOut: string;
   portfolioPnl: string;
   portfolioPnlPercent: string;
+};
+
+/**
+ * Campaign-wide total deposits (public endpoint).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmCampaignDepositsDto = {
+  totalUsdDeposited: string;
 };
 
 /**
@@ -618,6 +665,15 @@ export type OndoGmActivityState = {
 };
 
 /**
+ * Cached campaign deposits (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmCampaignDepositsState = {
+  totalUsdDeposited: string;
+  lastFetched: number;
+};
+
+/**
  * State for cached leaderboard data in the controller
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -630,6 +686,8 @@ export type CampaignLeaderboardState = {
         rank: number;
         referralCode: string;
         rateOfReturn: number;
+        qualifiedDays: number;
+        qualified: boolean;
       }[];
       totalParticipants: number;
     };
@@ -649,6 +707,15 @@ export type CampaignLeaderboardPositionFoundState = {
   currentUsdValue: number;
   totalUsdDeposited: number;
   netDeposit: number;
+  qualifiedDays: number;
+  qualified: boolean;
+  neighbors: {
+    rank: number;
+    referralCode: string;
+    rateOfReturn: number;
+    qualifiedDays: number;
+    qualified: boolean;
+  }[];
   computedAt: string;
   lastFetched: number;
 };
@@ -1749,6 +1816,8 @@ export type RewardsControllerState = {
   ondoCampaignActivity: {
     [compositeId: string]: OndoGmActivityState;
   };
+  /** Ondo campaign deposits keyed by campaignId (public endpoint). */
+  ondoCampaignDeposits: { [campaignId: string]: OndoGmCampaignDepositsState };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.

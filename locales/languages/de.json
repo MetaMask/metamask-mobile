@@ -4810,11 +4810,9 @@
     "body_for_seedphrase": "Nachdem nun ein Wert Ihrem Wallet hinzugefügt wurde, schützen Sie Ihr Wallet durch die Festlegung eines Passwortes und indem Sie ihre geheime Wiederherstellungsphrase speichern (erforderlich).",
     "button": "Wallet schützen"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Transaktionsaktualisierung fehlgeschlagen",
-    "text": "Möchten Sie es erneut versuchen?",
-    "cancel_button": "Stornieren",
-    "retry_button": "Erneut versuchen"
+    "already_confirmed": "Diese Transaktion wurde bereits bestätigt und kann nicht geändert werden."
   },
   "payment_request": {
     "title": "Anfragen",

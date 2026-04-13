@@ -38,6 +38,9 @@ import rewardsReducer, {
   setOndoCampaignLeaderboardPosition,
   setOndoCampaignPortfolioPosition,
   setOndoCampaignActivity,
+  setOndoCampaignDeposits,
+  setOndoCampaignDepositsLoading,
+  setOndoCampaignDepositsError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -2163,6 +2166,9 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardPositions: {},
         ondoCampaignPortfolio: {},
         ondoCampaignActivity: {},
+        ondoCampaignDeposits: null,
+        ondoCampaignDepositsLoading: false,
+        ondoCampaignDepositsError: false,
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
@@ -2281,6 +2287,9 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardPositions: {},
         ondoCampaignPortfolio: {},
         ondoCampaignActivity: {},
+        ondoCampaignDeposits: null,
+        ondoCampaignDepositsLoading: false,
+        ondoCampaignDepositsError: false,
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
@@ -2602,6 +2611,9 @@ describe('rewardsReducer', () => {
         currentUsdValue: 12500.5,
         totalUsdDeposited: 10000,
         netDeposit: 8500,
+        qualifiedDays: 10,
+        qualified: true,
+        neighbors: [],
         computedAt: '2024-03-20T12:00:00.000Z',
       };
       const persistedRewardsState: RewardsState = {
@@ -2642,9 +2654,10 @@ describe('rewardsReducer', () => {
         positions: [],
         summary: {
           totalCurrentValue: '1',
-          totalCostBasis: '1',
+          totalBookValue: '1',
           totalUsdDeposited: '1',
           netDeposit: '1',
+          totalCashedOut: '0',
           portfolioPnl: '0',
           portfolioPnlPercent: '0',
         },
@@ -5125,34 +5138,172 @@ const mockLeaderboard: CampaignLeaderboardDto = {
   tiers: {
     STARTER: {
       entries: [
-        { rank: 1, referralCode: 'TOP001', rateOfReturn: 0.325 },
-        { rank: 2, referralCode: 'TOP002', rateOfReturn: 0.284 },
-        { rank: 3, referralCode: 'TOP003', rateOfReturn: 0.261 },
-        { rank: 4, referralCode: 'TOP004', rateOfReturn: 0.238 },
-        { rank: 5, referralCode: 'TOP005', rateOfReturn: 0.217 },
-        { rank: 6, referralCode: 'TOP006', rateOfReturn: 0.198 },
-        { rank: 7, referralCode: 'TOP007', rateOfReturn: 0.182 },
-        { rank: 8, referralCode: 'TOP008', rateOfReturn: 0.167 },
-        { rank: 9, referralCode: 'TOP009', rateOfReturn: 0.154 },
-        { rank: 10, referralCode: 'TOP010', rateOfReturn: 0.141 },
-        { rank: 11, referralCode: 'TOP011', rateOfReturn: 0.129 },
-        { rank: 12, referralCode: 'TOP012', rateOfReturn: 0.118 },
-        { rank: 13, referralCode: 'TOP013', rateOfReturn: 0.108 },
-        { rank: 14, referralCode: 'TOP014', rateOfReturn: 0.099 },
-        { rank: 15, referralCode: 'TOP015', rateOfReturn: 0.091 },
-        { rank: 16, referralCode: 'TOP016', rateOfReturn: 0.083 },
-        { rank: 17, referralCode: 'TOP017', rateOfReturn: 0.076 },
-        { rank: 18, referralCode: 'TOP018', rateOfReturn: 0.069 },
-        { rank: 19, referralCode: 'MY_CODE', rateOfReturn: 0.063 },
-        { rank: 20, referralCode: 'TOP020', rateOfReturn: 0.057 },
+        {
+          rank: 1,
+          referralCode: 'TOP001',
+          rateOfReturn: 0.325,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 2,
+          referralCode: 'TOP002',
+          rateOfReturn: 0.284,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 3,
+          referralCode: 'TOP003',
+          rateOfReturn: 0.261,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 4,
+          referralCode: 'TOP004',
+          rateOfReturn: 0.238,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 5,
+          referralCode: 'TOP005',
+          rateOfReturn: 0.217,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 6,
+          referralCode: 'TOP006',
+          rateOfReturn: 0.198,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 7,
+          referralCode: 'TOP007',
+          rateOfReturn: 0.182,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 8,
+          referralCode: 'TOP008',
+          rateOfReturn: 0.167,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 9,
+          referralCode: 'TOP009',
+          rateOfReturn: 0.154,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 10,
+          referralCode: 'TOP010',
+          rateOfReturn: 0.141,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 11,
+          referralCode: 'TOP011',
+          rateOfReturn: 0.129,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 12,
+          referralCode: 'TOP012',
+          rateOfReturn: 0.118,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 13,
+          referralCode: 'TOP013',
+          rateOfReturn: 0.108,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 14,
+          referralCode: 'TOP014',
+          rateOfReturn: 0.099,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 15,
+          referralCode: 'TOP015',
+          rateOfReturn: 0.091,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 16,
+          referralCode: 'TOP016',
+          rateOfReturn: 0.083,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 17,
+          referralCode: 'TOP017',
+          rateOfReturn: 0.076,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 18,
+          referralCode: 'TOP018',
+          rateOfReturn: 0.069,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 19,
+          referralCode: 'MY_CODE',
+          rateOfReturn: 0.063,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 20,
+          referralCode: 'TOP020',
+          rateOfReturn: 0.057,
+          qualifiedDays: 10,
+          qualified: true,
+        },
       ],
       totalParticipants: 150,
     },
     MID: {
       entries: [
-        { rank: 1, referralCode: 'MID001', rateOfReturn: 0.412 },
-        { rank: 2, referralCode: 'MID002', rateOfReturn: 0.368 },
-        { rank: 3, referralCode: 'MID003', rateOfReturn: 0.341 },
+        {
+          rank: 1,
+          referralCode: 'MID001',
+          rateOfReturn: 0.412,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 2,
+          referralCode: 'MID002',
+          rateOfReturn: 0.368,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 3,
+          referralCode: 'MID003',
+          rateOfReturn: 0.341,
+          qualifiedDays: 10,
+          qualified: true,
+        },
       ],
       totalParticipants: 75,
     },
@@ -5167,6 +5318,9 @@ const mockPosition: CampaignLeaderboardPositionDto = {
   currentUsdValue: 5063,
   totalUsdDeposited: 5000,
   netDeposit: 4800,
+  qualifiedDays: 10,
+  qualified: true,
+  neighbors: [],
   computedAt: '2024-03-20T12:00:00.000Z',
 };
 
@@ -5174,9 +5328,10 @@ const mockPortfolio: OndoGmPortfolioDto = {
   positions: [],
   summary: {
     totalCurrentValue: '5063',
-    totalCostBasis: '5000',
+    totalBookValue: '5000',
     totalUsdDeposited: '5000',
     netDeposit: '4800',
+    totalCashedOut: '0',
     portfolioPnl: '63',
     portfolioPnlPercent: '0.0126',
   },
@@ -5462,5 +5617,82 @@ describe('setOndoCampaignActivity', () => {
     const state = rewardsReducer(initialState, action);
 
     expect(state.ondoCampaignActivity['sub-1:campaign-1']).toBeNull();
+  });
+});
+
+describe('ondoCampaignDeposits', () => {
+  it('setOndoCampaignDeposits sets data and clears error', () => {
+    const deposits = { totalUsdDeposited: '1250000.000000' };
+    const prevState = {
+      ...initialState,
+      ondoCampaignDepositsError: true,
+    };
+
+    const state = rewardsReducer(prevState, setOndoCampaignDeposits(deposits));
+
+    expect(state.ondoCampaignDeposits).toEqual(deposits);
+    expect(state.ondoCampaignDepositsError).toBe(false);
+  });
+
+  it('setOndoCampaignDepositsLoading(true) sets loading when no data', () => {
+    const state = rewardsReducer(
+      initialState,
+      setOndoCampaignDepositsLoading(true),
+    );
+
+    expect(state.ondoCampaignDepositsLoading).toBe(true);
+  });
+
+  it('setOndoCampaignDepositsLoading(true) skips when data already exists', () => {
+    const prevState = {
+      ...initialState,
+      ondoCampaignDeposits: { totalUsdDeposited: '500000' },
+      ondoCampaignDepositsLoading: false,
+    };
+
+    const state = rewardsReducer(
+      prevState as RewardsState,
+      setOndoCampaignDepositsLoading(true),
+    );
+
+    expect(state.ondoCampaignDepositsLoading).toBe(false);
+  });
+
+  it('setOndoCampaignDepositsLoading(false) clears loading', () => {
+    const prevState = { ...initialState, ondoCampaignDepositsLoading: true };
+
+    const state = rewardsReducer(
+      prevState,
+      setOndoCampaignDepositsLoading(false),
+    );
+
+    expect(state.ondoCampaignDepositsLoading).toBe(false);
+  });
+
+  it('setOndoCampaignDepositsError(true) sets error', () => {
+    const state = rewardsReducer(
+      initialState,
+      setOndoCampaignDepositsError(true),
+    );
+
+    expect(state.ondoCampaignDepositsError).toBe(true);
+  });
+
+  it('resetRewardsState resets deposits to null', () => {
+    const prevState = {
+      ...initialState,
+      ondoCampaignDeposits: { totalUsdDeposited: '500000' },
+      ondoCampaignDepositsLoading: true,
+      ondoCampaignDepositsError: true,
+    };
+
+    const state = rewardsReducer(
+      prevState as RewardsState,
+      resetRewardsState(),
+    );
+
+    expect(state.ondoCampaignDeposits).toBeNull();
+    expect(state.ondoCampaignDepositsLoading).toBe(false);
+    expect(state.ondoCampaignDepositsError).toBe(false);
   });
 });

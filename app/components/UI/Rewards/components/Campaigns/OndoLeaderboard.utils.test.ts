@@ -1,4 +1,20 @@
-import { formatRateOfReturn, formatComputedAt } from './OndoLeaderboard.utils';
+import {
+  formatRateOfReturn,
+  formatComputedAt,
+  formatTierDisplayName,
+} from './OndoLeaderboard.utils';
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const t: Record<string, string> = {
+      'rewards.ondo_campaign_leaderboard.tier_starter': 'Bronze',
+      'rewards.ondo_campaign_leaderboard.tier_mid': 'Silver',
+      'rewards.ondo_campaign_leaderboard.tier_upper': 'Platinum',
+    };
+    return t[key] ?? key;
+  },
+  default: { locale: 'en-US' },
+}));
 
 describe('OndoLeaderboard.utils', () => {
   describe('formatRateOfReturn', () => {
@@ -53,6 +69,24 @@ describe('OndoLeaderboard.utils', () => {
 
     it('returns empty string for an unparseable value', () => {
       expect(formatComputedAt('not-a-date')).toBe('');
+    });
+  });
+
+  describe('formatTierDisplayName', () => {
+    it('maps STARTER to Bronze', () => {
+      expect(formatTierDisplayName('STARTER')).toBe('Bronze');
+    });
+
+    it('maps MID to Silver', () => {
+      expect(formatTierDisplayName('MID')).toBe('Silver');
+    });
+
+    it('maps UPPER to Platinum', () => {
+      expect(formatTierDisplayName('UPPER')).toBe('Platinum');
+    });
+
+    it('returns the raw key for an unknown tier', () => {
+      expect(formatTierDisplayName('UNKNOWN')).toBe('UNKNOWN');
     });
   });
 });

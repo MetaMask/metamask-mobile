@@ -16,6 +16,7 @@ import {
   SubscriptionBenefitsState,
   OndoGmPortfolioDto,
   OndoGmActivityEntryDto,
+  OndoGmCampaignDepositsDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -159,6 +160,11 @@ export interface RewardsState {
 
   // Ondo GM activity (keyed by composite key `${subscriptionId}:${campaignId}`)
   ondoCampaignActivity: Record<string, OndoGmActivityEntryDto[] | null>;
+
+  // Ondo campaign deposits (public, campaign-wide total)
+  ondoCampaignDeposits: OndoGmCampaignDepositsDto | null;
+  ondoCampaignDepositsLoading: boolean;
+  ondoCampaignDepositsError: boolean;
 }
 
 export const initialState: RewardsState = {
@@ -254,6 +260,11 @@ export const initialState: RewardsState = {
 
   // Ondo GM activity initial state
   ondoCampaignActivity: {},
+
+  // Ondo campaign deposits initial state
+  ondoCampaignDeposits: null,
+  ondoCampaignDepositsLoading: false,
+  ondoCampaignDepositsError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -366,6 +377,9 @@ const rewardsSlice = createSlice({
       state.ondoCampaignLeaderboardPositions = {};
       state.ondoCampaignPortfolio = {};
       state.ondoCampaignActivity = {};
+      state.ondoCampaignDeposits = null;
+      state.ondoCampaignDepositsLoading = false;
+      state.ondoCampaignDepositsError = false;
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -652,6 +666,24 @@ const rewardsSlice = createSlice({
       state.ondoCampaignActivity[key] = action.payload.entries;
     },
 
+    // Campaign deposits reducers
+    setOndoCampaignDeposits: (
+      state,
+      action: PayloadAction<OndoGmCampaignDepositsDto | null>,
+    ) => {
+      state.ondoCampaignDeposits = action.payload;
+      state.ondoCampaignDepositsError = false;
+    },
+    setOndoCampaignDepositsLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.ondoCampaignDeposits) {
+        return;
+      }
+      state.ondoCampaignDepositsLoading = action.payload;
+    },
+    setOndoCampaignDepositsError: (state, action: PayloadAction<boolean>) => {
+      state.ondoCampaignDepositsError = action.payload;
+    },
+
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -838,6 +870,10 @@ export const {
   setOndoCampaignLeaderboardPosition,
   setOndoCampaignPortfolioPosition,
   setOndoCampaignActivity,
+  // Campaign deposits actions
+  setOndoCampaignDeposits,
+  setOndoCampaignDepositsLoading,
+  setOndoCampaignDepositsError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

@@ -33,6 +33,7 @@ import type {
   CampaignLeaderboardPositionDto,
   OndoGmPortfolioDto,
   PaginatedOndoGmActivityDto,
+  OndoGmCampaignDepositsDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -251,6 +252,11 @@ export interface RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction {
   handler: RewardsDataService['getOndoCampaignActivityLastUpdated'];
 }
 
+export interface RewardsDataServiceGetOndoCampaignDepositsAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignDeposits`;
+  handler: RewardsDataService['getOndoCampaignDeposits'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -320,7 +326,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
   | RewardsDataServiceGetOndoCampaignActivityAction
-  | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction;
+  | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
+  | RewardsDataServiceGetOndoCampaignDepositsAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -486,6 +493,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getOndoCampaignActivityLastUpdated`,
       this.getOndoCampaignActivityLastUpdated.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignDeposits`,
+      this.getOndoCampaignDeposits.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -1657,5 +1668,26 @@ export class RewardsDataService {
 
     const result = await response.json();
     return result?.lastUpdated ? new Date(result.lastUpdated) : null;
+  }
+
+  /**
+   * Get campaign-wide total deposits.
+   * This is a public endpoint - no authentication required.
+   * @param campaignId - The campaign ID to get deposits for.
+   * @returns The total USD deposited across all participants.
+   */
+  async getOndoCampaignDeposits(
+    campaignId: string,
+  ): Promise<OndoGmCampaignDepositsDto> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/stats/deposits`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get campaign deposits failed: ${response.status}`);
+    }
+
+    return (await response.json()) as OndoGmCampaignDepositsDto;
   }
 }

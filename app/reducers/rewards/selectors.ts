@@ -286,3 +286,13 @@ export const selectOndoCampaignActivityById =
           `${subscriptionId}:${campaignId}`
         ] ?? null)
       : null;
+
+// Campaign deposits selectors
+export const selectOndoCampaignDeposits = (state: RootState) =>
+  state.rewards.ondoCampaignDeposits;
+
+export const selectOndoCampaignDepositsLoading = (state: RootState) =>
+  state.rewards.ondoCampaignDepositsLoading;
+
+export const selectOndoCampaignDepositsError = (state: RootState) =>
+  state.rewards.ondoCampaignDepositsError;
