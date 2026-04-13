@@ -85,7 +85,7 @@ describe('useCryptoTargetPrice', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('enters error state when controller returns null after retries', async () => {
+  it('enters error state when controller returns null', async () => {
     (
       Engine.context.PredictController.getCryptoTargetPrice as jest.Mock
     ).mockResolvedValue(null);

@@ -37,9 +37,9 @@ export const predictCryptoTargetPriceOptions = ({
   variant,
   endDate,
 }: CryptoTargetPriceQueryParams) =>
-  queryOptions<number | null, Error>({
+  queryOptions<number, Error>({
     queryKey: predictCryptoTargetPriceKeys.detail(eventId),
-    queryFn: async (): Promise<number | null> => {
+    queryFn: async (): Promise<number> => {
       const cached = targetPriceCache.get(eventId);
       if (cached !== undefined) {
         return cached;

@@ -127,7 +127,7 @@ describe('cryptoTargetPrice queries', () => {
       );
     });
 
-    it('manages cache size correctly across different events', async () => {
+    it('increments cache size to 2 after fetching two distinct events', async () => {
       (Engine.context.PredictController.getCryptoTargetPrice as jest.Mock)
         .mockResolvedValueOnce(42000)
         .mockResolvedValueOnce(3000);
