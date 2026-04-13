@@ -175,6 +175,7 @@ const OndoCampaignPortfolioView: React.FC = () => {
       >
         <HeaderCompactStandard
           title={strings('rewards.ondo_campaign_portfolio.activity_title')}
+          titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'campaign-portfolio-back-button' }}
           includesTopInset
