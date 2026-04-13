@@ -3324,6 +3324,7 @@ function initChart() {
     var tfOption =
       window.visibleFromMs != null
         ? {
+            type: 'time-range',
             from: Math.floor(window.visibleFromMs / 1000),
             to: visibleToSec,
           }
