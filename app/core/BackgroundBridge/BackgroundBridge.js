@@ -540,6 +540,11 @@ export class BackgroundBridge extends EventEmitter {
         this.handleTronAccountChangedFromSelectedAccountGroupChanges,
       );
       ///: END:ONLY_INCLUDE_IF
+
+      controllerMessenger.unsubscribe(
+        `${AccountTreeController.name}:selectedAccountGroupChange`,
+        this.handleSessionChangedFromSelectedAccountGroupChanges,
+      );
     }
 
     this.port.emit('disconnect', { name: this.port.name, data: null });
@@ -781,6 +786,7 @@ export class BackgroundBridge extends EventEmitter {
           Engine.controllerMessenger,
           'MultichainRoutingService:getSupportedAccounts',
         ),
+        sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
         trackSessionCreatedEvent: () => undefined,
       }),
     );
@@ -1026,6 +1032,12 @@ export class BackgroundBridge extends EventEmitter {
       this.handleTronAccountChangedFromSelectedAccountGroupChanges,
     );
     ///: END:ONLY_INCLUDE_IF
+
+    // wallet_sessionChanged when selected account group changes (account ordering update)
+    controllerMessenger.subscribe(
+      `${AccountTreeController.name}:selectedAccountGroupChange`,
+      this.handleSessionChangedFromSelectedAccountGroupChanges,
+    );
   }
 
   /**
@@ -1206,6 +1218,32 @@ export class BackgroundBridge extends EventEmitter {
     const solanaAccount = this.getSolanaAccountFromSelectedAccountGroup();
     if (solanaAccount) {
       this.handleSolanaAccountChangedFromSelectedAccountChanges(solanaAccount);
+    }
+  };
+
+  /**
+   * Emits a wallet_sessionChanged notification when the selected account group
+   * changes, to update the account ordering for the current origin's session.
+   */
+  handleSessionChangedFromSelectedAccountGroupChanges = () => {
+    try {
+      const caip25Caveat = Engine.context.PermissionController.getCaveat(
+        this.channelIdOrOrigin,
+        Caip25EndowmentPermissionName,
+        Caip25CaveatType,
+      );
+      if (caip25Caveat) {
+        // TODO: Remove this setTimeout once the core issue in https://github.com/MetaMask/core/pull/8261 is resolved.
+        // Two issues still exist. One is that the AccountGroup metadata is not available when the wallet is locked.
+        // The other is that the EVM metadata is not updated by by the time the selectedAccountGroupChange event is fired.
+        // The former issue mainly affects Extension, not Mobile, but to keep both in sync, we'll keep the setTimeout for now.
+        // The latter issue is what requires the setTimeout below.
+        setTimeout(() => {
+          this.notifyCaipAuthorizationChange(caip25Caveat.value);
+        }, 1000);
+      }
+    } catch (err) {
+      // noop - origin may not have the permission
     }
   };
 
@@ -1424,13 +1462,15 @@ export class BackgroundBridge extends EventEmitter {
    */
   notifyCaipAuthorizationChange(newAuthorization) {
     if (this.multichainEngine) {
+      const sessionScopes = getSessionScopes(newAuthorization, {
+        getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+        sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
+      });
+
       this.multichainEngine.emit('notification', {
         method: 'wallet_sessionChanged',
         params: {
-          sessionScopes: getSessionScopes(newAuthorization, {
-            getNonEvmSupportedMethods:
-              this.getNonEvmSupportedMethods.bind(this),
-          }),
+          sessionScopes,
         },
       });
     }
