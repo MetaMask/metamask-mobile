@@ -17,6 +17,9 @@ import {
 } from '../utils/moneyAccountTransactions';
 import { RootState } from '../../../../reducers';
 import Engine from '../../../../core/Engine';
+import Routes from '../../../../constants/navigation/Routes';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 
 function useMoneyAccountContext() {
   const selectedAccount = useSelector(selectSelectedInternalAccountAddress);
@@ -46,6 +49,7 @@ function useMoneyAccountContext() {
 export function useMoneyAccountDeposit() {
   const { selectedAccount, vaultConfig, endpoint, getProvider } =
     useMoneyAccountContext();
+  const { navigateToConfirmation } = useConfirmNavigation();
 
   const initiateDeposit = useCallback(
     async (amount: bigint) => {
@@ -66,7 +70,6 @@ export function useMoneyAccountDeposit() {
         !lensAddress ||
         !endpoint?.networkClientId
       ) {
-        // TODO: error handling?
         return;
       }
 
@@ -85,15 +88,27 @@ export function useMoneyAccountDeposit() {
         provider,
       });
 
+      navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.PREDICT.ROOT,
+      });
+
       await addTransactionBatch({
         from: selectedAccount as Hex,
         networkClientId: endpoint.networkClientId,
         origin: ORIGIN_METAMASK,
-        requireApproval: true,
+        disableHook: true,
+        disableSequential: true,
         transactions: [approveTx, depositTx],
       });
     },
-    [selectedAccount, vaultConfig, endpoint, getProvider],
+    [
+      navigateToConfirmation,
+      selectedAccount,
+      vaultConfig,
+      endpoint,
+      getProvider,
+    ],
   );
 
   return { initiateDeposit };
@@ -102,6 +117,7 @@ export function useMoneyAccountDeposit() {
 export function useMoneyAccountWithdrawal() {
   const { selectedAccount, vaultConfig, endpoint, getProvider } =
     useMoneyAccountContext();
+  const { navigateToConfirmation } = useConfirmNavigation();
 
   const initiateWithdrawal = useCallback(
     async (amount: bigint) => {
@@ -131,6 +147,11 @@ export function useMoneyAccountWithdrawal() {
         provider,
       });
 
+      navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.PREDICT.ROOT,
+      });
+
       await addTransaction(
         { from: selectedAccount as Hex, ...params },
         {
@@ -140,7 +161,13 @@ export function useMoneyAccountWithdrawal() {
         },
       );
     },
-    [selectedAccount, vaultConfig, endpoint, getProvider],
+    [
+      navigateToConfirmation,
+      selectedAccount,
+      vaultConfig,
+      endpoint,
+      getProvider,
+    ],
   );
 
   return { initiateWithdrawal };
