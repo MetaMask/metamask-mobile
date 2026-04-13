@@ -7603,6 +7603,7 @@
     },
     "card_authentication": {
       "title": "Log in to your card account",
+      "auth_prompt_info": "Log in to your card account to access this feature.",
       "location_button_text": "International",
       "location_button_text_us": "United States",
       "email_label": "Email",
