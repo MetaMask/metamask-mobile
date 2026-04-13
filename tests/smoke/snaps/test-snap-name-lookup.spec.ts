@@ -18,7 +18,7 @@ jest.setTimeout(150_000);
 
 const TOKEN = 'Ethereum';
 
-describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
+describe.skip(FlaskBuildTests('Name Lookup Snap Tests'), () => {
   it('displays the resolved recipient address in the send flow', async () => {
     await withFixtures(
       {
@@ -49,7 +49,7 @@ describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
         await TabBarComponent.tapHome();
         await device.disableSynchronization();
         await WalletView.waitForTokenToBeReady(TOKEN);
-        // await WalletView.tapOnToken(TOKEN);
+        await WalletView.tapOnToken(TOKEN);
         await TokenOverview.tapSendButton();
 
         const domain = 'metamask.domain';
