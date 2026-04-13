@@ -379,27 +379,13 @@ describe('CustomAmountInfo', () => {
     },
   );
 
-  it('calls overrideContent with amountHuman and hides default content', () => {
-    const mockOverrideContent = jest.fn().mockReturnValue(null);
+  it('hides PayTokenAmount when hidePayTokenAmount is true', () => {
+    const { queryByText } = render({ hidePayTokenAmount: true });
 
-    useTransactionCustomAmountMock.mockReturnValue({
-      amountFiat: '123.45',
-      amountHuman: '0.5',
-      amountHumanDebounced: '0.5',
-      hasInput: true,
-      isInputChanged: false,
-      updatePendingAmount: noop,
-      updatePendingAmountPercentage: noop,
-      updateTokenAmount: noop,
-    });
-
-    const { queryByText } = render({ overrideContent: mockOverrideContent });
-
-    expect(mockOverrideContent).toHaveBeenCalledWith('0.5');
     expect(queryByText('0 TST')).toBeNull();
     expect(
       queryByText(new RegExp(strings('confirm.label.pay_with'))),
-    ).toBeNull();
+    ).toBeOnTheScreen();
   });
 
   it('calls onAmountSubmit when Done button is pressed', async () => {
