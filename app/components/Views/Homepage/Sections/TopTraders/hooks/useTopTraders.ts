@@ -7,9 +7,6 @@ import type {
 import Logger from '../../../../../../util/Logger';
 import type { TopTrader } from '../types';
 
-/**
- * Result interface for the useTopTraders hook.
- */
 export interface UseTopTradersResult {
   traders: TopTrader[];
   isLoading: boolean;
@@ -67,6 +64,7 @@ export const useTopTraders = (
       avatarUri: entry.imageUrl ?? undefined,
       percentageChange: (entry.roiPercent30d ?? 0) * 100,
       pnlValue: entry.pnl30d,
+      pnlPerChain: entry.pnlPerChain,
       isFollowing: localFollowOverrides[entry.profileId] ?? false,
     }));
   }, [data, localFollowOverrides]);
