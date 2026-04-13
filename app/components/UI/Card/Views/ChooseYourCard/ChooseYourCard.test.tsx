@@ -105,21 +105,6 @@ jest.mock('../../components/CardImage/CardImage', () => {
   };
 });
 
-// Mock react-native-safe-area-context
-jest.mock('react-native-safe-area-context', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(View, props, children),
-    SafeAreaProvider: View,
-  };
-});
-
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: jest.fn(() => ({})),

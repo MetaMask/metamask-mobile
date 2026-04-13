@@ -20,6 +20,7 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { useTopTraders } from './hooks';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 
 const HOME_TRADER_LIMIT = 3;
 const SKELETON_KEYS = Array.from(
@@ -70,6 +71,14 @@ const TopTradersSection = forwardRef<
     totalSectionsLoaded,
     isEmpty: traders.length === 0,
     itemCount: traders.length,
+  });
+
+  useSectionPerformance({
+    sectionId: HomeSectionNames.TOP_TRADERS,
+    contentReady: !isLoading && traders.length > 0,
+    isEmpty: !isLoading && traders.length === 0,
+    isLoading,
+    enabled: isEnabled,
   });
 
   const handleViewAll = useCallback(() => {

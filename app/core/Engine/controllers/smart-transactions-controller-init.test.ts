@@ -4,7 +4,7 @@ import {
   getSmartTransactionsControllerMessenger,
   getSmartTransactionsControllerInitMessenger,
 } from '../messengers/smart-transactions-controller-messenger';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { smartTransactionsControllerInit } from './smart-transactions-controller-init';
 import {
   SmartTransactionsController,
@@ -15,7 +15,7 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/smart-transactions-controller');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     SmartTransactionsControllerMessenger,
     ReturnType<typeof getSmartTransactionsControllerInitMessenger>
   >

@@ -69,7 +69,8 @@ describe('useSearchTokens', () => {
           headers: {
             'Content-Type': 'application/json',
             // Initial fetch may not have a bearer token
-            Authorization: 'Bearer ',
+            'Client-Version': expect.any(String),
+            'X-Client-Id': 'mobile',
           },
           body: expect.stringContaining('test query'),
         }),
@@ -128,6 +129,27 @@ describe('useSearchTokens', () => {
           body: expect.stringContaining('includeAssets'),
         }),
       );
+    });
+
+    it('falls back to an empty array for malformed responses', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        json: async () => ({
+          pageInfo: {
+            hasNextPage: false,
+          },
+        }),
+      });
+
+      const { result } = renderHook(() => useSearchTokens(defaultParams));
+
+      await act(async () => {
+        await result.current.searchTokens('test query');
+      });
+
+      await waitFor(() => expect(result.current.isSearchLoading).toBe(false));
+
+      expect(result.current.searchResults).toEqual([]);
+      expect(result.current.searchCursor).toBeUndefined();
     });
   });
 

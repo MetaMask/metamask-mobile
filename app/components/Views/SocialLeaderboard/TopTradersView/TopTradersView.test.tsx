@@ -56,6 +56,13 @@ const mockUseTopTraders: UseTopTradersResult = {
   toggleFollow: mockToggleFollow,
 };
 
+jest.mock(
+  '../../../../selectors/featureFlagController/socialLeaderboard',
+  () => ({
+    selectSocialLeaderboardEnabled: jest.fn(() => true),
+  }),
+);
+
 jest.mock('../../Homepage/Sections/TopTraders/hooks', () => ({
   useTopTraders: () => mockUseTopTraders,
 }));

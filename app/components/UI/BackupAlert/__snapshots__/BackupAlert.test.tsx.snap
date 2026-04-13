@@ -78,7 +78,7 @@ exports[`BackupAlert render matches snapshot 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -107,7 +107,7 @@ exports[`BackupAlert render matches snapshot 1`] = `
                 {
                   "color": "#4459ff",
                   "flex": 1,
-                  "fontFamily": "Geist-Bold",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,

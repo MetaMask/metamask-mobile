@@ -1,6 +1,10 @@
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../util/remoteFeatureFlag';
-import { selectMoneyHomeScreenEnabledFlag } from './featureFlags';
+import {
+  selectMoneyActivityMockDataEnabledFlag,
+  selectMoneyHomeScreenEnabledFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from './featureFlags';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {},
@@ -11,10 +15,18 @@ jest.mock('../../../../util/remoteFeatureFlag', () => ({
   validatedVersionGatedFeatureFlag: jest.fn(),
 }));
 
+jest.mock('../../../../lib/Money/feature-flags', () => ({
+  isMoneyAccountEnabled: jest.fn(),
+}));
+
 const mockedValidate =
   remoteFeatureFlagModule.validatedVersionGatedFeatureFlag as jest.MockedFunction<
     typeof remoteFeatureFlagModule.validatedVersionGatedFeatureFlag
   >;
+
+const mockedIsMoneyAccountEnabled = jest.requireMock(
+  '../../../../lib/Money/feature-flags',
+).isMoneyAccountEnabled as jest.Mock;
 
 const createState = (remoteFeatureFlags: Record<string, unknown> = {}) => ({
   engine: {
@@ -82,5 +94,74 @@ describe('selectMoneyHomeScreenEnabledFlag', () => {
     const result = selectMoneyHomeScreenEnabledFlag(state as never);
 
     expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyActivityMockDataEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns true when remote flag is true', () => {
+    const state = createState({
+      moneyActivityMockDataEnabled: true,
+    });
+
+    const result = selectMoneyActivityMockDataEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is false', () => {
+    const state = createState({
+      moneyActivityMockDataEnabled: false,
+    });
+
+    const result = selectMoneyActivityMockDataEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('falls back to local env var when remote flag is not a boolean', () => {
+    process.env.MM_MONEY_ACTIVITY_MOCK_DATA_ENABLED = 'true';
+
+    const state = createState({ _unique: 'mock-fallback-true' });
+
+    const result = selectMoneyActivityMockDataEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote is unset and local env is unset', () => {
+    delete process.env.MM_MONEY_ACTIVITY_MOCK_DATA_ENABLED;
+
+    const state = createState({ _unique: 'mock-fallback-false' });
+
+    const result = selectMoneyActivityMockDataEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyEnableMoneyAccountFlag', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('delegates to isMoneyAccountEnabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    const state = createState();
+
+    const result = selectMoneyEnableMoneyAccountFlag(state as never);
+
+    expect(mockedIsMoneyAccountEnabled).toHaveBeenCalledWith({});
+    expect(result).toBe(true);
   });
 });

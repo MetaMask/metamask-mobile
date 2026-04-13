@@ -79,52 +79,17 @@ const mockSelectSelectedAccountGroup =
   >;
 
 // Mock react-native-safe-area-context
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    SafeAreaView: ({
-      children,
-      testID,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { ...props, testID }, children),
-  };
-});
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
-// Mock useMetrics hook
+// Mock useAnalytics hook
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(() => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-    isEnabled: jest.fn().mockReturnValue(true),
-    enable: jest.fn(),
-    addTraitsToUser: jest.fn(),
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getMetaMetricsId: jest.fn(),
-    isDataRecorded: jest.fn().mockReturnValue(true),
-    getDeleteRegulationId: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-  })),
-  MetaMetricsEvents: {
-    REWARDS_DASHBOARD_VIEWED: 'rewards_dashboard_viewed',
-    REWARDS_DASHBOARD_TAB_VIEWED: 'rewards_dashboard_tab_viewed',
-  },
-}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 // Mock Toast component
 jest.mock('../../../../component-library/components/Toast', () => {
@@ -291,23 +256,22 @@ describe('RewardsDashboard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockShowUnlinkedAccountsModal.mockClear();
-    mockShowNotOptedInModal.mockClear();
-    mockShowNotSupportedModal.mockClear();
-    mockHasShownModal.mockClear();
-    mockResumeBulkLink.mockClear();
-    mockTrackEvent.mockClear();
-    mockCreateEventBuilder.mockClear();
-    mockBuild.mockClear();
-    mockAddProperties.mockClear();
 
-    // Setup metrics mocks
+    // Configure mocks before passing them to the mock hook factory
+    // so the hook receives already-configured references
     mockBuild.mockReturnValue({ event: 'mock-event' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
     mockCreateEventBuilder.mockReturnValue({
       addProperties: mockAddProperties,
       build: mockBuild,
     });
+
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     // Setup selector mocks
     mockSelectActiveTab.mockReturnValue(defaultSelectorValues.activeTab);
@@ -937,7 +901,7 @@ describe('RewardsDashboard', () => {
 
       // Assert
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'rewards_dashboard_viewed',
+        MetaMetricsEvents.REWARDS_DASHBOARD_VIEWED,
       );
       expect(mockBuild).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock-event' });
@@ -988,7 +952,7 @@ describe('RewardsDashboard', () => {
 
       // Assert
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'rewards_dashboard_tab_viewed',
+        MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'activity' });
       expect(mockBuild).toHaveBeenCalled();

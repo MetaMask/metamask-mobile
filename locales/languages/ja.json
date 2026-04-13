@@ -240,7 +240,6 @@
     "import_wallet_button": "ウォレットを同期またはインポート",
     "new_to_crypto": "暗号資産は初めてですか？",
     "start_exploring_now": "新規ウォレットを作成",
-    "unlock": "ロックを解除",
     "new_to_metamask": "MetaMaskを初めてご利用ですか？",
     "already_have_wallet": "すでにウォレットをお持ちですか？",
     "optin_back_title": "ご注意！",
@@ -4811,11 +4810,9 @@
     "body_for_seedphrase": "ウォレットに価値が追加された今、パスワードを設定して秘密のリカバリーフレーズを保存し、ウォレットを保護してください (必須)。",
     "button": "ウォレットを保護"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "トランザクションの更新に失敗しました",
-    "text": "もう一度試しますか？",
-    "cancel_button": "キャンセル",
-    "retry_button": "もう一度試す"
+    "already_confirmed": "このトランザクションはすでに確認済みのため変更できません。"
   },
   "payment_request": {
     "title": "リクエスト",
@@ -6639,7 +6636,6 @@
     "nested_transaction_heading": "トランザクション {{index}}",
     "transaction": "トランザクション",
     "available_balance": "利用可能残高: ",
-    "available_perps_balance": "使用可能なパーペチュアル残高: ",
     "edit_amount_done": "続行",
     "deposit_edit_amount_done": "資金を追加",
     "deposit_edit_amount_predict_withdraw": "出金",

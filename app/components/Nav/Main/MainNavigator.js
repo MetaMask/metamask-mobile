@@ -78,7 +78,7 @@ import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
-import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
+import { clearStackNavigatorOptionsWithTransitionAnimation } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { selectProviderConfig } from '../../../selectors/networkController';
@@ -141,9 +141,12 @@ import BonusCodeBottomSheet from '../../UI/Rewards/components/Tabs/OverviewTab/W
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
+import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
+import CampaignTourStepView from '../../UI/Rewards/Views/CampaignTourStepView';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
+import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -172,7 +175,9 @@ const slideFromRightAnimation = {
 };
 
 const WalletModalFlow = () => (
-  <Stack.Navigator screenOptions={clearStackNavigatorOptions}>
+  <Stack.Navigator
+    screenOptions={clearStackNavigatorOptionsWithTransitionAnimation}
+  >
     <Stack.Screen
       name={'Wallet'}
       component={Wallet}
@@ -213,7 +218,7 @@ const AssetStackFlow = (props) => (
 const AssetNavigator = (props) => (
   <Stack.Navigator
     initialRouteName={'AssetStackFlow'}
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={clearStackNavigatorOptionsWithTransitionAnimation}
   >
     <Stack.Screen
       name={'AssetStackFlow'}
@@ -244,7 +249,7 @@ const WalletTabModalFlow = () => {
   return (
     <Stack.Navigator
       screenOptions={{
-        ...clearStackNavigatorOptions,
+        ...clearStackNavigatorOptionsWithTransitionAnimation,
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
@@ -303,7 +308,7 @@ const RewardsHome = () => {
   return (
     <Stack.Navigator
       screenOptions={{
-        ...clearStackNavigatorOptions,
+        ...clearStackNavigatorOptionsWithTransitionAnimation,
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
@@ -329,13 +334,21 @@ const RewardsHome = () => {
         options={{
           headerShown: false,
           presentation: 'transparentModal',
-          ...clearStackNavigatorOptions,
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
         }}
       />
       <Stack.Screen
         name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
         component={EndOfSeasonClaimBottomSheet}
         options={{ presentation: 'transparentModal' }}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.REWARDS_SELECT_SHEET}
+        component={RewardsSelectSheet}
+        options={{
+          presentation: 'transparentModal',
+          cardStyle: { backgroundColor: 'transparent' },
+        }}
       />
     </Stack.Navigator>
   );
@@ -425,180 +438,188 @@ const NotificationsOptInStack = () => (
   </Stack.Navigator>
 );
 
-const SettingsFlow = () => (
-  <Stack.Navigator initialRouteName={Routes.ACCOUNTS_MENU_VIEW}>
-    <Stack.Screen
-      name={Routes.ACCOUNTS_MENU_VIEW}
-      component={AccountsMenu}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="Settings"
-      component={Settings}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="GeneralSettings"
-      component={GeneralSettings}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="AdvancedSettings"
-      component={AdvancedSettings}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="NetworksManagement"
-      component={NetworksManagementView}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.NETWORK_DETAILS}
-      component={NetworkDetailsView}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
-    <Stack.Screen name="PermissionsManager" component={PermissionsManager} />
-    <Stack.Screen
-      name="SecuritySettings"
-      component={SecuritySettings}
-      options={{ headerShown: false }}
-    />
-
-    <Stack.Screen
-      name={Routes.RAMP.SETTINGS}
-      component={RampSettings}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.RAMP.ACTIVATION_KEY_FORM}
-      component={RampActivationKeyForm}
-      options={{ headerShown: false }}
-    />
-    {
-      /**
-       * This screen should only accessed in test mode.
-       * It is used to test the AES crypto functions.
-       *
-       * If this is in production, it is a bug.
-       */
-      isTest && (
-        <Stack.Screen
-          name="AesCryptoTestForm"
-          component={AesCryptoTestForm}
-          options={{ headerShown: false }}
-        />
-      )
-    }
-    <Stack.Screen
-      name="ExperimentalSettings"
-      component={ExperimentalSettings}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="CompanySettings"
-      component={AppInformation}
-      options={{ headerShown: false }}
-    />
-    {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
-      <Stack.Screen
-        name={Routes.SETTINGS.DEVELOPER_OPTIONS}
-        component={DeveloperOptions}
-        options={DeveloperOptions.navigationOptions}
-      />
-    )}
-
-    <Stack.Screen
-      name="ContactsSettings"
-      component={Contacts}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="ContactForm"
-      component={ContactForm}
-      options={ContactForm.navigationOptions}
-    />
-    <Stack.Screen
-      name="AccountPermissionsAsFullScreen"
-      component={AccountPermissions}
-      options={{ headerShown: false }}
-      initialParams={{
-        initialScreen: AccountPermissionsScreens.PermissionsSummary,
+const SettingsFlow = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      initialRouteName={Routes.ACCOUNTS_MENU_VIEW}
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
       }}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-      component={RevealPrivateCredential}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
-      component={WalletConnectSessions}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="ResetPassword"
-      component={ResetPassword}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="WalletRecovery"
-      component={WalletRecovery}
-      options={WalletRecovery.navigationOptions}
-    />
-    <Stack.Screen
-      name="AccountBackupStep1B"
-      component={AccountBackupStep1B}
-      options={AccountBackupStep1B.navigationOptions}
-    />
-    <Stack.Screen
-      name="ManualBackupStep1"
-      component={ManualBackupStep1}
-      options={ManualBackupStep1.navigationOptions}
-    />
-    <Stack.Screen
-      name="ManualBackupStep2"
-      component={ManualBackupStep2}
-      options={ManualBackupStep2.navigationOptions}
-    />
-    <Stack.Screen
-      name="ManualBackupStep3"
-      component={ManualBackupStep3}
-      options={ManualBackupStep3.navigationOptions}
-    />
-    <Stack.Screen
-      name="EnterPasswordSimple"
-      component={EnterPasswordSimple}
-      options={EnterPasswordSimple.navigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.NOTIFICATIONS}
-      component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.BACKUP_AND_SYNC}
-      component={BackupAndSyncSettings}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.REGION_SELECTOR}
-      component={RegionSelector}
-      options={RegionSelector.navigationOptions}
-    />
-    {
-      ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
-    }
-    <Stack.Screen
-      name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
-      component={SnapsSettingsStack}
-      options={{ headerShown: false }}
-    />
-    {
-      ///: END:ONLY_INCLUDE_IF
-    }
-  </Stack.Navigator>
-);
+    >
+      <Stack.Screen
+        name={Routes.ACCOUNTS_MENU_VIEW}
+        component={AccountsMenu}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={Settings}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="GeneralSettings"
+        component={GeneralSettings}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AdvancedSettings"
+        component={AdvancedSettings}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="NetworksManagement"
+        component={NetworksManagementView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.NETWORK_DETAILS}
+        component={NetworkDetailsView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
+      <Stack.Screen name="PermissionsManager" component={PermissionsManager} />
+      <Stack.Screen
+        name="SecuritySettings"
+        component={SecuritySettings}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name={Routes.RAMP.SETTINGS}
+        component={RampSettings}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.RAMP.ACTIVATION_KEY_FORM}
+        component={RampActivationKeyForm}
+        options={{ headerShown: false }}
+      />
+      {
+        /**
+         * This screen should only accessed in test mode.
+         * It is used to test the AES crypto functions.
+         *
+         * If this is in production, it is a bug.
+         */
+        isTest && (
+          <Stack.Screen
+            name="AesCryptoTestForm"
+            component={AesCryptoTestForm}
+            options={{ headerShown: false }}
+          />
+        )
+      }
+      <Stack.Screen
+        name="ExperimentalSettings"
+        component={ExperimentalSettings}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CompanySettings"
+        component={AppInformation}
+        options={{ headerShown: false }}
+      />
+      {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
+        <Stack.Screen
+          name={Routes.SETTINGS.DEVELOPER_OPTIONS}
+          component={DeveloperOptions}
+          options={DeveloperOptions.navigationOptions}
+        />
+      )}
+
+      <Stack.Screen
+        name="ContactsSettings"
+        component={Contacts}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ContactForm"
+        component={ContactForm}
+        options={ContactForm.navigationOptions}
+      />
+      <Stack.Screen
+        name="AccountPermissionsAsFullScreen"
+        component={AccountPermissions}
+        options={{ headerShown: false }}
+        initialParams={{
+          initialScreen: AccountPermissionsScreens.PermissionsSummary,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
+        component={RevealPrivateCredential}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
+        component={WalletConnectSessions}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ResetPassword"
+        component={ResetPassword}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="WalletRecovery"
+        component={WalletRecovery}
+        options={WalletRecovery.navigationOptions}
+      />
+      <Stack.Screen
+        name="AccountBackupStep1B"
+        component={AccountBackupStep1B}
+        options={AccountBackupStep1B.navigationOptions}
+      />
+      <Stack.Screen
+        name="ManualBackupStep1"
+        component={ManualBackupStep1}
+        options={ManualBackupStep1.navigationOptions}
+      />
+      <Stack.Screen
+        name="ManualBackupStep2"
+        component={ManualBackupStep2}
+        options={ManualBackupStep2.navigationOptions}
+      />
+      <Stack.Screen
+        name="ManualBackupStep3"
+        component={ManualBackupStep3}
+        options={ManualBackupStep3.navigationOptions}
+      />
+      <Stack.Screen
+        name="EnterPasswordSimple"
+        component={EnterPasswordSimple}
+        options={EnterPasswordSimple.navigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.NOTIFICATIONS}
+        component={NotificationsSettings}
+        options={NotificationsSettings.navigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.BACKUP_AND_SYNC}
+        component={BackupAndSyncSettings}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.REGION_SELECTOR}
+        component={RegionSelector}
+        options={RegionSelector.navigationOptions}
+      />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+      }
+      <Stack.Screen
+        name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
+        component={SnapsSettingsStack}
+        options={{ headerShown: false }}
+      />
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
+    </Stack.Navigator>
+  );
+};
 
 const UnmountOnBlurComponent = (children) => (
   <UnmountOnBlur>{children}</UnmountOnBlur>
@@ -989,6 +1010,7 @@ const MainNavigator = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
       }}
       initialRouteName={'Home'}
     >
@@ -1070,6 +1092,7 @@ const MainNavigator = () => {
         options={{
           gestureEnabled: false,
           cardStyle: { backgroundColor: colors.background.default },
+          ...slideFromRightAnimation,
         }}
       />
       <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
@@ -1098,18 +1121,35 @@ const MainNavigator = () => {
         name={Routes.RAMP.TOKEN_SELECTION}
         component={TokenListRoutes}
       />
-      <Stack.Screen name={Routes.RAMP.BUY}>
+      <Stack.Screen
+        name={Routes.RAMP.BUY}
+        options={{
+          cardStyle: { backgroundColor: colors.background.default },
+        }}
+      >
         {() => <RampRoutes rampType={RampType.BUY} />}
       </Stack.Screen>
-      <Stack.Screen name={Routes.RAMP.SELL}>
+      <Stack.Screen
+        name={Routes.RAMP.SELL}
+        options={{
+          cardStyle: { backgroundColor: colors.background.default },
+        }}
+      >
         {() => <RampRoutes rampType={RampType.SELL} />}
       </Stack.Screen>
       <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
-      <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
+      <Stack.Screen
+        name={Routes.BRIDGE.ROOT}
+        component={BridgeScreenStack}
+        options={slideFromRightAnimation}
+      />
       <Stack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
         component={BridgeModalStack}
-        options={clearStackNavigatorOptions}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
       />
       <Stack.Screen
         name="StakeScreens"
@@ -1124,7 +1164,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.EARN.MODALS.ROOT}
         component={EarnModalStack}
-        options={clearStackNavigatorOptions}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
       />
       {isMoneyHomeScreenEnabled && (
         <Stack.Screen
@@ -1137,7 +1180,7 @@ const MainNavigator = () => {
         name="StakeModals"
         component={StakeModalStack}
         options={{
-          ...clearStackNavigatorOptions,
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
           presentation: 'transparentModal',
         }}
       />
@@ -1158,7 +1201,10 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}
-            options={clearStackNavigatorOptions}
+            options={{
+              ...clearStackNavigatorOptionsWithTransitionAnimation,
+              presentation: 'transparentModal',
+            }}
           />
         </>
       )}
@@ -1201,8 +1247,8 @@ const MainNavigator = () => {
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
             options={{
+              ...clearStackNavigatorOptionsWithTransitionAnimation,
               presentation: 'transparentModal',
-              ...clearStackNavigatorOptions,
             }}
           />
         </>
@@ -1284,7 +1330,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
-        options={{ headerShown: true, ...slideFromRightAnimation }}
+        options={({ navigation }) => ({
+          ...slideFromRightAnimation,
+          ...getDeFiProtocolPositionDetailsNavbarOptions(navigation),
+        })}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -1298,9 +1347,14 @@ const MainNavigator = () => {
       }
       <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
       <Stack.Screen
+        name={Routes.REWARDS_CAMPAIGN_TOUR_STEP}
+        component={CampaignTourStepView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}
-        options={clearStackNavigatorOptions}
+        options={clearStackNavigatorOptionsWithTransitionAnimation}
       />
     </Stack.Navigator>
   );

@@ -10,7 +10,6 @@ import {
   View,
   Modal,
   StyleSheet,
-  TextStyle,
   ViewStyle,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -18,10 +17,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import { createWebviewNavDetails } from '../../../Views/SimpleWebview';
@@ -38,6 +33,8 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import { selectPerpsEligibility } from '../../Perps/selectors/perpsController';
+import { useComplianceGate } from '../../Compliance';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import PerpsBottomSheetTooltip from '../../Perps/components/PerpsBottomSheetTooltip';
 import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
@@ -46,7 +43,6 @@ import Price from '../../AssetOverview/Price';
 import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
-import { PriceChartProvider } from '../../AssetOverview/PriceChart/PriceChart.context';
 import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
@@ -55,6 +51,7 @@ import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/fea
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
+import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import {
   MarketInsightsEntryCard,
@@ -62,16 +59,13 @@ import {
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import { isCaipAssetType, type CaipChainId, type Hex } from '@metamask/utils';
+import { isCaipAssetType, type Hex } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import {
   Box,
-  Text as DSText,
-  TextVariant as DSTextVariant,
-  TextColor as DSTextColor,
   BoxFlexDirection,
   BoxAlignItems,
   Icon,
@@ -79,6 +73,9 @@ import {
   IconSize,
   IconColor,
   FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import Badge, {
   BadgeVariant,
@@ -91,11 +88,8 @@ import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
-import TronUnstakingBanner from '../../Earn/components/Tron/TronUnstakingBanner/TronUnstakingBanner';
-import TronUnstakedBanner from '../../Earn/components/Tron/TronUnstakedBanner/TronUnstakedBanner';
-import TronStakingButtons from '../../Earn/components/Tron/TronStakingButtons/TronStakingButtons';
-import TronStakingCta from '../../Earn/components/Tron/TronStakingCta/TronStakingCta';
-import useTronStakeApy from '../../Earn/hooks/useTronStakeApy';
+import TronAssetOverviewSection from './TronAssetOverviewSection';
+import { isTronNativeToken } from '../utils/isTronNativeToken';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
@@ -114,9 +108,6 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
   return StyleSheet.create({
-    wrapper: {
-      paddingTop: 20,
-    } as ViewStyle,
     warningWrapper: {
       paddingHorizontal: 16,
       marginBottom: 20,
@@ -155,9 +146,6 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 20,
       paddingHorizontal: 16,
     } as ViewStyle,
-    perpsPositionTitle: {
-      marginBottom: 8,
-    } as TextStyle,
   });
 };
 
@@ -177,7 +165,6 @@ export interface AssetOverviewContentProps {
   prices: TokenPrice[];
   isLoading: boolean;
 
-  // Time period
   timePeriod: TimePeriod;
   setTimePeriod: (period: TimePeriod) => void;
   chartNavigationButtons: TimePeriod[];
@@ -199,11 +186,18 @@ export interface AssetOverviewContentProps {
   goToSwaps: () => void;
 
   // Tron-specific
-  isTronNative?: boolean;
   stakedTrxAsset?: TokenI;
   inLockPeriodBalance?: string;
   readyForWithdrawalBalance?: string;
-  onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
+  /**
+   * Stable callback from TokenDetails route wrapper. Payload includes
+   * `severity` from `securityData?.resultType` so the parent callback identity
+   * does not change when security loads (avoids market-insights effect loops).
+   */
+  onMarketInsightsDisplayResolved?: (params: {
+    isDisplayed: boolean;
+    severity: string | undefined;
+  }) => void;
   onMarketInsightsDisclaimerPress?: () => void;
 
   // Security & Trust
@@ -247,7 +241,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   onSend,
   onReceive,
   goToSwaps,
-  isTronNative,
   stakedTrxAsset,
   inLockPeriodBalance,
   readyForWithdrawalBalance,
@@ -262,10 +255,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
   const { isTokenTradingOpen, isStockToken } = useRWAToken();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const tronNativeToken = isTronNativeToken(token) ? token : null;
 
   // A/B test hook for layout selection (must be called before usePerpsActions to pass ab_tests)
   const { useNewLayout, isTestActive, variantName } = useTokenDetailsABTest();
-
+  const isTokenOverviewAdvancedChartEnabled = useSelector(
+    selectTokenOverviewAdvancedChartEnabled,
+  );
   const {
     hasPerpsMarket,
     marketData,
@@ -282,38 +278,50 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     useState(false);
   const { track } = usePerpsEventTracking();
 
+  // Compliance gate
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const { gate } = useComplianceGate(selectedAddress ?? '');
+
   const closeEligibilityModal = useCallback(() => {
     setIsEligibilityModalVisible(false);
     resetNavigationLockRef.current?.();
   }, []);
 
-  const handleLongPress = useCallback(() => {
-    if (!isEligible) {
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PERPS_EVENT_PROPERTY.SOURCE]:
-          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-      });
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-    handlePerpsAction?.('long');
-  }, [isEligible, track, handlePerpsAction]);
+  const handleLongPress = useCallback(
+    () =>
+      gate(async () => {
+        if (!isEligible) {
+          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+          });
+          setIsEligibilityModalVisible(true);
+          return;
+        }
+        handlePerpsAction?.('long');
+      }),
+    [gate, isEligible, track, handlePerpsAction],
+  );
 
-  const handleShortPress = useCallback(() => {
-    if (!isEligible) {
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PERPS_EVENT_PROPERTY.SOURCE]:
-          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-      });
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-    handlePerpsAction?.('short');
-  }, [isEligible, track, handlePerpsAction]);
+  const handleShortPress = useCallback(
+    () =>
+      gate(async () => {
+        if (!isEligible) {
+          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+          });
+          setIsEligibilityModalVisible(true);
+          return;
+        }
+        handlePerpsAction?.('short');
+      }),
+    [gate, isEligible, track, handlePerpsAction],
+  );
 
   const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
 
@@ -368,7 +376,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           iconColor: IconColor.WarningDefault,
           label: strings('security_trust.risky'),
           bg: 'bg-warning-muted',
-          textColor: DSTextColor.WarningDefault,
+          textColor: TextColor.WarningDefault,
         };
       case 'Malicious':
         return {
@@ -376,7 +384,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           iconColor: IconColor.ErrorDefault,
           label: strings('security_trust.malicious'),
           bg: 'bg-error-muted',
-          textColor: DSTextColor.ErrorDefault,
+          textColor: TextColor.ErrorDefault,
         };
       default:
         return null;
@@ -483,8 +491,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   } = useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled);
 
   useEffect(() => {
+    const severity = securityData?.resultType;
     if (!isMarketInsightsEnabled) {
-      onMarketInsightsDisplayResolved?.(false);
+      onMarketInsightsDisplayResolved?.({ isDisplayed: false, severity });
       return;
     }
     if (isMarketInsightsLoading) {
@@ -497,13 +506,17 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         id: marketInsightsCaip19Id,
       });
     }
-    onMarketInsightsDisplayResolved?.(Boolean(marketInsightsReport));
+    onMarketInsightsDisplayResolved?.({
+      isDisplayed: Boolean(marketInsightsReport),
+      severity,
+    });
   }, [
     onMarketInsightsDisplayResolved,
     isMarketInsightsEnabled,
     isMarketInsightsLoading,
     marketInsightsReport,
     marketInsightsCaip19Id,
+    securityData?.resultType,
   ]);
 
   // Start the entry card trace synchronously during render so it is registered
@@ -522,10 +535,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       id: marketInsightsCaip19Id,
     });
   }
-
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const { apyPercent: tronApyPercent } = useTronStakeApy();
-  ///: END:ONLY_INCLUDE_IF
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
@@ -597,29 +606,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   }, [marketData, navigation]);
 
   const handleSelectTimePeriod = useCallback(
-    (_timePeriod: TimePeriod) => {
-      setTimePeriod(_timePeriod);
+    (period: TimePeriod) => {
+      setTimePeriod(period);
     },
     [setTimePeriod],
-  );
-
-  const renderWarning = () => (
-    <View style={styles.warningWrapper}>
-      <TouchableOpacity
-        onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
-      >
-        <View style={styles.warning}>
-          <Text variant={TextVariant.BodyMD}>
-            {strings('asset_overview.were_unable')} {token.symbol}{' '}
-            {strings('asset_overview.balance')}{' '}
-            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-              {strings('asset_overview.troubleshooting_missing')}
-            </Text>{' '}
-            {strings('asset_overview.for_help')}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    </View>
   );
 
   const renderChartNavigationButton = useCallback(
@@ -637,6 +627,25 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     [handleSelectTimePeriod, timePeriod, chartNavigationButtons],
   );
 
+  const renderWarning = () => (
+    <View style={styles.warningWrapper}>
+      <TouchableOpacity
+        onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
+      >
+        <View style={styles.warning}>
+          <Text variant={TextVariant.BodyMd}>
+            {strings('asset_overview.were_unable')} {token.symbol}{' '}
+            {strings('asset_overview.balance')}{' '}
+            <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryDefault}>
+              {strings('asset_overview.troubleshooting_missing')}
+            </Text>{' '}
+            {strings('asset_overview.for_help')}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+
   const handleMarketClosedButtonPress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
@@ -649,7 +658,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     (Boolean(marketInsightsReport) || isMarketInsightsLoading);
 
   return (
-    <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
+    <Box twClassName="pt-[2px]" testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {token.hasBalanceError ? (
         renderWarning()
       ) : (
@@ -658,7 +667,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="py-2 pl-4 pr-4 self-stretch gap-3"
+            twClassName="gap-4 py-2 pl-4 pr-[16px]"
           >
             <BadgeWrapper
               badgePosition={BadgePosition.BottomRight}
@@ -675,65 +684,72 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               <AssetLogo asset={token} />
             </BadgeWrapper>
 
-            <Box twClassName="flex-1">
+            <Box twClassName="min-w-0 flex-1">
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="gap-1.5"
+                twClassName="max-w-full min-w-0 gap-1.5 self-stretch"
               >
-                <DSText
-                  variant={DSTextVariant.HeadingMd}
-                  color={DSTextColor.TextDefault}
-                  numberOfLines={1}
-                  twClassName="shrink"
-                >
-                  {token.name || token.symbol}
-                </DSText>
+                <Box twClassName="min-w-0 shrink grow-0">
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    color={TextColor.TextDefault}
+                    numberOfLines={1}
+                  >
+                    {token.name || token.symbol}
+                  </Text>
+                </Box>
                 {securityBadge && securityBadge.label === null && (
-                  <TouchableOpacity
-                    onPress={handleSecurityBadgePress}
-                    testID="security-badge-verified"
-                  >
-                    <Icon
-                      name={securityBadge.icon}
-                      size={IconSize.Md}
-                      color={securityBadge.iconColor}
-                    />
-                  </TouchableOpacity>
-                )}
-                {securityBadge && securityBadge.label !== null && (
-                  <TouchableOpacity
-                    onPress={handleSecurityBadgePress}
-                    testID={
-                      securityData?.resultType === 'Malicious'
-                        ? 'security-badge-malicious'
-                        : 'security-badge-warning'
-                    }
-                  >
-                    <Box
-                      flexDirection={BoxFlexDirection.Row}
-                      alignItems={BoxAlignItems.Center}
-                      twClassName={`rounded min-w-[22px] px-1.5 gap-1 ${securityBadge.bg}`}
+                  <Box twClassName="shrink-0">
+                    <TouchableOpacity
+                      onPress={handleSecurityBadgePress}
+                      testID="security-badge-verified"
                     >
                       <Icon
                         name={securityBadge.icon}
-                        size={IconSize.Sm}
+                        size={IconSize.Md}
                         color={securityBadge.iconColor}
                       />
-                      <DSText
-                        variant={DSTextVariant.BodySm}
-                        color={securityBadge.textColor}
-                        fontWeight={FontWeight.Medium}
-                        numberOfLines={1}
-                        twClassName="overflow-hidden text-center"
+                    </TouchableOpacity>
+                  </Box>
+                )}
+                {securityBadge && securityBadge.label !== null && (
+                  <Box twClassName="shrink-0">
+                    <TouchableOpacity
+                      onPress={handleSecurityBadgePress}
+                      testID={
+                        securityData?.resultType === 'Malicious'
+                          ? 'security-badge-malicious'
+                          : 'security-badge-warning'
+                      }
+                    >
+                      <Box
+                        flexDirection={BoxFlexDirection.Row}
+                        alignItems={BoxAlignItems.Center}
+                        twClassName={`rounded min-w-[22px] px-1.5 gap-1 ${securityBadge.bg}`}
                       >
-                        {securityBadge.label}
-                      </DSText>
-                    </Box>
-                  </TouchableOpacity>
+                        <Icon
+                          name={securityBadge.icon}
+                          size={IconSize.Sm}
+                          color={securityBadge.iconColor}
+                        />
+                        <Text
+                          variant={TextVariant.BodySm}
+                          color={securityBadge.textColor}
+                          fontWeight={FontWeight.Medium}
+                          numberOfLines={1}
+                          twClassName="overflow-hidden text-center"
+                        >
+                          {securityBadge.label}
+                        </Text>
+                      </Box>
+                    </TouchableOpacity>
+                  </Box>
                 )}
                 {!token.name && isStockToken(token as BridgeToken) && (
-                  <StockBadge token={token as BridgeToken} />
+                  <Box twClassName="shrink-0">
+                    <StockBadge token={token as BridgeToken} />
+                  </Box>
                 )}
               </Box>
               {token.name ? (
@@ -742,14 +758,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   alignItems={BoxAlignItems.Center}
                   twClassName="gap-1"
                 >
-                  <DSText
-                    variant={DSTextVariant.BodyMd}
-                    color={DSTextColor.TextAlternative}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
                     fontWeight={FontWeight.Medium}
                     numberOfLines={1}
                   >
                     {token.ticker || token.symbol}
-                  </DSText>
+                  </Text>
                   {isStockToken(token as BridgeToken) && (
                     <StockBadge token={token as BridgeToken} />
                   )}
@@ -776,39 +792,41 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 alignItems={BoxAlignItems.Start}
                 twClassName="flex-1"
               >
-                <DSText
-                  variant={DSTextVariant.BodyMd}
-                  color={DSTextColor.TextDefault}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
                   fontWeight={FontWeight.Bold}
                 >
                   {strings('security_trust.malicious_token_title')}
-                </DSText>
-                <DSText
-                  variant={DSTextVariant.BodyMd}
-                  color={DSTextColor.TextDefault}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
                 >
                   {strings('security_trust.malicious_token_description', {
                     symbol: token.symbol,
                   })}
-                </DSText>
+                </Text>
               </Box>
             </Box>
           )}
 
-          <PriceChartProvider>
-            <Price
-              prices={prices}
-              priceDiff={priceDiff}
-              currentCurrency={currentCurrency}
-              currentPrice={currentPrice}
-              comparePrice={comparePrice}
-              isLoading={isLoading}
-              timePeriod={timePeriod}
-            />
-          </PriceChartProvider>
-          <View style={styles.chartNavigationWrapper}>
-            {renderChartNavigationButton()}
-          </View>
+          <Price
+            asset={token}
+            prices={prices}
+            timePeriod={timePeriod}
+            priceDiff={priceDiff}
+            currentCurrency={currentCurrency}
+            currentPrice={currentPrice}
+            comparePrice={comparePrice}
+            isLoading={isLoading}
+          />
+          {/* Same as main: chart period tabs under the legacy line chart. Omitted when the advanced chart is on (range selector lives inside Price). */}
+          {!isTokenOverviewAdvancedChartEnabled && (
+            <View style={styles.chartNavigationWrapper}>
+              {renderChartNavigationButton()}
+            </View>
+          )}
           {!isTokenTradingOpen(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
               <MarketClosedActionButton
@@ -821,7 +839,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {useNewLayout ? (
             <TokenDetailsActions
               hasPerpsMarket={hasPerpsMarket}
-              hasBalance={balance != null && Number(balance) > 0}
+              hasBalance={Boolean(balance) && balance !== '0'}
               isBuyable={isBuyable}
               isNativeCurrency={token.isETH || token.isNative || false}
               token={token}
@@ -867,7 +885,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           ) : null}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && <TronEnergyBandwidthDetail />
+            tronNativeToken && <TronEnergyBandwidthDetail />
             ///: END:ONLY_INCLUDE_IF
           }
           {balance != null && (
@@ -882,65 +900,19 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           )}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && stakedTrxAsset && (
-              <Balance
-                asset={stakedTrxAsset}
-                mainBalance={stakedTrxAsset.balance ?? ''}
-                secondaryBalance={`${stakedTrxAsset.balance} ${stakedTrxAsset.symbol}`}
-                hideTitleHeading
-                hidePercentageChange
+            tronNativeToken && (
+              <TronAssetOverviewSection
+                token={tronNativeToken}
+                stakedTrxAsset={stakedTrxAsset}
+                inLockPeriodBalance={inLockPeriodBalance}
+                readyForWithdrawalBalance={readyForWithdrawalBalance}
               />
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && readyForWithdrawalBalance && (
-              <Box paddingTop={3} paddingHorizontal={4}>
-                <TronUnstakedBanner
-                  amount={readyForWithdrawalBalance}
-                  chainId={String(token.chainId) as CaipChainId}
-                />
-              </Box>
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && inLockPeriodBalance && (
-              <Box paddingTop={3} paddingHorizontal={4}>
-                <TronUnstakingBanner amount={inLockPeriodBalance} />
-              </Box>
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && stakedTrxAsset && (
-              <Box paddingTop={4} paddingHorizontal={4}>
-                <TronStakingButtons asset={stakedTrxAsset} />
-              </Box>
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && !stakedTrxAsset && (
-              <Box paddingTop={3} paddingHorizontal={4}>
-                <TronStakingCta
-                  asset={token}
-                  aprText={tronApyPercent ?? undefined}
-                />
-              </Box>
             )
             ///: END:ONLY_INCLUDE_IF
           }
           {showPerpsSection && perpsPosition && (
             <View style={styles.perpsPositionCardContainer}>
-              <Text
-                variant={TextVariant.HeadingMD}
-                style={styles.perpsPositionTitle}
-              >
+              <Text variant={TextVariant.HeadingMd} twClassName="mb-2">
                 {strings('asset_overview.perps_position')}
               </Text>
               <PerpsPositionCard
@@ -991,7 +963,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           )}
         </View>
       )}
-    </View>
+    </Box>
   );
 };
 

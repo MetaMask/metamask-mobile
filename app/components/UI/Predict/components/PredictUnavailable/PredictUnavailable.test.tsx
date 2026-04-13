@@ -38,12 +38,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-  useSafeAreaFrame: () => ({ x: 0, y: 0, width: 375, height: 812 }),
-  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
-}));
-
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,

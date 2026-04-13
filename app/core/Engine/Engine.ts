@@ -161,6 +161,7 @@ import { smartTransactionsControllerInit } from './controllers/smart-transaction
 import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
+import { moneyAccountControllerInit } from './controllers/money-account-controller-init';
 import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
@@ -315,6 +316,7 @@ export class Engine {
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         EarnController: earnControllerInit,
+        MoneyAccountController: moneyAccountControllerInit,
         GeolocationApiService: geolocationApiServiceInit,
         GeolocationController: geolocationControllerInit,
         TokensController: tokensControllerInit,
@@ -442,6 +444,7 @@ export class Engine {
       controllersByName.MultichainNetworkController;
     const currencyRateController = controllersByName.CurrencyRateController;
     const earnController = controllersByName.EarnController;
+    const moneyAccountController = controllersByName.MoneyAccountController;
     const tokensController = controllersByName.TokensController;
     const tokenBalancesController = controllersByName.TokenBalancesController;
     const tokenRatesController = controllersByName.TokenRatesController;
@@ -567,6 +570,7 @@ export class Engine {
       BridgeController: bridgeController,
       BridgeStatusController: controllersByName.BridgeStatusController,
       EarnController: earnController,
+      MoneyAccountController: moneyAccountController,
       GeolocationController: geolocationController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
@@ -1382,6 +1386,7 @@ export default {
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController,
+      MoneyAccountController,
     } = instance.context;
 
     return {
@@ -1455,6 +1460,7 @@ export default {
       MultichainTransactionsController: MultichainTransactionsController.state,
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController: ProfileMetricsController.state,
+      MoneyAccountController: MoneyAccountController.state,
     };
   },
 
