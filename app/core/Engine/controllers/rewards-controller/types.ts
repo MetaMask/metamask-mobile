@@ -1234,7 +1234,6 @@ export interface SeasonDto {
   tiers: SeasonTierDto[];
   activityTypes: SeasonActivityTypeDto[];
   waysToEarn: SeasonWayToEarnDto[];
-  shouldInstallNewVersion?: string | undefined;
 }
 
 export interface SeasonStatusBalanceDto {
@@ -1373,7 +1372,6 @@ export type SeasonDtoState = {
   activityTypes: SeasonActivityTypeDto[];
   waysToEarn: SeasonWayToEarnDto[];
   lastFetched?: number;
-  shouldInstallNewVersion?: string | undefined;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -2118,14 +2116,6 @@ export interface SeasonMetadataDto {
    * Ways to earn for the season
    */
   waysToEarn: SeasonWayToEarnDto[];
-
-  /**
-   * Optional version requirements for mobile and extension
-   */
-  shouldInstallNewVersion?: {
-    mobile: string | undefined;
-    extension: string | undefined;
-  };
 }
 
 /**
