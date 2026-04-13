@@ -1894,13 +1894,16 @@ describe('BuildQuote', () => {
   });
 
   describe('selectedQuote matching', () => {
+    const noQuotesErrorPattern =
+      /We encountered a problem fetching quotes from/i;
+
     it('shows Powered by text when quote provider matches selected provider', () => {
       const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
-      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
     });
 
     it('shows no-quotes error when quote provider does not match selected provider', () => {
@@ -1916,7 +1919,7 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(getByText("We've encountered an error")).toBeOnTheScreen();
+      expect(getByText(noQuotesErrorPattern)).toBeOnTheScreen();
     });
 
     it('shows no-quotes error when quotes response has no entries', () => {
@@ -1930,7 +1933,7 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(getByText("We've encountered an error")).toBeOnTheScreen();
+      expect(getByText(noQuotesErrorPattern)).toBeOnTheScreen();
     });
 
     it('does not show error when quotes are still loading', () => {
@@ -1944,7 +1947,7 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
     });
 
     it('continue button is disabled when no matching quote', () => {
@@ -1989,7 +1992,7 @@ describe('BuildQuote', () => {
       });
 
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
-      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
     });
 
     it('matches quote when selected provider has prefixed ID and quote has short ID', () => {
@@ -2018,7 +2021,7 @@ describe('BuildQuote', () => {
       });
 
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
-      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
     });
 
     it('finds matching quote even if it is not the first in the array', () => {
@@ -2038,7 +2041,7 @@ describe('BuildQuote', () => {
       });
 
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
-      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
     });
   });
 });
