@@ -14,7 +14,10 @@ import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
-import { SRP_GUIDE_URL } from '../../../../constants/urls';
+import {
+  SRP_GUIDE_URL,
+  SRP_DOS_AND_DONTS_URL,
+} from '../../../../constants/urls';
 
 import { QuizStage } from '../types';
 import { QuizContent } from '../QuizContent';
@@ -63,11 +66,8 @@ const SRPQuiz = () => {
 
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
-  const SRP_GUIDE_SOCIAL_LOGIN_URL =
-    'https://support.metamask.io/start/user-guide-secret-recovery-phrase-password-and-private-keys/#metamask-secret-recovery-phrase-dos-and-donts';
-
   const LEARN_MORE_URL = isSocialLogin
-    ? SRP_GUIDE_SOCIAL_LOGIN_URL
+    ? SRP_DOS_AND_DONTS_URL
     : SRP_GUIDE_URL;
 
   const openSupportArticle = useCallback((): void => {

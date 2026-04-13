@@ -52,6 +52,7 @@ import { setupSentry } from '../../../util/sentry/utils';
 import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
 import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
 import Device from '../../../util/device';
+import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 import type { OptinMetricsRouteParams } from './OptinMetrics.types';
 import {
   useNavigation,
@@ -259,7 +260,7 @@ const OptinMetrics = () => {
   const openLearnMore = useCallback(
     () =>
       onPressLink({
-        url: 'https://support.metamask.io/configure/privacy/how-to-manage-your-metametrics-settings/',
+        url: HOW_TO_MANAGE_METRAMETRICS_SETTINGS,
         title: 'How to manage your MetaMetrics settings',
       }),
     [onPressLink],

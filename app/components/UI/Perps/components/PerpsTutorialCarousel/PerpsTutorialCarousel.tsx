@@ -379,7 +379,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     NavigationService.navigation.navigate(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,
       params: {
-        newTabUrl: 'https://support.metamask.io/manage-crypto/trade/perps',
+        newTabUrl: PERPS_LEARN_MORE_URL,
         linkType: EXTERNAL_LINK_TYPE,
         timestamp: Date.now(),
         fromPerps: true,

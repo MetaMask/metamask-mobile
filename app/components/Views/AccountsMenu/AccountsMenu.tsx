@@ -41,6 +41,7 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
@@ -175,7 +176,7 @@ const AccountsMenu = () => {
   }, [goToBrowserUrl, trackEvent, createEventBuilder]);
 
   const onPressSupport = useCallback(() => {
-    let supportUrl = 'https://support.metamask.io';
+    let supportUrl = METAMASK_SUPPORT_URL;
 
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
     supportUrl = 'https://intercom.help/internal-beta-testing/en/';

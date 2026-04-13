@@ -117,7 +117,7 @@ const AccountBackupStep1B = (props) => {
     props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
+        url: LEARN_MORE_URL,
         title: strings('drawer.metamask_support'),
       },
     });

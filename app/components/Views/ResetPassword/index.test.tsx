@@ -13,6 +13,7 @@ import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { PASSWORD_GUIDE_URL, RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import { Alert, InteractionManager } from 'react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -620,7 +621,7 @@ describe('ResetPassword', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://support.metamask.io/configure/wallet/passwords-and-metamask/',
+          url: PASSWORD_GUIDE_URL,
           title: 'support.metamask.io',
         },
       });
@@ -639,7 +640,7 @@ describe('ResetPassword', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+          url: RESET_PASSWORD_GUIDE_URL,
           title: 'support.metamask.io',
         },
       });
