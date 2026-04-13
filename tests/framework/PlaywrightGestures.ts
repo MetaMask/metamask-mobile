@@ -301,17 +301,14 @@ export default class PlaywrightGestures {
     if (await PlatformDetector.isAndroid()) {
       await drv.hideKeyboard();
     } else {
-      // iOS - try pressKey strategy first, fallback to tap outside
+      // iOS - tapOutside dismisses the keyboard by tapping outside the focused
+      // element, which works regardless of keyboard type (password, numeric, etc.)
       try {
         await drv.executeScript('mobile: hideKeyboard', [
-          {
-            strategy: 'pressKey',
-            key: keyName,
-          },
+          { strategy: 'pressKey', key: keyName },
         ]);
       } catch {
-        // Fallback: tap outside the keyboard area (top of screen)
-        await drv.tap({ x: 100, y: 150 });
+        // Keyboard may already be hidden
       }
     }
   }

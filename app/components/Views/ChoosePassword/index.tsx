@@ -750,7 +750,12 @@ const ChoosePassword = () => {
                     keyboardAppearance={themeAppearance}
                     isError={isPasswordTooShort}
                     endAccessory={
-                      <TouchableOpacity onPress={() => toggleShowPassword(0)}>
+                      <TouchableOpacity
+                        testID={
+                          ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
+                        }
+                        onPress={() => toggleShowPassword(0)}
+                      >
                         <Icon
                           name={
                             showPasswordIndex.includes(0)
@@ -808,6 +813,9 @@ const ChoosePassword = () => {
                     keyboardAppearance={themeAppearance}
                     endAccessory={
                       <TouchableOpacity
+                        testID={
+                          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
+                        }
                         disabled={password === ''}
                         onPress={() => toggleShowPassword(1)}
                       >

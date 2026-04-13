@@ -47,6 +47,7 @@ import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdC
 import { useTrendingRequest } from '../../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest';
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -241,7 +242,12 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+      <View
+        ref={sectionViewRef}
+        testID={WalletViewSelectorsIDs.TOKENS_SECTION_CONTAINER}
+        onLayout={onLayout}
+        style={styles.sectionGap}
+      >
         <SectionHeader title={title} onPress={handleViewAllTokens} />
         {showTokensError ? (
           <ErrorState
@@ -351,7 +357,12 @@ const TokensSectionTrendingOnly = forwardRef<
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+      <View
+        ref={sectionViewRef}
+        testID={WalletViewSelectorsIDs.TOKENS_SECTION_CONTAINER}
+        onLayout={onLayout}
+        style={styles.sectionGap}
+      >
         <SectionHeader title={title} onPress={handleViewAllTokens} />
         <SectionRow>
           {isTrendingLoading

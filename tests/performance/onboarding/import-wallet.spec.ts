@@ -5,6 +5,7 @@ import { PerformanceOnboarding } from '../../tags.performance.js';
 import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
 import {
   asPlaywrightElement,
+  PlatformDetector,
   PlaywrightAssertions,
   PlaywrightGestures,
 } from '../../framework';
@@ -97,10 +98,12 @@ test.describe(PerformanceOnboarding, () => {
         getPasswordForScenario('import') || '',
       );
 
-      await CreatePasswordView.tapIUnderstandCheckBox();
-
-      await PlaywrightGestures.hideKeyboard();
       await CreatePasswordView.tapPasswordVisibilityIcon();
+      await CreatePasswordView.tapConfirmPasswordVisibilityIcon();
+      await CreatePasswordView.tapIUnderstandCheckBox();
+      if (await PlatformDetector.isAndroid()) {
+        await PlaywrightGestures.hideKeyboard();
+      }
       await CreatePasswordView.tapCreatePasswordButton();
 
       await timer4.measure(async () => {
@@ -131,10 +134,7 @@ test.describe(PerformanceOnboarding, () => {
       console.log(
         `Predict GTM Onboarding Modal Enabled: ${predictGtmOnboardingModalEnabled}`,
       );
-      if (
-        predictGtmOnboardingModalEnabled &&
-        predictGtmOnboardingModalEnabled === true
-      ) {
+      if (predictGtmOnboardingModalEnabled) {
         await timer6.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             await asPlaywrightElement(PredictModalView.notNowButton),
