@@ -14,6 +14,7 @@ const {
   normalizeWorkflowDocument,
   renderWorkflowMermaid,
 } = require('./lib/workflow');
+const { backgroundApp, foregroundApp, restartApp } = require('./lib/app-lifecycle');
 const {
   getAppRoot,
   getTeamsDir,
@@ -42,6 +43,7 @@ function parseArgs(argv) {
     artifactsDir: '',
     dryRun: false,
     hud: true,
+    inputOverrides: {},
     recipe: '',
     singleStep: '',
     skipManual: false,
@@ -76,6 +78,17 @@ function parseArgs(argv) {
       case '--testnet':
         options.testnet = true;
         break;
+      case '--input': {
+        const kv = argv[i + 1] || '';
+        const eq = kv.indexOf('=');
+        if (eq < 1) throw new Error('--input expects key=value (e.g. --input test_restart=true)');
+        const k = kv.slice(0, eq);
+        const raw = kv.slice(eq + 1);
+        // Parse booleans and numbers
+        options.inputOverrides[k] = raw === 'true' ? true : raw === 'false' ? false : Number.isFinite(Number(raw)) ? Number(raw) : raw;
+        i += 1;
+        break;
+      }
       case '--help':
       case '-h':
         printHelp();
@@ -327,6 +340,12 @@ function describeStep(step) {
       return `toggle testnet=${step.enabled !== undefined ? step.enabled : 'true'}`;
     case 'switch_provider':
       return `switch provider ${step.provider}`;
+    case 'app_background':
+      return `background app ${step.duration_ms || 5000}ms`;
+    case 'app_foreground':
+      return 'foreground app';
+    case 'app_restart':
+      return 'restart app';
     case 'switch':
       return step.description || 'evaluate branch';
     case 'end':
@@ -1077,6 +1096,52 @@ async function runExecutableNode(node, context, options = {}) {
     return { next: node.next || '' };
   }
 
+  // --- App lifecycle (delegated to lib/app-lifecycle.js) ---
+  if (node.action === 'app_background') {
+    const { bundleId } = backgroundApp();
+    const durationMs = Number(node.duration_ms || 5000);
+    await new Promise((resolve) => setTimeout(resolve, durationMs));
+    stats.passed += 1;
+    console.log(`  backgrounded for ${durationMs}ms`);
+    console.log('  PASS');
+    console.log('');
+    finalizeNodeRecord(context, node, {
+      next: node.next || '', result: { backgrounded: true, durationMs, bundleId }, startedAt,
+    });
+    context.currentStepRef.current = null;
+    return { next: node.next || '' };
+  }
+
+  if (node.action === 'app_foreground') {
+    const { bundleId } = foregroundApp();
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    stats.passed += 1;
+    console.log(`  foregrounded (${bundleId})`);
+    console.log('  PASS');
+    console.log('');
+    finalizeNodeRecord(context, node, {
+      next: node.next || '', result: { foregrounded: true, bundleId }, startedAt,
+    });
+    context.currentStepRef.current = null;
+    return { next: node.next || '' };
+  }
+
+  if (node.action === 'app_restart') {
+    const { bundleId } = restartApp();
+    const bootWaitMs = Number(node.boot_wait_ms || 15000);
+    console.log(`  waiting ${bootWaitMs}ms for app boot + Metro reconnect...`);
+    await new Promise((resolve) => setTimeout(resolve, bootWaitMs));
+    stats.passed += 1;
+    console.log(`  restarted (${bundleId})`);
+    console.log('  PASS');
+    console.log('');
+    finalizeNodeRecord(context, node, {
+      next: node.next || '', result: { restarted: true, bundleId }, startedAt,
+    });
+    context.currentStepRef.current = null;
+    return { next: node.next || '' };
+  }
+
   // --- Log watch ---
   if (node.action === 'log_watch') {
     const metroLogPath = process.env.METRO_LOG || path.join(appRoot, '.agent', 'metro.log');
@@ -1555,6 +1620,7 @@ async function main() {
       artifactsDir: options.artifactsDir,
       dryRun: options.dryRun,
       hud: options.hud,
+      inputOverrides: options.inputOverrides,
       singleStep: options.singleStep,
       skipManual: options.skipManual,
     };
@@ -1579,7 +1645,7 @@ async function main() {
       }
     }
 
-    await runRecipe(recipeInput.recipePath, runOptions);
+    await runRecipe(recipeInput.recipePath, runOptions, runOptions.inputOverrides);
   } catch (error) {
     console.error(String(error.message || error));
     process.exit(1);
