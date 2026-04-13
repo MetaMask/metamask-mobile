@@ -1,5 +1,5 @@
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { MessengerClientInitRequest } from '../../types';
 import { CardController, defaultCardControllerState } from './CardController';
 import {
@@ -30,7 +30,9 @@ describe('cardControllerInit', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
 
-    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+    initRequestMock = buildMessengerClientInitRequestMock(
+      baseControllerMessenger,
+    );
   });
 
   it('returns a controller instance', () => {
