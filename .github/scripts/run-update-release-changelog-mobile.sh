@@ -74,6 +74,14 @@ if [[ ${#PATCH} -ge 2 && $((10#$PATCH % 10)) -ne 0 ]]; then
     fi
   fi
 else
-  # Regular release or single-digit hotfix: pass through unchanged
+  # Regular release or binary hotfix.
+  # Normalize leading zeros in patch for strict SemVer (e.g. 00 → 0).
+  NORMALIZED_PATCH=$((10#$PATCH))
+  if [[ "$PATCH" != "$NORMALIZED_PATCH" ]]; then
+    NORMALIZED_VERSION="${RUNWAY_VERSION%.*}.${NORMALIZED_PATCH}"
+    echo "Normalizing patch for strict SemVer: Runway ${RUNWAY_VERSION} → ${NORMALIZED_VERSION}"
+    # Pass real branch (arg 1) for git ops, normalized SemVer (arg 6) for auto-changelog.
+    exec "$SCRIPT" "$RELEASE_BRANCH" "$PLATFORM" "$REPO_URL" "$PREV_REF" "" "$NORMALIZED_VERSION"
+  fi
   exec "$SCRIPT" "$RELEASE_BRANCH" "$PLATFORM" "$REPO_URL" "$PREV_REF"
 fi

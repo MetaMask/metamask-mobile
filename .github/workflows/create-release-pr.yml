@@ -30,6 +30,8 @@ jobs:
       checkout_base: ${{ steps.out.outputs.checkout_base }}
       release_base: ${{ steps.out.outputs.release_base }}
       is_ota: ${{ steps.out.outputs.is_ota }}
+      needs_local_bump: ${{ steps.out.outputs.needs_local_bump }}
+      normalized_semver: ${{ steps.out.outputs.normalized_semver }}
     steps:
       - id: out
         shell: bash
@@ -46,11 +48,16 @@ jobs:
           fi
 
           patch="${SEMVER##*.}"
+          normalized_patch=$((10#$patch))
+          normalized_semver="${SEMVER%.*}.${normalized_patch}"
+          is_ota=false
+
           # OTA hotfix: multi-digit patch whose last digit is non-zero.
           # patch % 10 != 0 → OTA hotfix (last digit = OTA iteration, remaining digits = base binary patch).
-          # patch % 10 == 0 → binary hotfix (e.g. 10, 20) or regular release (0).
+          # patch % 10 == 0 → binary hotfix (e.g. 10, 20) or regular release (0, 00).
           # Single-digit patches (1-9) are always binary hotfixes; 0 is a regular release.
           if [[ ${#patch} -ge 2 && $((10#$patch % 10)) -ne 0 ]]; then
+            is_ota=true
             echo "is_ota=true" >> "$GITHUB_OUTPUT"
             echo "OTA hotfix (patch: ${patch}, last digit: $((10#$patch % 10))): branch release/${SEMVER}; OTA_VERSION v${SEMVER}."
           else
@@ -58,7 +65,18 @@ jobs:
             echo "Not OTA hotfix (patch segment: ${patch})."
           fi
 
-          if [ "$patch" -gt 0 ]; then
+          # Detect if patch has leading zeros requiring local version bump
+          # (e.g. 00 → normalized 0). The github-tools action rejects leading-zero patches.
+          if [[ "$patch" != "$normalized_patch" && "$is_ota" != "true" ]]; then
+            echo "needs_local_bump=true" >> "$GITHUB_OUTPUT"
+            echo "Patch has leading zeros (${patch} → ${normalized_patch}): will bump versions locally."
+          else
+            echo "needs_local_bump=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "normalized_semver=${normalized_semver}" >> "$GITHUB_OUTPUT"
+          echo "Normalized semver: ${normalized_semver}"
+
+          if [ "$normalized_patch" -gt 0 ]; then
             echo "Detected hotfix (patch=$patch): using stable for checkout and stable for release PR base."
             echo "checkout_base=stable" >> "$GITHUB_OUTPUT"
           else
@@ -102,7 +120,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Create Release PR (semver / native version bump)
-        if: needs.resolve-bases.outputs.is_ota != 'true'
+        if: needs.resolve-bases.outputs.is_ota != 'true' && needs.resolve-bases.outputs.needs_local_bump != 'true'
         uses: MetaMask/github-tools/.github/actions/create-release-pr@v1
         with:
           platform: mobile
@@ -116,6 +134,107 @@ jobs:
           # workflow_call: reusable workflows only receive secrets explicitly passed in; auto-create-release-pr maps github-token → PR_TOKEN.
           github-token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
           google-application-creds-base64: ${{ github.event_name == 'workflow_dispatch' && secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 || secrets.google-application-creds-base64 }}
+
+      # --- Local version-bump path for Runway patches with leading zeros (e.g. 7.79.00) ---
+      # The github-tools action rejects leading-zero patches as invalid strict SemVer.
+      # We check out the Runway branch directly and bump versions with the normalized semver.
+      - name: Check for existing release PR (local bump)
+        id: local_bump_pr
+        if: needs.resolve-bases.outputs.needs_local_bump == 'true'
+        shell: bash
+        env:
+          SEMVER: ${{ inputs.semver-version }}
+          RELEASE_BASE: ${{ needs.resolve-bases.outputs.release_base }}
+          GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+        run: |
+          set -euo pipefail
+          BRANCH="release/${SEMVER}"
+          COUNT=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base "$RELEASE_BASE" --json number --jq 'length')
+          if [[ "$COUNT" -gt 0 ]]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release PR already exists for $BRANCH → $RELEASE_BASE; skipping local bump."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout Runway release branch (local bump)
+        if: needs.resolve-bases.outputs.needs_local_bump == 'true' && steps.local_bump_pr.outputs.exists != 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: release/${{ inputs.semver-version }}
+          token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+          fetch-depth: 0
+
+      - name: Bump semver and build version (local bump)
+        if: needs.resolve-bases.outputs.needs_local_bump == 'true' && steps.local_bump_pr.outputs.exists != 'true'
+        shell: bash
+        env:
+          NORMALIZED_SEMVER: ${{ needs.resolve-bases.outputs.normalized_semver }}
+          BUILD_VERSION: ${{ needs.generate-build-version.outputs.build-version }}
+          SEMVER: ${{ inputs.semver-version }}
+        run: |
+          set -euo pipefail
+          BRANCH="release/${SEMVER}"
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
+          echo "Bumping semver to ${NORMALIZED_SEMVER} (Runway version: ${SEMVER})"
+          bash scripts/set-semvar-version.sh "${NORMALIZED_SEMVER}"
+          echo "Bumping build version to ${BUILD_VERSION}"
+          bash scripts/set-build-version.sh "${BUILD_VERSION}"
+          git add package.json android/app/build.gradle ios/MetaMask.xcodeproj/project.pbxproj bitrise.yml
+          git commit -m "bump version to ${NORMALIZED_SEMVER} && build version to ${BUILD_VERSION}"
+          git push origin "$BRANCH"
+
+      - name: Checkout github-tools (release changelog — local bump)
+        if: needs.resolve-bases.outputs.needs_local_bump == 'true' && steps.local_bump_pr.outputs.exists != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: MetaMask/github-tools
+          path: github-tools
+          ref: v1
+
+      - name: Setup Node for changelog tooling (local bump)
+        if: needs.resolve-bases.outputs.needs_local_bump == 'true' && steps.local_bump_pr.outputs.exists != 'true'
+        uses: ./github-tools/.github/actions/checkout-and-setup
+        with:
+          is-high-risk-environment: true
+
+      - name: Update release changelog (local bump)
+        if: needs.resolve-bases.outputs.needs_local_bump == 'true' && steps.local_bump_pr.outputs.exists != 'true'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+          GIT_AUTHOR_NAME: metamaskbot
+          GIT_AUTHOR_EMAIL: metamaskbot@users.noreply.github.com
+        run: |
+          set -euo pipefail
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
+          corepack enable
+          yarn install --immutable
+          bash .github/scripts/run-update-release-changelog-mobile.sh \
+            "release/${{ inputs.semver-version }}" \
+            mobile \
+            "${{ github.server_url }}/${{ github.repository }}" \
+            "${{ needs.resolve-previous-ref.outputs.previous_ref }}"
+
+      - name: Create release PR (local bump)
+        if: needs.resolve-bases.outputs.needs_local_bump == 'true' && steps.local_bump_pr.outputs.exists != 'true'
+        shell: bash
+        env:
+          SEMVER: ${{ inputs.semver-version }}
+          NORMALIZED_SEMVER: ${{ needs.resolve-bases.outputs.normalized_semver }}
+          RELEASE_BASE: ${{ needs.resolve-bases.outputs.release_base }}
+          GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+        run: |
+          set -euo pipefail
+          BRANCH="release/${SEMVER}"
+          BODY="Release \`${NORMALIZED_SEMVER}\` (Runway branch: \`${BRANCH}\`)."
+          BODY="${BODY}"$'\n\n'"- App version set to \`${NORMALIZED_SEMVER}\` (normalized from Runway \`${SEMVER}\`)."
+          gh pr create --repo "$GITHUB_REPOSITORY" --draft \
+            --base "$RELEASE_BASE" --head "$BRANCH" \
+            --title "release: ${NORMALIZED_SEMVER}" \
+            --body "$BODY"
 
       # Check PR before checkout/bump/push so retries do not increment OTA_VERSION again when a PR already exists.
       - name: Check for existing OTA release PR
