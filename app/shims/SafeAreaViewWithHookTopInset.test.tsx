@@ -19,9 +19,11 @@ jest.mock('react-native-safe-area-context/src/SafeAreaView', () => {
   const { View: RNView } =
     jest.requireActual<typeof import('react-native')>('react-native');
   return {
-    SafeAreaView: forwardRef<View>((props, ref) => (
-      <RNView ref={ref} {...props} testID="native-safe-area-view" />
-    )),
+    SafeAreaView: forwardRef(
+      (props: Record<string, unknown>, ref: React.Ref<View>) => (
+        <RNView ref={ref} {...props} testID="native-safe-area-view" />
+      ),
+    ),
   };
 });
 
@@ -29,6 +31,8 @@ const testStyles = StyleSheet.create({
   paddingTop10: { paddingTop: 10 },
   paddingTop100: { paddingTop: 100 },
   marginTop6: { marginTop: 6 },
+  paddingTopNaN: { paddingTop: NaN },
+  paddingTopPercent: { paddingTop: '20%' as unknown as number },
 });
 
 function getNativeViewProps(root: ReturnType<typeof render>) {
@@ -192,7 +196,7 @@ describe('SafeAreaViewWithHookTopInset', () => {
 
     it('treats NaN paddingTop as 0', () => {
       const props = getNativeViewProps(
-        render(<SafeAreaView style={{ paddingTop: NaN }} />),
+        render(<SafeAreaView style={testStyles.paddingTopNaN} />),
       );
       const flat = StyleSheet.flatten(props.style);
       expect(flat).toMatchObject({ paddingTop: 44 });
@@ -200,9 +204,7 @@ describe('SafeAreaViewWithHookTopInset', () => {
 
     it('treats string paddingTop as 0', () => {
       const props = getNativeViewProps(
-        render(
-          <SafeAreaView style={{ paddingTop: '20%' as unknown as number }} />,
-        ),
+        render(<SafeAreaView style={testStyles.paddingTopPercent} />),
       );
       const flat = StyleSheet.flatten(props.style);
       expect(flat).toMatchObject({ paddingTop: 44 });
