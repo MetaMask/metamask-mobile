@@ -529,8 +529,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -790,7 +789,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -804,7 +803,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -884,9 +883,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -1477,9 +1475,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -1521,7 +1518,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1533,8 +1530,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1794,7 +1790,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -1808,7 +1804,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -2518,9 +2514,8 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -2562,7 +2557,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2574,8 +2569,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2835,8 +2829,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -2850,7 +2844,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -2910,9 +2904,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -2999,14 +2992,13 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 </View>
                               </View>
                             </View>
-                            <RNCSafeAreaView
+                            <View
                               edges={
-                                {
-                                  "bottom": "additive",
-                                  "left": "additive",
-                                  "right": "additive",
-                                  "top": "off",
-                                }
+                                [
+                                  "right",
+                                  "bottom",
+                                  "left",
+                                ]
                               }
                               style={
                                 {
@@ -4139,7 +4131,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   </RCTScrollView>
                                 </View>
                               </View>
-                            </RNCSafeAreaView>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -4280,9 +4272,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -4324,7 +4315,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -4336,8 +4327,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -4597,7 +4587,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -4611,7 +4601,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -4691,9 +4681,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -5434,9 +5423,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -5478,7 +5466,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -5490,8 +5478,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -5751,7 +5738,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -5765,7 +5752,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -6109,9 +6096,8 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -6153,7 +6139,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -6165,8 +6151,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -6426,7 +6411,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -6440,7 +6425,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -6784,9 +6769,8 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -6828,7 +6812,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -6840,8 +6824,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -7101,7 +7084,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -7115,7 +7098,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -7459,9 +7442,8 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -7503,7 +7485,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -7515,8 +7497,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -7776,7 +7757,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -7790,7 +7771,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -8134,9 +8115,8 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -8178,7 +8158,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
