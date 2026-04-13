@@ -1,4 +1,5 @@
 import { CaipChainId } from '@metamask/utils';
+import type { TokenI } from '../Tokens/types';
 
 /**
  * Enum for asset delegation status
@@ -87,6 +88,21 @@ export type CardTokenAllowance = {
   totalAllowance?: string;
 } & CardToken &
   AuthenticatedCardTokenAllowanceData;
+
+/**
+ * A CardTokenAllowance with wallet-side balance data pre-merged.
+ * Returned by useCardHomeData so consumers don't need a separate map lookup.
+ * Structurally assignable to CardTokenAllowance — safe to pass to any existing
+ * route param or hook that expects CardTokenAllowance (extra fields are ignored).
+ */
+export type CardAssetWithBalance = CardTokenAllowance & {
+  balanceFiat: string;
+  balanceFormatted: string;
+  rawFiatNumber: number | undefined;
+  rawTokenBalance: number | undefined;
+  /** Token object for logo/icon display — populated by useCardHomeData, not needed for delegation/spending-limit flows. */
+  asset?: TokenI;
+};
 
 export interface CardLoginInitiateResponse {
   token: string;

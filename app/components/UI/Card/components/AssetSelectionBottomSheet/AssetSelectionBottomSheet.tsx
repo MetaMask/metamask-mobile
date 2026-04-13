@@ -51,6 +51,8 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions } from '../../util/metrics';
 import { truncateAddress } from '../../util/truncateAddress';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
+import { useCardHomeData } from '../../hooks/useCardHomeData';
+import { getAssetBalanceKey } from '../../util/getAssetBalanceKey';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 import { useUpdateTokenPriority } from '../../hooks/useUpdateTokenPriority';
 import {
@@ -394,8 +396,19 @@ const AssetSelectionBottomSheet: React.FC = () => {
     sortTokensByPriority,
   ]);
 
-  // Get balances for all tokens (including those from delegation settings)
-  const assetBalances = useAssetBalances(supportedTokens);
+  // Use the pre-computed balance map from useCardHomeData for user tokens.
+  // For delegation-settings tokens (walletAddress: undefined) which are not in
+  // the pre-computed map, make a targeted useAssetBalances call on that subset.
+  const { assetBalancesMap } = useCardHomeData();
+  const delegationOnlyTokens = useMemo(
+    () => supportedTokens.filter((t) => !t.walletAddress),
+    [supportedTokens],
+  );
+  const delegationBalances = useAssetBalances(delegationOnlyTokens);
+  const assetBalances = useMemo(
+    () => new Map([...assetBalancesMap, ...delegationBalances]),
+    [assetBalancesMap, delegationBalances],
+  );
 
   // Merge balance data into supportedTokens
   const supportedTokensWithBalances: (CardTokenAllowance & {
@@ -406,7 +419,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
     () =>
       supportedTokens
         .map((token) => {
-          const tokenKey = `${token.address?.toLowerCase()}-${token.caipChainId}-${token.walletAddress?.toLowerCase()}`;
+          const tokenKey = getAssetBalanceKey(token);
           const balanceInfo = assetBalances.get(tokenKey);
 
           return {
