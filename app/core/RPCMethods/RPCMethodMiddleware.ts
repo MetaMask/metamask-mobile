@@ -27,6 +27,7 @@ import { store } from '../../store';
 import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
+import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
@@ -415,7 +416,7 @@ export const getRpcMethodMiddleware = ({
 
   const getSource = () => {
     if (analytics?.isRemoteConn) {
-      return analytics?.transport === 'mwp'
+      return analytics?.transport === TransportType.MWP
         ? AppConstants.REQUEST_SOURCES.MM_CONNECT
         : AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
     }
