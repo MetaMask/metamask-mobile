@@ -14,20 +14,10 @@ import {
 import type { Position } from '@metamask/social-controllers';
 import { getAssetImageUrl } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { chainNameToId } from '../../utils/chainMapping';
+import { addThousandsSeparator } from '../../utils/numberFormatting';
 
 export interface PositionRowProps {
   position: Position;
-}
-
-function addThousandsSeparator(numStr: string): string {
-  let result = '';
-  for (let i = 0; i < numStr.length; i++) {
-    if (i > 0 && (numStr.length - i) % 3 === 0) {
-      result += ',';
-    }
-    result += numStr[i];
-  }
-  return result;
 }
 
 function formatUsd(value: number | null | undefined): string {

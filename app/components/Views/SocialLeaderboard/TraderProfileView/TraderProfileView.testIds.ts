@@ -7,4 +7,5 @@ export const TraderProfileViewSelectorsIDs = {
   FOLLOW_BUTTON: 'trader-profile-follow-button',
   TAB_OPEN: 'trader-profile-tab-open',
   TAB_CLOSED: 'trader-profile-tab-closed',
+  ERROR_BANNER: 'trader-profile-error-banner',
 };

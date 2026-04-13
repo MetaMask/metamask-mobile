@@ -36,6 +36,7 @@ import {
   StatsRowSkeleton,
   PositionRowSkeleton,
 } from './components/Skeletons';
+import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 
 const POSITION_SKELETON_COUNT = 4;
 const POSITION_SKELETON_KEYS = Array.from(
@@ -81,8 +82,14 @@ const TraderProfileView = () => {
 
   const { traderId, traderName } = route.params;
 
-  const { profile, isLoading, isFollowing, toggleFollow } =
-    useTraderProfile(traderId);
+  const {
+    profile,
+    isLoading,
+    error: profileError,
+    isFollowing,
+    toggleFollow,
+    refresh,
+  } = useTraderProfile(traderId);
   const { openPositions, closedPositions, isLoadingOpen, isLoadingClosed } =
     useTraderPositions(traderId);
 
@@ -141,74 +148,87 @@ const TraderProfileView = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('pb-6')}
       >
-        {isLoading || !profile ? (
-          <ProfileHeaderSkeleton colors={colors} tw={tw} />
-        ) : (
-          <ProfileHeader
-            profile={profile.profile}
-            followerCount={profile.followerCount}
-          />
-        )}
-
-        {isLoading || !profile ? (
-          <StatsRowSkeleton colors={colors} tw={tw} />
-        ) : (
-          <StatsRow stats={profile.stats} />
-        )}
-
-        <Box twClassName="px-4 pt-3 pb-1">
-          <Button
-            variant={
-              isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
-            }
-            isFullWidth
-            onPress={toggleFollow}
-            testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
-          >
-            {isFollowing
-              ? strings('social_leaderboard.following')
-              : strings('social_leaderboard.follow')}
-          </Button>
-        </Box>
-
-        <Box twClassName="h-px bg-muted mx-4 mt-5 mb-4" />
-
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          twClassName="px-4 mb-2"
-          gap={4}
-        >
-          <TabButton
-            label={strings('social_leaderboard.trader_profile.open')}
-            isActive={activeTab === 'open'}
-            onPress={() => setActiveTab('open')}
-            testID={TraderProfileViewSelectorsIDs.TAB_OPEN}
-          />
-          <TabButton
-            label={strings('social_leaderboard.trader_profile.closed')}
-            isActive={activeTab === 'closed'}
-            onPress={() => setActiveTab('closed')}
-            testID={TraderProfileViewSelectorsIDs.TAB_CLOSED}
-          />
-        </Box>
-
-        {isLoadingPositions ? (
-          POSITION_SKELETON_KEYS.map((key) => (
-            <PositionRowSkeleton key={key} colors={colors} tw={tw} />
-          ))
-        ) : positions.length === 0 ? (
-          <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
-            <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
-              {strings('social_leaderboard.trader_profile.no_positions')}
-            </Text>
+        {!isLoading && profileError && !profile ? (
+          <Box testID={TraderProfileViewSelectorsIDs.ERROR_BANNER}>
+            <ErrorState
+              title={strings(
+                'social_leaderboard.trader_profile.error_loading_profile',
+              )}
+              onRetry={refresh}
+            />
           </Box>
         ) : (
-          positions.map((position) => (
-            <PositionRow
-              key={`${position.tokenAddress}-${position.chain}`}
-              position={position}
-            />
-          ))
+          <>
+            {isLoading || !profile ? (
+              <ProfileHeaderSkeleton colors={colors} tw={tw} />
+            ) : (
+              <ProfileHeader
+                profile={profile.profile}
+                followerCount={profile.followerCount}
+              />
+            )}
+
+            {isLoading || !profile ? (
+              <StatsRowSkeleton colors={colors} tw={tw} />
+            ) : (
+              <StatsRow stats={profile.stats} />
+            )}
+
+            <Box twClassName="px-4 pt-3 pb-1">
+              <Button
+                variant={
+                  isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
+                }
+                isFullWidth
+                onPress={toggleFollow}
+                testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
+              >
+                {isFollowing
+                  ? strings('social_leaderboard.following')
+                  : strings('social_leaderboard.follow')}
+              </Button>
+            </Box>
+
+            <Box twClassName="h-px bg-muted mx-4 mt-5 mb-4" />
+
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              twClassName="px-4 mb-2"
+              gap={4}
+            >
+              <TabButton
+                label={strings('social_leaderboard.trader_profile.open')}
+                isActive={activeTab === 'open'}
+                onPress={() => setActiveTab('open')}
+                testID={TraderProfileViewSelectorsIDs.TAB_OPEN}
+              />
+              <TabButton
+                label={strings('social_leaderboard.trader_profile.closed')}
+                isActive={activeTab === 'closed'}
+                onPress={() => setActiveTab('closed')}
+                testID={TraderProfileViewSelectorsIDs.TAB_CLOSED}
+              />
+            </Box>
+
+            {isLoadingPositions ? (
+              POSITION_SKELETON_KEYS.map((key) => (
+                <PositionRowSkeleton key={key} colors={colors} tw={tw} />
+              ))
+            ) : positions.length === 0 ? (
+              <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
+                <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
+                  {strings('social_leaderboard.trader_profile.no_positions')}
+                </Text>
+              </Box>
+            ) : (
+              positions.map((position) => (
+                <PositionRow
+                  key={`${position.tokenAddress}-${position.chain}`}
+                  position={position}
+                />
+              ))
+            )}
+          </>
         )}
       </ScrollView>
     </SafeAreaView>

@@ -90,7 +90,7 @@ describe('TraderRow', () => {
     expect(mockOnTraderPress).not.toHaveBeenCalled();
   });
 
-  it('handles negative ROI and PnL', () => {
+  it('displays negative ROI and PnL values', () => {
     const negativeTrader: TopTrader = {
       ...baseTrader,
       percentageChange: -15.3,

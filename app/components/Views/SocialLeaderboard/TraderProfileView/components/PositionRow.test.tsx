@@ -107,7 +107,7 @@ describe('PositionRow', () => {
     expect(screen.getByText('-500 ETH')).toBeOnTheScreen();
   });
 
-  it('handles unknown chain gracefully', () => {
+  it('renders the row without a token image when the chain is not recognized', () => {
     const position = { ...basePosition, chain: 'unknown' };
     renderWithProvider(<PositionRow position={position} />);
     expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();

@@ -98,7 +98,7 @@ describe('TopTradersView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('handles search button press without error', () => {
+  it('search button press fires with no side effects', () => {
     renderWithProvider(<TopTradersView />);
     fireEvent.press(
       screen.getByTestId(TopTradersViewSelectorsIDs.SEARCH_BUTTON),
