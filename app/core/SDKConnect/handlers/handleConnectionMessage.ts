@@ -70,7 +70,7 @@ export const handleConnectionMessage = async ({
 
   if (anonId && ANALYTICS_TRACKED_RPC_METHODS.includes(message.method)) {
     DevLogger.log(
-      `[MM SDK Analytics] event=Remote Connection RPC Request Received anonId=${anonId}`,
+      `[MM SDK Analytics] event=${MetaMetricsEvents.REMOTE_CONNECTION_RPC_REQUEST_RECEIVED} anonId=${anonId}`,
     );
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
