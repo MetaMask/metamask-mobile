@@ -130,7 +130,7 @@ const TraderProfileView = () => {
           color={TextColor.TextDefault}
           numberOfLines={1}
         >
-          {traderName}
+          {profile?.profile.name ?? traderName}
         </Text>
         <Box twClassName="w-20 items-end">
           <ButtonIcon
