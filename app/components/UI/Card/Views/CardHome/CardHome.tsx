@@ -185,10 +185,7 @@ const CardHome = () => {
 
   // --- Freeze error toast ---
   useEffect(() => {
-    if (
-      (actions.freeze.isError || actions.unfreeze.isError) &&
-      toastRef?.current
-    ) {
+    if ((actions.freeze.error || actions.unfreeze.error) && toastRef?.current) {
       toastRef.current.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -200,7 +197,7 @@ const CardHome = () => {
         iconName: IconName.Warning,
       });
     }
-  }, [actions.freeze.isError, actions.unfreeze.isError, toastRef]);
+  }, [actions.freeze.error, actions.unfreeze.error, toastRef]);
 
   // --- Derived state ---
   const balanceAmount = useMemo(() => {
@@ -221,6 +218,9 @@ const CardHome = () => {
     isAuthenticated &&
     data?.primaryAsset?.status === FundingAssetStatus.Limited &&
     !hasSetupActions;
+
+  const isSpendingLimitActive =
+    data?.primaryAsset?.status === FundingAssetStatus.Active;
 
   // --- Error state ---
   if (isError) {
@@ -365,8 +365,8 @@ const CardHome = () => {
       <ManageCardOptions
         card={data?.card}
         account={data?.account}
-        primaryAsset={data?.primaryAsset}
         capabilities={capabilities}
+        isSpendingLimitActive={isSpendingLimitActive}
         isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
         isAuthenticated={isAuthenticated}
         isLoading={isLoading}

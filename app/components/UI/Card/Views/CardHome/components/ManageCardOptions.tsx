@@ -9,17 +9,14 @@ import { CardHomeSelectors } from '../CardHome.testIds';
 import { CardType } from '../../../types';
 import {
   CardStatus,
-  FundingAssetStatus,
   type CardDetails,
   type CardAccountStatus,
-  type CardFundingAsset,
   type CardProviderCapabilities,
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 
 interface ManageCardOptionsProps {
   card: CardDetails | null | undefined;
   account: CardAccountStatus | null | undefined;
-  primaryAsset: CardFundingAsset | null | undefined;
   capabilities: CardProviderCapabilities | null;
   isMetalCardCheckoutEnabled: boolean;
   isAuthenticated: boolean;
@@ -37,6 +34,7 @@ interface ManageCardOptionsProps {
   onToggleFreeze: () => void;
   onManageSpendingLimit: () => void;
   onOrderMetalCard: () => void;
+  isSpendingLimitActive: boolean;
   onNavigateToCardPage: () => void;
   onCashback: () => void;
   onTravel: () => void;
@@ -45,7 +43,6 @@ interface ManageCardOptionsProps {
 const ManageCardOptions = ({
   card,
   account,
-  primaryAsset,
   capabilities,
   isMetalCardCheckoutEnabled,
   isAuthenticated,
@@ -63,6 +60,7 @@ const ManageCardOptions = ({
   onToggleFreeze,
   onManageSpendingLimit,
   onOrderMetalCard,
+  isSpendingLimitActive,
   onNavigateToCardPage,
   onCashback,
   onTravel,
@@ -87,10 +85,9 @@ const ManageCardOptions = ({
     card?.type === CardType.VIRTUAL &&
     isFullySetUp;
 
-  const showSpendingLimitDescription =
-    primaryAsset?.status === FundingAssetStatus.Active
-      ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
-      : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted';
+  const showSpendingLimitDescription = isSpendingLimitActive
+    ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
+    : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted';
 
   return (
     <>

@@ -728,11 +728,7 @@ function setupLoadCardDataMock(
         symbol: config.priorityToken.symbol,
         decimals: config.priorityToken.decimals,
         balance: String(config.priorityToken.allowance ?? '0'),
-        allowance: String(
-          config.priorityToken.totalAllowance ??
-            config.priorityToken.allowance ??
-            '0',
-        ),
+        allowance: String(config.priorityToken.totalAllowance ?? '0'),
         name: config.priorityToken.name,
         chainId: config.priorityToken.caipChainId,
         walletAddress: config.priorityToken.walletAddress,
@@ -751,7 +747,7 @@ function setupLoadCardDataMock(
     symbol: t.symbol,
     decimals: t.decimals,
     balance: String(t.allowance ?? '0'),
-    allowance: String(t.totalAllowance ?? t.allowance ?? '0'),
+    allowance: String(t.totalAllowance ?? '0'),
     name: t.name,
     chainId: t.caipChainId,
     walletAddress: t.walletAddress,
