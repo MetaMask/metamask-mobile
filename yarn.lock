@@ -8232,9 +8232,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/earn-controller@npm:@metamask-previews/earn-controller@11.2.1-preview-d9d1316f5":
-  version: 11.2.1-preview-d9d1316f5
-  resolution: "@metamask-previews/earn-controller@npm:11.2.1-preview-d9d1316f5"
+"@metamask/earn-controller@npm:^12.0.0":
+  version: 12.0.0
+  resolution: "@metamask/earn-controller@npm:12.0.0"
   dependencies:
     "@ethersproject/bignumber": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
@@ -8246,7 +8246,7 @@ __metadata:
     "@metamask/network-controller": "npm:^30.0.1"
     "@metamask/stake-sdk": "npm:^3.2.1"
     reselect: "npm:^5.1.1"
-  checksum: 10/6fa35d23e137d6b9ee793ed8d69c1ca0b01b71c4635d17c3c5842db764a93cbcd2e6cfcf94050085e23dd689b61d1035987f1301ca460f83bb25be04ea660cdf
+  checksum: 10/9579e17a686090bf887f761976c635b692cbdcc19a0afa1766b30e4c75a68ee4b9276a20137f105557dad13f083ef88d7011acb019746d617e4f76286f08d4b4
   languageName: node
   linkType: hard
 
@@ -35584,7 +35584,7 @@ __metadata:
     "@metamask/design-system-react-native": "npm:^0.14.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.4.1"
     "@metamask/design-tokens": "npm:^8.3.0"
-    "@metamask/earn-controller": "npm:^10.0.0"
+    "@metamask/earn-controller": "npm:^12.0.0"
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
     "@metamask/ens-resolver-snap": "npm:^1.1.0"
