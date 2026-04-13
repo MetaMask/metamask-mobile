@@ -1,7 +1,7 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { PermissionController } from '@metamask/permission-controller';
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from '../types/RemoteConnectionInfo';
 import {
   ORIGIN_METAMASK,
   toChecksumHexAddress,
@@ -88,7 +88,7 @@ export default class DeeplinkProtocolService {
         const clientInfo = {
           connected: false,
           clientId: connection.id,
-          originatorInfo: connection.originatorInfo as OriginatorInfo,
+          originatorInfo: connection.originatorInfo as RemoteConnectionInfo,
           validUntil: connection.validUntil,
           scheme: connection.scheme,
         };
@@ -302,7 +302,7 @@ export default class DeeplinkProtocolService {
   public async checkPermission({
     channelId,
   }: {
-    originatorInfo: OriginatorInfo;
+    originatorInfo: RemoteConnectionInfo;
     channelId: string;
   }): Promise<unknown> {
     const permissionsController = (

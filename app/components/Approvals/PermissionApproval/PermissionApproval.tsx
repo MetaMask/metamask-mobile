@@ -36,7 +36,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
   const eventSource = useOriginSource({ origin });
 
   const sdkV2Connection = useSDKV2Connection(origin);
-  const anonId = sdkV2Connection?.originatorInfo?.anonId;
+  const remoteSessionId = sdkV2Connection?.originatorInfo?.remoteSessionId;
 
   useEffect(() => {
     if (
@@ -78,7 +78,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
           source: eventSource,
           chain_id_list: chainIds,
           ...getApiAnalyticsProperties(isMultichainRequest),
-          ...(anonId ? { remote_session_id: anonId } : {}),
+          ...(remoteSessionId ? { remote_session_id: remoteSessionId } : {}),
         })
         .build(),
     );
@@ -96,7 +96,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     trackEvent,
     createEventBuilder,
     eventSource,
-    anonId,
+    remoteSessionId,
     // Re-run when the queue changes so new approvals are picked up.
     // The ref guard above prevents re-navigation for the same approval.
     pendingApprovals,

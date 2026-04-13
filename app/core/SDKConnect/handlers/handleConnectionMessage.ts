@@ -80,13 +80,13 @@ export const handleConnectionMessage = async ({
     `Connection::onMessage id=${connection.channelId} method=${message.method}`,
   );
 
-  const anonId = connection.originatorInfo?.anonId;
+  const remoteSessionId = connection.originatorInfo?.remoteSessionId;
 
-  if (anonId && isAnalyticsTrackedRpcMethod(message.method)) {
+  if (remoteSessionId && isAnalyticsTrackedRpcMethod(message.method)) {
     DevLogger.log(
-      `[MM SDK Analytics] event=wallet_action_received anonId=${anonId}`,
+      `[MM SDK Analytics] event=wallet_action_received remoteSessionId=${remoteSessionId}`,
     );
-    analytics.track('wallet_action_received', { anon_id: anonId });
+    analytics.track('wallet_action_received', { anon_id: remoteSessionId });
   }
 
   connection.setLoading(false);

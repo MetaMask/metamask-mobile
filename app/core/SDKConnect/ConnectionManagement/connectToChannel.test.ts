@@ -21,7 +21,7 @@ jest.mock('@metamask/sdk-analytics', () => ({
 }));
 
 // Import the mocked checkPermissions
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from '../types/RemoteConnectionInfo';
 import { analytics } from '@metamask/sdk-analytics';
 import {
   NavigationContainerRef,
@@ -37,7 +37,7 @@ describe('connectToChannel', () => {
   let otherPublicKey = '';
   let origin = '';
   let validUntil = Date.now();
-  let originatorInfo: OriginatorInfo;
+  let originatorInfo: RemoteConnectionInfo;
 
   const mockConnect = jest.fn();
   const mockReconnect = jest.fn();
@@ -260,8 +260,8 @@ describe('connectToChannel', () => {
   });
 
   describe('Analytics', () => {
-    it('should track wallet_connection_request_received when anonId is present', async () => {
-      originatorInfo.anonId = 'test-anon-id';
+    it('should track wallet_connection_request_received when remoteSessionId is present', async () => {
+      originatorInfo.remoteSessionId = 'test-anon-id';
       (checkPermissions as jest.Mock).mockResolvedValue(true); // Ensure checkPermissions resolves
 
       await connectToChannel({
@@ -282,7 +282,7 @@ describe('connectToChannel', () => {
     });
 
     it('should track wallet_connection_user_approved when checkPermissions resolves', async () => {
-      originatorInfo.anonId = 'test-anon-id';
+      originatorInfo.remoteSessionId = 'test-anon-id';
       (checkPermissions as jest.Mock).mockResolvedValue(true);
 
       await connectToChannel({
@@ -303,7 +303,7 @@ describe('connectToChannel', () => {
     });
 
     it('should track wallet_connection_user_rejected when checkPermissions rejects', async () => {
-      originatorInfo.anonId = 'test-anon-id';
+      originatorInfo.remoteSessionId = 'test-anon-id';
       (checkPermissions as jest.Mock).mockRejectedValue(
         new Error('Permission denied'),
       );

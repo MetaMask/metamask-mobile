@@ -74,13 +74,15 @@ async function connectToChannel({
   }
 
   instance.state.connecting[id] = true;
-  const anonId = originatorInfo?.anonId;
+  const remoteSessionId = originatorInfo?.remoteSessionId;
 
-  if (anonId) {
+  if (remoteSessionId) {
     DevLogger.log(
-      `[MM SDK Analytics] event=wallet_connection_request_received anonId=${anonId}`,
+      `[MM SDK Analytics] event=wallet_connection_request_received remoteSessionId=${remoteSessionId}`,
     );
-    analytics.track('wallet_connection_request_received', { anon_id: anonId });
+    analytics.track('wallet_connection_request_received', {
+      anon_id: remoteSessionId,
+    });
   }
 
   try {
@@ -176,12 +178,12 @@ async function connectToChannel({
         );
         authorized = true;
 
-        if (anonId) {
+        if (remoteSessionId) {
           DevLogger.log(
-            `[MM SDK Analytics] event=wallet_connection_user_approved anonId=${anonId}`,
+            `[MM SDK Analytics] event=wallet_connection_user_approved remoteSessionId=${remoteSessionId}`,
           );
           analytics.track('wallet_connection_user_approved', {
-            anon_id: anonId,
+            anon_id: remoteSessionId,
           });
         }
       } catch (error) {
@@ -189,12 +191,12 @@ async function connectToChannel({
           `SDKConnect::connectToChannel - checkPermissions - error`,
           error,
         );
-        if (anonId) {
+        if (remoteSessionId) {
           DevLogger.log(
-            `[MM SDK Analytics] event=wallet_connection_user_rejected anonId=${anonId}`,
+            `[MM SDK Analytics] event=wallet_connection_user_rejected remoteSessionId=${remoteSessionId}`,
           );
           analytics.track('wallet_connection_user_rejected', {
-            anon_id: anonId,
+            anon_id: remoteSessionId,
           });
         }
         // first needs to connect without key exchange to send the event

@@ -1,4 +1,4 @@
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from './types/RemoteConnectionInfo';
 import AppConstants from '../AppConstants';
 import { Connection, ConnectionProps } from './Connection';
 import {
@@ -49,7 +49,6 @@ jest.mock('../NavigationService', () => ({
 
 jest.mock('./Connection');
 jest.mock('@react-navigation/native');
-jest.mock('@metamask/sdk-communication-layer');
 jest.mock('./ConnectionManagement');
 jest.mock('./InitializationManagement');
 jest.mock('./RPCQueueManager');
@@ -396,7 +395,7 @@ describe('SDKConnect', () => {
     describe('updateOriginatorInfos', () => {
       it('should update originator information', () => {
         const channelId = 'testChannelId';
-        const originatorInfo = {} as OriginatorInfo;
+        const originatorInfo = {} as RemoteConnectionInfo;
 
         sdkConnect.updateOriginatorInfos({ channelId, originatorInfo });
 

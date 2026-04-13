@@ -3,7 +3,7 @@ import { analytics } from '@metamask/sdk-analytics';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from './types/RemoteConnectionInfo';
 import {
   NavigationContainerRef,
   ParamListBase,
@@ -169,7 +169,7 @@ export class SDKConnect {
     originatorInfo,
   }: {
     channelId: string;
-    originatorInfo: OriginatorInfo;
+    originatorInfo: RemoteConnectionInfo;
   }) {
     return updateOriginatorInfos({ channelId, originatorInfo, instance: this });
   }

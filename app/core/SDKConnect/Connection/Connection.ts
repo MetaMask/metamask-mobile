@@ -1,9 +1,9 @@
 import {
   CommunicationLayerPreference,
   EventType,
-  OriginatorInfo,
   RemoteCommunication,
 } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from '../types/RemoteConnectionInfo';
 import {
   NavigationContainerRef,
   ParamListBase,
@@ -45,7 +45,7 @@ export interface ConnectionProps {
   trigger?: 'deeplink' | 'resume' | 'reconnect';
   initialConnection?: boolean;
   navigation?: NavigationContainerRef<ParamListBase>;
-  originatorInfo?: OriginatorInfo;
+  originatorInfo?: RemoteConnectionInfo;
   connected?: boolean;
   validUntil?: number;
   scheme?: string;
@@ -64,7 +64,7 @@ export class Connection extends EventEmitter2 {
   navigation?: NavigationContainerRef<ParamListBase>;
   hideReturnToApp?: boolean;
   protocolVersion: number;
-  originatorInfo?: OriginatorInfo;
+  originatorInfo?: RemoteConnectionInfo;
   isReady = false;
   backgroundBridge?: BackgroundBridge;
   reconnect: boolean;
@@ -158,7 +158,7 @@ export class Connection extends EventEmitter2 {
     onTerminate: ({ channelId }: { channelId: string }) => void;
     updateOriginatorInfos: (params: {
       channelId: string;
-      originatorInfo: OriginatorInfo;
+      originatorInfo: RemoteConnectionInfo;
     }) => void;
   }) {
     super();

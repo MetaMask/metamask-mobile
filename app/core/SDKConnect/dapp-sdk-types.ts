@@ -1,7 +1,7 @@
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from './types/RemoteConnectionInfo';
 
 export interface DappClient {
-  originatorInfo: OriginatorInfo;
+  originatorInfo: RemoteConnectionInfo;
   clientId: string;
   connected: boolean;
   validUntil?: number;

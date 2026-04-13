@@ -1,4 +1,4 @@
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from '../../../SDKConnect/types/RemoteConnectionInfo';
 import { ACTIONS, PREFIXES } from '../../../../constants/deeplinks';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
@@ -66,7 +66,7 @@ export function handleMetaMaskDeeplink({
           }`,
         );
 
-        let originatorInfo: OriginatorInfo | undefined;
+        let originatorInfo: RemoteConnectionInfo | undefined;
         if (params.originatorInfo) {
           originatorInfo = parseOriginatorInfo({
             base64OriginatorInfo: params.originatorInfo,

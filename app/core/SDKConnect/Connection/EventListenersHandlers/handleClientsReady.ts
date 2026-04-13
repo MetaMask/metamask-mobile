@@ -1,4 +1,8 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import {
+  RemoteConnectionInfo,
+  toRemoteConnectionInfo,
+} from '../../types/RemoteConnectionInfo';
 import Routes from '../../../../constants/navigation/Routes';
 import AppConstants from '../../../../core/AppConstants';
 import Logger from '../../../../util/Logger';
@@ -18,15 +22,16 @@ function handleClientsReady({
   disapprove: (channelId: string) => void;
   updateOriginatorInfos: (params: {
     channelId: string;
-    originatorInfo: OriginatorInfo;
+    originatorInfo: RemoteConnectionInfo;
   }) => void;
   approveHost: (props: approveHostProps) => void;
 }) {
   return async (clientsReadyMsg: { originatorInfo: OriginatorInfo }) => {
     try {
       await handleConnectionReady({
-        originatorInfo:
-          clientsReadyMsg?.originatorInfo ?? instance.originatorInfo,
+        originatorInfo: clientsReadyMsg?.originatorInfo
+          ? toRemoteConnectionInfo(clientsReadyMsg.originatorInfo)
+          : instance.originatorInfo,
         engine: Engine,
         updateOriginatorInfos,
         approveHost,

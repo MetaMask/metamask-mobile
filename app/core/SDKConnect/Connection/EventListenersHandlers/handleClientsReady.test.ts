@@ -1,4 +1,4 @@
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from '../../types/RemoteConnectionInfo';
 import { Platform } from 'react-native';
 import Device from '../../../../util/device';
 import Engine from '../../../Engine';
@@ -7,7 +7,6 @@ import { Connection } from '../Connection';
 import handleClientsReady from './handleClientsReady';
 
 jest.mock('../Connection');
-jest.mock('@metamask/sdk-communication-layer');
 jest.mock('../../../Engine');
 jest.mock('../../handlers/handleConnectionReady');
 jest.mock('../../../../util/Logger');
@@ -39,7 +38,7 @@ describe('handleClientsReady', () => {
   });
 
   it('should call handleConnectionReady with correct parameters', async () => {
-    const mockOriginatorInfo = {} as OriginatorInfo;
+    const mockOriginatorInfo = {} as RemoteConnectionInfo;
 
     await handleClientsReady({
       instance: mockInstance,

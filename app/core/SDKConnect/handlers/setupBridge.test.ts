@@ -1,4 +1,4 @@
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from '../types/RemoteConnectionInfo';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
@@ -13,7 +13,7 @@ jest.mock('../../AppConstants');
 jest.mock('../../../constants/deeplinks');
 
 describe('setupBridge', () => {
-  let originatorInfo = {} as OriginatorInfo;
+  let originatorInfo = {} as RemoteConnectionInfo;
   let connection = {} as unknown as Connection;
 
   beforeEach(() => {

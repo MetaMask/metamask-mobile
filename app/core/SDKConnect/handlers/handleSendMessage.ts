@@ -22,24 +22,28 @@ export const handleSendMessage = async ({
 
     const msgId = msg?.data?.id + '';
     let method = connection.rpcQueueManager.getId(msgId);
-    const anonId = connection.originatorInfo?.anonId;
+    const remoteSessionId = connection.originatorInfo?.remoteSessionId;
 
     if (
       isAnalyticsTrackedRpcMethod(method) &&
       msgId &&
       msgId !== 'undefined' &&
-      anonId
+      remoteSessionId
     ) {
       if (msg?.data?.error) {
         DevLogger.log(
-          `[MM SDK Analytics] event=wallet_action_user_rejected anonId=${anonId}`,
+          `[MM SDK Analytics] event=wallet_action_user_rejected remoteSessionId=${remoteSessionId}`,
         );
-        analytics.track('wallet_action_user_rejected', { anon_id: anonId });
+        analytics.track('wallet_action_user_rejected', {
+          anon_id: remoteSessionId,
+        });
       } else {
         DevLogger.log(
-          `[MM SDK Analytics] event=wallet_action_user_approved anonId=${anonId}`,
+          `[MM SDK Analytics] event=wallet_action_user_approved remoteSessionId=${remoteSessionId}`,
         );
-        analytics.track('wallet_action_user_approved', { anon_id: anonId });
+        analytics.track('wallet_action_user_approved', {
+          anon_id: remoteSessionId,
+        });
       }
     }
 

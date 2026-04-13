@@ -163,7 +163,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { origin: channelIdOrHostname, isEip1193Request } = hostInfo.metadata;
 
   const sdkV2Connection = useSDKV2Connection(channelIdOrHostname);
-  const anonId = sdkV2Connection?.originatorInfo?.anonId;
+  const remoteSessionId = sdkV2Connection?.originatorInfo?.remoteSessionId;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -417,7 +417,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             chain_id_list: chainIds,
             referrer: channelIdOrHostname,
             ...getApiAnalyticsProperties(isMultichainRequest),
-            ...(anonId ? { remote_session_id: anonId } : {}),
+            ...(remoteSessionId ? { remote_session_id: remoteSessionId } : {}),
           })
           .build(),
       );
@@ -425,7 +425,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     [
       accountsLength,
       channelIdOrHostname,
-      anonId,
+      remoteSessionId,
       trackEvent,
       createEventBuilder,
       eventSource,
@@ -527,7 +527,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             chain_id_list: selectedChainIds,
             referrer,
             ...getApiAnalyticsProperties(isMultichainRequest),
-            ...(anonId ? { remote_session_id: anonId } : {}),
+            ...(remoteSessionId ? { remote_session_id: remoteSessionId } : {}),
           })
           .build(),
       );
@@ -551,7 +551,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       setIsLoading(false);
     }
   }, [
-    anonId,
+    remoteSessionId,
     eventSource,
     selectedAddresses,
     hostInfo,

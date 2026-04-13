@@ -4,7 +4,7 @@ import getRpcMethodMiddleware, {
   RPCMethodsMiddleParameters,
 } from '../../RPCMethods/RPCMethodMiddleware';
 
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from '../types/RemoteConnectionInfo';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import Logger from '../../../util/Logger';
 import { Connection } from '../Connection';
@@ -27,7 +27,7 @@ export const setupBridge = ({
   originatorInfo,
   connection,
 }: {
-  originatorInfo: OriginatorInfo;
+  originatorInfo: RemoteConnectionInfo;
   connection: Connection;
 }): BackgroundBridge => {
   if (connection.backgroundBridge) {

@@ -277,7 +277,7 @@ describe('HostApplicationAdapter', () => {
             dappId: mockConnectionInfo.metadata.dapp.name,
             apiVersion: mockConnectionInfo.metadata.sdk.version,
             platform: mockConnectionInfo.metadata.sdk.platform,
-            anonId: undefined,
+            remoteSessionId: undefined,
           },
           isV2: true,
         },
@@ -325,7 +325,7 @@ describe('HostApplicationAdapter', () => {
             dappId: mockConnectionInfo1.metadata.dapp.name,
             apiVersion: mockConnectionInfo1.metadata.sdk.version,
             platform: mockConnectionInfo1.metadata.sdk.platform,
-            anonId: undefined,
+            remoteSessionId: undefined,
           },
           isV2: true,
         },
@@ -340,7 +340,7 @@ describe('HostApplicationAdapter', () => {
             dappId: mockConnectionInfo2.metadata.dapp.name,
             apiVersion: mockConnectionInfo2.metadata.sdk.version,
             platform: mockConnectionInfo2.metadata.sdk.platform,
-            anonId: undefined,
+            remoteSessionId: undefined,
           },
           isV2: true,
         },
@@ -350,7 +350,7 @@ describe('HostApplicationAdapter', () => {
       expect(setSdkV2Connections).toHaveBeenCalledWith(expectedSessions);
     });
 
-    it('includes anonId in originatorInfo when analytics.remote_session_id is present', () => {
+    it('includes remoteSessionId in originatorInfo when analytics.remote_session_id is present', () => {
       const connInfoWithAnon: ConnectionInfo = {
         ...createMockConnectionInfo('conn-anon', 'AnonTest'),
         metadata: {
@@ -378,7 +378,7 @@ describe('HostApplicationAdapter', () => {
             dappId: connInfoWithAnon.metadata.dapp.name,
             apiVersion: connInfoWithAnon.metadata.sdk.version,
             platform: connInfoWithAnon.metadata.sdk.platform,
-            anonId: 'aabbccdd-1122-3344-5566-778899aabbcc',
+            remoteSessionId: 'aabbccdd-1122-3344-5566-778899aabbcc',
           },
           isV2: true,
         },

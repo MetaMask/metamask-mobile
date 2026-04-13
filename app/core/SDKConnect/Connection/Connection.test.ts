@@ -3,7 +3,7 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { Connection } from './Connection';
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from '../types/RemoteConnectionInfo';
 import RPCQueueManager from '../RPCQueueManager';
 import sendAuthorized from './Auth/sendAuthorized';
 import {
@@ -20,7 +20,6 @@ import {
   handleReceivedMessage,
 } from './EventListenersHandlers';
 
-jest.mock('@metamask/sdk-communication-layer');
 jest.mock('../RPCQueueManager');
 jest.mock('./Auth/sendAuthorized');
 jest.mock('./ConnectionLifecycle');
@@ -62,7 +61,7 @@ describe('Connection', () => {
   const mockReconnect = true;
   const mockInitialConnection = true;
   const mockNavigation = {} as NavigationContainerRef<ParamListBase>;
-  const mockOriginatorInfo = {} as OriginatorInfo;
+  const mockOriginatorInfo = {} as RemoteConnectionInfo;
   const mockRpcManager = {} as RPCQueueManager;
   const mockSocketServerUrl = 'testSocketServerUrl';
   const mockTrigger = 'deeplink';

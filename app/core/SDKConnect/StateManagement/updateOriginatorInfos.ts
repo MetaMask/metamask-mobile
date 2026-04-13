@@ -1,4 +1,4 @@
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from '../types/RemoteConnectionInfo';
 import { resetConnections } from '../../../../app/actions/sdk';
 import { store } from '../../../../app/store';
 import SDKConnect from '../SDKConnect';
@@ -10,7 +10,7 @@ function updateOriginatorInfos({
   instance,
 }: {
   channelId: string;
-  originatorInfo: OriginatorInfo;
+  originatorInfo: RemoteConnectionInfo;
   instance: SDKConnect;
 }) {
   if (!instance.state.connections[channelId]) {

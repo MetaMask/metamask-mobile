@@ -1,5 +1,6 @@
 import { ApprovalController } from '@metamask/approval-controller';
-import { MessageType, OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { MessageType } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from '../types/RemoteConnectionInfo';
 import AppConstants from '../../../../app/core/AppConstants';
 import Logger from '../../../util/Logger';
 import { Connection } from '../Connection';
@@ -23,7 +24,7 @@ export const handleConnectionReady = async ({
   onError,
   updateOriginatorInfos,
 }: {
-  originatorInfo: OriginatorInfo;
+  originatorInfo: RemoteConnectionInfo;
   engine: typeof Engine;
   connection: Connection;
   onError?: (error: unknown) => void;
@@ -31,7 +32,7 @@ export const handleConnectionReady = async ({
   disapprove: (channelId: string) => void;
   updateOriginatorInfos: (params: {
     channelId: string;
-    originatorInfo: OriginatorInfo;
+    originatorInfo: RemoteConnectionInfo;
   }) => void;
 }) => {
   const approvalController = (

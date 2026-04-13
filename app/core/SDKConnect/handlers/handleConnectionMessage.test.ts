@@ -5,8 +5,8 @@ import {
   CommunicationLayerMessage,
   MessageType,
   isAnalyticsTrackedRpcMethod,
-  OriginatorInfo,
 } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from '../types/RemoteConnectionInfo';
 import Engine from '../../Engine';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
@@ -171,14 +171,14 @@ describe('handleConnectionMessage', () => {
         source: 'browser',
         apiVersion: '1.0.0',
         connector: 'metamask',
-        anonId: 'test-anon-id',
-      } as OriginatorInfo;
+        remoteSessionId: 'test-anon-id',
+      } as RemoteConnectionInfo;
       message.method = 'eth_requestAccounts';
       message.id = 'rpc-123';
       message.type = MessageType.JSONRPC;
     });
 
-    it('should track wallet_action_received when anonId is present and method is tracked', async () => {
+    it('should track wallet_action_received when remoteSessionId is present and method is tracked', async () => {
       mockIsAnalyticsTrackedRpcMethod.mockReturnValue(true);
 
       await handleConnectionMessage({ message, engine: Engine, connection });
@@ -192,10 +192,10 @@ describe('handleConnectionMessage', () => {
       );
     });
 
-    it('should not track wallet_action_received if anonId is missing', async () => {
+    it('should not track wallet_action_received if remoteSessionId is missing', async () => {
       mockIsAnalyticsTrackedRpcMethod.mockReturnValue(true);
       if (connection.originatorInfo) {
-        connection.originatorInfo.anonId = undefined;
+        connection.originatorInfo.remoteSessionId = undefined;
       }
 
       await handleConnectionMessage({ message, engine: Engine, connection });

@@ -1,8 +1,6 @@
 import { KeyringController } from '@metamask/keyring-controller';
-import {
-  CommunicationLayerMessage,
-  OriginatorInfo,
-} from '@metamask/sdk-communication-layer';
+import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from '../types/RemoteConnectionInfo';
 import { Platform } from 'react-native';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
@@ -30,7 +28,7 @@ const handleDeeplink = async ({
   channelId: string;
   origin: string;
   url: string;
-  originatorInfo?: OriginatorInfo;
+  originatorInfo?: RemoteConnectionInfo;
   rpc?: string;
   protocolVersion: number;
   otherPublicKey: string;

@@ -1,9 +1,8 @@
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from '../types/RemoteConnectionInfo';
 import StorageWrapper from '../../../store/storage-wrapper';
 import SDKConnect from '../SDKConnect';
 import updateOriginatorInfos from './updateOriginatorInfos';
 
-jest.mock('@metamask/sdk-communication-layer');
 jest.mock('../SDKConnect');
 jest.mock('../../../store/storage-wrapper');
 jest.mock('../../AppConstants');
@@ -38,7 +37,7 @@ describe('updateOriginatorInfos', () => {
 
   it('should warn and return if no connection exists', () => {
     const mockChannelId = 'mockChannelId';
-    const mockOriginatorInfo = {} as OriginatorInfo;
+    const mockOriginatorInfo = {} as RemoteConnectionInfo;
 
     updateOriginatorInfos({
       channelId: mockChannelId,
@@ -53,9 +52,9 @@ describe('updateOriginatorInfos', () => {
 
   it('should update originatorInfo for the connection', () => {
     const mockChannelId = 'mockChannelId';
-    const mockOriginatorInfo = {} as OriginatorInfo;
+    const mockOriginatorInfo = {} as RemoteConnectionInfo;
     mockInstance.state.connections[mockChannelId] = {
-      originatorInfo: {} as OriginatorInfo,
+      originatorInfo: {} as RemoteConnectionInfo,
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;

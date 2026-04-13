@@ -5,10 +5,8 @@ import DevLogger from '../utils/DevLogger';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
 import handleSendMessage from './handleSendMessage'; // Adjust the import path as necessary
 import { analytics } from '@metamask/sdk-analytics';
-import {
-  isAnalyticsTrackedRpcMethod,
-  OriginatorInfo,
-} from '@metamask/sdk-communication-layer';
+import { isAnalyticsTrackedRpcMethod } from '@metamask/sdk-communication-layer';
+import { RemoteConnectionInfo } from '../types/RemoteConnectionInfo';
 import Routes from '../../../constants/navigation/Routes';
 
 // --- Start of Mocks ---
@@ -84,8 +82,8 @@ describe('handleSendMessage', () => {
       mockRpcQueueManagerGetId.mockReturnValue(RPC_METHODS.ETH_REQUESTACCOUNTS); // Example tracked method
       mockIsAnalyticsTrackedRpcMethod.mockReturnValue(true);
       mockConnection.originatorInfo = {
-        anonId: 'test-anon-id',
-      } as OriginatorInfo;
+        remoteSessionId: 'test-anon-id',
+      } as RemoteConnectionInfo;
     });
 
     it('should track wallet_action_user_approved when msg has no error', async () => {
@@ -131,8 +129,8 @@ describe('handleSendMessage', () => {
       expect(analytics.track).not.toHaveBeenCalled();
     });
 
-    it('should not track if anonId is missing', async () => {
-      mockConnection.originatorInfo = {} as OriginatorInfo; // No anonId
+    it('should not track if remoteSessionId is missing', async () => {
+      mockConnection.originatorInfo = {} as RemoteConnectionInfo;
       const msg = { data: { id: '123' } };
       await handleSendMessage({ msg, connection: mockConnection });
 
@@ -266,7 +264,7 @@ describe('handleSendMessage', () => {
       mockBatchRPCManagerGetById.mockReturnValue(null);
       mockConnection.originatorInfo = {
         url: 'https://example.com',
-      } as OriginatorInfo;
+      } as RemoteConnectionInfo;
     });
 
     it('should navigate with hideReturnToApp set to true when connection has hideReturnToApp true', async () => {
