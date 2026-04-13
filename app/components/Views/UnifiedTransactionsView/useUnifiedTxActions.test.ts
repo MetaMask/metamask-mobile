@@ -108,17 +108,6 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const map: Record<string, string> = {
-      'transaction_update_toast.title': 'Transaction update failed',
-      'transaction_update_toast.already_confirmed':
-        'This transaction has already been confirmed and cannot be modified.',
-    };
-    return map[key] ?? key;
-  }),
-}));
-
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import { addHexPrefix } from '../../../util/number';
 import {
