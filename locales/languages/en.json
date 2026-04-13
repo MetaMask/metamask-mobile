@@ -2183,6 +2183,7 @@
       "outcomes": "Outcomes"
     },
     "sell_position": "Sell position",
+    "odds": "Odds",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
     "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",

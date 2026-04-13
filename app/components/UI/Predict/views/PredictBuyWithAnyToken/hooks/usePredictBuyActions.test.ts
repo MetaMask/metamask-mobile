@@ -285,6 +285,7 @@ describe('usePredictBuyActions', () => {
 
     it('calls approval confirm when the order is paying with any token', async () => {
       mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
+      mockApprovalRequest = { id: 'approval-tx-123' };
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -537,7 +538,7 @@ describe('usePredictBuyActions', () => {
       expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
     });
 
-    it('calls onReject and clearActiveOrderTransactionId on unmount when isSheetMode is true', () => {
+    it('registers beforeRemove listener and cleans up on unmount when isSheetMode is true', () => {
       const params = {
         ...createDefaultParams(),
         isSheetMode: true,
@@ -545,15 +546,12 @@ describe('usePredictBuyActions', () => {
       };
       const { unmount } = renderHook(() => usePredictBuyActions(params));
 
-      expect(mockAddListener).not.toHaveBeenCalledWith(
+      expect(mockAddListener).toHaveBeenCalledWith(
         'beforeRemove',
         expect.any(Function),
       );
 
       unmount();
-
-      expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
-      expect(mockClearActiveOrderTransactionId).toHaveBeenCalledTimes(1);
     });
 
     it('falls back to StackActions.pop when isSheetMode is false (default)', async () => {

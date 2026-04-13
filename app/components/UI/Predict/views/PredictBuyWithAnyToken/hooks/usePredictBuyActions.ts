@@ -51,6 +51,7 @@ export const usePredictBuyActions = ({
 
   const hasInitializedPayWithAnyTokenRef = useRef(false);
   const didInitiateOrderRef = useRef(false);
+  const batchIdRef = useRef<string | undefined>(undefined);
   const onRejectRef = useRef(onReject);
   const clearActiveOrderTransactionIdRef = useRef(
     clearActiveOrderTransactionId,
@@ -75,11 +76,18 @@ export const usePredictBuyActions = ({
       return;
     }
 
+    const doInit = async () => {
+      resetSelectedPaymentToken();
+      const result = await initPayWithAnyToken();
+      if (result?.success && result.response?.batchId) {
+        batchIdRef.current = result.response.batchId;
+      }
+    };
+
     if (isSheetMode) {
       if (!hasInitializedPayWithAnyTokenRef.current) {
         hasInitializedPayWithAnyTokenRef.current = true;
-        resetSelectedPaymentToken();
-        initPayWithAnyToken();
+        doInit();
       }
       return;
     }
@@ -87,8 +95,7 @@ export const usePredictBuyActions = ({
     const unsubscribe = navigation.addListener('transitionEnd', (e) => {
       if (!e.data.closing && !hasInitializedPayWithAnyTokenRef.current) {
         hasInitializedPayWithAnyTokenRef.current = true;
-        resetSelectedPaymentToken();
-        initPayWithAnyToken();
+        doInit();
       }
     });
 
@@ -135,17 +142,44 @@ export const usePredictBuyActions = ({
     didInitiateOrderRef.current = true;
     setIsConfirming(true);
 
-    const transactionId =
+    let transactionId =
       currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
         ? approvalRequest?.id
         : undefined;
 
+    // Fallback: if approval was lost (rejected/consumed) but we have the
+    // stored batchId, re-initialize to create a fresh approval.
+    if (
+      currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN &&
+      !transactionId
+    ) {
+      const result = await initPayWithAnyToken();
+      if (result?.success && result.response?.batchId) {
+        batchIdRef.current = result.response.batchId;
+        transactionId = result.response.batchId;
+      }
+    }
+
     if (currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
-      onApprovalConfirm({
-        deleteAfterResult: true,
-        waitForResult: true,
-        handleErrors: false,
-      });
+      if (approvalRequest?.id) {
+        onApprovalConfirm({
+          deleteAfterResult: true,
+          waitForResult: true,
+          handleErrors: false,
+        });
+      } else if (transactionId) {
+        // Approval was re-created via initPayWithAnyToken; accept it directly
+        // since onApprovalConfirm still holds the stale (undefined) closure.
+        Engine.acceptPendingApproval(
+          transactionId,
+          {},
+          {
+            deleteAfterResult: true,
+            waitForResult: true,
+            handleErrors: false,
+          },
+        );
+      }
     }
     if (!preview) {
       return {
@@ -167,6 +201,7 @@ export const usePredictBuyActions = ({
     analyticsProperties,
     preview,
     onApprovalConfirm,
+    initPayWithAnyToken,
   ]);
 
   useEffect(() => {

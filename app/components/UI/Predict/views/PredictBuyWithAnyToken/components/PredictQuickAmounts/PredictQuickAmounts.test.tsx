@@ -1,7 +1,10 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import PredictQuickAmounts from './PredictQuickAmounts';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+
+jest.mock('expo-haptics');
 
 describe('PredictQuickAmounts', () => {
   const mockOnSelectAmount = jest.fn();
@@ -59,6 +62,16 @@ describe('PredictQuickAmounts', () => {
     fireEvent.press(screen.getByText('$250'));
 
     expect(mockOnSelectAmount).toHaveBeenCalledWith(250);
+  });
+
+  it('triggers haptic feedback when a quick amount button is pressed', () => {
+    renderWithProvider(
+      <PredictQuickAmounts onSelectAmount={mockOnSelectAmount} />,
+    );
+
+    fireEvent.press(screen.getByText('$50'));
+
+    expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
   });
 
   it('renders buttons as disabled when disabled prop is true', () => {

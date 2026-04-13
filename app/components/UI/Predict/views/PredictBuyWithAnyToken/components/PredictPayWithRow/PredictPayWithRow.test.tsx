@@ -40,6 +40,7 @@ jest.mock('../../../../../../Views/confirmations/components/token-icon', () => {
     TokenIcon: ({ address, chainId }: { address: string; chainId: string }) => (
       <RNView testID={`token-icon-${address}-${chainId}`} />
     ),
+    TokenIconVariant: { Row: 'Row' },
   };
 });
 
@@ -273,6 +274,20 @@ describe('PredictPayWithRow', () => {
       fireEvent.press(screen.getByText('Pay with'));
 
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('displays available balance in parentheses when provided', () => {
+      renderWithProvider(
+        <PredictPayWithRow variant="row" availableBalance="$12.34" />,
+      );
+
+      expect(screen.getByText('($12.34)')).toBeOnTheScreen();
+    });
+
+    it('does not display balance parentheses when availableBalance is not provided', () => {
+      renderWithProvider(<PredictPayWithRow variant="row" />);
+
+      expect(screen.queryByText(/\(\$/)).toBeNull();
     });
   });
 });

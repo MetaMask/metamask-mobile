@@ -35,12 +35,14 @@ interface PredictPayWithRowProps {
   disabled?: boolean;
   chevronRight?: boolean;
   variant?: PredictPayWithRowVariant;
+  availableBalance?: string;
 }
 
 export function PredictPayWithRow({
   disabled = false,
   chevronRight = false,
   variant = 'pill',
+  availableBalance,
 }: PredictPayWithRowProps) {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
@@ -99,6 +101,14 @@ export function PredictPayWithRow({
             <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
               {displaySymbol}
             </Text>
+            {availableBalance && (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                ({availableBalance})
+              </Text>
+            )}
             {canEdit && (
               <Icon
                 name={IconName.ArrowRight}

@@ -1,3 +1,12 @@
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, {
   createContext,
   useCallback,
@@ -6,6 +15,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
@@ -18,7 +28,7 @@ import {
   PredictBuyPreviewParams,
   PredictSellPreviewParams,
 } from '../types/navigation';
-import { formatCents } from '../utils/format';
+import { formatCents, getCashoutInfoText } from '../utils/format';
 import PredictPreviewSheet, {
   type PredictPreviewSheetRef,
 } from '../components/PredictPreviewSheet/PredictPreviewSheet';
@@ -26,6 +36,52 @@ import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken/PredictBuyWithAnyToken';
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../Predict.testIds';
+
+const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
+  params,
+}) => {
+  const tw = useTailwind();
+  const position = params.position;
+  const outcomeGroupTitle = params.outcome?.groupItemTitle ?? '';
+  const outcomeToken = params.outcome?.tokens?.find(
+    (t) => t.id === position?.outcomeTokenId,
+  );
+  const outcomeSideText = outcomeToken?.title ?? position?.outcome ?? '';
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-3 flex-1 min-w-0"
+    >
+      {position?.icon && (
+        <Image
+          source={{ uri: position.icon }}
+          style={tw.style('w-10 h-10 rounded')}
+        />
+      )}
+      <Box twClassName="flex-1 min-w-0">
+        <Text variant={TextVariant.HeadingSm}>
+          {position?.title ?? strings('predict.cash_out')}
+        </Text>
+        <Text
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          variant={TextVariant.BodySm}
+          twClassName="font-medium"
+          color={TextColor.TextAlternative}
+        >
+          {getCashoutInfoText({
+            initialValue: position?.initialValue ?? 0,
+            avgPrice: position?.avgPrice ?? 0,
+            outcomeSideText,
+            outcomeGroupTitle,
+          })}
+        </Text>
+      </Box>
+    </Box>
+  );
+};
 
 interface PredictPreviewSheetContextValue {
   openBuySheet: (params: PredictBuyPreviewParams) => void;
@@ -123,11 +179,11 @@ export const PredictPreviewSheetProvider: React.FC<
       {bottomSheetEnabled && buyParams && (
         <PredictPreviewSheet
           ref={buySheetRef}
-          title={buyParams.outcome?.title}
+          title={buyParams.outcome?.groupItemTitle || buyParams.outcome?.title}
           image={buyParams.outcome?.image}
           subtitle={
             buyParams.outcomeToken
-              ? `${buyParams.outcomeToken.title} ${formatCents(buyParams.outcomeToken.price ?? 0)}`
+              ? `${strings('predict.odds')} ${formatCents(buyParams.outcomeToken.price ?? 0)}`
               : undefined
           }
           onDismiss={() => setBuyParams(null)}
@@ -139,13 +195,8 @@ export const PredictPreviewSheetProvider: React.FC<
       {bottomSheetEnabled && sellParams && (
         <PredictPreviewSheet
           ref={sellSheetRef}
-          title={sellParams.position?.title ?? strings('predict.cash_out')}
-          image={sellParams.position?.icon}
-          subtitle={
-            sellParams.position
-              ? `${sellParams.position.outcome} ${formatCents(sellParams.position.price ?? 0)}`
-              : undefined
-          }
+          isFullscreen={false}
+          renderHeader={() => <SellSheetHeader params={sellParams} />}
           onDismiss={() => setSellParams(null)}
           testID={PredictMarketDetailsSelectorsIDs.SELL_PREVIEW_SHEET}
         >

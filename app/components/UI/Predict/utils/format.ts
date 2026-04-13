@@ -1,4 +1,5 @@
 import { Dimensions } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
 import { PredictSeries, Recurrence } from '../types';
 import { formatSubscriptNotation } from '../../../../util/number/subscriptNotation';
 import currencySymbols from '../../../../util/currency-symbols.json';
@@ -452,4 +453,36 @@ export const formatGameStartTime = (
   }).format(dateObj);
 
   return { date, time };
+};
+
+/**
+ * Builds the localised cashout info subtitle string
+ * used in both the sell sheet header and the full-screen sell preview.
+ */
+export const getCashoutInfoText = ({
+  initialValue,
+  avgPrice,
+  outcomeSideText,
+  outcomeGroupTitle,
+}: {
+  initialValue: number;
+  avgPrice: number;
+  outcomeSideText: string;
+  outcomeGroupTitle: string;
+}): string => {
+  const amount = formatPrice(initialValue);
+  const initialPrice = formatCents(avgPrice);
+
+  return outcomeGroupTitle
+    ? strings('predict.cashout_info_multiple', {
+        amount,
+        outcomeGroupTitle,
+        outcome: outcomeSideText,
+        initialPrice,
+      })
+    : strings('predict.cashout_info', {
+        amount,
+        outcome: outcomeSideText,
+        initialPrice,
+      });
 };

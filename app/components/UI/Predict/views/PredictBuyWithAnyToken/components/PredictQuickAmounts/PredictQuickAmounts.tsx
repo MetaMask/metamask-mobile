@@ -1,6 +1,7 @@
+import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import React from 'react';
-import { View } from 'react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -20,19 +21,22 @@ function PredictQuickAmounts({
   const tw = useTailwind();
 
   return (
-    <View style={tw.style('flex-row gap-2 py-2')}>
+    <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 py-2">
       {QUICK_AMOUNTS.map((amount) => (
         <Button
           key={amount}
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Md}
           label={`$${amount}`}
-          onPress={() => onSelectAmount(amount)}
+          onPress={() => {
+            impactAsync(ImpactFeedbackStyle.Light);
+            onSelectAmount(amount);
+          }}
           isDisabled={disabled}
           style={tw.style('flex-1 h-12')}
         />
       ))}
-    </View>
+    </Box>
   );
 }
 

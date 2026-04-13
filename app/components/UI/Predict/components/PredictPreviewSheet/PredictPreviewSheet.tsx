@@ -18,9 +18,11 @@ import {
 } from '../../hooks/usePredictBottomSheet';
 
 interface PredictPreviewSheetProps {
-  title: string;
+  renderHeader?: () => React.ReactNode;
+  title?: string;
   image?: string;
   subtitle?: string;
+  isFullscreen?: boolean;
   children: (closeSheet: () => void) => React.ReactNode;
   onDismiss?: () => void;
   testID?: string;
@@ -31,61 +33,87 @@ export type PredictPreviewSheetRef = PredictBottomSheetRef;
 const PredictPreviewSheet = forwardRef<
   PredictPreviewSheetRef,
   PredictPreviewSheetProps
->(({ title, image, subtitle, children, onDismiss, testID }, ref) => {
-  const tw = useTailwind();
-  const { sheetRef, isVisible, closeSheet, handleSheetClosed, getRefHandlers } =
-    usePredictBottomSheet({ onDismiss });
+>(
+  (
+    {
+      renderHeader,
+      title,
+      image,
+      subtitle,
+      isFullscreen = true,
+      children,
+      onDismiss,
+      testID,
+    },
+    ref,
+  ) => {
+    const tw = useTailwind();
+    const {
+      sheetRef,
+      isVisible,
+      closeSheet,
+      handleSheetClosed,
+      getRefHandlers,
+    } = usePredictBottomSheet({ onDismiss });
 
-  useImperativeHandle(ref, getRefHandlers, [getRefHandlers]);
+    useImperativeHandle(ref, getRefHandlers, [getRefHandlers]);
 
-  if (!isVisible) {
-    return null;
-  }
+    if (!isVisible) {
+      return null;
+    }
 
-  return (
-    <BottomSheet
-      ref={sheetRef}
-      shouldNavigateBack={false}
-      isInteractable
-      isFullscreen
-      onClose={handleSheetClosed}
-      testID={testID}
-    >
-      <BottomSheetHeader
-        onClose={closeSheet}
-        variant={BottomSheetHeaderVariant.Display}
-        style={tw.style('px-6 py-4')}
+    return (
+      <BottomSheet
+        ref={sheetRef}
+        shouldNavigateBack={false}
+        isInteractable
+        isFullscreen={isFullscreen}
+        onClose={handleSheetClosed}
+        testID={testID}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-3 flex-1 min-w-0"
+        <BottomSheetHeader
+          onClose={closeSheet}
+          variant={BottomSheetHeaderVariant.Display}
+          style={tw.style('px-6 py-4')}
         >
-          {image && (
-            <Image
-              source={{ uri: image }}
-              style={tw.style('w-12 h-12 rounded')}
-            />
+          {renderHeader ? (
+            renderHeader()
+          ) : (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-3 flex-1 min-w-0"
+            >
+              {image && (
+                <Image
+                  source={{ uri: image }}
+                  style={tw.style('w-12 h-12 rounded')}
+                />
+              )}
+              <Box twClassName="flex-1 min-w-0">
+                <Text
+                  variant={TextVariant.HeadingMd}
+                  twClassName="text-default"
+                >
+                  {title}
+                </Text>
+                {subtitle && (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    twClassName="font-medium"
+                  >
+                    {subtitle}
+                  </Text>
+                )}
+              </Box>
+            </Box>
           )}
-          <Box twClassName="flex-1 min-w-0">
-            <Text variant={TextVariant.HeadingMd} twClassName="text-default">
-              {title}
-            </Text>
-            {subtitle && (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                twClassName="font-medium"
-              >
-                {subtitle}
-              </Text>
-            )}
-          </Box>
-        </Box>
-      </BottomSheetHeader>
-      {children(closeSheet)}
-    </BottomSheet>
-  );
-});
+        </BottomSheetHeader>
+        {children(closeSheet)}
+      </BottomSheet>
+    );
+  },
+);
 
 export default PredictPreviewSheet;

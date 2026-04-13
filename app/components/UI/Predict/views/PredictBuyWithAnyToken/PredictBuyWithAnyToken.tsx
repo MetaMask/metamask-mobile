@@ -260,6 +260,7 @@ const PredictBuyWithAnyToken = (
             toWin={toWin}
             isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
             isPlacingOrder={isPlacingOrder}
+            hideAvailableBalance={isSheetMode}
           />
           {payWithAnyTokenEnabled && !isSheetMode && (
             <PredictPayWithRow disabled={isPlacingOrder || !canSelectToken} />
@@ -292,6 +293,7 @@ const PredictBuyWithAnyToken = (
           <PredictPayWithRow
             disabled={isPlacingOrder || !canSelectToken}
             variant="row"
+            availableBalance={availableBalanceDisplay}
           />
         )}
         <PredictFeeSummary

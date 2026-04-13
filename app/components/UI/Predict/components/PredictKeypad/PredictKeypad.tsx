@@ -140,6 +140,9 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
 
     return (
       <View style={tw.style('py-4')}>
+        {/* TODO: Consolidate these hardcoded quick-amount buttons with
+           PredictQuickAmounts once the legacy full-screen flow is removed.
+           See: app/components/UI/Predict/views/PredictBuyWithAnyToken/components/PredictQuickAmounts/ */}
         {!hideHeader && (
           <View style={tw.style('px-4 mb-3')}>
             <View style={tw.style('flex-row space-between gap-2')}>

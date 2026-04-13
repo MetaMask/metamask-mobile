@@ -45,6 +45,7 @@ import {
   formatPercentage,
   formatPositionSize,
   formatPrice,
+  getCashoutInfoText,
 } from '../../utils/format';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
@@ -259,7 +260,7 @@ const PredictSellPreview = (contentProps?: PredictSellPreviewContentProps) => {
 
   const Wrapper = isSheetMode ? Box : SafeAreaView;
   const wrapperProps = isSheetMode
-    ? { twClassName: 'flex-1 bg-background-default' }
+    ? { twClassName: 'bg-background-default' }
     : { style: tw.style('flex-1 bg-background-default') };
 
   return (
@@ -273,70 +274,77 @@ const PredictSellPreview = (contentProps?: PredictSellPreviewContentProps) => {
       )}
       <View
         testID={PredictCashOutSelectorsIDs.CONTAINER}
-        style={styles.container}
+        style={isSheetMode ? styles.containerSheet : styles.container}
       >
-        <View style={styles.cashOutContainer}>
-          {isPreviewLoading ? (
-            <Box twClassName="items-center gap-2">
-              <Skeleton
-                width={200}
-                height={74}
-                style={tw.style('rounded-lg')}
-                testID={PREDICT_SELL_PREVIEW_TEST_IDS.VALUE_SKELETON}
-              />
-              <Skeleton
-                width={180}
-                height={24}
-                style={tw.style('rounded-md')}
-                testID={PREDICT_SELL_PREVIEW_TEST_IDS.PRICE_SKELETON}
-              />
-              <Skeleton
-                width={150}
-                height={24}
-                style={tw.style('rounded-md')}
-                testID={PREDICT_SELL_PREVIEW_TEST_IDS.PNL_SKELETON}
-              />
-            </Box>
-          ) : (
-            <>
-              <Text
-                style={styles.currentValue}
-                variant={TextVariant.BodyMd}
-                twClassName="font-medium"
-              >
-                {formatPrice(currentValue, { maximumDecimals: 2 })}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                twClassName="font-medium"
-                color={TextColor.TextAlternative}
-              >
-                {strings('predict.at_price_per_share', {
-                  size: formatPositionSize(size, {
-                    minimumDecimals: 2,
+        {!isSheetMode && (
+          <View style={styles.cashOutContainer}>
+            {isPreviewLoading ? (
+              <Box twClassName="items-center gap-2">
+                <Skeleton
+                  width={200}
+                  height={74}
+                  style={tw.style('rounded-lg')}
+                  testID={PREDICT_SELL_PREVIEW_TEST_IDS.VALUE_SKELETON}
+                />
+                <Skeleton
+                  width={180}
+                  height={24}
+                  style={tw.style('rounded-md')}
+                  testID={PREDICT_SELL_PREVIEW_TEST_IDS.PRICE_SKELETON}
+                />
+                <Skeleton
+                  width={150}
+                  height={24}
+                  style={tw.style('rounded-md')}
+                  testID={PREDICT_SELL_PREVIEW_TEST_IDS.PNL_SKELETON}
+                />
+              </Box>
+            ) : (
+              <>
+                <Text
+                  style={styles.currentValue}
+                  variant={TextVariant.BodyMd}
+                  twClassName="font-medium"
+                >
+                  {formatPrice(currentValue, { maximumDecimals: 2 })}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="font-medium"
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('predict.at_price_per_share', {
+                    size: formatPositionSize(size, {
+                      minimumDecimals: 2,
+                      maximumDecimals: 2,
+                    }),
+                    price: formatCents(currentPrice),
+                  })}
+                </Text>
+                <Text
+                  style={styles.percentPnl}
+                  twClassName="font-medium"
+                  color={
+                    percentPnl > 0
+                      ? TextColor.SuccessDefault
+                      : TextColor.ErrorDefault
+                  }
+                  variant={TextVariant.BodyMd}
+                >
+                  {`${signal}${formatPrice(Math.abs(cashPnl), {
                     maximumDecimals: 2,
-                  }),
-                  price: formatCents(currentPrice),
-                })}
-              </Text>
-              <Text
-                style={styles.percentPnl}
-                twClassName="font-medium"
-                color={
-                  percentPnl > 0
-                    ? TextColor.SuccessDefault
-                    : TextColor.ErrorDefault
-                }
-                variant={TextVariant.BodyMd}
-              >
-                {`${signal}${formatPrice(Math.abs(cashPnl), {
-                  maximumDecimals: 2,
-                })} (${formatPercentage(percentPnl)})`}
-              </Text>
-            </>
-          )}
-        </View>
-        <View style={styles.bottomContainer}>
+                  })} (${formatPercentage(percentPnl)})`}
+                </Text>
+              </>
+            )}
+          </View>
+        )}
+        <View
+          style={[
+            styles.bottomContainer,
+            isSheetMode && tw.style('border-t-0'),
+          ]}
+        >
           {errorMessage && (
             <Text
               variant={TextVariant.BodySm}
@@ -346,34 +354,88 @@ const PredictSellPreview = (contentProps?: PredictSellPreviewContentProps) => {
               {errorMessage}
             </Text>
           )}
-          <Box twClassName="flex-row items-center gap-4">
-            <Box twClassName="w-10 h-10 self-start mt-1">
-              <Image source={{ uri: icon }} style={styles.positionIcon} />
+          {!isSheetMode && (
+            <Box twClassName="flex-row items-center gap-4">
+              <Box twClassName="w-10 h-10 self-start mt-1">
+                <Image source={{ uri: icon }} style={styles.positionIcon} />
+              </Box>
+              <Box twClassName="flex-col gap-1 flex-1">
+                <Text variant={TextVariant.HeadingSm}>{outcomeTitle}</Text>
+                <Text
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  variant={TextVariant.BodySm}
+                  twClassName="font-medium"
+                  color={TextColor.TextAlternative}
+                >
+                  {getCashoutInfoText({
+                    initialValue,
+                    avgPrice,
+                    outcomeSideText,
+                    outcomeGroupTitle,
+                  })}
+                </Text>
+              </Box>
             </Box>
-            <Box twClassName="flex-col gap-1 flex-1">
-              <Text variant={TextVariant.HeadingSm}>{outcomeTitle}</Text>
-              <Text
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                variant={TextVariant.BodySm}
-                twClassName="font-medium"
-                color={TextColor.TextAlternative}
-              >
-                {outcomeGroupTitle
-                  ? strings('predict.cashout_info_multiple', {
-                      amount: formatPrice(initialValue),
-                      outcomeGroupTitle,
-                      outcome: outcomeSideText,
-                      initialPrice: formatCents(avgPrice),
-                    })
-                  : strings('predict.cashout_info', {
-                      amount: formatPrice(initialValue),
-                      outcome: outcomeSideText,
-                      initialPrice: formatCents(avgPrice),
+          )}
+          {isSheetMode && (
+            <Box twClassName="items-center gap-2 py-4">
+              {isPreviewLoading ? (
+                <>
+                  <Skeleton
+                    width={160}
+                    height={48}
+                    style={tw.style('rounded-lg')}
+                  />
+                  <Skeleton
+                    width={180}
+                    height={20}
+                    style={tw.style('rounded-md')}
+                  />
+                  <Skeleton
+                    width={120}
+                    height={20}
+                    style={tw.style('rounded-md')}
+                  />
+                </>
+              ) : (
+                <>
+                  <Text
+                    variant={TextVariant.HeadingLg}
+                    twClassName="font-medium"
+                  >
+                    {formatPrice(currentValue, { maximumDecimals: 2 })}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName="font-medium"
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('predict.at_price_per_share', {
+                      size: formatPositionSize(size, {
+                        minimumDecimals: 2,
+                        maximumDecimals: 2,
+                      }),
+                      price: formatCents(currentPrice),
                     })}
-              </Text>
+                  </Text>
+                  <Text
+                    twClassName="font-bold"
+                    color={
+                      percentPnl > 0
+                        ? TextColor.SuccessDefault
+                        : TextColor.ErrorDefault
+                    }
+                    variant={TextVariant.BodyMd}
+                  >
+                    {`${signal}${formatPrice(Math.abs(cashPnl), {
+                      maximumDecimals: 2,
+                    })} (${formatPercentage(percentPnl)})`}
+                  </Text>
+                </>
+              )}
             </Box>
-          </Box>
+          )}
           <View style={styles.cashOutButtonContainer}>
             {renderCashOutButton()}
             <Text variant={TextVariant.BodyXs} style={styles.cashOutButtonText}>
