@@ -29,7 +29,6 @@ import Routes from '../../../../constants/navigation/Routes.ts';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import Engine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
 
 const BenefitFullView = () => {
   const tw = useTailwind();

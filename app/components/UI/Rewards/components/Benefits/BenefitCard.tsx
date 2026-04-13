@@ -25,6 +25,7 @@ interface Props {
 
 const BenefitCard = ({ benefit }: Props) => {
   const tw = useTailwind();
+  const benefitImageTestId = `${REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}-${benefit.id}`;
 
   const remainingTime =
     benefit.actionDate == null
@@ -47,7 +48,7 @@ const BenefitCard = ({ benefit }: Props) => {
             source={{ uri: benefit.thumbnail }}
             style={tw.style('w-full h-full rounded-lg')}
             resizeMode="cover"
-            testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}
+            testID={benefitImageTestId}
           />
         </Box>
 

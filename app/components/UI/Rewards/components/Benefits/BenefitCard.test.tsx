@@ -94,12 +94,13 @@ describe('BenefitCard', () => {
 
     it('renders benefit image with expected source and format sizing', () => {
       const benefit = createBenefit({
+        id: 123,
         thumbnail: 'https://cdn.example.com/benefit.png',
       });
       const { getByTestId } = render(<BenefitCard benefit={benefit} />);
 
       const image = getByTestId(
-        REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE,
+        `${REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}-${benefit.id}`,
       );
 
       expect(image).toBeOnTheScreen();
@@ -108,6 +109,28 @@ describe('BenefitCard', () => {
       });
       expect(image.props.resizeMode).toBe('cover');
       expect(image.props.style).toContain('w-full h-full rounded-lg');
+    });
+
+    it('uses a unique image testID per benefit id', () => {
+      const firstBenefit = createBenefit({ id: 1 });
+      const secondBenefit = createBenefit({ id: 2 });
+      const { getByTestId } = render(
+        <>
+          <BenefitCard benefit={firstBenefit} />
+          <BenefitCard benefit={secondBenefit} />
+        </>,
+      );
+
+      expect(
+        getByTestId(
+          `${REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}-${firstBenefit.id}`,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          `${REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}-${secondBenefit.id}`,
+        ),
+      ).toBeOnTheScreen();
     });
   });
 

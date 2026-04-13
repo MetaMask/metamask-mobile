@@ -4,7 +4,6 @@ import BenefitFullView from './BenefitFullView';
 import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import { formatDateRemaining } from '../utils/formatUtils';
-import Logger from '../../../../util/Logger';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
