@@ -65,7 +65,6 @@ const OndoLeaderboardView: React.FC = () => {
   const isQualified = position != null && position.qualified;
   const {
     leaderboard: leaderboardData,
-    tierNames,
     selectedTier,
     selectedTierData,
     setSelectedTier,
@@ -76,6 +75,11 @@ const OndoLeaderboardView: React.FC = () => {
   } = useGetOndoLeaderboard(campaignId, {
     defaultTier: position?.projectedTier,
   });
+
+  const tierNames = useMemo(
+    () => campaign?.details?.tiers?.map((t) => t.name) ?? [],
+    [campaign],
+  );
 
   const pendingSheetPosition = useMemo(() => {
     if (!position || position.qualified) return null;

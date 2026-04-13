@@ -138,7 +138,6 @@ const OndoCampaignDetailsView: React.FC = () => {
 
   const {
     leaderboard,
-    tierNames,
     selectedTier,
     selectedTierData,
     setSelectedTier,
@@ -149,6 +148,11 @@ const OndoCampaignDetailsView: React.FC = () => {
   } = useGetOndoLeaderboard(campaignId, {
     defaultTier: leaderboardPosition?.projectedTier,
   });
+
+  const tierNames = useMemo(
+    () => campaign?.details?.tiers?.map((t) => t.name) ?? [],
+    [campaign],
+  );
 
   const leaderboardUserPosition = useMemo(
     () =>
