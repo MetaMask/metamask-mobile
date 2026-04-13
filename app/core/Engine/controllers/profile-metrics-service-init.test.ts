@@ -4,7 +4,7 @@ import {
 } from '@metamask/profile-metrics-controller';
 import { SDK } from '@metamask/profile-sync-controller';
 import { MessengerClientInitRequest } from '../types';
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { profileMetricsServiceInit } from './profile-metrics-service-init';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
@@ -20,7 +20,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getProfileMetricsServiceMessenger(baseMessenger),
     initMessenger: undefined,
   };
