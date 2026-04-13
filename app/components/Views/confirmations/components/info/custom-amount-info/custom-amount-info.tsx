@@ -52,10 +52,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight as FontWeightComponent,
-  Text as TextComponent,
-  TextColor as TextColorComponent,
-  TextVariant as TextVariantComponent,
 } from '@metamask/design-system-react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import { AlertKeys } from '../../../constants/alerts';
@@ -242,16 +238,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           <AlertMessage alertMessage={alertMessage} />
           {!hidePayTokenAmount && (
             <>
-              {isMoneyAccountDeposit && !hasTokens && (
-                <TextComponent
-                  variant={TextVariantComponent.BodyMd}
-                  fontWeight={FontWeightComponent.Medium}
-                  color={TextColorComponent.ErrorDefault}
-                  style={styles.noFundsText}
-                >
-                  {strings('confirm.no_funds_use_different_account')}
-                </TextComponent>
-              )}
               {isMoneyAccountDeposit && (
                 <AccountSelector
                   label={strings('confirm.label.from')}

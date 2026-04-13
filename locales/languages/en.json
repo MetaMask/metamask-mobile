@@ -117,6 +117,9 @@
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
       "title": "No quotes"
     },
+    "account_no_funds": {
+      "message": "No funds available. Use a different account."
+    },
     "perps_hardware_account": {
       "title": "Wallet not supported",
       "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
@@ -1013,7 +1016,10 @@
   "social_leaderboard": {
     "top_traders_view": {
       "title": "Top Traders"
-    }
+    },
+    "follow": "Follow",
+    "following": "Following",
+    "all_networks": "All networks"
   },
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
@@ -6715,8 +6721,7 @@
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD",
-    "no_funds_use_different_account": "No funds available. Use a different account."
+    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -8082,6 +8087,15 @@
         "open_position": "Open Position"
       }
     },
+    "ondo_campaign_prize_pool": {
+      "title": "Prize Pool",
+      "current_label": "Current",
+      "next_label": "Next",
+      "volume_subtext": "{{current}} of {{target}} volume",
+      "error_title": "Failed to load prize pool",
+      "error_description": "There was an error loading the prize pool. Please try again.",
+      "retry_button": "Retry"
+    },
     "ondo_campaign_leaderboard_position": {
       "title": "Your Position",
       "rank": "My Rank",
@@ -8113,6 +8127,8 @@
       "empty_cta": "Open a position",
       "position_units": "{{units}} shares",
       "positions_title": "Positions",
+      "activity_title": "Activity",
+      "view_activity": "View activity",
       "switch_account_title": "Switch account",
       "switch_account_sheet_prefix": "Accounts with",
       "switch_account_sheet_description": "Choose which balance to swap"
@@ -8126,7 +8142,6 @@
     },
     "ondo_campaign_leaderboard": {
       "title": "Leaderboard",
-      "your_position": "Your position",
       "of_total": "of {{total}} participants",
       "total_participants": "{{count}} participants",
       "updated_at": "Last updated: {{time}}",
@@ -8136,14 +8151,20 @@
       "retry": "Retry",
       "no_data": "No leaderboard data available",
       "no_entries_in_tier": "No participants in this tier yet",
-      "not_yet_computed": "The leaderboard hasn't been computed yet. Check back soon."
+      "not_yet_computed": "The leaderboard hasn't been computed yet. Check back soon.",
+      "tier_starter": "Bronze",
+      "tier_mid": "Silver",
+      "tier_upper": "Platinum",
+      "select_tier": "Select Tier",
+      "pending": "Pending",
+      "qualified": "Qualified"
     },
     "ondo_campaign_activity": {
       "title": "All activity",
       "type_deposit": "Deposit",
       "type_withdraw": "Withdraw",
       "type_rebalance": "Rebalance",
-      "type_external_outflow": "Transfer Out",
+      "type_external_outflow": "Outflow",
       "error_title": "Failed to load activity",
       "error_description": "Something went wrong while loading the activity. Please try again.",
       "retry_button": "Retry",
