@@ -27,7 +27,7 @@ export function groupPortfolioPositionsByAsset(
     }
 
     const units = new BigNumber(existing.units).plus(p.units);
-    const costBasis = new BigNumber(existing.costBasis).plus(p.costBasis);
+    const bookValue = new BigNumber(existing.bookValue).plus(p.bookValue);
     const currentValue = new BigNumber(existing.currentValue).plus(
       p.currentValue,
     );
@@ -35,10 +35,10 @@ export function groupPortfolioPositionsByAsset(
       p.unrealizedPnl,
     );
 
-    const avgCostPerUnit = units.gt(0) ? costBasis.div(units).toFixed(6) : '—';
+    const bookPrice = units.gt(0) ? bookValue.div(units).toFixed(6) : '—';
 
-    const unrealizedPnlPercent = costBasis.gt(0)
-      ? unrealizedPnl.div(costBasis).toFixed(6)
+    const unrealizedPnlPercent = bookValue.gt(0)
+      ? unrealizedPnl.div(bookValue).toFixed(6)
       : '—';
 
     const currentPrice = units.gt(0)
@@ -50,8 +50,8 @@ export function groupPortfolioPositionsByAsset(
       tokenName: existing.tokenName,
       tokenAsset: existing.tokenAsset,
       units: units.toFixed(),
-      costBasis: costBasis.toFixed(6),
-      avgCostPerUnit,
+      bookPrice,
+      bookValue: bookValue.toFixed(6),
       currentPrice,
       currentValue: currentValue.toFixed(6),
       unrealizedPnl: unrealizedPnl.toFixed(6),

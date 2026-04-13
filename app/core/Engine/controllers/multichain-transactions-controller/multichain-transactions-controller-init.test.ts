@@ -3,7 +3,7 @@ import {
   MultichainTransactionsController,
   MultichainTransactionsControllerState,
 } from '@metamask/multichain-transactions-controller';
-import type { ControllerInitRequest } from '../../types';
+import type { MessengerClientInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { multichainTransactionsControllerInit } from './multichain-transactions-controller-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
@@ -18,7 +18,7 @@ describe('multichain transactions controller init', () => {
     MultichainTransactionsController,
   );
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<MultichainTransactionsControllerMessenger>
+    MessengerClientInitRequest<MultichainTransactionsControllerMessenger>
   >;
 
   beforeEach(() => {

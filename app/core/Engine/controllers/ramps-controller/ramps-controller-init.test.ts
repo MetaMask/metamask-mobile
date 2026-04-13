@@ -1,7 +1,7 @@
 import { waitFor } from '@testing-library/react-native';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import {
   RampsController,
   RampsControllerMessenger,
@@ -101,7 +101,7 @@ const createMockInitMessenger = (
 describe('ramps controller init', () => {
   const rampsControllerClassMock = jest.mocked(RampsController);
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<
+    MessengerClientInitRequest<
       RampsControllerMessenger,
       RampsControllerInitMessenger
     >
@@ -118,7 +118,7 @@ describe('ramps controller init', () => {
       ...buildControllerInitRequestMock(baseControllerMessenger),
       initMessenger: createMockInitMessenger(),
     } as jest.Mocked<
-      ControllerInitRequest<
+      MessengerClientInitRequest<
         RampsControllerMessenger,
         RampsControllerInitMessenger
       >

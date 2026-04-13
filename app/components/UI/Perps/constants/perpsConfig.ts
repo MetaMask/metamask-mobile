@@ -292,6 +292,13 @@ export function getPerpsProviderChainId(
   return PERPS_PROVIDER_CHAIN_IDS[provider]?.[network];
 }
 
+// Re-export disk cache constants from controller layer
+export {
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
+  PERPS_DISK_CACHE_THROTTLE_MS,
+} from '@metamask/perps-controller/constants/perpsConfig';
+
 /** Source identifiers for PerpsConnectionManager.connect/ensureConnected/resumeFromForeground calls. */
 export const PERPS_CONNECTION_SOURCE = {
   WALLET_ROOT_MOUNT: 'wallet_root_mount',

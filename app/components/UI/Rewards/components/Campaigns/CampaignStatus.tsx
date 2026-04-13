@@ -50,15 +50,6 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
 
   return (
     <Box twClassName="gap-4 p-4" testID={CAMPAIGN_STATUS_TEST_IDS.CONTAINER}>
-      <Box twClassName="rounded-xl overflow-hidden h-50 bg-muted">
-        <ImageBackground
-          source={{ uri: backgroundImageUrl }}
-          resizeMode="cover"
-          style={tw.style('flex-1')}
-          testID={CAMPAIGN_STATUS_TEST_IDS.IMAGE}
-        />
-      </Box>
-
       <Box twClassName="gap-2">
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -101,6 +92,14 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
             {howItWorksTitle}
           </Text>
         ) : null}
+      </Box>
+      <Box twClassName="rounded-xl overflow-hidden h-50 bg-muted">
+        <ImageBackground
+          source={{ uri: backgroundImageUrl }}
+          resizeMode="cover"
+          style={tw.style('flex-1')}
+          testID={CAMPAIGN_STATUS_TEST_IDS.IMAGE}
+        />
       </Box>
     </Box>
   );

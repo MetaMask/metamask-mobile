@@ -396,6 +396,8 @@ jobs:
       # Build with retry logic. Timeouts: 55min per attempt, 115min total for step, 120min job
       - name: Build ${{ matrix.platform }}
         timeout-minutes: 115
+        env:
+          GIT_BRANCH: ${{ inputs.source_branch || github.ref_name }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 55
