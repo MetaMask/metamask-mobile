@@ -71,17 +71,23 @@ import {
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PredictFeeCollection } from '../../types/flags';
 
-export const getPolymarketEndpoints = () => ({
-  GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
-  CLOB_ENDPOINT: 'https://clob.polymarket.com',
-  DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
-  GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
-  HOMEPAGE_CAROUSEL_ENDPOINT: 'https://polymarket.com/api/homepage/carousel',
-  CLOB_RELAYER:
-    process.env.METAMASK_ENVIRONMENT === 'dev'
-      ? 'https://predict.dev-api.cx.metamask.io'
-      : 'https://predict.api.cx.metamask.io',
-});
+export const getPolymarketEndpoints = () => {
+  const API_ENDPOINT = 'https://polymarket.com/api';
+
+  return {
+    GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
+    CLOB_ENDPOINT: 'https://clob.polymarket.com',
+    DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
+    API_ENDPOINT,
+    GEOBLOCK_API_ENDPOINT: `${API_ENDPOINT}/geoblock`,
+    HOMEPAGE_CAROUSEL_ENDPOINT: `${API_ENDPOINT}/homepage/carousel`,
+    CRYPTO_PRICE_HISTORY_ENDPOINT: `${API_ENDPOINT}/crypto/price-history`,
+    CLOB_RELAYER:
+      process.env.METAMASK_ENVIRONMENT === 'dev'
+        ? 'https://predict.dev-api.cx.metamask.io'
+        : 'https://predict.api.cx.metamask.io',
+  };
+};
 
 export const getL1Headers = async ({ address }: { address: string }) => {
   const domain = {
@@ -769,7 +775,11 @@ export const parsePolymarketEvents = (
               id: event.series[0].id,
               slug: event.series[0].slug,
               title: event.series[0].title,
-              recurrence: event.series[0].recurrence,
+              recurrence:
+                event.series[0].recurrence === 'daily' &&
+                event.series[0].slug.includes('4h')
+                  ? '4h'
+                  : event.series[0].recurrence,
             }
           : undefined;
 

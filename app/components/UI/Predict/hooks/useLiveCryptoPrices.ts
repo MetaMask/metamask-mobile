@@ -1,69 +1,49 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import { CryptoPriceUpdate } from '../types';
 
-export interface UseLiveCryptoPricesOptions {
-  enabled?: boolean;
-}
-
+/**
+ * Result returned by useLiveCryptoPrices.
+ */
 export interface UseLiveCryptoPricesResult {
-  prices: Map<string, CryptoPriceUpdate>;
-  getPrice: (symbol: string) => CryptoPriceUpdate | undefined;
+  /** Whether the RTDS WebSocket is connected. */
   isConnected: boolean;
-  lastUpdateTime: number | null;
 }
 
+/**
+ * Subscribes to real-time crypto price updates for a single symbol.
+ * The hook itself stores no price state — each update is forwarded
+ * to the mandatory `onUpdate` callback, letting consumers decide
+ * how to store and process price data.
+ *
+ * @param symbol - Crypto symbol to subscribe to (e.g., 'btcusdt'). Pass empty string to skip subscription.
+ * @param onUpdate - Mandatory callback invoked on every price update.
+ * @returns Object with `isConnected` boolean indicating RTDS WebSocket status.
+ */
 export const useLiveCryptoPrices = (
-  symbols: string[],
-  options: UseLiveCryptoPricesOptions = {},
+  symbol: string,
+  onUpdate: (update: CryptoPriceUpdate) => void,
 ): UseLiveCryptoPricesResult => {
-  const { enabled = true } = options;
-
-  const [prices, setPrices] = useState<Map<string, CryptoPriceUpdate>>(
-    new Map(),
-  );
   const [isConnected, setIsConnected] = useState(false);
-  const [lastUpdateTime, setLastUpdateTime] = useState<number | null>(null);
-
   const isMountedRef = useRef(true);
-  const symbolsRef = useRef(symbols);
-
-  const symbolsKey = useMemo(
-    () => JSON.stringify([...symbols].sort((a, b) => a.localeCompare(b))),
-    [symbols],
-  );
-
-  useEffect(() => {
-    symbolsRef.current = symbols;
-  }, [symbols]);
-
-  const handlePriceUpdate = useCallback((update: CryptoPriceUpdate) => {
-    if (!isMountedRef.current) return;
-
-    setPrices((prevPrices) => {
-      const newPrices = new Map(prevPrices);
-      newPrices.set(update.symbol, update);
-      return newPrices;
-    });
-
-    setLastUpdateTime(Date.now());
-  }, []);
+  const onUpdateRef = useRef(onUpdate);
+  onUpdateRef.current = onUpdate;
 
   useEffect(() => {
     isMountedRef.current = true;
 
-    setPrices(new Map());
-    setLastUpdateTime(null);
-
-    if (!enabled || symbolsRef.current.length === 0) {
+    if (!symbol) {
       setIsConnected(false);
       return;
     }
 
     const { PredictController } = Engine.context;
     const unsubscribe = PredictController.subscribeToCryptoPrices(
-      symbolsRef.current,
-      handlePriceUpdate,
+      [symbol],
+      (update: CryptoPriceUpdate) => {
+        if (!isMountedRef.current) return;
+        onUpdateRef.current(update);
+      },
     );
 
     const checkConnection = () => {
@@ -80,17 +60,7 @@ export const useLiveCryptoPrices = (
       unsubscribe();
       clearInterval(intervalId);
     };
-  }, [symbolsKey, enabled, handlePriceUpdate]);
+  }, [symbol]);
 
-  const getPrice = useCallback(
-    (symbol: string): CryptoPriceUpdate | undefined => prices.get(symbol),
-    [prices],
-  );
-
-  return {
-    prices,
-    getPrice,
-    isConnected,
-    lastUpdateTime,
-  };
+  return { isConnected };
 };

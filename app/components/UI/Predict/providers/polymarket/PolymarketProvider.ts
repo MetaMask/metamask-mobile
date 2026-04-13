@@ -17,6 +17,8 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { filterSupportedLeagues } from '../../constants/sports';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
+  CryptoPriceHistoryPoint,
+  GetCryptoPriceHistoryParams,
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
@@ -583,6 +585,75 @@ export class PolymarketProvider implements PredictProvider {
           startTs,
           endTs,
         }),
+      );
+
+      return [];
+    }
+  }
+
+  public async getCryptoPriceHistory(
+    params: GetCryptoPriceHistoryParams,
+  ): Promise<CryptoPriceHistoryPoint[]> {
+    const { symbol, eventStartTime, variant, endDate } = params;
+
+    if (!symbol) {
+      throw new Error('symbol parameter is required');
+    }
+
+    try {
+      const { CRYPTO_PRICE_HISTORY_ENDPOINT } = getPolymarketEndpoints();
+      const searchParams = new URLSearchParams({
+        symbol,
+        eventStartTime,
+        variant,
+      });
+
+      if (endDate) {
+        searchParams.set('endDate', endDate);
+      }
+
+      const response = await fetch(
+        `${CRYPTO_PRICE_HISTORY_ENDPOINT}?${searchParams.toString()}`,
+        { method: 'GET' },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to get crypto price history');
+      }
+
+      const data = (await response.json()) as {
+        timestamp?: number;
+        value?: number;
+      }[];
+
+      if (!Array.isArray(data)) {
+        return [];
+      }
+
+      return data
+        .filter(
+          (entry): entry is { timestamp: number; value: number } =>
+            typeof entry?.timestamp === 'number' &&
+            typeof entry?.value === 'number',
+        )
+        .map((entry) => ({
+          timestamp: entry.timestamp,
+          value: entry.value,
+        }));
+    } catch (error) {
+      DevLogger.log(
+        'Error getting crypto price history via Polymarket API:',
+        error,
+      );
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getCryptoPriceHistory', {
+          symbol,
+          eventStartTime,
+          variant,
+          endDate,
+        } as Record<string, unknown>),
       );
 
       return [];

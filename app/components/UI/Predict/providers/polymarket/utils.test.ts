@@ -137,9 +137,12 @@ describe('polymarket utils', () => {
         GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
         CLOB_ENDPOINT: 'https://clob.polymarket.com',
         DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
+        API_ENDPOINT: 'https://polymarket.com/api',
         GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
         HOMEPAGE_CAROUSEL_ENDPOINT:
           'https://polymarket.com/api/homepage/carousel',
+        CRYPTO_PRICE_HISTORY_ENDPOINT:
+          'https://polymarket.com/api/crypto/price-history',
         CLOB_RELAYER: 'https://predict.api.cx.metamask.io',
       });
     });

@@ -28,6 +28,11 @@ export type PredictControllerGetPriceHistoryAction = {
   handler: PredictController['getPriceHistory'];
 };
 
+export type PredictControllerGetCryptoPriceHistoryAction = {
+  type: `PredictController:getCryptoPriceHistory`;
+  handler: PredictController['getCryptoPriceHistory'];
+};
+
 export type PredictControllerGetPricesAction = {
   type: `PredictController:getPrices`;
   handler: PredictController['getPrices'];
@@ -250,6 +255,7 @@ export type PredictControllerMethodActions =
   | PredictControllerGetMarketsAction
   | PredictControllerGetMarketAction
   | PredictControllerGetMarketSeriesAction
+  | PredictControllerGetCryptoPriceHistoryAction
   | PredictControllerGetPriceHistoryAction
   | PredictControllerGetPricesAction
   | PredictControllerGetPositionsAction

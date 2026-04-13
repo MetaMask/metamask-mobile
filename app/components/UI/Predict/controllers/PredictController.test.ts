@@ -261,6 +261,7 @@ describe('PredictController', () => {
       getPositions: jest.fn(),
       getMarketDetails: jest.fn(),
       getActivity: jest.fn(),
+      getCryptoPriceHistory: jest.fn(),
       placeOrder: jest.fn(),
       calculateBetAmounts: jest.fn(),
       calculateCashOutAmounts: jest.fn(),
@@ -880,6 +881,57 @@ describe('PredictController', () => {
         ).rejects.toBe('String error');
 
         expect(controller.state.lastError).toBe('PREDICT_PRICE_HISTORY_FAILED');
+      });
+    });
+  });
+
+  describe('getCryptoPriceHistory', () => {
+    const mockCryptoPriceHistory = [
+      { timestamp: 1234567890, value: 65000 },
+      { timestamp: 1234567900, value: 65100 },
+    ];
+
+    it('delegates to provider.getCryptoPriceHistory', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getCryptoPriceHistory = jest
+          .fn()
+          .mockResolvedValue(mockCryptoPriceHistory);
+
+        const params = {
+          symbol: 'BTC',
+          eventStartTime: '2025-01-01T00:00:00Z',
+          variant: 'hourly',
+        };
+
+        const result = await controller.getCryptoPriceHistory(params);
+
+        expect(result).toEqual(mockCryptoPriceHistory);
+        expect(
+          mockPolymarketProvider.getCryptoPriceHistory,
+        ).toHaveBeenCalledWith(params);
+      });
+    });
+
+    it('returns empty array when provider method is undefined', async () => {
+      await withController(async ({ controller }) => {
+        (
+          mockPolymarketProvider as unknown as {
+            getCryptoPriceHistory?: (params: {
+              symbol: string;
+              eventStartTime: string;
+              variant: string;
+              endDate?: string;
+            }) => Promise<unknown[]>;
+          }
+        ).getCryptoPriceHistory = undefined;
+
+        const result = await controller.getCryptoPriceHistory({
+          symbol: 'ETH',
+          eventStartTime: '2025-01-01T00:00:00Z',
+          variant: 'daily',
+        });
+
+        expect(result).toEqual([]);
       });
     });
   });

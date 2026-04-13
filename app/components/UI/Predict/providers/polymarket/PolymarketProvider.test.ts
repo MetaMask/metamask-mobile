@@ -92,7 +92,10 @@ jest.mock('./utils', () => {
       DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
       GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
       CLOB_ENDPOINT: 'https://clob.polymarket.com',
+      API_ENDPOINT: 'https://polymarket.com/api',
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
+      CRYPTO_PRICE_HISTORY_ENDPOINT:
+        'https://polymarket.com/api/crypto/price-history',
     })),
     getParsedMarketsFromPolymarketApi: jest.fn(),
     fetchCarouselFromPolymarketApi: jest.fn(),
@@ -3780,6 +3783,137 @@ describe('PolymarketProvider', () => {
       const result = await provider.getPriceHistory({ marketId: 'market-1' });
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('getCryptoPriceHistory', () => {
+    beforeEach(() => {
+      global.fetch = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('fetches crypto price history with correct url and params', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue([
+          { timestamp: 1234567890, value: 65000 },
+          { timestamp: 1234567900, value: 65100 },
+        ]),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getCryptoPriceHistory({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'hourly',
+      });
+
+      expect(result).toEqual([
+        { timestamp: 1234567890, value: 65000 },
+        { timestamp: 1234567900, value: 65100 },
+      ]);
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://polymarket.com/api/crypto/price-history?symbol=BTC&eventStartTime=2025-01-01T00%3A00%3A00Z&variant=hourly',
+        { method: 'GET' },
+      );
+    });
+
+    it('includes endDate when provided', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      await provider.getCryptoPriceHistory({
+        symbol: 'ETH',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'daily',
+        endDate: '2025-01-05T00:00:00Z',
+      });
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://polymarket.com/api/crypto/price-history?symbol=ETH&eventStartTime=2025-01-01T00%3A00%3A00Z&variant=daily&endDate=2025-01-05T00%3A00%3A00Z',
+        { method: 'GET' },
+      );
+    });
+
+    it('returns empty array on API error', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: false,
+        status: 500,
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getCryptoPriceHistory({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'hourly',
+      });
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when response is not an array', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ history: [] }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getCryptoPriceHistory({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'hourly',
+      });
+
+      expect(result).toEqual([]);
+    });
+
+    it('filters out entries with missing timestamp or value', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest
+          .fn()
+          .mockResolvedValue([
+            { timestamp: 1234567890, value: 65000 },
+            { value: 65100 },
+            { timestamp: 1234567910 },
+            { timestamp: 1234567920, value: 65200 },
+          ]),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getCryptoPriceHistory({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'hourly',
+      });
+
+      expect(result).toEqual([
+        { timestamp: 1234567890, value: 65000 },
+        { timestamp: 1234567920, value: 65200 },
+      ]);
+    });
+
+    it('throws when symbol is missing', async () => {
+      const provider = createProvider();
+
+      await expect(
+        provider.getCryptoPriceHistory({
+          symbol: '',
+          eventStartTime: '2025-01-01T00:00:00Z',
+          variant: 'hourly',
+        }),
+      ).rejects.toThrow('symbol parameter is required');
     });
   });
 

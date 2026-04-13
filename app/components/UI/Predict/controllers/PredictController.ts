@@ -67,10 +67,12 @@ import {
   ActiveOrderState,
   ClaimParams,
   ConnectionStatus,
+  CryptoPriceHistoryPoint,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
   GetBalanceParams,
+  GetCryptoPriceHistoryParams,
   GetMarketsParams,
   GetPositionsParams,
   GetPriceHistoryParams,
@@ -359,6 +361,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getMarketSeries',
   'getMarkets',
   'getPositions',
+  'getCryptoPriceHistory',
   'getPriceHistory',
   'getPrices',
   'getUnrealizedPnL',
@@ -724,6 +727,16 @@ export class PredictController extends BaseController<
         return history ?? [];
       },
     );
+  }
+
+  async getCryptoPriceHistory(
+    params: GetCryptoPriceHistoryParams,
+  ): Promise<CryptoPriceHistoryPoint[]> {
+    const provider = this.provider;
+    if (!provider?.getCryptoPriceHistory) {
+      return [];
+    }
+    return provider.getCryptoPriceHistory(params);
   }
 
   async getPrices(params: GetPriceParams): Promise<GetPriceResponse> {

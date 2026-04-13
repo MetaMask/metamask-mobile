@@ -36,32 +36,29 @@ describe('useLiveCryptoPrices', () => {
   });
 
   describe('subscription management', () => {
-    it('subscribes to crypto price updates when symbols are provided', () => {
-      renderHook(() => useLiveCryptoPrices(['btcusdt', 'ethusdt']));
+    it('subscribes to PredictController when symbol is provided', () => {
+      const onUpdate = jest.fn();
+
+      renderHook(() => useLiveCryptoPrices('btcusdt', onUpdate));
 
       expect(mockSubscribeToCryptoPrices).toHaveBeenCalledWith(
-        ['btcusdt', 'ethusdt'],
+        ['btcusdt'],
         expect.any(Function),
       );
     });
 
-    it('does not subscribe when symbols is empty', () => {
-      renderHook(() => useLiveCryptoPrices([]));
+    it('does not subscribe when symbol is empty string', () => {
+      const onUpdate = jest.fn();
 
-      expect(mockSubscribeToCryptoPrices).not.toHaveBeenCalled();
-    });
-
-    it('does not subscribe when enabled is false', () => {
-      renderHook(() =>
-        useLiveCryptoPrices(['btcusdt', 'ethusdt'], { enabled: false }),
-      );
+      renderHook(() => useLiveCryptoPrices('', onUpdate));
 
       expect(mockSubscribeToCryptoPrices).not.toHaveBeenCalled();
     });
 
     it('unsubscribes on unmount', () => {
+      const onUpdate = jest.fn();
       const { unmount } = renderHook(() =>
-        useLiveCryptoPrices(['btcusdt', 'ethusdt']),
+        useLiveCryptoPrices('btcusdt', onUpdate),
       );
 
       unmount();
@@ -69,72 +66,60 @@ describe('useLiveCryptoPrices', () => {
       expect(mockUnsubscribe).toHaveBeenCalled();
     });
 
-    it('resubscribes when symbols change', () => {
+    it('resubscribes when symbol changes', () => {
+      const onUpdate = jest.fn();
       const { rerender } = renderHook(
-        ({ symbols }) => useLiveCryptoPrices(symbols),
-        { initialProps: { symbols: ['btcusdt'] } },
+        ({ symbol }) => useLiveCryptoPrices(symbol, onUpdate),
+        { initialProps: { symbol: 'btcusdt' } },
       );
 
       expect(mockSubscribeToCryptoPrices).toHaveBeenCalledTimes(1);
 
-      rerender({ symbols: ['btcusdt', 'ethusdt'] });
+      rerender({ symbol: 'ethusdt' });
 
       expect(mockUnsubscribe).toHaveBeenCalled();
       expect(mockSubscribeToCryptoPrices).toHaveBeenCalledTimes(2);
     });
-
-    it('does not resubscribe when symbols order changes but content is same', () => {
-      const { rerender } = renderHook(
-        ({ symbols }) => useLiveCryptoPrices(symbols),
-        { initialProps: { symbols: ['ethusdt', 'btcusdt'] } },
-      );
-
-      expect(mockSubscribeToCryptoPrices).toHaveBeenCalledTimes(1);
-
-      rerender({ symbols: ['btcusdt', 'ethusdt'] });
-
-      expect(mockSubscribeToCryptoPrices).toHaveBeenCalledTimes(1);
-    });
   });
 
   describe('price update handling', () => {
-    it('updates prices map when callback is invoked', () => {
+    it('forwards price updates to onUpdate callback', () => {
       let capturedCallback: (update: CryptoPriceUpdate) => void = jest.fn();
       mockSubscribeToCryptoPrices.mockImplementation((_, callback) => {
         capturedCallback = callback;
         return mockUnsubscribe;
       });
 
-      const { result } = renderHook(() => useLiveCryptoPrices(['btcusdt']));
+      const onUpdate = jest.fn();
+      renderHook(() => useLiveCryptoPrices('btcusdt', onUpdate));
 
-      expect(result.current.prices.size).toBe(0);
-
-      act(() => {
-        capturedCallback({
-          symbol: 'btcusdt',
-          price: 67234.5,
-          timestamp: 1700000000,
-        });
-      });
-
-      expect(result.current.prices.get('btcusdt')).toEqual({
+      const update: CryptoPriceUpdate = {
         symbol: 'btcusdt',
         price: 67234.5,
         timestamp: 1700000000,
+      };
+
+      act(() => {
+        capturedCallback(update);
       });
+
+      expect(onUpdate).toHaveBeenCalledWith(update);
     });
 
-    it('accumulates prices from multiple updates', () => {
+    it('does not call onUpdate after unmount', () => {
       let capturedCallback: (update: CryptoPriceUpdate) => void = jest.fn();
       mockSubscribeToCryptoPrices.mockImplementation((_, callback) => {
         capturedCallback = callback;
         return mockUnsubscribe;
       });
 
-      const { result } = renderHook(() =>
-        useLiveCryptoPrices(['btcusdt', 'ethusdt']),
+      const onUpdate = jest.fn();
+      const { unmount } = renderHook(() =>
+        useLiveCryptoPrices('btcusdt', onUpdate),
       );
 
+      unmount();
+
       act(() => {
         capturedCallback({
           symbol: 'btcusdt',
@@ -143,127 +128,44 @@ describe('useLiveCryptoPrices', () => {
         });
       });
 
-      act(() => {
-        capturedCallback({
-          symbol: 'ethusdt',
-          price: 3500.0,
-          timestamp: 1700000001,
-        });
-      });
-
-      expect(result.current.prices.size).toBe(2);
-      expect(result.current.prices.get('btcusdt')?.price).toBe(67234.5);
-      expect(result.current.prices.get('ethusdt')?.price).toBe(3500.0);
+      expect(onUpdate).not.toHaveBeenCalled();
     });
 
-    it('overwrites previous price for same symbol', () => {
+    it('uses latest onUpdate callback (ref pattern)', () => {
       let capturedCallback: (update: CryptoPriceUpdate) => void = jest.fn();
       mockSubscribeToCryptoPrices.mockImplementation((_, callback) => {
         capturedCallback = callback;
         return mockUnsubscribe;
       });
 
-      const { result } = renderHook(() => useLiveCryptoPrices(['btcusdt']));
+      const onUpdate1 = jest.fn();
+      const onUpdate2 = jest.fn();
+
+      const { rerender } = renderHook(
+        ({ onUpdate }) => useLiveCryptoPrices('btcusdt', onUpdate),
+        { initialProps: { onUpdate: onUpdate1 } },
+      );
+
+      rerender({ onUpdate: onUpdate2 });
+
+      const update: CryptoPriceUpdate = {
+        symbol: 'btcusdt',
+        price: 67234.5,
+        timestamp: 1700000000,
+      };
 
       act(() => {
-        capturedCallback({
-          symbol: 'btcusdt',
-          price: 67234.5,
-          timestamp: 1700000000,
-        });
+        capturedCallback(update);
       });
 
-      act(() => {
-        capturedCallback({
-          symbol: 'btcusdt',
-          price: 68000.0,
-          timestamp: 1700000005,
-        });
-      });
-
-      expect(result.current.prices.get('btcusdt')?.price).toBe(68000.0);
-    });
-
-    it('updates lastUpdateTime when price update is received', () => {
-      let capturedCallback: (update: CryptoPriceUpdate) => void = jest.fn();
-      mockSubscribeToCryptoPrices.mockImplementation((_, callback) => {
-        capturedCallback = callback;
-        return mockUnsubscribe;
-      });
-
-      const mockNow = 1704067200000;
-      jest.spyOn(Date, 'now').mockReturnValue(mockNow);
-
-      const { result } = renderHook(() => useLiveCryptoPrices(['btcusdt']));
-
-      expect(result.current.lastUpdateTime).toBeNull();
-
-      act(() => {
-        capturedCallback({
-          symbol: 'btcusdt',
-          price: 67234.5,
-          timestamp: 1700000000,
-        });
-      });
-
-      expect(result.current.lastUpdateTime).toBe(mockNow);
-    });
-  });
-
-  describe('getPrice helper', () => {
-    it('returns price for existing symbol', () => {
-      let capturedCallback: (update: CryptoPriceUpdate) => void = jest.fn();
-      mockSubscribeToCryptoPrices.mockImplementation((_, callback) => {
-        capturedCallback = callback;
-        return mockUnsubscribe;
-      });
-
-      const { result } = renderHook(() => useLiveCryptoPrices(['btcusdt']));
-
-      act(() => {
-        capturedCallback({
-          symbol: 'btcusdt',
-          price: 67234.5,
-          timestamp: 1700000000,
-        });
-      });
-
-      expect(result.current.getPrice('btcusdt')?.price).toBe(67234.5);
-    });
-
-    it('returns undefined for non-existent symbol', () => {
-      const { result } = renderHook(() => useLiveCryptoPrices(['btcusdt']));
-
-      expect(result.current.getPrice('ethusdt')).toBeUndefined();
+      expect(onUpdate1).not.toHaveBeenCalled();
+      expect(onUpdate2).toHaveBeenCalledWith(update);
     });
   });
 
   describe('connection status', () => {
-    it('reflects connected status from PredictController', () => {
-      mockGetConnectionStatus.mockReturnValue({
-        rtdsConnected: true,
-        sportsConnected: false,
-        marketConnected: false,
-      });
-
-      const { result } = renderHook(() => useLiveCryptoPrices(['btcusdt']));
-
-      expect(result.current.isConnected).toBe(true);
-    });
-
-    it('reflects disconnected status from PredictController', () => {
-      mockGetConnectionStatus.mockReturnValue({
-        rtdsConnected: false,
-        sportsConnected: false,
-        marketConnected: false,
-      });
-
-      const { result } = renderHook(() => useLiveCryptoPrices(['btcusdt']));
-
-      expect(result.current.isConnected).toBe(false);
-    });
-
-    it('updates connection status on interval', () => {
+    it('tracks connection status via polling', () => {
+      const onUpdate = jest.fn();
       mockGetConnectionStatus
         .mockReturnValueOnce({
           rtdsConnected: true,
@@ -276,7 +178,9 @@ describe('useLiveCryptoPrices', () => {
           marketConnected: false,
         });
 
-      const { result } = renderHook(() => useLiveCryptoPrices(['btcusdt']));
+      const { result } = renderHook(() =>
+        useLiveCryptoPrices('btcusdt', onUpdate),
+      );
 
       expect(result.current.isConnected).toBe(true);
 
@@ -286,91 +190,12 @@ describe('useLiveCryptoPrices', () => {
 
       expect(result.current.isConnected).toBe(false);
     });
-  });
 
-  describe('initial state', () => {
-    it('returns empty prices map initially', () => {
-      const { result } = renderHook(() => useLiveCryptoPrices(['btcusdt']));
+    it('sets isConnected to false when symbol is empty', () => {
+      const onUpdate = jest.fn();
+      const { result } = renderHook(() => useLiveCryptoPrices('', onUpdate));
 
-      expect(result.current.prices.size).toBe(0);
-    });
-
-    it('returns null lastUpdateTime initially', () => {
-      const { result } = renderHook(() => useLiveCryptoPrices(['btcusdt']));
-
-      expect(result.current.lastUpdateTime).toBeNull();
-    });
-
-    it('resets state when disabled', () => {
-      let capturedCallback: (update: CryptoPriceUpdate) => void = jest.fn();
-      mockSubscribeToCryptoPrices.mockImplementation((_, callback) => {
-        capturedCallback = callback;
-        return mockUnsubscribe;
-      });
-
-      const { result, rerender } = renderHook(
-        ({ enabled }) => useLiveCryptoPrices(['btcusdt'], { enabled }),
-        { initialProps: { enabled: true } },
-      );
-
-      act(() => {
-        capturedCallback({
-          symbol: 'btcusdt',
-          price: 67234.5,
-          timestamp: 1700000000,
-        });
-      });
-
-      expect(result.current.prices.size).toBe(1);
-
-      rerender({ enabled: false });
-
-      expect(result.current.prices.size).toBe(0);
       expect(result.current.isConnected).toBe(false);
-    });
-
-    it('resets lastUpdateTime when symbols change to different valid value', () => {
-      let capturedCallback: (update: CryptoPriceUpdate) => void = jest.fn();
-      mockSubscribeToCryptoPrices.mockImplementation((_, callback) => {
-        capturedCallback = callback;
-        return mockUnsubscribe;
-      });
-
-      const mockNow = 1704067200000;
-      jest.spyOn(Date, 'now').mockReturnValue(mockNow);
-
-      const { result, rerender } = renderHook(
-        ({ symbols }) => useLiveCryptoPrices(symbols),
-        { initialProps: { symbols: ['btcusdt'] } },
-      );
-
-      act(() => {
-        capturedCallback({
-          symbol: 'btcusdt',
-          price: 67234.5,
-          timestamp: 1700000000,
-        });
-      });
-
-      expect(result.current.lastUpdateTime).toBe(mockNow);
-
-      rerender({ symbols: ['ethusdt'] });
-
-      expect(result.current.lastUpdateTime).toBeNull();
-      expect(result.current.prices.size).toBe(0);
-    });
-
-    it('differentiates symbols with commas that could otherwise collide', () => {
-      const { rerender } = renderHook(
-        ({ symbols }) => useLiveCryptoPrices(symbols),
-        { initialProps: { symbols: ['a,b', 'c'] } },
-      );
-
-      expect(mockSubscribeToCryptoPrices).toHaveBeenCalledTimes(1);
-
-      rerender({ symbols: ['a', 'b,c'] });
-
-      expect(mockSubscribeToCryptoPrices).toHaveBeenCalledTimes(2);
     });
   });
 });
