@@ -58,6 +58,7 @@ import {
   TextVariant as TextVariantComponent,
 } from '@metamask/design-system-react-native';
 import { useAlerts } from '../../../context/alert-system-context';
+import { AlertKeys } from '../../../constants/alerts';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
@@ -169,7 +170,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
-    const hasQuoteResults = isQuotesLoading || Boolean(quotes?.length);
+    const hasSourceAmount = useTransactionPayHasSourceAmount();
+    const { alerts } = useAlerts();
+    const hasNoQuotesAlert = alerts.some(
+      (a) => a.key === AlertKeys.NoPayTokenQuotes,
+    );
+    const showPaymentDetails =
+      isQuotesLoading ||
+      Boolean(quotes?.length) ||
+      (!hasSourceAmount && !hasNoQuotesAlert);
 
     const {
       amountFiat,
@@ -272,7 +281,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {!overrideContent && disablePay !== true && hasTokens && (
                 <PayWithRow />
               )}
-              {hasQuoteResults && (
+              {showPaymentDetails && (
                 <>
                   <BridgeFeeRow />
                   <BridgeTimeRow />

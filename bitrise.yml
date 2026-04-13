@@ -3519,6 +3519,9 @@ app:
       MM_PERPS_HIP3_BLOCKLIST_MARKETS: ""
     - opts:
         is_expand: false
+      MM_CHARTING_LIBRARY_URL: 'https://charting-assets.static.metamask.io/tradingview/advanced-charts/v30.1.0/'
+    - opts:
+        is_expand: false
       MM_MUSD_CONVERSION_FLOW_ENABLED: false
     - opts:
         is_expand: false
