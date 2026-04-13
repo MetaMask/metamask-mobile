@@ -25,7 +25,7 @@ import {
 import Logger from '../../../../../../util/Logger';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import MenuItem from '../../../components/MenuItem';
-import { useRampsProviders } from '../../../hooks/useRampsProviders';
+import { useRampsController } from '../../../hooks/useRampsController';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
@@ -53,7 +53,7 @@ function SettingsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
-  const { selectedProvider, setSelectedProvider } = useRampsProviders();
+  const { selectedProvider, setSelectedProvider } = useRampsController();
 
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
     useState<boolean>(false);

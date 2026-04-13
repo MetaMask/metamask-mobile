@@ -358,7 +358,6 @@ describe('RewardsController', () => {
       subscribe: jest.fn(),
       call: jest.fn(),
       registerActionHandler: jest.fn(),
-      registerMethodActionHandlers: jest.fn(),
       unregisterActionHandler: jest.fn(),
       publish: jest.fn(),
       clearEventSubscriptions: jest.fn(),
@@ -383,22 +382,37 @@ describe('RewardsController', () => {
     });
 
     it('registers action handlers', () => {
-      expect(mockMessenger.registerMethodActionHandlers).toHaveBeenCalledWith(
-        controller,
-        expect.arrayContaining([
-          'getHasAccountOptedIn',
-          'getPointsEvents',
-          'estimatePoints',
-          'getPerpsDiscountForAccount',
-          'isRewardsFeatureEnabled',
-          'getSeasonStatus',
-          'getReferralDetails',
-          'getSeasonOneLineaRewardTokens',
-          'optIn',
-          'optOut',
-          'resetAll',
-          'setRewardsEnvUrl',
-        ]),
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsController:getHasAccountOptedIn',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsController:getPointsEvents',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsController:estimatePoints',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsController:getPerpsDiscountForAccount',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsController:isRewardsFeatureEnabled',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsController:getSeasonStatus',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsController:getReferralDetails',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsController:getSeasonOneLineaRewardTokens',
+        expect.any(Function),
       );
     });
 
@@ -595,9 +609,9 @@ describe('RewardsController', () => {
     });
 
     it('registers the action handler', () => {
-      expect(mockMessenger.registerMethodActionHandlers).toHaveBeenCalledWith(
-        controller,
-        expect.arrayContaining(['setRewardsEnvUrl']),
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsController:setRewardsEnvUrl',
+        expect.any(Function),
       );
     });
   });
@@ -4154,7 +4168,6 @@ describe('RewardsController', () => {
         call: jest.fn(),
         subscribe: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         registerInitialEventPayload: jest.fn(),
         publish: jest.fn(),
         unsubscribe: jest.fn(),
@@ -4929,7 +4942,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5019,7 +5031,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5139,7 +5150,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5263,7 +5273,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5413,7 +5422,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5545,7 +5553,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5646,7 +5653,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5746,7 +5752,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5827,7 +5832,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5905,7 +5909,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5965,7 +5968,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -6026,7 +6028,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -14157,7 +14158,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -14803,7 +14803,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -14906,7 +14905,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -15836,7 +15834,6 @@ describe('RewardsController', () => {
           "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
-          "ondoCampaignActivity": {},
           "ondoCampaignLeaderboard": {},
           "ondoCampaignLeaderboardPositions": {},
           "ondoCampaignPortfolio": {},
@@ -15862,7 +15859,6 @@ describe('RewardsController', () => {
           "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
-          "ondoCampaignActivity": {},
           "ondoCampaignLeaderboard": {},
           "ondoCampaignLeaderboardPositions": {},
           "ondoCampaignPortfolio": {},
@@ -15893,7 +15889,6 @@ describe('RewardsController', () => {
           "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
-          "ondoCampaignActivity": {},
           "ondoCampaignLeaderboard": {},
           "ondoCampaignLeaderboardPositions": {},
           "ondoCampaignPortfolio": {},
@@ -18427,7 +18422,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -18831,7 +18825,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -18981,7 +18974,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -19133,7 +19125,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -19281,7 +19272,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -19384,7 +19374,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -19563,7 +19552,6 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -19726,166 +19714,6 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getClientVersionRequirements',
       );
-    });
-  });
-
-  describe('getOndoCampaignActivity', () => {
-    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
-    const mockCampaignId = 'campaign-ondo-activity';
-    const mockSubscriptionId = 'sub-activity-1';
-    const mockActivity = {
-      has_more: false,
-      cursor: null,
-      results: [
-        {
-          type: 'DEPOSIT',
-          srcToken: {
-            tokenAsset: 'eip155:59144/erc20:0xabc',
-            tokenSymbol: 'USDC',
-            tokenName: 'USD Coin',
-          },
-          destToken: null,
-          destAddress: null,
-          usdAmount: '5000.000000',
-          timestamp: '2026-03-28T14:30:00.000Z',
-        },
-      ],
-    };
-
-    beforeEach(() => {
-      mockMessenger = {
-        subscribe: jest.fn(),
-        call: jest.fn(),
-        registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
-        unregisterActionHandler: jest.fn(),
-        publish: jest.fn(),
-        clearEventSubscriptions: jest.fn(),
-        registerInitialEventPayload: jest.fn(),
-        unsubscribe: jest.fn(),
-      } as unknown as jest.Mocked<RewardsControllerMessenger>;
-    });
-
-    it('returns empty result when rewards feature flag is disabled', async () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-      });
-
-      const result = await disabledController.getOndoCampaignActivity({
-        campaignId: mockCampaignId,
-        subscriptionId: mockSubscriptionId,
-        cursor: null,
-      });
-
-      expect(result).toEqual({ has_more: false, cursor: null, results: [] });
-      expect(mockMessenger.call).not.toHaveBeenCalled();
-    });
-
-    it('fetches activity from API and caches result', async () => {
-      const ctrl = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-      });
-
-      mockMessenger.call.mockResolvedValue(mockActivity as any);
-
-      const result = await ctrl.getOndoCampaignActivity({
-        campaignId: mockCampaignId,
-        subscriptionId: mockSubscriptionId,
-        cursor: null,
-      });
-
-      expect(result).toEqual(mockActivity);
-      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
-      expect(ctrl.state.ondoCampaignActivity[cacheKey]).toBeDefined();
-    });
-
-    it('fetches directly without cache when cursor is provided', async () => {
-      const ctrl = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-      });
-
-      mockMessenger.call.mockResolvedValue(mockActivity as any);
-
-      await ctrl.getOndoCampaignActivity({
-        campaignId: mockCampaignId,
-        subscriptionId: mockSubscriptionId,
-        cursor: 'page-2',
-      });
-
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getOndoCampaignActivity',
-        mockCampaignId,
-        mockSubscriptionId,
-        'page-2',
-      );
-    });
-
-    it('returns cached activity when cache is fresh', async () => {
-      const recentTime = Date.now() - 30000;
-      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
-      const ctrl = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          ...getRewardsControllerDefaultState(),
-          ondoCampaignActivity: {
-            [cacheKey]: {
-              ...mockActivity,
-              lastFetched: recentTime,
-            },
-          },
-        },
-      });
-
-      const result = await ctrl.getOndoCampaignActivity({
-        campaignId: mockCampaignId,
-        subscriptionId: mockSubscriptionId,
-        cursor: null,
-      });
-
-      expect(result).toEqual(mockActivity);
-      expect(mockMessenger.call).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('getActivityLastUpdated', () => {
-    it('returns last updated date from data service', async () => {
-      const mockDate = new Date('2026-03-28T14:30:00Z');
-      mockMessenger.call.mockResolvedValue(mockDate);
-
-      const result = await controller.getActivityLastUpdated(
-        'campaign-1',
-        'sub-1',
-      );
-
-      expect(result).toEqual(mockDate);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getOndoCampaignActivityLastUpdated',
-        'campaign-1',
-        'sub-1',
-      );
-    });
-
-    it('returns null when data service returns null', async () => {
-      mockMessenger.call.mockResolvedValue(null);
-
-      const result = await controller.getActivityLastUpdated(
-        'campaign-1',
-        'sub-1',
-      );
-
-      expect(result).toBeNull();
-    });
-
-    it('rethrows errors from data service', async () => {
-      mockMessenger.call.mockRejectedValue(new Error('API error'));
-
-      await expect(
-        controller.getActivityLastUpdated('campaign-1', 'sub-1'),
-      ).rejects.toThrow('API error');
     });
   });
 });

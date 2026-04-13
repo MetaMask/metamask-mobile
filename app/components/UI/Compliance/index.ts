@@ -7,4 +7,8 @@ export {
   useAccessRestrictedModal,
 } from './contexts/AccessRestrictedContext';
 
-export { useComplianceGate } from './hooks/useComplianceGate';
+export {
+  useWalletCompliance,
+  useComplianceGate,
+  useAccountGroupCompliance,
+} from './hooks/useWalletCompliance';

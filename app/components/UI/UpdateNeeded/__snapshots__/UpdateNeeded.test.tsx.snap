@@ -8,8 +8,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -543,7 +542,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                                 style={
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 24,
                                     "letterSpacing": 0,
                                     "lineHeight": 32,
@@ -629,6 +628,6 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

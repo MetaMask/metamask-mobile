@@ -118,7 +118,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
           }
         />
       </View>
-      <RCTSafeAreaView
+      <View
         style={
           {
             "backgroundColor": "#f3f3f4",
@@ -252,7 +252,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -981,7 +981,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                       null,
                       [
                         {
-                          "fontFamily": "Geist-SemiBold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -1041,7 +1041,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                       null,
                       [
                         {
-                          "fontFamily": "Geist-SemiBold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -1060,7 +1060,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
             </View>
           </View>
         </View>
-      </RCTSafeAreaView>
+      </View>
       <View />
     </View>
   </View>
@@ -1185,7 +1185,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
           }
         />
       </View>
-      <RCTSafeAreaView
+      <View
         style={
           {
             "backgroundColor": "#f3f3f4",
@@ -1319,7 +1319,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -2048,7 +2048,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                       null,
                       [
                         {
-                          "fontFamily": "Geist-SemiBold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -2108,7 +2108,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                       null,
                       [
                         {
-                          "fontFamily": "Geist-SemiBold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -2127,7 +2127,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
             </View>
           </View>
         </View>
-      </RCTSafeAreaView>
+      </View>
       <View />
     </View>
   </View>
@@ -2252,7 +2252,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
           }
         />
       </View>
-      <RCTSafeAreaView
+      <View
         style={
           {
             "backgroundColor": "#f3f3f4",
@@ -2386,7 +2386,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3115,7 +3115,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                       null,
                       [
                         {
-                          "fontFamily": "Geist-SemiBold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -3175,7 +3175,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                       null,
                       [
                         {
-                          "fontFamily": "Geist-SemiBold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -3194,7 +3194,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
             </View>
           </View>
         </View>
-      </RCTSafeAreaView>
+      </View>
       <View />
     </View>
   </View>
@@ -3319,7 +3319,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
           }
         />
       </View>
-      <RCTSafeAreaView
+      <View
         style={
           {
             "backgroundColor": "#f3f3f4",
@@ -3453,7 +3453,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -4182,7 +4182,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                       null,
                       [
                         {
-                          "fontFamily": "Geist-SemiBold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -4242,7 +4242,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                       null,
                       [
                         {
-                          "fontFamily": "Geist-SemiBold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -4261,7 +4261,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
             </View>
           </View>
         </View>
-      </RCTSafeAreaView>
+      </View>
       <View />
     </View>
   </View>

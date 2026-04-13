@@ -22,6 +22,9 @@ const styleSheet = (params: {
       marginBottom: Device.isAndroid() ? 8 : 0,
     },
     buttonPositioning: { flex: 1 },
+    disabledOpacity: {
+      opacity: 0.5,
+    },
     selectAllContainer: {
       marginLeft: 0,
       marginVertical: 12,

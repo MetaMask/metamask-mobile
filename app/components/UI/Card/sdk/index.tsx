@@ -10,18 +10,21 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useQueryClient } from '@tanstack/react-query';
 
 import Logger from '../../../../util/Logger';
-import Engine from '../../../../core/Engine';
 import { CardSDK } from './CardSDK';
 import {
   CardFeatureFlag,
   selectCardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
+import { useCardholderCheck } from '../hooks/useCardholderCheck';
+import { useCardAuthenticationVerification } from '../hooks/useCardAuthenticationVerification';
 import {
+  selectUserCardLocation,
   selectOnboardingId,
   resetOnboardingState,
+  resetAuthenticatedData,
   setContactVerificationId,
+  setUserCardLocation,
 } from '../../../../core/redux/slices/card';
-import { selectCardUserLocation } from '../../../../selectors/cardController';
 import { cardQueries } from '../queries';
 import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
@@ -56,8 +59,7 @@ export const CardSDKProvider = ({
   ...props
 }: ProviderProps<ICardSDK>) => {
   const cardFeatureFlag = useSelector(selectCardFeatureFlag);
-  const userCardLocation = useSelector(selectCardUserLocation);
-  const effectiveLocation = userCardLocation ?? 'international';
+  const userCardLocation = useSelector(selectUserCardLocation);
   const onboardingId = useSelector(selectOnboardingId);
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
@@ -73,7 +75,7 @@ export const CardSDKProvider = ({
       setIsLoading(true);
       const cardSDK = new CardSDK({
         cardFeatureFlag: cardFeatureFlag as CardFeatureFlag,
-        userCardLocation: effectiveLocation,
+        userCardLocation,
       });
       setSdk(cardSDK);
       setIsLoading(false);
@@ -81,7 +83,7 @@ export const CardSDKProvider = ({
       setSdk(null);
       setIsLoading(false);
     }
-  }, [cardFeatureFlag, effectiveLocation]);
+  }, [cardFeatureFlag, userCardLocation]);
 
   const fetchUserData = useCallback(async () => {
     if (!sdk || !onboardingId) {
@@ -93,17 +95,17 @@ export const CardSDKProvider = ({
     try {
       const userData = await sdk.getRegistrationStatus(
         onboardingId,
-        effectiveLocation,
+        userCardLocation,
       );
 
       if (userData.contactVerificationId) {
         dispatch(setContactVerificationId(userData.contactVerificationId));
       }
-      if (userData.countryOfResidence) {
-        Engine.context.CardController.setUserLocation(
-          mapCountryToLocation(userData.countryOfResidence),
-        );
-      }
+      dispatch(
+        setUserCardLocation(
+          mapCountryToLocation(userData.countryOfResidence ?? null),
+        ),
+      );
 
       setUser(userData);
     } catch (err) {
@@ -114,7 +116,7 @@ export const CardSDKProvider = ({
     } finally {
       setIsLoading(false);
     }
-  }, [sdk, onboardingId, dispatch, effectiveLocation]);
+  }, [sdk, onboardingId, dispatch, userCardLocation]);
 
   // Track whether onboardingId existed at initial mount (for resuming incomplete onboarding)
   const [hasInitialOnboardingId] = useState(() => !!onboardingId);
@@ -133,20 +135,23 @@ export const CardSDKProvider = ({
   }, [sdk]);
 
   const logoutFromProvider = useCallback(async () => {
+    if (!sdk) {
+      throw new Error('SDK not available for logout');
+    }
+
     try {
-      // CardController.logout() calls the provider API, removes stored tokens,
-      // and sets isAuthenticated = false in controller state.
-      await Engine.context.CardController.logout();
+      await sdk.logout();
     } catch (error) {
       Logger.error(error as Error, {
         message: '[CardSDK] Logout failed, clearing local state anyway',
       });
     }
 
+    dispatch(resetAuthenticatedData());
     queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
     dispatch(resetOnboardingState());
     setUser(null);
-  }, [dispatch, queryClient]);
+  }, [sdk, dispatch, queryClient]);
 
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(
@@ -194,5 +199,18 @@ export const withCardSDK =
       <Component {...props} />
     </CardSDKProvider>
   );
+
+/**
+ * Component that performs cardholder verification.
+ * This should be mounted at the app entry level to ensure
+ * cardholder verification is always up-to-date.
+ * Returns null as it's just a side-effect component.
+ */
+export const CardVerification: React.FC = () => {
+  useCardholderCheck();
+  useCardAuthenticationVerification();
+
+  return null;
+};
 
 export default CardSDKContext;

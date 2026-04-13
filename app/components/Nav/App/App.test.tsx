@@ -223,6 +223,9 @@ jest.mock(
   '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions',
   () => () => <MockView testID="mock-mc-actions" />,
 );
+jest.mock('../../Views/CardNotification', () => () => (
+  <MockView testID="mock-card-notification" />
+));
 jest.mock('../../Views/ReturnToAppNotification', () => () => (
   <MockView testID="mock-return-notif" />
 ));
@@ -453,21 +456,6 @@ describe('App', () => {
     };
 
     beforeAll(() => {
-      jest.mock('react-native-safe-area-context', () => {
-        const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-        const frame = { width: 0, height: 0, x: 0, y: 0 };
-        return {
-          SafeAreaProvider: jest
-            .fn()
-            .mockImplementation(({ children }) => children),
-          SafeAreaConsumer: jest
-            .fn()
-            .mockImplementation(({ children }) => children(inset)),
-          useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-          useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-        };
-      });
-
       // Mock the storage item to simulate existing user and bypass onboarding
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
         if (key === EXISTING_USER) {
@@ -1054,6 +1042,10 @@ describe('App', () => {
       expect(Routes.SDK.RETURN_TO_DAPP_NOTIFICATION).toBeDefined();
     });
 
+    it('has card notification route defined', () => {
+      expect(Routes.CARD.NOTIFICATION).toBeDefined();
+    });
+
     it('has multichain transaction details route defined', () => {
       expect(Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS).toBeDefined();
     });
@@ -1375,6 +1367,12 @@ describe('App', () => {
 
     it('has delete wallet route defined', () => {
       expect(Routes.MODAL.DELETE_WALLET).toBeDefined();
+    });
+  });
+
+  describe('Card screens', () => {
+    it('has card notification route defined', () => {
+      expect(Routes.CARD.NOTIFICATION).toBeDefined();
     });
   });
 

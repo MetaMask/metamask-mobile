@@ -1,13 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ResetPassword render matches snapshot 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -143,8 +140,9 @@ exports[`ResetPassword render matches snapshot 1`] = `
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
+                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -276,6 +274,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
                       "color": "#131416",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -473,6 +472,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
                         "flexWrap": "wrap",
                         "fontFamily": "Geist-Medium",
                         "fontSize": 16,
+                        "fontWeight": 400,
                         "letterSpacing": 0,
                         "lineHeight": 24,
                         "textAlign": "center",
@@ -490,5 +490,5 @@ exports[`ResetPassword render matches snapshot 1`] = `
       </RCTScrollView>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;

@@ -347,7 +347,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -665,8 +665,9 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -1059,7 +1060,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1390,8 +1391,9 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -1784,7 +1786,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -2102,8 +2104,9 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -2496,7 +2499,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -2827,8 +2830,9 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },

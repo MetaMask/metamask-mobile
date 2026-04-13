@@ -1,15 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RestoreWallet rendering renders component tree correctly 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<View
   style={
     {
       "alignItems": "center",
@@ -62,8 +54,9 @@ exports[`RestoreWallet rendering renders component tree correctly 1`] = `
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-SemiBold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 24,
+            "fontWeight": 700,
             "letterSpacing": 0,
             "lineHeight": 32,
             "paddingBottom": 16,
@@ -83,6 +76,7 @@ exports[`RestoreWallet rendering renders component tree correctly 1`] = `
             "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
+            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
             "paddingBottom": 8,
@@ -183,6 +177,7 @@ exports[`RestoreWallet rendering renders component tree correctly 1`] = `
               "flexWrap": "wrap",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
+              "fontWeight": 400,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -195,5 +190,5 @@ exports[`RestoreWallet rendering renders component tree correctly 1`] = `
       </Text>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
