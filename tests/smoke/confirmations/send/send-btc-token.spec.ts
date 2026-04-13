@@ -9,7 +9,6 @@ import Assertions from '../../../framework/Assertions';
 import NetworkListModal from '../../../page-objects/Network/NetworkListModal';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 
 const TOKEN = 'Bitcoin';
 
@@ -29,12 +28,6 @@ describe(SmokeConfirmations('Send Bitcoin'), () => {
             },
             1000,
           );
-          await setupMockRequest(mockServer, {
-            requestMethod: 'GET',
-            url: /^https:\/\/digest\.api\.cx\.metamask\.io\/api\/v1\/asset-summary/,
-            response: {},
-            responseCode: 200,
-          });
         },
       },
       async () => {

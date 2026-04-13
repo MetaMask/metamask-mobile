@@ -13,8 +13,6 @@ import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import TransactionConfirmView from '../../page-objects/Send/TransactionConfirmView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
-import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
 jest.setTimeout(150_000);
 
@@ -39,14 +37,6 @@ describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
         },
         restartDevice: true,
         skipReactNativeReload: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          await setupMockRequest(mockServer, {
-            requestMethod: 'GET',
-            url: /^https:\/\/digest\.api\.cx\.metamask\.io\/api\/v1\/asset-summary/,
-            response: {},
-            responseCode: 200,
-          });
-        },
       },
       async () => {
         await loginToApp();
