@@ -165,7 +165,7 @@ async function discoverAllTargets(port) {
   const seen = new Set();
   const results = [];
   for (const candidate of candidates) {
-    const device = candidate.deviceName || 'unknown';
+    const device = candidate.deviceName || candidate.id || candidate.webSocketDebuggerUrl;
     if (seen.has(device)) continue;
     const hasAgentic = await probeTarget(candidate.webSocketDebuggerUrl);
     if (hasAgentic) {

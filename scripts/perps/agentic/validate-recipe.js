@@ -85,7 +85,7 @@ function parseArgs(argv) {
         const k = kv.slice(0, eq);
         const raw = kv.slice(eq + 1);
         // Parse booleans and numbers
-        options.inputOverrides[k] = raw === 'true' ? true : raw === 'false' ? false : Number.isFinite(Number(raw)) ? Number(raw) : raw;
+        options.inputOverrides[k] = raw === 'true' ? true : raw === 'false' ? false : raw !== '' && Number.isFinite(Number(raw)) ? Number(raw) : raw;
         i += 1;
         break;
       }
