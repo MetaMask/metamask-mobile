@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import type { PredictOutcome } from '../types';
 
@@ -122,7 +122,7 @@ export const predictCryptoTargetPriceOptions = ({
         return price;
       } catch (apiError) {
         // Warning (not error) — undocumented endpoint; breadcrumbs detect breakage without Sentry alerts.
-        DevLogger.log(
+        Logger.log(
           `[${PREDICT_CONSTANTS.FEATURE_NAME}] Crypto target price API failed for event ${eventId}, falling back to groupItemThreshold`,
           apiError,
         );

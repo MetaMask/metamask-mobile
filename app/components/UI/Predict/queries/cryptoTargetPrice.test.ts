@@ -6,7 +6,7 @@ import {
   type CryptoTargetPriceQueryParams,
 } from './cryptoTargetPrice';
 import Engine from '../../../../core/Engine';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -16,8 +16,9 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
-  DevLogger: {
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
     log: jest.fn(),
   },
 }));
@@ -138,7 +139,7 @@ describe('cryptoTargetPrice queries', () => {
       const result = await invokeQueryFn();
 
       expect(result).toBe(41500);
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(Logger.log).toHaveBeenCalledWith(
         expect.stringContaining('falling back to groupItemThreshold'),
         expect.anything(),
       );
@@ -195,7 +196,7 @@ describe('cryptoTargetPrice queries', () => {
       const result = await invokeQueryFn();
 
       expect(result).toBe(99000);
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(Logger.log).toHaveBeenCalledWith(
         expect.stringContaining('falling back'),
         expect.anything(),
       );
