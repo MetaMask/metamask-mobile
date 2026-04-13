@@ -329,30 +329,67 @@ jest.mock('../components/Campaigns/OndoPortfolio', () => {
     __esModule: true,
     default: ({
       onOpenAccountPicker,
+      onNotEligible,
     }: {
       marketOpen?: boolean;
       onOpenAccountPicker?: (config: unknown) => void;
+      onNotEligible?: (action: () => void) => void;
     }) =>
-      ReactActual.createElement(Pressable, {
-        testID: 'ondo-campaign-portfolio',
-        onPress: () =>
-          onOpenAccountPicker?.({
-            row: {
-              tokenAsset: 'eip155:1/erc20:0xabc',
-              tokenSymbol: 'USDC',
-              tokenName: 'USD Coin',
-            },
-            entries: [
-              {
-                group: { id: 'group-1', metadata: { name: 'Account 1' } },
-                balance: '100',
+      ReactActual.createElement(
+        View,
+        null,
+        ReactActual.createElement(Pressable, {
+          testID: 'ondo-campaign-portfolio',
+          onPress: () =>
+            onOpenAccountPicker?.({
+              row: {
+                tokenAsset: 'eip155:1/erc20:0xabc',
+                tokenSymbol: 'USDC',
+                tokenName: 'USD Coin',
               },
-            ],
-            tokenDecimals: 6,
-          }),
-      }),
+              entries: [
+                {
+                  group: { id: 'group-1', metadata: { name: 'Account 1' } },
+                  balance: '100',
+                },
+              ],
+              tokenDecimals: 6,
+            }),
+        }),
+        ReactActual.createElement(Pressable, {
+          testID: 'ondo-campaign-portfolio-not-eligible',
+          onPress: () => onNotEligible?.(jest.fn()),
+        }),
+      ),
     AccountGroupSelectRow: () => ReactActual.createElement(View, null),
     getChainHex: jest.fn(() => '0x1'),
+  };
+});
+
+jest.mock('../components/Campaigns/OndoNotEligibleSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Pressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      onClose,
+      onConfirm,
+    }: {
+      onClose: () => void;
+      onConfirm: () => void;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'ondo-not-eligible-sheet' },
+        ReactActual.createElement(Pressable, {
+          testID: 'ondo-not-eligible-sheet-close',
+          onPress: onClose,
+        }),
+        ReactActual.createElement(Pressable, {
+          testID: 'ondo-not-eligible-sheet-confirm',
+          onPress: onConfirm,
+        }),
+      ),
   };
 });
 
@@ -972,7 +1009,7 @@ describe('OndoCampaignDetailsView', () => {
   });
 
   describe('prize pool', () => {
-    it('renders OndoPrizePool when campaign exists', () => {
+    it('renders OndoPrizePool when campaign is active', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
@@ -988,6 +1025,90 @@ describe('OndoCampaignDetailsView', () => {
       });
       const { queryByTestId } = render(<OndoCampaignDetailsView />);
       expect(queryByTestId(ONDO_PRIZE_POOL_TEST_IDS.CONTAINER)).toBeNull();
+    });
+
+    it('does not render OndoPrizePool when campaign is complete', () => {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: lastMonth.toISOString(),
+            endDate: yesterday.toISOString(),
+          }),
+        ],
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(ONDO_PRIZE_POOL_TEST_IDS.CONTAINER)).toBeNull();
+    });
+  });
+
+  describe('stats title navigation', () => {
+    it('navigates to the stats view when the stats title is pressed', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: jest.fn(),
+      });
+      const { getByText } = render(<OndoCampaignDetailsView />);
+      fireEvent.press(getByText('rewards.ondo_campaign_stats.title'));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_ONDO_CAMPAIGN_STATS,
+        { campaignId: 'campaign-1' },
+      );
+    });
+  });
+
+  describe('not-eligible sheet', () => {
+    it('shows OndoNotEligibleSheet when portfolio triggers onNotEligible', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      fireEvent.press(getByTestId('ondo-campaign-portfolio-not-eligible'));
+      expect(getByTestId('ondo-not-eligible-sheet')).toBeDefined();
+    });
+
+    it('dismisses OndoNotEligibleSheet when close is pressed', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { getByTestId, queryByTestId } = render(
+        <OndoCampaignDetailsView />,
+      );
+      fireEvent.press(getByTestId('ondo-campaign-portfolio-not-eligible'));
+      fireEvent.press(getByTestId('ondo-not-eligible-sheet-close'));
+      expect(queryByTestId('ondo-not-eligible-sheet')).toBeNull();
     });
   });
 });

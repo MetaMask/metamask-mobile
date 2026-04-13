@@ -50,6 +50,13 @@ interface UserPosition {
   neighbors: CampaignLeaderboardEntry[];
 }
 
+interface PendingSheetPosition {
+  tier: string;
+  netDeposit: number;
+  qualifiedDays: number;
+  tierMinDeposit: number;
+}
+
 interface CampaignLeaderboardProps {
   tierNames: string[];
   selectedTier: string | null;
@@ -65,6 +72,8 @@ interface CampaignLeaderboardProps {
   maxEntries?: number;
   /** User's leaderboard position; enables neighbor display in preview mode. */
   userPosition?: UserPosition | null;
+  /** Current user's position data; enables pending sheet on Pending tag tap. */
+  pendingSheetPosition?: PendingSheetPosition | null;
 }
 
 /**
@@ -73,7 +82,8 @@ interface CampaignLeaderboardProps {
 const LeaderboardEntryRow: React.FC<{
   entry: CampaignLeaderboardEntry;
   isCurrentUser?: boolean;
-}> = ({ entry, isCurrentUser = false }) => (
+  onPendingPress?: () => void;
+}> = ({ entry, isCurrentUser = false, onPendingPress }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
@@ -86,17 +96,20 @@ const LeaderboardEntryRow: React.FC<{
       alignItems={BoxAlignItems.Center}
       twClassName="gap-3"
     >
-      <Text
-        variant={TextVariant.BodyMd}
-        twClassName="w-8 text-text-alternative"
-      >
+      <Text variant={TextVariant.BodyMd} twClassName="w-8">
         #{String(entry.rank).padStart(2, '0')}
       </Text>
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {entry.referralCode}
       </Text>
       {!entry.qualified ? (
-        <PendingTag testID={CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG} />
+        onPendingPress ? (
+          <Pressable onPress={onPendingPress}>
+            <PendingTag testID={CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG} />
+          </Pressable>
+        ) : (
+          <PendingTag testID={CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG} />
+        )
       ) : isCurrentUser ? (
         <Icon
           name={IconName.Check}
@@ -188,6 +201,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   currentUserReferralCode,
   maxEntries,
   userPosition,
+  pendingSheetPosition,
 }) => {
   const navigation = useNavigation();
 
@@ -240,6 +254,31 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
       !!currentUserReferralCode &&
       entry.referralCode === currentUserReferralCode,
     [currentUserReferralCode],
+  );
+
+  const buildOnPendingPress = useCallback(
+    (entry: CampaignLeaderboardEntry) => {
+      if (!entry.qualified) {
+        if (isCurrentUser(entry) && pendingSheetPosition) {
+          return () => {
+            navigation.navigate(Routes.MODAL.REWARDS_ONDO_PENDING_SHEET, {
+              variant: 'own',
+              tier: pendingSheetPosition.tier,
+              netDeposit: pendingSheetPosition.netDeposit,
+              qualifiedDays: pendingSheetPosition.qualifiedDays,
+              tierMinDeposit: pendingSheetPosition.tierMinDeposit,
+            });
+          };
+        }
+        return () => {
+          navigation.navigate(Routes.MODAL.REWARDS_ONDO_PENDING_SHEET, {
+            variant: 'other',
+          });
+        };
+      }
+      return undefined;
+    },
+    [isCurrentUser, navigation, pendingSheetPosition],
   );
 
   if (isLoading && entries.length === 0) {
@@ -359,6 +398,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
               key={`${entry.rank}-${entry.referralCode}`}
               entry={entry}
               isCurrentUser={isCurrentUser(entry)}
+              onPendingPress={buildOnPendingPress(entry)}
             />
           ))}
           {showSplitView && userPosition && (
@@ -369,6 +409,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
                   key={`neighbor-${entry.rank}-${entry.referralCode}`}
                   entry={entry}
                   isCurrentUser={isCurrentUser(entry)}
+                  onPendingPress={buildOnPendingPress(entry)}
                 />
               ))}
             </>

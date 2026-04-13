@@ -56,6 +56,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_leaderboard.tier_upper': 'Platinum',
       'rewards.ondo_campaign_leaderboard.pending': 'Pending',
       'rewards.ondo_campaign_leaderboard.qualified': 'Qualified',
+      'rewards.ondo_campaign_stats.title': 'Stats',
+      'rewards.ondo_campaign_stats.stats_error_title':
+        'Unable to load all stats',
+      'rewards.ondo_campaign_stats.stats_error_description':
+        'We had a problem loading your stats. Please try again later.',
+      'rewards.ondo_campaign_stats.retry': 'Retry',
+      'rewards.ondo_campaign_stats.label_return': 'Return',
+      'rewards.ondo_campaign_stats.label_market_value': 'Market Value',
+      'rewards.ondo_campaign_stats.label_rank': 'Rank',
+      'rewards.ondo_campaign_stats.label_tier': 'Tier',
     };
     return t[key] ?? key;
   },
@@ -185,9 +195,16 @@ describe('CampaignStatsSummary', () => {
     ).toBe('-5.00%');
   });
 
-  it('renders Stats title', () => {
+  it('renders Stats title by default', () => {
     const { getByText } = render(<CampaignStatsSummary {...baseProps} />);
     expect(getByText('Stats')).toBeDefined();
+  });
+
+  it('hides Stats title when showHeader is false', () => {
+    const { queryByText } = render(
+      <CampaignStatsSummary {...baseProps} showHeader={false} />,
+    );
+    expect(queryByText('Stats')).toBeNull();
   });
 
   // ── Pending / Qualified tags ────────────────────────────────────────
@@ -325,8 +342,8 @@ describe('CampaignStatsSummary', () => {
 
   // ── Leaderboard error ─────────────────────────────────────────────
 
-  it('shows leaderboard error banner when leaderboard fails with no data', () => {
-    const { getByTestId, queryByTestId } = render(
+  it('shows stats error banner when leaderboard fails with no data', () => {
+    const { getByTestId } = render(
       <CampaignStatsSummary
         {...baseProps}
         leaderboardPosition={null}
@@ -335,14 +352,11 @@ describe('CampaignStatsSummary', () => {
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.LEADERBOARD_ERROR),
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR),
     ).toBeDefined();
-    expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PORTFOLIO_ERROR),
-    ).toBeNull();
   });
 
-  it('calls leaderboard refetch on leaderboard error retry', () => {
+  it('calls both refetches on stats error retry when leaderboard fails', () => {
     const { getByTestId } = render(
       <CampaignStatsSummary
         {...baseProps}
@@ -352,13 +366,13 @@ describe('CampaignStatsSummary', () => {
     );
 
     fireEvent.press(
-      getByTestId(`${CAMPAIGN_STATS_SUMMARY_TEST_IDS.LEADERBOARD_ERROR}-retry`),
+      getByTestId(`${CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR}-retry`),
     );
     expect(mockLeaderboardRefetch).toHaveBeenCalledTimes(1);
-    expect(mockPortfolioRefetch).not.toHaveBeenCalled();
+    expect(mockPortfolioRefetch).toHaveBeenCalledTimes(1);
   });
 
-  it('hides leaderboard error when stale leaderboard data exists', () => {
+  it('hides stats error when stale leaderboard data exists', () => {
     const { queryByTestId } = render(
       <CampaignStatsSummary
         {...baseProps}
@@ -367,14 +381,14 @@ describe('CampaignStatsSummary', () => {
     );
 
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.LEADERBOARD_ERROR),
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR),
     ).toBeNull();
   });
 
   // ── Portfolio error ───────────────────────────────────────────────
 
-  it('shows portfolio error banner when portfolio fails with no data', () => {
-    const { getByTestId, queryByTestId } = render(
+  it('shows stats error banner when portfolio fails with no data', () => {
+    const { getByTestId } = render(
       <CampaignStatsSummary
         {...baseProps}
         portfolioSummary={null}
@@ -383,14 +397,11 @@ describe('CampaignStatsSummary', () => {
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PORTFOLIO_ERROR),
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR),
     ).toBeDefined();
-    expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.LEADERBOARD_ERROR),
-    ).toBeNull();
   });
 
-  it('calls portfolio refetch on portfolio error retry', () => {
+  it('calls both refetches on stats error retry when portfolio fails', () => {
     const { getByTestId } = render(
       <CampaignStatsSummary
         {...baseProps}
@@ -400,16 +411,16 @@ describe('CampaignStatsSummary', () => {
     );
 
     fireEvent.press(
-      getByTestId(`${CAMPAIGN_STATS_SUMMARY_TEST_IDS.PORTFOLIO_ERROR}-retry`),
+      getByTestId(`${CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR}-retry`),
     );
     expect(mockPortfolioRefetch).toHaveBeenCalledTimes(1);
-    expect(mockLeaderboardRefetch).not.toHaveBeenCalled();
+    expect(mockLeaderboardRefetch).toHaveBeenCalledTimes(1);
   });
 
   // ── Both errors ───────────────────────────────────────────────────
 
-  it('shows both error banners when both sources fail with no data', () => {
-    const { getByTestId } = render(
+  it('shows a single stats error banner when both sources fail with no data', () => {
+    const { getAllByTestId } = render(
       <CampaignStatsSummary
         {...baseProps}
         leaderboardPosition={null}
@@ -420,10 +431,106 @@ describe('CampaignStatsSummary', () => {
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.LEADERBOARD_ERROR),
-    ).toBeDefined();
+      getAllByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR),
+    ).toHaveLength(1);
+  });
+
+  // ── Qualify for rank card ─────────────────────────────────────────
+
+  it('shows the qualify card when position is pending and tierMinDeposit is provided', () => {
+    const pendingPosition: CampaignLeaderboardPositionDto = {
+      ...MOCK_POSITION,
+      qualified: false,
+      qualifiedDays: 3,
+    };
+
+    const { getByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={pendingPosition}
+        tierMinDeposit={500}
+      />,
+    );
+
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PORTFOLIO_ERROR),
+      getByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
     ).toBeDefined();
+  });
+
+  it('does not show the qualify card when position is qualified', () => {
+    const { queryByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={MOCK_POSITION}
+        tierMinDeposit={500}
+      />,
+    );
+
+    expect(
+      queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
+    ).toBeNull();
+  });
+
+  it('does not show the qualify card when tierMinDeposit is null', () => {
+    const pendingPosition: CampaignLeaderboardPositionDto = {
+      ...MOCK_POSITION,
+      qualified: false,
+      qualifiedDays: 3,
+    };
+
+    const { queryByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={pendingPosition}
+        tierMinDeposit={null}
+      />,
+    );
+
+    expect(
+      queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
+    ).toBeNull();
+  });
+
+  it('does not show the qualify card when qualifiedDays meets the requirement', () => {
+    const pendingPosition: CampaignLeaderboardPositionDto = {
+      ...MOCK_POSITION,
+      qualified: false,
+      qualifiedDays: 10, // equals ONDO_GM_REQUIRED_QUALIFIED_DAYS
+    };
+
+    const { queryByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={pendingPosition}
+        tierMinDeposit={500}
+      />,
+    );
+
+    expect(
+      queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
+    ).toBeNull();
+  });
+
+  it('calls onQualifyPress when the qualify card is pressed', () => {
+    const mockOnQualifyPress = jest.fn();
+    const pendingPosition: CampaignLeaderboardPositionDto = {
+      ...MOCK_POSITION,
+      qualified: false,
+      qualifiedDays: 3,
+    };
+
+    const { getByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={pendingPosition}
+        tierMinDeposit={500}
+        onQualifyPress={mockOnQualifyPress}
+      />,
+    );
+
+    fireEvent.press(
+      getByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
+    );
+    expect(mockOnQualifyPress).toHaveBeenCalledTimes(1);
   });
 });

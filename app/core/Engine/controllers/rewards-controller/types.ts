@@ -303,6 +303,12 @@ export interface CampaignLeaderboardTier {
    * @example 150
    */
   totalParticipants: number;
+
+  /**
+   * Minimum USD net deposit required to qualify for this tier
+   * @example 5000
+   */
+  minDeposit: number;
 }
 
 /**
