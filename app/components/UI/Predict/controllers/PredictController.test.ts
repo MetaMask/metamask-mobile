@@ -7452,6 +7452,44 @@ describe('PredictController', () => {
       });
     });
 
+    describe('subscribeToCryptoPrices', () => {
+      it('delegates to provider and returns unsubscribe function', () => {
+        withController(({ controller }) => {
+          const mockUnsubscribe = jest.fn();
+          const mockCallback = jest.fn();
+          mockPolymarketProvider.subscribeToCryptoPrices = jest
+            .fn()
+            .mockReturnValue(mockUnsubscribe);
+
+          const unsubscribe = controller.subscribeToCryptoPrices(
+            ['btcusdt', 'ethusdt'],
+            mockCallback,
+          );
+
+          expect(
+            mockPolymarketProvider.subscribeToCryptoPrices,
+          ).toHaveBeenCalledWith(['btcusdt', 'ethusdt'], mockCallback);
+          expect(unsubscribe).toBe(mockUnsubscribe);
+        });
+      });
+
+      it('returns no-op function when provider lacks method', () => {
+        withController(({ controller }) => {
+          delete (
+            mockPolymarketProvider as { subscribeToCryptoPrices?: unknown }
+          ).subscribeToCryptoPrices;
+
+          const unsubscribe = controller.subscribeToCryptoPrices(
+            ['btcusdt'],
+            jest.fn(),
+          );
+
+          expect(unsubscribe).toBeDefined();
+          expect(unsubscribe()).toBeUndefined();
+        });
+      });
+    });
+
     describe('getConnectionStatus', () => {
       it('returns connection status from provider', () => {
         withController(({ controller }) => {
@@ -7482,6 +7520,7 @@ describe('PredictController', () => {
           expect(status).toEqual({
             sportsConnected: false,
             marketConnected: false,
+            rtdsConnected: false,
           });
         });
       });
@@ -7493,6 +7532,7 @@ describe('PredictController', () => {
           expect(status).toEqual({
             sportsConnected: false,
             marketConnected: false,
+            rtdsConnected: false,
           });
         });
       });

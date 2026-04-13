@@ -8,8 +8,7 @@ exports[`AccountRightButton should render account avatar when selectedAddress is
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -387,7 +386,7 @@ exports[`AccountRightButton should render account avatar when selectedAddress is
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -399,8 +398,7 @@ exports[`AccountRightButton should render correct network name for non-EVM netwo
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -784,7 +782,7 @@ exports[`AccountRightButton should render correct network name for non-EVM netwo
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -796,8 +794,7 @@ exports[`AccountRightButton should render correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1175,7 +1172,7 @@ exports[`AccountRightButton should render correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1187,8 +1184,7 @@ exports[`AccountRightButton should render correctly when a EVM network is select
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1566,7 +1562,7 @@ exports[`AccountRightButton should render correctly when a EVM network is select
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1578,8 +1574,7 @@ exports[`AccountRightButton should render correctly when a non-EVM network is se
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1957,7 +1952,7 @@ exports[`AccountRightButton should render correctly when a non-EVM network is se
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1969,8 +1964,7 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2354,7 +2348,7 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2366,8 +2360,7 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2751,6 +2744,6 @@ exports[`AccountRightButton should render network avatar when selectedAddress is
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

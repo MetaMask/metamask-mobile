@@ -1524,6 +1524,14 @@ export type PerpsPlatformDependencies = {
   // === Cache Invalidation (for standalone query caches) ===
   cacheInvalidator: PerpsCacheInvalidator;
 
+  // === Disk Cache (cold-start persistence) ===
+  diskCache: {
+    getItem(key: string): Promise<string | null>;
+    getItemSync?(key: string): string | null;
+    setItem(key: string, value: string): Promise<void>;
+    removeItem(key: string): Promise<void>;
+  };
+
   // === Rewards (DI — no RewardsController in Core yet) ===
   rewards: {
     /**

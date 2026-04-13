@@ -13,19 +13,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
 
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 390, height: 844, x: 0, y: 0 };
-
-  return {
-    ...jest.requireActual('react-native-safe-area-context'),
-    SafeAreaProvider: jest.fn(({ children }) => children),
-    SafeAreaConsumer: jest.fn(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn(() => inset),
-    useSafeAreaFrame: jest.fn(() => frame),
-  };
-});
-
 // Mock BottomSheet so that onCloseBottomSheet(callback) immediately invokes the callback.
 // This allows testing the action handlers (Buy, Receive, View explorer, Remove token).
 jest.mock(

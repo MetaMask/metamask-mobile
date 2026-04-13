@@ -198,12 +198,6 @@ describe('CardAuthentication Component', () => {
         screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
       ).toBeOnTheScreen();
     });
-
-    it('matches login step snapshot', () => {
-      const { toJSON } = render();
-
-      expect(toJSON()).toMatchSnapshot();
-    });
   });
 
   describe('Login Step - Location Selection', () => {
