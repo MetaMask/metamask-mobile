@@ -8,6 +8,7 @@ import {
   useNetworkFilter,
 } from '../../hooks/send/useNetworkFilter';
 import { NetworkFilter } from './network-filter';
+import { getNetworkFilterAvatarTestId } from './network-filter.testIds';
 
 const mockTokens: AssetType[] = [
   {
@@ -78,17 +79,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
     return strings[key] || key;
   }),
 }));
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const { View } = jest.requireActual('react-native');
-  return {
-    ...actual,
-    AvatarNetwork: ({ name }: { name: string }) => (
-      <View testID={`avatar-${name}`} />
-    ),
-  };
-});
 
 describe('NetworkFilter', () => {
   const mockUseNetworks = jest.mocked(useNetworks);
@@ -230,8 +220,12 @@ describe('NetworkFilter', () => {
       />,
     );
 
-    expect(screen.getByTestId('avatar-Ethereum Mainnet')).toBeOnTheScreen();
-    expect(screen.getByTestId('avatar-Polygon')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getNetworkFilterAvatarTestId('0x1')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getNetworkFilterAvatarTestId('0x89')),
+    ).toBeOnTheScreen();
   });
 
   it('does not render avatar for All networks tab', () => {
@@ -243,6 +237,8 @@ describe('NetworkFilter', () => {
       />,
     );
 
-    expect(screen.queryByTestId('avatar-All networks')).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getNetworkFilterAvatarTestId(NETWORK_FILTER_ALL)),
+    ).not.toBeOnTheScreen();
   });
 });

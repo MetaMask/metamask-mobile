@@ -26,6 +26,7 @@ import {
 } from '../../hooks/send/useNetworkFilter';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
+  getNetworkFilterAvatarTestId,
   getNetworkFilterTestId,
   NETWORK_FILTER_ALL_TEST_ID,
 } from './network-filter.testIds';
@@ -33,6 +34,7 @@ import {
 interface NetworkFilterTabProps {
   label: string;
   imageSource?: ImageSourcePropType;
+  chainId?: string;
   isSelected: boolean;
   onPress: () => void;
   showIcon?: boolean;
@@ -42,6 +44,7 @@ interface NetworkFilterTabProps {
 const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
   label,
   imageSource,
+  chainId,
   isSelected,
   onPress,
   showIcon = false,
@@ -76,6 +79,11 @@ const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
             name={label}
             shape={AvatarBaseShape.Square}
             twClassName="rounded translate-y-px"
+            testID={
+              chainId !== undefined
+                ? getNetworkFilterAvatarTestId(chainId)
+                : undefined
+            }
           />
           <Text
             variant={TextVariant.BodyMd}
@@ -173,6 +181,7 @@ export const NetworkFilter: React.FC<NetworkFilterProps> = ({
           <NetworkFilterTab
             key={network.chainId}
             label={network.name}
+            chainId={network.chainId}
             imageSource={network.image}
             isSelected={selectedNetworkFilter === network.chainId}
             onPress={() => setSelectedNetworkFilter(network.chainId)}
