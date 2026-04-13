@@ -53,11 +53,12 @@ const config = {
     '<rootDir>/app/components/UI/MarketInsights/components/MarketInsightsEntryCard/AnimatedGradientBorder.tsx',
   ],
   testPathIgnorePatterns: [
-    '.*/tests/(smoke|regression)/.*\\.spec\\.(ts|js)$',
-    '.*/e2e/.*\\.spec\\.(ts|js)$',
+    '.*/tests/(smoke|regression)/.*\\.spec\\.(ts|tsx|js)$',
+    '.*/e2e/.*\\.spec\\.(ts|tsx|js)$',
     '.*/e2e/pages/',
     '.*/e2e/selectors/',
-    '\\.view\\.test\\.(ts|tsx)$',
+    // Component-view tests need jest.config.view.js (testSetupView, runInBand, etc.)
+    '.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$',
   ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',

@@ -27,6 +27,8 @@ yarn start:android      # Run Android app
 ```bash
 # Unit tests
 yarn test:unit                          # Run all unit tests
+yarn test:unit:folders -- <path> [...]  # Unit tests under one or more folders (no coverage; excludes component-view tests)
+yarn test:unit:folders:update-snapshots -- <path> [...]  # Update Jest snapshots for those folders
 yarn jest <filename>                    # Run specific test file
 yarn jest <filename> -t "<pattern>"     # Run specific test case
 
