@@ -1016,7 +1016,10 @@
   "social_leaderboard": {
     "top_traders_view": {
       "title": "Top Traders"
-    }
+    },
+    "follow": "Follow",
+    "following": "Following",
+    "all_networks": "All networks"
   },
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
