@@ -24,7 +24,6 @@ import {
   Button,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import { useTraderProfile, useTraderPositions } from './hooks';
@@ -78,7 +77,6 @@ const TraderProfileView = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderProfileView'>>();
   const tw = useTailwind();
-  const { colors } = useTheme();
 
   const { traderId, traderName } = route.params;
 
@@ -160,7 +158,7 @@ const TraderProfileView = () => {
         ) : (
           <>
             {isLoading || !profile ? (
-              <ProfileHeaderSkeleton colors={colors} tw={tw} />
+              <ProfileHeaderSkeleton />
             ) : (
               <ProfileHeader
                 profile={profile.profile}
@@ -169,7 +167,7 @@ const TraderProfileView = () => {
             )}
 
             {isLoading || !profile ? (
-              <StatsRowSkeleton colors={colors} tw={tw} />
+              <StatsRowSkeleton />
             ) : (
               <StatsRow stats={profile.stats} />
             )}
@@ -212,7 +210,7 @@ const TraderProfileView = () => {
 
             {isLoadingPositions ? (
               POSITION_SKELETON_KEYS.map((key) => (
-                <PositionRowSkeleton key={key} colors={colors} tw={tw} />
+                <PositionRowSkeleton key={key} />
               ))
             ) : positions.length === 0 ? (
               <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
