@@ -74,6 +74,12 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../hooks/gas/useIsGaslessLoading', () => ({
+  useIsGaslessLoading: jest.fn(() => ({
+    isGaslessLoading: false,
+  })),
+}));
+
 const mockPendingScanRequest: QrScanRequest = {
   request: {
     requestId: 'c95ecc76-d6e9-4a0a-afa3-31429bc80566',

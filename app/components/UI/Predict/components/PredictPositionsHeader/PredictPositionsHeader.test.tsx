@@ -71,6 +71,7 @@ jest.mock('../../hooks/usePredictBalance', () => ({
 
 const mockInvalidateQueries = jest.fn();
 jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
   useQueryClient: () => ({
     invalidateQueries: mockInvalidateQueries,
   }),

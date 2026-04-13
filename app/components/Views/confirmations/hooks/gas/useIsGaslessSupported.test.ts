@@ -2,18 +2,26 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { waitFor } from '@testing-library/react-native';
 import { merge } from 'lodash';
 import { transferConfirmationState } from '../../../../../util/test/confirm-data-helpers';
-import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { isRelaySupported } from '../../../../../util/transactions/transaction-relay';
 import { transferTransactionStateMock } from '../../__mocks__/transfer-transaction-mock';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useIsGaslessSupported } from './useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmartTransactions';
 
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+
 jest.mock('../../../../../util/transactions/sentinel-api');
 jest.mock('../../../../../util/transaction-controller');
 jest.mock('../../../../../util/transactions/transaction-relay');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('./useGaslessSupportedSmartTransactions');
+
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQueryClient: () => ({
+    invalidateQueries: jest.fn(),
+  }),
+}));
 
 const SMART_TRANSACTIONS_ENABLED_STATE = {
   swaps: {

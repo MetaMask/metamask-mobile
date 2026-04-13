@@ -17,6 +17,7 @@ import { Theme } from '../theme/models';
 import configureStore from './configureStore';
 import { RootState } from '../../reducers';
 import { FeatureFlagOverrideProvider } from '../../contexts/FeatureFlagOverrideContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // DeepPartial is a generic type that recursively makes all properties of a given type T optional
 export type DeepPartial<T> = T extends (...args: unknown[]) => unknown
@@ -45,7 +46,9 @@ export default function renderWithProvider(
   const store = configureStore(state);
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   require('../../store')._updateMockState(state);
-
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   const InnerProvider = ({ children }: { children: React.ReactElement }) => {
     let wrappedChildren = children;
     if (includeFeatureFlagOverrideProvider) {
@@ -57,9 +60,11 @@ export default function renderWithProvider(
     }
     return (
       <Provider store={store}>
-        <ThemeContext.Provider value={theme}>
-          {wrappedChildren}
-        </ThemeContext.Provider>
+        <QueryClientProvider client={queryClient}>
+          <ThemeContext.Provider value={theme}>
+            {wrappedChildren}
+          </ThemeContext.Provider>
+        </QueryClientProvider>
       </Provider>
     );
   };
@@ -110,8 +115,13 @@ export function renderHookWithProvider<Result, Props>(
   const store = configureStore(state);
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   require('../../store')._updateMockState(state);
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   const Providers = ({ children }: { children: React.ReactElement }) => (
-    <Provider store={store}>{children}</Provider>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </Provider>
   );
 
   return {

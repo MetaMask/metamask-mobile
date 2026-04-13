@@ -5,13 +5,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictBalance from './PredictBalance';
 import { strings } from '../../../../../../locales/i18n';
 
-// Mock React Query
-jest.mock('@tanstack/react-query', () => ({
-  useQueryClient: () => ({
-    invalidateQueries: jest.fn(),
-  }),
-}));
-
 // Mock React Navigation
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),

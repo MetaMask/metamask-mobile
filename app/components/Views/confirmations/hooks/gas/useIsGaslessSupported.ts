@@ -1,7 +1,8 @@
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useAsyncResult } from '../../../../hooks/useAsyncResult';
-import { isRelaySupported } from '../../../../../util/transactions/transaction-relay';
+import { useQuery } from '@tanstack/react-query';
 import { Hex } from '@metamask/utils';
+
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { isRelaySupported } from '../../../../../util/transactions/transaction-relay';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmartTransactions';
 
@@ -20,7 +21,7 @@ import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmart
 export function useIsGaslessSupported() {
   const transactionMeta = useTransactionMetadataRequest();
 
-  const { chainId, txParams } = transactionMeta ?? {};
+  const { txParams, chainId } = transactionMeta ?? {};
 
   const {
     isSmartTransaction,
@@ -31,15 +32,11 @@ export function useIsGaslessSupported() {
   const shouldCheck7702Eligibility =
     !smartTransactionPending && !isSmartTransactionAndBundleSupported;
 
-  const { value: relaySupportsChain, pending: relayPending } =
-    useAsyncResult(async () => {
-      if (!shouldCheck7702Eligibility) {
-        return undefined;
-      }
-
-      return isRelaySupported(chainId as Hex);
-    }, [chainId, shouldCheck7702Eligibility]);
-
+  const { data: relaySupportsChain, isFetching: relayPending } = useQuery({
+    queryKey: ['relaySupportsChain', chainId],
+    queryFn: () => isRelaySupported(chainId as Hex),
+    enabled: shouldCheck7702Eligibility && Boolean(chainId),
+  });
   const is7702Supported = Boolean(
     relaySupportsChain &&
       // contract deployments can't be delegated
@@ -55,12 +52,12 @@ export function useIsGaslessSupported() {
     !isHardwareWallet &&
     Boolean(isSmartTransactionAndBundleSupported || is7702Supported);
 
-  const isPending =
-    smartTransactionPending || (shouldCheck7702Eligibility && relayPending);
+  const is7702SupportedPending = shouldCheck7702Eligibility && relayPending;
+  const pending = smartTransactionPending || is7702SupportedPending;
 
   return {
     isSupported,
     isSmartTransaction,
-    pending: isPending,
+    pending,
   };
 }
