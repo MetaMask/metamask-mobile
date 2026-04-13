@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   PermissionController,
   type PermissionSpecificationConstraint,
@@ -23,7 +23,7 @@ import { CaipChainId } from '@metamask/utils';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const permissionControllerInit: ControllerInitFunction<
+export const permissionControllerInit: MessengerClientInitFunction<
   PermissionController<
     PermissionSpecificationConstraint,
     CaveatSpecificationConstraint

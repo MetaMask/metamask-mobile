@@ -4810,11 +4810,9 @@
     "body_for_seedphrase": "Теперь, когда эта сумма добавлена в ваш кошелек, защитите свой кошелек, установив пароль и сохранив секретную фразу для восстановления (обязательно).",
     "button": "Защитить кошелек"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Не удалось обновить транзакцию",
-    "text": "Хотите повторить попытку?",
-    "cancel_button": "Отмена",
-    "retry_button": "Повтор"
+    "already_confirmed": "Эта транзакция уже подтверждена и не может быть изменена."
   },
   "payment_request": {
     "title": "Запрос",
@@ -6638,7 +6636,6 @@
     "nested_transaction_heading": "Транзакция {{index}}",
     "transaction": "Защита",
     "available_balance": "Доступный баланс: ",
-    "available_perps_balance": "Доступный баланс перпов: ",
     "edit_amount_done": "Продолжить",
     "deposit_edit_amount_done": "Внести средства",
     "deposit_edit_amount_predict_withdraw": "Вывести средства",

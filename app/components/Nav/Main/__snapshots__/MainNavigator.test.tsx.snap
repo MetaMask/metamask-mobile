@@ -282,6 +282,7 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
         },
         "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -386,13 +387,7 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   <Screen
     component={[Function]}
     name="DeFiProtocolPositionDetails"
-    options={
-      {
-        "animationEnabled": true,
-        "cardStyleInterpolator": [Function],
-        "headerShown": true,
-      }
-    }
+    options={[Function]}
   />
   <Screen
     component={[Function]}
@@ -401,6 +396,15 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   <Screen
     component={[Function]}
     name="CardScreens"
+  />
+  <Screen
+    component={[Function]}
+    name="RewardsCampaignTourStep"
+    options={
+      {
+        "headerShown": false,
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -701,6 +705,7 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
         },
         "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -805,13 +810,7 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   <Screen
     component={[Function]}
     name="DeFiProtocolPositionDetails"
-    options={
-      {
-        "animationEnabled": true,
-        "cardStyleInterpolator": [Function],
-        "headerShown": true,
-      }
-    }
+    options={[Function]}
   />
   <Screen
     component={[Function]}
@@ -820,6 +819,15 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   <Screen
     component={[Function]}
     name="CardScreens"
+  />
+  <Screen
+    component={[Function]}
+    name="RewardsCampaignTourStep"
+    options={
+      {
+        "headerShown": false,
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -1120,6 +1128,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
         },
         "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -1224,13 +1233,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="DeFiProtocolPositionDetails"
-    options={
-      {
-        "animationEnabled": true,
-        "cardStyleInterpolator": [Function],
-        "headerShown": true,
-      }
-    }
+    options={[Function]}
   />
   <Screen
     component={[Function]}
@@ -1239,6 +1242,15 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="CardScreens"
+  />
+  <Screen
+    component={[Function]}
+    name="RewardsCampaignTourStep"
+    options={
+      {
+        "headerShown": false,
+      }
+    }
   />
   <Screen
     component={[Function]}

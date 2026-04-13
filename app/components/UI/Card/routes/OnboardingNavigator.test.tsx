@@ -261,7 +261,7 @@ describe('OnboardingNavigator', () => {
       it('does not render Stack Navigator', () => {
         const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
 
-        expect(queryByTestId('stack-navigator')).toBeNull();
+        expect(queryByTestId('stack-navigator')).not.toBeOnTheScreen();
       });
     });
   });
@@ -286,7 +286,7 @@ describe('OnboardingNavigator', () => {
           );
 
           // Verify the navigator renders (not loading)
-          expect(queryByTestId('activity-indicator')).toBeNull();
+          expect(queryByTestId('activity-indicator')).not.toBeOnTheScreen();
           const stackNavigator = queryByTestId('stack-navigator');
           expect(stackNavigator).not.toBeNull();
           expect(stackNavigator?.props.initialRouteName).toBe(
@@ -310,7 +310,7 @@ describe('OnboardingNavigator', () => {
             <OnboardingNavigator />,
           );
 
-          expect(queryByTestId('activity-indicator')).toBeNull();
+          expect(queryByTestId('activity-indicator')).not.toBeOnTheScreen();
           // Fallback to SIGN_UP when verificationState is missing
           const stackNavigator = queryByTestId('stack-navigator');
           expect(stackNavigator).not.toBeNull();
@@ -1163,7 +1163,7 @@ describe('OnboardingNavigator', () => {
       );
 
       expect(getByTestId('activity-indicator')).toBeTruthy();
-      expect(queryByTestId('stack-navigator')).toBeNull();
+      expect(queryByTestId('stack-navigator')).not.toBeOnTheScreen();
     });
 
     it('does not show loading indicator when onboardingId is null (new user flow)', () => {
@@ -1180,7 +1180,7 @@ describe('OnboardingNavigator', () => {
 
       const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
 
-      expect(queryByTestId('activity-indicator')).toBeNull();
+      expect(queryByTestId('activity-indicator')).not.toBeOnTheScreen();
       const stackNavigator = queryByTestId('stack-navigator');
       expect(stackNavigator).not.toBeNull();
       expect(stackNavigator?.props.initialRouteName).toBe(
@@ -1240,7 +1240,7 @@ describe('OnboardingNavigator', () => {
         </NavigationContainer>,
       );
 
-      expect(queryByTestId('activity-indicator')).toBeNull();
+      expect(queryByTestId('activity-indicator')).not.toBeOnTheScreen();
       const stackNavigator = queryByTestId('stack-navigator');
       expect(stackNavigator).not.toBeNull();
       expect(stackNavigator?.props.initialRouteName).toBe(

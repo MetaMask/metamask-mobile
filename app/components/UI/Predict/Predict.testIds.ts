@@ -128,6 +128,19 @@ export const PredictMarketDetailsSelectorsIDs = {
     'predict-details-buttons-skeleton-button-1',
 } as const;
 
+// ========================================
+// PREDICT CRYPTO UP/DOWN DETAILS SELECTORS
+// ========================================
+
+export const PredictCryptoUpDownDetailsSelectorsIDs = {
+  SCREEN: 'predict-crypto-up-down-details-screen',
+  HEADER: 'predict-crypto-up-down-details-header',
+  BACK_BUTTON: 'predict-crypto-up-down-details-back-button',
+  SHARE_BUTTON: 'predict-crypto-up-down-details-share-button',
+  SCROLL_VIEW: 'predict-crypto-up-down-details-scroll-view',
+  TITLE_SECTION: 'predict-crypto-up-down-details-title-section',
+} as const;
+
 export const PredictMarketDetailsSelectorsText = {
   // Tab content containers
   ABOUT_TAB_TEXT: 'About',

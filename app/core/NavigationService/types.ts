@@ -477,6 +477,7 @@ export interface RootStackParamList extends ParamListBase {
   NftFullView: undefined;
   TokensFullView: undefined;
   CashTokensFullView: undefined;
+  MoneyScreens: undefined;
   TrendingTokensFullView: undefined;
   RWATokensFullView: undefined;
 
@@ -625,7 +626,7 @@ export interface RootStackParamList extends ParamListBase {
   CardMainRoutes: undefined;
   CardHome: undefined;
   CardWelcome: undefined;
-  CardAuthentication: undefined;
+  CardAuthentication: { showAuthPrompt?: boolean } | undefined;
   CardSpendingLimit: undefined;
   CardChangeAsset: undefined;
   VerifyingRegistration: undefined;

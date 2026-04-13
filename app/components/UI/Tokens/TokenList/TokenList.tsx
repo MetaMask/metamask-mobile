@@ -46,6 +46,7 @@ interface TokenListProps {
   setShowScamWarningModal: (chainId: string | null) => void;
   maxItems?: number;
   isFullView?: boolean;
+  listFooterComponent?: React.ReactElement;
 }
 
 const TokenListComponent = ({
@@ -57,6 +58,7 @@ const TokenListComponent = ({
   setShowScamWarningModal,
   maxItems,
   isFullView = false,
+  listFooterComponent,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -64,6 +66,7 @@ const TokenListComponent = ({
   const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
+
   // Declaring this here and passing it down to avoid O(n) API calls to on-ramp
   const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
 
@@ -100,8 +103,8 @@ const TokenListComponent = ({
           return;
         }
 
+        // For FlashList mode, use scrollToIndex
         if (isFullView) {
-          // For FlashList mode (full view), use scrollToIndex
           if (listRef.current) {
             listRef.current.scrollToIndex({
               index: tokenIndex,
@@ -207,6 +210,7 @@ const TokenListComponent = ({
           </Button>
         </Box>
       )}
+      {listFooterComponent}
     </Box>
   ) : (
     <Box twClassName={'flex-1 bg-default'}>
@@ -232,6 +236,13 @@ const TokenListComponent = ({
         }
         extraData={{ isTokenNetworkFilterEqualCurrentNetwork, visibleKeys }}
         contentContainerStyle={!isFullView ? undefined : tw`px-4`}
+        ListFooterComponent={
+          isFullView && listFooterComponent ? (
+            <Box twClassName="-mx-4">{listFooterComponent}</Box>
+          ) : (
+            listFooterComponent
+          )
+        }
       />
     </Box>
   );

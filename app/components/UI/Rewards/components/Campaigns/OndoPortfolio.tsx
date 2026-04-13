@@ -26,14 +26,17 @@ import { parseCaipAccountId, Hex, type CaipChainId } from '@metamask/utils';
 import type { AccountGroupObject } from '@metamask/account-tree-controller';
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
-import formatFiat from '../../../../../util/formatFiat';
+import {
+  formatUsd,
+  parseCaip19,
+  caipChainIdToHex,
+} from '../../utils/formatUtils';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import { parseCaip19, caipChainIdToHex } from '../../utils/formatUtils';
 import TrendingTokenLogo from '../../../Trending/components/TrendingTokenLogo';
 import type {
   OndoGmPortfolioDto,
@@ -49,7 +52,6 @@ import {
 import { formatComputedAt } from './OndoLeaderboard.utils';
 import { selectCurrentSubscriptionAccounts } from '../../../../../selectors/rewards';
 import { selectAllTokenBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
 import { selectAllTokens } from '../../../../../selectors/tokensController';
 import { selectInternalAccountByAddresses } from '../../../../../selectors/accountsController';
 import {
@@ -61,7 +63,7 @@ import { VerticalAlignment } from '../../../../../component-library/components/L
 import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectIconSeedAddressByAccountGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import Engine from '../../../../../core/Engine';
-import RewardsInfoBanner from '../RewardsInfoBanner';
+import RewardsNoPositionsImage from '../../../../../images/rewards/rewards-no-positions.svg';
 
 const styles = StyleSheet.create({
   skeletonLg: { height: 128, borderRadius: 12 },
@@ -82,14 +84,6 @@ export const ONDO_PORTFOLIO_TEST_IDS = {
   ERROR: 'ondo-campaign-portfolio-error',
   EMPTY: 'ondo-campaign-portfolio-empty',
 } as const;
-
-const formatUsd = (value: string): string => {
-  try {
-    return formatFiat(new BigNumber(value), 'USD');
-  } catch {
-    return value;
-  }
-};
 
 export interface AccountPickerConfig {
   row: OndoGmPortfolioPositionDto;
@@ -150,28 +144,29 @@ interface OndoPortfolioProps {
   portfolio: OndoGmPortfolioDto | null;
   isLoading: boolean;
   hasError: boolean;
-  hasFetched: boolean;
   refetch: () => Promise<void>;
   campaignId: string;
   onOpenAccountPicker: (config: AccountPickerConfig) => void;
   isCampaignComplete?: boolean;
+  notEligibleForCampaign?: boolean;
+  onNotEligible?: (confirmAction: () => void) => void;
 }
 
 const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
   portfolio,
   isLoading,
   hasError,
-  hasFetched,
   refetch,
   campaignId,
   onOpenAccountPicker,
   isCampaignComplete = false,
+  notEligibleForCampaign = false,
+  onNotEligible,
 }) => {
   const navigation = useNavigation();
 
   const subscriptionAccounts = useSelector(selectCurrentSubscriptionAccounts);
   const allTokenBalances = useSelector(selectAllTokenBalances);
-  const erc20TokensByChain = useSelector(selectERC20TokensByChain);
   const allTokens = useSelector(selectAllTokens);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
   const selectedGroup = useSelector(selectResolvedSelectedAccountGroup);
@@ -232,17 +227,12 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
         `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
       );
       const tokenHex = parsed.assetReference.toLowerCase() as Hex;
-      const tokenListDecimals =
-        erc20TokensByChain?.[chainHex]?.data?.[tokenHex]?.decimals;
-      const trackedDecimals =
-        tokenListDecimals === undefined
-          ? Object.values(allTokens[chainHex] ?? {})
-              .flat()
-              .find((t) => t.address.toLowerCase() === tokenHex)?.decimals
-          : undefined;
-      return tokenListDecimals ?? trackedDecimals ?? 18;
+      const trackedDecimals = Object.values(allTokens[chainHex] ?? {})
+        .flat()
+        .find((t) => t.address.toLowerCase() === tokenHex)?.decimals;
+      return trackedDecimals ?? 18;
     },
-    [erc20TokensByChain, allTokens],
+    [allTokens],
   );
 
   /** Returns the total token balance held across all accounts in the group, summed from raw hex values. */
@@ -297,6 +287,11 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
 
   const handleRowPress = useCallback(
     (row: OndoGmPortfolioPositionDto) => {
+      if (notEligibleForCampaign) {
+        onNotEligible?.(() => navigateToSwap(row));
+        return;
+      }
+
       const accountsForRow = getAccountsWithBalance(row);
       const groupsForRow = getGroupsFromAccounts(accountsForRow);
 
@@ -328,11 +323,13 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
       });
     },
     [
+      notEligibleForCampaign,
+      onNotEligible,
+      navigateToSwap,
       getAccountsWithBalance,
       getGroupsFromAccounts,
       getGroupBalance,
       selectedGroup,
-      navigateToSwap,
       onOpenAccountPicker,
       resolveTokenDecimals,
     ],
@@ -366,31 +363,45 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
     );
   }
 
-  if (hasFetched && (!portfolio || portfolio.positions.length === 0)) {
+  if (
+    !isLoading &&
+    !hasError &&
+    (!portfolio || portfolio.positions.length === 0)
+  ) {
     return (
       <Box
         testID={ONDO_PORTFOLIO_TEST_IDS.EMPTY}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="gap-2"
+        twClassName="py-6 gap-3"
       >
-        <RewardsInfoBanner
-          title={strings('rewards.ondo_campaign_portfolio.empty')}
-          description={strings(
-            'rewards.ondo_campaign_portfolio.empty_description',
-          )}
-          {...(!isCampaignComplete && {
-            onConfirm: () => {
+        <RewardsNoPositionsImage
+          name="rewards-no-positions"
+          width={80}
+          height={80}
+        />
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+        >
+          {strings('rewards.ondo_campaign_portfolio.empty')}
+        </Text>
+        {!isCampaignComplete && (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
+            twClassName="text-center"
+            onPress={() => {
               navigation.navigate(
                 Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR,
                 { mode: 'open_position', campaignId },
               );
-            },
-            confirmButtonLabel: strings(
-              'rewards.ondo_campaign_portfolio.empty_cta',
-            ),
-          })}
-        />
+            }}
+          >
+            {strings('rewards.ondo_campaign_portfolio.empty_cta')}
+          </Text>
+        )}
       </Box>
     );
   }

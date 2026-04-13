@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from 'react';
-import { noop } from 'lodash';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -24,7 +23,6 @@ import {
 import { useOptInToCampaign } from '../../hooks/useOptInToCampaign';
 import useRewardsToast from '../../hooks/useRewardsToast';
 import { strings } from '../../../../../../locales/i18n';
-import { REWARDS_ONBOARD_TERMS_URL } from '../Onboarding/constants';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsInfoBanner from '../RewardsInfoBanner';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
@@ -33,8 +31,6 @@ import { selectGeolocationStatus } from '../../../../../selectors/geolocationCon
 import ContentfulRichText, {
   isDocument,
 } from '../ContentfulRichText/ContentfulRichText';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
 
 interface CampaignOptInSheetProps {
   campaign: CampaignDto;
@@ -49,7 +45,6 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   campaign,
   onClose,
 }) => {
-  const navigation = useNavigation();
   const { optInToCampaign, isOptingIn, optInError } = useOptInToCampaign();
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const geolocation = useSelector(getDetectedGeolocation);
@@ -89,18 +84,8 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
     }
   }, [optInToCampaign, campaign.id, showToast, RewardsToastOptions, onClose]);
 
-  const handleTermsPress = useCallback(() => {
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: REWARDS_ONBOARD_TERMS_URL,
-        timestamp: Date.now(),
-      },
-    });
-  }, [navigation]);
-
   return (
-    <BottomSheet shouldNavigateBack={false} goBack={noop} onClose={onClose}>
+    <BottomSheet onClose={onClose}>
       <Box twClassName="px-4 pb-4">
         {/* Header: centered title + close button */}
         <Box
@@ -115,7 +100,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
             justifyContent={BoxJustifyContent.Center}
           >
             <Text
-              variant={TextVariant.HeadingMd}
+              variant={TextVariant.HeadingSm}
               fontWeight={FontWeight.Bold}
               testID="campaign-opt-in-sheet-title"
             >
@@ -130,35 +115,17 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
           />
         </Box>
 
-        {/* Legal disclaimer – rich text from Contentful or static fallback */}
-        <Box twClassName="mb-6">
-          {isDocument(campaign.termsAndConditions) ? (
+        {/* Legal disclaimer – rich text from Contentful */}
+        {isDocument(campaign.termsAndConditions) && (
+          <Box twClassName="mb-6">
             <ContentfulRichText
               document={campaign.termsAndConditions}
-              textVariant={TextVariant.BodySm}
-              bodyClassName="text-center text-alternative"
+              textVariant={TextVariant.BodyMd}
+              bodyClassName="text-center text-default"
               testID="campaign-opt-in-sheet-description"
             />
-          ) : (
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-alternative text-center"
-              testID="campaign-opt-in-sheet-description"
-            >
-              {strings('rewards.campaign.opt_in_sheet_description_pre_link')}{' '}
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="text-primary-default"
-                onPress={handleTermsPress}
-                testID="campaign-opt-in-sheet-terms-link"
-              >
-                {strings('rewards.campaign.opt_in_sheet_link_text')}
-              </Text>
-              {'. '}
-              {strings('rewards.campaign.opt_in_sheet_description_post_link')}
-            </Text>
-          )}
-        </Box>
+          </Box>
+        )}
 
         {optInError && (
           <Box twClassName="mb-4">
