@@ -1428,26 +1428,25 @@ function subscribeLastCloseLabelUpdates() {
 }
 
 /**
- * Line chart: small right gap so the end dot isn’t flush/clipped against the pane edge.
- * Candle: small offset so createLastPriceLine isn’t clipped at the Y-axis.
+ * Small right gap so the end dot/line isn't flush/clipped against the pane edge or Y-axis.
+ * When visibleFromMs is set (fixed timeframe mode), use a larger offset to prevent clipping.
+ * When visibleFromMs is null (free-scrolling mode), use minimal offset.
  * https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.ITimeScaleApi/
  */
-var LINE_CHART_RIGHT_OFFSET_BARS = 3;
-var CANDLE_CHART_RIGHT_GAP_BARS = 3;
+var CHART_RIGHT_OFFSET_BARS_FIXED_TIMEFRAME = 3;
+var CHART_RIGHT_OFFSET_BARS_DEFAULT = 0;
 
 function syncTimeScaleRightMargin(isLineChart) {
   if (!window.chartWidget) return;
   try {
     var ts = window.chartWidget.activeChart().getTimeScale();
     ts.usePercentageRightOffset().setValue(false);
-    var gap =
+    var offset =
       window.visibleFromMs != null
-        ? LINE_CHART_RIGHT_OFFSET_BARS
-        : isLineChart
-          ? LINE_CHART_RIGHT_OFFSET_BARS
-          : CANDLE_CHART_RIGHT_GAP_BARS;
-    ts.defaultRightOffset().setValue(gap);
-    ts.setRightOffset(gap);
+        ? CHART_RIGHT_OFFSET_BARS_FIXED_TIMEFRAME
+        : CHART_RIGHT_OFFSET_BARS_DEFAULT;
+    ts.defaultRightOffset().setValue(offset);
+    ts.setRightOffset(offset);
   } catch (e) {}
 }
 
