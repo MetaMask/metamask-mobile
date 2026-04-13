@@ -9,7 +9,13 @@ export const DIGEST_API_MOCKS: MockEventsObject = {
   GET: [
     {
       urlEndpoint:
-        /^https:\/\/digest\.dev-api\.cx\.metamask\.io\/api\/v1\/market-overview.*/,
+        /^https:\/\/digest\.(api|dev-api)\.cx\.metamask\.io\/api\/v1\/market-overview.*/,
+      responseCode: 200,
+      response: {},
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/digest\.(api|dev-api)\.cx\.metamask\.io\/api\/v1\/asset-summary.*/,
       responseCode: 200,
       response: {},
     },
