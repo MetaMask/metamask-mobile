@@ -1493,13 +1493,9 @@ describe('CardHome Component', () => {
 
   it('falls back to balanceFormatted when balanceFiat is TOKEN_RATE_UNDEFINED', () => {
     // Given: fiat rate is undefined — balance comes from useCardHomeData().primaryAsset now
-    (useCardHomeData as jest.Mock).mockReturnValue({
-      ...(useCardHomeData as jest.Mock).mock.results.at(-1)?.value,
-      primaryAsset: {
-        ...mockPrimaryAssetWithBalance,
-        balanceFiat: TOKEN_RATE_UNDEFINED,
-        balanceFormatted: '1000.000000 USDC',
-      },
+    overrideCardHomeDataBalance({
+      balanceFiat: TOKEN_RATE_UNDEFINED,
+      balanceFormatted: '1000.000000 USDC',
     });
 
     // When: component renders
@@ -1511,13 +1507,9 @@ describe('CardHome Component', () => {
 
   it('falls back to balanceFormatted when balanceFiat is not available', () => {
     // Given: fiat balance is empty — balance comes from useCardHomeData().primaryAsset now
-    (useCardHomeData as jest.Mock).mockReturnValue({
-      ...(useCardHomeData as jest.Mock).mock.results.at(-1)?.value,
-      primaryAsset: {
-        ...mockPrimaryAssetWithBalance,
-        balanceFiat: '',
-        balanceFormatted: '1000.000000 USDC',
-      },
+    overrideCardHomeDataBalance({
+      balanceFiat: '',
+      balanceFormatted: '1000.000000 USDC',
     });
 
     // When: component renders

@@ -1,3 +1,4 @@
+import { CardAssetWithBalance } from '../types';
 import { getAssetBalanceKey } from './getAssetBalanceKey';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -27,7 +28,7 @@ describe('getAssetBalanceKey', () => {
       address: undefined,
       caipChainId: CHAIN,
       walletAddress: '0x123456',
-    });
+    } as unknown as CardAssetWithBalance);
     expect(key).toBe('undefined-eip155:59144-0x123456');
   });
 
