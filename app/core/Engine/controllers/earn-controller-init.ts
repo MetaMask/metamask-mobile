@@ -16,8 +16,7 @@ export const earnControllerInit: MessengerClientInitFunction<
   EarnController,
   EarnControllerMessenger,
   EarnControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, getController }) => {
-  const networkState = initMessenger.call('NetworkController:getState');
+> = ({ controllerMessenger, getController }) => {
   const transactionController = getController('TransactionController');
 
   const controller = new EarnController({
@@ -25,8 +24,9 @@ export const earnControllerInit: MessengerClientInitFunction<
     addTransactionFn: transactionController.addTransaction.bind(
       transactionController,
     ),
-    selectedNetworkClientId: networkState.selectedNetworkClientId,
   });
+
+  controller.init();
 
   return {
     controller,

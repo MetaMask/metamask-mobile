@@ -28,10 +28,12 @@ export function getEarnControllerMessenger(
   });
   rootMessenger.delegate({
     actions: [
+      'NetworkController:getState',
       'NetworkController:getNetworkClientById',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
     ],
     events: [
+      'AccountTreeController:stateChange',
       'AccountTreeController:selectedAccountGroupChange',
       'TransactionController:transactionConfirmed',
       'NetworkController:networkDidChange',

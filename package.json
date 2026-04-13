@@ -680,6 +680,12 @@
     "xhr2": "^0.2.1",
     "xml2js": "^0.5.0"
   },
+  "previewBuilds": {
+    "@metamask/earn-controller": {
+      "type": "non-breaking",
+      "previewVersion": "11.2.1-preview-d9d1316f5"
+    }
+  },
   "config": {
     "react-native-storybook-loader": {
       "searchDir": [

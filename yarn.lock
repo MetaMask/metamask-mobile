@@ -8232,22 +8232,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/earn-controller@npm:^10.0.0":
-  version: 10.0.0
-  resolution: "@metamask/earn-controller@npm:10.0.0"
+"@metamask/earn-controller@npm:@metamask-previews/earn-controller@11.2.1-preview-d9d1316f5":
+  version: 11.2.1-preview-d9d1316f5
+  resolution: "@metamask-previews/earn-controller@npm:11.2.1-preview-d9d1316f5"
   dependencies:
     "@ethersproject/bignumber": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.15.0"
-    "@metamask/keyring-api": "npm:^21.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/account-tree-controller": "npm:^7.0.0"
+    "@metamask/base-controller": "npm:^9.0.1"
+    "@metamask/controller-utils": "npm:^11.20.0"
+    "@metamask/keyring-api": "npm:^21.6.0"
+    "@metamask/messenger": "npm:^1.1.1"
+    "@metamask/network-controller": "npm:^30.0.1"
     "@metamask/stake-sdk": "npm:^3.2.1"
     reselect: "npm:^5.1.1"
-  peerDependencies:
-    "@metamask/account-tree-controller": ^3.0.0
-    "@metamask/network-controller": ^25.0.0
-  checksum: 10/a6da5236a422c8d775690d8a61f9853a0a541ca7a3aa82a44d32ae2d7e664ae6dbac3917cedfafbf928f663db8f5f9ff4bfcf795f0400052e6317ffb1dd4f336
+  checksum: 10/6fa35d23e137d6b9ee793ed8d69c1ca0b01b71c4635d17c3c5842db764a93cbcd2e6cfcf94050085e23dd689b61d1035987f1301ca460f83bb25be04ea660cdf
   languageName: node
   linkType: hard
 
@@ -8798,7 +8797,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^21.0.0, @metamask/keyring-api@npm:^21.3.0, @metamask/keyring-api@npm:^21.4.0, @metamask/keyring-api@npm:^21.5.0, @metamask/keyring-api@npm:^21.6.0":
+"@metamask/keyring-api@npm:^21.3.0, @metamask/keyring-api@npm:^21.4.0, @metamask/keyring-api@npm:^21.5.0, @metamask/keyring-api@npm:^21.6.0":
   version: 21.6.0
   resolution: "@metamask/keyring-api@npm:21.6.0"
   dependencies:
