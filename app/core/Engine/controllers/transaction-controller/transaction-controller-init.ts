@@ -60,7 +60,7 @@ import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
 import { updateConfirmationMetric } from '../../../redux/slices/confirmationMetrics';
 import { store } from '../../../../store';
-import { applyTransactionAbTestAttributionPatch } from './apply-transaction-ab-test-attribution-patch';
+import { registerPendingTransactionActiveAbTestsForTransactionIds } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const TRANSACTION_SUBMISSION_METHOD_METRIC_NAME =
   'transaction_submission_method';
@@ -188,8 +188,6 @@ export const TransactionControllerInit: ControllerInitFunction<
         trace: trace as unknown as TransactionControllerOptions['trace'],
         publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
       });
-
-    applyTransactionAbTestAttributionPatch(transactionController);
 
     return { controller: transactionController };
   } catch (error) {
@@ -540,6 +538,18 @@ function addTransactionControllerListeners(
         transactionMeta,
         transactionEventHandlerRequest,
       );
+    },
+  );
+
+  // Register pending A/B attribution before TRANSACTION_ADDED metrics run (same publish tick).
+  initMessenger.subscribe(
+    'TransactionController:unapprovedTransactionAdded',
+    (transactionMeta: TransactionMeta) => {
+      if (transactionMeta.id) {
+        registerPendingTransactionActiveAbTestsForTransactionIds([
+          transactionMeta.id,
+        ]);
+      }
     },
   );
 

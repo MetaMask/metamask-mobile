@@ -113,8 +113,9 @@ export function registerTransactionAbTestAttributionForIds(
 }
 
 /**
- * Registers attribution for any pending stashed tests onto the given
- * transaction IDs, then leaves the stash unchanged (caller clears stash).
+ * Copies the current pending stash into the per-transaction attribution map for
+ * each ID. Subscribed from `TransactionController:unapprovedTransactionAdded`
+ * before TRANSACTION_ADDED metrics; does not clear the stash.
  */
 export function registerPendingTransactionActiveAbTestsForTransactionIds(
   transactionIds: string[],
