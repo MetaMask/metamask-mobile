@@ -5496,16 +5496,17 @@ export class HyperLiquidProvider implements PerpsProvider {
         chunks.map((chunk) => fetchWindowWithAutoSplit(chunk.start, chunk.end)),
       );
 
-      // Deduplicate by hash before sorting — adjacent chunk windows share their
-      // boundary timestamp (chunkEnd of chunk N === chunkStart of chunk N+1),
-      // and the HyperLiquid API is inclusive on both sides, so a record whose
-      // timestamp falls exactly on a boundary can appear in both adjacent calls.
+      // Deduplicate at chunk boundaries — adjacent windows share their boundary
+      // timestamp (chunkEnd of N === chunkStart of N+1) and the API is
+      // inclusive on both sides, so a record can appear in both adjacent calls.
+      // Funding records share a zero hash, so we key on time + coin instead.
       const seen = new Set<string>();
       const allRaw = pages.flat().filter((record) => {
-        if (seen.has(record.hash)) {
+        const key = `${record.time}-${record.delta.coin}`;
+        if (seen.has(key)) {
           return false;
         }
-        seen.add(record.hash);
+        seen.add(key);
         return true;
       });
       allRaw.sort((a, b) => a.time - b.time);
