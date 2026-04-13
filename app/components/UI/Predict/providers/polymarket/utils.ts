@@ -482,10 +482,6 @@ export const isSportEvent = (event: PolymarketApiEvent): boolean =>
     (tag) => tag.slug === 'sports',
   );
 
-/**
- * Get the sort priority for a sports market type
- * moneyline: 0, spreads: 1, totals: 2, others: 3 (then alphabetically)
- */
 const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
   moneyline: 0,
   spreads: 1,
@@ -494,11 +490,8 @@ const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
 
 const normalizeSportsMarketType = (type: string): string => {
   const lower = type.toLowerCase();
-  const prefixes = ['first_half_'];
-  for (const prefix of prefixes) {
-    if (lower.startsWith(prefix)) {
-      return lower.slice(prefix.length);
-    }
+  if (lower.startsWith('first_half_')) {
+    return lower.slice('first_half_'.length);
   }
   return lower;
 };
@@ -545,19 +538,16 @@ export function buildOutcomeGroups(
 
   for (const [, groupOutcomes] of groupMap) {
     groupOutcomes.sort((a, b) => {
-      const aType = marketLookup.get(a.id)?.sportsMarketType ?? '';
-      const bType = marketLookup.get(b.id)?.sportsMarketType ?? '';
+      const aMarket = marketLookup.get(a.id);
+      const bMarket = marketLookup.get(b.id);
       const priorityDiff =
-        getSportsMarketTypePriority(aType) - getSportsMarketTypePriority(bType);
+        getSportsMarketTypePriority(aMarket?.sportsMarketType ?? '') -
+        getSportsMarketTypePriority(bMarket?.sportsMarketType ?? '');
       if (priorityDiff !== 0) {
         return priorityDiff;
       }
-      const aScore =
-        (marketLookup.get(a.id)?.liquidity ?? 0) +
-        (marketLookup.get(a.id)?.volumeNum ?? 0);
-      const bScore =
-        (marketLookup.get(b.id)?.liquidity ?? 0) +
-        (marketLookup.get(b.id)?.volumeNum ?? 0);
+      const aScore = (aMarket?.liquidity ?? 0) + (aMarket?.volumeNum ?? 0);
+      const bScore = (bMarket?.liquidity ?? 0) + (bMarket?.volumeNum ?? 0);
       return bScore - aScore;
     });
   }
@@ -905,9 +895,9 @@ export const parsePolymarketEvents = (
       );
 
       const outcomeGroupingEnabled =
-        !!game &&
-        !!eventLeague &&
-        !!extendedSportsMarketsLeagues?.includes(eventLeague);
+        game &&
+        eventLeague &&
+        extendedSportsMarketsLeagues?.includes(eventLeague);
 
       const outcomeGroups = outcomeGroupingEnabled
         ? buildOutcomeGroups(outcomes, markets)
