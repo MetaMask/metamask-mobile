@@ -4,7 +4,6 @@ import {
   MessengerEvents,
 } from '@metamask/messenger';
 import { EarnControllerMessenger } from '@metamask/earn-controller';
-import { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import { RootMessenger } from '../types';
 
 /**
