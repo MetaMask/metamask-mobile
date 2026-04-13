@@ -361,6 +361,13 @@ export interface GetPriceHistoryParams {
   endTs?: number;
 }
 
+export interface GetCryptoTargetPriceParams {
+  symbol: string;
+  eventStartTime: string;
+  variant: string;
+  endDate: string;
+}
+
 /**
  * Parameters for fetching prices from CLOB /prices endpoint
  */

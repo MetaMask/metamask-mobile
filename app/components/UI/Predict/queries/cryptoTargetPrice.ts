@@ -1,10 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
-import { PREDICT_CONSTANTS } from '../constants/errors';
-import type { PredictOutcome } from '../types';
-
-const CRYPTO_PRICE_API = 'https://polymarket.com/api/crypto/crypto-price';
+import type { GetCryptoTargetPriceParams } from '../types';
 
 /**
  * Module-level cache for immutable target prices.
@@ -29,70 +25,9 @@ export const predictCryptoTargetPriceKeys = {
     [...predictCryptoTargetPriceKeys.all(), eventId] as const,
 };
 
-interface CryptoTargetPriceApiResponse {
-  openPrice: number;
-  closePrice: number;
-  timestamp: number;
-  completed: boolean;
-  incomplete: boolean;
-  cached: boolean;
-}
-
-export interface CryptoTargetPriceApiParams {
-  symbol: string;
-  eventStartTime: string;
-  variant: string;
-  endDate: string;
-}
-
-async function fetchTargetPriceFromApi(
-  params: CryptoTargetPriceApiParams,
-): Promise<number> {
-  const url = `${CRYPTO_PRICE_API}?symbol=${encodeURIComponent(params.symbol)}&eventStartTime=${encodeURIComponent(params.eventStartTime)}&variant=${encodeURIComponent(params.variant)}&endDate=${encodeURIComponent(params.endDate)}`;
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Crypto target price API returned ${response.status}`);
-  }
-
-  const data: unknown = await response.json();
-  const parsed = data as CryptoTargetPriceApiResponse | undefined;
-  if (typeof parsed?.openPrice !== 'number') {
-    throw new Error('Crypto target price API returned unexpected shape');
-  }
-  return parsed.openPrice;
-}
-
-function extractThresholdFromOutcomes(
-  outcomes: PredictOutcome[],
-): number | null {
-  if (!outcomes.length) {
-    return null;
-  }
-  // All outcomes in a crypto Up/Down market share the same threshold.
-  return outcomes[0].groupItemThreshold ?? null;
-}
-
-async function fetchThresholdFromController(
-  eventId: string,
-): Promise<number | null> {
-  try {
-    const market = await Engine.context.PredictController.getMarket({
-      marketId: eventId,
-    });
-    if (!market?.outcomes?.length) {
-      return null;
-    }
-    return extractThresholdFromOutcomes(market.outcomes);
-  } catch {
-    return null;
-  }
-}
-
 export interface CryptoTargetPriceQueryParams
-  extends CryptoTargetPriceApiParams {
+  extends GetCryptoTargetPriceParams {
   eventId: string;
-  outcomes?: PredictOutcome[];
 }
 
 export const predictCryptoTargetPriceOptions = ({
@@ -101,7 +36,6 @@ export const predictCryptoTargetPriceOptions = ({
   eventStartTime,
   variant,
   endDate,
-  outcomes,
 }: CryptoTargetPriceQueryParams) =>
   queryOptions<number | null, Error>({
     queryKey: predictCryptoTargetPriceKeys.detail(eventId),
@@ -111,31 +45,20 @@ export const predictCryptoTargetPriceOptions = ({
         return cached;
       }
 
-      try {
-        const price = await fetchTargetPriceFromApi({
+      const price = await Engine.context.PredictController.getCryptoTargetPrice(
+        {
+          eventId,
           symbol,
           eventStartTime,
           variant,
           endDate,
-        });
+        },
+      );
+
+      if (price !== null) {
         targetPriceCache.set(eventId, price);
-        return price;
-      } catch (apiError) {
-        // Warning (not error) — undocumented endpoint; breadcrumbs detect breakage without Sentry alerts.
-        Logger.log(
-          `[${PREDICT_CONSTANTS.FEATURE_NAME}] Crypto target price API failed for event ${eventId}, falling back to groupItemThreshold`,
-          apiError,
-        );
       }
-
-      const fallbackPrice = outcomes
-        ? extractThresholdFromOutcomes(outcomes)
-        : await fetchThresholdFromController(eventId);
-
-      if (fallbackPrice !== null) {
-        targetPriceCache.set(eventId, fallbackPrice);
-      }
-      return fallbackPrice;
+      return price;
     },
 
     staleTime: Infinity,

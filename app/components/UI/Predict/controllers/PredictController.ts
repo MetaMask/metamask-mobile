@@ -71,6 +71,7 @@ import {
   GameUpdateCallback,
   GetAccountStateParams,
   GetBalanceParams,
+  GetCryptoTargetPriceParams,
   GetMarketsParams,
   GetPositionsParams,
   GetPriceHistoryParams,
@@ -355,6 +356,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getActivity',
   'getBalance',
   'getConnectionStatus',
+  'getCryptoTargetPrice',
   'getMarket',
   'getMarketSeries',
   'getMarkets',
@@ -692,6 +694,54 @@ export class PredictController extends BaseController<
 
   async getMarketSeries(params: GetSeriesParams): Promise<PredictMarket[]> {
     return this.provider.getMarketSeries(params);
+  }
+
+  async getCryptoTargetPrice(
+    params: GetCryptoTargetPriceParams & { eventId: string },
+  ): Promise<number | null> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'getCryptoTargetPrice',
+        trace: {
+          name: TraceName.PredictGetCryptoTargetPrice,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+            symbol: params.symbol,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          eventId: params.eventId,
+          symbol: params.symbol,
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+      },
+      async () => {
+        const price = await this.provider.getCryptoTargetPrice(params);
+        if (price !== null) {
+          return price;
+        }
+
+        Logger.log(
+          `[${PREDICT_CONSTANTS.FEATURE_NAME}] Crypto target price API failed for event ${params.eventId}, falling back to groupItemThreshold`,
+        );
+
+        try {
+          const market = await this.provider.getMarketDetails({
+            marketId: params.eventId,
+          });
+          if (!market?.outcomes?.length) {
+            return null;
+          }
+          return market.outcomes[0].groupItemThreshold ?? null;
+        } catch {
+          return null;
+        }
+      },
+    );
   }
 
   async getPriceHistory(

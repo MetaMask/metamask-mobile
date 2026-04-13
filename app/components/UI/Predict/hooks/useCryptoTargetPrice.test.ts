@@ -3,34 +3,24 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useCryptoTargetPrice } from './useCryptoTargetPrice';
 import { clearTargetPriceCache } from '../queries/cryptoTargetPrice';
-import type { PredictOutcome } from '../types';
+import Engine from '../../../../core/Engine';
 
-jest.mock('../../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    log: jest.fn(),
-    error: jest.fn(),
-  },
-}));
-
-const mockGetMarket = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
-      getMarket: (...args: unknown[]) => mockGetMarket(...args),
+      getCryptoTargetPrice: jest.fn(),
     },
   },
 }));
-
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
+
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);
+
   return { Wrapper, queryClient };
 };
 
@@ -42,31 +32,10 @@ const defaultParams = {
   endDate: '2025-01-02',
 };
 
-const makeOutcome = (
-  overrides: Partial<PredictOutcome> = {},
-): PredictOutcome => ({
-  id: 'outcome-1',
-  providerId: 'polymarket',
-  marketId: 'event-123',
-  title: 'Up',
-  description: '',
-  image: '',
-  status: 'open',
-  tokens: [],
-  volume: 0,
-  groupItemTitle: 'Up/Down',
-  groupItemThreshold: 42000,
-  ...overrides,
-});
-
 describe('useCryptoTargetPrice', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     clearTargetPriceCache();
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
   it('does not fetch when eventId is empty', () => {
@@ -79,7 +48,9 @@ describe('useCryptoTargetPrice', () => {
 
     expect(result.current.isFetching).toBe(false);
     expect(result.current.data).toBeUndefined();
-    expect(mockFetch).not.toHaveBeenCalled();
+    expect(
+      Engine.context.PredictController.getCryptoTargetPrice,
+    ).not.toHaveBeenCalled();
   });
 
   it('does not fetch when enabled is false', () => {
@@ -91,23 +62,17 @@ describe('useCryptoTargetPrice', () => {
     );
 
     expect(result.current.isFetching).toBe(false);
-    expect(mockFetch).not.toHaveBeenCalled();
+    expect(
+      Engine.context.PredictController.getCryptoTargetPrice,
+    ).not.toHaveBeenCalled();
   });
 
-  it('returns target price from primary API on success', async () => {
-    const { Wrapper } = createWrapper();
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        openPrice: 42000,
-        closePrice: 41800,
-        timestamp: 1700000000000,
-        completed: true,
-        incomplete: false,
-        cached: false,
-      }),
-    });
+  it('returns target price from controller', async () => {
+    (
+      Engine.context.PredictController.getCryptoTargetPrice as jest.Mock
+    ).mockResolvedValueOnce(42000);
 
+    const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useCryptoTargetPrice(defaultParams), {
       wrapper: Wrapper,
     });
@@ -120,48 +85,12 @@ describe('useCryptoTargetPrice', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('uses provided outcomes for fallback instead of fetching market', async () => {
+  it('returns null when controller returns null', async () => {
+    (
+      Engine.context.PredictController.getCryptoTargetPrice as jest.Mock
+    ).mockResolvedValueOnce(null);
+
     const { Wrapper } = createWrapper();
-    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
-    const outcomes = [makeOutcome({ groupItemThreshold: 41500 })];
-
-    const { result } = renderHook(
-      () => useCryptoTargetPrice({ ...defaultParams, outcomes }),
-      { wrapper: Wrapper },
-    );
-
-    await waitFor(() => {
-      expect(result.current.isFetching).toBe(false);
-    });
-
-    expect(result.current.data).toBe(41500);
-    expect(mockGetMarket).not.toHaveBeenCalled();
-  });
-
-  it('falls back to controller getMarket when outcomes not provided', async () => {
-    const { Wrapper } = createWrapper();
-    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
-    mockGetMarket.mockResolvedValueOnce({
-      outcomes: [{ groupItemThreshold: 40000 }],
-    });
-
-    const { result } = renderHook(() => useCryptoTargetPrice(defaultParams), {
-      wrapper: Wrapper,
-    });
-
-    await waitFor(() => {
-      expect(result.current.isFetching).toBe(false);
-    });
-
-    expect(result.current.data).toBe(40000);
-    expect(mockGetMarket).toHaveBeenCalledWith({ marketId: 'event-123' });
-  });
-
-  it('returns null when both API and fallback fail', async () => {
-    const { Wrapper } = createWrapper();
-    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
-    mockGetMarket.mockRejectedValueOnce(new Error('Network error'));
-
     const { result } = renderHook(() => useCryptoTargetPrice(defaultParams), {
       wrapper: Wrapper,
     });
@@ -174,11 +103,12 @@ describe('useCryptoTargetPrice', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('never enters React Query error state since queryFn handles all failures', async () => {
-    const { Wrapper } = createWrapper();
-    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
-    mockGetMarket.mockRejectedValueOnce(new Error('fail'));
+  it('never enters React Query error state since queryFn handles failures', async () => {
+    (
+      Engine.context.PredictController.getCryptoTargetPrice as jest.Mock
+    ).mockResolvedValueOnce(null);
 
+    const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useCryptoTargetPrice(defaultParams), {
       wrapper: Wrapper,
     });
