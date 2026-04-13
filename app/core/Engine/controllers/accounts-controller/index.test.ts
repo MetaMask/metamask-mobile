@@ -35,7 +35,7 @@ describe('accounts controller init', () => {
     >({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    // Create controller init request mock
+    // Create messenger client init request mock
     initRequestMock = buildMessengerClientInitRequestMock(
       baseControllerMessenger,
     );
