@@ -1,5 +1,6 @@
 import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import {
+  DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
 } from '../constants/flags';
@@ -25,9 +26,11 @@ describe('resolvePredictFeatureFlags', () => {
     expect(result).toEqual({
       feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
       liveSportsLeagues: [],
+      extendedSportsMarketsLeagues: [],
       marketHighlightsFlag: DEFAULT_MARKET_HIGHLIGHTS_FLAG,
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
+      predictUpDownEnabled: false,
     });
   });
 
@@ -181,5 +184,124 @@ describe('resolvePredictFeatureFlags', () => {
 
     expect(result.fakOrdersEnabled).toBe(true);
     expect(result.predictWithAnyTokenEnabled).toBe(false);
+  });
+
+  describe('extendedSportsMarketsLeagues', () => {
+    it('returns empty array when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.extendedSportsMarketsLeagues).toEqual([]);
+    });
+
+    it('returns empty array when flag is disabled', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            ...DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
+            enabled: false,
+            leagues: ['nba', 'ucl'],
+          },
+        },
+      });
+
+      expect(result.extendedSportsMarketsLeagues).toEqual([]);
+    });
+
+    it('returns empty array when version check fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+            leagues: ['nba', 'ucl'],
+          },
+        },
+      });
+
+      expect(result.extendedSportsMarketsLeagues).toEqual([]);
+    });
+
+    it('returns filtered leagues when enabled and version check passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba', 'ucl', 'fake_league'],
+          },
+        },
+      });
+
+      expect(result.extendedSportsMarketsLeagues).toEqual(['nba', 'ucl']);
+    });
+
+    it('unwraps progressive rollout shape', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+              leagues: ['nba', 'epl'],
+            },
+          },
+        },
+      });
+
+      expect(result.extendedSportsMarketsLeagues).toEqual(['nba', 'epl']);
+    });
+
+    it('applies local override over remote flag', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        Boolean(
+          flag &&
+            typeof flag === 'object' &&
+            'enabled' in flag &&
+            'leagues' in flag &&
+            (flag as { enabled: boolean }).enabled,
+        ),
+      );
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba', 'ucl'],
+          },
+        },
+        localOverrides: {
+          predictExtendedSportsMarkets: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+            leagues: ['nba', 'ucl'],
+          },
+        },
+      });
+
+      expect(result.extendedSportsMarketsLeagues).toEqual([]);
+    });
   });
 });

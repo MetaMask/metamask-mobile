@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   AssetsContractController,
   type AssetsContractControllerMessenger,
@@ -12,7 +12,7 @@ import { getGlobalChainId } from '../../../util/networks/global-network';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const assetsContractControllerInit: ControllerInitFunction<
+export const assetsContractControllerInit: MessengerClientInitFunction<
   AssetsContractController,
   AssetsContractControllerMessenger
 > = ({ controllerMessenger, getController }) => {

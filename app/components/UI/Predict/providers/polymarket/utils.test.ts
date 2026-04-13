@@ -1067,7 +1067,7 @@ describe('polymarket utils', () => {
       icon: 'https://example.com/icon.png',
       closed: false,
       tags: [],
-      series: [{ recurrence: 'daily' }],
+      series: [{ id: '1', slug: 'test', title: 'Test', recurrence: 'daily' }],
       markets: [
         {
           conditionId: 'market-1',
@@ -1108,7 +1108,14 @@ describe('polymarket utils', () => {
         image: 'https://example.com/icon.png',
         status: 'open',
         recurrence: 'daily',
+        series: {
+          id: '1',
+          slug: 'test',
+          title: 'Test',
+          recurrence: 'daily',
+        },
         endDate: undefined,
+        game: undefined,
         category: mockCategory,
         tags: [],
         outcomes: [
@@ -1120,6 +1127,7 @@ describe('polymarket utils', () => {
             description: 'A test event',
             image: 'https://example.com/market-icon.png',
             groupItemTitle: 'Weather',
+            groupItemThreshold: undefined,
             status: 'open',
             volume: 1000,
             resolutionStatus: 'unresolved',
@@ -1962,12 +1970,12 @@ describe('polymarket utils', () => {
       expect(result.map((m) => m.conditionId)).toEqual(['first', 'second']);
     });
 
-    it('prioritizes sortBy parameter over sport event sorting', () => {
+    it('prioritizes sport event sorting over sortBy parameter', () => {
       const markets = [
-        createMarket('totals-low-price', '["0.3", "0.7"]', 100, 100, 'totals'),
+        createMarket('totals-high-price', '["0.9", "0.1"]', 100, 100, 'totals'),
         createMarket(
-          'moneyline-high-price',
-          '["0.9", "0.1"]',
+          'moneyline-low-price',
+          '["0.3", "0.7"]',
           100,
           100,
           'moneyline',
@@ -1978,10 +1986,79 @@ describe('polymarket utils', () => {
 
       const result = sortMarkets(event, 'price');
 
-      // Price sorting overrides sport sorting
       expect(result.map((m) => m.conditionId)).toEqual([
-        'moneyline-high-price',
-        'totals-low-price',
+        'moneyline-low-price',
+        'totals-high-price',
+      ]);
+    });
+
+    it('places moneyline first for sport events even when moneyline has lower price', () => {
+      const markets = [
+        createMarket(
+          'spreads-high-price',
+          '["0.9", "0.1"]',
+          200,
+          200,
+          'spreads',
+        ),
+        createMarket('totals-mid-price', '["0.7", "0.3"]', 150, 150, 'totals'),
+        createMarket(
+          'moneyline-low-price',
+          '["0.3", "0.7"]',
+          100,
+          100,
+          'moneyline',
+        ),
+      ];
+      const sportTags = [{ id: '1', label: 'Sports', slug: 'sports' }];
+      const event = createEvent(sportTags, markets);
+
+      const result = sortMarkets(event, 'price');
+
+      // Moneyline first despite having the lowest price
+      expect(result.map((m) => m.conditionId)).toEqual([
+        'moneyline-low-price',
+        'spreads-high-price',
+        'totals-mid-price',
+      ]);
+    });
+
+    it('uses sortBy parameter for non-sport events when sortBy is provided', () => {
+      const markets = [
+        createMarket('low-price', '["0.2", "0.8"]', 100, 100),
+        createMarket('high-price', '["0.8", "0.2"]', 100, 100),
+      ];
+      const event = createEvent([], markets);
+
+      const result = sortMarkets(event, 'price');
+
+      // Non-sport events still respect sortBy
+      expect(result.map((m) => m.conditionId)).toEqual([
+        'high-price',
+        'low-price',
+      ]);
+    });
+
+    it('ignores event.sortBy for sport events', () => {
+      const markets = [
+        createMarket('totals-high-price', '["0.9", "0.1"]', 100, 100, 'totals'),
+        createMarket(
+          'moneyline-low-price',
+          '["0.2", "0.8"]',
+          100,
+          100,
+          'moneyline',
+        ),
+      ];
+      const sportTags = [{ id: '1', label: 'Sports', slug: 'sports' }];
+      const event = createEvent(sportTags, markets, 'price');
+
+      const result = sortMarkets(event);
+
+      // Sport sorting wins over event.sortBy
+      expect(result.map((m) => m.conditionId)).toEqual([
+        'moneyline-low-price',
+        'totals-high-price',
       ]);
     });
   });
@@ -2473,7 +2550,7 @@ describe('polymarket utils', () => {
       icon: 'https://example.com/icon.png',
       closed: false,
       tags: [],
-      series: [{ recurrence: 'daily' }],
+      series: [{ id: '1', slug: 'test', title: 'Test', recurrence: 'daily' }],
       markets: [
         {
           conditionId: 'market-1',
@@ -3918,6 +3995,90 @@ describe('polymarket utils', () => {
     it('includes all necessary approval calls', () => {
       const calls = getAllowanceCalls({ address: mockAddress });
       expect(calls.length).toBe(6);
+    });
+  });
+
+  describe('parsePolymarketEvents - series metadata', () => {
+    const mockCategory: PredictCategory = 'trending';
+
+    const createMockEvent = (
+      overrides: Partial<PolymarketApiEvent> = {},
+    ): PolymarketApiEvent => ({
+      id: 'series-event-1',
+      slug: 'series-event',
+      title: 'Series Event',
+      description: 'Series event description',
+      icon: 'https://example.com/series-icon.png',
+      closed: false,
+      tags: [],
+      series: [],
+      markets: [
+        {
+          conditionId: 'series-market-1',
+          question: 'Will BTC move up?',
+          description: 'Series event description',
+          icon: 'https://example.com/market-icon.png',
+          image: 'https://example.com/market-image.png',
+          groupItemTitle: 'Crypto',
+          closed: false,
+          volumeNum: 1000,
+          liquidity: 500,
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomes: '["Yes", "No"]',
+          outcomePrices: '["0.6", "0.4"]',
+          negRisk: true,
+          orderPriceMinTickSize: 0.01,
+          status: 'open',
+          active: true,
+          resolvedBy: '0x0000000000000000000000000000000000000000',
+          umaResolutionStatus: 'unresolved',
+        },
+      ],
+      liquidity: 1000000,
+      volume: 1000000,
+      ...overrides,
+    });
+
+    it('maps the first series item onto the parsed market', () => {
+      const series = {
+        id: '10684',
+        slug: 'btc-up-or-down-5m',
+        title: 'BTC Up or Down 5m',
+        recurrence: '5m',
+      };
+      const event = createMockEvent({ series: [series] });
+
+      const result = parsePolymarketEvents([event], mockCategory);
+
+      expect(result[0].series).toEqual(series);
+    });
+
+    it('omits series when the event series array is empty', () => {
+      const event = createMockEvent({ series: [] });
+
+      const result = parsePolymarketEvents([event], mockCategory);
+
+      expect(result[0].series).toBeUndefined();
+    });
+
+    it('uses the first series item when multiple series are present', () => {
+      const firstSeries = {
+        id: '10684',
+        slug: 'btc-up-or-down-5m',
+        title: 'BTC Up or Down 5m',
+        recurrence: '5m',
+      };
+      const secondSeries = {
+        id: '10685',
+        slug: 'eth-up-or-down-15m',
+        title: 'ETH Up or Down 15m',
+        recurrence: '15m',
+      };
+      const event = createMockEvent({ series: [firstSeries, secondSeries] });
+
+      const result = parsePolymarketEvents([event], mockCategory);
+
+      expect(result[0].series).toEqual(firstSeries);
     });
   });
 });

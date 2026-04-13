@@ -7452,6 +7452,44 @@ describe('PredictController', () => {
       });
     });
 
+    describe('subscribeToCryptoPrices', () => {
+      it('delegates to provider and returns unsubscribe function', () => {
+        withController(({ controller }) => {
+          const mockUnsubscribe = jest.fn();
+          const mockCallback = jest.fn();
+          mockPolymarketProvider.subscribeToCryptoPrices = jest
+            .fn()
+            .mockReturnValue(mockUnsubscribe);
+
+          const unsubscribe = controller.subscribeToCryptoPrices(
+            ['btcusdt', 'ethusdt'],
+            mockCallback,
+          );
+
+          expect(
+            mockPolymarketProvider.subscribeToCryptoPrices,
+          ).toHaveBeenCalledWith(['btcusdt', 'ethusdt'], mockCallback);
+          expect(unsubscribe).toBe(mockUnsubscribe);
+        });
+      });
+
+      it('returns no-op function when provider lacks method', () => {
+        withController(({ controller }) => {
+          delete (
+            mockPolymarketProvider as { subscribeToCryptoPrices?: unknown }
+          ).subscribeToCryptoPrices;
+
+          const unsubscribe = controller.subscribeToCryptoPrices(
+            ['btcusdt'],
+            jest.fn(),
+          );
+
+          expect(unsubscribe).toBeDefined();
+          expect(unsubscribe()).toBeUndefined();
+        });
+      });
+    });
+
     describe('getConnectionStatus', () => {
       it('returns connection status from provider', () => {
         withController(({ controller }) => {
@@ -7482,6 +7520,7 @@ describe('PredictController', () => {
           expect(status).toEqual({
             sportsConnected: false,
             marketConnected: false,
+            rtdsConnected: false,
           });
         });
       });
@@ -7493,6 +7532,7 @@ describe('PredictController', () => {
           expect(status).toEqual({
             sportsConnected: false,
             marketConnected: false,
+            rtdsConnected: false,
           });
         });
       });
@@ -9314,6 +9354,59 @@ describe('PredictController', () => {
           success: false,
           error: 'Failed to get batch ID from transaction submission',
         });
+      });
+    });
+  });
+
+  describe('getMarketSeries', () => {
+    it('delegates the params to the provider', async () => {
+      const params = {
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+        limit: 10,
+      };
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketSeries = jest
+          .fn()
+          .mockResolvedValue([]);
+
+        await controller.getMarketSeries(params);
+
+        expect(mockPolymarketProvider.getMarketSeries).toHaveBeenCalledWith(
+          params,
+        );
+      });
+    });
+
+    it('returns the provider result', async () => {
+      const params = {
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+      };
+      const mockMarkets = [
+        {
+          id: 'series-market-1',
+          title: 'BTC Up or Down 5m',
+          series: {
+            id: '10684',
+            slug: 'btc-up-or-down-5m',
+            title: 'BTC Up or Down 5m',
+            recurrence: '5m',
+          },
+        },
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketSeries = jest
+          .fn()
+          .mockResolvedValue(mockMarkets);
+
+        const result = await controller.getMarketSeries(params);
+
+        expect(result).toEqual(mockMarkets);
       });
     });
   });

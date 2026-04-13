@@ -5,7 +5,7 @@ import {
 } from '@metamask/geolocation-controller';
 import { SdkEnvironment } from '@consensys/native-ramps-sdk';
 import { getSdkEnvironment } from '../../../components/UI/Ramp/Deposit/sdk/getSdkEnvironment';
-import type { ControllerInitFunction } from '../types';
+import type { MessengerClientInitFunction } from '../types';
 
 /**
  * Initialize the GeolocationApiService.
@@ -14,7 +14,7 @@ import type { ControllerInitFunction } from '../types';
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized service.
  */
-export const geolocationApiServiceInit: ControllerInitFunction<
+export const geolocationApiServiceInit: MessengerClientInitFunction<
   GeolocationApiService,
   GeolocationApiServiceMessenger
 > = ({ controllerMessenger }) => {

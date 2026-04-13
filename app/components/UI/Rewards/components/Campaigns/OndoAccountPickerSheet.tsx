@@ -54,12 +54,7 @@ const OndoAccountPickerSheet: React.FC<OndoAccountPickerSheetProps> = ({
   );
 
   return (
-    <BottomSheet
-      shouldNavigateBack={false}
-      onClose={onClose}
-      goBack={onClose}
-      ref={sheetRef}
-    >
+    <BottomSheet onClose={onClose} ref={sheetRef}>
       <BottomSheetHeader
         onClose={() => sheetRef.current?.onCloseBottomSheet(onClose)}
       >

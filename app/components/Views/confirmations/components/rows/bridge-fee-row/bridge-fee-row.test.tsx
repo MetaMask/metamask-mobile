@@ -106,7 +106,13 @@ describe('BridgeFeeRow', () => {
     expect(queryByTestId('metamask-fee-row-skeleton')).toBeNull();
   });
 
-  it('does not render tooltip if no quotes', async () => {
+  it('renders fee from totals when there are no quotes', () => {
+    useTransactionPayQuotesMock.mockReturnValue([]);
+    const { getByText } = render();
+    expect(getByText('$1.23')).toBeOnTheScreen();
+  });
+
+  it('does not render tooltip when there are no quotes', () => {
     useTransactionPayQuotesMock.mockReturnValue([]);
     const { queryByTestId } = render();
     expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();

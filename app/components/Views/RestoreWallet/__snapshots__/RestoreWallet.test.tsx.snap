@@ -1,15 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RestoreWallet rendering renders component tree correctly 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<View
   style={
     {
       "alignItems": "center",
@@ -195,5 +187,5 @@ exports[`RestoreWallet rendering renders component tree correctly 1`] = `
       </Text>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;

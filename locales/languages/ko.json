@@ -6638,7 +6638,6 @@
     "nested_transaction_heading": "트랜잭션 {{index}}",
     "transaction": "트랜잭션",
     "available_balance": "사용 가능한 잔액: ",
-    "available_perps_balance": "사용 가능한 잔액 잔액: ",
     "edit_amount_done": "계속",
     "deposit_edit_amount_done": "자금 추가",
     "deposit_edit_amount_predict_withdraw": "출금",

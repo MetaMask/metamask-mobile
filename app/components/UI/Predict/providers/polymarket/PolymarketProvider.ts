@@ -15,10 +15,12 @@ import {
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { filterSupportedLeagues } from '../../constants/sports';
+import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
+  GetSeriesParams,
   PredictActivity,
   PredictCategory,
   PredictMarket,
@@ -35,6 +37,7 @@ import {
   ClaimOrderParams,
   ClaimOrderResponse,
   ConnectionStatus,
+  CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
   GetAccountStateParams,
@@ -170,6 +173,11 @@ export class PolymarketProvider implements PredictProvider {
   #getSupportedLeagues(): PredictSportsLeague[] {
     const { liveSportsLeagues } = this.#getFeatureFlags();
     return filterSupportedLeagues(liveSportsLeagues);
+  }
+
+  #hasExtendedMarketsForLeague(league: string): boolean {
+    const { extendedSportsMarketsLeagues } = this.#getFeatureFlags();
+    return extendedSportsMarketsLeagues.includes(league);
   }
 
   #createTeamLookup(
@@ -414,6 +422,61 @@ export class PolymarketProvider implements PredictProvider {
           status: params?.status,
           sortBy: params?.sortBy,
           hasSearchQuery: !!params?.q,
+        }),
+      );
+
+      return [];
+    }
+  }
+
+  public async getMarketSeries(
+    params: GetSeriesParams,
+  ): Promise<PredictMarket[]> {
+    const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+    const limit = params.limit ?? SERIES_MAX_EVENTS;
+
+    try {
+      const queryParams = new URLSearchParams({
+        series_id: params.seriesId,
+        end_date_min: params.endDateMin,
+        end_date_max: params.endDateMax,
+        limit: String(limit),
+        order: 'endDate',
+        ascending: 'true',
+      });
+
+      const response = await fetch(
+        `${GAMMA_API_ENDPOINT}/events?${queryParams.toString()}`,
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch series events');
+      }
+
+      const events = (await response.json()) as PolymarketApiEvent[];
+
+      if (!Array.isArray(events) || events.length === 0) {
+        return [];
+      }
+
+      const supportedLeagues = this.#getSupportedLeagues();
+      const liveSportsEnabled = supportedLeagues.length > 0;
+
+      await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
+
+      const teamLookup = this.#createTeamLookup(liveSportsEnabled);
+
+      return parsePolymarketEvents(events, {
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+        teamLookup,
+      });
+    } catch (error) {
+      DevLogger.log('Error fetching series events via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getMarketSeries', {
+          seriesId: params.seriesId,
         }),
       );
 
@@ -1961,11 +2024,22 @@ export class PolymarketProvider implements PredictProvider {
     );
   }
 
+  public subscribeToCryptoPrices(
+    symbols: string[],
+    callback: CryptoPriceUpdateCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToCryptoPrices(
+      symbols,
+      callback,
+    );
+  }
+
   public getConnectionStatus(): ConnectionStatus {
     const status = WebSocketManager.getInstance().getConnectionStatus();
     return {
       sportsConnected: status.sportsConnected,
       marketConnected: status.marketConnected,
+      rtdsConnected: status.rtdsConnected,
     };
   }
 }

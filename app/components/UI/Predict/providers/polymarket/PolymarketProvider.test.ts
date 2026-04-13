@@ -186,6 +186,7 @@ jest.mock('./TeamsCache', () => ({
 const mockWebSocketManagerInstance = {
   subscribeToGame: jest.fn(),
   subscribeToMarketPrices: jest.fn(),
+  subscribeToCryptoPrices: jest.fn(),
   getConnectionStatus: jest.fn(),
   disconnect: jest.fn(),
   cleanup: jest.fn(),
@@ -252,6 +253,7 @@ describe('PolymarketProvider', () => {
   const defaultFeatureFlags: PredictFeatureFlags = {
     feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
     liveSportsLeagues: [],
+    extendedSportsMarketsLeagues: [],
     marketHighlightsFlag: {
       enabled: false,
       highlights: [],
@@ -259,6 +261,7 @@ describe('PolymarketProvider', () => {
     },
     fakOrdersEnabled: false,
     predictWithAnyTokenEnabled: false,
+    predictUpDownEnabled: false,
   };
   const createProvider = (
     featureFlagsOverride?: Partial<PredictFeatureFlags>,
@@ -7787,14 +7790,54 @@ describe('PolymarketProvider', () => {
       });
     });
 
+    describe('subscribeToCryptoPrices', () => {
+      it('delegates to WebSocketManager.subscribeToCryptoPrices', () => {
+        const provider = createProvider();
+        const mockCallback = jest.fn();
+        const mockUnsubscribeCrypto = jest.fn();
+        mockWebSocketManagerInstance.subscribeToCryptoPrices.mockReturnValue(
+          mockUnsubscribeCrypto,
+        );
+
+        const unsubscribe = provider.subscribeToCryptoPrices(
+          ['btcusdt', 'ethusdt'],
+          mockCallback,
+        );
+
+        expect(
+          mockWebSocketManagerInstance.subscribeToCryptoPrices,
+        ).toHaveBeenCalledWith(['btcusdt', 'ethusdt'], mockCallback);
+        expect(unsubscribe).toBe(mockUnsubscribeCrypto);
+      });
+
+      it('returns unsubscribe function from WebSocketManager', () => {
+        const provider = createProvider();
+        const mockUnsubscribeCrypto = jest.fn();
+        mockWebSocketManagerInstance.subscribeToCryptoPrices.mockReturnValue(
+          mockUnsubscribeCrypto,
+        );
+
+        const unsubscribe = provider.subscribeToCryptoPrices(
+          ['btcusdt'],
+          jest.fn(),
+        );
+
+        unsubscribe();
+
+        expect(mockUnsubscribeCrypto).toHaveBeenCalled();
+      });
+    });
+
     describe('getConnectionStatus', () => {
       it('returns connection status from WebSocketManager', () => {
         const provider = createProvider();
         mockWebSocketManagerInstance.getConnectionStatus.mockReturnValue({
           sportsConnected: true,
           marketConnected: false,
+          rtdsConnected: false,
           gameSubscriptionCount: 5,
           priceSubscriptionCount: 10,
+          cryptoPriceSubscriptionCount: 0,
         });
 
         const status = provider.getConnectionStatus();
@@ -7802,6 +7845,7 @@ describe('PolymarketProvider', () => {
         expect(status).toEqual({
           sportsConnected: true,
           marketConnected: false,
+          rtdsConnected: false,
         });
       });
 
@@ -7810,8 +7854,10 @@ describe('PolymarketProvider', () => {
         mockWebSocketManagerInstance.getConnectionStatus.mockReturnValue({
           sportsConnected: false,
           marketConnected: true,
+          rtdsConnected: true,
           gameSubscriptionCount: 0,
           priceSubscriptionCount: 3,
+          cryptoPriceSubscriptionCount: 1,
         });
 
         const status = provider.getConnectionStatus();
@@ -7821,6 +7867,7 @@ describe('PolymarketProvider', () => {
         expect(Object.keys(status)).toEqual([
           'sportsConnected',
           'marketConnected',
+          'rtdsConnected',
         ]);
       });
     });
@@ -7938,6 +7985,93 @@ describe('PolymarketProvider', () => {
           expect.objectContaining({ teamLookup: undefined }),
         );
       });
+    });
+  });
+
+  describe('getMarketSeries', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      global.fetch = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('calls the series events endpoint with the requested params', async () => {
+      const provider = createProvider();
+      const mockEvents = [{ id: 'event-1' }];
+      const parsedMarkets = [{ id: 'market-1' }];
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockEvents),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+      mockParsePolymarketEvents.mockReturnValue(parsedMarkets);
+
+      await provider.getMarketSeries({
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+        limit: 10,
+      });
+
+      const requestUrl = new URL((global.fetch as jest.Mock).mock.calls[0][0]);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('series_id=10684'),
+      );
+      expect(requestUrl.origin + requestUrl.pathname).toBe(
+        'https://gamma-api.polymarket.com/events',
+      );
+      expect(requestUrl.searchParams.get('series_id')).toBe('10684');
+      expect(requestUrl.searchParams.get('end_date_min')).toBe(
+        '2026-04-06T00:00:00.000Z',
+      );
+      expect(requestUrl.searchParams.get('end_date_max')).toBe(
+        '2026-04-07T00:00:00.000Z',
+      );
+      expect(requestUrl.searchParams.get('limit')).toBe('10');
+      expect(requestUrl.searchParams.get('order')).toBe('endDate');
+      expect(requestUrl.searchParams.get('ascending')).toBe('true');
+    });
+
+    it('returns an empty array when the API returns no events', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getMarketSeries({
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+      });
+
+      expect(result).toEqual([]);
+      expect(mockParsePolymarketEvents).not.toHaveBeenCalled();
+    });
+
+    it('uses the default limit when one is not provided', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue([{ id: 'event-1' }]),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await provider.getMarketSeries({
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+      });
+
+      const requestUrl = new URL((global.fetch as jest.Mock).mock.calls[0][0]);
+
+      expect(requestUrl.searchParams.get('limit')).toBe('50');
     });
   });
 });

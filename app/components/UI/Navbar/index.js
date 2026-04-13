@@ -1130,7 +1130,7 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
 
   return getHeaderCompactStandardNavbarOptions({
     title,
-    onClose: () => navigation.getParent()?.pop(),
+    onBack: () => navigation.goBack(),
     includesTopInset: true,
   });
 }
@@ -1443,6 +1443,7 @@ export function getStakingNavbar(
  */
 export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
   return {
+    headerShown: true,
     headerTitle: () => null,
     headerLeft: () => (
       <ButtonIcon

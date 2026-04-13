@@ -13,6 +13,10 @@ import { createMockToken } from '../testUtils/fixtures';
 import Routes from '../../../../constants/navigation/Routes';
 import { BridgeToken, TokenSelectorType } from '../types';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import {
+  consumeSuppressedNetworkAddedToast,
+  resetSuppressedNetworkAddedToasts,
+} from '../../../../util/networks/networkToastSuppression';
 
 const mockDispatch = jest.fn();
 const mockHandleSwitchTokensInner = jest.fn().mockResolvedValue(undefined);
@@ -176,6 +180,7 @@ const renderTokenSelectionHook = (
 describe('useTokenSelection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetSuppressedNetworkAddedToasts();
     // Non-stock token behavior
     mockIsStockToken.mockReturnValue(false);
     mockIsTokenTradingOpen.mockReturnValue(true);
@@ -312,6 +317,7 @@ describe('useTokenSelection', () => {
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockAutoUpdateDestToken).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(consumeSuppressedNetworkAddedToast('0xa')).toBe(false);
     });
 
     it('continues dest selection when addNetwork rejects', async () => {

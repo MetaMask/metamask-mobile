@@ -9,7 +9,7 @@ import {
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import AppConstants from '../../../AppConstants';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { SignatureControllerInit } from './signature-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -41,7 +41,7 @@ function buildControllerMock(
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
-): jest.Mocked<ControllerInitRequest<SignatureControllerMessenger>> {
+): jest.Mocked<MessengerClientInitRequest<SignatureControllerMessenger>> {
   const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
