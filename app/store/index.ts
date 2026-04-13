@@ -15,6 +15,10 @@ import { onPersistedDataLoaded } from '../actions/user';
 import { setBasicFunctionality } from '../actions/settings';
 import Logger from '../util/Logger';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
+import {
+  migrationList,
+  version as currentMigrationVersion,
+} from './migrations';
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -32,9 +36,39 @@ const createStoreAndPersistor = async () => {
     op: TraceOperation.StoreInit,
   });
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
-  const initialState = isE2E
-    ? await ReadOnlyNetworkStore.getState()
-    : undefined;
+  let initialState = isE2E ? await ReadOnlyNetworkStore.getState() : undefined;
+
+  // If the fixture state includes a _persist.version marker, run migrations on it
+  // before injecting as preloadedState. This uses the raw migrationList (not the
+  // asyncified version) to avoid controller inflate/deflate side effects.
+  // Set the marker via FixtureBuilder.withMigrateFrom(version).
+  if (isE2E && initialState?._persist?.version !== undefined) {
+    const fromVersion: number = initialState._persist.version;
+    // eslint-disable-next-line no-console
+    console.log(
+      `[E2E Migrations - store/index.ts] Running migrations ${fromVersion + 1}→${currentMigrationVersion} on fixture state`,
+    );
+
+    for (let i = fromVersion + 1; i <= currentMigrationVersion; i++) {
+      const migration = migrationList[i];
+      if (migration) {
+        const stateBefore = JSON.stringify(initialState);
+        initialState = await Promise.resolve(migration(initialState));
+        const stateAfter = JSON.stringify(initialState);
+        const changed = stateBefore !== stateAfter;
+        // eslint-disable-next-line no-console
+        console.log(
+          `[E2E Migration - store/index.ts] Migration ${i} ${changed ? ' changed state' : ' no-op (state unchanged)'}`,
+        );
+      }
+    }
+
+    // eslint-disable-next-line no-console
+    console.log('[E2E Migrations - store/index.ts] All migrations complete');
+
+    // Remove the _persist marker so persistReducer doesn't re-run migrations
+    delete initialState._persist;
+  }
 
   const sagaMiddleware = createSagaMiddleware();
 
