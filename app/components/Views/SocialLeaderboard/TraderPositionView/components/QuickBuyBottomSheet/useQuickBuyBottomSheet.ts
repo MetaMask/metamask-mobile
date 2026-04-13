@@ -309,7 +309,7 @@ export function useQuickBuyBottomSheet(
     isSetupLoading ||
     (isQuoteLoading && !activeQuote) ||
     hasInsufficientBalance ||
-    !hasSufficientGas ||
+    hasSufficientGas === false ||
     isSubmittingTx ||
     hasError ||
     !walletAddress;
@@ -320,7 +320,7 @@ export function useQuickBuyBottomSheet(
   const getButtonLabel = useCallback(() => {
     if (isSetupLoading) return strings('social_leaderboard.quick_buy.loading');
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
-    if (!hasSufficientGas) return strings('bridge.insufficient_gas');
+    if (hasSufficientGas === false) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
     if (hasError) return strings('social_leaderboard.quick_buy.unavailable');
     return strings('social_leaderboard.trader_position.buy');

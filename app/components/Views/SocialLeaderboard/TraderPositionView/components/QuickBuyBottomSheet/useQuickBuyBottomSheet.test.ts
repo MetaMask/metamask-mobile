@@ -382,6 +382,18 @@ describe('useQuickBuyBottomSheet', () => {
       expect(result.current.getButtonLabel()).toBe('bridge.insufficient_gas');
     });
 
+    it('does not return insufficient gas label when gas status is null (not yet determined)', () => {
+      (useHasSufficientGas as jest.Mock).mockReturnValue(null);
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      expect(result.current.getButtonLabel()).not.toBe(
+        'bridge.insufficient_gas',
+      );
+    });
+
     it('returns submitting label while a transaction is in-flight', () => {
       (selectIsSubmittingTx as jest.Mock).mockReturnValue(true);
 
@@ -441,6 +453,34 @@ describe('useQuickBuyBottomSheet', () => {
     });
 
     it('is enabled when amount is valid and all other conditions are met', () => {
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
+    it('is disabled when gas is insufficient (false)', () => {
+      (useHasSufficientGas as jest.Mock).mockReturnValue(false);
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      expect(result.current.isConfirmDisabled).toBe(true);
+    });
+
+    it('is NOT disabled when gas status is null (quote not yet loaded)', () => {
+      (useHasSufficientGas as jest.Mock).mockReturnValue(null);
+
       const { result } = renderHook(() =>
         useQuickBuyBottomSheet(createPosition(), jest.fn()),
       );
