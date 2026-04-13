@@ -1701,10 +1701,10 @@ async function main() {
       teardownLog();
     }
   } catch (error) {
+    console.error(String(error.message || error));
     if (teardownLog) {
       teardownLog();
     }
-    console.error(String(error.message || error));
     process.exit(1);
   }
 }
