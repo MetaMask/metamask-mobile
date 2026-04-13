@@ -1,4 +1,3 @@
-import { execSync } from 'child_process';
 import { randomUUID } from 'crypto';
 import type Database from 'better-sqlite3';
 import { openDb } from './db';
@@ -20,24 +19,8 @@ export interface TrackEventParams {
   /** Override the DB path — intended for testing only. */
   dbPath?: string;
 }
-
-/**
- * Extracts `owner/repo` from the git `origin` remote URL.
- * Returns null when the cwd is not a git repository or has no origin remote.
- */
-function detectRepo(): string | null {
-  try {
-    const remote = execSync('git remote get-url origin', {
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim();
-    // Handles both SSH (git@github.com:owner/repo.git) and HTTPS formats
-    const match = remote.match(/[:/]([^/]+\/[^/]+?)(?:\.git)?$/);
-    return match ? match[1] : null;
-  } catch {
-    return null;
-  }
-}
+// The current project repo, needed if the DB is ever used by other projects
+const REPO = 'MetaMask/metamask-mobile';
 
 /**
  * Writes a single tool-usage event to the local SQLite database.
@@ -60,7 +43,7 @@ export function trackEvent(params: TrackEventParams): void {
       tool_name: params.tool_name,
       tool_type: params.tool_type,
       event_type: params.event_type,
-      repo: detectRepo(),
+      repo: REPO,
       agent_vendor: params.agent_vendor ?? null,
       // SQLite stores booleans as integers
       success: params.success != null ? (params.success ? 1 : 0) : null,

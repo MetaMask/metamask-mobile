@@ -6,11 +6,6 @@ jest.mock('./db', () => ({
   DEFAULT_DB_DIR: '/mock/path',
 }));
 
-jest.mock('child_process', () => ({
-  execSync: jest.fn(),
-}));
-
-import { execSync } from 'child_process';
 import { openDb } from './db';
 import { trackEvent } from './events';
 
@@ -29,9 +24,6 @@ describe('trackEvent', () => {
     mockPrepare.mockReset();
     mockPrepare.mockReturnValue({ run: mockRun });
     mockClose.mockReset();
-    jest.mocked(execSync).mockImplementation(
-      () => 'git@github.com:MetaMask/metamask-mobile.git\n',
-    );
   });
 
   it('opens the DB and inserts an event with all required fields', () => {
@@ -80,22 +72,11 @@ describe('trackEvent', () => {
     expect(runArg.created_at as string <= after).toBe(true);
   });
 
-  it('detects the repo from the git origin remote', () => {
+  it('always sets repo to MetaMask/metamask-mobile', () => {
     trackEvent({ tool_name: 'test', tool_type: 'skill', event_type: 'start' });
 
     const runArg = mockRun.mock.calls[0][0] as Record<string, unknown>;
     expect(runArg.repo).toBe('MetaMask/metamask-mobile');
-  });
-
-  it('sets repo to null when git remote detection fails', () => {
-    jest.mocked(execSync).mockImplementation(() => {
-      throw new Error('not a git repo');
-    });
-
-    trackEvent({ tool_name: 'test', tool_type: 'skill', event_type: 'start' });
-
-    const runArg = mockRun.mock.calls[0][0] as Record<string, unknown>;
-    expect(runArg.repo).toBeNull();
   });
 
   it('maps success:true to integer 1', () => {
