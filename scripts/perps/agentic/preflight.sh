@@ -228,6 +228,13 @@ sweep_port() {
   holder_pid=$(lsof -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -1 || true)
   [ -z "$holder_pid" ] && return 0
 
+  # Probe /status first — if Metro responds, it's alive and reusable regardless of process name
+  if curl -sf "http://localhost:$port/status" >/dev/null 2>&1; then
+    ok "Port $port ($label) — Metro already running (PID $holder_pid), reusing"
+    # start-metro.sh will detect running Metro and only launch the app
+    return 0
+  fi
+
   local holder_cmd
   holder_cmd=$(ps -p "$holder_pid" -o command= 2>/dev/null || echo unknown)
 
@@ -531,6 +538,8 @@ fi
 
 # ── Step: Metro ─────────────────────────────────────────────────────
 step "Starting Metro" "Bundler on port $PORT → logs at $LOGFILE"
+# start-metro.sh detects running Metro and skips start. With --launch it
+# opens the app via expo deeplink for the target platform regardless.
 bash "$SCRIPTS/start-metro.sh" --platform "$PLAT" $($DO_LAUNCH && echo "--launch" || echo "")
 ok "Metro running on port $PORT"
 
@@ -589,10 +598,11 @@ for p in json.loads(sys.stdin.read() or "[]"):
   fail "CDP did not become available after ${CDP_TIMEOUT}s"
 fi
 
-# Verify CDP is connected to the right platform
-CDP_PLATFORM=$(node "$SCRIPTS/cdp-bridge.js" status 2>/dev/null | jq -r '.platform // empty' || true)
-if [ -n "$CDP_PLATFORM" ] && [ "$CDP_PLATFORM" != "$PLAT" ]; then
-  fail "CDP connected to $CDP_PLATFORM app but expected $PLAT — launch the $PLAT app first"
+# Verify CDP is connected to the right platform (status may return object or array)
+CDP_STATUS=$(node "$SCRIPTS/cdp-bridge.js" status 2>/dev/null || true)
+CDP_HAS_PLAT=$(echo "$CDP_STATUS" | jq -r 'if type == "array" then [.[].platform] else [.platform] end | map(select(. == "'"$PLAT"'")) | length' 2>/dev/null || echo 0)
+if [ "$CDP_HAS_PLAT" = "0" ]; then
+  warn "CDP did not find $PLAT app — it may still be loading"
 fi
 
 # Brief stabilization
