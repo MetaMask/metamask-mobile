@@ -4810,11 +4810,9 @@
     "body_for_seedphrase": "Giá trị đó giờ đã được cộng vào ví của bạn, hãy bảo vệ ví bằng cách cài đặt mật khẩu và lưu Cụm từ khôi phục bí mật (bắt buộc).",
     "button": "Bảo vệ ví"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Cập nhật giao dịch thất bại",
-    "text": "Bạn có muốn thử lại?",
-    "cancel_button": "Hủy",
-    "retry_button": "Thử lại"
+    "already_confirmed": "Giao dịch này đã được xác nhận và không thể chỉnh sửa."
   },
   "payment_request": {
     "title": "Yêu cầu",

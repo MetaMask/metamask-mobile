@@ -178,6 +178,8 @@ import { profileMetricsServiceInit } from './controllers/profile-metrics-service
 import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
+import { socialServiceInit } from './controllers/social-service-init';
+import { socialControllerInit } from './controllers/social-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
@@ -376,6 +378,8 @@ export class Engine {
         TransakService: transakServiceInit,
         RampsController: rampsControllerInit,
         AiDigestController: aiDigestControllerInit,
+        SocialService: socialServiceInit,
+        SocialController: socialControllerInit,
         CardController: cardControllerInit,
         ComplianceService: complianceServiceInit,
         ComplianceController: complianceControllerInit,
@@ -424,6 +428,8 @@ export class Engine {
     const transakService = messengerClientsByName.TransakService;
     const rampsController = messengerClientsByName.RampsController;
     const aiDigestController = messengerClientsByName.AiDigestController;
+    const socialService = messengerClientsByName.SocialService;
+    const socialController = messengerClientsByName.SocialController;
     const cardController = messengerClientsByName.CardController;
     const complianceService = messengerClientsByName.ComplianceService;
     const complianceController = messengerClientsByName.ComplianceController;
@@ -597,6 +603,8 @@ export class Engine {
       TransakService: transakService,
       RampsController: rampsController,
       AiDigestController: aiDigestController,
+      SocialService: socialService,
+      SocialController: socialController,
       CardController: cardController,
       ComplianceService: complianceService,
       ComplianceController: complianceController,
@@ -1373,6 +1381,7 @@ export default {
       TransactionPayController,
       RampsController,
       AiDigestController,
+      SocialController,
       ComplianceController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
@@ -1444,6 +1453,7 @@ export default {
       TransactionPayController: TransactionPayController.state,
       RampsController: RampsController.state,
       AiDigestController: AiDigestController.state,
+      SocialController: SocialController.state,
       CardController: CardController.state,
       ComplianceController: ComplianceController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)

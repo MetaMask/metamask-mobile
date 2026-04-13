@@ -4810,11 +4810,9 @@
     "body_for_seedphrase": "À présent que des fonds ont été ajoutés à votre portefeuille, protégez-le en définissant un mot de passe et en sauvegardant votre phrase secrète de récupération (obligatoire).",
     "button": "Protéger le portefeuille"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Échec de la mise à jour de la transaction",
-    "text": "Réessayer ?",
-    "cancel_button": "Annuler",
-    "retry_button": "Réessayer"
+    "already_confirmed": "Cette transaction a déjà été confirmée et ne peut pas être modifiée."
   },
   "payment_request": {
     "title": "Demander",

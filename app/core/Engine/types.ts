@@ -425,6 +425,15 @@ import {
   AiDigestControllerState,
 } from '@metamask/ai-controllers';
 import {
+  SocialController,
+  SocialService,
+  type SocialControllerActions,
+  type SocialControllerEvents,
+  type SocialControllerState,
+  type SocialServiceActions,
+  type SocialServiceEvents,
+} from '@metamask/social-controllers';
+import {
   ComplianceController,
   ComplianceControllerActions,
   ComplianceControllerEvents,
@@ -558,6 +567,8 @@ type GlobalActions =
   | RampsControllerActions
   | RampsServiceActions
   | AiDigestControllerActions
+  | SocialControllerActions
+  | SocialServiceActions
   | ComplianceControllerActions
   | ComplianceServiceActions
   | TransakServiceActions;
@@ -638,6 +649,8 @@ type GlobalEvents =
   | RampsControllerEvents
   | RampsServiceEvents
   | AiDigestControllerEvents
+  | SocialControllerEvents
+  | SocialServiceEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents
   | TransakServiceEvents;
@@ -762,6 +775,8 @@ export type MessengerClients = {
   ProfileMetricsService: ProfileMetricsService;
   RampsService: RampsService;
   AiDigestController: AiDigestController;
+  SocialController: SocialController;
+  SocialService: SocialService;
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
   TransakService: TransakService;
@@ -846,6 +861,7 @@ export type EngineState = {
   DelegationController: DelegationControllerState;
   ProfileMetricsController: ProfileMetricsControllerState;
   AiDigestController: AiDigestControllerState;
+  SocialController: SocialControllerState;
   ComplianceController: ComplianceControllerState;
 };
 
@@ -958,6 +974,8 @@ export type MessengerClientsToInitialize =
   | 'ProfileMetricsService'
   | 'AnalyticsController'
   | 'AiDigestController'
+  | 'SocialService'
+  | 'SocialController'
   | 'ComplianceService'
   | 'ComplianceController';
 
