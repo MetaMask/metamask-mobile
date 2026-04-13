@@ -97,7 +97,7 @@
     "test:view:ci": "TEST_OS=ios yarn test:view:coverage --forceExit --silent --coverageReporters=json",
     "test:unit:update": "time jest -u ./app/",
     "test:unit:folders": "sh -c 'jest --collectCoverage=false \"$@\"' sh",
-    "test:unit:folders:update-snapshots": "sh -c 'jest -u --collectCoverage=false \"$@\"' sh",
+    "test:unit:folders:update": "sh -c 'jest -u --collectCoverage=false \"$@\"' sh",
     "test:api-specs": "detox reset-lock-file && detox test -c ios.sim.apiSpecs",
     "test:e2e:android:main:ci": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c android.emu.main.ci --headless",
     "test:e2e:android:flask:ci": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c android.emu.flask.ci --headless",
