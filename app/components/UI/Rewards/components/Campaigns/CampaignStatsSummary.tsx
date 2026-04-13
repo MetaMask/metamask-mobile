@@ -4,7 +4,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Icon,
   IconColor,
   IconName,
@@ -160,6 +159,12 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
     ? TextColor.ErrorDefault
     : TextColor.SuccessDefault;
 
+  const marketValueColor: TextColor | undefined = portfolioSummary
+    ? parseFloat(portfolioSummary.portfolioPnl) < 0
+      ? TextColor.ErrorDefault
+      : TextColor.SuccessDefault
+    : undefined;
+
   const marketValue = portfolioSummary
     ? formatUsd(portfolioSummary.totalCurrentValue)
     : '-';
@@ -190,7 +195,7 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
           label={strings('rewards.ondo_campaign_stats.label_market_value')}
           value={marketValue}
           isLoading={portfolioLoading}
-          valueColor={returnColor}
+          valueColor={marketValueColor}
           testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE}
         />
       </Box>

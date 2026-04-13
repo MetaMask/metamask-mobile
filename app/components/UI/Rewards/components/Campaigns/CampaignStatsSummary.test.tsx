@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import CampaignStatsSummary, {
   CAMPAIGN_STATS_SUMMARY_TEST_IDS,
 } from './CampaignStatsSummary';
@@ -175,6 +176,44 @@ describe('CampaignStatsSummary', () => {
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
     ).toBe('5');
+  });
+
+  it('uses error color for market value when portfolioPnl is negative, regardless of leaderboard position', () => {
+    const negativePortfolio: OndoGmPortfolioSummaryDto = {
+      ...MOCK_SUMMARY,
+      portfolioPnl: '-500.000000',
+    };
+
+    const { getByTestId } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={null}
+        portfolioSummary={negativePortfolio}
+      />,
+    );
+
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.color,
+    ).toBe(TextColor.ErrorDefault);
+  });
+
+  it('uses success color for market value when portfolioPnl is positive', () => {
+    const { getByTestId } = render(<CampaignStatsSummary {...baseProps} />);
+
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.color,
+    ).toBe(TextColor.SuccessDefault);
+  });
+
+  it('omits valueColor for market value when portfolioSummary is null', () => {
+    const { getByTestId } = render(
+      <CampaignStatsSummary {...baseProps} portfolioSummary={null} />,
+    );
+
+    // Returns '-' and uses the StatCell default color (TextDefault)
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.children,
+    ).toBe('-');
   });
 
   it('handles negative rate of return', () => {
