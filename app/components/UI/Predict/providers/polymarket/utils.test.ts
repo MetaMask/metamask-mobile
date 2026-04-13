@@ -1134,6 +1134,7 @@ describe('polymarket utils', () => {
             groupItemThreshold: undefined,
             status: 'open',
             volume: 1000,
+            liquidity: 500,
             resolutionStatus: 'unresolved',
             tokens: [
               {
@@ -1147,6 +1148,7 @@ describe('polymarket utils', () => {
                 price: 0.4,
               },
             ],
+            sportsMarketType: undefined,
             negRisk: true,
             tickSize: '0.01',
             resolvedBy: '0x0000000000000000000000000000000000000000',
@@ -2153,12 +2155,15 @@ describe('polymarket utils', () => {
         description: 'Weather prediction',
         image: 'https://example.com/icon.png',
         groupItemTitle: 'Weather',
+        groupItemThreshold: undefined,
         status: 'open',
         volume: 1000,
+        liquidity: 500,
         tokens: [
           { id: 'token-1', title: 'Yes', price: 0.6 },
           { id: 'token-2', title: 'No', price: 0.4 },
         ],
+        sportsMarketType: undefined,
         negRisk: false,
         tickSize: '0.01',
         resolvedBy: '0x123',
@@ -4057,7 +4062,10 @@ describe('polymarket utils', () => {
       ...overrides,
     });
 
-    const createMockOutcome = (id: string): PredictOutcome => ({
+    const createMockOutcome = (
+      id: string,
+      overrides?: Partial<PredictOutcome>,
+    ): PredictOutcome => ({
       id,
       providerId: POLYMARKET_PROVIDER_ID,
       marketId: 'event-1',
@@ -4067,12 +4075,14 @@ describe('polymarket utils', () => {
       groupItemTitle: `Group ${id}`,
       status: 'open',
       volume: 100,
+      liquidity: 100,
       tokens: [
         { id: 'token-1', title: 'Yes', price: 0.5 },
         { id: 'token-2', title: 'No', price: 0.5 },
       ],
       negRisk: false,
       tickSize: '0.01',
+      ...overrides,
     });
 
     it('groups mixed sport event into game-lines, first-half, and touchdowns', () => {
@@ -4098,9 +4108,13 @@ describe('polymarket utils', () => {
           sportsMarketType: 'anytime_touchdowns',
         }),
       ];
-      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+        }),
+      );
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(3);
       expect(result.map((g) => g.key)).toEqual([
@@ -4141,9 +4155,15 @@ describe('polymarket utils', () => {
           volumeNum: 100,
         }),
       ];
-      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+          volume: m.volumeNum ?? 100,
+          liquidity: m.liquidity ?? 100,
+        }),
+      );
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
       expect(result[0].key).toBe('game-lines');
@@ -4171,9 +4191,13 @@ describe('polymarket utils', () => {
           sportsMarketType: 'some_new_type',
         }),
       ];
-      const outcomes = [createMockOutcome('unknown-1')];
+      const outcomes = [
+        createMockOutcome('unknown-1', {
+          sportsMarketType: 'some_new_type',
+        }),
+      ];
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
       expect(result[0].key).toBe('game-lines');
@@ -4188,7 +4212,7 @@ describe('polymarket utils', () => {
       ];
       const outcomes = [createMockOutcome('undef-1')];
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
       expect(result[0].key).toBe('game-lines');
@@ -4201,16 +4225,20 @@ describe('polymarket utils', () => {
           sportsMarketType: 'first_half_spreads',
         }),
       ];
-      const outcomes = [createMockOutcome('fhs-1')];
+      const outcomes = [
+        createMockOutcome('fhs-1', {
+          sportsMarketType: 'first_half_spreads',
+        }),
+      ];
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
       expect(result[0].key).toBe('first-half');
     });
 
     it('returns empty array for empty inputs', () => {
-      const result = buildOutcomeGroups([], []);
+      const result = buildOutcomeGroups([]);
 
       expect(result).toEqual([]);
     });
@@ -4236,9 +4264,15 @@ describe('polymarket utils', () => {
           volumeNum: 200,
         }),
       ];
-      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+          volume: m.volumeNum ?? 100,
+          liquidity: m.liquidity ?? 100,
+        }),
+      );
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
       expect(result[0].key).toBe('game-lines');
@@ -4271,9 +4305,13 @@ describe('polymarket utils', () => {
           volumeNum: 100,
         }),
       ];
-      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+        }),
+      );
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       expect(result.map((g) => g.key)).toEqual([
         'game-lines',
@@ -4305,9 +4343,15 @@ describe('polymarket utils', () => {
           volumeNum: 500,
         }),
       ];
-      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+          volume: m.volumeNum ?? 100,
+          liquidity: m.liquidity ?? 100,
+        }),
+      );
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
       expect(result[0].outcomes.map((o) => o.id)).toEqual([
@@ -4337,9 +4381,15 @@ describe('polymarket utils', () => {
           volumeNum: 300,
         }),
       ];
-      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+          volume: m.volumeNum ?? 100,
+          liquidity: m.liquidity ?? 100,
+        }),
+      );
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
       expect(result[0].key).toBe('first-half');
@@ -4366,9 +4416,13 @@ describe('polymarket utils', () => {
           volumeNum: 100,
         }),
       ];
-      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+        }),
+      );
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
       expect(result[0].key).toBe('touchdowns');
@@ -4394,9 +4448,15 @@ describe('polymarket utils', () => {
           volumeNum: 100,
         }),
       ];
-      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+          volume: m.volumeNum ?? 100,
+          liquidity: m.liquidity ?? 100,
+        }),
+      );
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
       expect(result[0].key).toBe('points');
@@ -4420,9 +4480,13 @@ describe('polymarket utils', () => {
           volumeNum: 100,
         }),
       ];
-      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+        }),
+      );
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
       expect(result[0].key).toBe('game-lines');
@@ -4443,9 +4507,13 @@ describe('polymarket utils', () => {
           volumeNum: 100,
         }),
       ];
-      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+        }),
+      );
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
       expect(result[0].key).toBe('game-lines');
@@ -4475,9 +4543,15 @@ describe('polymarket utils', () => {
           volumeNum: 500,
         }),
       ];
-      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+          volume: m.volumeNum ?? 100,
+          liquidity: m.liquidity ?? 100,
+        }),
+      );
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       const spreadsSubgroup = result[0].subgroups?.find(
         (s) => s.key === 'spreads',
@@ -4515,9 +4589,13 @@ describe('polymarket utils', () => {
           volumeNum: 100,
         }),
       ];
-      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+        }),
+      );
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       const gameLines = result.find((g) => g.key === 'game-lines');
       const points = result.find((g) => g.key === 'points');
@@ -4557,9 +4635,15 @@ describe('polymarket utils', () => {
           groupItemThreshold: 10.5,
         }),
       ];
-      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+          volume: m.volumeNum ?? 100,
+          liquidity: m.liquidity ?? 100,
+        }),
+      );
 
-      const result = buildOutcomeGroups(outcomes, markets);
+      const result = buildOutcomeGroups(outcomes);
 
       const spreadsSubgroup = result[0].subgroups?.find(
         (s) => s.key === 'spreads',

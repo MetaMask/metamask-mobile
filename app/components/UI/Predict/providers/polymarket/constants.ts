@@ -119,3 +119,9 @@ export const GROUP_ORDER: string[] = [
 ];
 
 export const DEFAULT_GROUP_KEY = 'game-lines';
+
+export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
+  moneyline: 0,
+  spreads: 1,
+  totals: 2,
+};
