@@ -23,6 +23,11 @@ export type PredictControllerGetMarketSeriesAction = {
   handler: PredictController['getMarketSeries'];
 };
 
+export type PredictControllerGetCryptoTargetPriceAction = {
+  type: `PredictController:getCryptoTargetPrice`;
+  handler: PredictController['getCryptoTargetPrice'];
+};
+
 export type PredictControllerGetPriceHistoryAction = {
   type: `PredictController:getPriceHistory`;
   handler: PredictController['getPriceHistory'];
@@ -163,11 +168,6 @@ export type PredictControllerGetConnectionStatusAction = {
   handler: PredictController['getConnectionStatus'];
 };
 
-export type PredictControllerGetCryptoTargetPriceAction = {
-  type: `PredictController:getCryptoTargetPrice`;
-  handler: PredictController['getCryptoTargetPrice'];
-};
-
 export type PredictControllerClearOrderErrorAction = {
   type: `PredictController:clearOrderError`;
   handler: PredictController['clearOrderError'];
@@ -255,6 +255,7 @@ export type PredictControllerMethodActions =
   | PredictControllerGetMarketsAction
   | PredictControllerGetMarketAction
   | PredictControllerGetMarketSeriesAction
+  | PredictControllerGetCryptoTargetPriceAction
   | PredictControllerGetPriceHistoryAction
   | PredictControllerGetPricesAction
   | PredictControllerGetPositionsAction
@@ -276,7 +277,6 @@ export type PredictControllerMethodActions =
   | PredictControllerSubscribeToMarketPricesAction
   | PredictControllerSubscribeToCryptoPricesAction
   | PredictControllerGetConnectionStatusAction
-  | PredictControllerGetCryptoTargetPriceAction
   | PredictControllerClearOrderErrorAction
   | PredictControllerOnPlaceOrderSuccessAction
   | PredictControllerClearActiveOrderTransactionIdAction

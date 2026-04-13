@@ -57,8 +57,10 @@ export const predictCryptoTargetPriceOptions = ({
 
       if (price !== null) {
         targetPriceCache.set(eventId, price);
+        return price;
       }
-      return price;
+
+      throw new Error(`Crypto target price unavailable for event ${eventId}`);
     },
 
     staleTime: Infinity,

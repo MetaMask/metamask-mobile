@@ -117,14 +117,14 @@ describe('cryptoTargetPrice queries', () => {
       expect(result).toBe(41500);
     });
 
-    it('returns null when both fail', async () => {
+    it('throws when controller returns null so React Query can retry', async () => {
       (
         Engine.context.PredictController.getCryptoTargetPrice as jest.Mock
       ).mockResolvedValueOnce(null);
 
-      const result = await invokeQueryFn();
-
-      expect(result).toBeNull();
+      await expect(invokeQueryFn()).rejects.toThrow(
+        'Crypto target price unavailable',
+      );
     });
 
     it('manages cache size correctly across different events', async () => {

@@ -85,10 +85,10 @@ describe('useCryptoTargetPrice', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('returns null when controller returns null', async () => {
+  it('enters error state when controller returns null after retries', async () => {
     (
       Engine.context.PredictController.getCryptoTargetPrice as jest.Mock
-    ).mockResolvedValueOnce(null);
+    ).mockResolvedValue(null);
 
     const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useCryptoTargetPrice(defaultParams), {
@@ -99,26 +99,7 @@ describe('useCryptoTargetPrice', () => {
       expect(result.current.isFetching).toBe(false);
     });
 
-    expect(result.current.data).toBeNull();
-    expect(result.current.error).toBeNull();
-  });
-
-  it('never enters React Query error state since queryFn handles failures', async () => {
-    (
-      Engine.context.PredictController.getCryptoTargetPrice as jest.Mock
-    ).mockResolvedValueOnce(null);
-
-    const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useCryptoTargetPrice(defaultParams), {
-      wrapper: Wrapper,
-    });
-
-    await waitFor(() => {
-      expect(result.current.isFetching).toBe(false);
-    });
-
-    expect(result.current.isError).toBe(false);
-    expect(result.current.error).toBeNull();
-    expect(result.current.isSuccess).toBe(true);
+    expect(result.current.isError).toBe(true);
+    expect(result.current.data).toBeUndefined();
   });
 });
