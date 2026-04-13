@@ -110,6 +110,7 @@ export type PredictMarket = {
   category: PredictCategory;
   tags: string[];
   outcomes: PredictOutcome[];
+  outcomeGroups?: PredictOutcomeGroup[];
   liquidity: number;
   volume: number;
   game?: PredictMarketGame;
@@ -258,6 +259,11 @@ export interface CryptoPriceUpdate {
   price: number;
   timestamp: number;
 }
+
+export type PredictOutcomeGroup = {
+  key: string;
+  outcomes: PredictOutcome[];
+};
 
 export type PredictOutcome = {
   id: string;

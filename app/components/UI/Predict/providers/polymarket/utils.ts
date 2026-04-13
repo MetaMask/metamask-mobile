@@ -18,6 +18,7 @@ import {
   PredictActivity,
   Result,
   PredictOutcome,
+  PredictOutcomeGroup,
   PredictOutcomeToken,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
@@ -39,15 +40,18 @@ import type {
 } from '../types';
 import {
   ClobAuthDomain,
+  DEFAULT_GROUP_KEY,
   EIP712Domain,
+  GROUP_ORDER,
   HASH_ZERO_BYTES32,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
+  POLYMARKET_PROVIDER_ID,
   ROUNDING_CONFIG,
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
-  POLYMARKET_PROVIDER_ID,
+  SPORTS_MARKET_TYPE_TO_GROUP,
 } from './constants';
 import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
@@ -70,6 +74,8 @@ import {
 } from './types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PredictFeeCollection } from '../../types/flags';
+
+export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
@@ -471,6 +477,111 @@ export const submitClobOrder = async ({
   }
 };
 
+export const isSportEvent = (event: PolymarketApiEvent): boolean =>
+  (Array.isArray(event.tags) ? event.tags : []).some(
+    (tag) => tag.slug === 'sports',
+  );
+
+/**
+ * Get the sort priority for a sports market type
+ * moneyline: 0, spreads: 1, totals: 2, others: 3 (then alphabetically)
+ */
+const getSportsMarketTypePriority = (type: string): number => {
+  const priorities: Record<string, number> = {
+    moneyline: 0,
+    spreads: 1,
+    totals: 2,
+  };
+  return priorities[type.toLowerCase()] ?? 3;
+};
+
+export function buildOutcomeGroups(
+  outcomes: PredictOutcome[],
+  rawMarkets: PolymarketApiMarket[],
+): PredictOutcomeGroup[] {
+  if (outcomes.length === 0 || rawMarkets.length === 0) {
+    return [];
+  }
+
+  const marketLookup = new Map<
+    string,
+    { sportsMarketType?: string; liquidity: number; volumeNum: number }
+  >();
+  for (const market of rawMarkets) {
+    marketLookup.set(market.conditionId, {
+      sportsMarketType: market.sportsMarketType,
+      liquidity: market.liquidity ?? 0,
+      volumeNum: market.volumeNum ?? 0,
+    });
+  }
+
+  const groupMap = new Map<string, PredictOutcome[]>();
+
+  for (const outcome of outcomes) {
+    const marketInfo = marketLookup.get(outcome.id);
+    const sportsMarketType = marketInfo?.sportsMarketType;
+    const groupKey =
+      (sportsMarketType && SPORTS_MARKET_TYPE_TO_GROUP[sportsMarketType]) ||
+      DEFAULT_GROUP_KEY;
+
+    const bucket = groupMap.get(groupKey);
+    if (bucket) {
+      bucket.push(outcome);
+    } else {
+      groupMap.set(groupKey, [outcome]);
+    }
+  }
+
+  for (const [groupKey, groupOutcomes] of groupMap) {
+    if (groupKey === DEFAULT_GROUP_KEY) {
+      groupOutcomes.sort((a, b) => {
+        const aType = marketLookup.get(a.id)?.sportsMarketType ?? '';
+        const bType = marketLookup.get(b.id)?.sportsMarketType ?? '';
+        const priorityDiff =
+          getSportsMarketTypePriority(aType) -
+          getSportsMarketTypePriority(bType);
+        if (priorityDiff !== 0) {
+          return priorityDiff;
+        }
+        const aScore =
+          (marketLookup.get(a.id)?.liquidity ?? 0) +
+          (marketLookup.get(a.id)?.volumeNum ?? 0);
+        const bScore =
+          (marketLookup.get(b.id)?.liquidity ?? 0) +
+          (marketLookup.get(b.id)?.volumeNum ?? 0);
+        return bScore - aScore;
+      });
+    } else {
+      groupOutcomes.sort((a, b) => {
+        const aScore =
+          (marketLookup.get(a.id)?.liquidity ?? 0) +
+          (marketLookup.get(a.id)?.volumeNum ?? 0);
+        const bScore =
+          (marketLookup.get(b.id)?.liquidity ?? 0) +
+          (marketLookup.get(b.id)?.volumeNum ?? 0);
+        return bScore - aScore;
+      });
+    }
+  }
+
+  const groupEntries = [...groupMap.entries()];
+  groupEntries.sort((a, b) => {
+    const aIndex = GROUP_ORDER.indexOf(a[0]);
+    const bIndex = GROUP_ORDER.indexOf(b[0]);
+    const aPriority = aIndex === -1 ? GROUP_ORDER.length : aIndex;
+    const bPriority = bIndex === -1 ? GROUP_ORDER.length : bIndex;
+    if (aPriority !== bPriority) {
+      return aPriority - bPriority;
+    }
+    return a[0].localeCompare(b[0]);
+  });
+
+  return groupEntries.map(([key, groupOutcomes]) => ({
+    key,
+    outcomes: groupOutcomes,
+  }));
+}
+
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
 
@@ -487,19 +598,6 @@ const sortByLiquidityAndVolume = (
     const bScore = (b.liquidity ?? 0) + (b.volumeNum ?? 0);
     return bScore - aScore;
   });
-
-/**
- * Get the sort priority for a sports market type
- * moneyline: 0, spreads: 1, totals: 2, others: 3 (then alphabetically)
- */
-const getSportsMarketTypePriority = (type: string): number => {
-  const priorities: Record<string, number> = {
-    moneyline: 0,
-    spreads: 1,
-    totals: 2,
-  };
-  return priorities[type.toLowerCase()] ?? 3;
-};
 
 const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
   if (isSpreadMarket(market)) {
@@ -718,6 +816,7 @@ export interface ParsePolymarketEventsOptions {
   category: PredictCategory;
   sortMarketsBy?: 'price' | 'ascending' | 'descending';
   teamLookup?: PolymarketTeamLookupFn;
+  extendedSportsMarketsLeagues?: string[];
 }
 
 export const parsePolymarketEvents = (
@@ -730,7 +829,7 @@ export const parsePolymarketEvents = (
       ? { category: categoryOrOptions, sortMarketsBy }
       : categoryOrOptions;
 
-  const { category, teamLookup } = options;
+  const { category, teamLookup, extendedSportsMarketsLeagues } = options;
   const sortBy = options.sortMarketsBy ?? sortMarketsBy;
 
   const parsedMarkets: PredictMarket[] = events.map(
@@ -775,6 +874,19 @@ export const parsePolymarketEvents = (
             }
           : undefined;
 
+      const outcomes = markets.map((market: PolymarketApiMarket) =>
+        parsePolymarketMarket(market, event),
+      );
+
+      const outcomeGroupingEnabled =
+        !!game &&
+        !!eventLeague &&
+        !!extendedSportsMarketsLeagues?.includes(eventLeague);
+
+      const outcomeGroups = outcomeGroupingEnabled
+        ? buildOutcomeGroups(outcomes, markets)
+        : undefined;
+
       return {
         id: event.id,
         slug: event.slug,
@@ -789,9 +901,8 @@ export const parsePolymarketEvents = (
         endDate: event.endDate,
         category,
         tags: tags.map((t) => t.slug),
-        outcomes: markets.map((market: PolymarketApiMarket) =>
-          parsePolymarketMarket(market, event),
-        ),
+        outcomes,
+        ...(outcomeGroups && { outcomeGroups }),
         liquidity: event.liquidity,
         volume: event.volume,
         game,
