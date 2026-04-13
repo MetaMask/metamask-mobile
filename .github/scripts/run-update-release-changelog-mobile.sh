@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
 # Invokes MetaMask github-tools update-release-changelog.sh with OTA version handling.
 #
-# OTA hotfix detection: a multi-digit patch whose last digit is non-zero (e.g. release/7.77.01, release/7.77.11).
-# auto-changelog rejects leading-zero patches as invalid SemVer.
+# Runway always creates 2-digit patches. This wrapper handles two cases:
 #
-# This wrapper converts the Runway OTA version to a valid SemVer prerelease
-# for the changelog tool:
-#   Runway 7.77.01  → SemVer 7.77.0-ota.1
-#   Runway 7.77.21  → SemVer 7.77.2-ota.1
-#   Runway 7.77.111 → SemVer 7.77.11-ota.1
+# 1) OTA hotfix: multi-digit patch whose last digit is non-zero (e.g. 01, 21, 111).
+#    auto-changelog rejects these as invalid SemVer (leading zeros forbidden).
+#    Converts to a valid SemVer prerelease for the changelog tool:
+#      Runway 7.77.01  → SemVer 7.77.0-ota.1
+#      Runway 7.77.21  → SemVer 7.77.2-ota.1
+#      Runway 7.77.111 → SemVer 7.77.11-ota.1
+#    Mapping: patch % 10 = OTA iteration, patch / 10 = base binary patch.
+#
+# 2) Binary hotfix / regular release: multi-digit patch ending in 0 (e.g. 00, 10, 20).
+#    Normalized by dividing by 10: 00→0, 10→1, 20→2.
 #
 # The SemVer prerelease format stays in CHANGELOG.md permanently. auto-changelog
 # validates ALL version headers on every run, so non-SemVer versions like 7.77.01
 # would break all future changelog generation (not just OTA runs).
 #
 # The Runway version (7.77.01) is used only in branch names, OTA_VERSION, and PR titles.
-#
-# Mapping: patch % 10 = OTA iteration, patch / 10 = base binary patch.
-#   X.Y.{patch} → X.Y.{patch/10}-ota.{patch%10}
-# Multi-digit patches with last digit 0 (e.g. 10, 20) are binary hotfixes, not OTA.
 # Single-digit patches pass through unchanged.
 set -euo pipefail
 
@@ -75,8 +75,12 @@ if [[ ${#PATCH} -ge 2 && $((10#$PATCH % 10)) -ne 0 ]]; then
   fi
 else
   # Regular release or binary hotfix.
-  # Normalize leading zeros in patch for strict SemVer (e.g. 00 → 0).
-  NORMALIZED_PATCH=$((10#$PATCH))
+  # Runway 2-digit patches: normalize by dividing by 10 (e.g. 00→0, 10→1, 20→2).
+  if [[ ${#PATCH} -ge 2 ]]; then
+    NORMALIZED_PATCH=$(( 10#$PATCH / 10 ))
+  else
+    NORMALIZED_PATCH=$((10#$PATCH))
+  fi
   if [[ "$PATCH" != "$NORMALIZED_PATCH" ]]; then
     NORMALIZED_VERSION="${RUNWAY_VERSION%.*}.${NORMALIZED_PATCH}"
     echo "Normalizing patch for strict SemVer: Runway ${RUNWAY_VERSION} → ${NORMALIZED_VERSION}"

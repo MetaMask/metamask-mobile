@@ -48,28 +48,40 @@ jobs:
           fi
 
           patch="${SEMVER##*.}"
-          normalized_patch=$((10#$patch))
-          normalized_semver="${SEMVER%.*}.${normalized_patch}"
           is_ota=false
 
-          # OTA hotfix: multi-digit patch whose last digit is non-zero.
-          # patch % 10 != 0 → OTA hotfix (last digit = OTA iteration, remaining digits = base binary patch).
-          # patch % 10 == 0 → binary hotfix (e.g. 10, 20) or regular release (0, 00).
-          # Single-digit patches (1-9) are always binary hotfixes; 0 is a regular release.
-          if [[ ${#patch} -ge 2 && $((10#$patch % 10)) -ne 0 ]]; then
-            is_ota=true
-            echo "is_ota=true" >> "$GITHUB_OUTPUT"
-            echo "OTA hotfix (patch: ${patch}, last digit: $((10#$patch % 10))): branch release/${SEMVER}; OTA_VERSION v${SEMVER}."
+          # Runway always creates 2-digit patches. Convention:
+          #   patch % 10 != 0 → OTA hotfix (last digit = OTA iteration, remaining = base binary patch).
+          #   patch % 10 == 0 → binary hotfix or regular release; normalized by dividing by 10.
+          #   Single-digit patches (1-9) are binary hotfixes; 0 is a regular release.
+          #
+          # Normalization (non-OTA, multi-digit): patch / 10 → store version.
+          #   00 → 0 (regular release), 10 → 1, 20 → 2, etc.
+          if [[ ${#patch} -ge 2 ]]; then
+            numeric_patch=$((10#$patch))
+            if [[ $((numeric_patch % 10)) -ne 0 ]]; then
+              is_ota=true
+              normalized_patch=$numeric_patch
+              echo "is_ota=true" >> "$GITHUB_OUTPUT"
+              echo "OTA hotfix (patch: ${patch}, last digit: $((numeric_patch % 10))): branch release/${SEMVER}; OTA_VERSION v${SEMVER}."
+            else
+              normalized_patch=$((numeric_patch / 10))
+              echo "is_ota=false" >> "$GITHUB_OUTPUT"
+              echo "Binary hotfix or release (patch: ${patch} → normalized ${normalized_patch})."
+            fi
           else
+            normalized_patch=$((10#$patch))
             echo "is_ota=false" >> "$GITHUB_OUTPUT"
-            echo "Not OTA hotfix (patch segment: ${patch})."
+            echo "Single-digit patch (${patch}): binary hotfix or release."
           fi
 
-          # Detect if patch has leading zeros requiring local version bump
-          # (e.g. 00 → normalized 0). The github-tools action rejects leading-zero patches.
+          normalized_semver="${SEMVER%.*}.${normalized_patch}"
+
+          # Detect if the Runway patch differs from the normalized store version,
+          # requiring a local version bump (github-tools rejects non-standard patches).
           if [[ "$patch" != "$normalized_patch" && "$is_ota" != "true" ]]; then
             echo "needs_local_bump=true" >> "$GITHUB_OUTPUT"
-            echo "Patch has leading zeros (${patch} → ${normalized_patch}): will bump versions locally."
+            echo "Runway patch ${patch} → store patch ${normalized_patch}: will bump versions locally."
           else
             echo "needs_local_bump=false" >> "$GITHUB_OUTPUT"
           fi
@@ -135,8 +147,9 @@ jobs:
           github-token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
           google-application-creds-base64: ${{ github.event_name == 'workflow_dispatch' && secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 || secrets.google-application-creds-base64 }}
 
-      # --- Local version-bump path for Runway patches with leading zeros (e.g. 7.79.00) ---
-      # The github-tools action rejects leading-zero patches as invalid strict SemVer.
+      # --- Local version-bump path for Runway patches that differ from store version ---
+      # Runway 2-digit patches (e.g. 7.79.00 → 0, 7.79.10 → 1) need normalization.
+      # The github-tools action rejects these as invalid strict SemVer.
       # We check out the Runway branch directly and bump versions with the normalized semver.
       - name: Check for existing release PR (local bump)
         id: local_bump_pr
