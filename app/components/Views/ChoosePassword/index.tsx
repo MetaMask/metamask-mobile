@@ -745,6 +745,7 @@ const ChoosePassword = () => {
                     autoComplete="password-new"
                     returnKeyType="next"
                     autoCapitalize="none"
+                    autoCorrect={false}
                     keyboardAppearance={themeAppearance}
                     isError={isPasswordTooShort}
                     endAccessory={
@@ -802,6 +803,7 @@ const ChoosePassword = () => {
                     onSubmitEditing={Keyboard.dismiss}
                     returnKeyType={'done'}
                     autoCapitalize="none"
+                    autoCorrect={false}
                     keyboardAppearance={themeAppearance}
                     endAccessory={
                       <TouchableOpacity

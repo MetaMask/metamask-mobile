@@ -137,13 +137,19 @@ class CreatePasswordView {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-          {
-            exact: true,
-          },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+            {
+              exact: true,
+            },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+          ),
+      },
     });
   }
 
