@@ -56,7 +56,6 @@ export function handleMetaMaskDeeplink({
           dappPublicKey: params.pubkey,
           originatorInfo: params.originatorInfo,
           request: params.request,
-          sdkVersion: params.v,
         });
       } else {
         const protocolVersion = parseInt(params.v ?? '1', 10);

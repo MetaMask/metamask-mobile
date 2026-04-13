@@ -1,4 +1,3 @@
-import { analytics } from '@metamask/sdk-analytics';
 import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { PermissionController } from '@metamask/permission-controller';
@@ -446,7 +445,6 @@ export default class DeeplinkProtocolService {
     channelId: string;
     originatorInfo?: string;
     request?: string;
-    sdkVersion?: string;
   }) {
     if (!params.originatorInfo) {
       const deepLinkError = new Error(
@@ -479,16 +477,6 @@ export default class DeeplinkProtocolService {
     this.currentClientId = params.channelId;
 
     const isSessionExists = this.connections?.[clientInfo.clientId];
-
-    const anonId = originatorInfo?.anonId;
-    if (anonId) {
-      analytics.track('wallet_connection_request_received', {
-        anon_id: anonId,
-        transport: 'deeplink_protocol',
-        connection_type: isSessionExists ? 'reconnect' : 'new_session',
-        sdk_version: params.sdkVersion,
-      });
-    }
 
     if (isSessionExists) {
       // Skip existing client -- bridge has been setup
@@ -556,16 +544,6 @@ export default class DeeplinkProtocolService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params: any;
     };
-
-    // Track wallet-side RPC action for deeplink protocol
-    const anonId = this.connections[params.channelId]?.originatorInfo?.anonId;
-    if (anonId) {
-      analytics.track('wallet_action_received', {
-        anon_id: anonId,
-        transport: 'deeplink_protocol',
-        rpc_method: requestObject.method,
-      });
-    }
 
     // Prevent external transactions from using internal origins.
     // This is an external connection (SDK deeplink protocol), so block any internal origin.
@@ -758,17 +736,6 @@ export default class DeeplinkProtocolService {
         const message = JSON.parse(parsedMessage); // handle message and redirect to corresponding bridge
         DevLogger.log('DeeplinkProtocolService:: parsed message:-', message);
         data = message;
-
-        // Track wallet-side RPC action for deeplink protocol
-        const actionAnonId =
-          this.connections[sessionId]?.originatorInfo?.anonId;
-        if (actionAnonId && data.method) {
-          analytics.track('wallet_action_received', {
-            anon_id: actionAnonId,
-            transport: 'deeplink_protocol',
-            rpc_method: data.method,
-          });
-        }
 
         const isAccountChanged = dappAccountAddress !== walletSelectedAddress;
         const isChainChanged = dappAccountChainId !== walletSelectedChainId;
