@@ -292,7 +292,7 @@ jest.mock('@react-navigation/native', () => {
       ),
       goBack: mockGoBack,
       reset: mockReset,
-      dangerouslyGetParent: () => ({
+      getParent: () => ({
         pop: mockPop,
       }),
     }),
@@ -365,7 +365,7 @@ describe('SendTransaction View', () => {
 
   it('renders correctly', async () => {
     render(SendTransaction);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeOnTheScreen();
   });
 
   it('calls analytics when rendering', async () => {
@@ -390,13 +390,14 @@ describe('SendTransaction View', () => {
   it('renders correctly for token', async () => {
     mockUseParamsValues = { orderId: 'test-id-2' };
     render(SendTransaction);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeOnTheScreen();
+    expect(screen.getByText('USDC')).toBeOnTheScreen();
   });
 
   it('renders correctly for custom action payment method', async () => {
     mockUseParamsValues = { orderId: 'test-id-3' };
     render(SendTransaction);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeOnTheScreen();
   });
 
   it('calls addTransaction for native coin when clicking on send button', async () => {

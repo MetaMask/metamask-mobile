@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import {
@@ -36,13 +37,22 @@ jest.mock('../../SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
     `$${Number(value.toString()).toFixed(2)}`,
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
 jest.mock('../../../Views/confirmations/utils/transaction', () => ({
   hasTransactionType: jest.fn(),
+}));
+
+jest.mock('../../../../util/networks', () => ({
+  getNetworkImageSource: jest.fn(() => 'polygon-network-badge'),
 }));
 
 const mockHasTransactionType = hasTransactionType as jest.MockedFunction<
   typeof hasTransactionType
 >;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const createMockToken = (overrides?: Partial<AssetType>): AssetType => ({
   address: '0xtoken1',
@@ -68,6 +78,7 @@ describe('usePredictBalanceTokenFilter', () => {
     mockPredictBalance = 100;
     mockTransactionMeta = null;
     mockHasTransactionType.mockReturnValue(false);
+    mockUseSelector.mockReturnValue({ image: 'usdce-token-image' });
   });
 
   it('returns original tokens when transaction type does not match and forceEnabled is false', () => {
@@ -175,5 +186,27 @@ describe('usePredictBalanceTokenFilter', () => {
     const filteredTokens = result.current(tokens);
 
     expect(filteredTokens[0].symbol).toBe('USDC.e');
+  });
+
+  it('uses empty string for image when usdceToken is null', () => {
+    mockHasTransactionType.mockReturnValue(true);
+    mockUseSelector.mockReturnValue(null);
+    const tokens = [createMockToken()];
+
+    const { result } = renderHook(() => usePredictBalanceTokenFilter());
+    const filteredTokens = result.current(tokens);
+
+    expect(filteredTokens[0].image).toBe('');
+    expect(filteredTokens[0].logo).toBe('');
+  });
+
+  it('adds the polygon network badge to the synthetic token', () => {
+    mockHasTransactionType.mockReturnValue(true);
+    const tokens = [createMockToken()];
+
+    const { result } = renderHook(() => usePredictBalanceTokenFilter());
+    const filteredTokens = result.current(tokens);
+
+    expect(filteredTokens[0].networkBadgeSource).toBe('polygon-network-badge');
   });
 });

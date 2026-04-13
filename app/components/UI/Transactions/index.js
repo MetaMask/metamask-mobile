@@ -18,10 +18,11 @@ import { showAlert } from '../../../actions/alert';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
+import ToastService from '../../../core/ToastService/ToastService';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
-import { TransactionError } from '../../../core/Transaction/TransactionError';
+import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
@@ -38,21 +39,26 @@ import {
 import { selectPrimaryCurrency } from '../../../selectors/settings';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
-import { decGWEIToHexWEI } from '../../../util/conversions';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
+  findBlockExplorerUrlForChain,
   getBlockExplorerAddressUrl,
   getBlockExplorerName,
+  getHexEvmChainId,
 } from '../../../util/networks';
-import { addHexPrefix } from '../../../util/number';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import {
+  getPreviousGasFromController,
   speedUpTransaction,
   updateIncomingTransactions,
 } from '../../../util/transaction-controller';
+import {
+  getGasValuesForReplacement,
+  getMediumGasPriceHex,
+} from '../../../util/confirmation/gas';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
@@ -62,10 +68,10 @@ import PriceChartContext, {
 } from '../AssetOverview/PriceChart/PriceChart.context';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import TransactionElement from '../TransactionElement';
-import RetryModal from './RetryModal';
 import TransactionsFooter from './TransactionsFooter';
 import { filterDuplicateOutgoingTransactions } from './utils';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
+import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -209,10 +215,8 @@ class Transactions extends PureComponent {
     refreshing: false,
     cancelIsOpen: false,
     speedUpIsOpen: false,
-    retryIsOpen: false,
     confirmDisabled: false,
     rpcBlockExplorer: undefined,
-    errorMsg: undefined,
     isQRHardwareAccount: false,
     isLedgerAccount: false,
   };
@@ -226,6 +230,27 @@ class Transactions extends PureComponent {
 
   get isNonEvmChain() {
     return isNonEvmChainId(this.props.chainId);
+  }
+
+  /**
+   * Chain used for the "View full history" footer and explorer link.
+   * On token / asset details, only the asset chain is used — never the globally
+   * selected network from Redux.
+   */
+  get explorerContextChainId() {
+    const { tokenChainId, chainId, location } = this.props;
+    if (location === TransactionDetailLocation.AssetDetails) {
+      return tokenChainId;
+    }
+    return tokenChainId ?? chainId;
+  }
+
+  get isAssetDetailsExplorer() {
+    return this.props.location === TransactionDetailLocation.AssetDetails;
+  }
+
+  get isExplorerContextNonEvm() {
+    return isNonEvmChainId(this.explorerContextChainId);
   }
 
   get isTokenNonEvmChain() {
@@ -252,16 +277,27 @@ class Transactions extends PureComponent {
     const {
       providerConfig: { type, rpcUrl },
       networkConfigurations,
-      chainId,
+      tokenChainId,
     } = this.props;
+    const explorerChainId = this.explorerContextChainId;
     let blockExplorer;
-    if (type === RPC) {
+
+    const useAssetOnlyExplorer =
+      this.isAssetDetailsExplorer || Boolean(tokenChainId);
+
+    if (!explorerChainId && useAssetOnlyExplorer) {
+      blockExplorer = undefined;
+    } else if (this.isExplorerContextNonEvm) {
+      blockExplorer = findBlockExplorerForNonEvmChainId(explorerChainId);
+    } else if (useAssetOnlyExplorer) {
+      blockExplorer = findBlockExplorerUrlForChain(
+        explorerChainId,
+        networkConfigurations,
+      );
+    } else if (type === RPC) {
       blockExplorer =
         findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
-    } else if (this.isNonEvmChain) {
-      // TODO: [SOLANA] - block explorer needs to be implemented
-      blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
     }
 
     this.setState({ rpcBlockExplorer: blockExplorer });
@@ -383,13 +419,29 @@ class Transactions extends PureComponent {
       providerConfig: { type },
       selectedAddress,
       close,
-      chainId,
+      networkConfigurations,
     } = this.props;
     const { rpcBlockExplorer } = this.state;
+    const useAssetOnlyExplorer =
+      this.isAssetDetailsExplorer || Boolean(this.props.tokenChainId);
+
     try {
       let url, title;
 
-      if (this.isNonEvmChain && rpcBlockExplorer) {
+      if (useAssetOnlyExplorer) {
+        const base =
+          rpcBlockExplorer && rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER
+            ? rpcBlockExplorer
+            : findBlockExplorerUrlForChain(
+                this.explorerContextChainId,
+                networkConfigurations,
+              );
+        if (!base) {
+          throw new Error('Missing block explorer for asset chain');
+        }
+        url = `${base}/address/${selectedAddress}`;
+        title = getBlockExplorerName(base);
+      } else if (this.isExplorerContextNonEvm && rpcBlockExplorer) {
         url = `${rpcBlockExplorer}/address/${selectedAddress}`;
         title = getBlockExplorerName(rpcBlockExplorer);
       } else {
@@ -506,18 +558,24 @@ class Transactions extends PureComponent {
 
   handleSpeedUpTransactionFailure = (e) => {
     const speedUpTxId = this.speedUpTxId;
-    const message = e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
-    InteractionManager.runAfterInteractions(this.toggleRetry(message));
+    InteractionManager.runAfterInteractions(() => {
+      this.showTransactionUpdateErrorToast(e);
+    });
     this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
   };
 
   handleCancelTransactionFailure = (e) => {
     const cancelTxId = this.cancelTxId;
-    const message = e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `cancelTransaction failed `, cancelTxId });
-    InteractionManager.runAfterInteractions(this.toggleRetry(message));
+    InteractionManager.runAfterInteractions(() => {
+      this.showTransactionUpdateErrorToast(e);
+    });
     this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
+  };
+
+  showTransactionUpdateErrorToast = (error) => {
+    ToastService.showToast(getTransactionUpdateErrorToastOptions(error));
   };
 
   speedUpTransaction = async (transactionObject) => {
@@ -531,7 +589,12 @@ class Transactions extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
-      const params = this.getParamsToSend(transactionObject);
+      const rawParams = this.getParamsToSend(transactionObject);
+      const params = getGasValuesForReplacement(
+        rawParams,
+        getPreviousGasFromController(this.speedUpTxId),
+        SPEED_UP_RATE,
+      );
       if (isLedgerAccount) {
         const isEip1559 = params?.maxFeePerGas && params?.maxPriorityFeePerGas;
         await this.signLedgerTransaction({
@@ -604,7 +667,12 @@ class Transactions extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
-      const params = this.getParamsToSend(transactionObject);
+      const rawParams = this.getParamsToSend(transactionObject);
+      const params = getGasValuesForReplacement(
+        rawParams,
+        getPreviousGasFromController(this.cancelTxId),
+        CANCEL_RATE,
+      );
       if (isLedgerAccount) {
         const isEip1559 = params?.maxFeePerGas && params?.maxPriorityFeePerGas;
         await this.signLedgerTransaction({
@@ -651,40 +719,28 @@ class Transactions extends PureComponent {
     />
   );
 
-  toggleRetry = (errorMsg) =>
-    this.setState((state) => ({ retryIsOpen: !state.retryIsOpen, errorMsg }));
-
-  retry = () => {
-    this.setState((state) => ({
-      retryIsOpen: !state.retryIsOpen,
-      errorMsg: undefined,
-    }));
-
-    //If the exitsing TX id true then it is a speed up retry
-    if (this.speedUpTxId) {
-      InteractionManager.runAfterInteractions(() => {
-        this.onSpeedUpAction(true, this.existingTx);
-      });
-    }
-    if (this.cancelTxId) {
-      InteractionManager.runAfterInteractions(() => {
-        this.onCancelAction(true, this.existingTx);
-      });
-    }
-  };
-
   get footer() {
     const {
       chainId,
       providerConfig: { type },
+      tokenChainId,
     } = this.props;
+
+    const useAssetOnlyExplorer =
+      this.isAssetDetailsExplorer || Boolean(tokenChainId);
+
+    const footerChainId = useAssetOnlyExplorer
+      ? (getHexEvmChainId(this.explorerContextChainId) ??
+        this.explorerContextChainId)
+      : chainId;
 
     return (
       <TransactionsFooter
-        chainId={chainId}
+        chainId={footerChainId}
         providerType={type}
         rpcBlockExplorer={this.state.rpcBlockExplorer}
-        isNonEvmChain={this.isNonEvmChain}
+        isNonEvmChain={this.isExplorerContextNonEvm}
+        omitGlobalProviderExplorerFallback={this.isAssetDetailsExplorer}
         onViewBlockExplorer={this.viewOnBlockExplore}
         showDisclaimer
       />
@@ -779,12 +835,6 @@ class Transactions extends PureComponent {
             ? this.renderLoader()
             : this.renderList()}
         </View>
-        <RetryModal
-          onCancelPress={() => this.toggleRetry(undefined)}
-          onConfirmPress={this.retry}
-          retryIsOpen={this.state.retryIsOpen}
-          errorMsg={this.state.errorMsg}
-        />
       </PriceChartProvider>
     );
   };
@@ -799,19 +849,7 @@ class Transactions extends PureComponent {
       }
     }
 
-    return { gasPrice: this.getGasPriceEstimate() };
-  }
-
-  getGasPriceEstimate() {
-    const { gasFeeEstimates } = this.props;
-
-    const estimateGweiDecimal =
-      gasFeeEstimates?.medium?.suggestedMaxFeePerGas ??
-      gasFeeEstimates?.medium ??
-      gasFeeEstimates.gasPrice ??
-      '0';
-
-    return addHexPrefix(decGWEIToHexWEI(estimateGweiDecimal));
+    return { gasPrice: getMediumGasPriceHex(this.props.gasFeeEstimates) };
   }
 }
 

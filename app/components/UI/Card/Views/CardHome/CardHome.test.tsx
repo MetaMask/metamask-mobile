@@ -2,12 +2,6 @@
 const mockLogoutFromProvider = jest.fn();
 const mockSetIsAuthenticated = jest.fn();
 const mockSdk = {
-  get isBaanxLoginEnabled() {
-    return true;
-  },
-  get isCardEnabled() {
-    return true;
-  },
   getSupportedTokensByChainId: jest.fn(() => []),
   isCardHolder: jest.fn(),
   getGeoLocation: jest.fn(),
@@ -30,11 +24,6 @@ jest.mock('../../sdk', () => ({
     userCardLocation: 'international' as const,
   })),
   withCardSDK: (component: React.ComponentType) => component,
-}));
-
-jest.mock('../../hooks/isBaanxLoginEnabled', () => ({
-  __esModule: true,
-  default: jest.fn(() => true),
 }));
 
 // Mock push provisioning hook
@@ -101,10 +90,10 @@ import {
 } from '../../../../../selectors/featureFlagController/deposit';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import {
+  selectIsCardAuthenticated,
   selectCardholderAccounts,
-  selectIsAuthenticatedCard,
-  selectUserCardLocation,
-} from '../../../../../core/redux/slices/card';
+  selectCardUserLocation,
+} from '../../../../../selectors/cardController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../hooks/useCardPinToken';
@@ -387,9 +376,6 @@ jest.mock('../../util/cardTokenVault', () => ({
 }));
 
 // Mock Redux card actions
-const mockResetAuthenticatedData = jest.fn(() => ({
-  type: 'card/resetAuthenticatedData',
-}));
 const mockClearAllCache = jest.fn(() => ({
   type: 'card/clearAllCache',
 }));
@@ -399,7 +385,6 @@ jest.mock('../../../../../core/redux/slices/card', () => {
   );
   return {
     ...actualModule,
-    resetAuthenticatedData: () => mockResetAuthenticatedData(),
     clearAllCache: () => mockClearAllCache(),
   };
 });
@@ -432,6 +417,9 @@ jest.mock('../../../../../core/Engine', () => ({
       AccountsController: {
         getAccountByAddress: jest.fn().mockReturnValue({ id: 'account-id' }),
         setSelectedAccount: jest.fn(),
+      },
+      CardController: {
+        validateAndRefreshSession: jest.fn().mockResolvedValue(undefined),
       },
     },
   },
@@ -612,8 +600,8 @@ function setupMockSelectors(
     if (selector === selectDepositMinimumVersionFlag)
       return config.depositMinVersion;
     if (selector === selectCardholderAccounts) return config.cardholderAccounts;
-    if (selector === selectIsAuthenticatedCard) return config.isAuthenticated;
-    if (selector === selectUserCardLocation) return config.userLocation;
+    if (selector === selectIsCardAuthenticated) return config.isAuthenticated;
+    if (selector === selectCardUserLocation) return config.userLocation;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
 
@@ -641,7 +629,6 @@ function setupLoadCardDataMock(
     error: string | null;
     warning: CardStateWarning | null;
     isAuthenticated: boolean;
-    isBaanxLoginEnabled: boolean;
     isCardholder: boolean;
     kycStatus: {
       verificationState:
@@ -679,7 +666,6 @@ function setupLoadCardDataMock(
     error: null,
     warning: null,
     isAuthenticated: false,
-    isBaanxLoginEnabled: true,
     isCardholder: true,
     kycStatus: { verificationState: 'VERIFIED' as const, userId: 'user-123' },
     externalWalletDetailsData: null,
@@ -738,7 +724,6 @@ describe('CardHome Component', () => {
     mockIsAuthenticationError.mockReturnValue(false); // Default to no auth error
     mockRemoveCardBaanxToken.mockClear();
     mockRemoveCardBaanxToken.mockResolvedValue(undefined);
-    mockResetAuthenticatedData.mockClear();
     mockClearAllCache.mockClear();
     mockNavigationDispatch.mockClear();
 
@@ -780,7 +765,7 @@ describe('CardHome Component', () => {
       error: null,
       warning: null,
       isAuthenticated: false,
-      isBaanxLoginEnabled: true,
+
       isCardholder: true,
       fetchAllData: mockFetchAllData,
       refetchAllData: mockRefetchAllData,
@@ -834,17 +819,17 @@ describe('CardHome Component', () => {
     setupMockSelectors();
   });
 
-  it('renders correctly and matches snapshot', async () => {
+  it('renders correctly', async () => {
     // Given: default state with priority token
     // When: component renders
-    const { toJSON } = render();
+    render();
 
-    // Then: should match snapshot
+    // Then: key UI elements should be present
     await waitFor(() => {
-      expect(toJSON()).toBeDefined();
+      expect(
+        screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+      ).toBeOnTheScreen();
     });
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with privacy mode enabled', async () => {
@@ -852,15 +837,13 @@ describe('CardHome Component', () => {
     setupMockSelectors({ privacyMode: true });
 
     // When: component renders
-    const { toJSON } = render();
+    render();
 
-    // Then: should show privacy indicators and match snapshot
+    // Then: should show privacy indicators
     expect(
       screen.getByTestId(CardHomeSelectors.PRIVACY_TOGGLE_BUTTON),
-    ).toBeTruthy();
-    expect(screen.getByText('••••••••••••')).toBeTruthy();
-
-    expect(toJSON()).toMatchSnapshot();
+    ).toBeOnTheScreen();
+    expect(screen.getByText('••••••••••••')).toBeOnTheScreen();
   });
 
   it('navigates to add funds modal when add funds button is pressed with USDC token', async () => {
@@ -2632,9 +2615,6 @@ describe('CardHome Component', () => {
       });
 
       await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-        );
         expect(mockRemoveQueries).toHaveBeenCalled();
       });
 
@@ -2665,7 +2645,6 @@ describe('CardHome Component', () => {
 
       // Then: should not trigger authentication error handling
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
-      expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
       expect(mockRemoveQueries).not.toHaveBeenCalled();
       expect(mockNavigationDispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: 'REPLACE' }),
@@ -2686,7 +2665,6 @@ describe('CardHome Component', () => {
 
       // Then: should not trigger authentication error handling
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
-      expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
       expect(mockRemoveQueries).not.toHaveBeenCalled();
     });
 
@@ -2704,7 +2682,6 @@ describe('CardHome Component', () => {
 
       // Then: should not trigger authentication error handling
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
-      expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
       expect(mockRemoveQueries).not.toHaveBeenCalled();
       expect(mockNavigationDispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: 'REPLACE' }),
@@ -2763,9 +2740,6 @@ describe('CardHome Component', () => {
       });
 
       await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-        );
         expect(mockRemoveQueries).toHaveBeenCalled();
       });
     });
@@ -2870,9 +2844,6 @@ describe('CardHome Component', () => {
       // Then: should clear auth state and navigate to welcome
       await waitFor(() => {
         expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-        );
         expect(mockRemoveQueries).toHaveBeenCalled();
         expect(StackActions.replace).toHaveBeenCalledWith(
           Routes.CARD.AUTHENTICATION,
@@ -2888,13 +2859,6 @@ describe('CardHome Component', () => {
 
       mockRemoveCardBaanxToken.mockImplementation(async () => {
         callOrder.push('removeToken');
-      });
-
-      mockDispatch.mockImplementation((action) => {
-        if (action.type === 'card/resetAuthenticatedData') {
-          callOrder.push('resetAuth');
-        }
-        return action;
       });
 
       mockRemoveQueries.mockImplementation(() => {
@@ -2915,12 +2879,7 @@ describe('CardHome Component', () => {
 
       // Then: operations should execute in correct order
       await waitFor(() => {
-        expect(callOrder).toEqual([
-          'removeToken',
-          'resetAuth',
-          'removeQueries',
-          'navigate',
-        ]);
+        expect(callOrder).toEqual(['removeToken', 'removeQueries', 'navigate']);
       });
     });
 
@@ -2943,11 +2902,8 @@ describe('CardHome Component', () => {
         expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
       });
 
-      // 2. Dispatch Redux actions and clear query cache
+      // 2. Clear query cache
       await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-        );
         expect(mockRemoveQueries).toHaveBeenCalled();
       });
 
@@ -2972,7 +2928,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: false,
@@ -2991,7 +2947,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
@@ -3013,7 +2969,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'REJECTED', userId: 'user-123' },
           isLoading: false,
@@ -3032,7 +2988,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'UNVERIFIED', userId: 'user-123' },
@@ -3054,7 +3010,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: true,
@@ -3075,7 +3031,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: null,
           isLoading: false,
@@ -3094,7 +3050,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: false });
         setupLoadCardDataMock({
           isAuthenticated: false,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: null,
           isLoading: false,
@@ -3107,24 +3063,6 @@ describe('CardHome Component', () => {
           screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
         ).toBeNull();
       });
-
-      it('enables card button when Baanx login is disabled', () => {
-        setupMockSelectors({ isAuthenticated: true });
-        setupLoadCardDataMock({
-          isAuthenticated: true,
-          isBaanxLoginEnabled: false,
-          warning: CardStateWarning.NoCard,
-          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
-          isLoading: false,
-        });
-
-        render();
-
-        // When Baanx login is disabled, should show add funds button instead
-        expect(
-          screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
-        ).toBeTruthy();
-      });
     });
 
     describe('KYC Status Button State', () => {
@@ -3133,7 +3071,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
@@ -3153,7 +3091,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'REJECTED', userId: 'user-123' },
           isLoading: false,
@@ -3172,7 +3110,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'UNVERIFIED', userId: 'user-123' },
@@ -3192,7 +3130,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: false,
@@ -3211,7 +3149,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: false });
         setupLoadCardDataMock({
           isAuthenticated: false,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: null,
           isLoading: false,
@@ -3225,28 +3163,11 @@ describe('CardHome Component', () => {
         ).toBeNull();
       });
 
-      it('shows add funds button when Baanx login is disabled', () => {
-        setupMockSelectors({ isAuthenticated: true });
-        setupLoadCardDataMock({
-          isAuthenticated: true,
-          isBaanxLoginEnabled: false,
-          warning: CardStateWarning.NoCard,
-          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
-          isLoading: false,
-        });
-
-        render();
-
-        expect(
-          screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
-        ).toBeTruthy();
-      });
-
       it('shows enable assets button when warning is NeedDelegation and user is VERIFIED', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NeedDelegation,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: false,
@@ -3263,7 +3184,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NeedDelegation,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
           isLoading: false,
@@ -3280,7 +3201,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
           isLoading: true,
@@ -3299,7 +3220,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: null,
           error: 'KYC fetch failed',
@@ -3316,7 +3237,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           error: 'Some other error',
@@ -3333,7 +3254,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: false });
         setupLoadCardDataMock({
           isAuthenticated: false,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: null,
           error: 'KYC fetch failed',
@@ -3350,7 +3271,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: null,
           error: 'KYC fetch failed',
@@ -3370,7 +3291,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
@@ -3390,7 +3311,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'REJECTED', userId: 'user-123' },
           isLoading: false,
@@ -3409,7 +3330,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'UNVERIFIED', userId: 'user-123' },
@@ -3429,7 +3350,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: false,
@@ -3447,7 +3368,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: null, userId: 'user-123' },
           isLoading: false,
@@ -3468,7 +3389,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
@@ -3489,7 +3410,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'UNVERIFIED', userId: 'user-123' },
@@ -3510,7 +3431,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: false,
@@ -3530,7 +3451,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NoCard,
           priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
@@ -3560,7 +3481,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NeedDelegation,
           priorityToken: null,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -3581,7 +3502,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           warning: CardStateWarning.NeedDelegation,
           priorityToken: null,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
@@ -3609,7 +3530,7 @@ describe('CardHome Component', () => {
           error: null,
           warning: CardStateWarning.NeedDelegation,
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           isCardholder: true,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           fetchAllData: mockFetchAllData,
@@ -3650,7 +3571,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: false });
         setupLoadCardDataMock({
           isAuthenticated: false,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.VIRTUAL },
           isLoading: false,
         });
@@ -3669,7 +3590,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: null,
           warning: CardStateWarning.NoCard,
           isLoading: false,
@@ -3690,7 +3611,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.VIRTUAL },
           isLoading: true,
         });
@@ -3709,7 +3630,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.VIRTUAL },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -3729,7 +3650,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.VIRTUAL },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -3764,7 +3685,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.METAL },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -3799,7 +3720,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.VIRTUAL },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -3835,7 +3756,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.VIRTUAL },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -3869,7 +3790,7 @@ describe('CardHome Component', () => {
           setupMockSelectors({ isAuthenticated: true });
           setupLoadCardDataMock({
             isAuthenticated: true,
-            isBaanxLoginEnabled: true,
+
             cardDetails: { type: CardType.VIRTUAL },
             isLoading: false,
             kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -3898,7 +3819,7 @@ describe('CardHome Component', () => {
           setupMockSelectors({ isAuthenticated: true });
           setupLoadCardDataMock({
             isAuthenticated: true,
-            isBaanxLoginEnabled: true,
+
             cardDetails: { type: CardType.VIRTUAL },
             isLoading: false,
             kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -3939,7 +3860,7 @@ describe('CardHome Component', () => {
           setupMockSelectors({ isAuthenticated: true });
           setupLoadCardDataMock({
             isAuthenticated: true,
-            isBaanxLoginEnabled: true,
+
             cardDetails: { type: CardType.VIRTUAL },
             isLoading: false,
             kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -3985,7 +3906,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: false });
         setupLoadCardDataMock({
           isAuthenticated: false,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.VIRTUAL },
           isLoading: false,
         });
@@ -4004,7 +3925,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: null,
           warning: CardStateWarning.NoCard,
           isLoading: false,
@@ -4025,7 +3946,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.VIRTUAL },
           isLoading: true,
         });
@@ -4047,7 +3968,7 @@ describe('CardHome Component', () => {
         });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.VIRTUAL },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4067,7 +3988,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.VIRTUAL },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4090,7 +4011,7 @@ describe('CardHome Component', () => {
         });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.METAL },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4110,7 +4031,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.VIRTUAL },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4149,7 +4070,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.VIRTUAL },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4176,7 +4097,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { type: CardType.VIRTUAL },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4207,7 +4128,7 @@ describe('CardHome Component', () => {
           setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
           setupLoadCardDataMock({
             isAuthenticated: true,
-            isBaanxLoginEnabled: true,
+
             cardDetails: { type: CardType.VIRTUAL },
             isLoading: false,
             kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4235,7 +4156,7 @@ describe('CardHome Component', () => {
           setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
           setupLoadCardDataMock({
             isAuthenticated: true,
-            isBaanxLoginEnabled: true,
+
             cardDetails: { type: CardType.VIRTUAL },
             isLoading: false,
             kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4297,7 +4218,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: freezableCardDetails,
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4314,7 +4235,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: false });
         setupLoadCardDataMock({
           isAuthenticated: false,
-          isBaanxLoginEnabled: true,
+
           cardDetails: freezableCardDetails,
           isLoading: false,
         });
@@ -4330,7 +4251,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: { ...freezableCardDetails, isFreezable: false },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4347,7 +4268,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: {
             ...freezableCardDetails,
             status: CardStatus.BLOCKED,
@@ -4367,7 +4288,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: freezableCardDetails,
           isLoading: true,
         });
@@ -4383,7 +4304,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: null,
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4402,7 +4323,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: freezableCardDetails,
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4429,7 +4350,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: freezableCardDetails,
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4465,7 +4386,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: freezableCardDetails,
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4504,7 +4425,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: {
             ...freezableCardDetails,
             status: CardStatus.FROZEN,
@@ -4532,7 +4453,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: {
             ...freezableCardDetails,
             status: CardStatus.FROZEN,
@@ -4560,7 +4481,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: {
             ...freezableCardDetails,
             status: CardStatus.FROZEN,
@@ -4604,7 +4525,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: {
             ...freezableCardDetails,
             status: CardStatus.FROZEN,
@@ -4632,7 +4553,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: {
             ...freezableCardDetails,
             status: CardStatus.FROZEN,
@@ -4667,7 +4588,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: {
             ...freezableCardDetails,
             status: CardStatus.FROZEN,
@@ -4695,7 +4616,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: {
             ...freezableCardDetails,
             status: CardStatus.FROZEN,
@@ -4752,7 +4673,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: {
             ...freezableCardDetails,
             status: CardStatus.FROZEN,
@@ -4805,7 +4726,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: freezableCardDetails,
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4827,7 +4748,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: {
             ...freezableCardDetails,
             status: CardStatus.FROZEN,
@@ -4854,7 +4775,7 @@ describe('CardHome Component', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
-          isBaanxLoginEnabled: true,
+
           cardDetails: freezableCardDetails,
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -4937,7 +4858,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: {
@@ -4985,7 +4906,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: {
@@ -5033,7 +4954,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: {
@@ -5060,7 +4981,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: {
@@ -5087,7 +5008,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: {
@@ -5138,7 +5059,7 @@ describe('CardHome Component', () => {
       });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: {
@@ -5165,7 +5086,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.METAL },
         isLoading: false,
         kycStatus: {
@@ -5196,7 +5117,7 @@ describe('CardHome Component', () => {
       });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: {
@@ -5237,7 +5158,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: {
@@ -5299,7 +5220,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: {
@@ -5354,6 +5275,8 @@ describe('CardHome Component', () => {
 
     const mockUserDetailsForProvisioning = {
       id: 'user-123',
+      firstName: 'John',
+      lastName: 'Doe',
       addressLine1: '123 Main St',
       addressLine2: 'Apt 4B',
       city: 'New York',
@@ -5385,7 +5308,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: mockCardDetailsWithHolder,
         isLoading: false,
         kycStatus: {
@@ -5419,7 +5342,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: mockCardDetailsWithHolder,
         isLoading: false,
         kycStatus: {
@@ -5441,7 +5364,7 @@ describe('CardHome Component', () => {
 
       // Verify userAddress uses physical address fields in provisioning format
       expect(options.userAddress).toEqual({
-        name: 'Card Holder', // Uses default since userDetails doesn't have firstName/lastName
+        name: 'John Doe', // Derived from KYC userDetails firstName/lastName
         addressOne: '123 Main St',
         addressTwo: 'Apt 4B',
         locality: 'New York',
@@ -5457,7 +5380,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: null,
         isLoading: false,
         kycStatus: {
@@ -5485,7 +5408,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: mockCardDetailsWithHolder,
         isLoading: false,
         kycStatus: {
@@ -5513,7 +5436,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: mockCardDetailsWithHolder,
         isLoading: false,
         kycStatus: {
@@ -5536,23 +5459,29 @@ describe('CardHome Component', () => {
       expect(typeof options.onError).toBe('function');
     });
 
-    it('uses holderName from cardDetails for provisioning', async () => {
-      // Given: card with holder name from card status API
+    it('uses holderName from KYC userDetails for provisioning', async () => {
+      // Given: card with different holder name, but KYC has specific names
       const cardWithHolderName = {
         ...mockCardDetailsWithHolder,
-        holderName: 'Jane Smith',
+        holderName: 'Card API Name',
+      };
+
+      const userDetailsWithName = {
+        ...mockUserDetailsForProvisioning,
+        firstName: 'Jane',
+        lastName: 'Smith',
       };
 
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: cardWithHolderName,
         isLoading: false,
         kycStatus: {
           verificationState: 'VERIFIED',
           userId: 'user-123',
-          userDetails: mockUserDetailsForProvisioning,
+          userDetails: userDetailsWithName,
         },
       });
 
@@ -5563,7 +5492,7 @@ describe('CardHome Component', () => {
         expect(mockUsePushProvisioning).toHaveBeenCalled();
       });
 
-      // Then: holderName should come from cardDetails
+      // Then: holderName should come from KYC userDetails, not cardDetails
       const options = getLastCallOptions();
       const cardDetails = options.cardDetails as { holderName: string };
 
@@ -5580,7 +5509,7 @@ describe('CardHome Component', () => {
       });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -5603,7 +5532,7 @@ describe('CardHome Component', () => {
       });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -5626,7 +5555,7 @@ describe('CardHome Component', () => {
       });
       setupLoadCardDataMock({
         isAuthenticated: false,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
       });
@@ -5648,7 +5577,7 @@ describe('CardHome Component', () => {
       });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
@@ -5671,7 +5600,7 @@ describe('CardHome Component', () => {
       });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -5694,7 +5623,7 @@ describe('CardHome Component', () => {
       });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.METAL },
         isLoading: false,
         kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -5717,7 +5646,7 @@ describe('CardHome Component', () => {
       });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -5739,7 +5668,7 @@ describe('CardHome Component', () => {
       });
       setupLoadCardDataMock({
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         cardDetails: { type: CardType.VIRTUAL },
         isLoading: false,
         kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
@@ -5776,7 +5705,7 @@ describe('CardHome Component', () => {
         error: null,
         warning: CardStateWarning.NoCard,
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         isCardholder: false,
         kycStatus: {
           verificationState: 'VERIFIED',
@@ -5839,7 +5768,7 @@ describe('CardHome Component', () => {
         error: null,
         warning: CardStateWarning.NeedDelegation,
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         isCardholder: true,
         kycStatus: {
           verificationState: 'VERIFIED',
@@ -5893,7 +5822,7 @@ describe('CardHome Component', () => {
         error: null,
         warning: CardStateWarning.NeedDelegation,
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         isCardholder: true,
         kycStatus: {
           verificationState: 'VERIFIED',
@@ -5945,7 +5874,7 @@ describe('CardHome Component', () => {
         error: null,
         warning: CardStateWarning.NeedDelegation,
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         isCardholder: true,
         kycStatus: {
           verificationState: 'VERIFIED',
@@ -5996,7 +5925,7 @@ describe('CardHome Component', () => {
         error: null,
         warning: CardStateWarning.NeedDelegation,
         isAuthenticated: true,
-        isBaanxLoginEnabled: true,
+
         isCardholder: true,
         kycStatus: {
           verificationState: 'VERIFIED',

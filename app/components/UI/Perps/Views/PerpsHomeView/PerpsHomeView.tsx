@@ -21,9 +21,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import { TextColor } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { formatPnl, formatPercentage } from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -152,10 +152,9 @@ const PerpsHomeView = () => {
   const { positionsSubtitle, positionsSubtitleColor, positionsSubtitleSuffix } =
     useMemo(() => {
       const pnlNum = parseFloat(unrealizedPnl);
-      const isPnlZero = BigNumber(unrealizedPnl).isZero();
 
-      // Only show subtitle when there are positions and P&L is non-zero
-      if (!hasPositions || isPnlZero) {
+      // Open (filled) positions only — hide when flat so spacing matches homepage sections
+      if (!hasPositions) {
         return {
           positionsSubtitle: undefined,
           positionsSubtitleColor: undefined,
@@ -165,12 +164,11 @@ const PerpsHomeView = () => {
 
       const color =
         pnlNum > 0
-          ? TextColor.Success
+          ? TextColor.SuccessDefault
           : pnlNum < 0
-            ? TextColor.Error
-            : TextColor.Alternative;
+            ? TextColor.ErrorDefault
+            : TextColor.TextDefault;
 
-      // Format: "-$18.47 (2.1%)" colored + "Unrealized PnL" in default color
       const subtitle = `${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`;
       const suffix = strings('perps.unrealized_pnl');
 

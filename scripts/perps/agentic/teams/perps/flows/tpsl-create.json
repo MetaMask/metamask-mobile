@@ -17,7 +17,7 @@
     }
   },
   "validate": {
-    "runtime": {
+    "workflow": {
       "pre_conditions": [
         "wallet.unlocked",
         {
@@ -25,9 +25,9 @@
           "symbol": "{{symbol}}"
         }
       ],
-      "steps": [
-        {
-          "id": "nav-market-detail",
+      "entry": "nav-market-detail",
+      "nodes": {
+        "nav-market-detail": {
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
@@ -40,69 +40,74 @@
               "volume": "0",
               "maxLeverage": "100"
             }
-          }
+          },
+          "next": "wait-market-render"
         },
-        {
-          "id": "wait-market-render",
+        "wait-market-render": {
           "action": "wait_for",
-          "test_id": "position-card-auto-close-toggle"
+          "test_id": "position-card-auto-close-toggle",
+          "next": "press-auto-close"
         },
-        {
-          "id": "press-auto-close",
+        "press-auto-close": {
           "action": "press",
-          "test_id": "position-card-auto-close-toggle"
+          "test_id": "position-card-auto-close-toggle",
+          "next": "wait-tpsl-route"
         },
-        {
-          "id": "wait-tpsl-route",
+        "wait-tpsl-route": {
           "action": "wait_for",
-          "route": "PerpsTPSL"
+          "route": "PerpsTPSL",
+          "next": "wait-tp-button"
         },
-        {
-          "id": "wait-tp-button",
+        "wait-tp-button": {
           "action": "wait_for",
-          "test_id": "perps-tpsl-take-profit-percentage-button-{{tpPreset}}"
+          "test_id": "perps-tpsl-take-profit-percentage-button-{{tpPreset}}",
+          "next": "press-tp-preset"
         },
-        {
-          "id": "press-tp-preset",
+        "press-tp-preset": {
           "action": "press",
-          "test_id": "perps-tpsl-take-profit-percentage-button-{{tpPreset}}"
+          "test_id": "perps-tpsl-take-profit-percentage-button-{{tpPreset}}",
+          "next": "wait-sl-button"
         },
-        {
-          "id": "wait-sl-button",
+        "wait-sl-button": {
           "action": "wait_for",
-          "test_id": "perps-tpsl-stop-loss-percentage-button-{{slPreset}}"
+          "test_id": "perps-tpsl-stop-loss-percentage-button-{{slPreset}}",
+          "next": "press-sl-preset"
         },
-        {
-          "id": "press-sl-preset",
+        "press-sl-preset": {
           "action": "press",
-          "test_id": "perps-tpsl-stop-loss-percentage-button-{{slPreset}}"
+          "test_id": "perps-tpsl-stop-loss-percentage-button-{{slPreset}}",
+          "next": "assert-tpsl-screen-intact"
         },
-        {
-          "id": "assert-tpsl-screen-intact",
+        "assert-tpsl-screen-intact": {
           "action": "eval_sync",
           "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
           "assert": {
             "operator": "eq",
             "field": "route",
             "value": "PerpsTPSL"
-          }
+          },
+          "next": "press-set-tpsl"
         },
-        {
-          "id": "press-set-tpsl",
+        "press-set-tpsl": {
           "action": "press",
-          "test_id": "perps-tpsl-bottomsheet"
+          "test_id": "perps-tpsl-set-button",
+          "next": "wait-tpsl-created"
         },
-        {
-          "id": "wait-tpsl-created",
+        "wait-tpsl-created": {
           "action": "wait_for",
           "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({hasTp:!!(p&&p.takeProfitPrice),hasSl:!!(p&&p.stopLossPrice)})})",
           "assert": {
             "operator": "eq",
             "field": "hasTp",
             "value": true
-          }
+          },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
         }
-      ]
+      }
     }
   }
 }

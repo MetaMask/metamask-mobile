@@ -1,6 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps,keyring-snaps)
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, ScrollView, SafeAreaView } from 'react-native';
+import { View, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Engine from '../../../../core/Engine';
 import Text, {

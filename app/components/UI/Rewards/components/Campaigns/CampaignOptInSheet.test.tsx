@@ -29,17 +29,22 @@ const setupSelectorMock = () => {
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  return { ...actual };
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    BottomSheet: ({
+      children,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(View, { testID }, children),
+  };
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
-
-const mockNavigate = jest.fn();
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
 jest.mock('../ContentfulRichText/ContentfulRichText', () => {
@@ -66,23 +71,18 @@ const mockUseOptInToCampaign = useOptInToCampaign as jest.MockedFunction<
   typeof useOptInToCampaign
 >;
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        children,
-        testID,
-      }: {
-        children?: React.ReactNode;
-        testID?: string;
-      }) => ReactActual.createElement(View, { testID }, children),
-    };
-  },
-);
+const mockShowToast = jest.fn();
+const mockRewardsToastOptionsSuccess = jest.fn((title: string) => ({ title }));
+jest.mock('../../hooks/useRewardsToast', () => ({
+  __esModule: true,
+  default: () => ({
+    showToast: mockShowToast,
+    RewardsToastOptions: {
+      success: mockRewardsToastOptionsSuccess,
+      error: jest.fn(),
+    },
+  }),
+}));
 
 jest.mock('../RewardsInfoBanner', () => {
   const ReactActual = jest.requireActual('react');
@@ -130,19 +130,10 @@ jest.mock('../RewardsErrorBanner', () => {
   };
 });
 
-jest.mock('../Onboarding/constants', () => ({
-  REWARDS_ONBOARD_TERMS_URL: 'https://go.metamask.io/rewards-terms',
-}));
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
       'rewards.campaign.opt_in_sheet_title': 'Join Campaign',
-      'rewards.campaign.opt_in_sheet_description_pre_link':
-        'By joining you agree to the',
-      'rewards.campaign.opt_in_sheet_link_text': 'Terms',
-      'rewards.campaign.opt_in_sheet_description_post_link':
-        'You can opt out at any time.',
       'rewards.campaign_details.opt_in_error': 'Failed to join campaign',
       'rewards.campaign.opt_in_cta': 'Join',
       'rewards.campaign.geo_restriction_banner_title':
@@ -175,6 +166,8 @@ const mockOptInToCampaign = jest.fn();
 describe('CampaignOptInSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockShowToast.mockClear();
+    mockRewardsToastOptionsSuccess.mockClear();
     // Default: geo complete, non-restricted country — keeps non-geo tests clean.
     mockGeolocation = 'AU';
     mockGeoStatus = 'complete';
@@ -196,33 +189,24 @@ describe('CampaignOptInSheet', () => {
     );
   });
 
-  it('renders the description container', () => {
+  it('renders the description when termsAndConditions is a Contentful document', () => {
     const { getByTestId } = render(
-      <CampaignOptInSheet campaign={createTestCampaign()} />,
+      <CampaignOptInSheet
+        campaign={createTestCampaign({
+          termsAndConditions: { nodeType: 'document', content: [] },
+        })}
+      />,
     );
     expect(getByTestId('campaign-opt-in-sheet-description')).toBeDefined();
   });
 
-  it('renders the terms link with correct text', () => {
-    const { getByTestId } = render(
-      <CampaignOptInSheet campaign={createTestCampaign()} />,
+  it('does not render the description when termsAndConditions is null', () => {
+    const { queryByTestId } = render(
+      <CampaignOptInSheet
+        campaign={createTestCampaign({ termsAndConditions: null })}
+      />,
     );
-    expect(getByTestId('campaign-opt-in-sheet-terms-link')).toHaveTextContent(
-      'Terms',
-    );
-  });
-
-  it('navigates to the terms URL when terms link is pressed', () => {
-    const { getByTestId } = render(
-      <CampaignOptInSheet campaign={createTestCampaign()} />,
-    );
-    fireEvent.press(getByTestId('campaign-opt-in-sheet-terms-link'));
-    expect(mockNavigate).toHaveBeenCalledWith('BrowserTabHome', {
-      screen: 'BrowserView',
-      params: expect.objectContaining({
-        newTabUrl: 'https://go.metamask.io/rewards-terms',
-      }),
-    });
+    expect(queryByTestId('campaign-opt-in-sheet-description')).toBeNull();
   });
 
   it('renders the CTA button', () => {
@@ -250,6 +234,41 @@ describe('CampaignOptInSheet', () => {
     fireEvent.press(getByTestId('campaign-opt-in-cta'));
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows success toast after successful opt-in', async () => {
+    mockOptInToCampaign.mockResolvedValue({ optedIn: true });
+    const { getByTestId } = render(
+      <CampaignOptInSheet campaign={createTestCampaign()} />,
+    );
+    fireEvent.press(getByTestId('campaign-opt-in-cta'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockShowToast).toHaveBeenCalledTimes(1);
+    expect(mockRewardsToastOptionsSuccess).toHaveBeenCalledWith(
+      'rewards.campaign.opt_in_success_toast',
+    );
+  });
+
+  it('does not show toast when opt-in throws', async () => {
+    mockOptInToCampaign.mockRejectedValue(new Error('API error'));
+    const { getByTestId } = render(
+      <CampaignOptInSheet campaign={createTestCampaign()} />,
+    );
+    fireEvent.press(getByTestId('campaign-opt-in-cta'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockShowToast).not.toHaveBeenCalled();
+  });
+
+  it('does not show toast or close when optedIn is false', async () => {
+    const onClose = jest.fn();
+    mockOptInToCampaign.mockResolvedValue({ optedIn: false });
+    const { getByTestId } = render(
+      <CampaignOptInSheet campaign={createTestCampaign()} onClose={onClose} />,
+    );
+    fireEvent.press(getByTestId('campaign-opt-in-cta'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('does not call onClose when opt-in throws', async () => {

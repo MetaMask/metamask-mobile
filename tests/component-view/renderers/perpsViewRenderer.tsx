@@ -85,12 +85,14 @@ function channelWithInitialValue<T>(initialValue: T) {
       }
       return noopUnsubscribe;
     },
+    getSnapshot: () => null,
   };
 }
 
 /** No-op channel for streams not needed by view tests */
 const noopChannel = () => ({
   subscribe: (): (() => void) => noopUnsubscribe,
+  getSnapshot: () => null,
 });
 
 /** Top-of-book channel: usePerpsTopOfBook calls subscribeToSymbol (e.g. PerpsClosePositionView, PerpsOrderBookView) */
@@ -106,6 +108,7 @@ function topOfBookChannel() {
       }
       return noopUnsubscribe;
     },
+    getSnapshot: () => null,
   };
 }
 
@@ -113,6 +116,7 @@ function topOfBookChannel() {
 const pricesChannel = () => ({
   subscribe: (): (() => void) => noopUnsubscribe,
   subscribeToSymbols: (): (() => void) => noopUnsubscribe,
+  getSnapshot: () => null,
 });
 
 /** Optional stream data overrides for view tests (e.g. initial positions for Market Details Close/Modify). */
@@ -150,8 +154,7 @@ function createTestStreamManager(
 export interface PerpsExtraRoute {
   name: string;
   Component?: React.ComponentType<unknown>;
-  /** 'root' registers in the root stack (e.g. cross-feature screens like MarketInsightsView).
-   * Omitting or using 'perps-root' nests the route under Routes.PERPS.ROOT (default — backward-compatible). */
+  /** 'perps-root' registers under Routes.PERPS.ROOT nested navigator; default is root stack. */
   mount?: 'root' | 'perps-root';
 }
 
@@ -189,11 +192,13 @@ export function renderPerpsView(
   const testStreamManager = createTestStreamManager(streamOverrides);
 
   const WrappedComponent = (props: Record<string, unknown>) => (
-    <PerpsConnectionContext.Provider value={testConnectionValue}>
-      <PerpsStreamProvider testStreamManager={testStreamManager}>
-        <Component {...props} />
-      </PerpsStreamProvider>
-    </PerpsConnectionContext.Provider>
+    <AccessRestrictedProvider>
+      <PerpsConnectionContext.Provider value={testConnectionValue}>
+        <PerpsStreamProvider testStreamManager={testStreamManager}>
+          <Component {...props} />
+        </PerpsStreamProvider>
+      </PerpsConnectionContext.Provider>
+    </AccessRestrictedProvider>
   );
 
   const wrapRouteWithPerpsProviders = (
@@ -214,13 +219,12 @@ export function renderPerpsView(
   if (extraRoutes?.length) {
     const Stack = createStackNavigator();
     const InnerStack = createStackNavigator();
-    // Routes with mount: 'root' go directly in the root stack (e.g. MarketInsightsView).
-    // All others (mount: 'perps-root' or unset) nest under Routes.PERPS.ROOT — the
-    // default preserves backward compatibility with tests that omit mount entirely.
     const nestedPerpsRoutes = extraRoutes.filter(
-      ({ mount }) => mount !== 'root',
+      ({ mount }) => mount === 'perps-root',
     );
-    const rootRoutes = extraRoutes.filter(({ mount }) => mount === 'root');
+    const rootRoutes = extraRoutes.filter(
+      ({ mount }) => mount !== 'perps-root',
+    );
     // PerpsTabView navigates via navigation.navigate(PERPS.ROOT, { screen: MARKET_LIST }).
     // So we register PERPS.ROOT as a nested stack containing the extra routes; then
     // navigating to ROOT with screen: MARKET_LIST shows the route probe.
@@ -722,11 +726,13 @@ export function renderPerpsComponent(
   const testStreamManager = createTestStreamManager(streamOverrides);
 
   const WrappedComponent = () => (
-    <PerpsConnectionContext.Provider value={testConnectionValue}>
-      <PerpsStreamProvider testStreamManager={testStreamManager}>
-        <Component {...props} />
-      </PerpsStreamProvider>
-    </PerpsConnectionContext.Provider>
+    <AccessRestrictedProvider>
+      <PerpsConnectionContext.Provider value={testConnectionValue}>
+        <PerpsStreamProvider testStreamManager={testStreamManager}>
+          <Component {...props} />
+        </PerpsStreamProvider>
+      </PerpsConnectionContext.Provider>
+    </AccessRestrictedProvider>
   );
 
   return renderComponentViewScreen(
@@ -761,11 +767,13 @@ export function renderPerpsComponentDisconnected(
   };
 
   const WrappedComponent = () => (
-    <PerpsConnectionContext.Provider value={disconnectedValue}>
-      <PerpsStreamProvider testStreamManager={testStreamManager}>
-        <Component {...props} />
-      </PerpsStreamProvider>
-    </PerpsConnectionContext.Provider>
+    <AccessRestrictedProvider>
+      <PerpsConnectionContext.Provider value={disconnectedValue}>
+        <PerpsStreamProvider testStreamManager={testStreamManager}>
+          <Component {...props} />
+        </PerpsStreamProvider>
+      </PerpsConnectionContext.Provider>
+    </AccessRestrictedProvider>
   );
 
   return renderComponentViewScreen(

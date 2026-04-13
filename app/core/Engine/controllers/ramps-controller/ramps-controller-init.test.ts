@@ -1,7 +1,7 @@
 import { waitFor } from '@testing-library/react-native';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import {
   RampsController,
   RampsControllerMessenger,
@@ -65,6 +65,18 @@ jest.mock('react-native-device-info', () => ({
   getVersion: () => '99.0.0',
 }));
 
+jest.mock('../../../../components/UI/Ramp/debug/RampsDebugBridge', () => ({
+  __esModule: true,
+  initRampsDebugBridge: jest.fn(),
+}));
+
+const getInitRampsDebugBridgeMock = (): jest.Mock =>
+  (
+    jest.requireMock(
+      '../../../../components/UI/Ramp/debug/RampsDebugBridge',
+    ) as { initRampsDebugBridge: jest.Mock }
+  ).initRampsDebugBridge;
+
 const createMockInitMessenger = (
   overrides: {
     enabled?: boolean;
@@ -89,7 +101,7 @@ const createMockInitMessenger = (
 describe('ramps controller init', () => {
   const rampsControllerClassMock = jest.mocked(RampsController);
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<
+    MessengerClientInitRequest<
       RampsControllerMessenger,
       RampsControllerInitMessenger
     >
@@ -106,7 +118,7 @@ describe('ramps controller init', () => {
       ...buildControllerInitRequestMock(baseControllerMessenger),
       initMessenger: createMockInitMessenger(),
     } as jest.Mocked<
-      ControllerInitRequest<
+      MessengerClientInitRequest<
         RampsControllerMessenger,
         RampsControllerInitMessenger
       >
@@ -127,7 +139,12 @@ describe('ramps controller init', () => {
   });
 
   it('uses initial state when initial state is passed in', () => {
+    const defaultState = jest
+      .requireActual('@metamask/ramps-controller')
+      .getDefaultRampsControllerState() as RampsControllerState;
+
     const initialRampsControllerState: RampsControllerState = {
+      ...defaultState,
       userRegion: createMockUserRegion('us-ca'),
       countries: {
         data: [],
@@ -178,6 +195,7 @@ describe('ramps controller init', () => {
         },
       },
       orders: [],
+      providerAutoSelected: false,
     };
 
     initRequestMock.persistedState = {
@@ -307,5 +325,67 @@ describe('ramps controller init', () => {
 
     expect(result.controller).toBeDefined();
     expect(rampsControllerClassMock).toHaveBeenCalledTimes(1);
+  });
+
+  describe('when __DEV__ is true', () => {
+    let previousDev: boolean;
+    let previousRampsDebugDashboard: string | undefined;
+
+    const getDevGlobal = (): { __DEV__: boolean } =>
+      globalThis as unknown as { __DEV__: boolean };
+
+    beforeEach(() => {
+      previousDev = getDevGlobal().__DEV__;
+      previousRampsDebugDashboard = process.env.RAMPS_DEBUG_DASHBOARD;
+      delete process.env.RAMPS_DEBUG_DASHBOARD;
+      getDevGlobal().__DEV__ = true;
+      getInitRampsDebugBridgeMock().mockClear();
+    });
+
+    afterEach(() => {
+      getDevGlobal().__DEV__ = previousDev;
+      if (previousRampsDebugDashboard === undefined) {
+        delete process.env.RAMPS_DEBUG_DASHBOARD;
+      } else {
+        process.env.RAMPS_DEBUG_DASHBOARD = previousRampsDebugDashboard;
+      }
+    });
+
+    it('requires RampsDebugBridge and calls initRampsDebugBridge with controller and messenger', () => {
+      process.env.RAMPS_DEBUG_DASHBOARD = 'true';
+      initRequestMock.initMessenger = createMockInitMessenger({
+        enabled: false,
+      });
+
+      const { controller } = rampsControllerInit(initRequestMock);
+      const initRampsDebugBridge = getInitRampsDebugBridgeMock();
+
+      expect(initRampsDebugBridge).toHaveBeenCalledTimes(1);
+      expect(initRampsDebugBridge).toHaveBeenCalledWith(
+        controller,
+        initRequestMock.controllerMessenger,
+      );
+    });
+
+    it('does not load RampsDebugBridge when RAMPS_DEBUG_DASHBOARD is false', () => {
+      process.env.RAMPS_DEBUG_DASHBOARD = 'false';
+      initRequestMock.initMessenger = createMockInitMessenger({
+        enabled: false,
+      });
+
+      rampsControllerInit(initRequestMock);
+
+      expect(getInitRampsDebugBridgeMock()).not.toHaveBeenCalled();
+    });
+
+    it('does not load RampsDebugBridge when RAMPS_DEBUG_DASHBOARD is unset', () => {
+      initRequestMock.initMessenger = createMockInitMessenger({
+        enabled: false,
+      });
+
+      rampsControllerInit(initRequestMock);
+
+      expect(getInitRampsDebugBridgeMock()).not.toHaveBeenCalled();
+    });
   });
 });

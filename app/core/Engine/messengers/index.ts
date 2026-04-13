@@ -24,7 +24,7 @@ import {
   getSnapControllerInitMessenger,
   getSnapControllerMessenger,
   getSnapInterfaceControllerMessenger,
-  getSnapsRegistryMessenger,
+  getSnapRegistryControllerMessenger,
   getWebSocketServiceMessenger,
 } from './snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -115,6 +115,7 @@ import {
   getEarnControllerInitMessenger,
   getEarnControllerMessenger,
 } from './earn-controller-messenger';
+import { getMoneyAccountControllerMessenger } from './money-account-controller-messenger';
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
@@ -123,7 +124,6 @@ import {
   getDelegationControllerMessenger,
 } from './delegation/delegation-controller-messenger';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
-import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
 import { getStorageServiceMessenger } from './storage-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import {
@@ -136,9 +136,9 @@ import { getPhishingControllerMessenger } from './phishing-controller-messenger'
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 import { getConnectivityControllerMessenger } from './connectivity-controller-messenger';
 import {
-  getMultichainRouterInitMessenger,
-  getMultichainRouterMessenger,
-} from './multichain-router-messenger';
+  getMultichainRoutingServiceInitMessenger,
+  getMultichainRoutingServiceMessenger,
+} from './multichain-routing-service-messenger.ts';
 import {
   getTransactionPayControllerInitMessenger,
   getTransactionPayControllerMessenger,
@@ -152,15 +152,12 @@ import { getAnalyticsControllerMessenger } from './analytics-controller-messenge
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
-import {
-  getComplianceControllerMessenger,
-  getComplianceControllerInitMessenger,
-} from './compliance/compliance-controller-messenger';
+import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
 
 /**
- * The messengers for the controllers that have been.
+ * The messenger factories for the messenger clients that have been modularized.
  */
-export const CONTROLLER_MESSENGERS = {
+export const MESSENGER_FACTORIES = {
   AccountsController: {
     getMessenger: getAccountsControllerMessenger,
     getInitMessenger: noop,
@@ -203,10 +200,6 @@ export const CONTROLLER_MESSENGERS = {
   },
   GeolocationController: {
     getMessenger: getGeolocationControllerMessenger,
-    getInitMessenger: noop,
-  },
-  ErrorReportingService: {
-    getMessenger: getErrorReportingServiceMessenger,
     getInitMessenger: noop,
   },
   LoggingController: {
@@ -298,8 +291,8 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getSnapInterfaceControllerMessenger,
     getInitMessenger: noop,
   },
-  SnapsRegistry: {
-    getMessenger: getSnapsRegistryMessenger,
+  SnapRegistryController: {
+    getMessenger: getSnapRegistryControllerMessenger,
     getInitMessenger: noop,
   },
   NotificationServicesController: {
@@ -336,9 +329,13 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getMultichainBalancesControllerMessenger,
     getInitMessenger: noop,
   },
-  MultichainRouter: {
-    getMessenger: getMultichainRouterMessenger,
-    getInitMessenger: getMultichainRouterInitMessenger,
+  MultichainRoutingService: {
+    getMessenger: getMultichainRoutingServiceMessenger,
+    getInitMessenger: getMultichainRoutingServiceInitMessenger,
+  },
+  MoneyAccountController: {
+    getMessenger: getMoneyAccountControllerMessenger,
+    getInitMessenger: noop,
   },
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
@@ -481,6 +478,6 @@ export const CONTROLLER_MESSENGERS = {
   },
   ComplianceController: {
     getMessenger: getComplianceControllerMessenger,
-    getInitMessenger: getComplianceControllerInitMessenger,
+    getInitMessenger: noop,
   },
 } as const;

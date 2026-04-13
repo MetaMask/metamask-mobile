@@ -70,7 +70,7 @@ import {
   selectMarketInsightsPerpsEnabled,
 } from '../../../../../selectors/featureFlagController/marketInsights';
 import { endTrace, TraceName } from '../../../../../util/trace';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import MarketInsightsViewSkeleton from './MarketInsightsViewSkeleton';
 import MarketInsightsViewHeader from './MarketInsightsViewHeader';
 import {
@@ -86,6 +86,8 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import parseRampIntent from '../../../Ramp/utils/parseRampIntent';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
+import { useComplianceGate } from '../../../Compliance';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import PerpsBottomSheetTooltip from '../../../Perps/components/PerpsBottomSheetTooltip';
 import {
   PERPS_EVENT_PROPERTY,
@@ -224,6 +226,8 @@ const MarketInsightsView: React.FC = () => {
   const isEligible = useSelector(selectPerpsEligibility);
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const { gate } = useComplianceGate(selectedAddress ?? '');
   const { track } = usePerpsEventTracking();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -313,8 +317,21 @@ const MarketInsightsView: React.FC = () => {
     return report.trends.flatMap((trend) => trend.tweets).slice(0, 4);
   }, [report]);
   const handleBackPress = useCallback(() => {
+    const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_CLOSED)
+      .addProperties({
+        ...assetIdProperty,
+        ...assetSymbolProperty,
+      })
+      .build();
+    trackEvent(event);
     navigation.goBack();
-  }, [navigation]);
+  }, [
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+  ]);
 
   const handleTweetPress = useCallback((url: string) => {
     if (isSafeUrl(url)) {
@@ -347,35 +364,37 @@ const MarketInsightsView: React.FC = () => {
   }, []);
 
   const handlePerpsDirectionPress = useCallback(
-    async (direction: 'long' | 'short') => {
-      if (!isEligible) {
-        track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-          [PERPS_EVENT_PROPERTY.SOURCE]:
-            PERPS_EVENT_VALUE.SOURCE.MARKET_INSIGHTS,
+    (direction: 'long' | 'short') =>
+      gate(async () => {
+        if (!isEligible) {
+          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.MARKET_INSIGHTS,
+          });
+          setIsEligibilityModalVisible(true);
+          return;
+        }
+
+        const event = createEventBuilder(
+          MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        )
+          .addProperties({
+            ...assetIdProperty,
+            ...assetSymbolProperty,
+            interaction_type: direction,
+          })
+          .build();
+        trackEvent(event);
+
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.ORDER_REDIRECT,
+          params: { direction, asset: assetSymbol },
         });
-        setIsEligibilityModalVisible(true);
-        return;
-      }
-
-      const event = createEventBuilder(
-        MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
-      )
-        .addProperties({
-          ...assetIdProperty,
-          ...assetSymbolProperty,
-          interaction_type: direction,
-        })
-        .build();
-      trackEvent(event);
-
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.ORDER_REDIRECT,
-        params: { direction, asset: assetSymbol },
-      });
-    },
+      }),
     [
+      gate,
       isEligible,
       track,
       navigation,
@@ -569,17 +588,14 @@ const MarketInsightsView: React.FC = () => {
       }
       trackMarketInsightsInteraction('source_click', { source: url });
       setSelectedTrend(null);
-      navigation.navigate(
-        Routes.BROWSER.HOME as never,
-        {
-          screen: Routes.BROWSER.VIEW,
-          params: {
-            newTabUrl: url,
-            timestamp: Date.now(),
-            fromTrending: true,
-          },
-        } as never,
-      );
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: url,
+          timestamp: Date.now(),
+          fromTrending: true,
+        },
+      });
     },
     [trackMarketInsightsInteraction, navigation, setSelectedTrend],
   );
@@ -639,6 +655,7 @@ const MarketInsightsView: React.FC = () => {
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-4')}
         showsVerticalScrollIndicator={false}
+        testID={MarketInsightsSelectorsIDs.VIEW_SCROLL}
       >
         <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
           {showLastFrame && (
@@ -657,6 +674,8 @@ const MarketInsightsView: React.FC = () => {
               paused={false}
               controls={false}
               disableFocus
+              ignoreSilentSwitch="obey"
+              mixWithOthers="mix"
               onEnd={handleVideoEnd}
               testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
             />

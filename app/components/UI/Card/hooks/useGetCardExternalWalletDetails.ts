@@ -69,7 +69,7 @@ const useGetCardExternalWalletDetails = (
   const sdkRef = useRef(sdk);
   sdkRef.current = sdk;
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: cardQueries.dashboard.keys.externalWalletDetails(),
     queryFn: async () => {
       const currentDelegationSettings =
@@ -155,7 +155,7 @@ const useGetCardExternalWalletDetails = (
 
   return {
     data: data ?? null,
-    isLoading,
+    isLoading: isLoading && isFetching,
     error: error as Error | null,
     fetchData,
   };

@@ -1,11 +1,7 @@
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import {
-  getComplianceControllerMessenger,
-  getComplianceControllerInitMessenger,
-  ComplianceControllerInitMessenger,
-} from '../../messengers/compliance/compliance-controller-messenger';
-import { ControllerInitRequest } from '../../types';
+import { getComplianceControllerMessenger } from '../../messengers/compliance/compliance-controller-messenger';
+import { MessengerClientInitRequest } from '../../types';
 import { complianceControllerInit } from './compliance-controller-init';
 import {
   ComplianceController,
@@ -13,45 +9,20 @@ import {
 } from '@metamask/compliance-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-jest.mock('react-native-device-info', () => ({
-  getVersion: jest.fn().mockReturnValue('99.0.0'),
-}));
-
-function buildComplianceFlag(enabled: boolean) {
-  return { enabled, minimumVersion: '0.0.0' };
-}
-
 function getInitRequestMock(
   overrides: {
-    complianceEnabled?: boolean;
     persistedState?: Record<string, unknown>;
   } = {},
-): jest.Mocked<
-  ControllerInitRequest<
-    ComplianceControllerMessenger,
-    ComplianceControllerInitMessenger
-  >
-> {
-  const { complianceEnabled = false, persistedState = {} } = overrides;
+): jest.Mocked<MessengerClientInitRequest<ComplianceControllerMessenger>> {
+  const { persistedState = {} } = overrides;
 
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
-  baseMessenger.registerActionHandler(
-    // @ts-expect-error: Partial mock for feature flag state
-    'RemoteFeatureFlagController:getState',
-    () => ({
-      remoteFeatureFlags: {
-        complianceEnabled: buildComplianceFlag(complianceEnabled),
-      },
-    }),
-  );
-
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getComplianceControllerMessenger(baseMessenger),
-    initMessenger: getComplianceControllerInitMessenger(baseMessenger),
     persistedState,
   };
 
@@ -68,25 +39,24 @@ describe('complianceControllerInit', () => {
     expect(controller).toBeInstanceOf(ComplianceController);
   });
 
-  it('calls init() when complianceEnabled feature flag is true', () => {
-    const initSpy = jest
-      .spyOn(ComplianceController.prototype, 'init')
-      .mockResolvedValue(undefined);
+  it('hydrates state from persistedState', () => {
+    const persistedState = {
+      ComplianceController: {
+        walletComplianceStatusMap: {
+          '0xABC': {
+            address: '0xABC',
+            blocked: true,
+            checkedAt: '2025-01-01T00:00:00Z',
+          },
+        },
+        lastCheckedAt: '2025-01-01T00:00:00Z',
+      },
+    };
 
-    complianceControllerInit(getInitRequestMock({ complianceEnabled: true }));
+    const { controller } = complianceControllerInit(
+      getInitRequestMock({ persistedState }),
+    );
 
-    expect(initSpy).toHaveBeenCalled();
-    initSpy.mockRestore();
-  });
-
-  it('does not call init() when complianceEnabled feature flag is false', () => {
-    const initSpy = jest
-      .spyOn(ComplianceController.prototype, 'init')
-      .mockResolvedValue(undefined);
-
-    complianceControllerInit(getInitRequestMock({ complianceEnabled: false }));
-
-    expect(initSpy).not.toHaveBeenCalled();
-    initSpy.mockRestore();
+    expect(controller).toBeInstanceOf(ComplianceController);
   });
 });

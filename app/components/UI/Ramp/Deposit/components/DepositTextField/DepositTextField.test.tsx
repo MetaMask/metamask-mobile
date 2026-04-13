@@ -33,19 +33,20 @@ describe('DepositTextField', () => {
     mockCurrentTheme = mockTheme;
   });
 
-  it('should render default settings correctly', () => {
+  it('renders default settings correctly', () => {
     const wrapper = shallow(<DepositTextField {...defaultProps} />);
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.find(Label).exists()).toBe(true);
+    expect(wrapper.find(TextField).exists()).toBe(true);
   });
 
-  it('should render DepositTextField with correct label', () => {
+  it('renders DepositTextField with correct label', () => {
     const wrapper = shallow(<DepositTextField {...defaultProps} />);
     const labelComponent = wrapper.find(Label);
     expect(labelComponent.exists()).toBe(true);
     expect(labelComponent.prop('children')).toBe('Test Label');
   });
 
-  it('should render TextField component with correct props', () => {
+  it('renders TextField component with correct props', () => {
     const wrapper = shallow(<DepositTextField {...defaultProps} />);
     const textFieldComponent = wrapper.find(TextField);
     expect(textFieldComponent.exists()).toBe(true);
@@ -54,7 +55,7 @@ describe('DepositTextField', () => {
     );
   });
 
-  it('should use dark keyboard appearance in dark theme', () => {
+  it('uses dark keyboard appearance in dark theme', () => {
     mockCurrentTheme = {
       ...mockTheme,
       themeAppearance: AppThemeKey.dark,
@@ -68,7 +69,7 @@ describe('DepositTextField', () => {
     );
   });
 
-  it('should render error text when error prop is provided', () => {
+  it('renders error text when error prop is provided', () => {
     const errorMessage = 'This is an error message';
     const wrapper = shallow(
       <DepositTextField {...defaultProps} error={errorMessage} />,
@@ -78,13 +79,13 @@ describe('DepositTextField', () => {
     expect(errorComponent.prop('children')).toBe(errorMessage);
   });
 
-  it('should not render error text when error prop is not provided', () => {
+  it('does not render error text when error prop is not provided', () => {
     const wrapper = shallow(<DepositTextField {...defaultProps} />);
     const errorComponent = wrapper.find(Text);
     expect(errorComponent.exists()).toBe(false);
   });
 
-  it('should apply custom container style when provided', () => {
+  it('applies custom container style when provided', () => {
     const customStyle = { marginTop: 20 };
     const wrapper = shallow(
       <DepositTextField {...defaultProps} containerStyle={customStyle} />,
@@ -96,7 +97,7 @@ describe('DepositTextField', () => {
     );
   });
 
-  it('should pass additional props to TextField', () => {
+  it('passes additional props to TextField', () => {
     const placeholder = 'Enter your text here';
     const maxLength = 50;
     const wrapper = shallow(

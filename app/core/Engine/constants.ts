@@ -57,7 +57,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'MultichainNetworkController:stateChange',
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   'SnapController:stateChange',
-  'SnapsRegistry:stateChange',
+  'SnapRegistryController:stateChange',
   'SubjectMetadataController:stateChange',
   'AuthenticationController:stateChange',
   'UserStorageController:stateChange',
@@ -76,6 +76,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'BridgeController:stateChange',
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',
+  'MoneyAccountController:stateChange',
   'PerpsController:stateChange',
   'RewardsController:stateChange',
   'DeFiPositionsController:stateChange',

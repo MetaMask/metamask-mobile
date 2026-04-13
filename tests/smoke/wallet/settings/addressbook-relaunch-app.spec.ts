@@ -1,8 +1,8 @@
 import { RegressionWalletPlatform } from '../../../tags';
-import SettingsView from '../../../page-objects/Settings/SettingsView';
 import ContactsView from '../../../page-objects/Settings/Contacts/ContactsView';
 import AddContactView from '../../../page-objects/Settings/Contacts/AddContactView';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
 import { loginToApp } from '../../../flows/wallet.flow';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import TestHelpers from '../../../helpers';
@@ -28,8 +28,8 @@ describe.skip(
         async () => {
           await loginToApp();
           await device.disableSynchronization();
-          await TabBarComponent.tapSettings();
-          await SettingsView.tapContacts();
+          await TabBarComponent.tapAccountsMenu();
+          await AccountMenu.tapContacts();
           await device.enableSynchronization();
 
           await ContactsView.tapAddContactButton();
@@ -46,8 +46,8 @@ describe.skip(
           await device.disableSynchronization();
           await loginToApp();
           await device.enableSynchronization();
-          await TabBarComponent.tapSettings();
-          await SettingsView.tapContacts();
+          await TabBarComponent.tapAccountsMenu();
+          await AccountMenu.tapContacts();
           await Assertions.expectElementToBeVisible(ContactsView.container);
           await ContactsView.expectContactIsVisible('Curtis');
         },

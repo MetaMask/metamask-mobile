@@ -2,6 +2,7 @@ import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import { whenEngineReady } from '../../util/analytics/whenEngineReady';
+import { isE2EMockOAuth } from '../../util/environment';
 
 import {
   HandleOAuthLoginResult,
@@ -11,6 +12,7 @@ import {
   OAuthLoginResultType,
   LoginHandlerResult,
 } from './OAuthInterface';
+import { getSocialAccountType } from '../../constants/onboarding';
 import {
   Web3AuthNetwork,
   AuthConnection as SeedlessAuthConnection,
@@ -23,6 +25,7 @@ import {
   AUTH_SERVER_MARKETING_OPT_IN_PATH,
   GoogleWebGID,
 } from './OAuthLoginHandlers/constants';
+import { QAMockOAuthService } from './QAMockOAuthService';
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 import { Platform } from 'react-native';
@@ -137,6 +140,10 @@ export class OAuthService {
         throw new Error('No user id found');
       }
 
+      if (isE2EMockOAuth()) {
+        return QAMockOAuthService.mockSeedlessHandleResult(accountName);
+      }
+
       const authConnectionConfig = getAuthConnectionIdFromClientId({
         clientId,
         authConnection,
@@ -192,118 +199,56 @@ export class OAuthService {
     }
   };
 
-  #trackSocialLoginFailure = ({
-    authConnection,
-    errorCategory,
-    error,
-  }: {
-    authConnection: AuthConnection;
-    errorCategory: 'provider_login' | 'get_auth_tokens' | 'seedless_auth';
-    error: unknown;
-  }) => {
-    const isUserCancelled =
-      error instanceof OAuthError &&
-      (error.code === OAuthErrorType.UserCancelled ||
-        error.code === OAuthErrorType.UserDismissed);
+  #handleMockOAuthLogin = async (
+    loginHandler: BaseLoginHandler,
+  ): Promise<HandleOAuthLoginResult> => {
+    const { data, userId, accountName } =
+      await QAMockOAuthService.exchangeTokens(loginHandler);
 
-    let userClickedRehydration: 'true' | 'false' | 'unknown' = 'unknown';
-    if (this.localState.userClickedRehydration !== undefined) {
-      userClickedRehydration = this.localState.userClickedRehydration
-        ? 'true'
-        : 'false';
-    }
+    this.updateLocalState({ userId, accountName });
 
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
-      )
-        .addProperties({
-          account_type: `default_${authConnection}`,
-          is_rehydration: userClickedRehydration,
-          failure_type: isUserCancelled ? 'user_cancelled' : 'error',
-          error_category: errorCategory,
-        })
-        .build(),
+    const result = await this.handleSeedlessAuthenticate(
+      data,
+      loginHandler.authConnection as SeedlessAuthConnection,
+      loginHandler.options.clientId,
     );
+
+    this.#dispatchPostLogin(result);
+    return result;
   };
 
-  handleOAuthLogin = async (
+  #handleOAuthLoginMockPath = async (
     loginHandler: BaseLoginHandler,
-    userClickedRehydration: boolean,
   ): Promise<HandleOAuthLoginResult> => {
-    const web3AuthNetwork = this.config.web3AuthNetwork;
-
-    if (this.localState.loginInProgress) {
+    try {
+      return await this.#handleMockOAuthLogin(loginHandler);
+    } catch (error) {
+      Logger.log(error as Error, {
+        message: 'handleOAuthLogin E2E_MOCK_OAUTH',
+      });
+      this.#dispatchPostLogin({
+        type: OAuthLoginResultType.ERROR,
+        existingUser: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      if (error instanceof OAuthError) {
+        throw error;
+      }
       throw new OAuthError(
-        'Login already in progress',
-        OAuthErrorType.LoginInProgress,
+        error instanceof Error ? error : 'Unknown error',
+        OAuthErrorType.LoginError,
       );
     }
-    this.updateLocalState({ userClickedRehydration });
-    this.#dispatchLogin();
+  };
 
+  #handleOAuthLoginProductionPath = async (
+    loginHandler: BaseLoginHandler,
+    web3AuthNetwork: Web3AuthNetwork,
+  ): Promise<HandleOAuthLoginResult> => {
     try {
-      let result: LoginHandlerResult,
-        data: AuthResponse,
-        handleCodeFlowResult: HandleOAuthLoginResult;
-      let providerLoginSuccess = false;
-      try {
-        trace({
-          name: TraceName.OnboardingOAuthProviderLogin,
-          op: TraceOperation.OnboardingSecurityOp,
-        });
-        const loginResult = await loginHandler.login();
-        if (!loginResult) {
-          throw new OAuthError(
-            'Login handler return empty result',
-            OAuthErrorType.LoginError,
-          );
-        }
-        result = loginResult;
-        providerLoginSuccess = true;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
+      let data: AuthResponse, handleCodeFlowResult: HandleOAuthLoginResult;
 
-        // trace only if error is not a user cancelled error
-        if (
-          !(
-            error instanceof OAuthError &&
-            (error.code === OAuthErrorType.UserCancelled ||
-              error.code === OAuthErrorType.UserDismissed)
-          )
-        ) {
-          trace({
-            name: TraceName.OnboardingOAuthProviderLoginError,
-            op: TraceOperation.OnboardingError,
-            tags: { errorMessage },
-          });
-          endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
-        }
-
-        this.#trackSocialLoginFailure({
-          authConnection: loginHandler.authConnection,
-          errorCategory: 'provider_login',
-          error,
-        });
-
-        throw error;
-      } finally {
-        endTrace({
-          name: TraceName.OnboardingOAuthProviderLogin,
-          data: { success: providerLoginSuccess },
-        });
-
-        if (
-          Platform.OS === 'android' &&
-          loginHandler.authConnection === AuthConnection.Google
-        ) {
-          acmSignOut().catch((e) =>
-            Logger.log(e, 'acmSignOut: failed to clear cached credential'),
-          );
-        }
-      }
-
+      const result = await this.#executeProviderLogin(loginHandler);
       const authConnection = loginHandler.authConnection;
 
       Logger.log('handleOAuthLogin: before getAuthToken');
@@ -429,6 +374,130 @@ export class OAuthService {
         OAuthErrorType.LoginError,
       );
     }
+  };
+
+  #trackSocialLoginFailure = ({
+    authConnection,
+    errorCategory,
+    error,
+  }: {
+    authConnection: AuthConnection;
+    errorCategory: 'provider_login' | 'get_auth_tokens' | 'seedless_auth';
+    error: unknown;
+  }) => {
+    const isUserCancelled =
+      error instanceof OAuthError &&
+      (error.code === OAuthErrorType.UserCancelled ||
+        error.code === OAuthErrorType.UserDismissed);
+
+    let userClickedRehydration: 'true' | 'false' | 'unknown' = 'unknown';
+    if (this.localState.userClickedRehydration !== undefined) {
+      userClickedRehydration = this.localState.userClickedRehydration
+        ? 'true'
+        : 'false';
+    }
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
+      )
+        .addProperties({
+          account_type: getSocialAccountType(
+            authConnection,
+            this.localState.userClickedRehydration === true,
+          ),
+          is_rehydration: userClickedRehydration,
+          failure_type: isUserCancelled ? 'user_cancelled' : 'error',
+          error_category: errorCategory,
+        })
+        .build(),
+    );
+  };
+
+  #executeProviderLogin = async (
+    loginHandler: BaseLoginHandler,
+  ): Promise<LoginHandlerResult> => {
+    let providerLoginSuccess = false;
+    try {
+      trace({
+        name: TraceName.OnboardingOAuthProviderLogin,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
+      const loginResult = await loginHandler.login();
+      if (!loginResult) {
+        throw new OAuthError(
+          'Login handler return empty result',
+          OAuthErrorType.LoginError,
+        );
+      }
+      providerLoginSuccess = true;
+      return loginResult;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      if (
+        !(
+          error instanceof OAuthError &&
+          (error.code === OAuthErrorType.UserCancelled ||
+            error.code === OAuthErrorType.UserDismissed)
+        )
+      ) {
+        trace({
+          name: TraceName.OnboardingOAuthProviderLoginError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage },
+        });
+        endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+      }
+
+      this.#trackSocialLoginFailure({
+        authConnection: loginHandler.authConnection,
+        errorCategory: 'provider_login',
+        error,
+      });
+
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.OnboardingOAuthProviderLogin,
+        data: { success: providerLoginSuccess },
+      });
+
+      if (
+        Platform.OS === 'android' &&
+        loginHandler.authConnection === AuthConnection.Google
+      ) {
+        acmSignOut().catch((e) =>
+          Logger.log(e, 'acmSignOut: failed to clear cached credential'),
+        );
+      }
+    }
+  };
+
+  handleOAuthLogin = async (
+    loginHandler: BaseLoginHandler,
+    userClickedRehydration: boolean,
+  ): Promise<HandleOAuthLoginResult> => {
+    const web3AuthNetwork = this.config.web3AuthNetwork;
+
+    if (this.localState.loginInProgress) {
+      throw new OAuthError(
+        'Login already in progress',
+        OAuthErrorType.LoginInProgress,
+      );
+    }
+    this.updateLocalState({ userClickedRehydration });
+    this.#dispatchLogin();
+
+    if (isE2EMockOAuth()) {
+      return await this.#handleOAuthLoginMockPath(loginHandler);
+    }
+
+    return await this.#handleOAuthLoginProductionPath(
+      loginHandler,
+      web3AuthNetwork,
+    );
   };
 
   updateLocalState = (newState: Partial<OAuthService['localState']>) => {

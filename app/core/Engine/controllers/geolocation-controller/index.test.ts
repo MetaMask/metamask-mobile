@@ -1,7 +1,7 @@
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getGeolocationControllerMessenger } from '../../messengers/geolocation-controller-messenger';
-import type { ControllerInitRequest } from '../../types';
+import type { MessengerClientInitRequest } from '../../types';
 import { geolocationControllerInit } from './index';
 import {
   GeolocationController,
@@ -24,8 +24,10 @@ jest.mock('@metamask/geolocation-controller', () => {
 });
 
 function getInitRequestMock(
-  overrides?: Partial<ControllerInitRequest<GeolocationControllerMessenger>>,
-): jest.Mocked<ControllerInitRequest<GeolocationControllerMessenger>> {
+  overrides?: Partial<
+    MessengerClientInitRequest<GeolocationControllerMessenger>
+  >,
+): jest.Mocked<MessengerClientInitRequest<GeolocationControllerMessenger>> {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -35,7 +37,7 @@ function getInitRequestMock(
     controllerMessenger: getGeolocationControllerMessenger(baseMessenger),
     initMessenger: undefined,
     ...overrides,
-  } as jest.Mocked<ControllerInitRequest<GeolocationControllerMessenger>>;
+  } as jest.Mocked<MessengerClientInitRequest<GeolocationControllerMessenger>>;
 }
 
 describe('geolocationControllerInit', () => {

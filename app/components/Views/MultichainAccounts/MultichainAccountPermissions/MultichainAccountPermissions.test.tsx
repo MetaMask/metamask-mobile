@@ -125,7 +125,6 @@ jest.mock('../../../../core/Engine', () => ({
     AccountTreeController: {
       state: {
         accountTree: {
-          selectedAccountGroup: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
           wallets: {
             'entropy:01JKAF3DSGM3AB87EM9N0K41AJ': {
               id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ',
@@ -167,6 +166,7 @@ jest.mock('../../../../core/Engine', () => ({
             },
           },
         },
+        selectedAccountGroup: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
       },
     },
   },
@@ -180,20 +180,6 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockedNavigate,
       goBack: mockedGoBack,
     }),
-  };
-});
-
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    SafeAreaView: jest.fn().mockImplementation(({ children }) => children),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
   };
 });
 
@@ -267,9 +253,9 @@ const mockInitialState = () => {
         AccountTreeController: {
           ...backgroundState.AccountTreeController,
           accountTree: {
-            selectedAccountGroup: mockGroupId1,
             wallets: {},
           },
+          selectedAccountGroup: mockGroupId1,
         },
         MultichainNetworkController: {
           ...backgroundState.MultichainNetworkController,

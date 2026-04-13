@@ -1,28 +1,28 @@
 import { createProjectLogger } from '@metamask/utils';
 import type {
   ControllerMessenger,
-  ControllerByName,
+  MessengerClientsByName,
   ControllerMessengerCallback,
-  ControllerName,
-  ControllersToInitialize,
-  InitModularizedControllersFunction,
-  ControllerInitRequest,
-  ControllerInitFunction,
+  MessengerClientName,
+  MessengerClientsToInitialize,
+  InitMessengerClientsFunction,
+  MessengerClientInitRequest,
+  MessengerClientInitFunction,
 } from '../types';
-import { CONTROLLER_MESSENGERS } from '../messengers';
+import { MESSENGER_FACTORIES } from '../messengers';
 
 const log = createProjectLogger('controller-init');
 
-type BaseControllerInitRequest = ControllerInitRequest<
+type BaseControllerInitRequest = MessengerClientInitRequest<
   ControllerMessenger,
   ControllerMessenger | void
 >;
 
-type InitFunction<Name extends ControllersToInitialize> =
-  ControllerInitFunction<
-    ControllerByName[Name],
-    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
-    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
+type InitFunction<Name extends MessengerClientsToInitialize> =
+  MessengerClientInitFunction<
+    MessengerClientsByName[Name],
+    ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getMessenger']>,
+    ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getInitMessenger']>
   >;
 
 /**
@@ -37,7 +37,7 @@ type InitFunction<Name extends ControllersToInitialize> =
  * @param options.persistedState - The full persisted state for all controllers.
  * @returns The initialized controllers and associated data.
  */
-export const initModularizedControllers: InitModularizedControllersFunction = ({
+export const initModularizedControllers: InitMessengerClientsFunction = ({
   baseControllerMessenger,
   controllerInitFunctions,
   existingControllersByName,
@@ -46,9 +46,9 @@ export const initModularizedControllers: InitModularizedControllersFunction = ({
   log('Initializing controllers', Object.keys(controllerInitFunctions).length);
 
   // Used by other controllers to get dependent controllers
-  const getController = <Name extends ControllerName>(
+  const getController = <Name extends MessengerClientName>(
     name: Name,
-  ): ControllerByName[Name] =>
+  ): MessengerClientsByName[Name] =>
     getControllerOrThrow({
       controller: existingControllersByName?.[name],
       name,
@@ -57,14 +57,14 @@ export const initModularizedControllers: InitModularizedControllersFunction = ({
   for (const [key, controllerInitFunction] of Object.entries(
     controllerInitFunctions,
   )) {
-    const controllerName = key as ControllersToInitialize;
+    const controllerName = key as MessengerClientsToInitialize;
 
     const initFunction = controllerInitFunction as InitFunction<
       typeof controllerName
     >;
 
     // Get the messenger for the controller
-    const messengerCallbacks = CONTROLLER_MESSENGERS[controllerName];
+    const messengerCallbacks = MESSENGER_FACTORIES[controllerName];
 
     const controllerMessengerCallback =
       messengerCallbacks.getMessenger as ControllerMessengerCallback;
@@ -98,7 +98,7 @@ export const initModularizedControllers: InitModularizedControllersFunction = ({
   }
 
   return {
-    controllersByName: existingControllersByName as ControllerByName,
+    controllersByName: existingControllersByName as MessengerClientsByName,
   };
 };
 
@@ -111,13 +111,13 @@ export const initModularizedControllers: InitModularizedControllersFunction = ({
  * @param options.name - The name of the controller.
  * @returns The controller.
  */
-export function getControllerOrThrow<Name extends ControllerName>({
+export function getControllerOrThrow<Name extends MessengerClientName>({
   controller,
   name,
 }: {
-  controller: Partial<ControllerByName>[Name];
+  controller: Partial<MessengerClientsByName>[Name];
   name: Name;
-}): ControllerByName[Name] {
+}): MessengerClientsByName[Name] {
   if (!controller) {
     throw new Error(`Controller requested before it was initialized: ${name}`);
   }

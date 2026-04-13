@@ -4,7 +4,9 @@
  * which expects lines prefixed with "data: ". Raw JSON returns zero quotes.
  */
 export function toSSEResponse(quotes: object[]): string {
-  return quotes.map((q) => `data: ${JSON.stringify(q)}\n\n`).join('');
+  return quotes
+    .map((q) => `event: quote\ndata: ${JSON.stringify(q)}\n\n`)
+    .join('');
 }
 
 export const localNodeOptions = {
@@ -816,6 +818,7 @@ export const GET_POPULAR_TOKENS_MAINNET_RESPONSE = [
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
     name: 'Ethereum',
     symbol: 'ETH',
+    isVerified: true,
   },
   {
     assetId: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
