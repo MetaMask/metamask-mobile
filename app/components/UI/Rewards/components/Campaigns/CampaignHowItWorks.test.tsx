@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import type { Json } from '@metamask/utils';
 import CampaignHowItWorks, {
   CAMPAIGN_HOW_IT_WORKS_TEST_IDS,
 } from './CampaignHowItWorks';
@@ -11,8 +12,6 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { View } = jest.requireActual('react-native');
   return {
     ...actual,
-    // Icon maps its name prop to an SVG component via enum lookup; mock it to
-    // avoid "type is invalid" errors when getIconName returns a plain string.
     Icon: ({ testID }: { testID?: string }) =>
       ReactActual.createElement(View, { testID }),
   };
@@ -35,23 +34,32 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: jest.fn() }),
+}));
+
+const makeRichText = (text: string): Json => ({
+  nodeType: 'document',
+  data: {},
+  content: [
+    {
+      nodeType: 'paragraph',
+      data: {},
+      content: [{ nodeType: 'text', value: text, marks: [], data: {} }],
+    },
+  ],
+});
+
 const createHowItWorks = (
   overrides: Partial<OndoCampaignHowItWorks> = {},
 ): OndoCampaignHowItWorks => ({
   title: 'How it works',
   description: 'Hold tokens to earn rewards',
-  phases: [
+  steps: [
     {
-      name: 'Phase 1',
-      daysLabel: 'Days 1-30',
-      sortOrder: 1,
-      steps: [
-        {
-          iconName: 'star',
-          title: 'Step 1',
-          description: 'Do step 1',
-        },
-      ],
+      iconName: 'star',
+      title: 'Step 1',
+      description: makeRichText('Do step 1'),
     },
   ],
   ...overrides,
@@ -74,74 +82,42 @@ describe('CampaignHowItWorks', () => {
     );
   });
 
-  it('renders a phase chip with daysLabel', () => {
-    const { getByTestId } = render(
-      <CampaignHowItWorks howItWorks={createHowItWorks()} />,
-    );
-    expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.PHASE_CHIP}-0`),
-    ).toHaveTextContent('Days 1-30');
-  });
-
   it('renders a step title and description', () => {
     const { getByTestId } = render(
       <CampaignHowItWorks howItWorks={createHowItWorks()} />,
     );
     expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_TITLE}-0-0`),
+      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_TITLE}-0`),
     ).toHaveTextContent('Step 1');
     expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_DESCRIPTION}-0-0`),
+      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_DESCRIPTION}-0`),
     ).toHaveTextContent('Do step 1');
   });
 
-  it('sorts phases by sortOrder ascending', () => {
+  it('does not render description when it is null', () => {
     const howItWorks = createHowItWorks({
-      phases: [
-        { name: 'Phase B', daysLabel: 'Days 31-60', sortOrder: 2, steps: [] },
-        { name: 'Phase A', daysLabel: 'Days 1-30', sortOrder: 1, steps: [] },
-      ],
+      steps: [{ iconName: 'star', title: 'Step 1', description: null }],
     });
-    const { getByTestId } = render(
+    const { queryByTestId } = render(
       <CampaignHowItWorks howItWorks={howItWorks} />,
     );
     expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.PHASE_CHIP}-0`),
-    ).toHaveTextContent('Days 1-30');
-    expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.PHASE_CHIP}-1`),
-    ).toHaveTextContent('Days 31-60');
+      queryByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_DESCRIPTION}-0`),
+    ).toBeNull();
   });
 
-  it('renders multiple phases', () => {
+  it('renders multiple steps', () => {
     const howItWorks = createHowItWorks({
-      phases: [
-        { name: 'Phase 1', daysLabel: 'Days 1-30', sortOrder: 1, steps: [] },
-        { name: 'Phase 2', daysLabel: 'Days 31-60', sortOrder: 2, steps: [] },
-      ],
-    });
-    const { getByTestId } = render(
-      <CampaignHowItWorks howItWorks={howItWorks} />,
-    );
-    expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.PHASE}-0`),
-    ).toBeDefined();
-    expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.PHASE}-1`),
-    ).toBeDefined();
-  });
-
-  it('renders multiple steps in a phase', () => {
-    const howItWorks = createHowItWorks({
-      phases: [
+      steps: [
         {
-          name: 'Phase 1',
-          daysLabel: 'Days 1-30',
-          sortOrder: 1,
-          steps: [
-            { iconName: 'star', title: 'Step A', description: 'Desc A' },
-            { iconName: 'circle', title: 'Step B', description: 'Desc B' },
-          ],
+          iconName: 'star',
+          title: 'Step A',
+          description: makeRichText('Desc A'),
+        },
+        {
+          iconName: 'circle',
+          title: 'Step B',
+          description: makeRichText('Desc B'),
         },
       ],
     });
@@ -149,21 +125,21 @@ describe('CampaignHowItWorks', () => {
       <CampaignHowItWorks howItWorks={howItWorks} />,
     );
     expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_TITLE}-0-0`),
+      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_TITLE}-0`),
     ).toHaveTextContent('Step A');
     expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_TITLE}-0-1`),
+      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_TITLE}-1`),
     ).toHaveTextContent('Step B');
   });
 
-  it('renders gracefully with no phases', () => {
-    const howItWorks = createHowItWorks({ phases: [] });
+  it('renders gracefully with no steps', () => {
+    const howItWorks = createHowItWorks({ steps: [] });
     const { getByTestId, queryByTestId } = render(
       <CampaignHowItWorks howItWorks={howItWorks} />,
     );
     expect(getByTestId(CAMPAIGN_HOW_IT_WORKS_TEST_IDS.CONTAINER)).toBeDefined();
     expect(
-      queryByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.PHASE}-0`),
+      queryByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP}-0`),
     ).toBeNull();
   });
 
@@ -172,7 +148,7 @@ describe('CampaignHowItWorks', () => {
       <CampaignHowItWorks howItWorks={createHowItWorks()} />,
     );
     expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_ICON}-0-0`),
+      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_ICON}-0`),
     ).toBeDefined();
   });
 });

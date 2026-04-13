@@ -61,14 +61,17 @@ const mockSelectCampaignParticipantOptedIn =
 const CAMPAIGN_ID = 'campaign-123';
 const SUBSCRIPTION_ID = 'sub-456';
 const MOCK_POSITION: CampaignLeaderboardPositionDto = {
-  projected_tier: 'MID',
+  projectedTier: 'MID',
   rank: 5,
-  total_in_tier: 150,
-  rate_of_return: 0.15,
-  current_usd_value: 12500.5,
-  total_usd_deposited: 10000.0,
-  net_deposit: 8500.0,
-  computed_at: '2024-03-20T12:00:00.000Z',
+  totalInTier: 150,
+  rateOfReturn: 0.15,
+  currentUsdValue: 12500.5,
+  totalUsdDeposited: 10000.0,
+  netDeposit: 8500.0,
+  qualifiedDays: 10,
+  qualified: true,
+  neighbors: [],
+  computedAt: '2024-03-20T12:00:00.000Z',
 };
 
 interface SelectorState {

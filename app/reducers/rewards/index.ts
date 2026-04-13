@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction, Action, Draft } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, Action } from '@reduxjs/toolkit';
 import {
   SeasonStatusState,
   SeasonTierDto,
@@ -12,6 +12,9 @@ import {
   CampaignParticipantStatusDto,
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
+  OndoGmPortfolioDto,
+  OndoGmActivityEntryDto,
+  OndoGmCampaignDepositsDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -144,6 +147,17 @@ export interface RewardsState {
     string,
     CampaignLeaderboardPositionDto
   >;
+
+  // Ondo GM portfolio (keyed by composite key `${subscriptionId}:${campaignId}`)
+  ondoCampaignPortfolio: Record<string, OndoGmPortfolioDto>;
+
+  // Ondo GM activity (keyed by composite key `${subscriptionId}:${campaignId}`)
+  ondoCampaignActivity: Record<string, OndoGmActivityEntryDto[] | null>;
+
+  // Ondo campaign deposits (public, campaign-wide total)
+  ondoCampaignDeposits: OndoGmCampaignDepositsDto | null;
+  ondoCampaignDepositsLoading: boolean;
+  ondoCampaignDepositsError: boolean;
 }
 
 export const initialState: RewardsState = {
@@ -228,6 +242,17 @@ export const initialState: RewardsState = {
 
   // Campaign leaderboard position initial state
   ondoCampaignLeaderboardPositions: {},
+
+  // Ondo GM portfolio initial state
+  ondoCampaignPortfolio: {},
+
+  // Ondo GM activity initial state
+  ondoCampaignActivity: {},
+
+  // Ondo campaign deposits initial state
+  ondoCampaignDeposits: null,
+  ondoCampaignDepositsLoading: false,
+  ondoCampaignDepositsError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -338,6 +363,11 @@ const rewardsSlice = createSlice({
       state.ondoCampaignLeaderboard = null;
       state.ondoCampaignLeaderboardSelectedTier = null;
       state.ondoCampaignLeaderboardPositions = {};
+      state.ondoCampaignPortfolio = {};
+      state.ondoCampaignActivity = {};
+      state.ondoCampaignDeposits = null;
+      state.ondoCampaignDepositsLoading = false;
+      state.ondoCampaignDepositsError = false;
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -482,7 +512,7 @@ const rewardsSlice = createSlice({
     },
 
     // Campaigns reducers
-    setCampaigns: (state, action: PayloadAction<Draft<CampaignDto>[]>) => {
+    setCampaigns: (state, action: PayloadAction<CampaignDto[]>) => {
       state.campaigns = action.payload;
       state.campaignsError = false;
       state.campaignsHasLoaded = true;
@@ -582,6 +612,52 @@ const rewardsSlice = createSlice({
       } else {
         delete state.ondoCampaignLeaderboardPositions[key];
       }
+    },
+
+    setOndoCampaignPortfolioPosition: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        campaignId: string;
+        portfolio: OndoGmPortfolioDto | null;
+      }>,
+    ) => {
+      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      if (action.payload.portfolio) {
+        state.ondoCampaignPortfolio[key] = action.payload.portfolio;
+      } else {
+        delete state.ondoCampaignPortfolio[key];
+      }
+    },
+
+    setOndoCampaignActivity: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        campaignId: string;
+        entries: OndoGmActivityEntryDto[] | null;
+      }>,
+    ) => {
+      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      state.ondoCampaignActivity[key] = action.payload.entries;
+    },
+
+    // Campaign deposits reducers
+    setOndoCampaignDeposits: (
+      state,
+      action: PayloadAction<OndoGmCampaignDepositsDto | null>,
+    ) => {
+      state.ondoCampaignDeposits = action.payload;
+      state.ondoCampaignDepositsError = false;
+    },
+    setOndoCampaignDepositsLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.ondoCampaignDeposits) {
+        return;
+      }
+      state.ondoCampaignDepositsLoading = action.payload;
+    },
+    setOndoCampaignDepositsError: (state, action: PayloadAction<boolean>) => {
+      state.ondoCampaignDepositsError = action.payload;
     },
 
     // Bulk link reducers
@@ -691,6 +767,10 @@ const rewardsSlice = createSlice({
                 action.payload.rewards.campaignParticipantStatuses ?? {},
               ondoCampaignLeaderboardPositions:
                 action.payload.rewards.ondoCampaignLeaderboardPositions ?? {},
+              ondoCampaignPortfolio:
+                action.payload.rewards.ondoCampaignPortfolio ?? {},
+              ondoCampaignActivity:
+                action.payload.rewards.ondoCampaignActivity ?? {},
               hideUnlinkedAccountsBanner:
                 action.payload.rewards.hideUnlinkedAccountsBanner,
               hideCurrentAccountNotOptedInBanner:
@@ -760,6 +840,12 @@ export const {
   setOndoCampaignLeaderboardError,
   setOndoCampaignLeaderboardSelectedTier,
   setOndoCampaignLeaderboardPosition,
+  setOndoCampaignPortfolioPosition,
+  setOndoCampaignActivity,
+  // Campaign deposits actions
+  setOndoCampaignDeposits,
+  setOndoCampaignDepositsLoading,
+  setOndoCampaignDepositsError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

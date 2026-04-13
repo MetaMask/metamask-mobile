@@ -51,13 +51,27 @@ jest.mock('../../../../hooks/usePredictPaymentToken', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePredictDefaultPaymentToken', () => ({
+  usePredictDefaultPaymentToken: jest.fn(),
+}));
+
 jest.mock('../../../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(() => false),
+}));
+
+let mockHasTransactionType = true;
+jest.mock('../../../../../../Views/confirmations/utils/transaction', () => ({
+  hasTransactionType: (transactionMeta: unknown) => {
+    if (!transactionMeta) return false;
+    return mockHasTransactionType;
+  },
 }));
 
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     if (key === 'confirm.label.pay_with') return 'Pay with';
+    if (key === 'predict.order.predict_balance_first')
+      return 'Predict balance used first';
     return key;
   },
 }));
@@ -87,6 +101,7 @@ describe('PredictPayWithRow', () => {
     mockIsPredictBalanceSelected = false;
     mockSelectedPaymentToken = null;
     mockIsHardwareAccount.mockReturnValue(false);
+    mockHasTransactionType = true;
   });
 
   it('renders label with payToken symbol', () => {
@@ -140,7 +155,6 @@ describe('PredictPayWithRow', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_MODAL,
-      { isPredictContext: true },
     );
   });
 
@@ -178,12 +192,12 @@ describe('PredictPayWithRow', () => {
     expect(tree).not.toContain('ArrowDown');
   });
 
-  it('falls back to empty string when no symbols available', () => {
+  it('falls back to Predict balance when payToken is null', () => {
     mockPayToken = null;
 
     renderWithProvider(<PredictPayWithRow />);
 
-    expect(screen.getByText('Pay with')).toBeOnTheScreen();
+    expect(screen.getByText('Pay with Predict balance')).toBeOnTheScreen();
   });
 
   it('renders with no transactionMeta without crashing', () => {
@@ -192,5 +206,91 @@ describe('PredictPayWithRow', () => {
     renderWithProvider(<PredictPayWithRow />);
 
     expect(screen.getByText('Pay with USDC')).toBeOnTheScreen();
+  });
+
+  it('does not navigate when transactionMeta is null', () => {
+    mockTransactionMeta = null;
+
+    renderWithProvider(<PredictPayWithRow />);
+    fireEvent.press(screen.getByText('Pay with USDC'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('hides arrow icon when transactionMeta is null', () => {
+    mockTransactionMeta = null;
+
+    const { toJSON } = renderWithProvider(<PredictPayWithRow />);
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).not.toContain('ArrowDown');
+  });
+
+  it('applies muted background when canEdit is true', () => {
+    const { toJSON } = renderWithProvider(<PredictPayWithRow />);
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).toContain('backgroundColor');
+  });
+
+  it('does not apply muted background when disabled', () => {
+    const { toJSON } = renderWithProvider(<PredictPayWithRow disabled />);
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).not.toContain('backgroundColor');
+  });
+
+  it('does not apply muted background when transactionMeta is null', () => {
+    mockTransactionMeta = null;
+
+    const { toJSON } = renderWithProvider(<PredictPayWithRow />);
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).not.toContain('backgroundColor');
+  });
+
+  it('does not apply muted background for hardware accounts', () => {
+    mockIsHardwareAccount.mockReturnValue(true);
+
+    const { toJSON } = renderWithProvider(<PredictPayWithRow />);
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).not.toContain('backgroundColor');
+  });
+
+  it('renders predict balance first hint when external token selected', () => {
+    mockIsPredictBalanceSelected = false;
+
+    renderWithProvider(<PredictPayWithRow />);
+
+    expect(screen.getByText('Predict balance used first')).toBeOnTheScreen();
+  });
+
+  it('hides predict balance first hint when predict balance selected', () => {
+    mockIsPredictBalanceSelected = true;
+
+    renderWithProvider(<PredictPayWithRow />);
+
+    expect(
+      screen.queryByText('Predict balance used first'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('does not navigate when transaction is not predictDepositAndOrder', () => {
+    mockHasTransactionType = false;
+
+    renderWithProvider(<PredictPayWithRow />);
+    fireEvent.press(screen.getByText('Pay with USDC'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('hides arrow icon when transaction is not predictDepositAndOrder', () => {
+    mockHasTransactionType = false;
+
+    const { toJSON } = renderWithProvider(<PredictPayWithRow />);
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).not.toContain('ArrowDown');
   });
 });

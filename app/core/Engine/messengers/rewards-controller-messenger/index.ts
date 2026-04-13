@@ -59,6 +59,10 @@ import {
   RewardsDataServiceGetClientVersionRequirementsAction,
   RewardsDataServiceGetOndoCampaignLeaderboardAction,
   RewardsDataServiceGetOndoCampaignLeaderboardPositionAction,
+  RewardsDataServiceGetOndoCampaignPortfolioPositionAction,
+  RewardsDataServiceGetOndoCampaignActivityAction,
+  RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction,
+  RewardsDataServiceGetOndoCampaignDepositsAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -104,7 +108,11 @@ type AllowedActions =
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
-  | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction;
+  | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
+  | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
+  | RewardsDataServiceGetOndoCampaignActivityAction
+  | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
+  | RewardsDataServiceGetOndoCampaignDepositsAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -172,6 +180,10 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getClientVersionRequirements',
       'RewardsDataService:getOndoCampaignLeaderboard',
       'RewardsDataService:getOndoCampaignLeaderboardPosition',
+      'RewardsDataService:getOndoCampaignPortfolioPosition',
+      'RewardsDataService:getOndoCampaignActivity',
+      'RewardsDataService:getOndoCampaignActivityLastUpdated',
+      'RewardsDataService:getOndoCampaignDeposits',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

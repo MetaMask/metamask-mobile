@@ -4,6 +4,7 @@ import {
 } from '@metamask/base-controller';
 import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import type { RewardsControllerMethodActions } from './RewardsController-method-action-types';
 
 /**
  * Crockford's Base32 alphabet — excludes I, L, O, U to avoid ambiguity.
@@ -164,20 +165,25 @@ export interface CampaignDto {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OndoCampaignStepState = {
   title: string;
-  description: string;
+  description: Json | null;
   iconName: string;
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignTourActionsState = {
+  next?: boolean;
+  skip?: boolean;
+};
+
 /**
- * Serializable version of OndoCampaignPhase for state storage.
+ * Serializable version of OndoCampaignTourStepDto for state storage.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type OndoCampaignPhaseState = {
-  name: string;
-  daysLabel: string;
-  sortOrder: number;
-  steps: OndoCampaignStepState[];
-  days?: number | null;
+export type OndoCampaignTourStepDtoState = {
+  title: string;
+  description: string;
+  image: ThemeImageState | null;
+  actions: OndoCampaignTourActionsState | null;
 };
 
 /**
@@ -187,8 +193,9 @@ export type OndoCampaignPhaseState = {
 export type OndoCampaignHowItWorksState = {
   title: string;
   description: string;
-  phases: OndoCampaignPhaseState[];
+  steps: OndoCampaignStepState[];
   notes?: Json | null;
+  tour?: OndoCampaignTourStepDtoState[];
 };
 
 /**
@@ -205,7 +212,6 @@ export type ThemeImageState = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignDetailsState = {
-  image: ThemeImageState;
   howItWorks: OndoCampaignHowItWorksState;
 };
 
@@ -223,6 +229,7 @@ export type CampaignDtoState = {
   termsAndConditions: Json | null;
   excludedRegions: string[];
   statusLabel: string;
+  image: ThemeImageState | null;
   details: CampaignDetailsState | null;
   featured: boolean;
 };
@@ -261,13 +268,25 @@ export interface CampaignLeaderboardEntry {
    * The participant's referral code (used as identifier)
    * @example 'ABC123'
    */
-  referral_code: string;
+  referralCode: string;
 
   /**
    * The rate of return as a decimal ratio (0.15 = 15%, -0.05 = -5%)
    * @example 0.15
    */
-  rate_of_return: number;
+  rateOfReturn: number;
+
+  /**
+   * Non-consecutive qualifying days at projected tier
+   * @example 8
+   */
+  qualifiedDays: number;
+
+  /**
+   * Whether hold requirement is met
+   * @example false
+   */
+  qualified: boolean;
 }
 
 /**
@@ -283,7 +302,13 @@ export interface CampaignLeaderboardTier {
    * Total number of participants in this tier
    * @example 150
    */
-  total_participants: number;
+  totalParticipants: number;
+
+  /**
+   * Minimum USD net deposit required to qualify for this tier
+   * @example 5000
+   */
+  minDeposit: number;
 }
 
 /**
@@ -295,13 +320,13 @@ export interface CampaignLeaderboardDto {
    * The campaign ID
    * @example '123e4567-e89b-12d3-a456-426614174000'
    */
-  campaign_id: string;
+  campaignId: string;
 
   /**
    * When the leaderboard was last computed (ISO timestamp)
    * @example '2024-03-20T12:00:00.000Z'
    */
-  computed_at: string;
+  computedAt: string;
 
   /**
    * Leaderboard data by tier name (e.g. STARTER, MID, UPPER)
@@ -319,7 +344,7 @@ export interface CampaignLeaderboardPositionDto {
    * The user's projected tier based on net deposit
    * @example 'MID'
    */
-  projected_tier: string;
+  projectedTier: string;
 
   /**
    * The user's rank within their tier
@@ -331,57 +356,349 @@ export interface CampaignLeaderboardPositionDto {
    * Total number of participants in the user's tier
    * @example 150
    */
-  total_in_tier: number;
+  totalInTier: number;
 
   /**
    * The user's rate of return as a decimal ratio
    * @example 0.15
    */
-  rate_of_return: number;
+  rateOfReturn: number;
 
   /**
    * Current USD value of the user's positions
    * @example 12500.50
    */
-  current_usd_value: number;
+  currentUsdValue: number;
 
   /**
    * Total USD deposited by the user
    * @example 10000.00
    */
-  total_usd_deposited: number;
+  totalUsdDeposited: number;
 
   /**
    * Net deposit amount (deposits - withdrawals at cost basis)
    * @example 8500.00
    */
-  net_deposit: number;
+  netDeposit: number;
+
+  /**
+   * Non-consecutive qualifying days at projected tier
+   * @example 8
+   */
+  qualifiedDays: number;
+
+  /**
+   * Whether hold requirement is met
+   * @example false
+   */
+  qualified: boolean;
+
+  /**
+   * Neighboring entries around the user's rank (up to 1 before/after)
+   */
+  neighbors: CampaignLeaderboardEntry[];
 
   /**
    * When the leaderboard was last computed (ISO timestamp)
    * @example '2024-03-20T12:00:00.000Z'
    */
-  computed_at: string;
+  computedAt: string;
 }
+
+/**
+ * Single position in GET /ondo-gm/:campaignId/portfolio/me
+ */
+export interface OndoGmPortfolioPositionDto {
+  /**
+   * @example 'AAPLon'
+   */
+  tokenSymbol: string;
+
+  /**
+   * @example 'Apple Inc.'
+   */
+  tokenName: string;
+
+  /**
+   * CAIP-19 asset type identifier for this position
+   * @example 'eip155:1/erc20:0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c'
+   */
+  tokenAsset: string;
+
+  /**
+   * @example '45.2'
+   */
+  units: string;
+
+  /**
+   * Weighted-average book price per whole token (USD)
+   * @example '200.000000'
+   */
+  bookPrice: string;
+
+  /**
+   * Derived book value: units * bookPrice (USD)
+   * @example '9040.000000'
+   */
+  bookValue: string;
+
+  /**
+   * @example '215.500000'
+   */
+  currentPrice: string;
+
+  /**
+   * @example '9740.600000'
+   */
+  currentValue: string;
+
+  /**
+   * @example '700.600000'
+   */
+  unrealizedPnl: string;
+
+  /**
+   * @example '0.0775'
+   */
+  unrealizedPnlPercent: string;
+}
+
+/**
+ * Portfolio summary in GET /ondo-gm/:campaignId/portfolio/me
+ */
+export interface OndoGmPortfolioSummaryDto {
+  /**
+   * @example '9740.600000'
+   */
+  totalCurrentValue: string;
+
+  /**
+   * Sum of all position book values (USD)
+   * @example '9040.000000'
+   */
+  totalBookValue: string;
+
+  /**
+   * @example '9040.000000'
+   */
+  totalUsdDeposited: string;
+
+  /**
+   * @example '9040.000000'
+   */
+  netDeposit: string;
+
+  /**
+   * Cumulative market value already cashed out from the portfolio
+   * @example '600.000000'
+   */
+  totalCashedOut: string;
+
+  /**
+   * @example '700.600000'
+   */
+  portfolioPnl: string;
+
+  /**
+   * @example '0.0775'
+   */
+  portfolioPnlPercent: string;
+}
+
+/**
+ * Response DTO for GET /ondo-gm/:campaignId/portfolio/me
+ */
+export interface OndoGmPortfolioDto {
+  positions: OndoGmPortfolioPositionDto[];
+  summary: OndoGmPortfolioSummaryDto;
+
+  /**
+   * @example '2026-03-20T12:00:00.000Z'
+   */
+  computedAt: string;
+}
+
+/**
+ * Single cached portfolio row (mirrors {@link OndoGmPortfolioPositionDto}; explicit plain-object shape for cache / Json).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmPortfolioPositionState = {
+  tokenSymbol: string;
+  tokenName: string;
+  tokenAsset: string;
+  units: string;
+  bookPrice: string;
+  bookValue: string;
+  currentPrice: string;
+  currentValue: string;
+  unrealizedPnl: string;
+  unrealizedPnlPercent: string;
+};
+
+/**
+ * Cached portfolio summary (mirrors {@link OndoGmPortfolioSummaryDto}; explicit plain-object shape for cache / Json).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmPortfolioSummaryState = {
+  totalCurrentValue: string;
+  totalBookValue: string;
+  totalUsdDeposited: string;
+  netDeposit: string;
+  totalCashedOut: string;
+  portfolioPnl: string;
+  portfolioPnlPercent: string;
+};
+
+/**
+ * Campaign-wide total deposits (public endpoint).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmCampaignDepositsDto = {
+  totalUsdDeposited: string;
+};
+
+/**
+ * Cached portfolio payload (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmPortfolioState = {
+  positions: OndoGmPortfolioPositionState[];
+  summary: OndoGmPortfolioSummaryState;
+  computedAt: string;
+  lastFetched: number;
+};
+
+/**
+ * Activity entry type for Ondo GM campaign transactions.
+ */
+export type ActivityEntryType =
+  | 'DEPOSIT'
+  | 'REBALANCE'
+  | 'WITHDRAW'
+  | 'EXTERNAL_OUTFLOW';
+
+/**
+ * Token metadata within an activity entry.
+ */
+export interface ActivityTokenDto {
+  /**
+   * CAIP-19 asset type identifier
+   * @example 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da'
+   */
+  tokenAsset: string;
+
+  /** @example 'AAPLon' */
+  tokenSymbol: string;
+
+  /** @example 'Apple Inc.' */
+  tokenName: string;
+}
+
+/**
+ * DTO for a single activity entry from GET /ondo-gm/:campaignId/activity/me
+ */
+export interface OndoGmActivityEntryDto {
+  /** @example 'DEPOSIT' */
+  type: ActivityEntryType;
+
+  /** Source token */
+  srcToken: ActivityTokenDto;
+
+  /** Destination token, null for withdrawals */
+  destToken: ActivityTokenDto | null;
+
+  /**
+   * Recipient wallet address (only set for EXTERNAL_OUTFLOW events)
+   * @example '0x1234567890abcdef1234567890abcdef12345678'
+   */
+  destAddress: string | null;
+
+  /**
+   * Signed USD value (6 decimals). Positive for deposits, negative for withdrawals. Null for rebalances.
+   * @example '125.000000'
+   */
+  usdAmount: string | null;
+
+  /**
+   * Block timestamp (ISO 8601 UTC)
+   * @example '2026-03-28T14:30:00.000Z'
+   */
+  timestamp: string;
+}
+
+/**
+ * Paginated response for Ondo GM campaign activity
+ */
+export interface PaginatedOndoGmActivityDto {
+  has_more: boolean;
+  cursor: string | null;
+  results: OndoGmActivityEntryDto[];
+}
+
+/**
+ * Serializable state for token metadata within an activity entry.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ActivityTokenState = {
+  tokenAsset: string;
+  tokenSymbol: string;
+  tokenName: string;
+};
+
+/**
+ * Serializable state for a single activity entry (mirrors {@link OndoGmActivityEntryDto}).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmActivityEntryState = {
+  type: string;
+  srcToken: ActivityTokenState;
+  destToken: ActivityTokenState | null;
+  destAddress: string | null;
+  usdAmount: string | null;
+  timestamp: string;
+};
+
+/**
+ * Cached activity page (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmActivityState = {
+  results: OndoGmActivityEntryState[];
+  has_more: boolean;
+  cursor: string | null;
+  lastFetched: number;
+};
+
+/**
+ * Cached campaign deposits (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmCampaignDepositsState = {
+  totalUsdDeposited: string;
+  lastFetched: number;
+};
 
 /**
  * State for cached leaderboard data in the controller
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignLeaderboardState = {
-  campaign_id: string;
-  computed_at: string;
-  tiers: Record<
-    string,
-    {
+  campaignId: string;
+  computedAt: string;
+  tiers: {
+    [tierName: string]: {
       entries: {
         rank: number;
-        referral_code: string;
-        rate_of_return: number;
+        referralCode: string;
+        rateOfReturn: number;
+        qualifiedDays: number;
+        qualified: boolean;
       }[];
-      total_participants: number;
-    }
-  >;
+      totalParticipants: number;
+      minDeposit: number;
+    };
+  };
   lastFetched: number;
 };
 
@@ -390,14 +707,23 @@ export type CampaignLeaderboardState = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignLeaderboardPositionFoundState = {
-  projected_tier: string;
+  projectedTier: string;
   rank: number;
-  total_in_tier: number;
-  rate_of_return: number;
-  current_usd_value: number;
-  total_usd_deposited: number;
-  net_deposit: number;
-  computed_at: string;
+  totalInTier: number;
+  rateOfReturn: number;
+  currentUsdValue: number;
+  totalUsdDeposited: number;
+  netDeposit: number;
+  qualifiedDays: number;
+  qualified: boolean;
+  neighbors: {
+    rank: number;
+    referralCode: string;
+    rateOfReturn: number;
+    qualifiedDays: number;
+    qualified: boolean;
+  }[];
+  computedAt: string;
   lastFetched: number;
 };
 
@@ -421,26 +747,28 @@ export type CampaignParticipantStatusState = {
 
 export interface OndoCampaignStep {
   title: string;
-  description: string;
+  description: Json | null;
   iconName: string;
 }
 
-export interface OndoCampaignPhase {
-  name: string;
-  daysLabel: string;
-  sortOrder: number;
-  steps: OndoCampaignStep[];
-  /**
-   * Number of days in the phase, used to calculate phase cut-off dates
-   */
-  days?: number | null;
+export interface OndoCampaignTourActions {
+  next?: boolean;
+  skip?: boolean;
+}
+
+export interface OndoCampaignTourStepDto {
+  title: string;
+  description: string;
+  image: ThemeImage | null;
+  actions: OndoCampaignTourActions | null;
 }
 
 export interface OndoCampaignHowItWorks {
   title: string;
   description: string;
-  phases: OndoCampaignPhase[];
+  steps: OndoCampaignStep[];
   notes?: Json | null;
+  tour?: OndoCampaignTourStepDto[];
 }
 
 export interface OndoHoldingDetails {
@@ -1456,6 +1784,23 @@ export type RewardsControllerState = {
     [compositeId: string]: CampaignLeaderboardPositionState;
   };
   /**
+   * Ondo campaign portfolio keyed by compositeId (subscriptionId:campaignId).
+   * Each value is a cached successful GET /portfolio/me response plus {@link OndoGmPortfolioState.lastFetched}.
+   * Null API responses are not cached (unlike leaderboard position, which uses a not-found sentinel).
+   */
+  ondoCampaignPortfolio: {
+    [compositeId: string]: OndoGmPortfolioState;
+  };
+  /**
+   * Ondo campaign activity keyed by compositeId (subscriptionId:campaignId).
+   * First-page results are cached for 1 minute; pagination pages are not cached.
+   */
+  ondoCampaignActivity: {
+    [compositeId: string]: OndoGmActivityState;
+  };
+  /** Ondo campaign deposits keyed by campaignId (public endpoint). */
+  ondoCampaignDeposits: { [campaignId: string]: OndoGmCampaignDepositsState };
+  /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
    * Array is ordered by timestamp (most recent first)
@@ -1547,6 +1892,20 @@ export interface RewardsControllerLeaderboardPositionInvalidatedEvent {
 }
 
 /**
+ * Event emitted when a user opts into a campaign, invalidating the cached
+ * portfolio so hooks can refetch fresh data.
+ */
+export interface RewardsControllerPortfolioPositionInvalidatedEvent {
+  type: 'RewardsController:portfolioPositionInvalidated';
+  payload: [
+    {
+      campaignId: string;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
 export type RewardsControllerEvents =
@@ -1556,7 +1915,8 @@ export type RewardsControllerEvents =
   | RewardsControllerBalanceUpdatedEvent
   | RewardsControllerPointsEventsUpdatedEvent
   | RewardsControllerCampaignOptedInEvent
-  | RewardsControllerLeaderboardPositionInvalidatedEvent;
+  | RewardsControllerLeaderboardPositionInvalidatedEvent
+  | RewardsControllerPortfolioPositionInvalidatedEvent;
 
 /**
  * Patch type for state changes
@@ -1565,17 +1925,6 @@ export interface Patch {
   op: 'replace' | 'add' | 'remove';
   path: string[];
   value?: unknown;
-}
-
-/**
- * Action for updating state with opt-in response
- */
-export interface RewardsControllerOptInAction {
-  type: 'RewardsController:optIn';
-  handler: (
-    accounts: InternalAccount[],
-    referralCode?: string,
-  ) => Promise<string | null>;
 }
 
 /**
@@ -1619,325 +1968,6 @@ export interface GeoRewardsMetadata {
 }
 
 /**
- * Action for getting whether the account (caip-10 format) has opted in
- */
-export interface RewardsControllerGetHasAccountOptedInAction {
-  type: 'RewardsController:getHasAccountOptedIn';
-  handler: (account: CaipAccountId) => Promise<boolean>;
-}
-
-/**
- * Action for getting opt-in status of multiple addresses with feature flag check
- */
-export interface RewardsControllerGetOptInStatusAction {
-  type: 'RewardsController:getOptInStatus';
-  handler: (params: OptInStatusInputDto) => Promise<OptInStatusDto>;
-}
-
-/**
- * Action for getting points events for a given season
- */
-export interface RewardsControllerGetPointsEventsAction {
-  type: 'RewardsController:getPointsEvents';
-  handler: (params: GetPointsEventsDto) => Promise<PaginatedPointsEventsDto>;
-}
-
-/**
- * Action for estimating points for a given activity
- */
-export interface RewardsControllerEstimatePointsAction {
-  type: 'RewardsController:estimatePoints';
-  handler: (request: EstimatePointsDto) => Promise<EstimatedPointsDto>;
-}
-
-/**
- * Action for getting perps fee discount in bips for an account
- */
-export interface RewardsControllerGetPerpsDiscountAction {
-  type: 'RewardsController:getPerpsDiscountForAccount';
-  handler: (account: CaipAccountId) => Promise<number>;
-}
-
-/**
- * Action for checking if rewards feature is enabled via feature flag
- */
-export interface RewardsControllerIsRewardsFeatureEnabledAction {
-  type: 'RewardsController:isRewardsFeatureEnabled';
-  handler: () => boolean;
-}
-
-/**
- * Action for checking if there is an active season
- */
-export interface RewardsControllerHasActiveSeasonAction {
-  type: 'RewardsController:hasActiveSeason';
-  handler: () => Promise<boolean>;
-}
-
-/**
- * Action for getting season metadata with caching
- */
-export interface RewardsControllerGetSeasonMetadataAction {
-  type: 'RewardsController:getSeasonMetadata';
-  handler: (type?: 'current' | 'previous') => Promise<SeasonDtoState | null>;
-}
-
-/**
- * Action for getting season status with caching
- */
-export interface RewardsControllerGetSeasonStatusAction {
-  type: 'RewardsController:getSeasonStatus';
-  handler: (
-    subscriptionId: string,
-    seasonId: string,
-  ) => Promise<SeasonStatusState | null>;
-}
-
-/**
- * Action for getting referral details with caching
- */
-export interface RewardsControllerGetReferralDetailsAction {
-  type: 'RewardsController:getReferralDetails';
-  handler: (
-    subscriptionId: string,
-    seasonId: string,
-  ) => Promise<SubscriptionSeasonReferralDetailState | null>;
-}
-
-/**
- * Action for logging out a user
- */
-export interface RewardsControllerLogoutAction {
-  type: 'RewardsController:logout';
-  handler: () => Promise<void>;
-}
-
-/**
- * Action for getting geo rewards metadata
- */
-export interface RewardsControllerGetGeoRewardsMetadataAction {
-  type: 'RewardsController:getGeoRewardsMetadata';
-  handler: () => Promise<GeoRewardsMetadata>;
-}
-
-/**
- * Action for validating referral codes
- */
-export interface RewardsControllerValidateReferralCodeAction {
-  type: 'RewardsController:validateReferralCode';
-  handler: (code: string) => Promise<boolean>;
-}
-
-/**
- * Action for validating bonus codes
- */
-export interface RewardsControllerValidateBonusCodeAction {
-  type: 'RewardsController:validateBonusCode';
-  handler: (code: string, subscriptionId: string) => Promise<boolean>;
-}
-
-/**
- * Action for checking if an account supports opt-in
- */
-export interface RewardsControllerIsOptInSupportedAction {
-  type: 'RewardsController:isOptInSupported';
-  handler: (account: InternalAccount) => boolean;
-}
-
-/**
- * Action for getting the actual subscription ID for a CAIP account ID
- */
-export interface RewardsControllerGetActualSubscriptionIdAction {
-  type: 'RewardsController:getActualSubscriptionId';
-  handler: (account: CaipAccountId) => string | null;
-}
-
-/**
- * Action for getting the first subscription ID from the subscriptions map
- */
-export interface RewardsControllerGetFirstSubscriptionIdAction {
-  type: 'RewardsController:getFirstSubscriptionId';
-  handler: () => string | null;
-}
-
-/**
- * Action for linking an account to a subscription
- */
-export interface RewardsControllerLinkAccountToSubscriptionAction {
-  type: 'RewardsController:linkAccountToSubscriptionCandidate';
-  handler: (
-    account: InternalAccount,
-    invalidateRelatedData?: boolean,
-  ) => Promise<boolean>;
-}
-
-/**
- * Action for linking multiple accounts to a subscription candidate
- */
-export interface RewardsControllerLinkAccountsToSubscriptionCandidateAction {
-  type: 'RewardsController:linkAccountsToSubscriptionCandidate';
-  handler: (
-    accounts: InternalAccount[],
-  ) => Promise<{ account: InternalAccount; success: boolean }[]>;
-}
-
-/**
- * Action for getting candidate subscription ID
- */
-export interface RewardsControllerGetCandidateSubscriptionIdAction {
-  type: 'RewardsController:getCandidateSubscriptionId';
-  handler: () => Promise<string | null>;
-}
-
-/**
- * Action for opting out of rewards program
- */
-export interface RewardsControllerOptOutAction {
-  type: 'RewardsController:optOut';
-  handler: (subscriptionId: string) => Promise<boolean>;
-}
-
-/**
- * Action for getting active points boosts
- */
-export interface RewardsControllerGetActivePointsBoostsAction {
-  type: 'RewardsController:getActivePointsBoosts';
-  handler: (
-    seasonId: string,
-    subscriptionId: string,
-  ) => Promise<PointsBoostDto[]>;
-}
-
-/**
- * Action for getting unlocked rewards for a season
- */
-export interface RewardsControllerGetUnlockedRewardsAction {
-  type: 'RewardsController:getUnlockedRewards';
-  handler: (seasonId: string, subscriptionId: string) => Promise<RewardDto[]>;
-}
-
-/**
- * Action for getting campaigns
- */
-export interface RewardsControllerGetCampaignsAction {
-  type: 'RewardsController:getCampaigns';
-  handler: (subscriptionId: string) => Promise<CampaignDto[]>;
-}
-
-/**
- * Action for opting into a campaign
- */
-export interface RewardsControllerOptInToCampaignAction {
-  type: 'RewardsController:optInToCampaign';
-  handler: (
-    campaignId: string,
-    subscriptionId: string,
-  ) => Promise<CampaignParticipantStatusDto>;
-}
-
-/**
- * Action for getting the campaign participant status
- */
-export interface RewardsControllerGetCampaignParticipantStatusAction {
-  type: 'RewardsController:getCampaignParticipantStatus';
-  handler: (
-    campaignId: string,
-    subscriptionId: string,
-  ) => Promise<CampaignParticipantStatusDto>;
-}
-
-/**
- * Action for getting the campaign leaderboard (public, top 20 per tier)
- */
-export interface RewardsControllerGetOndoCampaignLeaderboardAction {
-  type: 'RewardsController:getOndoCampaignLeaderboard';
-  handler: (campaignId: string) => Promise<CampaignLeaderboardDto>;
-}
-
-/**
- * Action for getting the current user's leaderboard position (authenticated)
- */
-export interface RewardsControllerGetOndoCampaignLeaderboardPositionAction {
-  type: 'RewardsController:getOndoCampaignLeaderboardPosition';
-  handler: (
-    campaignId: string,
-    subscriptionId: string,
-  ) => Promise<CampaignLeaderboardPositionDto | null>;
-}
-
-/**
- * Action for getting CAIP-10 accounts linked to a subscription that are not on this device
- */
-export interface RewardsControllerGetOffDeviceSubscriptionAccountsAction {
-  type: 'RewardsController:getOffDeviceSubscriptionAccounts';
-  handler: (subscriptionId: string) => Promise<string[]>;
-}
-
-/**
- * Action for claiming a reward
- */
-export interface RewardsControllerClaimRewardAction {
-  type: 'RewardsController:claimReward';
-  handler: (
-    rewardId: string,
-    subscriptionId: string,
-    dto?: ClaimRewardDto,
-  ) => Promise<void>;
-}
-
-/**
- * Action for getting Season 1 Linea token reward
- */
-export interface RewardsControllerGetSeasonOneLineaRewardTokensAction {
-  type: 'RewardsController:getSeasonOneLineaRewardTokens';
-  handler: (subscriptionId: string) => Promise<LineaTokenRewardDto | null>;
-}
-
-/**
- * Action for resetting controller state
- */
-export interface RewardsControllerResetAllAction {
-  type: 'RewardsController:resetAll';
-  handler: () => Promise<void>;
-}
-
-export interface RewardsControllerGetRewardsEnvUrlAction {
-  type: 'RewardsController:getRewardsEnvUrl';
-  handler: () => string;
-}
-
-export interface RewardsControllerCanChangeRewardsEnvUrlAction {
-  type: 'RewardsController:canChangeRewardsEnvUrl';
-  handler: () => boolean;
-}
-
-export interface RewardsControllerSetRewardsEnvUrlAction {
-  type: 'RewardsController:setRewardsEnvUrl';
-  handler: (url: string) => Promise<void>;
-}
-
-export interface RewardsControllerGetDefaultRewardsEnvUrlAction {
-  type: 'RewardsController:getDefaultRewardsEnvUrl';
-  handler: () => string;
-}
-
-/**
- * Action for applying a referral code to an existing subscription
- */
-export interface RewardsControllerApplyReferralCodeAction {
-  type: 'RewardsController:applyReferralCode';
-  handler: (referralCode: string, subscriptionId: string) => Promise<void>;
-}
-
-/**
- * Action for applying a bonus code to an existing subscription
- */
-export interface RewardsControllerApplyBonusCodeAction {
-  type: 'RewardsController:applyBonusCode';
-  handler: (bonusCode: string, subscriptionId: string) => Promise<void>;
-}
-
-/**
  * Response DTO for the client version requirements endpoint.
  */
 export interface ClientVersionRequirementDto {
@@ -1946,58 +1976,19 @@ export interface ClientVersionRequirementDto {
 }
 
 /**
- * Action for fetching client version requirements
+ * The action which can be used to retrieve the state of the RewardsController.
  */
-export interface RewardsControllerGetClientVersionRequirementsAction {
-  type: 'RewardsController:getClientVersionRequirements';
-  handler: () => Promise<ClientVersionRequirementDto>;
-}
+export type RewardsControllerGetStateAction = ControllerGetStateAction<
+  'RewardsController',
+  RewardsControllerState
+>;
 
 /**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
-  | ControllerGetStateAction<'RewardsController', RewardsControllerState>
-  | RewardsControllerGetHasAccountOptedInAction
-  | RewardsControllerGetOptInStatusAction
-  | RewardsControllerGetPointsEventsAction
-  | RewardsControllerEstimatePointsAction
-  | RewardsControllerGetPerpsDiscountAction
-  | RewardsControllerIsRewardsFeatureEnabledAction
-  | RewardsControllerHasActiveSeasonAction
-  | RewardsControllerGetSeasonMetadataAction
-  | RewardsControllerGetSeasonStatusAction
-  | RewardsControllerGetReferralDetailsAction
-  | RewardsControllerOptInAction
-  | RewardsControllerLogoutAction
-  | RewardsControllerGetGeoRewardsMetadataAction
-  | RewardsControllerValidateReferralCodeAction
-  | RewardsControllerValidateBonusCodeAction
-  | RewardsControllerIsOptInSupportedAction
-  | RewardsControllerGetActualSubscriptionIdAction
-  | RewardsControllerGetFirstSubscriptionIdAction
-  | RewardsControllerLinkAccountToSubscriptionAction
-  | RewardsControllerLinkAccountsToSubscriptionCandidateAction
-  | RewardsControllerGetCandidateSubscriptionIdAction
-  | RewardsControllerOptOutAction
-  | RewardsControllerGetActivePointsBoostsAction
-  | RewardsControllerGetUnlockedRewardsAction
-  | RewardsControllerGetCampaignsAction
-  | RewardsControllerOptInToCampaignAction
-  | RewardsControllerGetCampaignParticipantStatusAction
-  | RewardsControllerGetOndoCampaignLeaderboardAction
-  | RewardsControllerGetOndoCampaignLeaderboardPositionAction
-  | RewardsControllerGetOffDeviceSubscriptionAccountsAction
-  | RewardsControllerClaimRewardAction
-  | RewardsControllerGetSeasonOneLineaRewardTokensAction
-  | RewardsControllerResetAllAction
-  | RewardsControllerApplyReferralCodeAction
-  | RewardsControllerGetRewardsEnvUrlAction
-  | RewardsControllerCanChangeRewardsEnvUrlAction
-  | RewardsControllerSetRewardsEnvUrlAction
-  | RewardsControllerGetDefaultRewardsEnvUrlAction
-  | RewardsControllerApplyBonusCodeAction
-  | RewardsControllerGetClientVersionRequirementsAction;
+  | RewardsControllerGetStateAction
+  | RewardsControllerMethodActions;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

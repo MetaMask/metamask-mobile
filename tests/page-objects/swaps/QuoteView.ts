@@ -11,6 +11,9 @@ import {
   asDetoxElement,
   asPlaywrightElement,
   type EncapsulatedElementType,
+  PlaywrightGestures,
+  PlatformDetector,
+  PlaywrightElement,
 } from '../../framework';
 import { getAssetTestId } from '../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
@@ -172,15 +175,26 @@ class QuoteView {
         });
       },
       appium: async () => {
-        const tokenElement = await PlaywrightMatchers.getElementById(
-          this.getTokenElementId(chainId, symbol),
-          { exact: false },
-        );
+        let tokenElement: PlaywrightElement;
+        if (await PlatformDetector.isAndroid()) {
+          tokenElement = await PlaywrightMatchers.getElementById(
+            this.getTokenElementId(chainId, symbol),
+            { exact: false },
+          );
+        } else {
+          tokenElement = await PlaywrightMatchers.getElementByNameiOS(
+            this.getTokenElementId(chainId, symbol),
+          );
+        }
         await PlaywrightAssertions.expectElementToBeVisible(tokenElement, {
           timeout: TIMEOUT.TOKEN_SELECT,
           description: `Token ${symbol} should be visible`,
         });
-        await tokenElement.click();
+        await PlaywrightGestures.waitAndTap(tokenElement, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          delay: 1000,
+        });
       },
     });
   }
@@ -209,8 +223,22 @@ class QuoteView {
    * Use before enterAmount() when the keypad may be closed (e.g. after returning from token/network selection).
    */
   async tapSourceAmountInput(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.amountInput, {
-      description: 'Tap source amount input to open keypad',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.amountInput, {
+          elemDescription: 'Tap source amount input to open keypad',
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.amountInput),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            delay: 1500,
+          },
+        );
+      },
     });
   }
 
@@ -253,7 +281,11 @@ class QuoteView {
           timeout: TIMEOUT.NETWORK_SELECT,
           description: `Network ${network} should be visible`,
         });
-        await networkElement.click();
+        await PlaywrightGestures.waitAndTap(networkElement, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          delay: 1000,
+        });
       },
     });
   }
@@ -360,16 +392,25 @@ class QuoteView {
         await this.enterAmount(amount);
       },
       appium: async () => {
-        await UnifiedGestures.waitAndTap(this.amountInput, {
-          description: 'Tap source amount input',
-        });
+        await this.tapSourceAmountInput();
+        let digitEl: PlaywrightElement;
         for (const digit of amount) {
-          const digitEl = await PlaywrightMatchers.getElementByText(digit);
+          if (await PlatformDetector.isAndroid()) {
+            digitEl = await PlaywrightMatchers.getElementByText(digit);
+          } else {
+            digitEl = await PlaywrightMatchers.getElementByXPath(
+              `//*[contains(@name,'keypad-key-${digit}')]`,
+            );
+          }
           await PlaywrightAssertions.expectElementToBeVisible(digitEl, {
             timeout: TIMEOUT.KEYPAD_DIGIT,
             description: `Keypad digit ${digit} should be visible`,
           });
-          await digitEl.click();
+          await PlaywrightGestures.waitAndTap(digitEl, {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            delay: 1000,
+          });
         }
       },
     });

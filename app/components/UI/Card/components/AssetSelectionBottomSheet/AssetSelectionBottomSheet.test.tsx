@@ -54,12 +54,6 @@ jest.mock('../../sdk', () => ({
   }),
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
-  useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
-}));
-
 const mockShowToast = jest.fn();
 
 jest.mock('../../../../../component-library/components/Toast');
@@ -123,7 +117,6 @@ import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AssetSelectionBottomSheet from './AssetSelectionBottomSheet';
 import {
   AllowanceState,
@@ -140,20 +133,18 @@ import { useUpdateTokenPriority } from '../../hooks/useUpdateTokenPriority';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
-// Wrapper component to provide Toast context and SafeAreaProvider
+// Wrapper component to provide Toast context
 const renderWithToastContext = (component: React.ReactElement) =>
   render(
-    <SafeAreaProvider>
-      <ToastContext.Provider
-        value={{
-          toastRef: {
-            current: { showToast: mockShowToast, closeToast: jest.fn() },
-          },
-        }}
-      >
-        {component}
-      </ToastContext.Provider>
-    </SafeAreaProvider>,
+    <ToastContext.Provider
+      value={{
+        toastRef: {
+          current: { showToast: mockShowToast, closeToast: jest.fn() },
+        },
+      }}
+    >
+      {component}
+    </ToastContext.Provider>,
   );
 
 // Helper function to create mock token
@@ -220,12 +211,7 @@ describe('AssetSelectionBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector.toString().includes('selectUserCardLocation')) {
-        return 'international';
-      }
-      return undefined;
-    });
+    mockUseSelector.mockReturnValue(undefined);
 
     (useAssetBalances as jest.Mock).mockReturnValue(new Map());
 
@@ -292,7 +278,7 @@ describe('AssetSelectionBottomSheet', () => {
       });
 
       expect(UNSAFE_getByType('ActivityIndicator' as never)).toBeTruthy();
-      expect(queryByText('No tokens available')).toBeNull();
+      expect(queryByText('No tokens available')).not.toBeOnTheScreen();
     });
 
     it('displays no tokens message when no tokens available', () => {
@@ -393,12 +379,7 @@ describe('AssetSelectionBottomSheet', () => {
 
   describe('token sorting', () => {
     it('sorts tokens by priority', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectUserCardLocation')) {
-          return 'international';
-        }
-        return undefined;
-      });
+      mockUseSelector.mockReturnValue(undefined);
       const token1 = createMockToken({
         symbol: 'USDC',
         priority: 2,
@@ -1094,7 +1075,7 @@ describe('AssetSelectionBottomSheet', () => {
         delegationSettings,
       });
 
-      expect(queryByText(/0x/)).toBeNull();
+      expect(queryByText(/0x/)).not.toBeOnTheScreen();
     });
   });
 

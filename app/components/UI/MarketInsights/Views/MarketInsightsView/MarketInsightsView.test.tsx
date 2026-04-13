@@ -26,6 +26,9 @@ const mockCreateEventBuilder = jest.fn(
 const mockUseSwapBridgeNavigation = jest.fn((_options: unknown) => ({
   goToSwaps: mockGoToSwaps,
 }));
+const mockGate = jest.fn((fn: () => Promise<void>) => fn());
+const mockPerpsTrack = jest.fn();
+let mockIsEligible = true;
 
 let mockRouteParams: {
   assetSymbol: string;
@@ -60,10 +63,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-}));
 
 jest.mock('../../hooks/useMarketInsights', () => ({
   useMarketInsights: (assetIdentifier: string) => {
@@ -228,6 +227,31 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock('../../../Compliance', () => ({
+  useComplianceGate: () => ({ gate: mockGate }),
+}));
+
+jest.mock('../../../Perps/selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(() => mockIsEligible),
+}));
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../../selectors/accountsController'),
+  selectSelectedInternalAccountAddress: jest.fn(() => '0xMockAddress'),
+}));
+
+jest.mock('../../../Perps/components/PerpsBottomSheetTooltip', () => {
+  const { View: MockView } = jest.requireActual('react-native');
+  const Tooltip = (props: { testID?: string; onClose?: () => void }) => (
+    <MockView testID={props.testID ?? 'geo-block-tooltip'} />
+  );
+  return { __esModule: true, default: Tooltip };
+});
+
+jest.mock('../../../Perps/hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockPerpsTrack }),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const { View } = jest.requireActual('react-native');
@@ -259,6 +283,7 @@ describe('MarketInsightsView', () => {
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     jest.clearAllMocks();
     resetFeedbackCache();
+    mockIsEligible = true;
     mockRouteParams = {
       assetSymbol: 'ETH',
       assetIdentifier: 'eip155:1/erc20:0x123',
@@ -343,6 +368,24 @@ describe('MarketInsightsView', () => {
 
     const { queryByTestId } = renderWithProvider(<MarketInsightsView />);
     expect(queryByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER)).toBeNull();
+  });
+
+  it('configures background video to mix with other audio', () => {
+    mockUseMarketInsights.mockReturnValue({
+      report: buildMockReport(),
+      isLoading: false,
+      error: null,
+      timeAgo: '5m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    const backgroundVideo = getByTestId(
+      MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION,
+    );
+
+    expect(backgroundVideo.props.ignoreSilentSwitch).toBe('obey');
+    expect(backgroundVideo.props.mixWithOthers).toBe('mix');
   });
 
   it('renders report content and handles tweet/swap/buy actions', () => {
@@ -729,7 +772,7 @@ describe('MarketInsightsView', () => {
     expect(queryByTestId(MarketInsightsSelectorsIDs.BUY_BUTTON)).toBeNull();
   });
 
-  it('navigates to PerpsOrderRedirect with long direction when Long button is pressed', () => {
+  it('navigates to PerpsOrderRedirect with long direction when Long button is pressed', async () => {
     mockRouteParams = {
       assetSymbol: 'ETH',
       assetIdentifier: 'ETH',
@@ -751,7 +794,9 @@ describe('MarketInsightsView', () => {
 
     const { getByTestId } = renderWithProvider(<MarketInsightsView />);
 
-    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON));
+    await act(async () => {
+      fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON));
+    });
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.PERPS.ROOT,
@@ -763,7 +808,7 @@ describe('MarketInsightsView', () => {
     expect(mockGoToSwaps).not.toHaveBeenCalled();
   });
 
-  it('navigates to PerpsOrderRedirect with short direction when Short button is pressed', () => {
+  it('navigates to PerpsOrderRedirect with short direction when Short button is pressed', async () => {
     mockRouteParams = {
       assetSymbol: 'ETH',
       assetIdentifier: 'ETH',
@@ -785,7 +830,9 @@ describe('MarketInsightsView', () => {
 
     const { getByTestId } = renderWithProvider(<MarketInsightsView />);
 
-    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON));
+    await act(async () => {
+      fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON));
+    });
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.PERPS.ROOT,
@@ -795,6 +842,47 @@ describe('MarketInsightsView', () => {
       }),
     );
     expect(mockGoToSwaps).not.toHaveBeenCalled();
+  });
+
+  it('shows geo-block modal instead of navigating when user is not eligible', async () => {
+    mockIsEligible = false;
+    mockRouteParams = {
+      assetSymbol: 'ETH',
+      assetIdentifier: 'ETH',
+      isPerps: true,
+    };
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH perps insight',
+        summary: 'Open interest rises',
+        trends: [],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MarketInsightsView />,
+    );
+
+    expect(
+      queryByTestId('market-insights-geo-block-tooltip'),
+    ).not.toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON));
+    });
+
+    expect(getByTestId('market-insights-geo-block-tooltip')).toBeOnTheScreen();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.anything(),
+    );
+    expect(mockPerpsTrack).toHaveBeenCalled();
   });
 
   it('navigates to swaps when swap button is pressed in token context', () => {
@@ -814,7 +902,7 @@ describe('MarketInsightsView', () => {
     );
   });
 
-  it('sends perps_market analytics property (not caip19) in perps context', () => {
+  it('sends perps_market analytics property (not caip19) in perps context', async () => {
     mockRouteParams = {
       assetSymbol: 'ETH',
       assetIdentifier: 'ETH',
@@ -864,7 +952,9 @@ describe('MarketInsightsView', () => {
     );
 
     // Long button carries perps_market, digest_id, and interaction_type 'long'
-    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON));
+    await act(async () => {
+      fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON));
+    });
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
@@ -887,7 +977,9 @@ describe('MarketInsightsView', () => {
     );
 
     // Short button carries perps_market, digest_id, and interaction_type 'short'
-    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON));
+    await act(async () => {
+      fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON));
+    });
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,

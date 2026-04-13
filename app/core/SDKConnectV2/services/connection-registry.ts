@@ -20,6 +20,19 @@ import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
 
 /**
+ * Hard cap on the number of simultaneous active connections.
+ *
+ * Without a cap every deeplink adds a connection that persists for the full
+ * DEFAULT_SESSION_TTL (30 days). Over that window connections accumulate
+ * freely, amplifying startup reconnection bursts, chain-change fan-out, and
+ * stale BackgroundBridge listeners.
+ *
+ * When the limit is reached the oldest connection (earliest `expiresAt`) is
+ * evicted before the new one is created.
+ */
+export const MAX_CONNECTIONS = 20;
+
+/**
  * The ConnectionRegistry is the central service responsible for managing the
  * lifecycle of all SDKConnectV2 connections.
  */
@@ -75,7 +88,32 @@ export class ConnectionRegistry {
 
     await Promise.allSettled(promises);
 
+    await this.trimToCapacity();
+
     this.hostapp.syncConnectionList(Array.from(this.connections.values()));
+  }
+
+  /**
+   * Trims connections down to {@link MAX_CONNECTIONS} after a cold-start
+   * resume. Oldest connections (earliest `expiresAt`) are evicted first.
+   */
+  private async trimToCapacity(): Promise<void> {
+    if (this.connections.size <= MAX_CONNECTIONS) return;
+
+    const sorted = Array.from(this.connections.values()).sort(
+      (a, b) => a.info.expiresAt - b.info.expiresAt,
+    );
+
+    const excess = sorted.slice(0, sorted.length - MAX_CONNECTIONS);
+
+    for (const conn of excess) {
+      try {
+        logger.debug('Trimming excess connection on startup:', conn.id);
+        await this.disconnect(conn.id);
+      } catch (error) {
+        logger.error('Failed to trim excess connection:', conn.id, error);
+      }
+    }
   }
 
   /**
@@ -187,8 +225,9 @@ export class ConnectionRegistry {
           message: 'External transactions cannot use internal origins',
         });
       }
-      connInfo = this.toConnectionInfo(connReq);
+      await this.evictIfAtCapacity();
 
+      connInfo = this.toConnectionInfo(connReq);
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
         connInfo,
@@ -207,6 +246,32 @@ export class ConnectionRegistry {
       if (conn) await this.disconnect(conn.id);
     } finally {
       if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
+    }
+  }
+
+  /**
+   * If the number of active connections has reached {@link MAX_CONNECTIONS},
+   * evict the oldest connection (earliest `expiresAt`) to make room.
+   *
+   * Because every connection is created with the same TTL, the smallest
+   * `expiresAt` reliably identifies the connection that was established
+   * first.
+   */
+  private async evictIfAtCapacity(): Promise<void> {
+    if (this.connections.size < MAX_CONNECTIONS) return;
+
+    const oldest = Array.from(this.connections.values()).reduce((a, b) =>
+      a.info.expiresAt <= b.info.expiresAt ? a : b,
+    );
+
+    try {
+      logger.debug(
+        'Connection cap reached, evicting oldest connection:',
+        oldest.id,
+      );
+      await this.disconnect(oldest.id);
+    } catch (error) {
+      logger.error('Failed to evict oldest connection:', oldest.id, error);
     }
   }
 

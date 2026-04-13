@@ -68,6 +68,9 @@ import {
   selectOndoCampaignLeaderboardTotalParticipantsByTier,
   selectOndoCampaignLeaderboardPositions,
   selectOndoCampaignLeaderboardPositionById,
+  selectOndoCampaignPortfolio,
+  selectOndoCampaignPortfolioById,
+  selectOndoCampaignActivityById,
 } from './selectors';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
@@ -80,6 +83,7 @@ import {
   CampaignType,
   SeasonWayToEarnDto,
   PointsEventDto,
+  OndoGmActivityEntryDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
 import { RewardsState, AccountOptInBannerInfoStatus } from '.';
@@ -3397,33 +3401,82 @@ describe('Rewards selectors', () => {
   });
 
   const mockLeaderboard = {
-    campaign_id: 'campaign-1',
-    computed_at: '2024-03-20T12:00:00.000Z',
+    campaignId: 'campaign-1',
+    computedAt: '2024-03-20T12:00:00.000Z',
     tiers: {
       STARTER: {
         entries: [
-          { rank: 1, referral_code: 'ABC123', rate_of_return: 0.15 },
-          { rank: 2, referral_code: 'DEF456', rate_of_return: 0.1 },
+          {
+            rank: 1,
+            referralCode: 'ABC123',
+            rateOfReturn: 0.15,
+            qualifiedDays: 10,
+            qualified: true,
+          },
+          {
+            rank: 2,
+            referralCode: 'DEF456',
+            rateOfReturn: 0.1,
+            qualifiedDays: 10,
+            qualified: true,
+          },
         ],
-        total_participants: 50,
+        totalParticipants: 50,
+        minDeposit: 500,
       },
       MID: {
-        entries: [{ rank: 1, referral_code: 'GHI789', rate_of_return: 0.2 }],
-        total_participants: 30,
+        entries: [
+          {
+            rank: 1,
+            referralCode: 'GHI789',
+            rateOfReturn: 0.2,
+            qualifiedDays: 10,
+            qualified: true,
+          },
+        ],
+        totalParticipants: 30,
+        minDeposit: 1000,
       },
     },
   };
 
   const mockPosition = {
-    projected_tier: 'STARTER',
+    projectedTier: 'STARTER',
     rank: 5,
-    total_in_tier: 50,
-    rate_of_return: 0.12,
-    current_usd_value: 1000,
-    total_usd_deposited: 900,
-    net_deposit: 800,
-    computed_at: '2024-03-20T12:00:00.000Z',
-    referral_code: 'XYZ789',
+    totalInTier: 50,
+    rateOfReturn: 0.12,
+    currentUsdValue: 1000,
+    totalUsdDeposited: 900,
+    netDeposit: 800,
+    qualifiedDays: 10,
+    qualified: true,
+    neighbors: [],
+    computedAt: '2024-03-20T12:00:00.000Z',
+  };
+
+  const mockPortfolio = {
+    positions: [] as {
+      tokenSymbol: string;
+      tokenName: string;
+      tokenAsset: string;
+      units: string;
+      bookPrice: string;
+      bookValue: string;
+      currentPrice: string;
+      currentValue: string;
+      unrealizedPnl: string;
+      unrealizedPnlPercent: string;
+    }[],
+    summary: {
+      totalCurrentValue: '1000',
+      totalBookValue: '900',
+      totalUsdDeposited: '900',
+      netDeposit: '800',
+      totalCashedOut: '0',
+      portfolioPnl: '100',
+      portfolioPnlPercent: '0.1',
+    },
+    computedAt: '2024-03-20T12:00:00.000Z',
   };
 
   describe('selectOndoCampaignLeaderboard', () => {
@@ -3516,7 +3569,7 @@ describe('Rewards selectors', () => {
       expect(selectOndoCampaignLeaderboardComputedAt(state)).toBeNull();
     });
 
-    it('returns computed_at from leaderboard', () => {
+    it('returns computedAt from leaderboard', () => {
       const state = createMockRootState({
         ondoCampaignLeaderboard: mockLeaderboard,
       });
@@ -3658,6 +3711,113 @@ describe('Rewards selectors', () => {
       expect(
         selectOndoCampaignLeaderboardPositionById('sub-1', 'campaign-1')(state),
       ).toEqual(mockPosition);
+    });
+  });
+
+  describe('selectOndoCampaignPortfolio', () => {
+    it('returns empty object when no portfolios', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: {},
+      });
+      expect(selectOndoCampaignPortfolio(state)).toEqual({});
+    });
+
+    it('returns portfolios when set', () => {
+      const portfolios = { 'sub-1:campaign-1': mockPortfolio };
+      const state = createMockRootState({
+        ondoCampaignPortfolio: portfolios,
+      });
+      expect(selectOndoCampaignPortfolio(state)).toEqual(portfolios);
+    });
+  });
+
+  describe('selectOndoCampaignPortfolioById', () => {
+    it('returns null when subscriptionId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: { 'sub-1:campaign-1': mockPortfolio },
+      });
+      expect(
+        selectOndoCampaignPortfolioById(undefined, 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: { 'sub-1:campaign-1': mockPortfolio },
+      });
+      expect(
+        selectOndoCampaignPortfolioById('sub-1', undefined)(state),
+      ).toBeNull();
+    });
+
+    it('returns null when portfolio does not exist', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: {},
+      });
+      expect(
+        selectOndoCampaignPortfolioById('sub-1', 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns portfolio for specified subscription and campaign', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: { 'sub-1:campaign-1': mockPortfolio },
+      });
+      expect(
+        selectOndoCampaignPortfolioById('sub-1', 'campaign-1')(state),
+      ).toEqual(mockPortfolio);
+    });
+  });
+
+  describe('selectOndoCampaignActivityById', () => {
+    it('returns null when subscriptionId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignActivity: { 'sub-1:campaign-1': [] },
+      });
+      expect(
+        selectOndoCampaignActivityById(undefined, 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignActivity: { 'sub-1:campaign-1': [] },
+      });
+      expect(
+        selectOndoCampaignActivityById('sub-1', undefined)(state),
+      ).toBeNull();
+    });
+
+    it('returns null when activity does not exist', () => {
+      const state = createMockRootState({
+        ondoCampaignActivity: {},
+      });
+      expect(
+        selectOndoCampaignActivityById('sub-1', 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns activity entries for specified subscription and campaign', () => {
+      const mockEntries: OndoGmActivityEntryDto[] = [
+        {
+          type: 'DEPOSIT',
+          srcToken: {
+            tokenAsset: 'eip155:59144/erc20:0xabc',
+            tokenSymbol: 'USDC',
+            tokenName: 'USD Coin',
+          },
+          destToken: null,
+          destAddress: null,
+          usdAmount: '5000.000000',
+          timestamp: '2026-03-28T14:30:00.000Z',
+        },
+      ];
+      const state = createMockRootState({
+        ondoCampaignActivity: { 'sub-1:campaign-1': mockEntries },
+      });
+      expect(
+        selectOndoCampaignActivityById('sub-1', 'campaign-1')(state),
+      ).toEqual(mockEntries);
     });
   });
 });

@@ -185,12 +185,12 @@ describe('ProviderSelection', () => {
     });
   });
 
-  it('matches snapshot when no quotes are available', () => {
-    const { toJSON } = renderWithProvider();
-    expect(toJSON()).toMatchSnapshot();
+  it('renders provider list when no quotes are available', () => {
+    const { getByText } = renderWithProvider();
+    expect(getByText('Transak')).toBeOnTheScreen();
   });
 
-  it('matches snapshot when quotes are loading', () => {
+  it('renders loading state when quotes are loading', () => {
     jest.mocked(useRampsController).mockReturnValue({
       ...defaultMockController,
       userRegion: mockUserRegion,
@@ -198,10 +198,14 @@ describe('ProviderSelection', () => {
       providers: mockProviders,
       selectedProvider: mockProviders[0],
     });
-    const { toJSON } = renderWithProvider(mockProviders, mockProviders[0], {
-      quotesLoading: true,
-    });
-    expect(toJSON()).toMatchSnapshot();
+    const { queryByText } = renderWithProvider(
+      mockProviders,
+      mockProviders[0],
+      {
+        quotesLoading: true,
+      },
+    );
+    expect(queryByText('Transak')).not.toBeOnTheScreen();
   });
 
   it('renders skeleton loading state when quotes are loading', () => {
@@ -219,10 +223,10 @@ describe('ProviderSelection', () => {
         quotesLoading: true,
       },
     );
-    expect(queryByText('Transak')).toBeNull();
+    expect(queryByText('Transak')).not.toBeOnTheScreen();
   });
 
-  it('matches snapshot when quotes fail to load', async () => {
+  it('shows error message when quotes fail to load', async () => {
     jest.mocked(useRampsController).mockReturnValue({
       ...defaultMockController,
       userRegion: mockUserRegion,
@@ -230,16 +234,13 @@ describe('ProviderSelection', () => {
       providers: mockProviders,
       selectedProvider: mockProviders[0],
     });
-    const { toJSON, getByText } = renderWithProvider(
-      mockProviders,
-      mockProviders[0],
-      { quotesError: 'Failed to load quotes' },
-    );
+    const { getByText } = renderWithProvider(mockProviders, mockProviders[0], {
+      quotesError: 'Failed to load quotes',
+    });
 
     await waitFor(() => {
       expect(getByText('Failed to load quotes')).toBeOnTheScreen();
     });
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls onBack when back button is pressed', () => {
@@ -256,24 +257,19 @@ describe('ProviderSelection', () => {
       providers: mockProviders,
       selectedProvider: mockProviders[0],
     });
-    const { toJSON, getByText } = renderWithProvider(
-      mockProviders,
-      mockProviders[0],
-      {
-        showQuotes: true,
-        quotes: {
-          success: [],
-          sorted: [],
-          error: [],
-          customActions: [],
-        },
+    const { getByText } = renderWithProvider(mockProviders, mockProviders[0], {
+      showQuotes: true,
+      quotes: {
+        success: [],
+        sorted: [],
+        error: [],
+        customActions: [],
       },
-    );
+    });
 
     await waitFor(() => {
       expect(getByText('Transak')).toBeOnTheScreen();
     });
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('filters out custom-action quotes when displaying provider quote', async () => {
@@ -291,23 +287,18 @@ describe('ProviderSelection', () => {
       selectedProvider: mockProviders[0],
     });
 
-    const { getByText, toJSON } = renderWithProvider(
-      mockProviders,
-      mockProviders[0],
-      {
-        quotes: {
-          success: [customActionQuote, transakQuote],
-          sorted: [],
-          error: [],
-          customActions: [],
-        },
+    const { getByText } = renderWithProvider(mockProviders, mockProviders[0], {
+      quotes: {
+        success: [customActionQuote, transakQuote],
+        sorted: [],
+        error: [],
+        customActions: [],
       },
-    );
+    });
 
     await waitFor(() => {
-      expect(getByText('Transak')).toBeTruthy();
+      expect(getByText('Transak')).toBeOnTheScreen();
     });
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('filters out quotes for providers not in the providers array', async () => {
@@ -338,7 +329,7 @@ describe('ProviderSelection', () => {
     await waitFor(() => {
       expect(getByText('Transak')).toBeTruthy();
     });
-    expect(queryByText('Stripe')).toBeNull();
+    expect(queryByText('Stripe')).not.toBeOnTheScreen();
   });
 
   it('renders empty state when there are no providers', () => {
@@ -411,6 +402,61 @@ describe('ProviderSelection', () => {
     await waitFor(() => {
       expect(getByText('Best rate')).toBeOnTheScreen();
     });
+  });
+
+  it('separates providers by supportedCryptoCurrencies when quotes are not available', () => {
+    const musdAssetId = 'eip155:1/erc20:0xmusd';
+    if (!mockSelectedToken) {
+      throw new Error('Expected mockSelectedToken to be defined');
+    }
+    const supportedProvider: Provider = {
+      ...transakProvider,
+      id: '/providers/supported',
+      name: 'SupportedProvider',
+      supportedCryptoCurrencies: {
+        [musdAssetId]: true,
+      },
+    };
+    const unsupportedProvider: Provider = {
+      ...transakProvider,
+      id: '/providers/unsupported',
+      name: 'UnsupportedProvider',
+      supportedCryptoCurrencies: {
+        'eip155:1/slip44:60': true,
+      },
+    };
+
+    const allProviders = [supportedProvider, unsupportedProvider];
+
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: {
+        ...mockSelectedToken,
+        assetId: musdAssetId,
+      },
+      providers: allProviders,
+      selectedProvider: null,
+    });
+
+    const { getByText } = renderScreen(
+      () => (
+        <ProviderSelection
+          quotes={null}
+          quotesLoading={false}
+          quotesError={null}
+          showQuotes={false}
+          onProviderSelect={jest.fn()}
+          onBack={mockOnBack}
+        />
+      ),
+      { name: 'ProviderSelection' },
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByText('SupportedProvider')).toBeOnTheScreen();
+    expect(getByText('UnsupportedProvider')).toBeOnTheScreen();
+    expect(getByText('Other options')).toBeOnTheScreen();
   });
 
   it('shows Previously used tag when provider is in ordersProviders', async () => {

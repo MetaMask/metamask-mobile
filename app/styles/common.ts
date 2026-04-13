@@ -72,7 +72,7 @@ export const fontStyles: Record<string, TextStyle> = {
     fontFamily: 'Geist-Regular',
   },
   bold: {
-    fontFamily: 'Geist-Bold',
+    fontFamily: 'Geist-SemiBold',
   },
   medium: {
     fontFamily: 'Geist-Medium',

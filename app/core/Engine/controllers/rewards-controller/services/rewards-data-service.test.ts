@@ -4494,11 +4494,11 @@ describe('RewardsDataService', () => {
   describe('getOndoCampaignLeaderboard', () => {
     const mockCampaignId = 'campaign-ondo-123';
     const mockLeaderboard = {
-      campaign_id: mockCampaignId,
-      computed_at: '2024-03-20T12:00:00.000Z',
+      campaignId: mockCampaignId,
+      computedAt: '2024-03-20T12:00:00.000Z',
       tiers: {
-        STARTER: { entries: [], total_participants: 100 },
-        MID: { entries: [], total_participants: 50 },
+        STARTER: { entries: [], totalParticipants: 100 },
+        MID: { entries: [], totalParticipants: 50 },
       },
     };
 
@@ -4535,14 +4535,18 @@ describe('RewardsDataService', () => {
     const mockSubscriptionId = 'sub-789';
     const mockToken = 'test-bearer-token';
     const mockPosition = {
-      projected_tier: 'MID',
+      projectedTier: 'MID',
       rank: 5,
-      total_in_tier: 150,
-      rate_of_return: 0.15,
-      current_usd_value: 12500.5,
-      total_usd_deposited: 10000.0,
-      net_deposit: 8500.0,
-      computed_at: '2024-03-20T12:00:00.000Z',
+      totalInTier: 150,
+      rateOfReturn: 0.15,
+      currentUsdValue: 12500.5,
+      totalUsdDeposited: 10000.0,
+      netDeposit: 8500.0,
+      neighbors: [
+        { rank: 4, referralCode: 'NBR004', rateOfReturn: 0.16 },
+        { rank: 6, referralCode: 'NBR006', rateOfReturn: 0.14 },
+      ],
+      computedAt: '2024-03-20T12:00:00.000Z',
     };
 
     beforeEach(() => {
@@ -4597,6 +4601,90 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getOndoCampaignPortfolioPosition', () => {
+    const mockCampaignId = 'campaign-ondo-portfolio';
+    const mockSubscriptionId = 'sub-portfolio-1';
+    const mockToken = 'test-bearer-token';
+    const mockPortfolio = {
+      positions: [
+        {
+          tokenSymbol: 'AAPL',
+          tokenName: 'Apple Inc.',
+          tokenAsset:
+            'eip155:1/erc20:0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c',
+          units: '10',
+          bookPrice: '100.000000',
+          bookValue: '1000.000000',
+          currentPrice: '110.000000',
+          currentValue: '1100.000000',
+          unrealizedPnl: '100.000000',
+          unrealizedPnlPercent: '0.1',
+        },
+      ],
+      summary: {
+        totalCurrentValue: '1100.000000',
+        totalBookValue: '1000.000000',
+        totalUsdDeposited: '1000.000000',
+        netDeposit: '1000.000000',
+        totalCashedOut: '0',
+        portfolioPnl: '100.000000',
+        portfolioPnlPercent: '0.1',
+      },
+      computedAt: '2024-03-20T12:00:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPortfolio),
+      } as unknown as Response);
+    });
+
+    it('calls the correct authenticated endpoint with GET and returns portfolio', async () => {
+      const result = await service.getOndoCampaignPortfolioPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/portfolio/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockPortfolio);
+    });
+
+    it('returns null when response status is 404', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 404 } as Response);
+
+      const result = await service.getOndoCampaignPortfolioPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('throws when response is not ok with non-404 status', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getOndoCampaignPortfolioPosition(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Get campaign portfolio position failed: 500');
+    });
+  });
+
   describe('getClientVersionRequirements', () => {
     const mockVersionRequirements = {
       minimumMobileVersion: '7.72.0',
@@ -4634,6 +4722,186 @@ describe('RewardsDataService', () => {
       await expect(service.getClientVersionRequirements()).rejects.toThrow(
         'Get client version requirements failed: 500',
       );
+    });
+  });
+
+  describe('getOndoCampaignActivity', () => {
+    const mockCampaignId = 'campaign-ondo-activity';
+    const mockSubscriptionId = 'sub-activity-1';
+    const mockToken = 'test-bearer-token';
+    const mockActivity = {
+      has_more: true,
+      cursor: 'next-page-cursor',
+      results: [
+        {
+          type: 'DEPOSIT',
+          srcToken: {
+            tokenAsset: 'eip155:59144/erc20:0xabc',
+            tokenSymbol: 'USDC',
+            tokenName: 'USD Coin',
+          },
+          destToken: {
+            tokenAsset: 'eip155:59144/erc20:0xdef',
+            tokenSymbol: 'AAPLon',
+            tokenName: 'Apple Inc.',
+          },
+          destAddress: null,
+          usdAmount: '5000.000000',
+          timestamp: '2026-03-28T14:30:00.000Z',
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockActivity),
+      } as unknown as Response);
+    });
+
+    it('calls the correct authenticated endpoint with GET and returns activity', async () => {
+      const result = await service.getOndoCampaignActivity(
+        mockCampaignId,
+        mockSubscriptionId,
+        null,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/activity/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockActivity);
+    });
+
+    it('appends cursor query param when provided', async () => {
+      await service.getOndoCampaignActivity(
+        mockCampaignId,
+        mockSubscriptionId,
+        'page-2-cursor',
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/activity/me?cursor=page-2-cursor`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getOndoCampaignActivity(
+          mockCampaignId,
+          mockSubscriptionId,
+          null,
+        ),
+      ).rejects.toThrow('Get campaign activity failed: 500');
+    });
+  });
+
+  describe('getOndoCampaignActivityLastUpdated', () => {
+    const mockCampaignId = 'campaign-ondo-activity-lu';
+    const mockSubscriptionId = 'sub-activity-lu-1';
+    const mockToken = 'test-bearer-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('should successfully get activity last updated timestamp', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest
+          .fn()
+          .mockResolvedValue({ lastUpdated: '2026-03-28T14:30:00Z' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getOndoCampaignActivityLastUpdated(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(new Date('2026-03-28T14:30:00Z'));
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/activity/me/last-updated`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+    });
+
+    it('should return null when lastUpdated is not present', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({}),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getOndoCampaignActivityLastUpdated(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('should throw when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getOndoCampaignActivityLastUpdated(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Get campaign activity last updated failed: 500');
+    });
+  });
+
+  describe('getOndoCampaignDeposits', () => {
+    const mockCampaignId = 'campaign-deposits-123';
+    const mockDeposits = { totalUsdDeposited: '1250000.000000' };
+
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockDeposits),
+      } as unknown as Response);
+    });
+
+    it('calls the correct public endpoint with GET and returns deposits data', async () => {
+      const result = await service.getOndoCampaignDeposits(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/stats/deposits`,
+        expect.objectContaining({
+          method: 'GET',
+        }),
+      );
+      expect(result).toEqual(mockDeposits);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getOndoCampaignDeposits(mockCampaignId),
+      ).rejects.toThrow('Get campaign deposits failed: 500');
     });
   });
 });

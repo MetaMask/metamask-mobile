@@ -1516,7 +1516,6 @@ export class TradingService {
 
       this.#deps.debugLogger.log('[closePositions] Batch method check', {
         providerType: provider.protocolId,
-        hasBatchMethod: 'closePositions' in provider,
         providerKeys: Object.keys(provider).filter((key) =>
           key.includes('close'),
         ),
@@ -1951,11 +1950,12 @@ export class TradingService {
 
       const availableBalance = parseFloat(accountState.availableBalance);
 
-      // Estimate fees (close + open, approximately 0.09% of notional)
-      // Flip requires 2x position size (1x to close, 1x to open opposite)
+      // Estimate fees: ESTIMATED_FEE_RATE (0.09%) already accounts for both legs
+      // (close at 0.045% + open at 0.045% = 0.09% of position notional).
+      // Apply to 1x notional (positionSize * entryPrice), not 2x (flipSize * entryPrice).
       const entryPrice = parseFloat(position.entryPrice);
       const flipSize = positionSize * 2;
-      const notionalValue = flipSize * entryPrice;
+      const notionalValue = positionSize * entryPrice;
       const estimatedFees = notionalValue * ESTIMATED_FEE_RATE;
 
       if (estimatedFees > availableBalance) {

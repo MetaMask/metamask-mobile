@@ -27,54 +27,34 @@ import { getIntlNumberFormatter } from '../../../../../util/intl';
 import {
   MUSD_CONVERSION_APY,
   MUSD_TOKEN,
-  MUSD_TOKEN_ADDRESS,
 } from '../../../../UI/Earn/constants/musd';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import type { Hex } from '@metamask/utils';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
 import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
-import { TokenI } from '../../../../UI/Tokens/types';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
-import NavigationService from '../../../../../core/NavigationService';
-import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
+import { LINEA_MUSD_ASSET_FOR_MERKL } from './CashGetMusdEmptyState.constants';
+import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-
-/**
- * Minimal mUSD asset for useMerklBonusClaim (claim runs on Linea).
- * Only chainId and address are required for the claim flow.
- */
-const LINEA_MUSD_ASSET: TokenI = {
-  chainId: CHAIN_IDS.LINEA_MAINNET as string,
-  address: MUSD_TOKEN_ADDRESS,
-  symbol: MUSD_TOKEN.symbol,
-  name: MUSD_TOKEN.name,
-  decimals: MUSD_TOKEN.decimals,
-  image: '',
-  balance: '0',
-  isETH: false,
-  logo: undefined,
-};
+import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 
 const MusdAggregatedRow = () => {
   const tw = useTailwind();
+  const navigation = useNavigation();
   const privacyMode = useSelector(selectPrivacyMode);
-  const {
-    tokenBalanceAggregated,
-    fiatBalanceAggregatedFormatted,
-    hasMusdBalanceOnAnyChain,
-  } = useMusdBalance();
+  const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
+  const { tokenBalanceAggregated, fiatBalanceAggregatedFormatted } =
+    useMusdBalance();
   const { claimableReward, hasPendingClaim, claimRewards, isClaiming } =
     useMerklBonusClaim(
-      LINEA_MUSD_ASSET,
+      LINEA_MUSD_ASSET_FOR_MERKL,
       MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
     );
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const networkName = useNetworkName(LINEA_MUSD_ASSET.chainId as Hex);
+  const networkName = useNetworkName(LINEA_MUSD_ASSET_FOR_MERKL.chainId as Hex);
 
   const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
 
@@ -85,9 +65,9 @@ const MusdAggregatedRow = () => {
           action_type: 'claim_bonus',
           button_text: strings('earn.claim_bonus'),
           location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
-          network_chain_id: LINEA_MUSD_ASSET.chainId,
+          network_chain_id: LINEA_MUSD_ASSET_FOR_MERKL.chainId,
           network_name: networkName ?? undefined,
-          asset_symbol: LINEA_MUSD_ASSET.symbol,
+          asset_symbol: LINEA_MUSD_ASSET_FOR_MERKL.symbol,
         })
         .build(),
     );
@@ -95,21 +75,12 @@ const MusdAggregatedRow = () => {
   }, [trackEvent, createEventBuilder, networkName, claimRewards]);
 
   const handleTokenRowPress = useCallback(() => {
-    if (hasMusdBalanceOnAnyChain) {
-      NavigationService.navigation.navigate(
-        Routes.WALLET.CASH_TOKENS_FULL_VIEW as never,
-      );
-      return;
+    if (isMoneyHomeEnabled) {
+      navigation.navigate(Routes.MONEY.ROOT);
+    } else {
+      navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW);
     }
-
-    NavigationService.navigation.navigate(
-      'Asset' as never,
-      {
-        ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-        source: TokenDetailsSource.HomeSection,
-      } as never,
-    );
-  }, [hasMusdBalanceOnAnyChain]);
+  }, [navigation, isMoneyHomeEnabled]);
 
   const tokenBalanceDisplay = `${getIntlNumberFormatter(I18n.locale, {
     minimumFractionDigits: 0,
@@ -134,7 +105,6 @@ const MusdAggregatedRow = () => {
           src={MUSD_TOKEN.imageSource as number}
           size={AvatarTokenSize.Lg}
         />
-        {/* Same two-line layout / typography as TokenListItemV2 (flex-1 ml-5, BodyMDMedium fiat). */}
         <Box twClassName="flex-1 ml-5">
           <Box
             flexDirection={BoxFlexDirection.Row}

@@ -15,7 +15,6 @@ import { LINEA_CAIP_CHAIN_ID } from '../util/buildTokenList';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import Logger from '../../../../util/Logger';
-import { cardQueries } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
@@ -32,9 +31,17 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
-const mockInvalidateQueries = jest.fn();
-jest.mock('@tanstack/react-query', () => ({
-  useQueryClient: jest.fn(),
+const mockFetchCardHomeData = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      CardController: {
+        fetchCardHomeData: (...args: unknown[]) =>
+          mockFetchCardHomeData(...args),
+      },
+    },
+  },
 }));
 
 // Create the mock class inside the factory to avoid hoisting issues
@@ -183,14 +190,7 @@ describe('useSpendingLimit', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    mockInvalidateQueries.mockResolvedValue(undefined);
-    (
-      jest.requireMock('@tanstack/react-query') as {
-        useQueryClient: jest.Mock;
-      }
-    ).useQueryClient.mockReturnValue({
-      invalidateQueries: mockInvalidateQueries,
-    });
+    mockFetchCardHomeData.mockResolvedValue(undefined);
 
     // Setup navigation mock
     mockNavigation = {
@@ -269,7 +269,9 @@ describe('useSpendingLimit', () => {
       {},
     ] as never);
 
-    // Default selected account
+    // Default selected account (all useSelector calls use this by default;
+    // selectEvmNetworkConfigurationsByChainId call gets an object whose keys
+    // are not real chain IDs, but useTokensWithBalance is mocked so it doesn't matter)
     mockUseSelector.mockReturnValue({
       id: 'account-1',
       address: '0xaccount1',
@@ -710,7 +712,7 @@ describe('useSpendingLimit', () => {
       });
     });
 
-    it('clears cache after successful submission', async () => {
+    it('refreshes card home data after successful submission', async () => {
       const initialToken = createMockToken();
       const { result } = renderHook(() =>
         useSpendingLimit(createDefaultParams({ initialToken })),
@@ -722,9 +724,7 @@ describe('useSpendingLimit', () => {
         await submitPromise;
       });
 
-      expect(mockInvalidateQueries).toHaveBeenCalledWith({
-        queryKey: cardQueries.dashboard.keys.externalWalletDetails(),
-      });
+      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
     });
 
     it('shows success toast for non-onboarding flow', async () => {
@@ -959,6 +959,128 @@ describe('useSpendingLimit', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({ flow: 'onboarding' }),
+      );
+    });
+
+    it('includes musd_linea_balance from walletTokens', () => {
+      const musdToken = {
+        address: '0xmusd',
+        symbol: 'mUSD',
+        chainId: LINEA_CAIP_CHAIN_ID,
+        tokenFiatAmount: 450,
+      };
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([musdToken]) // walletTokens (card)
+        .mockReturnValueOnce([]); // allWalletTokens
+
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ musd_linea_balance: 450 }),
+      );
+    });
+
+    it('emits musd_linea_balance of 0 when mUSD not in wallet', () => {
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([]) // walletTokens — no mUSD
+        .mockReturnValueOnce([]);
+
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ musd_linea_balance: 0 }),
+      );
+    });
+
+    it('includes top_card_chain_asset for highest-balance card token', () => {
+      const lowToken = {
+        address: '0xlow',
+        symbol: 'USDC',
+        chainId: LINEA_CAIP_CHAIN_ID,
+        tokenFiatAmount: 50,
+      };
+      const highToken = {
+        address: '0xhigh',
+        symbol: 'mUSD',
+        chainId: LINEA_CAIP_CHAIN_ID,
+        tokenFiatAmount: 500,
+      };
+      // allTokens must include the same addresses so cardSupportedKeys accepts them
+      const allTokens = [
+        createMockToken({ address: '0xlow', symbol: 'USDC' }),
+        createMockToken({ address: '0xhigh', symbol: 'mUSD' }),
+      ];
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([lowToken, highToken]) // walletTokens (card)
+        .mockReturnValueOnce([]);
+
+      renderHook(() => useSpendingLimit(createDefaultParams({ allTokens })));
+
+      // LINEA_CAIP_CHAIN_ID maps to 'linea' in caipChainIdToNetwork
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ top_card_chain_asset: 'linea:musd' }),
+      );
+    });
+
+    it('emits null for top_card_chain_asset when no card tokens have balance', () => {
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([]) // walletTokens — empty
+        .mockReturnValueOnce([]);
+
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ top_card_chain_asset: null }),
+      );
+    });
+
+    it('emits null for top_card_chain_asset when wallet token is not in card-supported allTokens', () => {
+      // Native SOL has an address but is not in allTokens (card does not support it).
+      // allTokens contains only an unrelated USDC token so allTokens.length > 0,
+      // which lets the effect fire while still excluding nativeSol from the result.
+      const nativeSol = {
+        address: 'So11111111111111111111111111111111111111112',
+        symbol: 'SOL',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        tokenFiatAmount: 1200,
+      };
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([nativeSol]) // walletTokens
+        .mockReturnValueOnce([nativeSol]);
+
+      // allTokens has a card-supported token (USDC on Linea) but NOT nativeSol
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ top_card_chain_asset: null }),
+      );
+    });
+
+    it('includes top_wallet_chain_asset from all-wallet tokens', () => {
+      const cardToken = {
+        address: '0xcard',
+        symbol: 'mUSD',
+        chainId: LINEA_CAIP_CHAIN_ID,
+        tokenFiatAmount: 100,
+      };
+      const walletToken = {
+        address: '0xwallet',
+        symbol: 'ETH',
+        chainId: '0x1', // Ethereum mainnet — not a card chain
+        tokenFiatAmount: 9000,
+      };
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([cardToken]) // walletTokens (card)
+        .mockReturnValueOnce([walletToken]); // allWalletTokens
+
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      // 0x1 → eip155:1, not in caipChainIdToNetwork → strips namespace → '1:eth'
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          top_wallet_chain_asset: '1:eth',
+          top_wallet_asset_balance: 9000,
+        }),
       );
     });
   });

@@ -60,6 +60,7 @@ import BOB from './bob.png';
 import ROOTSTOCK from './rootstock-native.png';
 import STABLE from './stable.png';
 import STABLE_NATIVE from './stable-native.png';
+import TEMPO_NATIVE from './tempo-native.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron-logo.png';
 /// END:ONLY_INCLUDE_IF
@@ -136,4 +137,6 @@ export default {
   CHZ,
   STABLE,
   USDT0: STABLE_NATIVE,
+  USD: TEMPO_NATIVE,
+  PATHUSD: TEMPO_NATIVE,
 };

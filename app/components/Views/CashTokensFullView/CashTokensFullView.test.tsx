@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CashTokensFullView from './CashTokensFullView';
+import { useMerklBonusClaim } from '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 
 const mockGoBack = jest.fn();
 
@@ -26,8 +27,43 @@ jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({ goToBuy: jest.fn() }),
 }));
 jest.mock('../../UI/Earn/hooks/useMusdConversion', () => ({
-  useMusdConversion: () => ({ initiateCustomConversion: jest.fn() }),
+  useMusdConversion: () => ({
+    initiateCustomConversion: jest.fn(),
+    initiateMaxConversion: jest.fn(),
+    clearError: jest.fn(),
+    error: null,
+    hasSeenConversionEducationScreen: true,
+  }),
 }));
+jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
+  useMusdConversionTokens: () => ({ tokens: [] }),
+}));
+jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
+  useSwapBridgeNavigation: () => ({ goToSwaps: jest.fn() }),
+  SwapBridgeNavigationLocation: { MainView: 'MainView' },
+}));
+jest.mock(
+  '../../UI/Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: (props: Record<string, unknown>) => (
+        <View testID="money-convert-stablecoins-container" {...props} />
+      ),
+    };
+  },
+);
+jest.mock(
+  '../../UI/Earn/components/AssetOverviewClaimBonus/AssetOverviewClaimBonus',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () => <View testID="asset-overview-claim-bonus" />,
+    };
+  },
+);
 jest.mock('../../UI/Earn/hooks/useMusdConversionFlowData', () => ({
   useMusdConversionFlowData: () => ({
     hasConvertibleTokens: true,
@@ -38,6 +74,17 @@ jest.mock('../../UI/Earn/hooks/useMusdConversionFlowData', () => ({
     }),
   }),
 }));
+
+const mockClaimRewards = jest.fn();
+
+jest.mock(
+  '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim',
+  () => ({
+    useMerklBonusClaim: jest.fn(),
+  }),
+);
+
+const mockUseMerklBonusClaim = jest.mocked(useMerklBonusClaim);
 jest.mock('../../../core/Engine', () => ({
   context: {},
 }));
@@ -73,11 +120,19 @@ describe('CashTokensFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
+    mockUseMerklBonusClaim.mockReturnValue({
+      claimableReward: null,
+      lifetimeBonusClaimed: null,
+      hasPendingClaim: false,
+      isClaiming: false,
+      error: null,
+      claimRewards: mockClaimRewards,
+    });
   });
 
   it('renders mUSD title', () => {
     renderWithProvider(<CashTokensFullView />);
-    expect(screen.getByText('Cash')).toBeOnTheScreen();
+    expect(screen.getByText('Money')).toBeOnTheScreen();
   });
 
   it('renders Get mUSD empty state when user has no mUSD', () => {

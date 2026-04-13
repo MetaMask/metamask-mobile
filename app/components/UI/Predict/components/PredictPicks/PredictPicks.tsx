@@ -1,15 +1,20 @@
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import React from 'react';
-import { usePredictPositions } from '../../hooks/usePredictPositions';
+import { useSelector } from 'react-redux';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { usePredictLivePositions } from '../../hooks/usePredictLivePositions';
 import { PredictEventValues } from '../../constants/eventNames';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { PredictMarket, PredictPosition } from '../../types';
+import {
+  PredictMarket,
+  PredictMarketStatus,
+  PredictPosition,
+} from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { strings } from '../../../../../../locales/i18n';
+import { selectExtendedSportsMarketsLeagues } from '../../selectors/featureFlags';
 import PredictPickItem from './PredictPickItem';
+import PredictPositionDetail from '../PredictPositionDetail';
 import {
   PREDICT_PICKS_TEST_ID,
   PREDICT_PICKS_TEST_IDS,
@@ -17,25 +22,17 @@ import {
 
 interface PredictPicksProps {
   market: PredictMarket;
-  /**
-   * TestID for the component
-   */
+  positions: PredictPosition[];
+  claimablePositions: PredictPosition[];
   testID?: string;
 }
 
 const PredictPicks: React.FC<PredictPicksProps> = ({
   market,
+  positions,
+  claimablePositions,
   testID = PREDICT_PICKS_TEST_ID,
 }) => {
-  const { data: positions = [] } = usePredictPositions({
-    marketId: market.id,
-    claimable: false,
-    refetchInterval: 10000,
-  });
-  const { data: claimablePositions = [] } = usePredictPositions({
-    marketId: market.id,
-    claimable: true,
-  });
   const { livePositions } = usePredictLivePositions(positions);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -44,16 +41,21 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
     navigation,
   });
 
+  const extendedLeagues = useSelector(selectExtendedSportsMarketsLeagues);
+  const usePositionDetail = market.game?.league
+    ? extendedLeagues.includes(market.game.league)
+    : false;
+
   const onCashOut = (position: PredictPosition) => {
     executeGuardedAction(
       () => {
-        const _outcome = market?.outcomes.find(
+        const outcome = market?.outcomes.find(
           (o) => o.id === position.outcomeId,
         );
         navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
           market,
           position,
-          outcome: _outcome,
+          outcome,
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         });
       },
@@ -61,15 +63,31 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
     );
   };
 
-  if (livePositions.length === 0 && claimablePositions.length === 0) {
-    return null;
+  if (usePositionDetail) {
+    return (
+      <Box testID={testID} twClassName="flex-col pt-3">
+        {livePositions.map((position) => (
+          <PredictPositionDetail
+            key={position.id}
+            position={position}
+            market={market}
+            marketStatus={market.status as PredictMarketStatus}
+          />
+        ))}
+        {claimablePositions.map((position) => (
+          <PredictPositionDetail
+            key={position.id}
+            position={position}
+            market={market}
+            marketStatus={PredictMarketStatus.CLOSED}
+          />
+        ))}
+      </Box>
+    );
   }
 
   return (
     <Box testID={testID} twClassName="flex-col">
-      <Text variant={TextVariant.HeadingMd} twClassName="font-medium pt-8">
-        {strings('predict.market_details.your_picks')}
-      </Text>
       {livePositions.map((position) => (
         <PredictPickItem
           key={position.id}

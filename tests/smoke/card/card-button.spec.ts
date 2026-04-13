@@ -35,6 +35,7 @@ describe(SmokeCard('Card NavBar Button'), () => {
             ],
             '0xe708',
           )
+          .withCardController()
           .build(),
         restartDevice: true,
         testSpecificMock,
@@ -52,6 +53,7 @@ describe(SmokeCard('Card NavBar Button'), () => {
 
   beforeEach(async () => {
     jest.setTimeout(150000);
+    eventsToCheck.length = 0;
   });
 
   it('opens Card Home when pressing card navbar button', async () => {
@@ -63,6 +65,12 @@ describe(SmokeCard('Card NavBar Button'), () => {
   });
 
   it('should validate segment/metametric event when opening Card Home', async () => {
+    await setupCardTest(async () => {
+      await Assertions.expectElementToBeVisible(WalletView.navbarCardButton);
+      await WalletView.tapNavbarCardButton();
+      await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
+    });
+
     const expectedEvents = {
       CARD_BUTTON_VIEWED: 'Card Button Viewed',
       CARD_HOME_CLICKED: 'Card Home Clicked',

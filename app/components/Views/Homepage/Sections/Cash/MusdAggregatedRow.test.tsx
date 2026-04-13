@@ -3,22 +3,20 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MusdAggregatedRow from './MusdAggregatedRow';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
-import NavigationService from '../../../../../core/NavigationService';
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 const mockClaimRewards = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn(),
-}));
-jest.mock('../../../../../core/NavigationService', () => ({
-  __esModule: true,
-  default: {
-    navigation: {
-      navigate: jest.fn(),
-    },
-  },
 }));
 
 const mockUseMusdBalance = jest.fn(() => ({
@@ -35,6 +33,7 @@ const mockUseMerklBonusClaim = jest.fn(() => ({
   hasPendingClaim: false,
   claimRewards: mockClaimRewards,
   isClaiming: false,
+  error: null as string | null,
 }));
 jest.mock(
   '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim',
@@ -58,6 +57,12 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+const mockSelectMoneyHomeScreenEnabledFlag = jest.fn().mockReturnValue(false);
+jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
+  selectMoneyHomeScreenEnabledFlag: (state: unknown) =>
+    mockSelectMoneyHomeScreenEnabledFlag(state),
+}));
+
 describe('MusdAggregatedRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -71,6 +76,7 @@ describe('MusdAggregatedRow', () => {
       hasPendingClaim: false,
       claimRewards: mockClaimRewards,
       isClaiming: false,
+      error: null,
     });
   });
 
@@ -100,26 +106,13 @@ describe('MusdAggregatedRow', () => {
     expect(screen.getByTestId('cash-section-musd-row')).toBeOnTheScreen();
   });
 
-  it('navigates to Asset with home_section source when row is pressed', () => {
-    renderWithProvider(<MusdAggregatedRow />);
-
-    fireEvent.press(screen.getByTestId('cash-section-musd-row'));
-
-    const mockNavigate = jest.mocked(NavigationService.navigation.navigate);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'Asset',
-      expect.objectContaining({
-        source: 'home_section',
-      }),
-    );
-  });
-
   it('shows Spinner when isClaiming is true', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: '10',
       hasPendingClaim: false,
       claimRewards: mockClaimRewards,
       isClaiming: true,
+      error: null,
     });
 
     renderWithProvider(<MusdAggregatedRow />);
@@ -134,6 +127,7 @@ describe('MusdAggregatedRow', () => {
       hasPendingClaim: false,
       claimRewards: mockClaimRewards,
       isClaiming: false,
+      error: null,
     });
 
     renderWithProvider(<MusdAggregatedRow />);
@@ -143,33 +137,26 @@ describe('MusdAggregatedRow', () => {
   });
 
   describe('handleTokenRowPress', () => {
-    it('navigates to CASH_TOKENS_FULL_VIEW when user has mUSD balance on any chain', () => {
-      mockUseMusdBalance.mockReturnValueOnce({
-        tokenBalanceAggregated: '1800.5',
-        fiatBalanceAggregatedFormatted: '$1,800.50',
-        hasMusdBalanceOnAnyChain: true,
-      });
+    it('navigates to Cash tokens full view when Money Home is disabled', () => {
+      mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
 
       renderWithProvider(<MusdAggregatedRow />);
 
       fireEvent.press(screen.getByTestId('cash-section-musd-row'));
 
-      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+      expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WALLET.CASH_TOKENS_FULL_VIEW,
       );
     });
 
-    it('navigates to mUSD mainnet Asset details when user has no mUSD balance on any chain', () => {
+    it('navigates to Money Home when Money Home is enabled', () => {
+      mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
+
       renderWithProvider(<MusdAggregatedRow />);
 
       fireEvent.press(screen.getByTestId('cash-section-musd-row'));
 
-      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-        'Asset',
-        expect.objectContaining({
-          source: TokenDetailsSource.HomeSection,
-        }),
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT);
     });
   });
 
@@ -180,6 +167,7 @@ describe('MusdAggregatedRow', () => {
         hasPendingClaim: false,
         claimRewards: mockClaimRewards,
         isClaiming: false,
+        error: null,
       });
 
       renderWithProvider(<MusdAggregatedRow />);
@@ -194,6 +182,7 @@ describe('MusdAggregatedRow', () => {
         hasPendingClaim: false,
         claimRewards: mockClaimRewards,
         isClaiming: false,
+        error: null,
       });
 
       renderWithProvider(<MusdAggregatedRow />);
@@ -207,6 +196,7 @@ describe('MusdAggregatedRow', () => {
         hasPendingClaim: false,
         claimRewards: mockClaimRewards,
         isClaiming: false,
+        error: null,
       });
 
       renderWithProvider(<MusdAggregatedRow />);
@@ -221,6 +211,7 @@ describe('MusdAggregatedRow', () => {
         hasPendingClaim: false,
         claimRewards: mockClaimRewards,
         isClaiming: false,
+        error: null,
       });
 
       renderWithProvider(<MusdAggregatedRow />);

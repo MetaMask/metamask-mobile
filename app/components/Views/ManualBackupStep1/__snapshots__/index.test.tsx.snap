@@ -1,13 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ManualBackupStep1 matches snapshot 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -539,7 +536,7 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
                   "text-body-md",
                   "font-default-medium",
                   "text-default",
-                  "shrink grow-0 flex-wrap text-center  text-primary-inverse",
+                  "shrink grow-0 flex-wrap text-center  text-primary-inverse ",
                 ],
                 undefined,
               ]
@@ -552,17 +549,14 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
     </View>
   </View>
   <View />
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -1094,7 +1088,7 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
                   "text-body-md",
                   "font-default-medium",
                   "text-default",
-                  "shrink grow-0 flex-wrap text-center  text-primary-inverse",
+                  "shrink grow-0 flex-wrap text-center  text-primary-inverse ",
                 ],
                 undefined,
               ]
@@ -1107,17 +1101,14 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
     </View>
   </View>
   <View />
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`ManualBackupStep1 theme appearance renders with light theme on Android 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -1649,7 +1640,7 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
                   "text-body-md",
                   "font-default-medium",
                   "text-default",
-                  "shrink grow-0 flex-wrap text-center  text-primary-inverse",
+                  "shrink grow-0 flex-wrap text-center  text-primary-inverse ",
                 ],
                 undefined,
               ]
@@ -1662,5 +1653,5 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
     </View>
   </View>
   <View />
-</RNCSafeAreaView>
+</View>
 `;

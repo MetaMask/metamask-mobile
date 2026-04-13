@@ -9,7 +9,7 @@ The registry auto-discovers and merges all team pre-conditions at load time.
 teams/
   perps/
     flows/              ← flow JSON files (validated by validate-flow-schema.js)
-    recipes/            ← integration-level recipes that compose flows via flow_ref
+    recipes/            ← integration-level recipes that compose flows via call action
     evals/              ← named eval collections (core.json, setup.json, ...)
     evals.json          ← quick CDP eval refs (positions, auth, balances, ...)
     pre-conditions.js   ← perps.* checks
@@ -56,7 +56,7 @@ Flow JSON files live in `teams/<team>/flows/`. They are automatically discovered
 node scripts/perps/agentic/validate-flow-schema.js
 
 # Validate a single flow
-node scripts/perps/agentic/validate-flow-schema.js teams/perps/flows/trade-open-market.json
+node scripts/perps/agentic/validate-flow-schema.js scripts/perps/agentic/teams/perps/flows/trade-open-market.json
 ```
 
 ## Evals
@@ -79,14 +79,14 @@ node scripts/perps/agentic/cdp-bridge.js eval-ref --list
 
 ## Recipes
 
-Recipes live in `teams/<team>/recipes/`. They compose multiple flows via `flow_ref` for integration-level validation — proving that end-to-end scenarios work across flow boundaries.
+Recipes live in `teams/<team>/recipes/`. They compose multiple flows via the `call` action for integration-level validation — proving that end-to-end scenarios work across flow boundaries.
 
 ```bash
 # Run a recipe against the live app
-bash scripts/perps/agentic/validate-recipe.sh teams/perps/recipes/full-trade-lifecycle.json
+bash scripts/perps/agentic/validate-recipe.sh scripts/perps/agentic/teams/perps/recipes/full-trade-lifecycle.json
 
 # Dry-run (prints steps without executing)
-bash scripts/perps/agentic/validate-recipe.sh teams/perps/recipes/full-trade-lifecycle.json --dry-run
+bash scripts/perps/agentic/validate-recipe.sh scripts/perps/agentic/teams/perps/recipes/full-trade-lifecycle.json --dry-run
 ```
 
 See `teams/perps/recipes/full-trade-lifecycle.json` for an example that chains wallet home → mainnet → perps → testnet → open position → TP/SL → close.

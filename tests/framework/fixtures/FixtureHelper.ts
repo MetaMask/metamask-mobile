@@ -471,9 +471,8 @@ export const createMockAPIServer = async (
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
 
-  // Feature Flags
-  // testSpecificMock can override this if needed
-  await setupRemoteFeatureFlagsMock(mockServer);
+  // Feature Flags — use lower priority so testSpecificMock overrides take precedence
+  await setupRemoteFeatureFlagsMock(mockServer, {}, 998);
 
   const endpoints = await mockServer.getMockedEndpoints();
   logger.debug(`Mocked endpoints: ${endpoints.length}`);

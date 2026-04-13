@@ -100,9 +100,10 @@ describe('KycProcessing Component', () => {
     mockTrackEvent.mockClear();
   });
 
-  it('render matches snapshot', () => {
+  it('renders initial state with activity indicator and heading', () => {
     render(KycProcessing);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
+    expect(screen.getByText('Hang tight...')).toBeOnTheScreen();
   });
 
   it('calls setOptions when the component mounts', () => {
@@ -110,40 +111,44 @@ describe('KycProcessing Component', () => {
     expect(mockSetNavigationOptions).toHaveBeenCalled();
   });
 
-  it('renders loading state snapshot', () => {
-    mockUseUserDetailsPolling.loading = true;
-    render(KycProcessing);
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('renders error state snapshot', () => {
+  it('renders error state with error heading', () => {
     mockUseUserDetailsPolling.error = 'Network error';
     render(KycProcessing);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByText('We were unable to verify your identity.'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Retry verification')).toBeOnTheScreen();
   });
 
-  it('renders approved state snapshot', () => {
+  it('renders approved state with success heading', () => {
     mockUseUserDetailsPolling.userDetails = {
       kyc: { status: KycStatus.APPROVED },
     };
     render(KycProcessing);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText("You're verified")).toBeOnTheScreen();
+    expect(screen.getByText('Complete your order')).toBeOnTheScreen();
   });
 
-  it('renders rejected state snapshot', () => {
+  it('renders rejected state with error heading', () => {
     mockUseUserDetailsPolling.userDetails = {
       kyc: { status: KycStatus.REJECTED },
     };
     render(KycProcessing);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByText('We were unable to verify your identity.'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Retry verification')).toBeOnTheScreen();
   });
 
-  it('renders pending forms state snapshot', () => {
+  it('renders pending forms state with error heading', () => {
     mockUseDepositSdkMethod.mockReturnValueOnce([
       { data: { formsRequired: [{}] }, error: null, isFetching: false },
     ]);
     render(KycProcessing);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByText('We were unable to verify your identity.'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Retry verification')).toBeOnTheScreen();
   });
 
   describe('handleContinue button behavior', () => {

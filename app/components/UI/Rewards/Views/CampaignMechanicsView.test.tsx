@@ -16,29 +16,6 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: { campaignId: 'campaign-1' } }),
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const actual = jest.requireActual('react-native-safe-area-context');
-  return {
-    ...actual,
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    SafeAreaView: ({
-      children,
-      testID,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { ...props, testID }, children),
-  };
-});
-
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   return { ...actual };
@@ -187,7 +164,7 @@ describe('CampaignMechanicsView', () => {
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
               },
             },
           }),
@@ -244,7 +221,7 @@ describe('CampaignMechanicsView', () => {
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
                 notes: richTextNotes,
               },
             },
@@ -266,7 +243,7 @@ describe('CampaignMechanicsView', () => {
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
                 notes: null,
               },
             },
@@ -288,7 +265,7 @@ describe('CampaignMechanicsView', () => {
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
               },
             },
           }),
@@ -309,7 +286,7 @@ describe('CampaignMechanicsView', () => {
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
                 notes: { title: 'Only title' },
               },
             },
@@ -331,7 +308,7 @@ describe('CampaignMechanicsView', () => {
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
                 notes: 'just a string',
               },
             },
