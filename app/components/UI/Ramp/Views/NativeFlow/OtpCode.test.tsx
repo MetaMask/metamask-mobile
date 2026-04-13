@@ -93,11 +93,13 @@ jest.mock('react-native-confirmation-code-field', () => ({
     value,
     renderCell,
     cellCount,
+    editable,
     ...rest
   }: {
     onChangeText: (text: string) => void;
     value: string;
     cellCount: number;
+    editable?: boolean;
     renderCell: (info: {
       index: number;
       symbol: string;
@@ -114,6 +116,7 @@ jest.mock('react-native-confirmation-code-field', () => ({
         testID: rest.testID || 'otp-code-input',
         onChangeText,
         value,
+        editable,
       }),
       Array.from({ length: cellCount }, (_, i) =>
         renderCell({ index: i, symbol: value[i] || '', isFocused: false }),
@@ -403,7 +406,7 @@ describe('V2OtpCode', () => {
     });
   });
 
-  it('ignores OTP input changes while verification request is in-flight', async () => {
+  it('ignores OTP input changes and disables field while verification is in-flight', async () => {
     jest.useRealTimers();
 
     let resolveAttempt: (value: unknown) => void = () => undefined;
@@ -417,6 +420,9 @@ describe('V2OtpCode', () => {
 
     const otpInput = getByTestId('otp-code-input');
 
+    // Input should be editable before submission
+    expect(otpInput.props.editable).not.toBe(false);
+
     // Enter OTP — triggers submission
     await act(async () => {
       fireEvent.changeText(otpInput, '123456');
@@ -425,6 +431,9 @@ describe('V2OtpCode', () => {
     await waitFor(() => {
       expect(mockVerifyUserOtp).toHaveBeenCalledTimes(1);
     });
+
+    // Input should be non-editable while request is in-flight
+    expect(otpInput.props.editable).toBe(false);
 
     // Attempt to change the value while request is in-flight — should be ignored
     await act(async () => {
