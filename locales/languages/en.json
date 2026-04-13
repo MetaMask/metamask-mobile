@@ -117,6 +117,9 @@
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
       "title": "No quotes"
     },
+    "account_no_funds": {
+      "message": "No funds available. Use a different account."
+    },
     "perps_hardware_account": {
       "title": "Wallet not supported",
       "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
@@ -6715,8 +6718,7 @@
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD",
-    "no_funds_use_different_account": "No funds available. Use a different account."
+    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
