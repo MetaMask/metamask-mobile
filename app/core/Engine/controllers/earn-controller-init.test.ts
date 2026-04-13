@@ -63,7 +63,6 @@ describe('EarnControllerInit', () => {
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       addTransactionFn: expect.any(Function),
-      selectedNetworkClientId: 'mainnet',
     });
   });
 });
