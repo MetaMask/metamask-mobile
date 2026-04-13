@@ -49,7 +49,7 @@ import { useTrendingRequest } from '../../../../UI/Trending/hooks/useTrendingReq
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
-import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests.ts';
+import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 
 interface TokensSectionProps {
   sectionIndex: number;

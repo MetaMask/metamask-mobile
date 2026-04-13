@@ -112,7 +112,7 @@ const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
   []
 >(() => undefined);
 
-jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests.ts', () => ({
+jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
   useHomepageTrendingTransactionActiveAbTests: () =>
     mockUseHomepageTrendingTransactionActiveAbTests(),
 }));

@@ -49,17 +49,6 @@ function evictOldestAttributionEntries(countToAdd: number): void {
   }
 }
 
-/**
- * Stash assignments that should be applied to the next transaction(s) added
- * via TransactionController. Pushes the previous stash so nested
- * {@link withPendingTransactionActiveAbTests} calls restore the outer layer.
- */
-export function stashPendingTransactionActiveAbTests(
-  tests: TransactionActiveAbTestEntry[] | undefined,
-): void {
-  pushPendingStashLayer(tests);
-}
-
 export function getPendingTransactionActiveAbTests():
   | TransactionActiveAbTestEntry[]
   | undefined {
