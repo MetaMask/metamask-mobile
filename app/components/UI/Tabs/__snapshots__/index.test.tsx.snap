@@ -8,7 +8,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
       "bottom": 0,
       "flex": 1,
       "left": 0,
-      "paddingTop": 1,
+      "paddingTop": 0,
       "position": "absolute",
       "right": 0,
       "top": 0,
@@ -39,7 +39,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
         {
           "color": "#131416",
           "flex": 1,
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -172,7 +172,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                   {
                     "color": "#131416",
                     "flex": 1,
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 12,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -334,7 +334,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                   {
                     "color": "#131416",
                     "flex": 1,
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 12,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -416,7 +416,7 @@ exports[`Tabs rendering renders with single tab 1`] = `
       "bottom": 0,
       "flex": 1,
       "left": 0,
-      "paddingTop": 1,
+      "paddingTop": 0,
       "position": "absolute",
       "right": 0,
       "top": 0,
@@ -447,7 +447,7 @@ exports[`Tabs rendering renders with single tab 1`] = `
         {
           "color": "#131416",
           "flex": 1,
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -580,7 +580,7 @@ exports[`Tabs rendering renders with single tab 1`] = `
                   {
                     "color": "#131416",
                     "flex": 1,
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 12,
                     "letterSpacing": 0,
                     "lineHeight": 24,

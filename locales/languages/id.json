@@ -240,7 +240,6 @@
     "import_wallet_button": "Sinkronkan atau impor dompet",
     "new_to_crypto": "Baru mengenal kripto?",
     "start_exploring_now": "Buat dompet baru",
-    "unlock": "Buka",
     "new_to_metamask": "Baru mengenal MetaMask?",
     "already_have_wallet": "Sudah memiliki dompet?",
     "optin_back_title": "Perhatian!",
@@ -4811,11 +4810,9 @@
     "body_for_seedphrase": "Kini nilai tersebut telah ditambahkan ke dompet Anda, lindungi dompet dengan mengatur kata sandi dan menyimpan Frasa Pemulihan Rahasia (wajib).",
     "button": "Lindungi dompet"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Pembaruan transaksi gagal",
-    "text": "Apakah Anda ingin mencobanya lagi?",
-    "cancel_button": "Batal",
-    "retry_button": "Coba lagi"
+    "already_confirmed": "Transaksi ini sudah dikonfirmasi dan tidak dapat diubah."
   },
   "payment_request": {
     "title": "Minta",
@@ -6639,7 +6636,6 @@
     "nested_transaction_heading": "Transaksi {{index}}",
     "transaction": "Transaksi",
     "available_balance": "Saldo tersedia: ",
-    "available_perps_balance": "Saldo Perp yang tersedia: ",
     "edit_amount_done": "Lanjutkan",
     "deposit_edit_amount_done": "Tambahkan dana",
     "deposit_edit_amount_predict_withdraw": "Tarik",

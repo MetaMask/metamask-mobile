@@ -8,8 +8,7 @@ exports[`AddAccountActions renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,7 +333,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                         }
                       }
                     >
-                      <RCTSafeAreaView>
+                      <View>
                         <View>
                           <Text
                             accessibilityRole="text"
@@ -686,7 +685,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             </Text>
                           </TouchableOpacity>
                         </View>
-                      </RCTSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -696,6 +695,6 @@ exports[`AddAccountActions renders correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

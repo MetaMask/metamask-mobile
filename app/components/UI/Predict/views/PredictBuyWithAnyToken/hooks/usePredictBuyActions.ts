@@ -7,6 +7,8 @@ import {
   OrderPreview,
   PlaceOrderParams,
 } from '../../../types';
+import { TransactionStatus } from '@metamask/transaction-controller';
+import { providerErrors } from '@metamask/rpc-errors';
 import useApprovalRequest from '../../../../../Views/confirmations/hooks/useApprovalRequest';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import Engine from '../../../../../../core/Engine';
@@ -19,6 +21,27 @@ import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 
+/**
+ * Rejects all unapproved transactions to prevent stale approvals from
+ * interfering with the new deposit-and-order transaction batch.
+ * Mirrors the cleanup logic in useConfirmNavigation.
+ */
+function rejectPendingTransactions() {
+  const { ApprovalController, TransactionController } = Engine.context;
+  const unapprovedTxs = TransactionController.state.transactions.filter(
+    (tx) => tx.status === TransactionStatus.unapproved,
+  );
+  for (const tx of unapprovedTxs) {
+    try {
+      ApprovalController.rejectRequest(
+        tx.id,
+        providerErrors.userRejectedRequest(),
+      );
+    } catch {
+      // Approval may already be resolved
+    }
+  }
+}
 interface UsePredictBuyActionsParams {
   preview?: OrderPreview | null;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
@@ -77,6 +100,7 @@ export const usePredictBuyActions = ({
     }
 
     const doInit = async () => {
+      rejectPendingTransactions();
       resetSelectedPaymentToken();
       const result = await initPayWithAnyToken();
       if (result?.success && result.response?.batchId) {
@@ -232,6 +256,15 @@ export const usePredictBuyActions = ({
       }
     }
   }, [PredictController, currentState, navigation, isSheetMode, onClose]);
+
+  useEffect(() => {
+    if (currentState === ActiveOrderState.DEPOSITING) {
+      if (didInitiateOrderRef.current) {
+        didInitiateOrderRef.current = false;
+        navigation.dispatch(StackActions.pop());
+      }
+    }
+  }, [currentState, navigation]);
 
   return {
     handleConfirm,

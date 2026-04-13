@@ -392,6 +392,10 @@
     "lastUpdated": null,
     "signature": null
   },
+  "SocialController": {
+    "followingAddresses": [],
+    "leaderboardEntries": []
+  },
   "SubjectMetadataController": {
     "subjectMetadata": {}
   },
@@ -634,6 +638,8 @@
   "CardController": {
     "selectedCountry": null,
     "activeProviderId": "baanx",
+    "cardHomeData": null,
+    "cardHomeDataStatus": "idle",
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {}
@@ -714,6 +720,8 @@
     "campaigns": {},
     "ondoCampaignLeaderboardPositions": {},
     "ondoCampaignPortfolio": {},
+    "ondoCampaignActivity": {},
+    "ondoCampaignDeposits": {},
     "ondoCampaignLeaderboard": {},
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
@@ -795,5 +803,8 @@
     "requests": {},
     "orders": [],
     "providerAutoSelected": false
+  },
+  "MoneyAccountController": {
+    "moneyAccounts": {}
   }
 }

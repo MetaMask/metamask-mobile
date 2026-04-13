@@ -78,7 +78,7 @@ import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
-import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
+import { clearStackNavigatorOptionsWithTransitionAnimation } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { selectProviderConfig } from '../../../selectors/networkController';
@@ -138,9 +138,13 @@ import BonusCodeBottomSheet from '../../UI/Rewards/components/Tabs/OverviewTab/W
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
+import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
+import OndoPendingSheet from '../../UI/Rewards/components/Campaigns/OndoPendingSheet';
+import CampaignTourStepView from '../../UI/Rewards/Views/CampaignTourStepView';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
+import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -169,7 +173,9 @@ const slideFromRightAnimation = {
 };
 
 const WalletModalFlow = () => (
-  <Stack.Navigator screenOptions={clearStackNavigatorOptions}>
+  <Stack.Navigator
+    screenOptions={clearStackNavigatorOptionsWithTransitionAnimation}
+  >
     <Stack.Screen
       name={'Wallet'}
       component={Wallet}
@@ -210,7 +216,7 @@ const AssetStackFlow = (props) => (
 const AssetNavigator = (props) => (
   <Stack.Navigator
     initialRouteName={'AssetStackFlow'}
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={clearStackNavigatorOptionsWithTransitionAnimation}
   >
     <Stack.Screen
       name={'AssetStackFlow'}
@@ -241,7 +247,7 @@ const WalletTabModalFlow = () => {
   return (
     <Stack.Navigator
       screenOptions={{
-        ...clearStackNavigatorOptions,
+        ...clearStackNavigatorOptionsWithTransitionAnimation,
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
@@ -300,7 +306,7 @@ const RewardsHome = () => {
   return (
     <Stack.Navigator
       screenOptions={{
-        ...clearStackNavigatorOptions,
+        ...clearStackNavigatorOptionsWithTransitionAnimation,
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
@@ -326,12 +332,22 @@ const RewardsHome = () => {
         options={{
           headerShown: false,
           presentation: 'transparentModal',
-          ...clearStackNavigatorOptions,
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
         }}
       />
       <Stack.Screen
         name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
         component={EndOfSeasonClaimBottomSheet}
+        options={{ presentation: 'transparentModal' }}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.REWARDS_SELECT_SHEET}
+        component={RewardsSelectSheet}
+        options={{ presentation: 'transparentModal' }}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.REWARDS_ONDO_PENDING_SHEET}
+        component={OndoPendingSheet}
         options={{ presentation: 'transparentModal' }}
       />
     </Stack.Navigator>
@@ -1076,6 +1092,7 @@ const MainNavigator = () => {
         options={{
           gestureEnabled: false,
           cardStyle: { backgroundColor: colors.background.default },
+          ...slideFromRightAnimation,
         }}
       />
       <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
@@ -1121,11 +1138,18 @@ const MainNavigator = () => {
         {() => <RampRoutes rampType={RampType.SELL} />}
       </Stack.Screen>
       <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
-      <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
+      <Stack.Screen
+        name={Routes.BRIDGE.ROOT}
+        component={BridgeScreenStack}
+        options={slideFromRightAnimation}
+      />
       <Stack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
         component={BridgeModalStack}
-        options={clearStackNavigatorOptions}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
       />
       <Stack.Screen
         name="StakeScreens"
@@ -1140,7 +1164,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.EARN.MODALS.ROOT}
         component={EarnModalStack}
-        options={clearStackNavigatorOptions}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
       />
       {isMoneyHomeScreenEnabled && (
         <Stack.Screen
@@ -1153,7 +1180,7 @@ const MainNavigator = () => {
         name="StakeModals"
         component={StakeModalStack}
         options={{
-          ...clearStackNavigatorOptions,
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
           presentation: 'transparentModal',
         }}
       />
@@ -1174,7 +1201,10 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}
-            options={clearStackNavigatorOptions}
+            options={{
+              ...clearStackNavigatorOptionsWithTransitionAnimation,
+              presentation: 'transparentModal',
+            }}
           />
         </>
       )}
@@ -1217,8 +1247,8 @@ const MainNavigator = () => {
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
             options={{
+              ...clearStackNavigatorOptionsWithTransitionAnimation,
               presentation: 'transparentModal',
-              ...clearStackNavigatorOptions,
             }}
           />
         </>
@@ -1293,7 +1323,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
-        options={{ headerShown: true, ...slideFromRightAnimation }}
+        options={({ navigation }) => ({
+          ...slideFromRightAnimation,
+          ...getDeFiProtocolPositionDetailsNavbarOptions(navigation),
+        })}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -1307,9 +1340,14 @@ const MainNavigator = () => {
       }
       <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
       <Stack.Screen
+        name={Routes.REWARDS_CAMPAIGN_TOUR_STEP}
+        component={CampaignTourStepView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}
-        options={clearStackNavigatorOptions}
+        options={clearStackNavigatorOptionsWithTransitionAnimation}
       />
     </Stack.Navigator>
   );

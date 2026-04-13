@@ -7,13 +7,12 @@ import React, {
 } from 'react';
 import {
   Alert,
-  SafeAreaView,
   BackHandler,
   TouchableOpacity,
   Platform,
   Image,
-  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -21,14 +20,10 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  TextVariant,
-  FontWeight,
   TextField,
   Button,
   ButtonSize,
   ButtonVariant,
-  Text,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { ThemeContext } from '../../../util/theme';
 import { TextVariant as DSTextVariant } from '../../../component-library/components/Texts/Text';
@@ -68,7 +63,6 @@ import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
 import {
-  DENY_PIN_ERROR_ANDROID,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
   VAULT_ERROR,
   PASSCODE_NOT_SET_ERROR,
@@ -76,7 +70,6 @@ import {
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
 } from './constants';
-import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import {
   RouteProp,
   StackActions,
@@ -92,6 +85,7 @@ import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import useAuthCapabilities from '../../../core/Authentication/hooks/useAuthCapabilities';
+import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 interface LoginRouteParams {
@@ -230,11 +224,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       }
 
       const isBiometricCancellation =
-        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
-        containsErrorMessage(
-          loginError,
-          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
-        );
+        isBiometricUnlockCancelledByUser(loginError);
 
       if (isBiometricCancellation) {
         setLoading(false);
@@ -396,14 +386,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   return (
     <ErrorBoundary navigation={navigation} view="Login">
-      <SafeAreaView
-        style={[
-          tw.style('flex-1'),
-          Platform.OS === 'android' && {
-            paddingTop: StatusBar.currentHeight ?? 0,
-          },
-        ]}
-      >
+      <SafeAreaView style={tw.style('flex-1')}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           style={tw.style('flex-1')}
@@ -498,23 +481,17 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               >
                 {strings('login.unlock_button')}
               </Button>
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible
-                testID={LoginViewSelectors.RESET_WALLET}
+              <Button
+                variant={ButtonVariant.Tertiary}
+                size={ButtonSize.Lg}
                 onPress={toggleWarningModal}
-                disabled={loading}
-                style={tw.style('my-0 self-center pt-4')}
+                isDisabled={loading}
+                testID={LoginViewSelectors.RESET_WALLET}
+                isFullWidth
+                twClassName="mt-4"
               >
-                <Text
-                  twClassName="self-center"
-                  color={TextColor.TextAlternative}
-                  fontWeight={FontWeight.Medium}
-                  variant={TextVariant.BodyMd}
-                >
-                  {strings('login.forgot_password')}
-                </Text>
-              </TouchableOpacity>
+                {strings('login.forgot_password')}
+              </Button>
             </Box>
           </Box>
         </KeyboardAwareScrollView>
