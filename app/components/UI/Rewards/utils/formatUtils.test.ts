@@ -442,7 +442,7 @@ describe('formatUtils', () => {
     it('returns hour and minute pair when same calendar day and at least one hour remains', () => {
       const now = new Date('2025-03-03T10:00:00Z');
 
-      expect(formatDateRemaining('2025-03-03T11:00:00Z', now)).toBe('1h 0min');
+      expect(formatDateRemaining('2025-03-03T11:00:00Z', now)).toBe('1h');
       expect(formatDateRemaining('2025-03-03T12:30:00Z', now)).toBe('2h 30min');
     });
 
@@ -456,6 +456,18 @@ describe('formatUtils', () => {
       const now = new Date('2024-01-15T00:00:00Z');
 
       expect(formatDateRemaining('2026-03-20T00:00:00Z', now)).toBe('2y 2mo');
+    });
+
+    it('skips zero-value month and uses next non-zero unit', () => {
+      const now = new Date('2025-01-10T00:00:00Z');
+
+      expect(formatDateRemaining('2026-01-30T00:00:00Z', now)).toBe('1y 20d');
+    });
+
+    it('returns a single unit when only one non-zero unit remains', () => {
+      const now = new Date('2025-01-10T00:00:00Z');
+
+      expect(formatDateRemaining('2026-01-10T00:00:00Z', now)).toBe('1y');
     });
   });
 

@@ -225,16 +225,21 @@ export const formatDateRemaining = (
   const hour = Math.floor((remainingMs % msInDay) / msInHour);
   const minute = Math.floor(((remainingMs % msInDay) % msInHour) / msInMinute);
 
-  if (year > 0) {
-    return `${year}y ${month}mo`;
+  const units = [
+    { value: year, suffix: 'y' },
+    { value: month, suffix: 'mo' },
+    { value: day, suffix: 'd' },
+    { value: hour, suffix: 'h' },
+    { value: minute, suffix: 'min' },
+  ].filter((unit) => unit.value > 0);
+
+  if (units.length === 0) {
+    return null;
   }
-  if (month > 0) {
-    return `${month}mo ${day}d`;
+  if (units.length === 1) {
+    return `${units[0].value}${units[0].suffix}`;
   }
-  if (day > 0) {
-    return `${day}d ${hour}h`;
-  }
-  return `${hour}h ${minute}min`;
+  return `${units[0].value}${units[0].suffix} ${units[1].value}${units[1].suffix}`;
 };
 
 // Get icon name with fallback to Star if invalid
