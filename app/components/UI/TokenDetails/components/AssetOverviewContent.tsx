@@ -40,7 +40,6 @@ import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import PerpsPositionCard from '../../Perps/components/PerpsPositionCard';
 import Price from '../../AssetOverview/Price';
-import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions';
@@ -604,28 +603,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       });
     }
   }, [marketData, navigation]);
-
-  const handleSelectTimePeriod = useCallback(
-    (period: TimePeriod) => {
-      setTimePeriod(period);
-    },
-    [setTimePeriod],
-  );
-
-  const renderChartNavigationButton = useCallback(
-    () =>
-      chartNavigationButtons.map((label) => (
-        <ChartNavigationButton
-          key={label}
-          label={strings(
-            `asset_overview.chart_time_period_navigation.${label}`,
-          )}
-          onPress={() => handleSelectTimePeriod(label)}
-          selected={timePeriod === label}
-        />
-      )),
-    [handleSelectTimePeriod, timePeriod, chartNavigationButtons],
-  );
 
   const renderWarning = () => (
     <View style={styles.warningWrapper}>
