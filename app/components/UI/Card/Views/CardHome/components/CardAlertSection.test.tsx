@@ -104,10 +104,14 @@ describe('CardAlertSection', () => {
   it('renders multiple alerts', () => {
     const { getByTestId } = renderComponent([
       { type: 'kyc_pending', dismissable: false },
+      { type: 'card_provisioning', dismissable: false },
     ]);
 
     expect(
       getByTestId(`card-message-box-${CardMessageBoxType.KYCPending}`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`card-message-box-${CardMessageBoxType.CardProvisioning}`),
     ).toBeOnTheScreen();
   });
 });

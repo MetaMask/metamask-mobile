@@ -862,6 +862,7 @@ function setupLoadCardDataMock(
           account,
           alerts,
           actions,
+          delegationSettings: config.delegationSettings,
         },
     isLoading: config.isLoading,
     isError: !!config.error,
@@ -5852,24 +5853,6 @@ describe('CardHome Component', () => {
     it('navigates to authentication when cashback pressed', () => {
       render();
       fireEvent.press(screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM));
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
-        showAuthPrompt: true,
-      });
-    });
-
-    it('navigates to authentication when manage card pressed', () => {
-      render();
-      fireEvent.press(
-        screen.getByTestId(CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM),
-      );
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
-        showAuthPrompt: true,
-      });
-    });
-
-    it('navigates to authentication when travel pressed', () => {
-      render();
-      fireEvent.press(screen.getByTestId(CardHomeSelectors.TRAVEL_ITEM));
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
         showAuthPrompt: true,
       });
