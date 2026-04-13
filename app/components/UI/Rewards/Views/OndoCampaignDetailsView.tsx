@@ -1,20 +1,21 @@
-import React, { useEffect, useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectReferralCode } from '../../../../reducers/rewards/selectors';
-import {
-  useNavigation,
-  useRoute,
-  RouteProp,
-  type NavigationProp,
-  type ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Skeleton,
@@ -32,6 +33,7 @@ import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
 import OndoAccountPickerSheet from '../components/Campaigns/OndoAccountPickerSheet';
 import OndoCampaignCTA from '../components/Campaigns/OndoCampaignCTA';
+import OndoNotEligibleSheet from '../components/Campaigns/OndoNotEligibleSheet';
 import CampaignStatsSummary from '../components/Campaigns/CampaignStatsSummary';
 import OndoPrizePool from '../components/Campaigns/OndoPrizePool';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
@@ -46,6 +48,7 @@ import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits'
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { OndoCampaignHowItWorks } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { ONDO_GM_REQUIRED_QUALIFIED_DAYS } from '../utils/ondoCampaignConstants';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -67,6 +70,19 @@ const OndoCampaignDetailsView: React.FC = () => {
   const referralCode = useSelector(selectReferralCode);
   const { pendingPicker, setPendingPicker, sheetRef, handleGroupSelect } =
     useOndoAccountPicker(campaignId);
+
+  const [portfolioNotEligibleAction, setPortfolioNotEligibleAction] = useState<
+    (() => void) | null
+  >(null);
+  const portfolioNotEligibleActionRef = useRef<(() => void) | null>(null);
+
+  const handlePortfolioNotEligible = useCallback(
+    (confirmAction: () => void) => {
+      portfolioNotEligibleActionRef.current = confirmAction;
+      setPortfolioNotEligibleAction(() => confirmAction);
+    },
+    [],
+  );
 
   const {
     deposits,
@@ -120,6 +136,7 @@ const OndoCampaignDetailsView: React.FC = () => {
   );
 
   const {
+    leaderboard: leaderboardData,
     tierNames,
     selectedTier,
     selectedTierData,
@@ -131,6 +148,63 @@ const OndoCampaignDetailsView: React.FC = () => {
   } = useGetOndoLeaderboard(campaignId, {
     defaultTier: leaderboardPosition?.projectedTier,
   });
+
+  const leaderboardUserPosition = useMemo(
+    () =>
+      leaderboardPosition
+        ? {
+            projectedTier: leaderboardPosition.projectedTier,
+            rank: leaderboardPosition.rank,
+            neighbors: leaderboardPosition.neighbors ?? [],
+          }
+        : null,
+    [leaderboardPosition],
+  );
+
+  const tierMinDeposit = useMemo(
+    () =>
+      leaderboardPosition &&
+      campaign &&
+      getCampaignStatus(campaign) === 'active'
+        ? (leaderboardData?.tiers[leaderboardPosition.projectedTier]
+            ?.minDeposit ?? null)
+        : null,
+    [leaderboardData, leaderboardPosition, campaign],
+  );
+
+  const leaderboardPendingSheetPosition = useMemo(
+    () =>
+      leaderboardPosition &&
+      !leaderboardPosition.qualified &&
+      tierMinDeposit != null
+        ? {
+            tier: leaderboardPosition.projectedTier,
+            netDeposit: leaderboardPosition.netDeposit,
+            qualifiedDays: leaderboardPosition.qualifiedDays,
+            tierMinDeposit,
+          }
+        : null,
+    [leaderboardPosition, tierMinDeposit],
+  );
+
+  const notEligibleForCampaign = useMemo((): boolean => {
+    if (!campaign) return false;
+    if (isOptedIn && leaderboardPosition?.qualified) return false;
+    if (getCampaignStatus(campaign) !== 'active') return false;
+    // Backend counts calendar days (UTC): the day a position is opened counts as day 1,
+    // and every subsequent calendar day until endDate inclusive counts too.
+    // daysAvailable = floor((endDate - startOfTodayUTC) / 24h) + 1
+    const now = new Date();
+    const startOfTodayUTC = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+    );
+    const endDate = new Date(campaign.endDate).getTime();
+    const daysAvailable =
+      Math.floor((endDate - startOfTodayUTC) / (1000 * 60 * 60 * 24)) + 1;
+    return daysAvailable < ONDO_GM_REQUIRED_QUALIFIED_DAYS;
+  }, [campaign, isOptedIn, leaderboardPosition]);
 
   const {
     showHowItWorksSection,
@@ -147,16 +221,12 @@ const OndoCampaignDetailsView: React.FC = () => {
       };
     }
 
-    const showHowItWorksSection =
-      Boolean(campaign.details?.howItWorks) &&
-      !hasPositions &&
-      getCampaignStatus(campaign) === 'active';
-
-    const showStatsSummarySection = hasPositions;
-
     return {
-      showHowItWorksSection,
-      showStatsSummarySection,
+      showHowItWorksSection:
+        Boolean(campaign.details?.howItWorks) &&
+        !hasPositions &&
+        getCampaignStatus(campaign) === 'active',
+      showStatsSummarySection: hasPositions,
       showPortfolioSection: isOptedIn,
       showLeaderboardSection: true,
     };
@@ -220,18 +290,6 @@ const OndoCampaignDetailsView: React.FC = () => {
             <>
               <CampaignStatus campaign={campaign} optedIn={isOptedIn} />
 
-              <Box twClassName="p-4">
-                <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
-                  {strings('rewards.ondo_campaign_prize_pool.title')}
-                </Text>
-                <OndoPrizePool
-                  totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
-                  isLoading={isDepositsLoading}
-                  hasError={hasDepositsError}
-                  refetch={refetchDeposits}
-                />
-              </Box>
-
               {/* Phase 1: Not opted in, show how it works section */}
               {showHowItWorksSection && (
                 <>
@@ -248,6 +306,29 @@ const OndoCampaignDetailsView: React.FC = () => {
               {showStatsSummarySection && (
                 <>
                   <Box twClassName="p-4">
+                    <Pressable
+                      onPress={() =>
+                        navigation.navigate(
+                          Routes.REWARDS_ONDO_CAMPAIGN_STATS,
+                          { campaignId },
+                        )
+                      }
+                    >
+                      <Box
+                        flexDirection={BoxFlexDirection.Row}
+                        alignItems={BoxAlignItems.Center}
+                        twClassName="gap-2 mb-4"
+                      >
+                        <Text variant={TextVariant.HeadingMd}>
+                          {strings('rewards.ondo_campaign_stats.title')}
+                        </Text>
+                        <Icon
+                          name={IconName.ArrowRight}
+                          size={IconSize.Md}
+                          color={IconColor.IconAlternative}
+                        />
+                      </Box>
+                    </Pressable>
                     <CampaignStatsSummary
                       leaderboardPosition={leaderboardPosition}
                       portfolioSummary={portfolioData?.summary ?? null}
@@ -261,6 +342,20 @@ const OndoCampaignDetailsView: React.FC = () => {
                         hasError: hasPortfolioError,
                         refetch: refetchPortfolio,
                       }}
+                      showHeader={false}
+                      tierMinDeposit={tierMinDeposit}
+                      onQualifyPress={
+                        leaderboardPendingSheetPosition
+                          ? () =>
+                              navigation.navigate(
+                                Routes.MODAL.REWARDS_ONDO_PENDING_SHEET,
+                                {
+                                  variant: 'own',
+                                  ...leaderboardPendingSheetPosition,
+                                },
+                              )
+                          : undefined
+                      }
                     />
                   </Box>
                 </>
@@ -281,7 +376,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                         )}
                       </Text>
                       <TextButton
-                        variant={TextVariant.BodyMd}
+                        variant={TextVariant.ButtonLabelMd}
                         onPress={() =>
                           navigation.navigate(
                             Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW,
@@ -304,9 +399,30 @@ const OndoCampaignDetailsView: React.FC = () => {
                       isCampaignComplete={
                         getCampaignStatus(campaign) === 'complete'
                       }
+                      notEligibleForCampaign={notEligibleForCampaign}
+                      onNotEligible={handlePortfolioNotEligible}
                     />
                   </Box>
                 </>
+              )}
+
+              {(getCampaignStatus(campaign) === 'active' ||
+                showLeaderboardSection) && (
+                <Box twClassName="my-5 border-b border-border-muted" />
+              )}
+
+              {getCampaignStatus(campaign) === 'active' && (
+                <Box twClassName="p-4">
+                  <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
+                    {strings('rewards.ondo_campaign_prize_pool.title')}
+                  </Text>
+                  <OndoPrizePool
+                    totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
+                    isLoading={isDepositsLoading}
+                    hasError={hasDepositsError}
+                    refetch={refetchDeposits}
+                  />
+                </Box>
               )}
 
               {showLeaderboardSection && (
@@ -328,7 +444,11 @@ const OndoCampaignDetailsView: React.FC = () => {
                         <Text variant={TextVariant.HeadingMd}>
                           {strings('rewards.ondo_campaign_leaderboard.title')}
                         </Text>
-                        <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+                        <Icon
+                          name={IconName.ArrowRight}
+                          size={IconSize.Md}
+                          color={IconColor.IconAlternative}
+                        />
                       </Box>
                     </Pressable>
                     <OndoLeaderboard
@@ -345,15 +465,8 @@ const OndoCampaignDetailsView: React.FC = () => {
                       onRetry={refetchLeaderboard}
                       maxEntries={5}
                       currentUserReferralCode={referralCode}
-                      userPosition={
-                        leaderboardPosition
-                          ? {
-                              projectedTier: leaderboardPosition.projectedTier,
-                              rank: leaderboardPosition.rank,
-                              neighbors: leaderboardPosition.neighbors,
-                            }
-                          : null
-                      }
+                      userPosition={leaderboardUserPosition}
+                      pendingSheetPosition={leaderboardPendingSheetPosition}
                     />
                   </Box>
                 </>
@@ -371,6 +484,7 @@ const OndoCampaignDetailsView: React.FC = () => {
             }}
             hasPositions={hasPositions}
             campaignId={campaignId}
+            notEligibleForCampaign={notEligibleForCampaign}
           />
         )}
 
@@ -380,6 +494,21 @@ const OndoCampaignDetailsView: React.FC = () => {
             sheetRef={sheetRef}
             onClose={() => setPendingPicker(null)}
             onGroupSelect={handleGroupSelect}
+          />
+        )}
+
+        {portfolioNotEligibleAction && (
+          <OndoNotEligibleSheet
+            onClose={() => {
+              setPortfolioNotEligibleAction(null);
+              portfolioNotEligibleActionRef.current = null;
+            }}
+            onConfirm={() => {
+              const action = portfolioNotEligibleActionRef.current;
+              portfolioNotEligibleActionRef.current = null;
+              setPortfolioNotEligibleAction(null);
+              action?.();
+            }}
           />
         )}
       </SafeAreaView>
