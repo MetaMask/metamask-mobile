@@ -4,6 +4,7 @@ import PredictOutcomeGroupChips from './PredictOutcomeGroupChips';
 import {
   PREDICT_OUTCOME_GROUP_CHIPS_TEST_IDS,
   getOutcomeGroupChipTestId,
+  getOutcomeGroupChipLabelTestId,
 } from './PredictOutcomeGroupChips.testIds';
 import type { PredictOutcomeGroup } from '../../types';
 

@@ -6,3 +6,6 @@ export const PREDICT_OUTCOME_GROUP_CHIPS_TEST_IDS = {
 
 export const getOutcomeGroupChipTestId = (key: string) =>
   `${PREDICT_OUTCOME_GROUP_CHIPS_TEST_IDS.CHIP}-${key}` as const;
+
+export const getOutcomeGroupChipLabelTestId = (key: string) =>
+  `${PREDICT_OUTCOME_GROUP_CHIPS_TEST_IDS.CHIP_LABEL}-${key}` as const;

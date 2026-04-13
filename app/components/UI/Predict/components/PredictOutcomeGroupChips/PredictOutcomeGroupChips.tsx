@@ -12,6 +12,7 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   PREDICT_OUTCOME_GROUP_CHIPS_TEST_IDS,
   getOutcomeGroupChipTestId,
+  getOutcomeGroupChipLabelTestId,
 } from './PredictOutcomeGroupChips.testIds';
 import type { PredictOutcomeGroupChipsProps } from './PredictOutcomeGroupChips.types';
 
@@ -79,7 +80,7 @@ const PredictOutcomeGroupChips: React.FC<PredictOutcomeGroupChipsProps> = ({
                 color={
                   isSelected ? TextColor.InfoInverse : TextColor.TextAlternative
                 }
-                testID={PREDICT_OUTCOME_GROUP_CHIPS_TEST_IDS.CHIP_LABEL}
+                testID={getOutcomeGroupChipLabelTestId(group.key)}
               >
                 {getGroupLabel(group.key)}
               </Text>
