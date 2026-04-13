@@ -26,6 +26,7 @@ import styleSheet from './PriceChart.styles';
 import { placeholderData } from './utils';
 import PriceChartContext from './PriceChart.context';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
+import { Box } from '@metamask/design-system-react-native';
 
 interface LineProps {
   line: string;
@@ -315,7 +316,7 @@ const PriceChart = ({
    * @see https://github.com/MetaMask/metamask-mobile/issues/20854
    */
   const LoadingOverlay = () => (
-    <View style={styles.noDataOverlay} testID="price-chart-loading">
+    <Box twClassName="justify-center items-center" testID="price-chart-loading">
       <SkeletonPlaceholder
         backgroundColor={theme.colors.background.section}
         highlightColor={theme.colors.background.subsection}
@@ -330,7 +331,7 @@ const PriceChart = ({
           borderRadius={6}
         ></SkeletonPlaceholder.Item>
       </SkeletonPlaceholder>
-    </View>
+    </Box>
   );
 
   const chartHasData = priceList.length > 1;
