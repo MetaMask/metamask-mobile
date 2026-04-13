@@ -1,6 +1,12 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -201,6 +207,28 @@ const PerpsTransactionsView: React.FC = () => {
       setRefreshing(false);
     }
   }, [isConnected, refreshTransactions]);
+
+  // Auto-advance funding cursor when the Funding tab is empty but more data
+  // exists. FlashList does not reliably call onEndReached on empty lists, so
+  // we trigger loadMoreFunding directly when the tab shows no results.
+  useEffect(() => {
+    if (
+      activeFilter === 'Funding' &&
+      !transactionsLoading &&
+      !isFetchingMoreFunding &&
+      hasFundingMore &&
+      fundingTransactions.length === 0
+    ) {
+      loadMoreFunding();
+    }
+  }, [
+    activeFilter,
+    transactionsLoading,
+    isFetchingMoreFunding,
+    hasFundingMore,
+    fundingTransactions,
+    loadMoreFunding,
+  ]);
 
   useFocusEffect(
     useCallback(() => {
