@@ -46,7 +46,10 @@ export const BridgeScreenStack = () => (
 const ModalStack = createStackNavigator();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
   >
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.DEFAULT_SLIPPAGE_MODAL}
