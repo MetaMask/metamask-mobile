@@ -43,7 +43,6 @@ import Price from '../../AssetOverview/Price';
 import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
-import { PriceChartProvider } from '../../AssetOverview/PriceChart/PriceChart.context';
 import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
@@ -812,18 +811,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             </Box>
           )}
 
-          <PriceChartProvider>
-            <Price
-              asset={token}
-              prices={prices}
-              timePeriod={timePeriod}
-              priceDiff={priceDiff}
-              currentCurrency={currentCurrency}
-              currentPrice={currentPrice}
-              comparePrice={comparePrice}
-              isLoading={isLoading}
-            />
-          </PriceChartProvider>
+          <Price
+            asset={token}
+            prices={prices}
+            timePeriod={timePeriod}
+            priceDiff={priceDiff}
+            currentCurrency={currentCurrency}
+            currentPrice={currentPrice}
+            comparePrice={comparePrice}
+            isLoading={isLoading}
+          />
           {/* Same as main: chart period tabs under the legacy line chart. Omitted when the advanced chart is on (range selector lives inside Price). */}
           {!isTokenOverviewAdvancedChartEnabled && (
             <View style={styles.chartNavigationWrapper}>

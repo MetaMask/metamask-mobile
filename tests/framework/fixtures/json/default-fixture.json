@@ -46,26 +46,14 @@
       "whitelist": []
     },
     "card": {
-      "alwaysShowCardButton": false,
-      "authenticatedPriorityToken": null,
-      "authenticatedPriorityTokenLastFetched": null,
-      "cache": {
-        "data": {},
-        "timestamps": {}
-      },
-      "cardholderAccounts": [],
       "geoLocation": "UNKNOWN",
       "hasViewedCardButton": false,
       "isDaimoDemo": false,
-      "isLoaded": false,
-      "lastFetchedByAddress": {},
       "onboarding": {
         "consentSetId": null,
         "contactVerificationId": null,
-        "onboardingId": null,
-        "selectedCountry": null
-      },
-      "priorityTokensByAddress": {}
+        "onboardingId": null
+      }
     },
     "collectibles": {
       "favorites": {},
@@ -137,6 +125,17 @@
           "pendingApprovalCount": 0,
           "pendingApprovals": {}
         },
+        "CardController": {
+          "activeProviderId": "baanx",
+          "cardholderAccounts": [],
+          "isAuthenticated": false,
+          "providerData": {},
+          "selectedCountry": null
+        },
+        "ComplianceController": {
+          "lastCheckedAt": null,
+          "walletComplianceStatusMap": {}
+        },
         "CronJobController": {
           "events": {},
           "jobs": {}
@@ -151,18 +150,18 @@
           },
           "currentCurrency": "usd"
         },
-        "GeolocationController": {
-          "location": "UNKNOWN",
-          "status": "idle",
-          "lastFetchedAt": null,
-          "error": null
-        },
         "GasFeeController": {
           "estimatedGasFeeTimeBounds": {},
           "gasEstimateType": "none",
           "gasFeeEstimates": {},
           "gasFeeEstimatesByChainId": {},
           "nonRPCGasFeeApisDisabled": false
+        },
+        "GeolocationController": {
+          "error": null,
+          "lastFetchedAt": 1775751316942,
+          "location": "UNKNOWN",
+          "status": "idle"
         },
         "KeyringController": {
           "keyrings": [
@@ -173,6 +172,9 @@
             }
           ],
           "vault": "{\"cipher\":\"ynNI8tAH4fcpmXo8S88A/3T3Dd1w0LY5ftpL59gW0ObYxovgFhrtKpRe/WD7WU42KwGBNKVicB9W9at4ePgOJGS6IMWr//C3jh0vKQTabkDzDy1ZfSvztRxGpVjmrnU3fC5B0eq/MBMSrgu8Bww309pk5jghyRfzp9YsG0ONo1CXUm2brQo/eRve7i9aDbiGXiEK0ch0BO7AvZPGMhHtYRrrOro4QrDVHGUgAF5SA1LD4dv/2AB8ctHwn4YbUmICieqlhJhprx3CNOJ086g7vPQOr21T4IbvtTumFaTibfoD3GWHQo11CvE04z3cN3rRERriP7bww/tZOe8OAMFGWANkmOJHwPPwEo1NBr6w3GD2VObEmqNhXeNc6rrM23Vm1JU40Hl+lVKubnbT1vujdGLmOpDY0GdekscQQrETEQJfhKlXIT0wwyPoLwR+Ja+GjyOhBr0nfWVoVoVrcTUwAk5pStBMt+5OwDRpP29L1+BL9eMwDgKpjVXRTh4MGagKYmFc6eKDf6jV0Yt9pG+jevv5IuyhwX0TRtfQCGgRTtS7oxhDQPxGqu01rr+aI7vGMfRQpaKEEXEWVmMaqCmktyUV35evK9h/xv1Yif00XBll55ShxN8t2/PnATvZxFKQfjJe5f/monbwf8rpfXHuFoh8M9hzjbcS5eh/TPYZZu1KltpeHSIAh5C+4aFyZw0e1DeAg/wdRO3PhBrVztsHSyISHlRdfEyw7QF4Lemr++2MVR1dTxS2I5mUEHjh+hmp64euH1Vb/RUppXlmE8t1RYYXfcsF2DlRwPswP739E/EpVtY3Syf/zOTyHyrOJBldzw22sauIzt8Q5Fe5qA/hGRWiejjK31P/P5j7wEKY7vrOJB1LWNXHSuSjffx9Ai9E\",\"iv\":\"d5dc0252424ac0c08ca49ef320d09569\",\"salt\":\"feAPSGdL4R2MVj2urJFl4A==\",\"lib\":\"original\"}"
+        },
+        "MoneyAccountController": {
+          "moneyAccounts": {}
         },
         "MultichainAssetsController": {
           "accountsAssets": {},
@@ -286,21 +288,6 @@
                 }
               ]
             },
-            "0xe708": {
-              "blockExplorerUrls": [],
-              "chainId": "0xe708",
-              "defaultRpcEndpointIndex": 0,
-              "name": "Linea Main Network",
-              "nativeCurrency": "LineaETH",
-              "rpcEndpoints": [
-                {
-                  "failoverUrls": [],
-                  "networkClientId": "linea-mainnet",
-                  "type": "infura",
-                  "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}"
-                }
-              ]
-            },
             "0xe705": {
               "blockExplorerUrls": [],
               "chainId": "0xe705",
@@ -313,6 +300,21 @@
                   "networkClientId": "linea-sepolia",
                   "type": "infura",
                   "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}"
+                }
+              ]
+            },
+            "0xe708": {
+              "blockExplorerUrls": [],
+              "chainId": "0xe708",
+              "defaultRpcEndpointIndex": 0,
+              "name": "Linea Main Network",
+              "nativeCurrency": "LineaETH",
+              "rpcEndpoints": [
+                {
+                  "failoverUrls": [],
+                  "networkClientId": "linea-mainnet",
+                  "type": "infura",
+                  "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}"
                 }
               ]
             }
@@ -357,13 +359,8 @@
             "unrealizedPnl": "150.00"
           },
           "activeProvider": "hyperliquid",
-          "cachedAccountState": null,
-          "cachedMarketData": null,
-          "cachedMarketDataTimestamp": 0,
-          "cachedOrders": null,
-          "cachedPositions": null,
-          "cachedUserDataAddress": null,
-          "cachedUserDataTimestamp": 0,
+          "cachedMarketDataByProvider": {},
+          "cachedUserDataByProvider": {},
           "depositInProgress": false,
           "depositRequests": [],
           "hasPlacedFirstOrder": {
@@ -380,6 +377,8 @@
             "testnet": true
           },
           "isTestnet": false,
+          "lastCompletedWithdrawalTimestamp": null,
+          "lastCompletedWithdrawalTxHashes": [],
           "lastDepositResult": null,
           "lastDepositTransactionId": null,
           "lastError": null,
@@ -442,6 +441,7 @@
             "0x1": true,
             "0x13881": true,
             "0x38": true,
+            "0x3e7": true,
             "0x5": true,
             "0x504": true,
             "0x505": true,
@@ -703,8 +703,11 @@
     },
     "notifications": {},
     "onboarding": {
+      "accountType": "metamask",
       "completedOnboarding": true,
-      "events": []
+      "events": [],
+      "onboardingVersion": "7.74.0 (4138)",
+      "pendingSocialLoginMarketingConsentBackfill": null
     },
     "originThrottling": {
       "origins": {}
@@ -745,12 +748,6 @@
         "totalAccounts": 0,
         "wasInterrupted": false
       },
-      "ondoCampaignLeaderboard": null,
-      "ondoCampaignLeaderboardError": false,
-      "ondoCampaignLeaderboardLoading": false,
-      "ondoCampaignLeaderboardPositions": {},
-      "ondoCampaignLeaderboardSelectedTier": null,
-      "ondoCampaignPortfolio": {},
       "campaignParticipantStatuses": {},
       "campaigns": [],
       "campaignsError": false,
@@ -765,6 +762,13 @@
       "nextTierPointsNeeded": null,
       "onboardingActiveStep": "INTRO",
       "onboardingReferralCode": null,
+      "ondoCampaignActivity": {},
+      "ondoCampaignLeaderboard": null,
+      "ondoCampaignLeaderboardError": false,
+      "ondoCampaignLeaderboardLoading": false,
+      "ondoCampaignLeaderboardPositions": {},
+      "ondoCampaignLeaderboardSelectedTier": null,
+      "ondoCampaignPortfolio": {},
       "optinAllowedForGeo": null,
       "optinAllowedForGeoError": false,
       "optinAllowedForGeoLoading": false,
@@ -784,9 +788,6 @@
       "seasonStatusLoading": false,
       "seasonTiers": [],
       "seasonWaysToEarn": [],
-      "snapshots": null,
-      "snapshotsError": false,
-      "snapshotsLoading": false,
       "unlockedRewardError": false,
       "unlockedRewardLoading": false,
       "unlockedRewards": null,
@@ -853,6 +854,7 @@
       "passwordSet": true,
       "protectWalletModalVisible": false,
       "seedphraseBackedUp": true,
+      "tokenOverviewChartType": 2,
       "userLoggedIn": true
     }
   }

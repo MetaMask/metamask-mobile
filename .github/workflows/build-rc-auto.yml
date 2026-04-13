@@ -4,6 +4,10 @@
 # It runs on every commit pushed to a release branch, but only when the release PR
 # has the 'auto-rc-builds' label.
 #
+# Rolling builds: when a new run starts for the same release branch, any queued or
+# in-progress run of this workflow for that branch is cancelled (same behavior as
+# Bitrise “Rolling builds” / “Abort running builds” for one branch + one workflow).
+#
 # Builds are triggered via the Runway OTA/build pipeline (runway-ota-build-core.yml):
 # - iOS runs first and performs the version bump.
 # - Android runs after, skipping the version bump (already done by iOS).
@@ -15,6 +19,10 @@ on:
   push:
     branches:
       - 'release/*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write

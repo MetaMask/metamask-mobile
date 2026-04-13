@@ -85,7 +85,7 @@ const MultichainAddWalletActions = ({
   );
 
   return (
-    <SafeAreaView>
+    <SafeAreaView edges={['bottom']}>
       <Fragment>
         {actionConfigs.map(
           (config) =>

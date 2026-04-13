@@ -8,8 +8,7 @@ exports[`Browser - Rendering and Initialization renders Browser component 1`] = 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -358,6 +357,6 @@ exports[`Browser - Rendering and Initialization renders Browser component 1`] = 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

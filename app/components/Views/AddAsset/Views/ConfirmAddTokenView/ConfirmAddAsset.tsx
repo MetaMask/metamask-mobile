@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';

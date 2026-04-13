@@ -1,6 +1,7 @@
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../util/remoteFeatureFlag';
 import {
+  selectMoneyActivityMockDataEnabledFlag,
   selectMoneyHomeScreenEnabledFlag,
   selectMoneyEnableMoneyAccountFlag,
 } from './featureFlags';
@@ -91,6 +92,59 @@ describe('selectMoneyHomeScreenEnabledFlag', () => {
     const state = createState({ _unique: 'fallback-false' });
 
     const result = selectMoneyHomeScreenEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyActivityMockDataEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns true when remote flag is true', () => {
+    const state = createState({
+      moneyActivityMockDataEnabled: true,
+    });
+
+    const result = selectMoneyActivityMockDataEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is false', () => {
+    const state = createState({
+      moneyActivityMockDataEnabled: false,
+    });
+
+    const result = selectMoneyActivityMockDataEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('falls back to local env var when remote flag is not a boolean', () => {
+    process.env.MM_MONEY_ACTIVITY_MOCK_DATA_ENABLED = 'true';
+
+    const state = createState({ _unique: 'mock-fallback-true' });
+
+    const result = selectMoneyActivityMockDataEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote is unset and local env is unset', () => {
+    delete process.env.MM_MONEY_ACTIVITY_MOCK_DATA_ENABLED;
+
+    const state = createState({ _unique: 'mock-fallback-false' });
+
+    const result = selectMoneyActivityMockDataEnabledFlag(state as never);
 
     expect(result).toBe(false);
   });

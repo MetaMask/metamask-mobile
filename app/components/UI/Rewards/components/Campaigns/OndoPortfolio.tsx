@@ -49,7 +49,6 @@ import {
 import { formatComputedAt } from './OndoLeaderboard.utils';
 import { selectCurrentSubscriptionAccounts } from '../../../../../selectors/rewards';
 import { selectAllTokenBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
 import { selectAllTokens } from '../../../../../selectors/tokensController';
 import { selectInternalAccountByAddresses } from '../../../../../selectors/accountsController';
 import {
@@ -169,7 +168,6 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
 
   const subscriptionAccounts = useSelector(selectCurrentSubscriptionAccounts);
   const allTokenBalances = useSelector(selectAllTokenBalances);
-  const erc20TokensByChain = useSelector(selectERC20TokensByChain);
   const allTokens = useSelector(selectAllTokens);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
   const selectedGroup = useSelector(selectResolvedSelectedAccountGroup);
@@ -230,17 +228,12 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
         `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
       );
       const tokenHex = parsed.assetReference.toLowerCase() as Hex;
-      const tokenListDecimals =
-        erc20TokensByChain?.[chainHex]?.data?.[tokenHex]?.decimals;
-      const trackedDecimals =
-        tokenListDecimals === undefined
-          ? Object.values(allTokens[chainHex] ?? {})
-              .flat()
-              .find((t) => t.address.toLowerCase() === tokenHex)?.decimals
-          : undefined;
-      return tokenListDecimals ?? trackedDecimals ?? 18;
+      const trackedDecimals = Object.values(allTokens[chainHex] ?? {})
+        .flat()
+        .find((t) => t.address.toLowerCase() === tokenHex)?.decimals;
+      return trackedDecimals ?? 18;
     },
-    [erc20TokensByChain, allTokens],
+    [allTokens],
   );
 
   /** Returns the total token balance held across all accounts in the group, summed from raw hex values. */

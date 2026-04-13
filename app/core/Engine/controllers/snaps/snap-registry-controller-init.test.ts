@@ -2,7 +2,7 @@ import {
   SnapRegistryController,
   SnapRegistryControllerMessenger,
 } from '@metamask/snaps-controllers';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { getSnapRegistryControllerMessenger } from '../../messengers/snaps';
 import { snapRegistryControllerInit } from './snap-registry-controller-init';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
@@ -16,7 +16,7 @@ jest.mock('react-native-device-info', () => ({
 }));
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<SnapRegistryControllerMessenger>
+  MessengerClientInitRequest<SnapRegistryControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
