@@ -1641,4 +1641,102 @@ describe('BackgroundBridge', () => {
       expect(handleTronAccountSpy).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('handleSessionChangedFromSelectedAccountGroupChanges', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      PermissionController.getCaveat.mockReset();
+    });
+
+    it('does nothing if there is no CAIP-25 permission', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      bridge.multichainEngine = { emit: jest.fn() };
+
+      PermissionController.getCaveat.mockImplementation(() => {
+        throw new Error('no permission');
+      });
+
+      bridge.handleSessionChangedFromSelectedAccountGroupChanges();
+      jest.advanceTimersByTime(1000);
+
+      expect(bridge.multichainEngine.emit).not.toHaveBeenCalled();
+    });
+
+    it('does nothing if getCaveat returns falsy', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      bridge.multichainEngine = { emit: jest.fn() };
+
+      PermissionController.getCaveat.mockReturnValue(undefined);
+
+      bridge.handleSessionChangedFromSelectedAccountGroupChanges();
+      jest.advanceTimersByTime(1000);
+
+      expect(bridge.multichainEngine.emit).not.toHaveBeenCalled();
+    });
+
+    it('calls notifyCaipAuthorizationChange with the caveat value', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const notifySpy = jest.spyOn(bridge, 'notifyCaipAuthorizationChange');
+
+      const mockCaveatValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': {
+            accounts: ['eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571'],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: mockCaveatValue,
+      });
+
+      bridge.handleSessionChangedFromSelectedAccountGroupChanges();
+
+      jest.advanceTimersByTime(1000);
+
+      expect(notifySpy).toHaveBeenCalledWith(mockCaveatValue);
+    });
+  });
+
+  describe('notifyCaipAuthorizationChange', () => {
+    it('emits a wallet_sessionChanged notification with session scopes', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      bridge.multichainEngine = { emit: jest.fn() };
+
+      const authorization = {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': {
+            accounts: ['eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571'],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+
+      bridge.notifyCaipAuthorizationChange(authorization);
+
+      expect(bridge.multichainEngine.emit).toHaveBeenCalledWith(
+        'notification',
+        expect.objectContaining({
+          method: 'wallet_sessionChanged',
+          params: expect.objectContaining({
+            sessionScopes: expect.any(Object),
+          }),
+        }),
+      );
+    });
+  });
 });
