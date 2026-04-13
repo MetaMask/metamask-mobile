@@ -66,13 +66,33 @@ const MOCK_LEADERBOARD: CampaignLeaderboardDto = {
   tiers: {
     STARTER: {
       entries: [
-        { rank: 1, referralCode: 'ABC123', rateOfReturn: 0.15 },
-        { rank: 2, referralCode: 'DEF456', rateOfReturn: 0.1 },
+        {
+          rank: 1,
+          referralCode: 'ABC123',
+          rateOfReturn: 0.15,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 2,
+          referralCode: 'DEF456',
+          rateOfReturn: 0.1,
+          qualifiedDays: 10,
+          qualified: true,
+        },
       ],
       totalParticipants: 50,
     },
     MID: {
-      entries: [{ rank: 1, referralCode: 'GHI789', rateOfReturn: 0.2 }],
+      entries: [
+        {
+          rank: 1,
+          referralCode: 'GHI789',
+          rateOfReturn: 0.2,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+      ],
       totalParticipants: 30,
     },
   },

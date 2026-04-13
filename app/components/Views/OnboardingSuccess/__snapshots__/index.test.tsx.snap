@@ -1,13 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OnboardingSuccess route params handling uses default successFlow when route params are undefined 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -104,7 +101,6 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
               "color": "#131416",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
-              "fontWeight": 600,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
@@ -208,7 +204,6 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -295,7 +290,6 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -309,17 +303,14 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`OnboardingSuccess route params handling uses default successFlow when successFlow param is undefined 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -416,7 +407,6 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
               "color": "#131416",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
-              "fontWeight": 600,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
@@ -520,7 +510,6 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -607,7 +596,6 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -621,17 +609,14 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders matching snapshot with route params backedUpSRP false and noSRP true 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -728,7 +713,6 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
               "color": "#131416",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
-              "fontWeight": 600,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
@@ -832,7 +816,6 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -919,7 +902,6 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -933,17 +915,14 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE fails to add networks to the network controller but renders the component 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -1040,7 +1019,6 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
               "color": "#131416",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
-              "fontWeight": 600,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
@@ -1144,7 +1122,6 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -1231,7 +1208,6 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -1245,17 +1221,14 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE renders matching snapshot with route params backedUpSRP false and noSRP false 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -1352,7 +1325,6 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
               "color": "#131416",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
-              "fontWeight": 600,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
@@ -1456,7 +1428,6 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -1543,7 +1514,6 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -1557,17 +1527,14 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders matching snapshot with route params backedUpSRP true and noSRP false 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -1664,7 +1631,6 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
               "color": "#131416",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
-              "fontWeight": 600,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
@@ -1768,7 +1734,6 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -1855,7 +1820,6 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -1869,17 +1833,14 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`OnboardingSuccessComponent renders matching snapshot when successFlow is BACKED_UP_SRP 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -1976,7 +1937,6 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               "color": "#131416",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
-              "fontWeight": 600,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
@@ -2080,7 +2040,6 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -2167,7 +2126,6 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -2181,17 +2139,14 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`OnboardingSuccessComponent renders matching snapshot when successFlow is IMPORT_FROM_SEED_PHRASE 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -2288,7 +2243,6 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               "color": "#131416",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
-              "fontWeight": 600,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
@@ -2392,7 +2346,6 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -2479,7 +2432,6 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -2493,17 +2445,14 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`OnboardingSuccessComponent renders matching snapshot when successFlow is NO_BACKED_UP_SRP 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -2600,7 +2549,6 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               "color": "#131416",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
-              "fontWeight": 600,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
@@ -2704,7 +2652,6 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -2791,7 +2738,6 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
                 "flexWrap": "wrap",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "textAlign": "center",
@@ -2805,5 +2751,5 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;

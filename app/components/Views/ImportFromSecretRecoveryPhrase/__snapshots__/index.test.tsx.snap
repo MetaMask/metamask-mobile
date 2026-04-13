@@ -8,8 +8,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -374,13 +373,10 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -430,7 +426,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                       "color": "#131416",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 32,
-                                      "fontWeight": 600,
                                       "letterSpacing": 0,
                                       "lineHeight": 40,
                                     },
@@ -473,7 +468,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -832,7 +826,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                               "flexWrap": "wrap",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
-                                              "fontWeight": 400,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -938,7 +931,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     "flexWrap": "wrap",
                                     "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": 400,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -952,7 +944,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                           </View>
                         </View>
                         <View />
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -962,6 +954,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

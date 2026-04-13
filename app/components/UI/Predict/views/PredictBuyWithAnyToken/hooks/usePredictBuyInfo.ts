@@ -1,11 +1,10 @@
 import { BigNumber } from 'bignumber.js';
 import { useEffect, useMemo, useState } from 'react';
 import { useTransactionPayTotals } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
-import { usePredictBalance } from '../../../hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
-import { MINIMUM_BET } from '../../../constants/transactions';
+import { useNoPayTokenQuotesAlert } from '../../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
 
 interface UsePredictBuyInfoParams {
   currentValue: number;
@@ -24,10 +23,22 @@ export const usePredictBuyInfo = ({
 }: UsePredictBuyInfoParams) => {
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const payTotals = useTransactionPayTotals();
-  const { data: predictBalance = 0 } = usePredictBalance();
 
-  const [insufficientPayTokenBalanceAlert] =
-    useInsufficientPayTokenBalanceAlert();
+  const insufficientPayAlerts = useInsufficientPayTokenBalanceAlert();
+  const noQuotesAlerts = useNoPayTokenQuotesAlert();
+
+  const blockingPayAlerts = useMemo(() => {
+    const allPayAlerts = [...insufficientPayAlerts, ...noQuotesAlerts];
+    return allPayAlerts.filter((a) => a.isBlocking);
+  }, [insufficientPayAlerts, noQuotesAlerts]);
+
+  const hasBlockingPayAlerts =
+    !isPredictBalanceSelected && blockingPayAlerts.length > 0;
+
+  const blockingPayAlertMessage = useMemo(
+    () => blockingPayAlerts[0]?.message ?? blockingPayAlerts[0]?.title,
+    [blockingPayAlerts],
+  );
 
   const [acceptedDepositFee, setAcceptedDepositFee] = useState(0);
 
@@ -40,22 +51,14 @@ export const usePredictBuyInfo = ({
   );
 
   const computedDepositFee = useMemo(() => {
-    if (
-      isPredictBalanceSelected ||
-      !payTotals?.fees ||
-      insufficientPayTokenBalanceAlert
-    )
+    if (isPredictBalanceSelected || !payTotals?.fees || hasBlockingPayAlerts)
       return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
     return new BigNumber(provider?.usd ?? 0)
       .plus(sourceNetwork?.estimate?.usd ?? 0)
       .plus(targetNetwork?.usd ?? 0)
       .toNumber();
-  }, [
-    insufficientPayTokenBalanceAlert,
-    isPredictBalanceSelected,
-    payTotals?.fees,
-  ]);
+  }, [isPredictBalanceSelected, payTotals?.fees, hasBlockingPayAlerts]);
 
   useEffect(() => {
     if (computedDepositFee > 0) {
@@ -94,32 +97,15 @@ export const usePredictBuyInfo = ({
     ],
   );
 
-  const depositAmount = useMemo(() => {
-    // Only trigger deposit amount calculation when preview fees are available and current value is greater than minimum bet
-    if (!preview?.fees || currentValue < MINIMUM_BET) {
-      return 0;
-    }
-
-    const remainingAmount = new BigNumber(totalPayForPredictBalance)
-      .minus(predictBalance)
-      .decimalPlaces(2, BigNumber.ROUND_UP)
-      .toNumber();
-    if (remainingAmount <= 0) {
-      return new BigNumber(totalPayForPredictBalance)
-        .decimalPlaces(2, BigNumber.ROUND_UP)
-        .toNumber();
-    }
-    return remainingAmount;
-  }, [preview?.fees, currentValue, totalPayForPredictBalance, predictBalance]);
-
   return {
     toWin,
     metamaskFee,
     providerFee,
     depositFee,
-    depositAmount,
     total,
     rewardsFeeAmount,
     totalPayForPredictBalance,
+    blockingPayAlertMessage,
+    hasBlockingPayAlerts,
   };
 };

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import {
@@ -95,6 +95,37 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     [],
   );
 
+  useEffect(() => {
+    const methods = paymentMethodsQuery.data;
+    if (!methods || methods.length === 0) return;
+
+    let target: PaymentMethod | null = null;
+
+    if (selectedPaymentMethod) {
+      target = methods.find((m) => m.id === selectedPaymentMethod.id) ?? null;
+    }
+
+    if (!target) {
+      target = methods[0];
+    }
+
+    if (target.id !== selectedPaymentMethod?.id) {
+      setSelectedPaymentMethod(target);
+    }
+  }, [
+    paymentMethodsQuery.data,
+    selectedPaymentMethod,
+    setSelectedPaymentMethod,
+  ]);
+
+  const isAutoSelecting = Boolean(
+    paymentMethodsQuery.data?.length &&
+      (!selectedPaymentMethod ||
+        paymentMethodsQuery.data.every(
+          (m) => m.id !== selectedPaymentMethod.id,
+        )),
+  );
+
   const status = useMemo<RampsQueryStatus>(() => {
     if (!queryEnabled) {
       return 'idle';
@@ -116,7 +147,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     paymentMethods: paymentMethodsQuery.data ?? [],
     selectedPaymentMethod,
     setSelectedPaymentMethod,
-    isLoading: status === 'loading',
+    isLoading: status === 'loading' || isAutoSelecting,
     isFetching: paymentMethodsQuery.isFetching,
     status,
     isSuccess: status === 'success',

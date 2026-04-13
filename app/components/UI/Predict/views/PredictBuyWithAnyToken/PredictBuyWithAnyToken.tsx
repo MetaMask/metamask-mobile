@@ -127,9 +127,10 @@ const PredictBuyWithAnyToken = () => {
     providerFee,
     total,
     depositFee,
-    depositAmount,
     rewardsFeeAmount,
     totalPayForPredictBalance,
+    hasBlockingPayAlerts,
+    blockingPayAlertMessage,
   } = usePredictBuyInfo({
     currentValue,
     preview,
@@ -154,6 +155,7 @@ const PredictBuyWithAnyToken = () => {
     isConfirming,
     totalPayForPredictBalance,
     isInputFocused,
+    hasBlockingPayAlerts,
   });
 
   const { errorMessage, isOrderNotFilled, resetOrderNotFilled } =
@@ -166,6 +168,8 @@ const PredictBuyWithAnyToken = () => {
       maxBetAmount,
       isConfirming,
       isPayFeesLoading,
+      isInputFocused,
+      blockingPayAlertMessage,
     });
 
   const { handleConfirm, placeOrder } = usePredictBuyActions({
@@ -291,7 +295,11 @@ const PredictBuyWithAnyToken = () => {
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />
-      <PredictPayWithAnyTokenInfo depositAmount={depositAmount} />
+      <PredictPayWithAnyTokenInfo
+        currentValue={currentValue}
+        preview={preview}
+        isInputFocused={isInputFocused}
+      />
     </SafeAreaView>
   );
 };

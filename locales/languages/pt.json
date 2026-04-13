@@ -4810,11 +4810,9 @@
     "body_for_seedphrase": "Agora que sua carteira possui valores, proteja-a definindo uma senha e salvando sua Frase de Recuperação Secreta (obrigatório).",
     "button": "Proteger carteira"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Falha em atualizar a transação",
-    "text": "Deseja tentar novamente?",
-    "cancel_button": "Cancelar",
-    "retry_button": "Tentar novamente"
+    "already_confirmed": "Esta transação já foi confirmada e não pode ser modificada."
   },
   "payment_request": {
     "title": "Solicitar",
@@ -6638,7 +6636,6 @@
     "nested_transaction_heading": "Transação {{index}}",
     "transaction": "Transações",
     "available_balance": "Saldo disponível: ",
-    "available_perps_balance": "Saldo de perps disponível: ",
     "edit_amount_done": "Continuar",
     "deposit_edit_amount_done": "Adicionar fundos",
     "deposit_edit_amount_predict_withdraw": "Sacar",

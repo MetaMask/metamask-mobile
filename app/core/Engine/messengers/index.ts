@@ -150,17 +150,16 @@ import {
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
+import { getSocialServiceMessenger } from './social-service-messenger';
+import { getSocialControllerMessenger } from './social-controller-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
-import {
-  getComplianceControllerMessenger,
-  getComplianceControllerInitMessenger,
-} from './compliance/compliance-controller-messenger';
+import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
 
 /**
- * The messengers for the controllers that have been.
+ * The messenger factories for the messenger clients that have been modularized.
  */
-export const CONTROLLER_MESSENGERS = {
+export const MESSENGER_FACTORIES = {
   AccountsController: {
     getMessenger: getAccountsControllerMessenger,
     getInitMessenger: noop,
@@ -471,6 +470,14 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getAiDigestControllerMessenger,
     getInitMessenger: noop,
   },
+  SocialService: {
+    getMessenger: getSocialServiceMessenger,
+    getInitMessenger: noop,
+  },
+  SocialController: {
+    getMessenger: getSocialControllerMessenger,
+    getInitMessenger: noop,
+  },
   CardController: {
     getMessenger: getCardControllerMessenger,
     getInitMessenger: noop,
@@ -481,6 +488,6 @@ export const CONTROLLER_MESSENGERS = {
   },
   ComplianceController: {
     getMessenger: getComplianceControllerMessenger,
-    getInitMessenger: getComplianceControllerInitMessenger,
+    getInitMessenger: noop,
   },
 } as const;

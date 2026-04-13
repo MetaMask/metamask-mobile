@@ -1,4 +1,4 @@
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 import Logger from '../../../../util/Logger';
 import {
   TransactionPayController,
@@ -9,7 +9,7 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
 
-export const TransactionPayControllerInit: ControllerInitFunction<
+export const TransactionPayControllerInit: MessengerClientInitFunction<
   TransactionPayController,
   TransactionPayControllerMessenger,
   TransactionPayControllerInitMessenger

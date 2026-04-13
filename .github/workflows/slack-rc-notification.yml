@@ -1,0 +1,66 @@
+##############################################################################################
+#
+# Slack RC Notification (reusable)
+#
+# Posts an RC build notification to the release Slack channel.
+# Callers can pass build metadata (semver, build numbers) directly from build
+# outputs for accuracy, or omit them to fall back to reading from the branch.
+#
+##############################################################################################
+name: Slack RC Notification
+
+on:
+  workflow_call:
+    inputs:
+      source_branch:
+        description: 'Branch to checkout for reading build metadata and changelog (e.g. release/7.71.0)'
+        required: true
+        type: string
+      semver:
+        description: 'Semantic version (optional; falls back to reading from branch checkout)'
+        required: false
+        type: string
+        default: ''
+      ios_build_number:
+        description: 'iOS build number (optional; falls back to reading from branch checkout)'
+        required: false
+        type: string
+        default: ''
+      android_build_number:
+        description: 'Android build number (optional; falls back to reading from branch checkout)'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  slack-notification:
+    name: Post Slack Notification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_branch }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Read build metadata from repo
+        if: inputs.semver == '' || inputs.ios_build_number == '' || inputs.android_build_number == ''
+        id: build-meta
+        run: ./scripts/get-build-metadata.sh --ci
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Post Slack notification
+        run: |
+          if node ./scripts/slack-rc-notification.mjs; then
+            echo "Slack notification sent successfully"
+          else
+            echo "Slack notification failed, continuing (non-critical)"
+          fi
+        env:
+          SEMVER: ${{ inputs.semver || steps.build-meta.outputs.semantic_version }}
+          IOS_BUILD_NUMBER: ${{ inputs.ios_build_number || steps.build-meta.outputs.ios_version_code }}
+          ANDROID_BUILD_NUMBER: ${{ inputs.android_build_number || steps.build-meta.outputs.android_version_code }}
+          BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
