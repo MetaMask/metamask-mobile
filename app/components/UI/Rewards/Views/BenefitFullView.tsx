@@ -56,7 +56,7 @@ const BenefitFullView = () => {
         params: {
           newTabUrl: benefit.url,
           timestamp: Date.now(),
-          fromTrending: true,
+          fromBenefit: true,
         },
       });
     }

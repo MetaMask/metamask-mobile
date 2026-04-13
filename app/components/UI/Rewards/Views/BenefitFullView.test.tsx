@@ -188,7 +188,7 @@ describe('BenefitFullView', () => {
       params: {
         newTabUrl: mockBenefit.url,
         timestamp: expect.any(Number),
-        fromTrending: true,
+        fromBenefit: true,
       },
     });
   });
