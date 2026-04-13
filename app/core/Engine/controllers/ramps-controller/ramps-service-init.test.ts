@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import {
   RampsService,
   RampsServiceMessenger,
@@ -150,7 +150,7 @@ describe('getRampsContext', () => {
 describe('rampsServiceInit', () => {
   const rampsServiceClassMock = jest.mocked(RampsService);
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<RampsServiceMessenger>
+    MessengerClientInitRequest<RampsServiceMessenger>
   >;
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
   const originalOS = Platform.OS;

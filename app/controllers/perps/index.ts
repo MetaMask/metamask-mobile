@@ -418,6 +418,7 @@ export {
   DECIMAL_PRECISION_CONFIG,
   MARKET_SORTING_CONFIG,
   PROVIDER_CONFIG,
+  FUNDING_RATE_CONFIG,
 } from './constants';
 export type { SortOptionId } from './constants';
 
@@ -534,6 +535,18 @@ export {
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
 } from './utils';
 export { getEnvironment } from './utils';
+export type { FiatRangeConfig } from './utils';
+export {
+  PRICE_THRESHOLD,
+  formatWithSignificantDigits,
+  PRICE_RANGES_MINIMAL_VIEW,
+  PRICE_RANGES_UNIVERSAL,
+  formatPerpsFiat,
+  formatPositionSize,
+  formatPnl,
+  formatPercentage,
+  formatFundingRate,
+} from './utils';
 
 // Error codes (explicit named exports)
 export { PERPS_ERROR_CODES } from './perpsErrorCodes';

@@ -186,6 +186,7 @@ jest.mock('./TeamsCache', () => ({
 const mockWebSocketManagerInstance = {
   subscribeToGame: jest.fn(),
   subscribeToMarketPrices: jest.fn(),
+  subscribeToCryptoPrices: jest.fn(),
   getConnectionStatus: jest.fn(),
   disconnect: jest.fn(),
   cleanup: jest.fn(),
@@ -252,6 +253,7 @@ describe('PolymarketProvider', () => {
   const defaultFeatureFlags: PredictFeatureFlags = {
     feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
     liveSportsLeagues: [],
+    extendedSportsMarketsLeagues: [],
     marketHighlightsFlag: {
       enabled: false,
       highlights: [],
@@ -7788,14 +7790,54 @@ describe('PolymarketProvider', () => {
       });
     });
 
+    describe('subscribeToCryptoPrices', () => {
+      it('delegates to WebSocketManager.subscribeToCryptoPrices', () => {
+        const provider = createProvider();
+        const mockCallback = jest.fn();
+        const mockUnsubscribeCrypto = jest.fn();
+        mockWebSocketManagerInstance.subscribeToCryptoPrices.mockReturnValue(
+          mockUnsubscribeCrypto,
+        );
+
+        const unsubscribe = provider.subscribeToCryptoPrices(
+          ['btcusdt', 'ethusdt'],
+          mockCallback,
+        );
+
+        expect(
+          mockWebSocketManagerInstance.subscribeToCryptoPrices,
+        ).toHaveBeenCalledWith(['btcusdt', 'ethusdt'], mockCallback);
+        expect(unsubscribe).toBe(mockUnsubscribeCrypto);
+      });
+
+      it('returns unsubscribe function from WebSocketManager', () => {
+        const provider = createProvider();
+        const mockUnsubscribeCrypto = jest.fn();
+        mockWebSocketManagerInstance.subscribeToCryptoPrices.mockReturnValue(
+          mockUnsubscribeCrypto,
+        );
+
+        const unsubscribe = provider.subscribeToCryptoPrices(
+          ['btcusdt'],
+          jest.fn(),
+        );
+
+        unsubscribe();
+
+        expect(mockUnsubscribeCrypto).toHaveBeenCalled();
+      });
+    });
+
     describe('getConnectionStatus', () => {
       it('returns connection status from WebSocketManager', () => {
         const provider = createProvider();
         mockWebSocketManagerInstance.getConnectionStatus.mockReturnValue({
           sportsConnected: true,
           marketConnected: false,
+          rtdsConnected: false,
           gameSubscriptionCount: 5,
           priceSubscriptionCount: 10,
+          cryptoPriceSubscriptionCount: 0,
         });
 
         const status = provider.getConnectionStatus();
@@ -7803,6 +7845,7 @@ describe('PolymarketProvider', () => {
         expect(status).toEqual({
           sportsConnected: true,
           marketConnected: false,
+          rtdsConnected: false,
         });
       });
 
@@ -7811,8 +7854,10 @@ describe('PolymarketProvider', () => {
         mockWebSocketManagerInstance.getConnectionStatus.mockReturnValue({
           sportsConnected: false,
           marketConnected: true,
+          rtdsConnected: true,
           gameSubscriptionCount: 0,
           priceSubscriptionCount: 3,
+          cryptoPriceSubscriptionCount: 1,
         });
 
         const status = provider.getConnectionStatus();
@@ -7822,6 +7867,7 @@ describe('PolymarketProvider', () => {
         expect(Object.keys(status)).toEqual([
           'sportsConnected',
           'marketConnected',
+          'rtdsConnected',
         ]);
       });
     });

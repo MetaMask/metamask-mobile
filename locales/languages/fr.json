@@ -6638,7 +6638,6 @@
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Protection des",
     "available_balance": "Solde disponible: ",
-    "available_perps_balance": "Solde disponible sur le compte de trading de contrats à terme perpétuels : ",
     "edit_amount_done": "Continuer",
     "deposit_edit_amount_done": "Ajouter des fonds",
     "deposit_edit_amount_predict_withdraw": "Retirer",

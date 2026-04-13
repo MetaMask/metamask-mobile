@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import {
   AnalyticsController,
   AnalyticsControllerMessenger,
@@ -18,7 +18,7 @@ import { isE2E } from '../../../../util/test/utils';
  * @param request.persistedState - The persisted state for all controllers.
  * @returns The initialized controller.
  */
-export const analyticsControllerInit: ControllerInitFunction<
+export const analyticsControllerInit: MessengerClientInitFunction<
   AnalyticsController,
   AnalyticsControllerMessenger
 > = ({ controllerMessenger, analyticsId, persistedState }) => {

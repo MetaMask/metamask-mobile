@@ -253,6 +253,12 @@ export interface PriceUpdate {
   bestAsk: number;
 }
 
+export interface CryptoPriceUpdate {
+  symbol: string;
+  price: number;
+  timestamp: number;
+}
+
 export type PredictOutcome = {
   id: string;
   providerId: string;
@@ -598,10 +604,12 @@ export interface GeoBlockResponse {
 export interface ConnectionStatus {
   sportsConnected: boolean;
   marketConnected: boolean;
+  rtdsConnected: boolean;
 }
 
 export type GameUpdateCallback = (update: GameUpdate) => void;
 export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
+export type CryptoPriceUpdateCallback = (update: CryptoPriceUpdate) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareDepositParams {}

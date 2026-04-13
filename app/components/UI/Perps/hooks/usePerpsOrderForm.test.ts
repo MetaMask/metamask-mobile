@@ -30,34 +30,40 @@ const createMockStreamManager = (): PerpsStreamManager => {
       prewarm: jest.fn(() => jest.fn()),
       cleanupPrewarm: jest.fn(),
       clearCache: jest.fn(),
+      getSnapshot: jest.fn(() => null),
     },
     orders: {
       subscribe: jest.fn(() => jest.fn()),
       prewarm: jest.fn(() => jest.fn()),
       cleanupPrewarm: jest.fn(),
       clearCache: jest.fn(),
+      getSnapshot: jest.fn(() => null),
     },
     positions: {
       subscribe: jest.fn(() => jest.fn()),
       prewarm: jest.fn(() => jest.fn()),
       cleanupPrewarm: jest.fn(),
       clearCache: jest.fn(),
+      getSnapshot: jest.fn(() => null),
     },
     fills: {
       subscribe: jest.fn(() => jest.fn()),
       clearCache: jest.fn(),
+      getSnapshot: jest.fn(() => null),
     },
     account: {
       subscribe: jest.fn(() => jest.fn()),
       prewarm: jest.fn(() => jest.fn()),
       cleanupPrewarm: jest.fn(),
       clearCache: jest.fn(),
+      getSnapshot: jest.fn(() => null),
     },
     marketData: {
       subscribe: jest.fn(() => jest.fn()),
       prewarm: jest.fn(() => jest.fn()),
       refresh: jest.fn(),
       clearCache: jest.fn(),
+      getSnapshot: jest.fn(() => null),
     },
   } as unknown as PerpsStreamManager;
 

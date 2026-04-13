@@ -7,14 +7,13 @@ import React, {
   useRef,
 } from 'react';
 import {
-  SafeAreaView,
   Image,
   BackHandler,
   TouchableOpacity,
   Platform,
   Alert,
-  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../locales/i18n';
@@ -92,10 +91,11 @@ import { containsErrorMessage } from '../../../util/errorHandling';
 import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import type { AuthData } from '../../../core/Authentication/Authentication';
+import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { getSocialAccountType } from '../../../constants/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { analytics } from '../../../util/analytics/analytics';
-import { getSocialAccountType } from '../../../constants/onboarding';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -116,6 +116,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   saveOnboardingEvent,
 }) => {
   const { isEnabled: isMetricsEnabled } = useAnalytics();
+  const accountType = useSelector(selectOnboardingAccountType) ?? 'social';
   const dispatch = useDispatch();
   const authConnection =
     useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
@@ -189,18 +190,18 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       const marketingOptInStatus = await OAuthService.getMarketingOptInStatus();
       dispatch(setDataCollectionForMarketing(marketingOptInStatus.is_opt_in));
       analytics.identify({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]:
-          marketingOptInStatus.is_opt_in
-            ? UserProfileProperty.ON
-            : UserProfileProperty.OFF,
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
+          marketingOptInStatus.is_opt_in,
+        ),
       });
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
         )
           .addProperties({
-            [UserProfileProperty.HAS_MARKETING_CONSENT]:
+            [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
               marketingOptInStatus.is_opt_in,
+            ),
             updated_after_onboarding: true,
             location: 'oauth_rehydration',
             account_type: getSocialAccountType(authConnection, true),
@@ -335,7 +336,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         ) {
           if (isComingFromOauthOnboarding) {
             track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: 'social',
+              account_type: accountType,
               failed_attempts: rehydrationFailedAttempts,
               error_type: 'incorrect_password',
             });
@@ -352,7 +353,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           }
           if (isComingFromOauthOnboarding) {
             track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: 'social',
+              account_type: accountType,
               failed_attempts:
                 seedlessError.data?.numberOfAttempts ??
                 rehydrationFailedAttempts,
@@ -373,7 +374,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         ) {
           if (isComingFromOauthOnboarding) {
             track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: 'social',
+              account_type: accountType,
               failed_attempts: rehydrationFailedAttempts,
               error_type: 'unknown_error',
             });
@@ -407,7 +408,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       if (isComingFromOauthOnboarding) {
         track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: 'social',
+          account_type: accountType,
           failed_attempts: rehydrationFailedAttempts,
           error_type: 'unknown_error',
         });
@@ -437,6 +438,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setErrorToThrow,
       promptSeedlessRelogin,
       isComingFromOauthOnboarding,
+      accountType,
     ],
   );
 
@@ -480,7 +482,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       if (isWrongPasswordError) {
         if (isComingFromOauthOnboarding) {
           track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-            account_type: 'social',
+            account_type: accountType,
             failed_attempts: rehydrationFailedAttempts,
             error_type: 'incorrect_password',
           });
@@ -511,7 +513,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       if (isComingFromOauthOnboarding) {
         track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: 'social',
+          account_type: accountType,
           failed_attempts: rehydrationFailedAttempts,
           error_type: isPasscodeNotSet ? 'passcode_not_set' : 'unknown_error',
         });
@@ -528,13 +530,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setBiometryChoice,
       route.params?.onboardingTraceCtx,
       isComingFromOauthOnboarding,
+      accountType,
     ],
   );
 
   const onRehydrateLogin = useCallback(async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
     track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
-      account_type: 'social',
+      account_type: accountType,
       biometrics: biometryChoice,
     });
 
@@ -575,7 +578,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       }
 
       track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
-        account_type: 'social',
+        account_type: accountType,
         biometrics: biometryChoice,
         failed_attempts: rehydrationFailedAttempts,
       });
@@ -603,6 +606,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     promptBiometricFailedAlert,
     unlockWallet,
     upgradeKeychainAuthAfterSuccessfulUnlock,
+    accountType,
     syncMarketingOptInAfterUnlock,
   ]);
 
@@ -696,7 +700,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const handleUseOtherMethod = () => {
     track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
-      account_type: 'social',
+      account_type: accountType,
     });
     navigation.goBack();
     OAuthService.resetOauthState();
@@ -801,9 +805,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         style={[
           tw.style('flex-1'),
           { backgroundColor: colors.background.default },
-          Platform.OS === 'android' && {
-            paddingTop: StatusBar.currentHeight ?? 0,
-          },
         ]}
       >
         <KeyboardAwareScrollView
