@@ -22,7 +22,7 @@ interface SectionRowProps {
  * Use this wrapper for content that needs standard section padding.
  */
 const SectionRow = ({ children, testID, gap }: SectionRowProps) => (
-  <Box paddingHorizontal={4} testID={testID} gap={gap}>
+  <Box paddingHorizontal={4} testID={testID} gap={gap} accessible={false}>
     {children}
   </Box>
 );

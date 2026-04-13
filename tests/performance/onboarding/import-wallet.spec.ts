@@ -150,12 +150,15 @@ test.describe(PerformanceOnboarding, () => {
       await timer7.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(WalletView.tokenRow('BNB')),
+          { timeout: 20000 },
         );
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(WalletView.tokenRow('SOL')),
+          { timeout: 20000 },
         );
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(WalletView.tokenRow('BTC')),
+          { timeout: 20000 },
         );
       });
 

@@ -769,11 +769,11 @@ class WalletView {
       appium: {
         android: () =>
           PlaywrightMatchers.getElementById(
-            WalletViewSelectorsIDs.TOKENS_SECTION_CONTAINER,
+            WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens'),
           ),
         ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            WalletViewSelectorsIDs.TOKENS_SECTION_CONTAINER,
+          PlaywrightMatchers.getElementByIOSPredicate(
+            `identifier == "${WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}"`,
           ),
       },
     });
