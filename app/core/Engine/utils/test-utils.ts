@@ -14,7 +14,7 @@ import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
  *
  * @returns A mocked MessengerClientInitRequest.
  */
-export function buildControllerInitRequestMock(
+export function buildMessengerClientInitRequestMock(
   controllerMessenger: RootExtendedMessenger,
 ): jest.Mocked<MessengerClientInitRequest<ControllerMessenger>> {
   return {
@@ -38,7 +38,7 @@ export function buildControllerInitRequestMock(
  * @template M - The messenger type
  * @returns A mock controller init function
  */
-export function createMockControllerInitFunction<
+export function createMockMessengerClientInitFunction<
   T extends MessengerClient,
   M extends ControllerMessenger,
 >(requiredController?: string): MessengerClientInitFunction<T, M> {

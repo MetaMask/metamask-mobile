@@ -7,7 +7,7 @@ import { handleFetch } from '@metamask/controller-utils';
 import { fetch as expoFetch } from 'expo/fetch';
 
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import {
   getBridgeControllerMessenger,
   BridgeControllerInitMessenger,
@@ -72,7 +72,7 @@ function buildInitRequestMock(
   } as unknown as BridgeControllerInitMessenger;
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     controllerMessenger: getBridgeControllerMessenger(baseControllerMessenger),
     initMessenger: mockInitMessenger,
     ...initRequestProperties,
