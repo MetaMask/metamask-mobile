@@ -13,10 +13,8 @@ import {
   HIP3_FEE_CONFIG,
   HIP3_MARGIN_CONFIG,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
-  MAINNET_HIP3_CONFIG,
   REFERRAL_CONFIG,
   SPOT_ASSET_ID_OFFSET,
-  TESTNET_HIP3_CONFIG,
   TRADING_DEFAULTS,
   USDC_DECIMALS,
   USDH_CONFIG,
@@ -30,6 +28,7 @@ import {
 } from '../constants/perpsConfig';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../constants/transactionsHistoryConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
+import { DexDiscoveryCacheManager } from '../services/DexDiscoveryCacheManager';
 import {
   HyperLiquidClientService,
   WebSocketConnectionState,
@@ -109,11 +108,7 @@ import type {
   SpotMetaResponse,
 } from '../types/hyperliquid-types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
-import type {
-  DexDiscoveryState,
-  ExtendedAssetMeta,
-  ExtendedPerpDex,
-} from '../types/perps-types';
+import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
 import { aggregateAccountStates } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
@@ -310,10 +305,10 @@ export class HyperLiquidProvider implements PerpsProvider {
   // Pre-fetched in ensureReadyForTrading() to avoid API failures during order placement
   #cachedSpotMeta: SpotMetaResponse | null = null;
 
-  // Unified DEX discovery state — single source of truth for all perpDexs() derivatives.
+  // Unified DEX discovery cache — single source of truth for all perpDexs() derivatives.
   // Replaces three separate caches to eliminate desync bugs by construction.
-  // All writes go through #updateDexDiscovery(); readers use .raw, .validated, .timestamp.
-  #dexDiscoveryState: DexDiscoveryState | null = null;
+  // All writes go through #dexDiscoveryCache.update(); readers use .state.
+  readonly #dexDiscoveryCache: DexDiscoveryCacheManager;
 
   // Session cache for referral state (cleared on disconnect/reconnect)
   // Key: `network:userAddress`, Value: true if referral is set
@@ -405,6 +400,11 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Initialize services with injected platform dependencies
     this.#clientService = new HyperLiquidClientService(this.#deps, {
       isTestnet,
+    });
+    this.#dexDiscoveryCache = new DexDiscoveryCacheManager({
+      isTestnetMode: (): boolean => this.#clientService.isTestnetMode(),
+      debugLogger: this.#deps.debugLogger,
+      getAllowlistMarkets: (): string[] => this.#allowlistMarkets,
     });
     this.#walletService = new HyperLiquidWalletService(
       this.#deps,
@@ -977,127 +977,6 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
-   * Single atomic writer for DEX discovery state.
-   * All code paths that fetch perpDexs() MUST call this — no direct field writes.
-   *
-   * @param allDexs - Raw perpDexs() API response array.
-   * @returns The newly created unified discovery state.
-   */
-  #updateDexDiscovery(allDexs: (ExtendedPerpDex | null)[]): DexDiscoveryState {
-    const validated = this.#computeValidatedDexs(allDexs);
-    const state: DexDiscoveryState = {
-      raw: allDexs,
-      validated,
-      timestamp: Date.now(),
-    };
-    this.#dexDiscoveryState = state;
-    return state;
-  }
-
-  /**
-   * Pure filtering of perpDexs() response into validated DEX names.
-   * Encapsulates testnet/mainnet feature-flag logic previously duplicated
-   * in #fetchValidatedDexsInternal and #getStandaloneValidatedDexs.
-   *
-   * @param allDexs - Raw perpDexs() API response array.
-   * @returns Filtered DEX name list (null = main DEX, strings = HIP-3 DEXs).
-   */
-  #computeValidatedDexs(
-    allDexs: (ExtendedPerpDex | null)[],
-  ): (string | null)[] {
-    // Extract HIP-3 DEX names (filter out null which represents main DEX)
-    const availableHip3Dexs: string[] = [];
-    allDexs.forEach((dex) => {
-      if (dex !== null) {
-        availableHip3Dexs.push(dex.name);
-      }
-    });
-
-    // Testnet-specific filtering
-    if (this.#clientService.isTestnetMode()) {
-      const { EnabledDexs, AutoDiscoverAll } = TESTNET_HIP3_CONFIG;
-
-      if (!AutoDiscoverAll) {
-        if (EnabledDexs.length === 0) {
-          this.#deps.debugLogger.log(
-            'HyperLiquidProvider: Testnet - using main DEX only (HIP-3 DEXs filtered)',
-            {
-              availableHip3Dexs: availableHip3Dexs.length,
-              reason: 'TESTNET_HIP3_CONFIG.EnabledDexs is empty',
-            },
-          );
-          return [null];
-        }
-
-        const filteredDexs = availableHip3Dexs.filter((dex) =>
-          EnabledDexs.includes(dex),
-        );
-        this.#deps.debugLogger.log(
-          'HyperLiquidProvider: Testnet - filtered to allowed DEXs',
-          {
-            allowedDexs: EnabledDexs,
-            filteredDexs,
-            availableHip3Dexs: availableHip3Dexs.length,
-          },
-        );
-        return [null, ...filteredDexs];
-      }
-
-      this.#deps.debugLogger.log(
-        'HyperLiquidProvider: Testnet - AUTO_DISCOVER_ALL enabled, using all DEXs',
-        { totalDexCount: availableHip3Dexs.length + 1 },
-      );
-    } else {
-      // Mainnet-specific filtering
-      const { AutoDiscoverAll } = MAINNET_HIP3_CONFIG;
-
-      if (!AutoDiscoverAll) {
-        const allowedDexsFromAllowlist = this.#extractDexsFromAllowlist();
-
-        if (allowedDexsFromAllowlist.length === 0) {
-          this.#deps.debugLogger.log(
-            'HyperLiquidProvider: Mainnet - using main DEX only (no HIP-3 DEXs in allowlist)',
-            {
-              availableHip3Dexs: availableHip3Dexs.length,
-              allowlistMarkets: this.#allowlistMarkets,
-            },
-          );
-          return [null];
-        }
-
-        const filteredDexs = availableHip3Dexs.filter((dex) =>
-          allowedDexsFromAllowlist.includes(dex),
-        );
-        this.#deps.debugLogger.log(
-          'HyperLiquidProvider: Mainnet - filtered to allowlist DEXs',
-          {
-            allowedDexsFromAllowlist,
-            filteredDexs,
-            availableHip3Dexs: availableHip3Dexs.length,
-          },
-        );
-        return [null, ...filteredDexs];
-      }
-
-      this.#deps.debugLogger.log(
-        'HyperLiquidProvider: Mainnet - AUTO_DISCOVER_ALL enabled, using all DEXs',
-        { totalDexCount: availableHip3Dexs.length + 1 },
-      );
-    }
-
-    // Fallback: all DEXs (when AUTO_DISCOVER_ALL is true)
-    this.#deps.debugLogger.log(
-      'HyperLiquidProvider: All DEXs enabled (market filtering at data layer)',
-      {
-        mainDex: true,
-        hip3Dexs: availableHip3Dexs,
-        totalDexCount: availableHip3Dexs.length + 1,
-      },
-    );
-    return [null, ...availableHip3Dexs];
-  }
-
-  /**
    * Get all available DEXs without allowlist filtering
    * Used when skipFilters=true in getMarkets()
    *
@@ -1105,9 +984,9 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async #getAllAvailableDexs(): Promise<(string | null)[]> {
     // Use unified state if available
-    if (this.#dexDiscoveryState) {
+    if (this.#dexDiscoveryCache.state) {
       const availableHip3Dexs: string[] = [];
-      this.#dexDiscoveryState.raw.forEach((dex) => {
+      this.#dexDiscoveryCache.state.raw.forEach((dex) => {
         if (dex !== null) {
           availableHip3Dexs.push(dex.name);
         }
@@ -1123,7 +1002,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         return [null]; // Fallback to main DEX only
       }
 
-      const state = this.#updateDexDiscovery(allDexs);
+      const state = this.#dexDiscoveryCache.update(allDexs);
       const availableHip3Dexs: string[] = [];
       state.raw.forEach((dex) => {
         if (dex !== null) {
@@ -1156,8 +1035,8 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async #getValidatedDexs(): Promise<(string | null)[]> {
     // Return cached result if available
-    if (this.#dexDiscoveryState?.validated) {
-      return this.#dexDiscoveryState.validated;
+    if (this.#dexDiscoveryCache.state?.validated) {
+      return this.#dexDiscoveryCache.state.validated;
     }
 
     // If a fetch is already in progress, reuse the pending promise
@@ -1193,7 +1072,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       this.#deps.debugLogger.log(
         'HyperLiquidProvider: HIP-3 disabled via hip3Enabled flag',
       );
-      const state = this.#updateDexDiscovery([null]);
+      const state = this.#dexDiscoveryCache.update([null]);
       return state.validated;
     }
 
@@ -1227,7 +1106,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     }
 
     // Atomically update unified state (raw + validated + timestamp)
-    const state = this.#updateDexDiscovery(allDexs);
+    const state = this.#dexDiscoveryCache.update(allDexs);
 
     this.#deps.debugLogger.log(
       'HyperLiquidProvider: Available DEXs (market filtering applied at data layer)',
@@ -1238,41 +1117,6 @@ export class HyperLiquidProvider implements PerpsProvider {
     );
 
     return state.validated;
-  }
-
-  /**
-   * Extract unique DEX names from allowlist market patterns
-   * Patterns can be: "xyz:*" (wildcard), "xyz:TSLA" (exact), or "xyz" (DEX shorthand)
-   *
-   * @returns Array of unique DEX names from the allowlist
-   */
-  #extractDexsFromAllowlist(): string[] {
-    if (this.#allowlistMarkets.length === 0) {
-      return [];
-    }
-
-    const dexNames = new Set<string>();
-
-    for (const pattern of this.#allowlistMarkets) {
-      // Pattern formats:
-      // - "xyz:*" -> DEX "xyz" (wildcard)
-      // - "xyz:TSLA" -> DEX "xyz" (exact match)
-      // - "xyz" -> DEX "xyz" (shorthand)
-      const colonIndex = pattern.indexOf(':');
-      if (colonIndex > 0) {
-        // Has colon - extract DEX prefix
-        const dex = pattern.substring(0, colonIndex);
-        dexNames.add(dex);
-      } else if (pattern.length > 0 && !pattern.includes('*')) {
-        // No colon and not a wildcard - could be DEX shorthand
-        // Only add if it looks like a valid DEX name (lowercase alphanumeric)
-        if (/^[a-z][a-z0-9]*$/iu.test(pattern)) {
-          dexNames.add(pattern.toLowerCase());
-        }
-      }
-    }
-
-    return Array.from(dexNames);
   }
 
   /**
@@ -1354,7 +1198,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return false;
     }
 
-    if (!this.#dexDiscoveryState) {
+    if (!this.#dexDiscoveryCache.state) {
       try {
         await this.#getValidatedDexs();
       } catch (error) {
@@ -1371,7 +1215,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
     }
 
-    const allPerpDexs = this.#dexDiscoveryState?.raw ?? [null];
+    const allPerpDexs = this.#dexDiscoveryCache.state?.raw ?? [null];
     const perpDexIndex = allPerpDexs.findIndex((entry) => {
       if (dex === null) {
         return entry === null;
@@ -1498,15 +1342,15 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Return cached data if still valid (uses unified state timestamp for TTL)
     if (
-      this.#dexDiscoveryState &&
-      now - this.#dexDiscoveryState.timestamp <
+      this.#dexDiscoveryCache.state &&
+      now - this.#dexDiscoveryCache.state.timestamp <
         HIP3_FEE_CONFIG.PerpDexsCacheTtlMs
     ) {
-      const raw = this.#dexDiscoveryState.raw as ExtendedPerpDex[];
+      const raw = this.#dexDiscoveryCache.state.raw as ExtendedPerpDex[];
       this.#deps.debugLogger.log(
         '[getCachedPerpDexs] Using cached perpDexs data',
         {
-          age: `${Math.round((now - this.#dexDiscoveryState.timestamp) / 1000)}s`,
+          age: `${Math.round((now - this.#dexDiscoveryCache.state.timestamp) / 1000)}s`,
           count: raw.length,
         },
       );
@@ -1521,7 +1365,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       (await infoClient.perpDexs()) as unknown as ExtendedPerpDex[];
 
     // Atomically update unified state (raw + validated + timestamp)
-    this.#updateDexDiscovery(perpDexs);
+    this.#dexDiscoveryCache.update(perpDexs);
 
     this.#deps.debugLogger.log(
       '[getCachedPerpDexs] Fetched and cached perpDexs data',
@@ -2137,7 +1981,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // If getValidatedDexs fails, fall back to main DEX only to keep the provider
       // functional. Without this, a transient perpDexs() failure would permanently
       // brick #ensureReady via the cached rejected promise.
-      // Do not set #dexDiscoveryState here — leave it null
+      // Do not update #dexDiscoveryCache here — leave state null
       // so #getValidatedDexs retries on the next call (same as #fetchValidatedDexsInternal).
       this.#deps.debugLogger.log(
         '[buildAssetMapping] getValidatedDexs failed, falling back to main DEX',
@@ -2146,10 +1990,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       dexsToMap = [null];
     }
 
-    // Local fallback only — never write [null] into #dexDiscoveryState here.
-    // That state is owned exclusively by #updateDexDiscovery; writing a
+    // Local fallback only — never write [null] into #dexDiscoveryCache here.
+    // That state is owned exclusively by #dexDiscoveryCache.update(); writing a
     // fallback here would prevent subsequent callers from retrying perpDexs().
-    const allPerpDexs = this.#dexDiscoveryState?.raw ?? [null];
+    const allPerpDexs = this.#dexDiscoveryCache.state?.raw ?? [null];
 
     this.#deps.debugLogger.log(
       'HyperLiquidProvider: Starting asset mapping rebuild',
@@ -2227,7 +2071,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Build mapping with DEX prefixes for HIP-3 DEXs using the utility function
     this.#symbolToAssetId.clear();
-    let dexDiscoveryComplete = this.#dexDiscoveryState !== null;
+    let dexDiscoveryComplete = this.#dexDiscoveryCache.state !== null;
 
     allMetas.forEach((result) => {
       if (
@@ -2716,7 +2560,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Try other HIP-3 DEXs
     // Get all available DEXs from cache (includes all HIP-3 DEXs since we no longer filter)
     const availableDexs =
-      this.#dexDiscoveryState?.validated?.filter(
+      this.#dexDiscoveryCache.state?.validated?.filter(
         (dex): dex is string => dex !== null,
       ) ?? [];
     for (const dex of availableDexs) {
@@ -4774,13 +4618,13 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async #getStandaloneValidatedDexs(): Promise<(string | null)[]> {
     // Return cached result if available (unified state)
-    if (this.#dexDiscoveryState?.validated) {
-      return this.#dexDiscoveryState.validated;
+    if (this.#dexDiscoveryCache.state?.validated) {
+      return this.#dexDiscoveryCache.state.validated;
     }
 
     // Kill switch: HIP-3 disabled, return main DEX only
     if (!this.#hip3Enabled) {
-      const state = this.#updateDexDiscovery([null]);
+      const state = this.#dexDiscoveryCache.update([null]);
       return state.validated;
     }
 
@@ -4807,7 +4651,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Atomically update unified state (raw + validated + timestamp).
     // buildAssetMapping uses state.raw for perpDexIndex computation.
-    const state = this.#updateDexDiscovery(allDexs);
+    const state = this.#dexDiscoveryCache.update(allDexs);
     return state.validated;
   }
 
@@ -7870,7 +7714,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // to prevent repeated signing requests across reconnections
       this.#cachedMetaByDex.clear();
       this.#cachedSpotMeta = null;
-      this.#dexDiscoveryState = null;
+      this.#dexDiscoveryCache.reset();
       this.#dexDiscoveryComplete = false;
 
       // Await pending initialization before clearing to prevent the IIFE from

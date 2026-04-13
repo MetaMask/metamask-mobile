@@ -7315,13 +7315,7 @@ describe('HyperLiquidProvider', () => {
       // Create a provider instance with equity enabled for this specific test
       const testProvider = createTestProvider({ hip3Enabled: true });
 
-      // Override the private dexDiscoveryState to force re-evaluation
-      // This avoids the complex initialization flow
-      Object.defineProperty(testProvider, 'dexDiscoveryState', {
-        value: null, // Force re-evaluation
-        writable: true,
-        configurable: true,
-      });
+      // DEX discovery cache starts with null state on a fresh provider — no reset needed
 
       // Act
       const result = await testProvider.getAvailableHip3Dexs();
@@ -7634,11 +7628,14 @@ describe('HyperLiquidProvider', () => {
     describe('getAllAvailableDexs', () => {
       interface ProviderWithDexMethods {
         getAllAvailableDexs(): Promise<(string | null)[]>;
-        dexDiscoveryState: {
-          raw: ({ name: string; url: string } | null)[];
-          validated: (string | null)[];
-          timestamp: number;
-        } | null;
+        dexDiscoveryCache: {
+          state: {
+            raw: ({ name: string; url: string } | null)[];
+            validated: (string | null)[];
+            timestamp: number;
+          } | null;
+          reset(): void;
+        };
       }
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -7647,12 +7644,12 @@ describe('HyperLiquidProvider', () => {
       beforeEach(() => {
         testableProvider = provider as unknown as ProviderWithDexMethods;
         // Reset unified state
-        testableProvider.dexDiscoveryState = null;
+        testableProvider.dexDiscoveryCache.reset();
       });
 
       it('returns cached DEX list when cache is populated', async () => {
         // Arrange
-        testableProvider.dexDiscoveryState = {
+        testableProvider.dexDiscoveryCache.state = {
           raw: [
             null,
             { name: 'dex1', url: 'https://dex1.example' },
@@ -7688,7 +7685,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null, 'dex1', 'dex2']);
-        expect(testableProvider.dexDiscoveryState?.raw).toEqual(mockDexs);
+        expect(testableProvider.dexDiscoveryCache.state?.raw).toEqual(mockDexs);
         expect(mockClientService.getInfoClient).toHaveBeenCalledTimes(1);
       });
 
@@ -7705,7 +7702,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.dexDiscoveryState).toBeNull();
+        expect(testableProvider.dexDiscoveryCache.state).toBeNull();
       });
 
       it('returns fallback when API returns non-array', async () => {
@@ -7721,7 +7718,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.dexDiscoveryState).toBeNull();
+        expect(testableProvider.dexDiscoveryCache.state).toBeNull();
       });
 
       it('returns fallback and logs error when API throws', async () => {
@@ -7739,7 +7736,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.dexDiscoveryState).toBeNull();
+        expect(testableProvider.dexDiscoveryCache.state).toBeNull();
         expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
           mockError,
           expect.objectContaining({
@@ -7755,7 +7752,7 @@ describe('HyperLiquidProvider', () => {
 
       it('filters out null entries from cached DEX list', async () => {
         // Arrange
-        testableProvider.dexDiscoveryState = {
+        testableProvider.dexDiscoveryCache.state = {
           raw: [
             null,
             { name: 'dex1', url: 'https://dex1.example' },
@@ -7775,7 +7772,7 @@ describe('HyperLiquidProvider', () => {
 
       it('returns only main DEX when cached list contains only null', async () => {
         // Arrange
-        testableProvider.dexDiscoveryState = {
+        testableProvider.dexDiscoveryCache.state = {
           raw: [null],
           validated: [null],
           timestamp: Date.now(),
@@ -9450,7 +9447,7 @@ describe('HyperLiquidProvider', () => {
           marginSummary: { totalMarginUsed: '0', accountValue: '0' },
         });
 
-        // Act: first standalone call populates dexDiscoveryState
+        // Act: first standalone call populates dexDiscoveryCache
         await hip3Provider.getPositions({
           standalone: true,
           userAddress: mockUserAddress,
