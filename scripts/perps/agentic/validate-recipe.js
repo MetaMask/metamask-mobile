@@ -44,6 +44,7 @@ function parseArgs(argv) {
     dryRun: false,
     hud: true,
     inputOverrides: {},
+    log: true,
     recipe: '',
     singleStep: '',
     skipManual: false,
@@ -63,6 +64,9 @@ function parseArgs(argv) {
         break;
       case '--no-hud':
         options.hud = false;
+        break;
+      case '--no-log':
+        options.log = false;
         break;
       case '--skip-manual':
         options.skipManual = true;
@@ -124,6 +128,7 @@ function printHelp() {
     [--testnet]
     [--artifacts-dir <path>]
     [--dry-run]
+    [--no-log]
 
 The runner executes workflow files stored under:
   scripts/perps/agentic/teams/<team>/{flows,recipes}
@@ -133,7 +138,8 @@ Runtime features:
   - Scenarios use validate.workflow with explicit nodes, transitions, switch branches, and end nodes.
   - setup / teardown hooks live under validate.workflow.setup / validate.workflow.teardown.
   - Failures capture screenshots, route/state snapshots, eval refs, and recent logs.
-  - Successful runs emit workflow.json, workflow.mmd, trace.json, and summary.json artifacts.`);
+  - Successful runs emit workflow.json, workflow.mmd, trace.json, summary.json, and run.log artifacts.
+  - Console output is teed to run.log by default. Use --no-log to disable.`);
 }
 
 function resolveRecipeInput(appRoot, inputPath) {
@@ -546,6 +552,7 @@ function ensureRunArtifacts(runOptions, recipePath) {
     workflowPath: path.join(rootDir, 'workflow.json'),
     workflowMermaidPath: path.join(rootDir, 'workflow.mmd'),
     summaryPath: path.join(rootDir, 'summary.json'),
+    runLogPath: path.join(rootDir, 'run.log'),
   };
 
   [artifacts.rootDir, artifacts.screenshotsDir, artifacts.failuresDir, artifacts.logsDir]
@@ -1361,6 +1368,25 @@ async function executeEndNode(node, context) {
 }
 
 async function executeWorkflowNode(node, context, options = {}) {
+  // Handle when-guard for switch/end nodes (runExecutableNode handles its own)
+  if ((node.action === 'switch' || node.action === 'end') && node.when && !evaluateWorkflowCondition(node.when, context)) {
+    const startedAt = new Date().toISOString();
+    context.currentStepRef.current = node;
+    context.stats.total += 1;
+    context.stats.skipped += 1;
+    console.log(`[${node.id || '?'}] ${describeStep(node)}`);
+    console.log('  [SKIPPED - when condition did not match]');
+    console.log('');
+    finalizeNodeRecord(context, node, {
+      next: node.default || node.next || '',
+      note: 'when condition did not match',
+      startedAt,
+      status: 'skipped',
+    });
+    context.currentStepRef.current = null;
+    return { next: node.default || node.next || '' };
+  }
+
   if (node.action === 'end') {
     return executeEndNode(node, context);
   }
@@ -1605,6 +1631,7 @@ async function runRecipe(recipePath, runOptions, flowParams = {}, depth = 0) {
 // ---------------------------------------------------------------------------
 
 async function main() {
+  let teardownLog = null;
   try {
     const options = parseArgs(process.argv.slice(2));
     const appRoot = getAppRoot();
@@ -1621,9 +1648,33 @@ async function main() {
       dryRun: options.dryRun,
       hud: options.hud,
       inputOverrides: options.inputOverrides,
+      log: options.log,
       singleStep: options.singleStep,
       skipManual: options.skipManual,
     };
+
+    // Set up log capture — tee stdout/stderr to a log file
+    if (options.log && !options.dryRun) {
+      const artifacts = ensureRunArtifacts(runOptions, recipeInput.recipePath);
+      if (artifacts) {
+        const logStream = fs.createWriteStream(artifacts.runLogPath, { flags: 'w' });
+        const origLog = console.log.bind(console);
+        const origError = console.error.bind(console);
+        console.log = (...args) => {
+          origLog(...args);
+          logStream.write(args.map(String).join(' ') + '\n');
+        };
+        console.error = (...args) => {
+          origError(...args);
+          logStream.write(args.map(String).join(' ') + '\n');
+        };
+        teardownLog = () => {
+          console.log = origLog;
+          console.error = origError;
+          logStream.end();
+        };
+      }
+    }
 
     // Apply CLI initial conditions before running the recipe
     if (!options.dryRun) {
@@ -1646,7 +1697,13 @@ async function main() {
     }
 
     await runRecipe(recipeInput.recipePath, runOptions, runOptions.inputOverrides);
+    if (teardownLog) {
+      teardownLog();
+    }
   } catch (error) {
+    if (teardownLog) {
+      teardownLog();
+    }
     console.error(String(error.message || error));
     process.exit(1);
   }
