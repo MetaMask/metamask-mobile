@@ -614,16 +614,6 @@ export class PolymarketProvider implements PredictProvider {
         error,
       );
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
-        this.getErrorContext('getCryptoTargetPrice', {
-          symbol: params.symbol,
-          eventStartTime: params.eventStartTime,
-          variant: params.variant,
-          endDate: params.endDate,
-        }),
-      );
-
       return null;
     }
   }
