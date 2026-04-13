@@ -52,5 +52,3 @@ export function useProviderLimits({
 
   return { amountLimitError };
 }
-
-export default useProviderLimits;

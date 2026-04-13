@@ -863,7 +863,7 @@ describe('BuildQuote', () => {
 
       // Amount 10 is valid — quote fetch stays enabled with
       // stale debounced params so the UI does not flash.
-      expect(queryByText('Maximum purchase is $200.00')).toBeNull();
+      expect(queryByText('Maximum purchase is $200.00')).not.toBeOnTheScreen();
       expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
         assetId: 'eip155:1/slip44:60',
         amount: 250,
@@ -905,8 +905,8 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(queryByText(/Minimum purchase/)).toBeNull();
-      expect(queryByText(/Maximum purchase/)).toBeNull();
+      expect(queryByText(/Minimum purchase/)).not.toBeOnTheScreen();
+      expect(queryByText(/Maximum purchase/)).not.toBeOnTheScreen();
       expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
         assetId: 'eip155:1/slip44:60',
         amount: 50,
@@ -935,8 +935,8 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(queryByText(/Minimum purchase/)).toBeNull();
-      expect(queryByText(/Maximum purchase/)).toBeNull();
+      expect(queryByText(/Minimum purchase/)).not.toBeOnTheScreen();
+      expect(queryByText(/Maximum purchase/)).not.toBeOnTheScreen();
       expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
         assetId: 'eip155:1/slip44:60',
         amount: 200,
@@ -960,8 +960,8 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(queryByText(/Minimum purchase/)).toBeNull();
-      expect(queryByText(/Maximum purchase/)).toBeNull();
+      expect(queryByText(/Minimum purchase/)).not.toBeOnTheScreen();
+      expect(queryByText(/Maximum purchase/)).not.toBeOnTheScreen();
       expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
         assetId: 'eip155:1/slip44:60',
         amount: 100,
@@ -1092,7 +1092,7 @@ describe('BuildQuote', () => {
 
       expect(getByText('Minimum order amount is $30.00 USD')).toBeOnTheScreen();
       // Provider limit errors are plain text — no info icon or modal
-      expect(queryByLabelText('View error details')).toBeNull();
+      expect(queryByLabelText('View error details')).not.toBeOnTheScreen();
     });
 
     it('shows change-provider option for generic errors without provider message', () => {
@@ -1173,7 +1173,9 @@ describe('BuildQuote', () => {
       });
 
       expect(getByText('Minimum order amount is $30.00 USD')).toBeOnTheScreen();
-      expect(queryByText('Amount too low for this provider')).toBeNull();
+      expect(
+        queryByText('Amount too low for this provider'),
+      ).not.toBeOnTheScreen();
     });
 
     it('does not show provider error when some quotes succeed', () => {
@@ -1195,8 +1197,10 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(queryByText('Minimum order amount is $30.00 USD')).toBeNull();
-      expect(queryByText(/encountered an error/i)).toBeNull();
+      expect(
+        queryByText('Minimum order amount is $30.00 USD'),
+      ).not.toBeOnTheScreen();
+      expect(queryByText(/encountered an error/i)).not.toBeOnTheScreen();
     });
 
     it('does not show provider error while quotes are loading', () => {
@@ -1218,7 +1222,9 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(queryByText('Minimum order amount is $30.00 USD')).toBeNull();
+      expect(
+        queryByText('Minimum order amount is $30.00 USD'),
+      ).not.toBeOnTheScreen();
     });
   });
 
