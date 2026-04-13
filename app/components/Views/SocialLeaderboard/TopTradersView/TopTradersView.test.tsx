@@ -7,6 +7,7 @@ import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hoo
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
 
@@ -14,7 +15,7 @@ jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack }),
+    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   };
 });
 

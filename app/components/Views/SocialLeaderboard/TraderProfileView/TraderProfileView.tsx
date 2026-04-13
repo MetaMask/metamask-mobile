@@ -175,7 +175,7 @@ const TraderProfileView = () => {
             <Box twClassName="px-4 pt-3 pb-1">
               <Button
                 variant={
-                  isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
+                  isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
                 }
                 isFullWidth
                 onPress={toggleFollow}
@@ -219,9 +219,9 @@ const TraderProfileView = () => {
                 </Text>
               </Box>
             ) : (
-              positions.map((position) => (
+              positions.map((position, index) => (
                 <PositionRow
-                  key={`${position.tokenAddress}-${position.chain}`}
+                  key={`${position.tokenAddress}-${position.chain}-${index}`}
                   position={position}
                 />
               ))
