@@ -30,12 +30,6 @@ import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  filterButtonSpacing: {
-    minWidth: 0,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    minHeight: 48,
-  },
 });
 
 interface DateSection {
@@ -134,8 +128,8 @@ const MoneyActivityView = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Start}
-        paddingHorizontal={1}
         paddingVertical={2}
+        twClassName="px-2"
       >
         <ButtonIcon
           iconName={IconName.ArrowLeft}
@@ -149,7 +143,6 @@ const MoneyActivityView = () => {
       <Box paddingHorizontal={4} paddingTop={4} paddingBottom={6}>
         <Text
           variant={TextVariant.HeadingLg}
-          fontWeight={FontWeight.Medium}
           testID={MoneyActivityViewTestIds.TITLE}
         >
           {strings('money.activity.title')}
@@ -169,7 +162,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          style={styles.filterButtonSpacing}
+          twClassName="min-w-0 shrink"
           onPress={() => setFilter(MoneyActivityFilter.All)}
           testID={MoneyActivityViewTestIds.FILTER_ALL}
         >
@@ -182,7 +175,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          style={styles.filterButtonSpacing}
+          twClassName="min-w-0 shrink"
           onPress={() => setFilter(MoneyActivityFilter.Deposits)}
           testID={MoneyActivityViewTestIds.FILTER_DEPOSITS}
         >
@@ -195,7 +188,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          style={styles.filterButtonSpacing}
+          twClassName="min-w-0 shrink"
           onPress={() => setFilter(MoneyActivityFilter.Transfers)}
           testID={MoneyActivityViewTestIds.FILTER_TRANSFERS}
         >
