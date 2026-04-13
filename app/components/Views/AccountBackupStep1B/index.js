@@ -37,6 +37,7 @@ import Device from '../../../util/device';
 import ActionModal from '../../UI/ActionModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
+import { LEARN_MORE_URL } from '../../../constants/urls';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { useTheme } from '../../../util/theme';

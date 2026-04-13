@@ -45,6 +45,7 @@ import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
+import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import {
   Box,
   BoxAlignItems,

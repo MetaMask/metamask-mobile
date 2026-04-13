@@ -32,6 +32,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import NavigationService from '../../../../../core/NavigationService';
 import { EXTERNAL_LINK_TYPE } from '../../../../../constants/browser';
+import { PERPS_LEARN_MORE_URL } from '../../../../../constants/urls';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
