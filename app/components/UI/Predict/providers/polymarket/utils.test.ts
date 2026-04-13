@@ -136,6 +136,7 @@ describe('polymarket utils', () => {
       expect(endpoints).toEqual({
         GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
         CLOB_ENDPOINT: 'https://clob.polymarket.com',
+        CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
         DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
         GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
         HOMEPAGE_CAROUSEL_ENDPOINT:
