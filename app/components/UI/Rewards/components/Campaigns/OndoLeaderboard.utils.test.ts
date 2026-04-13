@@ -2,6 +2,7 @@ import {
   formatRateOfReturn,
   formatComputedAt,
   formatTierDisplayName,
+  getTierMinNetDeposit,
 } from './OndoLeaderboard.utils';
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -95,6 +96,29 @@ describe('OndoLeaderboard.utils', () => {
 
     it('returns the raw key for an unknown tier', () => {
       expect(formatTierDisplayName('UNKNOWN')).toBe('UNKNOWN');
+    });
+  });
+
+  describe('getTierMinNetDeposit', () => {
+    const tiers = [
+      { name: 'STARTER', minNetDeposit: 500 },
+      { name: 'MID', minNetDeposit: 1000 },
+    ];
+
+    it('returns minNetDeposit for a matching tier', () => {
+      expect(getTierMinNetDeposit(tiers, 'STARTER')).toBe(500);
+    });
+
+    it('is case-insensitive', () => {
+      expect(getTierMinNetDeposit(tiers, 'mid')).toBe(1000);
+    });
+
+    it('returns null for an unknown tier', () => {
+      expect(getTierMinNetDeposit(tiers, 'UPPER')).toBeNull();
+    });
+
+    it('returns null when tiers is undefined', () => {
+      expect(getTierMinNetDeposit(undefined, 'STARTER')).toBeNull();
     });
   });
 });

@@ -153,6 +153,9 @@ export const selectBulkLinkAccountProgress = (state: RootState) => {
 // Campaigns selectors
 export const selectCampaigns = (state: RootState) => state.rewards.campaigns;
 
+export const selectCampaignById = (campaignId: string) => (state: RootState) =>
+  state.rewards.campaigns?.find((c) => c.id === campaignId) ?? null;
+
 export const selectCampaignsLoading = (state: RootState) =>
   state.rewards.campaignsLoading;
 

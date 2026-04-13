@@ -3381,7 +3381,6 @@ describe('Rewards selectors', () => {
           },
         ],
         totalParticipants: 50,
-        minDeposit: 500,
       },
       MID: {
         entries: [
@@ -3394,7 +3393,6 @@ describe('Rewards selectors', () => {
           },
         ],
         totalParticipants: 30,
-        minDeposit: 1000,
       },
     },
   };

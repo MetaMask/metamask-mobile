@@ -82,7 +82,6 @@ const MOCK_LEADERBOARD: CampaignLeaderboardDto = {
         },
       ],
       totalParticipants: 50,
-      minDeposit: 500,
     },
     MID: {
       entries: [
@@ -95,7 +94,6 @@ const MOCK_LEADERBOARD: CampaignLeaderboardDto = {
         },
       ],
       totalParticipants: 30,
-      minDeposit: 1000,
     },
   },
 };

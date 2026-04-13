@@ -213,6 +213,13 @@ export type ThemeImageState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignDetailsState = {
   howItWorks: OndoCampaignHowItWorksState;
+  tiers?: OndoCampaignTierState[];
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignTierState = {
+  name: string;
+  minNetDeposit: number;
 };
 
 /**
@@ -303,12 +310,6 @@ export interface CampaignLeaderboardTier {
    * @example 150
    */
   totalParticipants: number;
-
-  /**
-   * Minimum USD net deposit required to qualify for this tier
-   * @example 5000
-   */
-  minDeposit: number;
 }
 
 /**
@@ -696,7 +697,6 @@ export type CampaignLeaderboardState = {
         qualified: boolean;
       }[];
       totalParticipants: number;
-      minDeposit: number;
     };
   };
   lastFetched: number;
@@ -771,8 +771,14 @@ export interface OndoCampaignHowItWorks {
   tour?: OndoCampaignTourStepDto[];
 }
 
+export interface OndoCampaignTier {
+  name: string;
+  minNetDeposit: number;
+}
+
 export interface OndoHoldingDetails {
   howItWorks: OndoCampaignHowItWorks;
+  tiers?: OndoCampaignTier[];
 }
 
 export type CampaignDetails = OndoHoldingDetails;

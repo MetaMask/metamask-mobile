@@ -22,7 +22,7 @@ import {
   Text,
 } from '@metamask/design-system-react-native';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
-import { selectCampaigns } from '../../../../reducers/rewards/selectors';
+import { selectCampaignById } from '../../../../reducers/rewards/selectors';
 import Routes from '../../../../constants/navigation/Routes';
 import ProgressIndicator from '../components/Onboarding/ProgressIndicator';
 import CampaignTourStep, {
@@ -47,11 +47,11 @@ const CampaignTourStepView: React.FC = () => {
   const { campaignId } = route.params;
   const safeAreaInsets = useSafeAreaInsets();
 
-  const campaigns = useSelector(selectCampaigns);
-  const campaign = useMemo(
-    () => campaigns.find((c) => c.id === campaignId),
-    [campaigns, campaignId],
+  const selectCampaign = useMemo(
+    () => selectCampaignById(campaignId),
+    [campaignId],
   );
+  const campaign = useSelector(selectCampaign);
 
   const tour = campaign?.details?.howItWorks?.tour;
   const [currentTab, setCurrentTab] = useState(0);

@@ -122,6 +122,14 @@ jest.mock('../components/RewardsErrorBanner', () => {
 
 jest.mock('../components/Campaigns/OndoLeaderboard.utils', () => ({
   formatTierDisplayName: (tier: string) => tier,
+  getTierMinNetDeposit: jest.fn(
+    (
+      tiers: { name: string; minNetDeposit: number }[] | undefined,
+      name: string,
+    ) =>
+      tiers?.find((t: { name: string }) => t.name === name)?.minNetDeposit ??
+      null,
+  ),
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -229,7 +237,13 @@ const createTestCampaign = (
     endDate: nextMonth.toISOString(),
     termsAndConditions: null,
     excludedRegions: [],
-    details: null,
+    details: {
+      howItWorks: { title: '', description: '', steps: [] },
+      tiers: [
+        { name: 'STARTER', minNetDeposit: 500 },
+        { name: 'MID', minNetDeposit: 1000 },
+      ],
+    },
     featured: true,
     type: 'ONDO_HOLDING' as never,
     ...overrides,
@@ -435,20 +449,6 @@ describe('OndoCampaignStatsView', () => {
         qualifiedDays: 3,
       }),
     });
-    mockUseGetOndoLeaderboard.mockReturnValue({
-      ...leaderboardDefaults,
-      leaderboard: {
-        campaignId: 'campaign-ondo-123',
-        tiers: {
-          STARTER: {
-            minDeposit: 500,
-            entries: [],
-            totalParticipants: 100,
-          },
-        },
-        computedAt: '2024-01-01T00:00:00Z',
-      },
-    });
     const { getByText } = render(<OndoCampaignStatsView />);
     expect(
       getByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
@@ -476,20 +476,6 @@ describe('OndoCampaignStatsView', () => {
         projectedTier: 'STARTER',
         qualifiedDays: 3,
       }),
-    });
-    mockUseGetOndoLeaderboard.mockReturnValue({
-      ...leaderboardDefaults,
-      leaderboard: {
-        campaignId: 'campaign-ondo-123',
-        tiers: {
-          STARTER: {
-            minDeposit: 500,
-            entries: [],
-            totalParticipants: 100,
-          },
-        },
-        computedAt: '2024-01-01T00:00:00Z',
-      },
     });
     const { getByText } = render(<OndoCampaignStatsView />);
     fireEvent.press(
@@ -520,20 +506,6 @@ describe('OndoCampaignStatsView', () => {
       ...positionDefaults,
       position: makeQualifiedPosition({ projectedTier: 'MID' }),
     });
-    mockUseGetOndoLeaderboard.mockReturnValue({
-      ...leaderboardDefaults,
-      leaderboard: {
-        campaignId: 'campaign-ondo-123',
-        tiers: {
-          MID: {
-            minDeposit: 1000,
-            entries: [],
-            totalParticipants: 50,
-          },
-        },
-        computedAt: '2024-01-01T00:00:00Z',
-      },
-    });
     const { getByText } = render(<OndoCampaignStatsView />);
     expect(
       getByText('rewards.ondo_campaign_stats.qualified_title'),
@@ -559,20 +531,6 @@ describe('OndoCampaignStatsView', () => {
     mockUseGetOndoLeaderboardPosition.mockReturnValue({
       ...positionDefaults,
       position: makeQualifiedPosition({ projectedTier: 'MID' }),
-    });
-    mockUseGetOndoLeaderboard.mockReturnValue({
-      ...leaderboardDefaults,
-      leaderboard: {
-        campaignId: 'campaign-ondo-123',
-        tiers: {
-          MID: {
-            minDeposit: 1000,
-            entries: [],
-            totalParticipants: 50,
-          },
-        },
-        computedAt: '2024-01-01T00:00:00Z',
-      },
     });
     const { queryByText } = render(<OndoCampaignStatsView />);
     expect(

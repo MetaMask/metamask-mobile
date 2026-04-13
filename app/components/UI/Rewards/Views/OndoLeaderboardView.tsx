@@ -18,12 +18,18 @@ import {
   PendingTag,
   QualifiedTag,
 } from '../components/Campaigns/CampaignStatsSummary';
-import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
+import {
+  formatTierDisplayName,
+  getTierMinNetDeposit,
+} from '../components/Campaigns/OndoLeaderboard.utils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { strings } from '../../../../../locales/i18n';
-import { selectReferralCode } from '../../../../reducers/rewards/selectors';
+import {
+  selectReferralCode,
+  selectCampaignById,
+} from '../../../../reducers/rewards/selectors';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -42,6 +48,11 @@ const OndoLeaderboardView: React.FC = () => {
     useRoute<RouteProp<OndoLeaderboardRouteParams, 'OndoLeaderboard'>>();
   const { campaignId } = route.params;
   const referralCode = useSelector(selectReferralCode);
+  const selectCampaign = useMemo(
+    () => selectCampaignById(campaignId),
+    [campaignId],
+  );
+  const campaign = useSelector(selectCampaign);
 
   const { status: participantStatus } =
     useGetCampaignParticipantStatus(campaignId);
@@ -68,8 +79,10 @@ const OndoLeaderboardView: React.FC = () => {
 
   const pendingSheetPosition = useMemo(() => {
     if (!position || position.qualified) return null;
-    const tierMinDeposit =
-      leaderboardData?.tiers[position.projectedTier]?.minDeposit ?? null;
+    const tierMinDeposit = getTierMinNetDeposit(
+      campaign?.details?.tiers,
+      position.projectedTier,
+    );
     if (tierMinDeposit == null) return null;
     return {
       tier: position.projectedTier,
@@ -77,7 +90,7 @@ const OndoLeaderboardView: React.FC = () => {
       qualifiedDays: position.qualifiedDays,
       tierMinDeposit,
     };
-  }, [position, leaderboardData]);
+  }, [position, campaign]);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoLeaderboardView">

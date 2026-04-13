@@ -48,6 +48,7 @@ import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits'
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { OndoCampaignHowItWorks } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
 import { ONDO_GM_REQUIRED_QUALIFIED_DAYS } from '../utils/ondoCampaignConstants';
 
 // ParamListBase requires an index signature, which interfaces don't support
@@ -136,7 +137,7 @@ const OndoCampaignDetailsView: React.FC = () => {
   );
 
   const {
-    leaderboard: leaderboardData,
+    leaderboard,
     tierNames,
     selectedTier,
     selectedTierData,
@@ -166,10 +167,12 @@ const OndoCampaignDetailsView: React.FC = () => {
       leaderboardPosition &&
       campaign &&
       getCampaignStatus(campaign) === 'active'
-        ? (leaderboardData?.tiers[leaderboardPosition.projectedTier]
-            ?.minDeposit ?? null)
+        ? getTierMinNetDeposit(
+            campaign.details?.tiers,
+            leaderboardPosition.projectedTier,
+          )
         : null,
-    [leaderboardData, leaderboardPosition, campaign],
+    [campaign, leaderboardPosition],
   );
 
   const leaderboardPendingSheetPosition = useMemo(
