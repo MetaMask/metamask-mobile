@@ -1243,8 +1243,12 @@ export class BackgroundBridge extends EventEmitter {
         }, 1000);
       }
     } catch (err) {
-      // PermissionController.getCaveat() throws if the origin does not have a CAIP-25 permission.
-      // This is a perfectly valid scenario and the error should instead be ignored.
+      if (err instanceof PermissionDoesNotExistError) {
+        // suppress expected error in case that the origin
+        // does not have the target permission yet
+      } else {
+        throw err;
+      }
     }
   };
 
