@@ -80,6 +80,13 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   SwapBridgeNavigationLocation: { Rewards: 'Rewards' },
 }));
 
+jest.mock('../../Bridge/hooks/useRWAToken', () => ({
+  useRWAToken: () => ({
+    isStockToken: jest.fn(() => false),
+    isTokenTradingOpen: jest.fn(() => true),
+  }),
+}));
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
