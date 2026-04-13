@@ -244,13 +244,7 @@ export const usePerpsTransactionHistory = ({
         ...userHistoryTransactions,
       ];
 
-      // Sort by timestamp descending (newest first), then by asset alphabetically
-      allTransactions.sort(
-        (a, b) =>
-          b.timestamp - a.timestamp ||
-          (a.asset ?? '').localeCompare(b.asset ?? ''),
-      );
-
+      // Dedup only — final sort happens in mergedTransactions memo
       const uniqueTransactions = deduplicateById(allTransactions);
 
       DevLogger.log('Combined transactions:', uniqueTransactions);
@@ -336,13 +330,8 @@ export const usePerpsTransactionHistory = ({
       fundingCursorRef.current = cursorStartTime;
 
       const olderFundingTxs = transformFundingToTransactions(olderFunding);
-      setTransactions((prev) =>
-        deduplicateById([...prev, ...olderFundingTxs]).sort(
-          (a, b) =>
-            b.timestamp - a.timestamp ||
-            (a.asset ?? '').localeCompare(b.asset ?? ''),
-        ),
-      );
+      // Dedup only — final sort happens in mergedTransactions memo
+      setTransactions((prev) => deduplicateById([...prev, ...olderFundingTxs]));
 
       if (Math.max(cursorStartTime, maxStartTime) <= maxStartTime) {
         setHasFundingMore(false);
