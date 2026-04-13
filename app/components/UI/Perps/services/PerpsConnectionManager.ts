@@ -25,8 +25,15 @@ import {
   PERPS_ERROR_CODES,
   wait,
   TradingReadinessCache,
+  withPerpsConnectionAttemptContext,
   type ReconnectOptions,
 } from '@metamask/perps-controller';
+import StorageWrapper from '../../../../store/storage-wrapper';
+import {
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
+  PERPS_CONNECTION_SOURCE,
+} from '../constants/perpsConfig';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import {
   selectPerpsNetwork,
@@ -34,12 +41,11 @@ import {
 } from '../selectors/perpsController';
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { ensureError } from '../../../../util/errorUtils';
-import { withPerpsConnectionAttemptContext } from '../../../../util/perpsConnectionAttemptContext';
-import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
 interface ConnectOptions {
   source?: string;
   suppressError?: boolean;
+  preserveCaches?: boolean;
 }
 
 /**
@@ -178,6 +184,23 @@ class PerpsConnectionManagerClass {
         streamManager.fills.clearCache();
         streamManager.topOfBook.clearCache();
         streamManager.candles.clearCache();
+
+        // Reset throttle so the next data arrival persists immediately
+        streamManager.resetDiskCacheThrottles();
+
+        // Invalidate disk-persisted cold-start cache (fire-and-forget)
+        if (accountOnly) {
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_USER_DATA).catch(
+            () => undefined,
+          );
+        } else {
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_MARKETS).catch(
+            () => undefined,
+          );
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_USER_DATA).catch(
+            () => undefined,
+          );
+        }
 
         // Store flag so performReconnection can thread it into the second clearCache call.
         // AND with current value when a debounce timer is pending so that any
@@ -458,11 +481,31 @@ class PerpsConnectionManagerClass {
         }
         return;
       } catch {
-        // Fall through to reconnect below.
+        // First ping failed — JS thread may be sluggish right after foregrounding.
+        // Wait briefly and retry before triggering a full reconnection.
+        await wait(PERPS_CONSTANTS.ForegroundPingRetryDelayMs);
+        try {
+          const retryProvider =
+            Engine.context.PerpsController.getActiveProvider();
+          await retryProvider.ping();
+          DevLogger.log(
+            'PerpsConnectionManager: resumeFromForeground - retry ping succeeded, connection healthy',
+          );
+          if (!suppressError) {
+            this.clearError();
+          }
+          return;
+        } catch {
+          DevLogger.log(
+            'PerpsConnectionManager: resumeFromForeground - retry ping also failed, falling through to soft reconnect',
+          );
+        }
       }
     }
 
-    await this.ensureConnected({ source, suppressError });
+    // Soft reconnect: preserve cached data so no loading skeletons appear.
+    // The WebSocket was likely still alive — avoid a jarring skeleton flash.
+    await this.ensureConnected({ source, suppressError, preserveCaches: true });
   }
 
   /**
@@ -524,9 +567,10 @@ class PerpsConnectionManagerClass {
   /**
    * Perform the actual disconnection after grace period expires.
    * @param options.force - Bypass refCount guard (used by ensureConnected).
+   * @param options.preserveCaches - Skip clearing stream caches (used by soft foreground resume).
    */
   private async performActualDisconnection(
-    options: { force?: boolean } = {},
+    options: { force?: boolean; preserveCaches?: boolean } = {},
   ): Promise<void> {
     DevLogger.log(
       `PerpsConnectionManager: Grace period expired, performing disconnection (refCount: ${this.connectionRefCount})`,
@@ -552,17 +596,21 @@ class PerpsConnectionManagerClass {
             this.cleanupPreloadedSubscriptions();
 
             // Clear all stream caches so subscribers reset to loading state
-            // and hasReceivedFirstUpdate is reset for clean reconnection
-            const streamManager = getStreamManagerInstance();
-            streamManager.positions.clearCache();
-            streamManager.orders.clearCache();
-            streamManager.account.clearCache();
-            streamManager.prices.clearCache();
-            streamManager.marketData.clearCache();
-            streamManager.oiCaps.clearCache();
-            streamManager.fills.clearCache();
-            streamManager.topOfBook.clearCache();
-            streamManager.candles.clearCache();
+            // and hasReceivedFirstUpdate is reset for clean reconnection.
+            // Skip when preserveCaches=true (soft foreground resume): cached data
+            // is still valid and clearing it would cause unnecessary loading skeletons.
+            if (!options.preserveCaches) {
+              const streamManager = getStreamManagerInstance();
+              streamManager.positions.clearCache();
+              streamManager.orders.clearCache();
+              streamManager.account.clearCache();
+              streamManager.prices.clearCache();
+              streamManager.marketData.clearCache();
+              streamManager.oiCaps.clearCache();
+              streamManager.fills.clearCache();
+              streamManager.topOfBook.clearCache();
+              streamManager.candles.clearCache();
+            }
 
             // Reset state before disconnecting to prevent race conditions
             this.isConnected = false;
@@ -1153,6 +1201,7 @@ class PerpsConnectionManagerClass {
     this.ensureConnectedPromise = this.performEnsureConnected(
       options?.source,
       options?.suppressError,
+      options?.preserveCaches,
     );
     try {
       await this.ensureConnectedPromise;
@@ -1164,6 +1213,7 @@ class PerpsConnectionManagerClass {
   private async performEnsureConnected(
     source?: string,
     suppressError?: boolean,
+    preserveCaches?: boolean,
   ): Promise<void> {
     // Cancel grace period if still pending — we're taking over
     this.cancelGracePeriod();
@@ -1172,7 +1222,7 @@ class PerpsConnectionManagerClass {
     // Uses force: true to bypass the refCount guard — ensureConnected must
     // always tear down, regardless of how many components hold references.
     if (this.isConnected || this.isInitialized) {
-      await this.performActualDisconnection({ force: true });
+      await this.performActualDisconnection({ force: true, preserveCaches });
     }
 
     // Reset refCount so connect() brings it to exactly 1.

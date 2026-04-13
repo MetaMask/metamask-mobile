@@ -686,6 +686,8 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "campaignParticipantStatus": {},
         "campaigns": {},
         "offDeviceSubscriptionAccounts": {},
+        "ondoCampaignActivity": {},
+        "ondoCampaignDeposits": {},
         "ondoCampaignLeaderboard": {},
         "ondoCampaignLeaderboardPositions": {},
         "ondoCampaignPortfolio": {},
@@ -785,6 +787,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "databaseUnavailable": false,
         "lastUpdated": null,
         "signature": null,
+      },
+      "SocialController": {
+        "followingAddresses": [],
+        "leaderboardEntries": [],
       },
       "SubjectMetadataController": {
         "subjectMetadata": {},
@@ -1511,6 +1517,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "campaignParticipantStatus": {},
         "campaigns": {},
         "offDeviceSubscriptionAccounts": {},
+        "ondoCampaignActivity": {},
+        "ondoCampaignDeposits": {},
         "ondoCampaignLeaderboard": {},
         "ondoCampaignLeaderboardPositions": {},
         "ondoCampaignPortfolio": {},
@@ -1593,6 +1601,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "databaseUnavailable": false,
         "lastUpdated": null,
         "signature": null,
+      },
+      "SocialController": {
+        "followingAddresses": [],
+        "leaderboardEntries": [],
       },
       "SubjectMetadataController": {
         "subjectMetadata": {},

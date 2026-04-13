@@ -8,8 +8,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -217,13 +216,10 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -301,7 +297,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       "color": "#131416",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 32,
-                                      "fontWeight": 600,
                                       "letterSpacing": 0,
                                       "lineHeight": 40,
                                       "marginTop": 8,
@@ -321,7 +316,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       "color": "#66676a",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -420,7 +414,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 14,
-                                              "fontWeight": 400,
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             },
@@ -488,7 +481,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                           "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 14,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                           "marginTop": 4,
@@ -507,7 +499,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                             "color": "#4459ff",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 14,
-                                            "fontWeight": 400,
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                           },
@@ -596,7 +587,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 14,
-                                              "fontWeight": 400,
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             },
@@ -646,7 +636,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                           "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 14,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                           "marginTop": 4,
@@ -755,7 +744,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                     "flexWrap": "wrap",
                                     "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": 400,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -768,7 +756,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                             </Text>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -925,7 +913,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -937,8 +925,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1146,13 +1133,10 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -1230,7 +1214,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       "color": "#131416",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 32,
-                                      "fontWeight": 600,
                                       "letterSpacing": 0,
                                       "lineHeight": 40,
                                       "marginTop": 8,
@@ -1250,7 +1233,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       "color": "#66676a",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -1349,7 +1331,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 14,
-                                              "fontWeight": 400,
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             },
@@ -1417,7 +1398,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                           "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 14,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                           "marginTop": 4,
@@ -1436,7 +1416,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                             "color": "#4459ff",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 14,
-                                            "fontWeight": 400,
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                           },
@@ -1525,7 +1504,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 14,
-                                              "fontWeight": 400,
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             },
@@ -1575,7 +1553,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                           "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 14,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                           "marginTop": 4,
@@ -1684,7 +1661,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                     "flexWrap": "wrap",
                                     "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": 400,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -1697,7 +1673,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                             </Text>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -1854,7 +1830,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1866,8 +1842,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2192,13 +2167,10 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -2276,7 +2248,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                       "color": "#131416",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 32,
-                                      "fontWeight": 600,
                                       "letterSpacing": 0,
                                       "lineHeight": 40,
                                       "marginTop": 8,
@@ -2296,7 +2267,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                       "color": "#66676a",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -2395,7 +2365,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 14,
-                                              "fontWeight": 400,
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             },
@@ -2463,7 +2432,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                           "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 14,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                           "marginTop": 4,
@@ -2482,7 +2450,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                             "color": "#4459ff",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 14,
-                                            "fontWeight": 400,
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                           },
@@ -2571,7 +2538,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 14,
-                                              "fontWeight": 400,
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             },
@@ -2621,7 +2587,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                           "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 14,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                           "marginTop": 4,
@@ -2730,7 +2695,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                     "flexWrap": "wrap",
                                     "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": 400,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -2743,7 +2707,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                             </Text>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2753,6 +2717,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

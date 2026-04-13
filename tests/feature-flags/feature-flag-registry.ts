@@ -2807,6 +2807,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  googleLoginIosUnsupportedBlockingEnabled: {
+    name: 'googleLoginIosUnsupportedBlockingEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   homepageRedesignV1: {
     name: 'homepageRedesignV1',
     type: FeatureFlagType.Remote,
@@ -2896,6 +2904,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       moneyAccountDepositEnabled: false,
       moneyAccountWithdrawEnabled: false,
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyActivityMockDataEnabled: {
+    name: 'moneyActivityMockDataEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -3227,6 +3243,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictTabFeaturedCarousel: {
+    name: 'predictTabFeaturedCarousel',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictTradingEnabled: {
     name: 'predictTradingEnabled',
     type: FeatureFlagType.Remote,
@@ -3234,6 +3261,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: true,
       minimumVersion: '7.60.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictUpDown: {
+    name: 'predictUpDown',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3505,6 +3543,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {},
+    status: FeatureFlagStatus.Active,
+  },
+
+  tokenDetailsAdvancedCharts: {
+    name: 'tokenDetailsAdvancedCharts',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.73',
+    },
     status: FeatureFlagStatus.Active,
   },
 

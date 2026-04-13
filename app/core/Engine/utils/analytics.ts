@@ -7,6 +7,11 @@ import type {
 } from '../../../util/analytics/analytics.types';
 import Logger from '../../../util/Logger';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { store } from '../../../store';
+import {
+  enrichWithABTests,
+  getRemoteFeatureFlagsFromState,
+} from '../../../util/analytics/enrichWithABTests';
 
 /**
  * Track an analytics event using the initMessenger.
@@ -22,6 +27,17 @@ export const trackEvent = (
   initMessenger: ControllerMessenger,
   event: AnalyticsTrackingEvent,
 ): void => {
+  let enrichedEvent: AnalyticsTrackingEvent;
+
+  try {
+    enrichedEvent = enrichWithABTests(
+      event,
+      getRemoteFeatureFlagsFromState(store.getState()),
+    );
+  } catch {
+    enrichedEvent = event;
+  }
+
   try {
     (
       initMessenger as ControllerMessenger & {
@@ -30,7 +46,7 @@ export const trackEvent = (
           event: AnalyticsTrackingEvent,
         ) => void;
       }
-    ).call('AnalyticsController:trackEvent', event);
+    ).call('AnalyticsController:trackEvent', enrichedEvent);
   } catch (error) {
     // Analytics tracking failures should not break controller functionality
     // Error is logged but not thrown

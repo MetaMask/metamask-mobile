@@ -64,11 +64,12 @@ const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
   const visibleSections = sectionsArray.filter((s) => !emptySections.has(s.id));
 
   return (
-    <Box twClassName="mt-1 mb-4">
+    <Box twClassName="mt-1 mb-4 -mx-4">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         testID={TrendingViewSelectorsIDs.QUICK_ACTIONS_SCROLL_VIEW}
+        contentContainerStyle={tw.style('px-4')}
       >
         <Box twClassName="flex-row gap-2">
           {visibleSections.map((section) => (

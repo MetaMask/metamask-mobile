@@ -8,8 +8,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,14 +333,13 @@ exports[`EarnInputView render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -491,7 +489,6 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                         "color": "#131416",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 16,
-                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -1693,7 +1690,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1703,7 +1700,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1715,8 +1712,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2041,14 +2037,13 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -2198,7 +2193,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                         "color": "#131416",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 16,
-                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -3400,7 +3394,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                             </TouchableOpacity>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -3410,6 +3404,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
