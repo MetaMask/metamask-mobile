@@ -51,6 +51,10 @@ jest.mock(
   },
 );
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => null),
+}));
+
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -61,27 +65,24 @@ jest.mock('../../../Views/ErrorBoundary', () => {
   };
 });
 
-jest.mock('../components/Campaigns/OndoLeaderboardPosition', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      ReactActual.createElement(View, {
-        testID: 'ondo-leaderboard-position',
-      }),
-  };
-});
-
+const mockOndoLeaderboard = jest.fn();
 jest.mock('../components/Campaigns/OndoLeaderboard', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () =>
-      ReactActual.createElement(View, { testID: 'campaign-leaderboard' }),
+    default: (props: Record<string, unknown>) => {
+      mockOndoLeaderboard(props);
+      return ReactActual.createElement(View, {
+        testID: 'campaign-leaderboard',
+      });
+    },
   };
 });
+
+jest.mock('../components/Campaigns/OndoLeaderboard.utils', () => ({
+  formatTierDisplayName: (tier: string) => tier,
+}));
 
 jest.mock('../hooks/useGetOndoLeaderboard');
 jest.mock('../hooks/useGetOndoLeaderboardPosition');
@@ -136,14 +137,34 @@ describe('OndoLeaderboardView', () => {
     expect(getByTestId('campaign-leaderboard')).toBeDefined();
   });
 
-  it('renders the OndoLeaderboardPosition component', () => {
-    const { getByTestId } = render(<OndoLeaderboardView />);
-    expect(getByTestId('ondo-leaderboard-position')).toBeDefined();
+  it('renders Your position section with rank and tier when position exists', () => {
+    mockUseGetOndoLeaderboardPosition.mockReturnValue({
+      ...positionDefaults,
+      position: {
+        rank: 5,
+        projectedTier: 'STARTER',
+        qualified: true,
+        qualifiedDays: 10,
+        totalInTier: 100,
+        rateOfReturn: 0.1,
+        currentUsdValue: 12500,
+        totalUsdDeposited: 10000,
+        netDeposit: 8500,
+        neighbors: [],
+        computedAt: '2024-01-01T00:00:00Z',
+      },
+    });
+    const { getByText } = render(<OndoLeaderboardView />);
+    expect(getByText('Rank')).toBeDefined();
+    expect(getByText('Tier')).toBeDefined();
   });
 
   it('calls useGetOndoLeaderboard with the campaign ID from route params', () => {
     render(<OndoLeaderboardView />);
-    expect(mockUseGetOndoLeaderboard).toHaveBeenCalledWith('campaign-ondo-123');
+    expect(mockUseGetOndoLeaderboard).toHaveBeenCalledWith(
+      'campaign-ondo-123',
+      expect.objectContaining({ defaultTier: undefined }),
+    );
   });
 
   it('calls useGetOndoLeaderboardPosition with the campaign ID from route params', () => {
@@ -184,5 +205,88 @@ describe('OndoLeaderboardView', () => {
     });
     const { getByTestId } = render(<OndoLeaderboardView />);
     expect(getByTestId(ONDO_LEADERBOARD_VIEW_TEST_IDS.CONTAINER)).toBeDefined();
+  });
+
+  it('shows Pending tag when position is not qualified', () => {
+    mockUseGetOndoLeaderboardPosition.mockReturnValue({
+      ...positionDefaults,
+      position: {
+        rank: 8,
+        projectedTier: 'STARTER',
+        qualified: false,
+        qualifiedDays: 3,
+        totalInTier: 100,
+        rateOfReturn: 0.05,
+        currentUsdValue: 5000,
+        totalUsdDeposited: 4000,
+        netDeposit: 3500,
+        neighbors: [],
+        computedAt: '2024-01-01T00:00:00Z',
+      },
+    });
+    const { getAllByText } = render(<OndoLeaderboardView />);
+    expect(
+      getAllByText('rewards.ondo_campaign_leaderboard.pending'),
+    ).toHaveLength(2);
+  });
+
+  it('shows Qualified tag when position is qualified', () => {
+    mockUseGetOndoLeaderboardPosition.mockReturnValue({
+      ...positionDefaults,
+      position: {
+        rank: 5,
+        projectedTier: 'STARTER',
+        qualified: true,
+        qualifiedDays: 10,
+        totalInTier: 100,
+        rateOfReturn: 0.1,
+        currentUsdValue: 12500,
+        totalUsdDeposited: 10000,
+        netDeposit: 8500,
+        neighbors: [],
+        computedAt: '2024-01-01T00:00:00Z',
+      },
+    });
+    const { getByText } = render(<OndoLeaderboardView />);
+    expect(
+      getByText('rewards.ondo_campaign_leaderboard.qualified'),
+    ).toBeDefined();
+  });
+
+  it('does not show position section when position is null', () => {
+    const { queryByText } = render(<OndoLeaderboardView />);
+    expect(queryByText('Rank')).toBeNull();
+    expect(queryByText('Tier')).toBeNull();
+  });
+
+  it('passes currentUserReferralCode to OndoLeaderboard', () => {
+    render(<OndoLeaderboardView />);
+    expect(mockOndoLeaderboard).toHaveBeenCalledWith(
+      expect.objectContaining({ currentUserReferralCode: null }),
+    );
+  });
+
+  it('passes defaultTier from position to useGetOndoLeaderboard', () => {
+    mockUseGetOndoLeaderboardPosition.mockReturnValue({
+      ...positionDefaults,
+      position: {
+        rank: 5,
+        projectedTier: 'MID',
+        qualified: true,
+        qualifiedDays: 10,
+        totalInTier: 100,
+        rateOfReturn: 0.1,
+        currentUsdValue: 12500,
+        totalUsdDeposited: 10000,
+        netDeposit: 8500,
+        neighbors: [],
+        computedAt: '2024-01-01T00:00:00Z',
+      },
+    });
+    render(<OndoLeaderboardView />);
+    expect(mockUseGetOndoLeaderboard).toHaveBeenCalledWith(
+      'campaign-ondo-123',
+      expect.objectContaining({ defaultTier: 'MID' }),
+    );
   });
 });
