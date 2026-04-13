@@ -4275,6 +4275,66 @@ describe('polymarket utils', () => {
       expect(SPORTS_MARKET_TYPE_TO_GROUP.first_half_spreads).toBe('first-half');
       expect(SPORTS_MARKET_TYPE_TO_GROUP.anytime_touchdowns).toBe('touchdowns');
     });
+
+    it('tiebreaks game-lines outcomes by liquidity+volume when sportsMarketType priority is equal', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'sp-low',
+          sportsMarketType: 'spreads',
+          liquidity: 50,
+          volumeNum: 50,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'sp-high',
+          sportsMarketType: 'spreads',
+          liquidity: 500,
+          volumeNum: 500,
+        }),
+      ];
+      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+
+      const result = buildOutcomeGroups(outcomes, markets);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].outcomes.map((o) => o.id)).toEqual([
+        'sp-high',
+        'sp-low',
+      ]);
+    });
+
+    it('sorts non-game-lines group outcomes by liquidity+volume descending', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'fhm-low',
+          sportsMarketType: 'first_half_moneyline',
+          liquidity: 30,
+          volumeNum: 20,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'fhs-high',
+          sportsMarketType: 'first_half_spreads',
+          liquidity: 400,
+          volumeNum: 300,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'fht-mid',
+          sportsMarketType: 'first_half_totals',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+      ];
+      const outcomes = markets.map((m) => createMockOutcome(m.conditionId));
+
+      const result = buildOutcomeGroups(outcomes, markets);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe('first-half');
+      expect(result[0].outcomes.map((o) => o.id)).toEqual([
+        'fhs-high',
+        'fht-mid',
+        'fhm-low',
+      ]);
+    });
   });
 
   describe('parsePolymarketEvents - series metadata', () => {
