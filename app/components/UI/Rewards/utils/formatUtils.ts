@@ -151,8 +151,8 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
 
 /**
  * Formats remaining time until `endDate` (UTC, calendar months).
- * - Under 1 hour: minutes only (e.g. `45min`; `min` distinguishes minutes from calendar months `m`).
- * - Otherwise exactly two units: `y`+`m`, `m`+`d`, `d`+`h`, or `h`+`min`.
+ * - Under 1 hour: minutes only (e.g. `45min`).
+ * - Otherwise exactly two units: `y`+`mo`, `mo`+`d`, `d`+`h`, or `h`+`min`.
  * For long lists, pass one `now` (e.g. `Date.now()`) from the parent per render so each row does not allocate its own clock.
  */
 export const formatDateRemaining = (
@@ -226,10 +226,10 @@ export const formatDateRemaining = (
   const minute = Math.floor(((remainingMs % msInDay) % msInHour) / msInMinute);
 
   if (year > 0) {
-    return `${year}y ${month}m`;
+    return `${year}y ${month}mo`;
   }
   if (month > 0) {
-    return `${month}m ${day}d`;
+    return `${month}mo ${day}d`;
   }
   if (day > 0) {
     return `${day}d ${hour}h`;

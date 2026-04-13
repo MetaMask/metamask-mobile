@@ -399,7 +399,7 @@ describe('formatUtils', () => {
 
       const result = formatDateRemaining('2025-03-03T00:00:00Z');
 
-      expect(result).toBe('1m 3d');
+      expect(result).toBe('1mo 3d');
     });
 
     it('handles leap-year February correctly with calendar month stepping', () => {
@@ -407,7 +407,7 @@ describe('formatUtils', () => {
 
       const result = formatDateRemaining('2024-03-03T00:00:00Z');
 
-      expect(result).toBe('1m 3d');
+      expect(result).toBe('1mo 3d');
     });
 
     it('returns null for past dates', () => {
@@ -423,7 +423,7 @@ describe('formatUtils', () => {
 
       const result = formatDateRemaining('2025-03-03T00:00:00Z', now);
 
-      expect(result).toBe('1m 3d');
+      expect(result).toBe('1mo 3d');
     });
 
     it('returns minutes only when remaining time is under one hour', () => {
@@ -455,7 +455,7 @@ describe('formatUtils', () => {
     it('returns year and month pair when at least one full year remains', () => {
       const now = new Date('2024-01-15T00:00:00Z');
 
-      expect(formatDateRemaining('2026-03-20T00:00:00Z', now)).toBe('2y 2m');
+      expect(formatDateRemaining('2026-03-20T00:00:00Z', now)).toBe('2y 2mo');
     });
   });
 

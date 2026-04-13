@@ -63,7 +63,7 @@ const createBenefit = (
 describe('BenefitCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFormatDateRemaining.mockReturnValue('1m 3d');
+    mockFormatDateRemaining.mockReturnValue('1mo 3d');
   });
 
   describe('rendering', () => {
@@ -144,7 +144,7 @@ describe('BenefitCard', () => {
         '2026-09-01T00:00:00Z',
         expect.any(Number),
       );
-      expect(getByText('1m 3d')).toBeOnTheScreen();
+      expect(getByText('1mo 3d')).toBeOnTheScreen();
     });
 
     it('does not call formatter and hides remaining time when actionDate is null', () => {
@@ -154,7 +154,7 @@ describe('BenefitCard', () => {
       const { queryByText } = render(<BenefitCard benefit={benefit} />);
 
       expect(mockFormatDateRemaining).not.toHaveBeenCalled();
-      expect(queryByText('1m 3d')).toBeNull();
+      expect(queryByText('1mo 3d')).toBeNull();
     });
 
     it('hides remaining time when formatter returns null', () => {
@@ -162,7 +162,7 @@ describe('BenefitCard', () => {
       const benefit = createBenefit();
       const { queryByText } = render(<BenefitCard benefit={benefit} />);
 
-      expect(queryByText('1m 3d')).toBeNull();
+      expect(queryByText('1mo 3d')).toBeNull();
     });
   });
 

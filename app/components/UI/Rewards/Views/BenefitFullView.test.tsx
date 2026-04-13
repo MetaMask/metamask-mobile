@@ -123,7 +123,7 @@ describe('BenefitFullView', () => {
     jest.clearAllMocks();
     mockRouteBenefit = mockBenefit;
     mockUseSelector.mockReturnValue('subscription-123');
-    mockFormatDateRemaining.mockReturnValue('1m 3d');
+    mockFormatDateRemaining.mockReturnValue('1mo 3d');
   });
 
   it('renders title, description, and action button', () => {
@@ -138,7 +138,7 @@ describe('BenefitFullView', () => {
     expect(
       getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION),
     ).toBeOnTheScreen();
-    expect(getByText('1m 3d')).toBeOnTheScreen();
+    expect(getByText('1mo 3d')).toBeOnTheScreen();
     expect(mockFormatDateRemaining).toHaveBeenCalledWith(
       mockBenefit.actionDate,
       expect.any(Number),
@@ -208,7 +208,7 @@ describe('BenefitFullView', () => {
 
     const { queryByText } = render(<BenefitFullView />);
 
-    expect(queryByText('1m 3d')).toBeNull();
+    expect(queryByText('1mo 3d')).toBeNull();
   });
 
   it('does not format remaining time when actionDate is null', () => {
@@ -220,7 +220,7 @@ describe('BenefitFullView', () => {
     const { queryByText } = render(<BenefitFullView />);
 
     expect(mockFormatDateRemaining).not.toHaveBeenCalled();
-    expect(queryByText('1m 3d')).toBeNull();
+    expect(queryByText('1mo 3d')).toBeNull();
   });
 
   it('renders benefit image from thumbnail', () => {
