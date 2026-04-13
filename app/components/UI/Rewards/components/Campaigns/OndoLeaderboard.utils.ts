@@ -19,6 +19,6 @@ const TIER_I18N_KEYS: Record<string, string> = {
  * Returns the raw key when no mapping is found.
  */
 export const formatTierDisplayName = (tier: string): string => {
-  const key = TIER_I18N_KEYS[tier];
+  const key = TIER_I18N_KEYS[tier.toUpperCase()];
   return key ? strings(key) : tier;
 };

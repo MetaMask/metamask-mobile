@@ -293,7 +293,7 @@ const OndoCampaignDetailsView: React.FC = () => {
               {/* Phase 1: Not opted in, show how it works section */}
               {showHowItWorksSection && (
                 <>
-                  <Box twClassName="px-4 py-4">
+                  <Box twClassName="p-4">
                     <CampaignHowItWorks
                       howItWorks={
                         campaign.details?.howItWorks as OndoCampaignHowItWorks
@@ -317,7 +317,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       <Box
                         flexDirection={BoxFlexDirection.Row}
                         alignItems={BoxAlignItems.Center}
-                        twClassName="gap-2 mb-4"
+                        twClassName="gap-2 mb-3"
                       >
                         <Text variant={TextVariant.HeadingMd}>
                           {strings('rewards.ondo_campaign_stats.title')}
@@ -408,7 +408,7 @@ const OndoCampaignDetailsView: React.FC = () => {
 
               {(getCampaignStatus(campaign) === 'active' ||
                 showLeaderboardSection) && (
-                <Box twClassName="my-5 border-b border-border-muted" />
+                <Box twClassName="my-1 border-b border-border-muted" />
               )}
 
               {getCampaignStatus(campaign) === 'active' && (

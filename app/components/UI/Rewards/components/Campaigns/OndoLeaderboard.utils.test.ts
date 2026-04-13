@@ -85,6 +85,14 @@ describe('OndoLeaderboard.utils', () => {
       expect(formatTierDisplayName('UPPER')).toBe('Platinum');
     });
 
+    it('handles lowercase input', () => {
+      expect(formatTierDisplayName('starter')).toBe('Bronze');
+    });
+
+    it('handles mixed-case input', () => {
+      expect(formatTierDisplayName('Mid')).toBe('Silver');
+    });
+
     it('returns the raw key for an unknown tier', () => {
       expect(formatTierDisplayName('UNKNOWN')).toBe('UNKNOWN');
     });
