@@ -148,6 +148,7 @@ describe('useBridgeQuoteData', () => {
       blockaidError: null,
       quotesLoadingStatus: null,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: true,
     });
   });
 
@@ -305,6 +306,7 @@ describe('useBridgeQuoteData', () => {
       shouldShowPriceImpactWarning: false,
       quotesLoadingStatus: RequestStatus.FETCHED,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: false,
     });
   });
 
@@ -441,6 +443,7 @@ describe('useBridgeQuoteData', () => {
       blockaidError: null,
       quotesLoadingStatus: null,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: false,
     });
   });
 
@@ -478,6 +481,7 @@ describe('useBridgeQuoteData', () => {
       blockaidError: null,
       quotesLoadingStatus: RequestStatus.LOADING,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: false,
     });
   });
 
@@ -516,6 +520,7 @@ describe('useBridgeQuoteData', () => {
       blockaidError: null,
       quotesLoadingStatus: null,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: false,
     });
   });
 
