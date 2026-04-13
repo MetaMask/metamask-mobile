@@ -25,7 +25,7 @@ import { isSendBundleSupported } from '../../../../util/transactions/sentinel-ap
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import {
   handleTransactionAddedEventForMetrics,
   handleTransactionApprovedEventForMetrics,
@@ -115,7 +115,7 @@ function buildInitRequestMock(
     namespace: MOCK_ANY_NAMESPACE,
   });
   const requestMock = {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     initMessenger:
       initMessenger as unknown as TransactionControllerInitMessenger,
     controllerMessenger:
