@@ -57,7 +57,7 @@ exports[`SampleFeature Snapshot Tests matches rendered snapshot when feature fla
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -160,7 +160,7 @@ exports[`SampleFeature Snapshot Tests matches rendered snapshot when feature fla
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,

@@ -14,7 +14,7 @@ import {
   Platform,
   EmitterSubscription,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Device from '../../../util/device';
 import AvatarAccount from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AccountRightButtonProps } from './AccountRightButton.types';
@@ -31,6 +31,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from './AccountOverview.testIds';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import UrlParser from 'url-parse';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import {
   selectIsEvmNetworkSelected,
@@ -62,7 +63,6 @@ const styles = StyleSheet.create({
 const AccountRightButton = ({
   selectedAddress,
   onPress,
-  dappOrigin,
 }: AccountRightButtonProps) => {
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
@@ -130,15 +130,6 @@ const AccountRightButton = ({
         screen: Routes.SHEET.NETWORK_SELECTOR,
         params: {
           chainId: isEvmSelected ? chainId : selectedNonEvmNetworkChainId,
-          ...(dappOrigin
-            ? {
-                hostInfo: {
-                  metadata: {
-                    origin: dappOrigin,
-                  },
-                },
-              }
-            : {}),
         },
       });
       trackEvent(
@@ -161,12 +152,17 @@ const AccountRightButton = ({
     onPress,
     selectedNonEvmNetworkChainId,
     isEvmSelected,
-    dappOrigin,
   ]);
 
-  const { networkName, networkImageSource } = useNetworkInfo(
-    dappOrigin || undefined,
-  );
+  const route = useRoute<RouteProp<Record<string, { url: string }>, string>>();
+  // url is defined if opened while in a dapp
+  const currentUrl = route.params?.url;
+  let hostname;
+  if (currentUrl) {
+    hostname = new UrlParser(currentUrl)?.origin;
+  }
+
+  const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   const nonEvmNetworkImageSource = useMemo(() => {
     if (!isEvmSelected && selectedNonEvmNetworkChainId) {

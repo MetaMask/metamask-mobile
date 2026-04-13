@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useIsSwapEnabledForPriorityToken } from './useIsSwapEnabledForPriorityToken';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
+import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 
 // Solana mainnet chain ID used in cardNetworkInfos
 const SOLANA_CAIP_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
@@ -19,8 +19,8 @@ jest.mock('../constants', () => ({
   },
 }));
 
-jest.mock('../../../../selectors/cardController', () => ({
-  selectIsCardAuthenticated: jest.fn(),
+jest.mock('../../../../core/redux/slices/card', () => ({
+  selectIsAuthenticatedCard: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
@@ -43,7 +43,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
 
     // Default setup: user is authenticated
     (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectIsCardAuthenticated) {
+      if (selector === selectIsAuthenticatedCard) {
         return true; // Default: authenticated
       }
       if (selector === selectSelectedInternalAccountByScope) {
@@ -63,7 +63,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
       });
 
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectIsCardAuthenticated) {
+        if (selector === selectIsAuthenticatedCard) {
           return false; // Not authenticated
         }
         if (selector === selectSelectedInternalAccountByScope) {
@@ -83,7 +83,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
 
     it('returns true when user is not authenticated even with undefined priority token', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectIsCardAuthenticated) {
+        if (selector === selectIsAuthenticatedCard) {
           return false; // Not authenticated
         }
         if (selector === selectSelectedInternalAccountByScope) {
@@ -108,7 +108,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
       });
 
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectIsCardAuthenticated) {
+        if (selector === selectIsAuthenticatedCard) {
           return true; // Authenticated
         }
         if (selector === selectSelectedInternalAccountByScope) {

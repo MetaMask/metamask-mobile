@@ -2,11 +2,11 @@ import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { createStyles } from './styles';
-import {
-  Button,
-  ButtonVariant,
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
   ButtonSize,
-} from '@metamask/design-system-react-native';
+} from '../../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
   TextColor,
@@ -39,15 +39,14 @@ const ChangePassword = () => {
         {strings('password_reset.password_desc')}
       </Text>
       <Button
-        variant={ButtonVariant.Primary}
+        label={strings('password_reset.change_password')}
+        variant={ButtonVariants.Primary}
         onPress={resetPassword}
         style={styles.confirm}
-        isFullWidth
+        width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
         testID={SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON}
-      >
-        {strings('password_reset.change_password')}
-      </Button>
+      />
     </View>
   );
 };

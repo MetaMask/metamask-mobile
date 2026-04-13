@@ -335,8 +335,9 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },

@@ -376,8 +376,9 @@ exports[`RampUnsupportedModal renders modal with title and description 1`] = `
                               [
                                 {
                                   "color": "#131416",
-                                  "fontFamily": "Geist-SemiBold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 20,
+                                  "fontWeight": 700,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -449,6 +450,7 @@ exports[`RampUnsupportedModal renders modal with title and description 1`] = `
                                 "color": "#66676a",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
+                                "fontWeight": 400,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               },
@@ -545,6 +547,7 @@ exports[`RampUnsupportedModal renders modal with title and description 1`] = `
                                   "flexWrap": "wrap",
                                   "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                   "textAlign": "center",

@@ -8,8 +8,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -342,7 +341,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -354,8 +353,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -680,13 +678,10 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -821,8 +816,9 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -877,7 +873,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                             </View>
                           </View>
                         </RCTScrollView>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -887,7 +883,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -899,8 +895,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1225,13 +1220,10 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -1366,8 +1358,9 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -1479,7 +1472,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
                                       "marginBottom": 10,
                                     }
@@ -1593,7 +1586,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
                                       "marginBottom": 10,
                                     }
@@ -1629,7 +1622,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             </TouchableOpacity>
                           </View>
                         </RCTScrollView>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1639,6 +1632,6 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

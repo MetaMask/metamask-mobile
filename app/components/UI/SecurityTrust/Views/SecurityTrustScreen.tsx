@@ -25,11 +25,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import type { Hex } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
-import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../selectors/multichainNetworkController';
-import { resolveNetworkDisplayName } from '../../NetworkMultiSelector/NetworkMultiSelectorUtils';
+import { useNetworkName } from '../../../Views/confirmations/hooks/useNetworkName';
 import type { TokenDetailsRouteParams } from '../../TokenDetails/constants/constants';
 import {
   getFeatureTags,
@@ -62,23 +60,7 @@ const SecurityTrustScreen: React.FC = () => {
   const params = route.params as TokenDetailsRouteParams;
   const securityData = params?.securityData ?? null;
   const explorer = useBlockExplorer(params?.chainId);
-  const evmNetworkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
-  const nonEvmNetworkConfigurations = useSelector(
-    selectNonEvmNetworkConfigurationsByChainId,
-  );
-  const networkName = React.useMemo(() => {
-    const chainId = params?.chainId;
-    if (!chainId) {
-      return undefined;
-    }
-    return resolveNetworkDisplayName({
-      chainId,
-      evmNetworkConfigurations,
-      nonEvmNetworkConfigurations,
-    });
-  }, [params?.chainId, evmNetworkConfigurations, nonEvmNetworkConfigurations]);
+  const networkName = useNetworkName(params?.chainId as Hex);
 
   // Get action handlers from hook (single source of truth)
   const { onBuy, handleStickySwapPress, hasEligibleSwapTokens, networkModal } =

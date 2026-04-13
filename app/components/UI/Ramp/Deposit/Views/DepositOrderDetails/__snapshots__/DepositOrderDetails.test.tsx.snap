@@ -111,7 +111,7 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
               style={
                 {
                   "color": "#ca3542",
-                  "fontFamily": "Geist-SemiBold",
+                  "fontFamily": "Geist-Bold",
                   "fontSize": 20,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -421,7 +421,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 40,
                     "letterSpacing": 0,
                     "lineHeight": 40,
@@ -1052,7 +1052,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 40,
                     "letterSpacing": 0,
                     "lineHeight": 40,
@@ -1593,7 +1593,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 40,
                     "letterSpacing": 0,
                     "lineHeight": 40,

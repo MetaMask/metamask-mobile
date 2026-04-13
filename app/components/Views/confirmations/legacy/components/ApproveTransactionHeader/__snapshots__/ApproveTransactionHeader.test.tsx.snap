@@ -248,7 +248,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
               style={
                 {
                   "color": "#131416",
-                  "fontFamily": "Geist-SemiBold",
+                  "fontFamily": "Geist-Bold",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -281,7 +281,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -480,7 +480,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
               style={
                 {
                   "color": "#131416",
-                  "fontFamily": "Geist-SemiBold",
+                  "fontFamily": "Geist-Bold",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -513,7 +513,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
