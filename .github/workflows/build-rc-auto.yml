@@ -170,7 +170,7 @@ jobs:
         run: |
           REPO="${{ github.repository }}"
           RUN_ID="${{ github.run_id }}"
-          ARTIFACTS=$(gh api "repos/${REPO}/actions/runs/${RUN_ID}/artifacts" --paginate --jq '.artifacts')
+          ARTIFACTS=$(gh api "repos/${REPO}/actions/runs/${RUN_ID}/artifacts" --jq '.artifacts')
 
           ANDROID_ID=$(echo "$ARTIFACTS" | jq -r '.[] | select(.name | startswith("android-apk-")) | .id' | head -1)
           if [[ -n "$ANDROID_ID" && "$ANDROID_ID" != "null" ]]; then
