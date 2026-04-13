@@ -181,6 +181,9 @@ export const BridgeTransactionDetails = (
   const multiChainTx = props.route.params.multiChainTx;
 
   const fromAddress = evmTxMeta?.txParams?.from;
+  // isGasFeeSponsored is set on tx submission and only cleared in the confirm
+  // callback, which never runs when a HW wallet user rejects signing.
+  // Guard against showing "Paid by MetaMask" on stale sponsored state.
   const isHardwareWallet = Boolean(
     fromAddress && isHardwareAccount(fromAddress),
   );
