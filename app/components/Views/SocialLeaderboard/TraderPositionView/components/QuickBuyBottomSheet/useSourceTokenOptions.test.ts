@@ -156,6 +156,37 @@ describe('useSourceTokenOptions', () => {
     });
   });
 
+  it('preserves a zero exchange rate instead of coercing it to undefined', () => {
+    // Native token on a chain that has no conversion rate data — exchangeRate is 0,
+    // which is a valid number and must not be replaced with undefined.
+    const accountAddress = '0x742d35cc6634c0532925a3b844bc454e4438f44e';
+    const checksummedAccountAddress = toChecksumAddress(accountAddress);
+
+    mockGetSourceTokenCandidates.mockReturnValue([
+      createCandidate({ address: ZERO_ADDRESS, symbol: 'ETH', chainId: '0x1' }),
+    ]);
+    mockSelectorValues({
+      accountAddress,
+      accountsByChainId: {
+        '0x1': {
+          [checksummedAccountAddress]: {
+            balance: toHexBalance(1n * 10n ** 18n),
+          },
+        },
+      },
+      tokenBalances: {},
+      currencyRates: {}, // no conversion rate available → exchangeRate will be 0
+      allNetworkConfigs: {
+        '0x1': { nativeCurrency: 'ETH' },
+      },
+    });
+
+    const { result } = renderHook(() => useSourceTokenOptions('0x1'));
+
+    expect(result.current.options).toHaveLength(1);
+    expect(result.current.options[0].currencyExchangeRate).toBe(0);
+  });
+
   it('uses token market data for ERC20 exchange rates and skips malformed balances', () => {
     const accountAddress = '0x742d35cc6634c0532925a3b844bc454e4438f44e';
     const badTokenAddress = '0x1111111111111111111111111111111111111111';

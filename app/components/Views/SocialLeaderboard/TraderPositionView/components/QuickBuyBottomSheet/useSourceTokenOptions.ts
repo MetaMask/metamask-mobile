@@ -198,7 +198,7 @@ export const useSourceTokenOptions = (
         balance: displayBalance,
         balanceFiat: `$${fiatValue.toFixed(2)}`,
         tokenFiatAmount: fiatValue,
-        currencyExchangeRate: exchangeRate || undefined,
+        currencyExchangeRate: exchangeRate ?? undefined,
       });
     }
 

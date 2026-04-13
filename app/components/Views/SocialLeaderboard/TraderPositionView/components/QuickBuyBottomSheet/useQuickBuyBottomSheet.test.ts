@@ -492,6 +492,25 @@ describe('useQuickBuyBottomSheet', () => {
       expect(result.current.isConfirmDisabled).toBe(false);
     });
 
+    it('is disabled when destToken is undefined (metadata load failed)', () => {
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: undefined,
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      expect(result.current.isConfirmDisabled).toBe(true);
+    });
+
     it('is disabled when balance is insufficient', () => {
       (useIsInsufficientBalance as jest.Mock).mockReturnValue(true);
 

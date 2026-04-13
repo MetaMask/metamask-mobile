@@ -307,6 +307,7 @@ export function useQuickBuyBottomSheet(
   const isConfirmDisabled =
     !hasValidAmount ||
     isSetupLoading ||
+    !destToken ||
     (isQuoteLoading && !activeQuote) ||
     hasInsufficientBalance ||
     hasSufficientGas === false ||
