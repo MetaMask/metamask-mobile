@@ -25,6 +25,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 const MAX_POSITIONS_DISPLAYED = 5;
 
@@ -142,7 +143,11 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
           onLayout={onLayout}
           style={styles.sectionGap}
         >
-          <SectionHeader title={title} onPress={handleViewAllDeFi} />
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllDeFi}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('defi')}
+          />
           <ErrorState
             title={strings('homepage.error.unable_to_load', {
               section: title.toLowerCase(),
@@ -155,7 +160,11 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-        <SectionHeader title={title} onPress={handleViewAllDeFi} />
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllDeFi}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('defi')}
+        />
         <SectionRow>
           {isLoading ? (
             <DeFiPositionsSkeleton />

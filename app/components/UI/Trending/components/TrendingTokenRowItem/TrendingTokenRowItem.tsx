@@ -316,16 +316,14 @@ const TrendingTokenRowItem = ({
         />
       </BadgeWrapper>
       <View style={styles.leftContainer}>
-        <View style={styles.tokenHeaderRow}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {token?.name ?? token?.symbol}
-          </Text>
-        </View>
+        <Text
+          variant={TextVariant.BodyMDMedium}
+          color={TextColor.Default}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {token?.name ?? token?.symbol}
+        </Text>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {formatMarketStats(
             token.marketCap ?? 0,

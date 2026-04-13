@@ -17,6 +17,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 const styles = StyleSheet.create({
   sectionGap: { gap: 12 },
@@ -83,7 +84,11 @@ const TopTradersSection = forwardRef<
       testID="homepage-top-traders-section-root"
       style={styles.sectionGap}
     >
-      <SectionHeader title={title} onPress={handleViewAll} />
+      <SectionHeader
+        title={title}
+        onPress={handleViewAll}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('top-traders')}
+      />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

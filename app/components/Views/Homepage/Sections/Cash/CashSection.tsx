@@ -16,6 +16,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
@@ -97,7 +98,11 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-        <SectionHeader title={title} onPress={handleViewCashTokens} />
+        <SectionHeader
+          title={title}
+          onPress={handleViewCashTokens}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('cash')}
+        />
         {!hasMusdBalanceOnAnyChain ? (
           <SectionRow>
             <CashGetMusdEmptyState key={`cash-empty-${refreshVersion}`} />

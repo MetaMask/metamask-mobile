@@ -242,13 +242,12 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     }
 
     return (
-      <View
-        ref={sectionViewRef}
-        testID={WalletViewSelectorsIDs.TOKENS_SECTION_CONTAINER}
-        onLayout={onLayout}
-        style={styles.sectionGap}
-      >
-        <SectionHeader title={title} onPress={handleViewAllTokens} />
+      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllTokens}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
+        />
         {showTokensError ? (
           <ErrorState
             title={strings('homepage.error.unable_to_load', {
@@ -357,13 +356,12 @@ const TokensSectionTrendingOnly = forwardRef<
     }
 
     return (
-      <View
-        ref={sectionViewRef}
-        testID={WalletViewSelectorsIDs.TOKENS_SECTION_CONTAINER}
-        onLayout={onLayout}
-        style={styles.sectionGap}
-      >
-        <SectionHeader title={title} onPress={handleViewAllTokens} />
+      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllTokens}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
+        />
         <SectionRow>
           {isTrendingLoading
             ? Array.from({ length: 3 }, (_, i) => (
