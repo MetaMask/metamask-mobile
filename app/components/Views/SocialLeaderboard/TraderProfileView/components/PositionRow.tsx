@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Box,
   Text,
@@ -8,14 +8,12 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  AvatarToken,
+  AvatarTokenSize,
 } from '@metamask/design-system-react-native';
-import { StyleSheet } from 'react-native';
 import type { Position } from '@metamask/social-controllers';
-import TokenImage from '../../../../UI/TokenImage';
-
-const styles = StyleSheet.create({
-  tokenIcon: { width: 40, height: 40 },
-});
+import { getAssetImageUrl } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { chainNameToId } from '../../utils/chainMapping';
 
 export interface PositionRowProps {
   position: Position;
@@ -39,6 +37,12 @@ const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
   const hasPnl = position.pnlPercent != null;
   const isPnlPositive = hasPnl && (position.pnlPercent ?? 0) >= 0;
 
+  const tokenImageUrl = useMemo(() => {
+    const chainId = chainNameToId(position.chain);
+    if (!chainId) return undefined;
+    return getAssetImageUrl(position.tokenAddress, chainId);
+  }, [position.chain, position.tokenAddress]);
+
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -53,12 +57,10 @@ const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
         gap={4}
         twClassName="flex-1 min-w-0 mr-3"
       >
-        <TokenImage
-          asset={{
-            address: position.tokenAddress,
-            symbol: position.tokenSymbol,
-          }}
-          containerStyle={styles.tokenIcon}
+        <AvatarToken
+          name={position.tokenSymbol}
+          src={tokenImageUrl ? { uri: tokenImageUrl } : undefined}
+          size={AvatarTokenSize.Lg}
         />
 
         <Box twClassName="flex-1 min-w-0">

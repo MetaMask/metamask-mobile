@@ -14,7 +14,9 @@ const mockGoBack = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
 
-jest.mock('../../../UI/TokenImage', () => 'TokenImage');
+jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
+  getAssetImageUrl: () => 'https://example.com/token.png',
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
