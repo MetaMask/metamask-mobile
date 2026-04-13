@@ -6,6 +6,7 @@ import {
   Button,
   ButtonVariant,
   IconName,
+  IconSize,
   IconColor,
   TextColor,
 } from '@metamask/design-system-react-native';
@@ -90,6 +91,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     () => ({ color: TextColor.SuccessInverse }),
     [],
   );
+
+  const buttonIconProps = useMemo(() => ({ size: IconSize.Md }), []);
 
   const handleFooterAction = useCallback(
     (action: () => void, source: string) => {
@@ -185,6 +188,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               twClassName={swapIsSuccess ? 'bg-success-default' : undefined}
               textProps={swapIsSuccess ? successTextProps : undefined}
               startIconName={IconName.SwapVertical}
+              startIconProps={buttonIconProps}
               onPress={() =>
                 handleFooterAction(onSwap, strings('asset_overview.swap'))
               }
@@ -201,6 +205,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               twClassName={buyIsSuccess ? 'bg-success-default' : undefined}
               textProps={buyIsSuccess ? successTextProps : undefined}
               startIconName={IconName.Add}
+              startIconProps={buttonIconProps}
               onPress={() =>
                 handleFooterAction(onBuy, strings('asset_overview.buy_button'))
               }
