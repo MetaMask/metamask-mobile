@@ -150,12 +150,45 @@ jobs:
           ANDROID_BUILD_NUMBER: ${{ needs.trigger-android-rc-build.outputs.android_version_code }}
           BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
+  resolve-artifact-urls:
+    name: Resolve artifact download URLs
+    runs-on: ubuntu-latest
+    needs:
+      - trigger-ios-rc-build
+      - trigger-android-rc-build
+    if: always() && needs.trigger-android-rc-build.result == 'success'
+    permissions:
+      actions: read
+    outputs:
+      android_url: ${{ steps.resolve.outputs.android_url }}
+      ios_url: ${{ steps.resolve.outputs.ios_url }}
+    steps:
+      - name: Query artifacts API
+        id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO="${{ github.repository }}"
+          RUN_ID="${{ github.run_id }}"
+          ARTIFACTS=$(gh api "repos/${REPO}/actions/runs/${RUN_ID}/artifacts" --paginate --jq '.artifacts')
+
+          ANDROID_ID=$(echo "$ARTIFACTS" | jq -r '.[] | select(.name | startswith("android-apk-")) | .id' | head -1)
+          if [[ -n "$ANDROID_ID" && "$ANDROID_ID" != "null" ]]; then
+            echo "android_url=https://github.com/${REPO}/actions/runs/${RUN_ID}/artifacts/${ANDROID_ID}" >> "$GITHUB_OUTPUT"
+          fi
+
+          IOS_ID=$(echo "$ARTIFACTS" | jq -r '.[] | select(.name | startswith("ios-ipa-")) | .id' | head -1)
+          if [[ -n "$IOS_ID" && "$IOS_ID" != "null" ]]; then
+            echo "ios_url=https://github.com/${REPO}/actions/runs/${RUN_ID}/artifacts/${IOS_ID}" >> "$GITHUB_OUTPUT"
+          fi
+
   slack-notification:
     name: Slack RC Notification
     needs:
       - validate-and-check-label
       - trigger-ios-rc-build
       - trigger-android-rc-build
+      - resolve-artifact-urls
     if: always() && needs.trigger-android-rc-build.result == 'success'
     uses: ./.github/workflows/slack-rc-notification.yml
     with:
@@ -163,4 +196,6 @@ jobs:
       semver: ${{ needs.trigger-ios-rc-build.outputs.semantic_version }}
       ios_build_number: ${{ needs.trigger-ios-rc-build.outputs.ios_version_code }}
       android_build_number: ${{ needs.trigger-android-rc-build.outputs.android_version_code }}
+      android_build_url: ${{ needs.resolve-artifact-urls.outputs.android_url }}
+      ios_build_url: ${{ needs.resolve-artifact-urls.outputs.ios_url }}
     secrets: inherit
