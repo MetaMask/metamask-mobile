@@ -184,6 +184,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               style={styles.button}
               twClassName={swapIsSuccess ? 'bg-success-default' : undefined}
               textProps={swapIsSuccess ? successTextProps : undefined}
+              startIconName={IconName.SwapVertical}
               onPress={() =>
                 handleFooterAction(onSwap, strings('asset_overview.swap'))
               }
@@ -199,6 +200,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               style={showSwapButton ? styles.subsequentButton : styles.button}
               twClassName={buyIsSuccess ? 'bg-success-default' : undefined}
               textProps={buyIsSuccess ? successTextProps : undefined}
+              startIconName={IconName.Add}
               onPress={() =>
                 handleFooterAction(onBuy, strings('asset_overview.buy_button'))
               }
