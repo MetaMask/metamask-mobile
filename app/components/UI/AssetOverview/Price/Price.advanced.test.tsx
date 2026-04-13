@@ -62,6 +62,7 @@ const mockUseOHLCVChart = jest.fn().mockReturnValue({
   error: undefined,
   hasMore: false,
   nextCursor: null,
+  hasEmptyData: false,
 });
 
 jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
@@ -98,6 +99,15 @@ jest.mock('../../Charts/AdvancedChart/TimeRangeSelector', () => {
       '1M': { timePeriod: '1m' },
       '1Y': { timePeriod: '1y' },
     },
+  };
+});
+
+jest.mock('./Price.legacy', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="price-legacy-fallback" />,
   };
 });
 
@@ -176,21 +186,18 @@ describe('PriceAdvanced', () => {
     expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();
   });
 
-  it('shows no-data overlay when ohlcvData is empty and chart not loading', () => {
+  it('falls back to legacy chart when hasEmptyData is true', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [],
       isLoading: false,
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      hasEmptyData: true,
     });
-    const { getByTestId, queryByTestId } = render(
-      <PriceAdvanced {...baseProps} />,
-    );
+    const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-    expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
-    expect(queryByTestId('mock-advanced-chart')).not.toBeOnTheScreen();
-    expect(queryByTestId('mock-time-range-selector')).not.toBeOnTheScreen();
+    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
   });
 
   it('shows insufficient-data overlay when only 1 data point', () => {
@@ -208,20 +215,19 @@ describe('PriceAdvanced', () => {
     expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
   });
 
-  it('shows no-data overlay on chart error', () => {
+  it('falls back to legacy chart on OHLCV error', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
-      ohlcvData: [
-        { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
-        { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
-      ],
+      ohlcvData: [],
       isLoading: false,
       error: new Error('fetch failed'),
       hasMore: false,
       nextCursor: null,
+      hasEmptyData: false,
     });
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-    expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
+    // Should fallback to legacy chart when there's an error
+    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
   });
 
   it('tracks CHART_EMPTY_DISPLAYED when empty state is shown', () => {
