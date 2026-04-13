@@ -76,12 +76,6 @@ export interface BridgeState {
     assetsASSETS2493AbtestTokenDetailsLayout?: string;
   };
   /**
-   * Assignments to send as `active_ab_tests` on swap/bridge transaction analytics
-   * (e.g. Transaction Added). Set when opening Bridge from entry points that need
-   * attribution; cleared on the next navigation to Bridge.
-   */
-  transactionActiveAbTests?: { key: string; value: string }[];
-  /**
    * Ordered list of chain IDs shown as pills in the token selector.
    * Shared across source and dest pickers so pill order persists within a session.
    * When undefined, defaults to the first N entries from chainRanking.
@@ -113,7 +107,6 @@ export const initialState: BridgeState = {
   isGasIncluded7702Supported: false,
   isDestTokenManuallySet: false,
   abTestContext: undefined,
-  transactionActiveAbTests: undefined,
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
@@ -212,12 +205,6 @@ const slice = createSlice({
       action: PayloadAction<BridgeState['abTestContext']>,
     ) => {
       state.abTestContext = action.payload;
-    },
-    setTransactionActiveAbTests: (
-      state,
-      action: PayloadAction<BridgeState['transactionActiveAbTests']>,
-    ) => {
-      state.transactionActiveAbTests = action.payload;
     },
     setTokenSelectorNetworkFilter: (
       state,
@@ -637,11 +624,6 @@ export const selectAbTestContext = createSelector(
   (bridgeState) => bridgeState.abTestContext,
 );
 
-export const selectTransactionActiveAbTests = createSelector(
-  selectBridgeState,
-  (bridgeState) => bridgeState.transactionActiveAbTests,
-);
-
 export const selectIsGaslessSwapEnabled = createSelector(
   selectIsSwap,
   selectBridgeFeatureFlags,
@@ -731,7 +713,6 @@ export const {
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
   setAbTestContext,
-  setTransactionActiveAbTests,
   setTokenSelectorNetworkFilter,
   setVisiblePillChainIds,
   setSelectedQuoteRequestId,

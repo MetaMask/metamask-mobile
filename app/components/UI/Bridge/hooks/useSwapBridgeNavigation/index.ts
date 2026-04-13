@@ -27,9 +27,9 @@ import {
   setDestToken,
   setIsDestTokenManuallySet,
   setAbTestContext,
-  setTransactionActiveAbTests,
 } from '../../../../../core/redux/slices/bridge';
 import { trace, TraceName } from '../../../../../util/trace';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import Engine from '../../../../../core/Engine';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
 import { strings } from '../../../../../../locales/i18n';
@@ -61,6 +61,11 @@ export interface BridgeRouteParams {
   sourceAmount?: string;
   location: MetaMetricsSwapsEventSource;
   scrollToTopOnNav?: boolean;
+  /**
+   * Homepage / explicit flow `active_ab_tests` carried on the route and bound
+   * to transactions when the user submits (not stored in Redux).
+   */
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export enum SwapBridgeNavigationLocation {
@@ -123,11 +128,10 @@ export const useSwapBridgeNavigation = ({
     assetsASSETS2493AbtestTokenDetailsLayout?: string;
   };
   /**
-   * A/B test assignments to tag on the transaction for attribution.
-   * Homepage-owned entry points pass this explicitly; other callers omit it
-   * which clears any stale state.
+   * A/B test assignments for Transaction Added — passed through to the Bridge
+   * route and stashed only when the user submits a transaction.
    */
-  transactionActiveAbTests?: { key: string; value: string }[];
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /**
    * When true, skip calling setLocation on the bridge controller.
    * Use this when re-entering the bridge flow from a page that was opened
@@ -274,8 +278,6 @@ export const useSwapBridgeNavigation = ({
         isAssetFromTrending(effectiveDestTokenBase);
       const isFromTrending = isFromTrendingSession || isFromTrendingAsset;
 
-      dispatch(setTransactionActiveAbTests(transactionActiveAbTests));
-
       // Set the location on the bridge controller once so all internally-fired
       // events (InputChanged, QuotesRequested, QuotesReceived, etc.) carry it.
       // Skip when re-entering from a page within an existing bridge session
@@ -295,6 +297,7 @@ export const useSwapBridgeNavigation = ({
         bridgeViewMode,
         location: mappedLocation,
         ...(scrollToTopOnNav && { scrollToTopOnNav: true }),
+        ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
       };
 
       navigation.navigate(Routes.BRIDGE.ROOT, {

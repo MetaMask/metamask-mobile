@@ -37,7 +37,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 const mockGetIsBridgeEnabledSource = jest.fn(() => true);
 const mockSetIsDestTokenManuallySet = jest.fn();
 const mockSetDestToken = jest.fn();
-const mockSetTransactionActiveAbTests = jest.fn();
 jest.mock('../../../../../core/redux/slices/bridge', () => {
   const actual = jest.requireActual('../../../../../core/redux/slices/bridge');
   return {
@@ -52,10 +51,6 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     setDestToken: (...args: unknown[]) => {
       mockSetDestToken(...args);
       return actual.setDestToken(...args);
-    },
-    setTransactionActiveAbTests: (...args: unknown[]) => {
-      mockSetTransactionActiveAbTests(...args);
-      return actual.setTransactionActiveAbTests(...args);
     },
   };
 });
@@ -189,8 +184,6 @@ describe('useSwapBridgeNavigation', () => {
     // Reset setIsDestTokenManuallySet mock
     mockSetIsDestTokenManuallySet.mockClear();
     mockSetDestToken.mockClear();
-    mockSetTransactionActiveAbTests.mockClear();
-
     // Setup default mocks for token utilities
     (getDefaultDestToken as jest.Mock).mockReturnValue({
       address: '0x6B175474E89094C44Da98b954EesdfDcD0E0e6F',
@@ -1278,9 +1271,9 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('dispatches transactionActiveAbTests passed by caller', () => {
+    it('passes transactionActiveAbTests in bridge route params when caller provides them', () => {
       const abTests = [
-        { key: 'homepageAbtestTrendingSections', value: 'trendingSections' },
+        { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
       ];
 
       const { result } = renderHookWithProvider(
@@ -1296,10 +1289,15 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps();
 
-      expect(mockSetTransactionActiveAbTests).toHaveBeenCalledWith(abTests);
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: expect.objectContaining({
+          transactionActiveAbTests: abTests,
+        }),
+      });
     });
 
-    it('clears transactionActiveAbTests when caller does not provide them', () => {
+    it('omits transactionActiveAbTests from bridge params when caller does not provide them', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
@@ -1312,7 +1310,12 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps();
 
-      expect(mockSetTransactionActiveAbTests).toHaveBeenCalledWith(undefined);
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: expect.not.objectContaining({
+          transactionActiveAbTests: expect.anything(),
+        }),
+      });
     });
   });
 

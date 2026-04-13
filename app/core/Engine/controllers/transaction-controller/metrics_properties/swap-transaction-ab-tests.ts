@@ -1,11 +1,15 @@
 import { TransactionType } from '@metamask/transaction-controller';
 
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
-import type { JsonMap } from '../../../../../util/analytics/analytics.types';
+import type {
+  JsonMap,
+  JsonValue,
+} from '../../../../../util/analytics/analytics.types';
 import type {
   TransactionMetrics,
   TransactionMetricsBuilderRequest,
 } from '../types';
+import { takeTransactionAbTestAttributionForTransaction } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const TRANSACTION_TYPES_FOR_ACTIVE_AB_TESTS: ReadonlySet<TransactionType> =
   new Set([
@@ -34,7 +38,6 @@ const TRANSACTION_TYPES_FOR_ACTIVE_AB_TESTS: ReadonlySet<TransactionType> =
 export function getSwapTransactionActiveAbTestProperties({
   eventType,
   transactionMeta,
-  getState,
 }: TransactionMetricsBuilderRequest): TransactionMetrics {
   if (eventType.category !== TRANSACTION_EVENTS.TRANSACTION_ADDED.category) {
     return { properties: {}, sensitiveProperties: {} };
@@ -45,13 +48,16 @@ export function getSwapTransactionActiveAbTestProperties({
     return { properties: {}, sensitiveProperties: {} };
   }
 
-  const tests = getState().bridge?.transactionActiveAbTests;
+  const tests = takeTransactionAbTestAttributionForTransaction(
+    transactionMeta.id,
+  );
   if (!tests?.length) {
     return { properties: {}, sensitiveProperties: {} };
   }
 
   const properties: JsonMap = {
-    active_ab_tests: tests,
+    // Serializable key/value pairs; structural type lacks JsonMap index signature.
+    active_ab_tests: tests as unknown as JsonValue,
   };
 
   return { properties, sensitiveProperties: {} };

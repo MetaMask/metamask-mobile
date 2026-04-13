@@ -75,7 +75,13 @@ const PredictBuyPreview = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const { market, outcome, outcomeToken, entryPoint } = route.params;
+  const {
+    market,
+    outcome,
+    outcomeToken,
+    entryPoint,
+    transactionActiveAbTests,
+  } = route.params;
 
   const analyticsProperties = useMemo(
     () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
@@ -89,7 +95,7 @@ const PredictBuyPreview = () => {
     result,
     isOrderNotFilled,
     resetOrderNotFilled,
-  } = usePredictPlaceOrder();
+  } = usePredictPlaceOrder({ transactionActiveAbTests });
 
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();

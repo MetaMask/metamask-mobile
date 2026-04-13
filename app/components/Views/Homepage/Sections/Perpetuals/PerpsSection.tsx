@@ -58,7 +58,7 @@ import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
-import { useHomepageTrendingSectionTransactionAbTests } from '../../hooks/useHomepageTrendingSectionTransactionAbTests';
+import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 
 const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
@@ -77,8 +77,8 @@ const usePerpsNavigationHandlers = ({
 }: UsePerpsNavigationHandlersArgs = {}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
-  const { applyTagForDedicatedTrendingSection, clearTransactionAbTests } =
-    useHomepageTrendingSectionTransactionAbTests();
+  const trendingTransactionActiveAbTests =
+    useHomepageTrendingTransactionActiveAbTests();
 
   const navigateToTutorialOrScreen = useCallback(
     (screen: string, params: Record<string, unknown>) => {
@@ -96,36 +96,32 @@ const usePerpsNavigationHandlers = ({
   );
 
   const handleViewAllPerps = useCallback(() => {
-    clearTransactionAbTests();
     navigateToTutorialOrScreen(Routes.PERPS.PERPS_HOME, {
       source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
     });
-  }, [clearTransactionAbTests, navigateToTutorialOrScreen]);
+  }, [navigateToTutorialOrScreen]);
 
   const handleViewMorePerps = useCallback(() => {
-    clearTransactionAbTests();
     navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
       source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
     });
-  }, [clearTransactionAbTests, navigateToTutorialOrScreen]);
+  }, [navigateToTutorialOrScreen]);
 
   const handleTilePress = useCallback(
     (market: PerpsMarketData) => {
-      if (isDedicatedTrendingSection) {
-        applyTagForDedicatedTrendingSection();
-      } else {
-        clearTransactionAbTests();
-      }
       navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
         market,
         source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+        ...(isDedicatedTrendingSection &&
+          trendingTransactionActiveAbTests?.length && {
+            transactionActiveAbTests: trendingTransactionActiveAbTests,
+          }),
       });
     },
     [
-      applyTagForDedicatedTrendingSection,
-      clearTransactionAbTests,
       isDedicatedTrendingSection,
       navigateToTutorialOrScreen,
+      trendingTransactionActiveAbTests,
     ],
   );
 
@@ -134,7 +130,6 @@ const usePerpsNavigationHandlers = ({
     handleViewAllPerps,
     handleViewMorePerps,
     handleTilePress,
-    clearTransactionAbTests,
   };
 };
 
@@ -270,7 +265,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       handleViewAllPerps,
       handleViewMorePerps,
       handleTilePress,
-      clearTransactionAbTests,
     } = usePerpsNavigationHandlers();
 
     const { positions, isInitialLoading: positionsLoading } =
@@ -366,7 +360,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const handlePositionPress = useCallback(
       (position: Position) => {
-        clearTransactionAbTests();
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
             PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
@@ -385,7 +378,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           source: 'section_position',
         });
       },
-      [clearTransactionAbTests, navigateToTutorialOrScreen, markets, track],
+      [navigateToTutorialOrScreen, markets, track],
     );
     // Pass null while loading so the hook uses the immediate-fire path and
     // does not fire from viewport visibility with stale itemCount/isEmpty.

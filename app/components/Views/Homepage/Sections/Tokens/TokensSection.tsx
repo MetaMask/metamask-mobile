@@ -49,7 +49,7 @@ import { useTrendingRequest } from '../../../../UI/Trending/hooks/useTrendingReq
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
-import { useHomepageTrendingSectionTransactionAbTests } from '../../hooks/useHomepageTrendingSectionTransactionAbTests';
+import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests.ts';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -147,9 +147,6 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
-    const { clearTransactionAbTests } =
-      useHomepageTrendingSectionTransactionAbTests();
-
     // Only exclude mUSD when Cash section is enabled (then mUSD is shown there). Otherwise include all.
     const displayTokenKeys = useMemo(
       () =>
@@ -235,9 +232,8 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     });
 
     const handleViewAllTokens = useCallback(() => {
-      clearTransactionAbTests();
       navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
-    }, [clearTransactionAbTests, navigation]);
+    }, [navigation]);
 
     const handleTokensRetry = useCallback(async () => {
       setHasTokensError(false);
@@ -265,7 +261,6 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
               <PopularTokensList
                 ref={popularTokensListRef}
                 onError={setHasTokensError}
-                onBeforeNavigate={clearTransactionAbTests}
               />
             </SectionRow>
           ) : (
@@ -283,7 +278,6 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
                     showPercentageChange
                     shouldShowTokenListItemCta={shouldShowTokenListItemCta}
                     isVisible
-                    onBeforeNavigate={clearTransactionAbTests}
                   />
                 ))
               )}
@@ -321,8 +315,8 @@ const TokensSectionTrendingOnly = forwardRef<
     const navigation = useNavigation();
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
-    const { applyTagForDedicatedTrendingSection, clearTransactionAbTests } =
-      useHomepageTrendingSectionTransactionAbTests();
+    const trendingTransactionActiveAbTests =
+      useHomepageTrendingTransactionActiveAbTests();
     const {
       results: trendingTokens,
       isLoading: isTrendingLoading,
@@ -358,9 +352,8 @@ const TokensSectionTrendingOnly = forwardRef<
     });
 
     const handleViewAllTokens = useCallback(() => {
-      clearTransactionAbTests();
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
-    }, [clearTransactionAbTests, navigation]);
+    }, [navigation]);
 
     if (!isTrendingLoading && itemCount === 0) {
       return null;
@@ -381,7 +374,7 @@ const TokensSectionTrendingOnly = forwardRef<
                     token={token}
                     position={index}
                     tokenDetailsSource={TokenDetailsSource.HomepageTrending}
-                    onBeforeNavigate={applyTagForDedicatedTrendingSection}
+                    transactionActiveAbTests={trendingTransactionActiveAbTests}
                   />
                 ))}
           </SectionRow>

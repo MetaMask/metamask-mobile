@@ -9,15 +9,14 @@ import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames'
 const mockNavigate = jest.fn();
 const mockClaim = jest.fn();
 
-const mockApplyTagForDedicatedTrendingSection = jest.fn();
-const mockClearTransactionAbTests = jest.fn();
+const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
+  { key: string; value: string }[] | undefined,
+  []
+>(() => undefined);
 
-jest.mock('../../hooks/useHomepageTrendingSectionTransactionAbTests', () => ({
-  useHomepageTrendingSectionTransactionAbTests: () => ({
-    applyTagForDedicatedTrendingSection:
-      mockApplyTagForDedicatedTrendingSection,
-    clearTransactionAbTests: mockClearTransactionAbTests,
-  }),
+jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
+  useHomepageTrendingTransactionActiveAbTests: () =>
+    mockUseHomepageTrendingTransactionActiveAbTests(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -224,6 +223,7 @@ describe('PredictionsSection', () => {
         refetch: jest.fn(),
       }),
     );
+    mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
   });
 
   it('renders section title when enabled', () => {
@@ -372,7 +372,7 @@ describe('PredictionsSection', () => {
       });
     });
 
-    it('clears staged tx AB tests when a default-mode market card is pressed', async () => {
+    it('navigates to market details without transactionActiveAbTests in default carousel', async () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: mockMarkets,
         isLoading: false,
@@ -390,8 +390,10 @@ describe('PredictionsSection', () => {
 
       fireEvent.press(screen.getByText('Will ETH reach $5000?'));
 
-      expect(mockClearTransactionAbTests).toHaveBeenCalled();
-      expect(mockApplyTagForDedicatedTrendingSection).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: { marketId: 'market-1' },
+      });
     });
 
     it('shows market skeletons when loading markets', () => {
@@ -726,50 +728,6 @@ describe('PredictionsSection', () => {
       });
     });
 
-    it('clears staged tx AB tests when View All is pressed from positions-only', () => {
-      mockUsePredictPositionsForHomepage.mockReturnValue({
-        positions: mockActivePositions,
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      renderWithProvider(
-        <PredictionsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="positions-only"
-        />,
-      );
-
-      fireEvent.press(screen.getByText('Predictions'));
-
-      expect(mockClearTransactionAbTests).toHaveBeenCalled();
-      expect(mockApplyTagForDedicatedTrendingSection).not.toHaveBeenCalled();
-    });
-
-    it('clears staged tx AB tests when a position row is pressed from positions-only', () => {
-      mockUsePredictPositionsForHomepage.mockReturnValue({
-        positions: mockActivePositions,
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      renderWithProvider(
-        <PredictionsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="positions-only"
-        />,
-      );
-
-      fireEvent.press(screen.getByText('Test Position 1'));
-
-      expect(mockClearTransactionAbTests).toHaveBeenCalled();
-      expect(mockApplyTagForDedicatedTrendingSection).not.toHaveBeenCalled();
-    });
-
     it('returns null when no positions after loading', () => {
       mockUsePredictPositionsForHomepage.mockReturnValue({
         positions: [],
@@ -843,7 +801,11 @@ describe('PredictionsSection', () => {
       expect(screen.getByText('Will BTC reach 100k?')).toBeOnTheScreen();
     });
 
-    it('tags homepage trending AB when a trending-only market card is pressed', () => {
+    it('passes transactionActiveAbTests when trending-only and experiment is active', () => {
+      const abTests = [
+        { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
+      ];
+      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(abTests);
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: mockMarkets,
         isLoading: false,
@@ -861,8 +823,10 @@ describe('PredictionsSection', () => {
 
       fireEvent.press(screen.getByText('Will BTC reach 100k?'));
 
-      expect(mockApplyTagForDedicatedTrendingSection).toHaveBeenCalled();
-      expect(mockClearTransactionAbTests).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: { marketId: 'market-1', transactionActiveAbTests: abTests },
+      });
     });
 
     it('uses titleOverride when provided', () => {

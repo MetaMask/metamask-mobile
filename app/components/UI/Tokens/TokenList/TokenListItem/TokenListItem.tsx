@@ -151,7 +151,6 @@ interface TokenListItemProps {
   shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
   // Whether this item is currently visible in the viewport.
   isVisible?: boolean;
-  onBeforeNavigate?: () => void;
 }
 
 export const TokenListItem = React.memo(
@@ -164,7 +163,6 @@ export const TokenListItem = React.memo(
     isFullView = false,
     shouldShowTokenListItemCta,
     isVisible = true,
-    onBeforeNavigate,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
@@ -410,7 +408,6 @@ export const TokenListItem = React.memo(
 
     const onItemPress = useCallback(
       (token: TokenI, scrollToMerklRewards?: boolean) => {
-        onBeforeNavigate?.();
         trace({ name: TraceName.AssetDetails });
         navigation.navigate('Asset', {
           ...token,
@@ -420,7 +417,7 @@ export const TokenListItem = React.memo(
             : TokenDetailsSource.MobileTokenList,
         });
       },
-      [isFullView, navigation, onBeforeNavigate],
+      [isFullView, navigation],
     );
 
     const handleLendingRedirect = useStablecoinLendingRedirect({

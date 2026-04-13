@@ -18,11 +18,11 @@ import type {
   PredictOutcome,
 } from '../../../../../UI/Predict/types';
 import type { PredictNavigationParamList } from '../../../../../UI/Predict/types/navigation';
+import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface PredictMarketCardProps {
   market: PredictMarket;
-  /** Invoked immediately before navigating to market details (e.g. tx AB test tagging). */
-  onBeforeNavigate?: () => void;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const MAX_OUTCOMES_DISPLAYED = 2;
@@ -87,18 +87,20 @@ const OutcomeRow: React.FC<{
  */
 const PredictMarketCard: React.FC<PredictMarketCardProps> = ({
   market,
-  onBeforeNavigate,
+  transactionActiveAbTests,
 }) => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
   const handlePress = useCallback(() => {
-    onBeforeNavigate?.();
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_DETAILS,
-      params: { marketId: market.id },
+      params: {
+        marketId: market.id,
+        ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
+      },
     });
-  }, [navigation, market.id, onBeforeNavigate]);
+  }, [navigation, market.id, transactionActiveAbTests]);
 
   // Get top outcomes to display
   const displayOutcomes = useMemo(() => {

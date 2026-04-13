@@ -19,6 +19,23 @@ import {
 } from '../../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
 import { useMemo } from 'react';
 
+import {
+  type TransactionActiveAbTestEntry,
+  withPendingTransactionActiveAbTests,
+} from '../../transactions/transaction-active-ab-test-attribution-registry';
+
+function mergeTransactionActiveAbTests(
+  ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
+): TransactionActiveAbTestEntry[] | undefined {
+  const merged: TransactionActiveAbTestEntry[] = [];
+  for (const group of groups) {
+    if (group?.length) {
+      merged.push(...group);
+    }
+  }
+  return merged.length > 0 ? merged : undefined;
+}
+
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const walletAddress = useSelector(selectSourceWalletAddress);
@@ -67,36 +84,48 @@ export default function useSubmitBridgeTx() {
   const submitBridgeTx = async ({
     quoteResponse,
     location,
+    transactionActiveAbTests: transactionActiveAbTestsFromRoute,
   }: {
     quoteResponse: QuoteResponse & QuoteMetadata;
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
+    /** Route-carried tests (e.g. homepage trending sections) merged at submit time */
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   }) => {
     if (!walletAddress) {
       throw new Error('Wallet address is not set');
     }
 
-    // check whether quoteResponse is an intent transaction
-    if (quoteResponse.quote.intent) {
-      return Engine.context.BridgeStatusController.submitIntent({
-        quoteResponse,
-        accountAddress: walletAddress,
-        location,
-        abTests,
-        activeAbTests,
-      });
-    }
-    return Engine.context.BridgeStatusController.submitTx(
-      walletAddress,
-      {
-        ...quoteResponse,
-        approval: quoteResponse.approval ?? undefined,
-      },
-      stxEnabled,
-      undefined, // quotesReceivedContext
-      location,
-      abTests,
+    const mergedActiveAbTests = mergeTransactionActiveAbTests(
       activeAbTests,
+      transactionActiveAbTestsFromRoute,
+    );
+    return await withPendingTransactionActiveAbTests(
+      mergedActiveAbTests,
+      async () => {
+        // check whether quoteResponse is an intent transaction
+        if (quoteResponse.quote.intent) {
+          return await Engine.context.BridgeStatusController.submitIntent({
+            quoteResponse,
+            accountAddress: walletAddress,
+            location,
+            abTests,
+            activeAbTests: mergedActiveAbTests,
+          });
+        }
+        return await Engine.context.BridgeStatusController.submitTx(
+          walletAddress,
+          {
+            ...quoteResponse,
+            approval: quoteResponse.approval ?? undefined,
+          },
+          stxEnabled,
+          undefined, // quotesReceivedContext
+          location,
+          abTests,
+          mergedActiveAbTests,
+        );
+      },
     );
   };
 

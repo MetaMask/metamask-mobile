@@ -142,6 +142,10 @@ import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
+import {
+  type TransactionActiveAbTestEntry,
+  withPendingTransactionActiveAbTests,
+} from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import { createStyles } from './PerpsMarketDetailsView.styles';
@@ -152,6 +156,7 @@ interface MarketDetailsRouteParams {
   monitoringIntent?: Partial<DataMonitorParams>;
   isNavigationFromOrderSuccess?: boolean;
   source?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
@@ -188,7 +193,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market: routeMarket, monitoringIntent, source } = route.params || {};
+  const {
+    market: routeMarket,
+    monitoringIntent,
+    source,
+    transactionActiveAbTests,
+  } = route.params || {};
   const { track } = usePerpsEventTracking();
 
   // Get full market data from stream to ensure all fields (including maxLeverage) are available
@@ -460,13 +470,21 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
     try {
       navigateToConfirmation({ stack: Routes.PERPS.ROOT });
-      await depositWithConfirmation();
+      await withPendingTransactionActiveAbTests(transactionActiveAbTests, () =>
+        depositWithConfirmation(),
+      );
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
         tags: { feature: PERPS_CONSTANTS.FeatureName },
       });
     }
-  }, [isEligible, track, navigateToConfirmation, depositWithConfirmation]);
+  }, [
+    isEligible,
+    track,
+    navigateToConfirmation,
+    depositWithConfirmation,
+    transactionActiveAbTests,
+  ]);
 
   // Keep current position ref in sync for callbacks stored in route params
   // This must be after useHasExistingPosition since it depends on existingPosition

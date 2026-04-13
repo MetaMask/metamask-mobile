@@ -60,6 +60,7 @@ import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
 import { updateConfirmationMetric } from '../../../redux/slices/confirmationMetrics';
 import { store } from '../../../../store';
+import { applyTransactionAbTestAttributionPatch } from './apply-transaction-ab-test-attribution-patch';
 
 const TRANSACTION_SUBMISSION_METHOD_METRIC_NAME =
   'transaction_submission_method';
@@ -187,6 +188,8 @@ export const TransactionControllerInit: ControllerInitFunction<
         trace: trace as unknown as TransactionControllerOptions['trace'],
         publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
       });
+
+    applyTransactionAbTestAttributionPatch(transactionController);
 
     return { controller: transactionController };
   } catch (error) {

@@ -4,21 +4,23 @@ import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 import { TransactionMetricsBuilderRequest } from '../types';
 import { EMPTY_METRICS } from '../constants';
 import { getSwapTransactionActiveAbTestProperties } from './swap-transaction-ab-tests';
+import { registerTransactionAbTestAttributionForIds } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+
+const TX_ID = 'test-swap-tx-meta-id';
 
 const createMockRequest = (
   overrides: Partial<TransactionMetricsBuilderRequest> = {},
 ): TransactionMetricsBuilderRequest => ({
   eventType: TRANSACTION_EVENTS.TRANSACTION_ADDED,
-  transactionMeta: { type: TransactionType.swap } as never,
+  transactionMeta: {
+    id: TX_ID,
+    type: TransactionType.swap,
+  } as never,
   allTransactions: [],
   getUIMetrics: () => EMPTY_METRICS,
-  getState: jest.fn(() => ({
-    bridge: {
-      transactionActiveAbTests: [
-        { key: 'homepageAbtestTrendingSections', value: 'trendingSections' },
-      ],
-    },
-  })) as unknown as TransactionMetricsBuilderRequest['getState'],
+  getState: jest.fn(
+    () => ({}),
+  ) as unknown as TransactionMetricsBuilderRequest['getState'],
   initMessenger: {} as never,
   smartTransactionsController: {} as never,
   ...overrides,
@@ -38,7 +40,7 @@ describe('getSwapTransactionActiveAbTestProperties', () => {
 
   it('returns empty when transaction type is not eligible for staged AB tests', () => {
     const request = createMockRequest({
-      transactionMeta: { type: TransactionType.simpleSend } as never,
+      transactionMeta: { id: TX_ID, type: TransactionType.simpleSend } as never,
     });
 
     expect(getSwapTransactionActiveAbTestProperties(request)).toEqual({
@@ -47,9 +49,9 @@ describe('getSwapTransactionActiveAbTestProperties', () => {
     });
   });
 
-  it('returns empty when bridge has no transactionActiveAbTests', () => {
+  it('returns empty when no tx-scoped attribution was registered', () => {
     const request = createMockRequest({
-      getState: jest.fn(() => ({ bridge: {} })) as never,
+      transactionMeta: { id: 'other-id', type: TransactionType.swap } as never,
     });
 
     expect(getSwapTransactionActiveAbTestProperties(request)).toEqual({
@@ -60,13 +62,10 @@ describe('getSwapTransactionActiveAbTestProperties', () => {
 
   it('returns active_ab_tests for swap Transaction Added', () => {
     const abTests = [
-      { key: 'homepageAbtestTrendingSections', value: 'trendingSections' },
+      { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
     ];
-    const request = createMockRequest({
-      getState: jest.fn(() => ({
-        bridge: { transactionActiveAbTests: abTests },
-      })) as never,
-    });
+    registerTransactionAbTestAttributionForIds([TX_ID], abTests);
+    const request = createMockRequest();
 
     expect(getSwapTransactionActiveAbTestProperties(request)).toEqual({
       properties: { active_ab_tests: abTests },
@@ -76,13 +75,14 @@ describe('getSwapTransactionActiveAbTestProperties', () => {
 
   it('returns active_ab_tests for perps deposit Transaction Added', () => {
     const abTests = [
-      { key: 'homepageAbtestTrendingSections', value: 'trendingSections' },
+      { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
     ];
+    registerTransactionAbTestAttributionForIds([TX_ID], abTests);
     const request = createMockRequest({
-      transactionMeta: { type: TransactionType.perpsDeposit } as never,
-      getState: jest.fn(() => ({
-        bridge: { transactionActiveAbTests: abTests },
-      })) as never,
+      transactionMeta: {
+        id: TX_ID,
+        type: TransactionType.perpsDeposit,
+      } as never,
     });
 
     expect(getSwapTransactionActiveAbTestProperties(request)).toEqual({
