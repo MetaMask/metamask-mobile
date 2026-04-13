@@ -690,12 +690,10 @@ describe('assets balance and balance change selectors (mobile)', () => {
           },
         },
       }) as unknown as RootState;
-      const stateWithEmptyGroup = cloneStateWithSelectedAccountGroup(
-        state,
-        '',
-      );
+      const stateWithEmptyGroup = cloneStateWithSelectedAccountGroup(state, '');
 
-      const result = selectAccountGroupBalanceForEmptyState(stateWithEmptyGroup);
+      const result =
+        selectAccountGroupBalanceForEmptyState(stateWithEmptyGroup);
       expect(result).toBeNull();
     });
 
@@ -722,8 +720,9 @@ describe('assets balance and balance change selectors (mobile)', () => {
         'keyring:wallet-1/group-999',
       );
 
-      const result =
-        selectAccountGroupBalanceForEmptyState(stateWithMissingGroup);
+      const result = selectAccountGroupBalanceForEmptyState(
+        stateWithMissingGroup,
+      );
       expect(result).toEqual({
         walletId: 'keyring:wallet-1',
         groupId: 'keyring:wallet-1/group-999',

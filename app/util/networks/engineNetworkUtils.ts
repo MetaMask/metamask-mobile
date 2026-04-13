@@ -82,12 +82,12 @@ export const deprecatedGetNetworkId = async (): Promise<string> => {
     throw new Error('Provider has not been initialized');
   }
 
-  type EthQueryWithSendAsync = {
+  interface EthQueryWithSendAsync {
     sendAsync: (
       payload: { method: string },
       callback: (error: unknown, result?: unknown) => void,
     ) => void;
-  };
+  }
 
   return new Promise((resolve, reject) => {
     (ethQuery as EthQueryWithSendAsync).sendAsync(
