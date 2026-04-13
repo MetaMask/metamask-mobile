@@ -345,7 +345,9 @@ export const usePerpsTransactionHistory = ({
       }
     } catch (err) {
       DevLogger.log('[PERPS-FUNDING] loadMoreFunding error:', err);
-      // Existing transactions remain valid; user can scroll again to retry
+      // Stop pagination so the auto-advance effect does not retry in a loop.
+      // Pull-to-refresh resets hasFundingMore, allowing the user to retry.
+      setHasFundingMore(false);
     } finally {
       isFetchingMoreFundingRef.current = false;
       setIsFetchingMoreFunding(false);
