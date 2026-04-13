@@ -124,39 +124,35 @@ const MusdAggregatedRow = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
+          alignItems={BoxAlignItems.Center}
           twClassName="gap-2.5"
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-          >
-            {isClaiming ? (
-              <AnimatedSpinner size={SpinnerSize.SM} />
-            ) : hasClaimableBonus ? (
-              <Pressable
-                onPress={handleClaimBonus}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.PrimaryDefault}
-                >
-                  {strings('earn.claim_bonus')}
-                </Text>
-              </Pressable>
-            ) : (
+          {isClaiming ? (
+            <AnimatedSpinner size={SpinnerSize.SM} />
+          ) : hasClaimableBonus ? (
+            <Pressable
+              onPress={handleClaimBonus}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.SuccessDefault}
+                color={TextColor.PrimaryDefault}
               >
-                {strings('earn.musd_conversion.percentage_bonus', {
-                  percentage: MUSD_CONVERSION_APY,
-                })}
+                {strings('earn.claim_bonus')}
               </Text>
-            )}
-          </Box>
+            </Pressable>
+          ) : (
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.SuccessDefault}
+            >
+              {strings('earn.musd_conversion.percentage_bonus', {
+                percentage: MUSD_CONVERSION_APY,
+              })}
+            </Text>
+          )}
           <SensitiveText
             variant={CLTextVariant.BodySMMedium}
             color={CLTextColor.Alternative}

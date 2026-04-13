@@ -47,6 +47,7 @@ import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdC
 import { useTrendingRequest } from '../../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest';
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -242,7 +243,11 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-        <SectionHeader title={title} onPress={handleViewAllTokens} />
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllTokens}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
+        />
         {showTokensError ? (
           <ErrorState
             title={strings('homepage.error.unable_to_load', {
@@ -352,7 +357,11 @@ const TokensSectionTrendingOnly = forwardRef<
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-        <SectionHeader title={title} onPress={handleViewAllTokens} />
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllTokens}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
+        />
         <SectionRow>
           {isTrendingLoading
             ? Array.from({ length: 3 }, (_, i) => (

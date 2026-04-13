@@ -10,7 +10,7 @@ import React, {
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { useSelector } from 'react-redux';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
@@ -415,7 +415,11 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           onLayout={onLayout}
           style={styles.sectionGap}
         >
-          <SectionHeader title={title} onPress={handleViewAllPerps} />
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllPerps}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('perps')}
+          />
           <ErrorState
             title={strings('homepage.error.unable_to_load', {
               section: title.toLowerCase(),
@@ -428,18 +432,21 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-        <Box gap={1}>
-          <SectionHeader title={title} onPress={handleViewAllPerps} />
-          {showHomepageUnrealizedPnl && (
-            <HomepageSectionUnrealizedPnlRow
-              isLoading={perpsAccountLoading}
-              valueText={homepageUnrealizedPnl?.valueText}
-              tone={homepageUnrealizedPnl?.tone ?? 'neutral'}
-              label={strings('perps.unrealized_pnl')}
-              testID="homepage-perps-unrealized-pnl"
-            />
-          )}
-        </Box>
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllPerps}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('perps')}
+        />
+        {showHomepageUnrealizedPnl && (
+          <HomepageSectionUnrealizedPnlRow
+            marginTop={1}
+            isLoading={perpsAccountLoading}
+            valueText={homepageUnrealizedPnl?.valueText}
+            tone={homepageUnrealizedPnl?.tone ?? 'neutral'}
+            label={strings('perps.unrealized_pnl')}
+            testID="homepage-perps-unrealized-pnl"
+          />
+        )}
         {showSkeleton || pendingTrending ? (
           <SectionRow>
             <PerpsPositionSkeleton />

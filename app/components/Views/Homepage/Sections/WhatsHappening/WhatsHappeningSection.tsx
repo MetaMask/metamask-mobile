@@ -22,6 +22,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 const MAX_ITEMS_DISPLAYED = 5;
 
@@ -118,7 +119,13 @@ const WhatsHappeningSection = forwardRef<
   if (hasError) {
     return (
       <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-        <SectionHeader title={title} onPress={handleViewAll} />
+        <SectionHeader
+          title={title}
+          onPress={handleViewAll}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+            'whats-happening',
+          )}
+        />
         <ErrorState
           title={strings('homepage.error.unable_to_load', {
             section: title.toLowerCase(),

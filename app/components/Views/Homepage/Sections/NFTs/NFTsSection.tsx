@@ -29,6 +29,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { Nft } from '@metamask/assets-controllers';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -167,7 +168,11 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-        <SectionHeader title={title} onPress={handleViewAllNfts} />
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllNfts}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('nfts')}
+        />
         {hasNfts ? (
           <SectionRow gap={3}>
             {nftRows.map((row, rowIndex) => (
