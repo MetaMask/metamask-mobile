@@ -12,9 +12,19 @@ import AppConstants from '../../AppConstants';
 import { DappClient } from '../dapp-sdk-types';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { analytics } from '@metamask/sdk-analytics';
 
 jest.mock('../SDKConnect');
 jest.mock('react-native');
+jest.mock('../utils/wait.util', () => ({
+  wait: jest.fn().mockResolvedValue(undefined),
+  waitForKeychainUnlocked: jest.fn().mockResolvedValue(true),
+}));
+jest.mock('@metamask/sdk-analytics', () => ({
+  analytics: {
+    track: jest.fn(),
+  },
+}));
 jest.mock('../../BackgroundBridge/BackgroundBridge');
 jest.mock('../utils/DevLogger');
 jest.mock('../../../util/Logger');
@@ -592,6 +602,344 @@ describe('DeeplinkProtocolService', () => {
       service.connections.channel1 = {} as any;
       service.removeConnection('channel1');
       expect(service.connections.channel1).toBeUndefined();
+    });
+  });
+
+  describe('processDappRpcRequest analytics', () => {
+    const originatorInfoPayload = {
+      originatorInfo: {
+        url: 'https://test-dapp.com',
+        title: 'Test Dapp',
+        platform: 'web',
+        dappId: 'test',
+        anonId: 'rpc-anon-id-456',
+      },
+    };
+
+    it('tracks wallet_action_received with rpc_method', async () => {
+      await service.init();
+
+      // Pre-seed the connection with originatorInfo containing anonId
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).connections = {
+        'rpc-channel-001': {
+          id: 'rpc-channel-001',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          originatorInfo: originatorInfoPayload.originatorInfo as any,
+          validUntil: Date.now() + 60000,
+          scheme: 'testapp',
+          connected: true,
+        },
+      };
+
+      // Pre-seed the bridge (processDappRpcRequest needs this.bridgeByClientId[channelId])
+      const mockBridge = { onMessage: jest.fn() };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).bridgeByClientId = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'rpc-channel-001': mockBridge as any,
+      };
+
+      (handleCustomRpcCalls as jest.Mock).mockResolvedValueOnce({
+        id: '1',
+        method: 'eth_sendTransaction',
+        params: [],
+      });
+
+      await service.processDappRpcRequest({
+        dappPublicKey: 'test-pub-key',
+        url: 'https://test-dapp.com',
+        scheme: 'testapp',
+        channelId: 'rpc-channel-001',
+        request: JSON.stringify({
+          id: '1',
+          method: 'eth_sendTransaction',
+          params: [],
+        }),
+      });
+
+      expect(analytics.track).toHaveBeenCalledWith(
+        'wallet_action_received',
+        expect.objectContaining({
+          anon_id: 'rpc-anon-id-456',
+          transport: 'deeplink_protocol',
+          rpc_method: 'eth_sendTransaction',
+        }),
+      );
+    });
+
+    it('does not track when anonId is absent', async () => {
+      await service.init();
+
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const noAnonOriginatorInfo: any = {
+        url: 'https://test.com',
+        title: 'Test',
+        platform: 'web',
+        dappId: 'test',
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).connections = {
+        'rpc-no-anon-channel': {
+          id: 'rpc-no-anon-channel',
+          originatorInfo: noAnonOriginatorInfo,
+          validUntil: Date.now() + 60000,
+          scheme: 'testapp',
+          connected: true,
+        },
+      };
+
+      const mockBridge = { onMessage: jest.fn() };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).bridgeByClientId = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'rpc-no-anon-channel': mockBridge as any,
+      };
+
+      (handleCustomRpcCalls as jest.Mock).mockResolvedValueOnce({
+        id: '1',
+        method: 'eth_sendTransaction',
+        params: [],
+      });
+
+      await service.processDappRpcRequest({
+        dappPublicKey: 'test-pub-key',
+        url: 'https://test-dapp.com',
+        scheme: 'testapp',
+        channelId: 'rpc-no-anon-channel',
+        request: JSON.stringify({
+          id: '1',
+          method: 'eth_sendTransaction',
+          params: [],
+        }),
+      });
+
+      expect(analytics.track).not.toHaveBeenCalledWith(
+        'wallet_action_received',
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('handleMessage analytics', () => {
+    const originatorInfoPayload = {
+      originatorInfo: {
+        url: 'https://test-dapp.com',
+        title: 'Test Dapp',
+        platform: 'web',
+        dappId: 'test',
+        anonId: 'msg-anon-id-789',
+      },
+    };
+
+    it('tracks wallet_action_received for RPC messages', async () => {
+      await service.init();
+
+      // Pre-seed connection with anonId
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).connections = {
+        'msg-channel-001': {
+          id: 'msg-channel-001',
+          originatorInfo: originatorInfoPayload.originatorInfo,
+          validUntil: Date.now() + 60000,
+          scheme: 'testapp',
+          connected: true,
+        },
+      };
+
+      // Pre-seed bridge
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockBridge: any = { onMessage: jest.fn() };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).bridgeByClientId = { 'msg-channel-001': mockBridge };
+
+      (handleCustomRpcCalls as jest.Mock).mockResolvedValueOnce({
+        id: '1',
+        method: 'personal_sign',
+        params: [],
+      });
+
+      const rpcMessage = { id: '1', method: 'personal_sign', params: [] };
+      const base64Message = Buffer.from(JSON.stringify(rpcMessage)).toString(
+        'base64',
+      );
+
+      // Use checksummed address so it matches walletSelectedAddress (no account-changed early exit)
+      service.handleMessage({
+        dappPublicKey: 'test-pub-key',
+        url: 'https://test-dapp.com',
+        message: base64Message,
+        channelId: 'msg-channel-001',
+        scheme: 'testapp',
+        account: `${toChecksumHexAddress(MOCK_ADDRESS)}@0x1`,
+      });
+
+      // handleMessage fires async internally — wait for it
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      expect(analytics.track).toHaveBeenCalledWith(
+        'wallet_action_received',
+        expect.objectContaining({
+          anon_id: 'msg-anon-id-789',
+          transport: 'deeplink_protocol',
+          rpc_method: 'personal_sign',
+        }),
+      );
+    });
+
+    it('does not track when anonId is absent', async () => {
+      await service.init();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).connections = {
+        'msg-no-anon-channel': {
+          id: 'msg-no-anon-channel',
+          originatorInfo: {
+            url: 'https://test.com',
+            title: 'Test',
+            platform: 'web',
+            dappId: 'test',
+          },
+          validUntil: Date.now() + 60000,
+          scheme: 'testapp',
+          connected: true,
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockBridgeNoAnon: any = { onMessage: jest.fn() };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).bridgeByClientId = {
+        'msg-no-anon-channel': mockBridgeNoAnon,
+      };
+
+      (handleCustomRpcCalls as jest.Mock).mockResolvedValueOnce({
+        id: '1',
+        method: 'personal_sign',
+        params: [],
+      });
+
+      const rpcMessage = { id: '1', method: 'personal_sign', params: [] };
+      const base64Message = Buffer.from(JSON.stringify(rpcMessage)).toString(
+        'base64',
+      );
+
+      service.handleMessage({
+        dappPublicKey: 'test-pub-key',
+        url: 'https://test-dapp.com',
+        message: base64Message,
+        channelId: 'msg-no-anon-channel',
+        scheme: 'testapp',
+        account: `${toChecksumHexAddress(MOCK_ADDRESS)}@0x1`,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      expect(analytics.track).not.toHaveBeenCalledWith(
+        'wallet_action_received',
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('handleConnection analytics', () => {
+    const originatorInfoPayload = {
+      originatorInfo: {
+        url: 'https://test-dapp.com',
+        title: 'Test Dapp',
+        platform: 'web',
+        dappId: 'test',
+        anonId: 'test-anon-id-123',
+      },
+    };
+    const base64OriginatorInfo = Buffer.from(
+      JSON.stringify(originatorInfoPayload),
+    ).toString('base64');
+
+    it('tracks wallet_connection_request_received with new_session for new connections', async () => {
+      await service.init();
+
+      await service.handleConnection({
+        dappPublicKey: 'test-pub-key',
+        url: 'https://test-dapp.com',
+        scheme: 'testapp',
+        channelId: 'new-channel-123',
+        originatorInfo: base64OriginatorInfo,
+        sdkVersion: '2',
+      });
+
+      expect(analytics.track).toHaveBeenCalledWith(
+        'wallet_connection_request_received',
+        expect.objectContaining({
+          anon_id: 'test-anon-id-123',
+          transport: 'deeplink_protocol',
+          connection_type: 'new_session',
+          sdk_version: '2',
+        }),
+      );
+    });
+
+    it('tracks wallet_connection_request_received with reconnect for existing connections', async () => {
+      await service.init();
+
+      // Pre-seed the connection to simulate an existing session (handleConnectionEventAsync is
+      // fire-and-forget, so connections are not populated synchronously by the first call)
+      service.connections['reconnect-channel-456'] = {
+        clientId: 'reconnect-channel-456',
+        originatorInfo: originatorInfoPayload.originatorInfo,
+        connected: true,
+        validUntil: Date.now(),
+        scheme: 'testapp',
+      };
+
+      // Second connection = reconnect
+      await service.handleConnection({
+        dappPublicKey: 'test-pub-key',
+        url: 'https://test-dapp.com',
+        scheme: 'testapp',
+        channelId: 'reconnect-channel-456',
+        originatorInfo: base64OriginatorInfo,
+      });
+
+      expect(analytics.track).toHaveBeenCalledWith(
+        'wallet_connection_request_received',
+        expect.objectContaining({
+          anon_id: 'test-anon-id-123',
+          transport: 'deeplink_protocol',
+          connection_type: 'reconnect',
+        }),
+      );
+    });
+
+    it('does not track when anonId is absent from originatorInfo', async () => {
+      const noAnonPayload = {
+        originatorInfo: {
+          url: 'https://test-dapp.com',
+          title: 'Test Dapp',
+          platform: 'web',
+          dappId: 'test',
+          // no anonId
+        },
+      };
+      const base64NoAnon = Buffer.from(JSON.stringify(noAnonPayload)).toString(
+        'base64',
+      );
+
+      await service.init();
+
+      await service.handleConnection({
+        dappPublicKey: 'test-pub-key',
+        url: 'https://test-dapp.com',
+        scheme: 'testapp',
+        channelId: 'no-anon-channel-789',
+        originatorInfo: base64NoAnon,
+      });
+
+      expect(analytics.track).not.toHaveBeenCalledWith(
+        'wallet_connection_request_received',
+        expect.anything(),
+      );
     });
   });
 });
