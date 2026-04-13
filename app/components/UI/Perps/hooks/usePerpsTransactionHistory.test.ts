@@ -588,8 +588,6 @@ describe('usePerpsTransactionHistory', () => {
 
     it('uses provided parameters', async () => {
       const params = {
-        startTime: 1640995200000,
-        endTime: 1640995300000,
         accountId:
           'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
       };
@@ -608,10 +606,9 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockProvider.getOrders).toHaveBeenCalledWith({
         accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
       });
+      // startTime/endTime defaults are handled in HyperLiquidProvider via 30-day window
       expect(mockProvider.getFunding).toHaveBeenCalledWith({
         accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
-        startTime: 1640995200000,
-        endTime: 1640995300000,
       });
     });
 
