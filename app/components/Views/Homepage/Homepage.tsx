@@ -295,6 +295,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
         >
           {/* Cash — always first */}
           <CashSection
+            ref={cashSectionRef}
             sectionIndex={getSectionIndex(HomeSectionNames.CASH)}
             totalSectionsLoaded={totalSectionsLoaded}
           />

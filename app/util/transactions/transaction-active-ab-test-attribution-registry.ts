@@ -12,22 +12,52 @@ export interface TransactionActiveAbTestEntry {
   value: string;
 }
 
+/** Oldest entries are dropped when this count would be exceeded (FIFO). */
+const MAX_ATTRIBUTION_BY_TRANSACTION_ID_ENTRIES = 200;
+
 let pendingTransactionActiveAbTests: TransactionActiveAbTestEntry[] | undefined;
+
+const pendingStashStack: (TransactionActiveAbTestEntry[] | undefined)[] = [];
 
 const attributionByTransactionId = new Map<
   string,
   TransactionActiveAbTestEntry[]
 >();
 
+function popPendingStashLayer(): void {
+  pendingTransactionActiveAbTests = pendingStashStack.pop() ?? undefined;
+}
+
+function pushPendingStashLayer(
+  tests: TransactionActiveAbTestEntry[] | undefined,
+): void {
+  pendingStashStack.push(pendingTransactionActiveAbTests);
+  pendingTransactionActiveAbTests =
+    tests?.length && tests.length > 0 ? tests : undefined;
+}
+
+function evictOldestAttributionEntries(countToAdd: number): void {
+  while (
+    attributionByTransactionId.size + countToAdd >
+    MAX_ATTRIBUTION_BY_TRANSACTION_ID_ENTRIES
+  ) {
+    const oldest = attributionByTransactionId.keys().next().value;
+    if (oldest === undefined) {
+      break;
+    }
+    attributionByTransactionId.delete(oldest);
+  }
+}
+
 /**
  * Stash assignments that should be applied to the next transaction(s) added
- * via TransactionController (until {@link clearPendingTransactionActiveAbTests}).
+ * via TransactionController. Pushes the previous stash so nested
+ * {@link withPendingTransactionActiveAbTests} calls restore the outer layer.
  */
 export function stashPendingTransactionActiveAbTests(
   tests: TransactionActiveAbTestEntry[] | undefined,
 ): void {
-  pendingTransactionActiveAbTests =
-    tests?.length && tests.length > 0 ? tests : undefined;
+  pushPendingStashLayer(tests);
 }
 
 export function getPendingTransactionActiveAbTests():
@@ -36,25 +66,32 @@ export function getPendingTransactionActiveAbTests():
   return pendingTransactionActiveAbTests;
 }
 
+/**
+ * Clears all pending layers (test / emergency reset). Prefer
+ * {@link withPendingTransactionActiveAbTests} in product code so layers stay balanced.
+ */
 export function clearPendingTransactionActiveAbTests(): void {
+  pendingStashStack.length = 0;
   pendingTransactionActiveAbTests = undefined;
 }
 
 /**
  * Sets pending attribution for the duration of `fn` (until the returned promise
- * settles), then clears it. Prefer this over manual
- * {@link stashPendingTransactionActiveAbTests} / {@link clearPendingTransactionActiveAbTests}
- * so cleanup stays tied to the async boundary that creates transactions.
+ * settles), then restores the previous stash layer.
+ *
+ * Nested calls stack correctly. Overlapping top-level async flows that both
+ * await before `addTransaction` can still race on the single pending slot; in
+ * practice those flows rarely run in parallel.
  */
 export async function withPendingTransactionActiveAbTests<T>(
   tests: TransactionActiveAbTestEntry[] | undefined,
   fn: () => Promise<T>,
 ): Promise<T> {
-  stashPendingTransactionActiveAbTests(tests);
+  pushPendingStashLayer(tests);
   try {
     return await fn();
   } finally {
-    clearPendingTransactionActiveAbTests();
+    popPendingStashLayer();
   }
 }
 
@@ -65,10 +102,13 @@ export function registerTransactionAbTestAttributionForIds(
   if (!tests?.length) {
     return;
   }
-  for (const id of transactionIds) {
-    if (id) {
-      attributionByTransactionId.set(id, tests);
-    }
+  const ids = transactionIds.filter(Boolean);
+  if (ids.length === 0) {
+    return;
+  }
+  evictOldestAttributionEntries(ids.length);
+  for (const id of ids) {
+    attributionByTransactionId.set(id, tests);
   }
 }
 
