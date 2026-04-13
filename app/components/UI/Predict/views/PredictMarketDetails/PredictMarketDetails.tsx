@@ -40,6 +40,12 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
 import PredictGameDetailsContent from '../../components/PredictGameDetailsContent';
+import PredictCryptoUpDownDetails from '../../components/PredictCryptoUpDownDetails';
+import { isCryptoUpDown } from '../../utils/cryptoUpDown';
+import {
+  selectPredictUpDownEnabledFlag,
+  selectPredictFeeCollectionFlag,
+} from '../../selectors/featureFlags';
 import PredictMarketDetailsStatus from './components/PredictMarketDetailsStatus';
 import PredictMarketDetailsHeader from './components/PredictMarketDetailsHeader';
 import PredictMarketDetailsTabBar from './components/PredictMarketDetailsTabBar';
@@ -49,7 +55,6 @@ import { useChartData } from './hooks/useChartData';
 import { useOutcomeResolution } from './hooks/useOutcomeResolution';
 import { useOpenOutcomes } from './hooks/useOpenOutcomes';
 import { useSelector } from 'react-redux';
-import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
 
 // Use theme tokens instead of hex values for multi-series charts
 
@@ -70,6 +75,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
+  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const { marketId, entryPoint, title, image } = route.params || {};
   const resolvedMarketId = marketId;
 
@@ -346,6 +352,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const hasPositivePnl = claimablePositions.some(
     (position) => position.percentPnl > 0,
   );
+  if (upDownEnabled && market && isCryptoUpDown(market)) {
+    return (
+      <PredictCryptoUpDownDetails
+        market={market}
+        onBack={handleBackPress}
+        onRefresh={handleRefresh}
+        refreshing={isRefreshing}
+      />
+    );
+  }
   if (market?.game) {
     return (
       <PredictGameDetailsContent

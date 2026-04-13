@@ -102,6 +102,20 @@ describe('BridgeTimeRow', () => {
     expect(getByText('< 10 sec')).toBeDefined();
   });
 
+  it('renders estimated time for same-chain payment without quotes', () => {
+    useTransactionPayQuotesMock.mockReturnValue([]);
+    useTransactionPayTotalsMock.mockReturnValue({
+      estimatedDuration: 0,
+    } as TransactionPayTotals);
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: { chainId: '0x1' as Hex },
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { getByText } = render();
+
+    expect(getByText('< 10 sec')).toBeOnTheScreen();
+  });
+
   it('renders skeleton if quotes loading', async () => {
     useIsTransactionPayLoadingMock.mockReturnValue(true);
 

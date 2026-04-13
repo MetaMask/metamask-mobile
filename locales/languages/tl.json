@@ -240,7 +240,6 @@
     "import_wallet_button": "Mag-sync o mag-import ng wallet",
     "new_to_crypto": "Bago ka lang ba sa crypto?",
     "start_exploring_now": "Gumawa ng bagong wallet",
-    "unlock": "I-unlock",
     "new_to_metamask": "Bago ka ba sa MetaMask?",
     "already_have_wallet": "May wallet ka na ba?",
     "optin_back_title": "Paalala!",
@@ -4811,11 +4810,9 @@
     "body_for_seedphrase": "Ngayong nagdadag ng value sa iyong wallet, protektahan ang iyong wallet sa pamamagitan ng pagtakda ng password at pag-save ng iyong Lihim na Parirala sa Pagbawi (kinakailangan).",
     "button": "Protektahan ang wallet"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Nabigo ang pag-update sa transaksyon",
-    "text": "Nais mo bang subukan muli?",
-    "cancel_button": "Kanselahin",
-    "retry_button": "Subukan muli"
+    "already_confirmed": "Nakumpirma na ang transaksyong ito at hindi na maaaring baguhin."
   },
   "payment_request": {
     "title": "Humiling",
@@ -6639,7 +6636,6 @@
     "nested_transaction_heading": "Transaksyon {{index}}",
     "transaction": "Transaksyon",
     "available_balance": "Available na balanse: ",
-    "available_perps_balance": "Available na balanse sa Perps: ",
     "edit_amount_done": "Magpatuloy",
     "deposit_edit_amount_done": "Magdagdag ng pondo",
     "deposit_edit_amount_predict_withdraw": "Mag-withdraw",

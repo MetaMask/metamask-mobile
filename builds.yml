@@ -28,6 +28,7 @@ _public_envs: &public_envs # Servers (production)
   DECODING_API_URL: 'https://signature-insights.api.cx.metamask.io/v1'
   AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.api.cx.metamask.io/api/v1'
+  SOCIAL_API_URL: 'https://social.api.cx.metamask.io'
   REWARDS_API_URL: 'https://rewards.api.cx.metamask.io'
   BAANX_API_URL: 'https://api.baanx.com'
   # Build flags (production defaults)
@@ -220,6 +221,7 @@ builds:
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_DEV_BUILD: 'true'
@@ -242,6 +244,7 @@ builds:
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
@@ -264,6 +267,7 @@ builds:
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
@@ -273,9 +277,10 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
-  # Local development / Expo development build (Runway .app for simulator)
+  # Local development / Expo development build (simulator .app + optional device IPA when IS_DEVICE_BUILD)
   main-dev:
     github_environment: build-exp
+    signing: *signing_uat
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
@@ -284,6 +289,7 @@ builds:
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
@@ -291,6 +297,7 @@ builds:
       IS_TEST: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       IS_SIM_BUILD: 'true'
+      IS_DEVICE_BUILD: 'true'
       CONFIGURATION: 'Debug'
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
@@ -323,6 +330,7 @@ builds:
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
@@ -345,6 +353,7 @@ builds:
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
@@ -366,6 +375,7 @@ builds:
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_DEV_BUILD: 'true'
@@ -417,6 +427,7 @@ builds:
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'

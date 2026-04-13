@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 // Internal dependencies.
@@ -94,19 +94,6 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 1, right: 2, bottom: 3, left: 4 };
-  const frame = { width: 5, height: 6, x: 7, y: 8 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -259,10 +246,8 @@ describe('RpcSelectionModal', () => {
   });
 
   it('should render correctly when visible', () => {
-    const { toJSON } = renderWithProvider(
-      <RpcSelectionModal {...defaultProps} />,
-    );
-    expect(toJSON()).toMatchSnapshot();
+    renderWithProvider(<RpcSelectionModal {...defaultProps} />);
+    expect(screen.getByText('Select RPC URL')).toBeOnTheScreen();
   });
 
   it('should not render when not visible', () => {
@@ -275,7 +260,7 @@ describe('RpcSelectionModal', () => {
         }}
       />,
     );
-    expect(queryByText('Mainnet')).toBeNull();
+    expect(queryByText('Mainnet')).not.toBeOnTheScreen();
   });
 
   it('should display the correct network name for Ethereum Mainnet', () => {
@@ -321,7 +306,7 @@ describe('RpcSelectionModal', () => {
       />,
     );
 
-    expect(queryByText('mainnet.infura.io')).toBeNull(); // Should not render any RPC URLs
+    expect(queryByText('mainnet.infura.io')).not.toBeOnTheScreen(); // Should not render any RPC URLs
   });
 
   it('should call preferences controller setTokenNetworkFilter', () => {

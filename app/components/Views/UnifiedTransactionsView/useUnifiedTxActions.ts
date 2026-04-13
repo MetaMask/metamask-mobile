@@ -7,8 +7,9 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
-import { useCallback, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { ToastContext } from '../../../component-library/components/Toast';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
@@ -31,6 +32,7 @@ import {
   type ReplacementTxParams,
 } from '../../UI/LedgerModals/LedgerTransactionModal';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
+import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 
 type Maybe<T> = T | null | undefined;
 
@@ -60,9 +62,6 @@ interface LedgerSignRequest {
   };
 }
 
-const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : undefined;
-
 export const SpeedUpCancelModalState = {
   Closed: 'closed',
   SpeedUp: 'speedUp',
@@ -74,6 +73,8 @@ export type SpeedUpCancelModalState =
 
 export function useUnifiedTxActions() {
   const navigation = useNavigation();
+  const toastContext = useContext(ToastContext);
+  const toastRef = toastContext?.toastRef;
 
   const gasFeeEstimates = useSelector(selectGasFeeEstimates);
   const accounts = useSelector(selectAccounts);
@@ -81,10 +82,6 @@ export function useUnifiedTxActions() {
     selectSelectedInternalAccountFormattedAddress,
   );
 
-  const [retryIsOpen, setRetryIsOpen] = useState(false);
-  const [retryErrorMsg, setRetryErrorMsg] = useState<string | undefined>(
-    undefined,
-  );
   const [speedUpCancelModalState, setSpeedUpCancelModalState] =
     useState<SpeedUpCancelModalState>(SpeedUpCancelModalState.Closed);
   const [confirmDisabled, setConfirmDisabled] = useState(false);
@@ -96,10 +93,14 @@ export function useUnifiedTxActions() {
     ExtendedKeyringTypes.ledger,
   ]);
 
-  const toggleRetry = (msg?: string) => {
-    setRetryIsOpen((prev) => !prev);
-    setRetryErrorMsg(msg);
-  };
+  const showTransactionUpdateErrorToast = useCallback(
+    (error: unknown) => {
+      toastRef?.current?.showToast(
+        getTransactionUpdateErrorToastOptions(error),
+      );
+    },
+    [toastRef],
+  );
 
   const closeSpeedUpCancelModal = useCallback(() => {
     setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
@@ -244,7 +245,7 @@ export function useUnifiedTxActions() {
       await speedUpTx(speedUpTxId, gasValues);
       onSpeedUpCancelCompleted();
     } catch (error: unknown) {
-      toggleRetry(getErrorMessage(error));
+      showTransactionUpdateErrorToast(error);
       setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
     }
   };
@@ -286,7 +287,7 @@ export function useUnifiedTxActions() {
       );
       onSpeedUpCancelCompleted();
     } catch (error: unknown) {
-      toggleRetry(getErrorMessage(error));
+      showTransactionUpdateErrorToast(error);
       setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
     }
   };
@@ -313,15 +314,12 @@ export function useUnifiedTxActions() {
   };
 
   return {
-    retryIsOpen,
-    retryErrorMsg,
     speedUpIsOpen: speedUpCancelModalState === SpeedUpCancelModalState.SpeedUp,
     cancelIsOpen: speedUpCancelModalState === SpeedUpCancelModalState.Cancel,
     confirmDisabled,
     existingTx,
     speedUpTxId,
     cancelTxId,
-    toggleRetry,
     onSpeedUpAction,
     onCancelAction,
     onSpeedUpCancelCompleted,
