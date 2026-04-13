@@ -1034,6 +1034,13 @@ export class HyperLiquidProvider implements PerpsProvider {
    * @returns Array of DEX names to use (null = main DEX, strings = HIP-3 DEXs)
    */
   async #getValidatedDexs(): Promise<(string | null)[]> {
+    // Kill switch: HIP-3 disabled, return main DEX only
+    // Must check before cache — #getAllAvailableDexs() can populate
+    // state.validated without the hip3Enabled gate
+    if (!this.#hip3Enabled) {
+      return [null];
+    }
+
     // Return cached result if available
     if (this.#dexDiscoveryCache.state?.validated) {
       return this.#dexDiscoveryCache.state.validated;
