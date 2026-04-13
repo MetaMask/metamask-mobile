@@ -47,6 +47,7 @@ jest.mock('../NavigationService', () => ({
   },
 }));
 
+jest.mock('@metamask/sdk-communication-layer');
 jest.mock('./Connection');
 jest.mock('@react-navigation/native');
 jest.mock('./ConnectionManagement');

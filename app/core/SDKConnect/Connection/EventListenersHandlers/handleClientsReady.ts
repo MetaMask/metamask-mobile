@@ -31,7 +31,7 @@ function handleClientsReady({
       await handleConnectionReady({
         originatorInfo: clientsReadyMsg?.originatorInfo
           ? toRemoteConnectionInfo(clientsReadyMsg.originatorInfo)
-          : instance.originatorInfo,
+          : (instance.originatorInfo as RemoteConnectionInfo),
         engine: Engine,
         updateOriginatorInfos,
         approveHost,

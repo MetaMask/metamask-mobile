@@ -20,6 +20,7 @@ import {
   handleReceivedMessage,
 } from './EventListenersHandlers';
 
+jest.mock('@metamask/sdk-communication-layer');
 jest.mock('../RPCQueueManager');
 jest.mock('./Auth/sendAuthorized');
 jest.mock('./ConnectionLifecycle');

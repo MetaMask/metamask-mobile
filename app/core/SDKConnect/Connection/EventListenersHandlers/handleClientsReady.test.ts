@@ -6,6 +6,7 @@ import handleConnectionReady from '../../handlers/handleConnectionReady';
 import { Connection } from '../Connection';
 import handleClientsReady from './handleClientsReady';
 
+jest.mock('@metamask/sdk-communication-layer');
 jest.mock('../Connection');
 jest.mock('../../../Engine');
 jest.mock('../../handlers/handleConnectionReady');
