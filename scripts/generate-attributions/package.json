@@ -1,6 +1,6 @@
 {
   "name": "metamask-mobile-generate-attributions",
-  "version": "1.0.0",
+  "version": "7.78.01",
   "private": true,
   "scripts": {
     "setup": "yarn && yarn allow-scripts"
