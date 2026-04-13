@@ -29,8 +29,6 @@ import {
   getUrlObj,
   prefixUrlWithProtocol,
 } from '../../../../util/browser/index.ts';
-import { getAddressAccountType } from '../../../../util/address/index.ts';
-
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
 import PhishingModal from '../../../UI/PhishingModal/index.js';
@@ -698,19 +696,13 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
       triggerDappViewedEvent(connectedAccountLength);
 
-      let accountType: string;
-      try {
-        accountType = getAddressAccountType(selectedCaipAccountIds[0]);
-      } catch {
-        accountType = 'unknown';
-      }
-
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED)
           .addProperties({
             number_of_accounts: accountsLength,
             number_of_accounts_connected: connectedAccountLength,
-            account_type: accountType,
+            // TODO: Fix this. Not accurate
+            account_type: 'multichain',
             source: eventSource,
             chain_id_list: selectedChainIds,
             referrer,
