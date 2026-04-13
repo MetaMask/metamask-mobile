@@ -540,8 +540,15 @@ export function createE2EMockStreamManager(): unknown {
   const mockMarkets = mockService.getMockMarkets();
   const mockPrices = mockService.getMockPrices();
 
+  /**
+   * Production stream channels expose sync `getSnapshot()` for cold-start reads.
+   * Hooks (e.g. usePerpsMarkets, usePerpsLivePositions) call it on every render.
+   * Without these methods the E2E mock throws: TypeError: undefined is not a function
+   * when the wallet home mounts after login.
+   */
   return {
     prices: {
+      getSnapshot: (): Record<string, PriceUpdate> => mockPrices,
       subscribe: (params: {
         callback: (data: Record<string, PriceUpdate>) => void;
       }) => {
@@ -562,6 +569,10 @@ export function createE2EMockStreamManager(): unknown {
       },
     },
     marketData: {
+      getSnapshot: () => mockService.getMockMarkets(),
+      refresh: async (): Promise<void> => {
+        await Promise.resolve();
+      },
       subscribe: (params: { callback: (data: unknown[]) => void }) => {
         console.log('E2E Mock: marketData.subscribe called');
         console.log(
@@ -585,6 +596,7 @@ export function createE2EMockStreamManager(): unknown {
       },
     },
     account: {
+      getSnapshot: () => mockService.getMockAccountState(),
       subscribe: (params: {
         callback: (data: AccountState | null) => void;
       }) => {
@@ -596,6 +608,7 @@ export function createE2EMockStreamManager(): unknown {
       },
     },
     orders: {
+      getSnapshot: () => mockService.getMockOrders(),
       subscribe: (params: { callback: (data: Order[]) => void }) => {
         // Register for live updates
         mockService.registerOrderCallback(params.callback);
@@ -605,6 +618,7 @@ export function createE2EMockStreamManager(): unknown {
       },
     },
     positions: {
+      getSnapshot: () => mockService.getMockPositions(),
       subscribe: (params: { callback: (data: Position[]) => void }) => {
         // Register callback for live updates when positions change
         mockService.registerPositionCallback(params.callback);
