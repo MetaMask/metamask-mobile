@@ -29,7 +29,7 @@ const promptIosGoogleWarningSheet = async function () {
 };
 
 /**
- * After login on iOS versions below 17.4, may show a reminder that Google login requires a newer iOS.
+ * After login on iOS versions below 17.4 with google login, may show a reminder that Google login requires a newer iOS.
  *
  * Runs only when blocking mode is off, the user completed seedless onboarding with Google, and the
  * reminder was not dismissed within {@link IOS_GOOGLE_WARNING_SHEET_REMINDER_INTERVAL_MS}.
