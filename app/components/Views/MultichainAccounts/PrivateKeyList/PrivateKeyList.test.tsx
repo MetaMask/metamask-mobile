@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
@@ -217,12 +217,26 @@ describe('PrivateKeyList', () => {
 
     await findByTestId(PrivateKeyListIds.LIST);
 
-    expect(getByText(TITLE)).toBeOnTheScreen();
-
     expect(getAllByText(shortenedEthAddress).length).toBe(3);
     expect(getByText('Ethereum')).toBeOnTheScreen();
     expect(getByText('Base')).toBeOnTheScreen();
     expect(getByText('Arbitrum One')).toBeOnTheScreen();
+
+    // Stack navigator shows the route name in the header; the param title is applied via setOptions.
+    const navOptionsWithHeader = mockSetOptions.mock.calls
+      .map(([opts]) => opts)
+      .find(
+        (opts) =>
+          opts &&
+          opts.headerShown === true &&
+          typeof opts.header === 'function',
+      );
+    expect(navOptionsWithHeader).toBeDefined();
+    const { getByText: getTextInNavHeader, unmount } = render(
+      navOptionsWithHeader.header(),
+    );
+    expect(getTextInNavHeader(TITLE)).toBeOnTheScreen();
+    unmount();
   });
 
   it('clears wrong-password error and shows list when correct password is entered after wrong', async () => {
