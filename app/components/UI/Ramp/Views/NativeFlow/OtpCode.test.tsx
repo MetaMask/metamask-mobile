@@ -403,28 +403,21 @@ describe('V2OtpCode', () => {
     });
   });
 
-  it('auto-submits corrected OTP after a failed submission', async () => {
+  it('ignores OTP input changes while verification request is in-flight', async () => {
     jest.useRealTimers();
 
-    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
-    let rejectFirstAttempt: (reason?: unknown) => void = () => undefined;
-    const firstAttemptPromise = new Promise<never>((_, reject) => {
-      rejectFirstAttempt = reject;
+    let resolveAttempt: (value: unknown) => void = () => undefined;
+    const attemptPromise = new Promise((resolve) => {
+      resolveAttempt = resolve;
     });
 
-    mockVerifyUserOtp
-      .mockImplementationOnce(() => firstAttemptPromise)
-      .mockResolvedValueOnce(mockToken);
-    mockSetAuthToken.mockResolvedValue(true);
-    const mockQuote = { quoteId: 'q1', fiatAmount: 100 };
-    mockGetBuyQuote.mockResolvedValue(mockQuote);
-    mockRouteAfterAuthentication.mockResolvedValue(undefined);
+    mockVerifyUserOtp.mockImplementationOnce(() => attemptPromise);
 
     const { getByTestId } = renderWithTheme(<V2OtpCode />);
 
     const otpInput = getByTestId('otp-code-input');
 
-    // Enter wrong OTP — triggers first (failing) submission
+    // Enter OTP — triggers submission
     await act(async () => {
       fireEvent.changeText(otpInput, '123456');
     });
@@ -433,33 +426,17 @@ describe('V2OtpCode', () => {
       expect(mockVerifyUserOtp).toHaveBeenCalledTimes(1);
     });
 
-    // Correct the OTP while the first request is still in flight.
-    await act(async () => {
-      fireEvent.changeText(otpInput, '1234');
-    });
+    // Attempt to change the value while request is in-flight — should be ignored
     await act(async () => {
       fireEvent.changeText(otpInput, '654321');
     });
 
-    // The corrected OTP should not submit until the first attempt settles.
-    expect(mockVerifyUserOtp).toHaveBeenCalledTimes(1);
+    // Value should still be the original code
+    expect(otpInput.props.value).toBe('123456');
 
+    // Settle the request
     await act(async () => {
-      rejectFirstAttempt(new Error('Invalid OTP'));
-    });
-
-    // Once the first attempt fails, the corrected OTP should auto-submit.
-    await waitFor(() => {
-      expect(mockVerifyUserOtp).toHaveBeenCalledTimes(2);
-      expect(mockVerifyUserOtp).toHaveBeenLastCalledWith(
-        'test@example.com',
-        '654321',
-        'test-state-token',
-      );
-    });
-
-    await waitFor(() => {
-      expect(mockSetAuthToken).toHaveBeenCalledWith(mockToken);
+      resolveAttempt(null);
     });
   });
 

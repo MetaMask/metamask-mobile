@@ -218,7 +218,6 @@ const V2OtpCode = () => {
   const handleSubmit = useCallback(async () => {
     if (!isLoading && value.length === CELL_COUNT) {
       try {
-        setLatestValueSubmitted(value);
         setIsLoading(true);
         setError(null);
 
@@ -303,11 +302,15 @@ const V2OtpCode = () => {
     routeAfterAuthentication,
   ]);
 
-  const handleValueChange = useCallback((text: string) => {
-    setValue(text);
-    setError(null);
-    setLatestValueSubmitted(null);
-  }, []);
+  const handleValueChange = useCallback(
+    (text: string) => {
+      if (isLoading) return;
+      setValue(text);
+      setError(null);
+      setLatestValueSubmitted(null);
+    },
+    [isLoading],
+  );
 
   const handlePaste = useCallback(async () => {
     const text = await Clipboard.getString();
@@ -319,6 +322,7 @@ const V2OtpCode = () => {
 
   useEffect(() => {
     if (value.length === CELL_COUNT && latestValueSubmitted !== value) {
+      setLatestValueSubmitted(value);
       handleSubmit();
     }
   }, [value, handleSubmit, latestValueSubmitted]);
