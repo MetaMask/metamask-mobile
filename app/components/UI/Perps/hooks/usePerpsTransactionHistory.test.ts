@@ -1366,6 +1366,137 @@ describe('usePerpsTransactionHistory', () => {
     });
   });
 
+  describe('loadMoreFunding', () => {
+    const olderFundingRaw = [
+      {
+        symbol: 'ETH',
+        amountUsd: '-1.00',
+        rate: '0.0001',
+        timestamp: 1638403200000,
+      },
+    ];
+    const olderFundingTx = {
+      id: 'funding-1638403200000-ETH',
+      type: 'funding' as const,
+      category: 'funding_fee',
+      title: 'Paid funding fee',
+      subtitle: 'ETH',
+      timestamp: 1638403200000,
+      asset: 'ETH',
+      fundingAmount: {
+        isPositive: false,
+        fee: '-$1.00',
+        feeNumber: -1,
+        rate: '0.01%',
+      },
+    };
+
+    async function renderAndWaitForInitialFetch() {
+      const hook = renderHook(() =>
+        usePerpsTransactionHistory({ skipInitialFetch: false }),
+      );
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      return hook;
+    }
+
+    it('fetches older funding and appends to transactions', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      mockProvider.getFunding.mockResolvedValueOnce(olderFundingRaw);
+      mockTransformFundingToTransactions.mockReturnValueOnce([olderFundingTx]);
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert
+      expect(mockProvider.getFunding).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+        }),
+      );
+      expect(result.current.hasFundingMore).toBe(true);
+      expect(result.current.isFetchingMoreFunding).toBe(false);
+    });
+
+    it('sets hasFundingMore to false when older window returns empty', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      mockProvider.getFunding.mockResolvedValueOnce([]);
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert
+      expect(result.current.hasFundingMore).toBe(false);
+    });
+
+    it('sets hasFundingMore to false on fetch error', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      mockProvider.getFunding.mockRejectedValueOnce(new Error('API error'));
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert
+      expect(result.current.hasFundingMore).toBe(false);
+      expect(result.current.isFetchingMoreFunding).toBe(false);
+    });
+
+    it('does not fetch when hasFundingMore is false', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      // Force hasFundingMore to false by returning empty
+      mockProvider.getFunding.mockResolvedValueOnce([]);
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+      expect(result.current.hasFundingMore).toBe(false);
+      mockProvider.getFunding.mockClear();
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert — no new call
+      expect(mockProvider.getFunding).not.toHaveBeenCalled();
+    });
+
+    it('deduplicates transactions when loadMore returns overlapping ids', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      const dupFundingTx = {
+        ...olderFundingTx,
+        id: 'funding-1638403200000-ETH',
+      };
+      mockProvider.getFunding.mockResolvedValueOnce(olderFundingRaw);
+      mockTransformFundingToTransactions.mockReturnValueOnce([
+        dupFundingTx,
+        dupFundingTx,
+      ]);
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert — no duplicates in result
+      const ids = result.current.transactions.map((tx) => tx.id);
+      const uniqueIds = new Set(ids);
+      expect(ids.length).toBe(uniqueIds.size);
+    });
+  });
+
   describe('connection state transitions', () => {
     it('triggers fetch when skipInitialFetch transitions from true to false', async () => {
       // Reset mocks to track calls clearly
