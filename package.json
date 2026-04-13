@@ -782,7 +782,9 @@
       "ws>bufferutil": false,
       "ws>utf-8-validate": false,
       "eslint-plugin-import-x>unrs-resolver": false,
-      "eslint-import-resolver-typescript>unrs-resolver": false
+      "eslint-import-resolver-typescript>unrs-resolver": false,
+      "better-sqlite3": false,
+      "tsx>esbuild": false
     }
   },
   "dependenciesMeta": {
