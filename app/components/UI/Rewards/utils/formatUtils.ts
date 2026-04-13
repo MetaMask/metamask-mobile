@@ -117,7 +117,9 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
 };
 
 /**
- * Formats remaining time until `endDate` as `y` / `m` / `d` / `h` segments (UTC, calendar months).
+ * Formats remaining time until `endDate` (UTC, calendar months).
+ * - Under 1 hour: minutes only (e.g. `45min`; `min` distinguishes minutes from calendar months `m`).
+ * - Otherwise exactly two units: `y`+`m`, `m`+`d`, `d`+`h`, or `h`+`min`.
  * For long lists, pass one `now` (e.g. `Date.now()`) from the parent per render so each row does not allocate its own clock.
  */
 export const formatDateRemaining = (
@@ -128,6 +130,19 @@ export const formatDateRemaining = (
   const end = new Date(endDate);
 
   if (end <= start) return null;
+
+  const totalRemainingMs = end.getTime() - start.getTime();
+  const msInMinute = 60 * 1000;
+  const msInHour = 60 * msInMinute;
+  const msInDay = 24 * msInHour;
+
+  if (totalRemainingMs < msInHour) {
+    let minutes = Math.floor(totalRemainingMs / msInMinute);
+    if (minutes < 1) {
+      minutes = 1;
+    }
+    return `${minutes}min`;
+  }
 
   const getDaysInUtcMonth = (year: number, monthIndex: number): number =>
     new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
@@ -173,19 +188,20 @@ export const formatDateRemaining = (
   }
 
   const remainingMs = end.getTime() - cursor.getTime();
-  const msInHour = 60 * 60 * 1000;
-  const msInDay = 24 * msInHour;
   const day = Math.floor(remainingMs / msInDay);
   const hour = Math.floor((remainingMs % msInDay) / msInHour);
+  const minute = Math.floor(((remainingMs % msInDay) % msInHour) / msInMinute);
 
-  const yearTxt = year > 0 ? `${year}y` : '';
-  const monthTxt = month > 0 ? `${month}m` : '';
-  const dayTxt = day > 0 ? `${day}d` : '';
-  const hourTxt = hour > 0 ? `${hour}h` : '';
-
-  return year > 0
-    ? `${yearTxt} ${monthTxt} ${dayTxt}`.trim()
-    : `${monthTxt} ${dayTxt} ${hourTxt}`.trim();
+  if (year > 0) {
+    return `${year}y ${month}m`;
+  }
+  if (month > 0) {
+    return `${month}m ${day}d`;
+  }
+  if (day > 0) {
+    return `${day}d ${hour}h`;
+  }
+  return `${hour}h ${minute}min`;
 };
 
 // Get icon name with fallback to Star if invalid
