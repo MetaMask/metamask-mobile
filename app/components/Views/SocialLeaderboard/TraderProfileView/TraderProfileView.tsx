@@ -172,59 +172,73 @@ const TraderProfileView = () => {
               <StatsRow stats={profile.stats} />
             )}
 
-            <Box twClassName="px-4 pt-3 pb-1">
-              <Button
-                variant={
-                  isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
-                }
-                isFullWidth
-                onPress={toggleFollow}
-                testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
-              >
-                {isFollowing
-                  ? strings('social_leaderboard.following')
-                  : strings('social_leaderboard.follow')}
-              </Button>
-            </Box>
+            {!isLoading && profile && (
+              <>
+                <Box twClassName="px-4 pt-3 pb-1">
+                  <Button
+                    variant={
+                      isFollowing
+                        ? ButtonVariant.Primary
+                        : ButtonVariant.Secondary
+                    }
+                    isFullWidth
+                    onPress={toggleFollow}
+                    testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
+                  >
+                    {isFollowing
+                      ? strings('social_leaderboard.following')
+                      : strings('social_leaderboard.follow')}
+                  </Button>
+                </Box>
 
-            <Box twClassName="h-px bg-muted mx-4 mt-5 mb-4" />
+                <Box twClassName="h-px bg-muted mx-4 mt-5 mb-4" />
 
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="px-4 mb-2"
-              gap={4}
-            >
-              <TabButton
-                label={strings('social_leaderboard.trader_profile.open')}
-                isActive={activeTab === 'open'}
-                onPress={() => setActiveTab('open')}
-                testID={TraderProfileViewSelectorsIDs.TAB_OPEN}
-              />
-              <TabButton
-                label={strings('social_leaderboard.trader_profile.closed')}
-                isActive={activeTab === 'closed'}
-                onPress={() => setActiveTab('closed')}
-                testID={TraderProfileViewSelectorsIDs.TAB_CLOSED}
-              />
-            </Box>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  twClassName="px-4 mb-2"
+                  gap={4}
+                >
+                  <TabButton
+                    label={strings('social_leaderboard.trader_profile.open')}
+                    isActive={activeTab === 'open'}
+                    onPress={() => setActiveTab('open')}
+                    testID={TraderProfileViewSelectorsIDs.TAB_OPEN}
+                  />
+                  <TabButton
+                    label={strings('social_leaderboard.trader_profile.closed')}
+                    isActive={activeTab === 'closed'}
+                    onPress={() => setActiveTab('closed')}
+                    testID={TraderProfileViewSelectorsIDs.TAB_CLOSED}
+                  />
+                </Box>
 
-            {isLoadingPositions ? (
-              POSITION_SKELETON_KEYS.map((key) => (
-                <PositionRowSkeleton key={key} />
-              ))
-            ) : positions.length === 0 ? (
-              <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
-                <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
-                  {strings('social_leaderboard.trader_profile.no_positions')}
-                </Text>
-              </Box>
-            ) : (
-              positions.map((position, index) => (
-                <PositionRow
-                  key={`${position.tokenAddress}-${position.chain}-${index}`}
-                  position={position}
-                />
-              ))
+                {isLoadingPositions ? (
+                  POSITION_SKELETON_KEYS.map((key) => (
+                    <PositionRowSkeleton key={key} />
+                  ))
+                ) : positions.length === 0 ? (
+                  <Box
+                    twClassName="px-4 py-8"
+                    alignItems={BoxAlignItems.Center}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextMuted}
+                    >
+                      {strings(
+                        'social_leaderboard.trader_profile.no_positions',
+                      )}
+                    </Text>
+                  </Box>
+                ) : (
+                  positions.map((position, index) => (
+                    <PositionRow
+                      key={`${position.tokenAddress}-${position.chain}-${index}`}
+                      position={position}
+                    />
+                  ))
+                )}
+              </>
             )}
           </>
         )}
