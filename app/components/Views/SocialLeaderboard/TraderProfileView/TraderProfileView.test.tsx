@@ -178,4 +178,45 @@ describe('TraderProfileView', () => {
     fireEvent.press(screen.getByTestId('trader-profile-tab-closed'));
     expect(screen.getByText('No positions yet')).toBeOnTheScreen();
   });
+
+  it('renders skeleton placeholders when profile is loading', () => {
+    mockProfileResult.isLoading = true;
+    mockProfileResult.profile = null;
+    renderWithProvider(<TraderProfileView />);
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('45 followers')).toBeNull();
+  });
+
+  it('renders position skeletons when positions are loading', () => {
+    mockPositionsResult.isLoadingOpen = true;
+    renderWithProvider(<TraderProfileView />);
+    expect(screen.queryByText('STARKBOT')).toBeNull();
+  });
+
+  it('renders closed position skeletons when closed tab is loading', () => {
+    mockPositionsResult.isLoadingClosed = true;
+    renderWithProvider(<TraderProfileView />);
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
+    );
+    expect(screen.queryByText('No positions yet')).toBeNull();
+  });
+
+  it('handles notification button press without error', () => {
+    renderWithProvider(<TraderProfileView />);
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON),
+    );
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders skeleton when profile is null even if not loading', () => {
+    mockProfileResult.profile = null;
+    renderWithProvider(<TraderProfileView />);
+    expect(screen.queryByText('45 followers')).toBeNull();
+  });
 });

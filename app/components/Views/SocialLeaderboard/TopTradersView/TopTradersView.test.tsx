@@ -56,10 +56,11 @@ const mockUseTopTraders: UseTopTradersResult = {
   toggleFollow: mockToggleFollow,
 };
 
+const mockSelectSocialLeaderboardEnabled = jest.fn((): boolean => true);
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
-    selectSocialLeaderboardEnabled: jest.fn(() => true),
+    selectSocialLeaderboardEnabled: () => mockSelectSocialLeaderboardEnabled(),
   }),
 );
 
@@ -126,5 +127,11 @@ describe('TopTradersView', () => {
     const followButtons = screen.getAllByText('Follow');
     fireEvent.press(followButtons[0]);
     expect(mockToggleFollow).toHaveBeenCalledWith(fixtureTraders[0].id);
+  });
+
+  it('navigates back when the feature flag is disabled', () => {
+    mockSelectSocialLeaderboardEnabled.mockReturnValue(false);
+    renderWithProvider(<TopTradersView />);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });

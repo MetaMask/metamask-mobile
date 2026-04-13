@@ -19,20 +19,31 @@ export interface PositionRowProps {
   position: Position;
 }
 
+function addThousandsSeparator(numStr: string): string {
+  let result = '';
+  for (let i = 0; i < numStr.length; i++) {
+    if (i > 0 && (numStr.length - i) % 3 === 0) {
+      result += ',';
+    }
+    result += numStr[i];
+  }
+  return result;
+}
+
 function formatUsd(value: number | null | undefined): string {
   if (value == null) return '\u2014';
   const sign = value < 0 ? '-' : '';
   const abs = Math.round(Math.abs(value) * 100) / 100;
   const [whole, frac = ''] = abs.toString().split('.');
   const paddedFrac = frac.padEnd(2, '0').slice(0, 2);
-  return `${sign}$${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${'.'}${paddedFrac}`;
+  return `${sign}$${addThousandsSeparator(whole)}${'.'}${paddedFrac}`;
 }
 
 function formatTokenAmount(value: number): string {
   const sign = value < 0 ? '-' : '';
   const abs = Math.abs(value);
   const [whole, frac = ''] = abs.toString().split('.');
-  const commaWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const commaWhole = addThousandsSeparator(whole);
   return frac ? `${sign}${commaWhole}.${frac}` : `${sign}${commaWhole}`;
 }
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
@@ -9,7 +9,6 @@ import {
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import {
   Box,
   Text,
@@ -32,16 +31,17 @@ import { useTraderProfile, useTraderPositions } from './hooks';
 import ProfileHeader from './components/ProfileHeader';
 import StatsRow from './components/StatsRow';
 import PositionRow from './components/PositionRow';
+import {
+  ProfileHeaderSkeleton,
+  StatsRowSkeleton,
+  PositionRowSkeleton,
+} from './components/Skeletons';
 
 const POSITION_SKELETON_COUNT = 4;
 const POSITION_SKELETON_KEYS = Array.from(
   { length: POSITION_SKELETON_COUNT },
   (_, i) => `position-skeleton-${i}`,
 );
-
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
 
 interface TabButtonProps {
   label: string;
@@ -67,74 +67,6 @@ const TabButton: React.FC<TabButtonProps> = ({
       </Text>
     </Box>
   </TouchableOpacity>
-);
-
-interface SkeletonProps {
-  colors: ReturnType<typeof useTheme>['colors'];
-  tw: ReturnType<typeof useTailwind>;
-}
-
-const ProfileHeaderSkeleton: React.FC<SkeletonProps> = ({ colors, tw }) => (
-  <View style={tw.style('px-4 py-3')}>
-    <SkeletonPlaceholder
-      backgroundColor={colors.background.section}
-      highlightColor={colors.background.subsection}
-    >
-      <View style={tw.style('flex-row items-center')}>
-        <View style={tw.style('w-10 h-10 rounded-full mr-4')} />
-        <View style={tw.style('flex-1 gap-1.5')}>
-          <View style={tw.style('w-28 h-5 rounded')} />
-          <View style={tw.style('w-20 h-3 rounded')} />
-        </View>
-        <View style={tw.style('w-20 h-8 rounded-xl ml-3')} />
-      </View>
-    </SkeletonPlaceholder>
-  </View>
-);
-
-const StatsRowSkeleton: React.FC<SkeletonProps> = ({ colors, tw }) => (
-  <View style={tw.style('px-4 py-3')}>
-    <SkeletonPlaceholder
-      backgroundColor={colors.background.section}
-      highlightColor={colors.background.subsection}
-    >
-      <View style={tw.style('flex-row justify-around')}>
-        <View style={tw.style('items-center gap-1')}>
-          <View style={tw.style('w-12 h-5 rounded')} />
-          <View style={tw.style('w-16 h-3 rounded')} />
-        </View>
-        <View style={tw.style('items-center gap-1')}>
-          <View style={tw.style('w-16 h-5 rounded')} />
-          <View style={tw.style('w-14 h-3 rounded')} />
-        </View>
-        <View style={tw.style('items-center gap-1')}>
-          <View style={tw.style('w-14 h-5 rounded')} />
-          <View style={tw.style('w-16 h-3 rounded')} />
-        </View>
-      </View>
-    </SkeletonPlaceholder>
-  </View>
-);
-
-const PositionRowSkeleton: React.FC<SkeletonProps> = ({ colors, tw }) => (
-  <View style={tw.style('px-4 py-3')}>
-    <SkeletonPlaceholder
-      backgroundColor={colors.background.section}
-      highlightColor={colors.background.subsection}
-    >
-      <View style={tw.style('flex-row items-center')}>
-        <View style={tw.style('w-10 h-10 rounded-full mr-4')} />
-        <View style={tw.style('flex-1 gap-1.5')}>
-          <View style={tw.style('w-20 h-4 rounded')} />
-          <View style={tw.style('w-28 h-3 rounded')} />
-        </View>
-        <View style={tw.style('items-end gap-1.5')}>
-          <View style={tw.style('w-20 h-4 rounded')} />
-          <View style={tw.style('w-12 h-3 rounded')} />
-        </View>
-      </View>
-    </SkeletonPlaceholder>
-  </View>
 );
 
 // ---------------------------------------------------------------------------
