@@ -404,9 +404,7 @@ const Routes = {
     ROOT: 'MoneyScreens',
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
-  },
-  MONEY_ACCOUNT: {
-    ROOT: 'MoneyAccountScreens',
+    CONFIRMATION: 'MoneyConfirmation',
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
