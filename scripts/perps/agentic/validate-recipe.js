@@ -1372,8 +1372,10 @@ async function executeWorkflowNode(node, context, options = {}) {
   if ((node.action === 'switch' || node.action === 'end') && node.when && !evaluateWorkflowCondition(node.when, context)) {
     const startedAt = new Date().toISOString();
     context.currentStepRef.current = node;
-    context.stats.total += 1;
-    context.stats.skipped += 1;
+    if (shouldCountNode(node)) {
+      context.stats.total += 1;
+      context.stats.skipped += 1;
+    }
     console.log(`[${node.id || '?'}] ${describeStep(node)}`);
     console.log('  [SKIPPED - when condition did not match]');
     console.log('');
@@ -1653,20 +1655,51 @@ async function main() {
       skipManual: options.skipManual,
     };
 
-    // Set up log capture — tee stdout/stderr to a log file
+    // Set up log capture — tee stdout/stderr to a sanitized log file.
+    // Redacts tokens, secrets, passwords, and bearer strings before writing
+    // to avoid CodeQL clear-text-logging alerts.
     if (options.log && !options.dryRun) {
       const artifacts = ensureRunArtifacts(runOptions, recipeInput.recipePath);
       if (artifacts) {
+        const REDACT_KEYS =
+          /token|secret|password|passwd|authorization|api[_-]?key|client[_-]?key|id[_-]?token|refresh[_-]?token|access[_-]?token/i;
+        const redactValue = (key, value) => {
+          if (REDACT_KEYS.test(String(key))) {
+            return '[REDACTED]';
+          }
+          return value;
+        };
+        const sanitizeArg = (arg) => {
+          if (arg instanceof Error) {
+            return `[${arg.name}] ${arg.message}`;
+          }
+          if (typeof arg === 'string') {
+            return arg.replace(
+              /(bearer\s+)[a-z0-9\-._~+/]+=*/gi,
+              '$1[REDACTED]',
+            );
+          }
+          if (arg && typeof arg === 'object') {
+            try {
+              return JSON.stringify(arg, redactValue);
+            } catch (_) {
+              return '[Unserializable Object]';
+            }
+          }
+          return String(arg);
+        };
+        const formatArgs = (args) => args.map(sanitizeArg).join(' ');
+
         const logStream = fs.createWriteStream(artifacts.runLogPath, { flags: 'w' });
         const origLog = console.log.bind(console);
         const origError = console.error.bind(console);
         console.log = (...args) => {
           origLog(...args);
-          logStream.write(args.map(String).join(' ') + '\n');
+          logStream.write(formatArgs(args) + '\n');
         };
         console.error = (...args) => {
           origError(...args);
-          logStream.write(args.map(String).join(' ') + '\n');
+          logStream.write(formatArgs(args) + '\n');
         };
         teardownLog = () => {
           console.log = origLog;
