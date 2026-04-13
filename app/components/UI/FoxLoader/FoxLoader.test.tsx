@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, act, screen } from '@testing-library/react-native';
 import FoxLoader, { _resetAnimationStateForTesting } from './FoxLoader';
+import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 
 // Override the global rive-react-native mock so tests can manually trigger
 // onPlay, onStateChanged, and onError instead of having onPlay auto-fire.
@@ -87,12 +88,18 @@ describe('FoxLoader', () => {
       <FoxLoader appServicesReady={false} onAnimationComplete={jest.fn()} />,
     );
 
-    expect(screen.getByTestId('fox-loader-container')).toBeOnTheScreen();
     expect(
-      screen.getByTestId('fox-loader-animation-wrapper'),
+      screen.getByTestId(FoxLoaderSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId('fox-loader-static-fox')).toBeOnTheScreen();
-    expect(screen.getByTestId('fox-loader-rive-wrapper')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(FoxLoaderSelectorsIDs.ANIMATION_WRAPPER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(FoxLoaderSelectorsIDs.STATIC_FOX),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(FoxLoaderSelectorsIDs.RIVE_WRAPPER),
+    ).toBeOnTheScreen();
     expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
   });
 

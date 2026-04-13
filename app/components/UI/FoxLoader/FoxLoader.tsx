@@ -145,13 +145,13 @@ const FoxLoader = ({
   }, [appServicesReady, isIdle, stopAnimation]);
 
   return (
-    <View testID="fox-loader-container" style={styles.container}>
+    <View testID={FoxLoaderSelectorsIDs.CONTAINER} style={styles.container}>
       <View
-        testID="fox-loader-animation-wrapper"
+        testID={FoxLoaderSelectorsIDs.ANIMATION_WRAPPER}
         style={styles.animationWrapper}
       >
         <Animated.Image
-          testID="fox-loader-static-fox"
+          testID={FoxLoaderSelectorsIDs.STATIC_FOX}
           // eslint-disable-next-line @typescript-eslint/no-require-imports
           source={require('../../../images/branding/fox.png')}
           style={[styles.staticFox, { opacity: staticFoxOpacity }]}
@@ -166,7 +166,7 @@ const FoxLoader = ({
           }}
         />
         <Animated.View
-          testID="fox-loader-rive-wrapper"
+          testID={FoxLoaderSelectorsIDs.RIVE_WRAPPER}
           style={[styles.riveAnimation, { opacity: riveOpacity }]}
         >
           <Rive
