@@ -1,26 +1,52 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { IconName, IconColor } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonVariant,
+  IconName,
+  IconColor,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
-import BottomSheetFooter, {
-  ButtonsAlignment,
-} from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
 import type { BridgeToken } from '../../Bridge/types';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 
+const styles = StyleSheet.create({
+  footer: {
+    flexDirection: 'row',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  button: {
+    flex: 1,
+  },
+  subsequentButton: {
+    flex: 1,
+    marginLeft: 16,
+  },
+});
+
+const BALANCE_THRESHOLD_USD = 100;
+
+/** Parses a fiat balance string like "$1,234.56" into a number, returns 0 on failure. */
+function parseFiatBalance(fiatBalance: string | undefined): number {
+  if (!fiatBalance) return 0;
+  const parsed = parseFloat(fiatBalance.replace(/[^0-9.]/g, ''));
+  return isNaN(parsed) ? 0 : parsed;
+}
+
 interface TokenStickyFooterProps {
   token: TokenDetailsRouteParams;
   securityData: TokenSecurityData | null | undefined;
+  /** Formatted fiat balance string e.g. "$150.00". Used to determine which button gets the success style. */
+  fiatBalance: string | undefined;
   /** Action handlers from parent's useTokenActions hook */
   onBuy: () => void;
   onSwap: () => void;
@@ -30,6 +56,7 @@ interface TokenStickyFooterProps {
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   token,
   securityData,
+  fiatBalance,
   onBuy,
   onSwap,
   hasEligibleSwapTokens,
@@ -43,6 +70,26 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   const showSwapButton = hasEligibleSwapTokens;
   const showBuyButton = isBuyable || !hasEligibleSwapTokens;
+  const showBothButtons = showSwapButton && showBuyButton;
+
+  const balanceUsd = useMemo(
+    () => parseFiatBalance(fiatBalance),
+    [fiatBalance],
+  );
+
+  /**
+   * When only one button is shown it always gets the success style.
+   * When both are shown, swap gets success if balance >= $100, buy gets success otherwise.
+   */
+  const swapIsSuccess = showBothButtons
+    ? balanceUsd >= BALANCE_THRESHOLD_USD
+    : showSwapButton;
+  const buyIsSuccess = showBothButtons ? !swapIsSuccess : showBuyButton;
+
+  const successTextProps = useMemo(
+    () => ({ color: TextColor.SuccessInverse }),
+    [],
+  );
 
   const handleFooterAction = useCallback(
     (action: () => void, source: string) => {
@@ -128,40 +175,38 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   return (
     <>
       {isTokenTradingOpen(token as BridgeToken) && (
-        <BottomSheetFooter
-          style={footerStyle}
-          buttonPropsArray={[
-            ...(showSwapButton
-              ? [
-                  {
-                    variant: ButtonVariants.Primary,
-                    label: strings('asset_overview.swap'),
-                    size: ButtonSize.Lg,
-                    onPress: () =>
-                      handleFooterAction(
-                        onSwap,
-                        strings('asset_overview.swap'),
-                      ),
-                  },
-                ]
-              : []),
-            ...(showBuyButton
-              ? [
-                  {
-                    variant: ButtonVariants.Primary,
-                    label: strings('asset_overview.buy_button'),
-                    size: ButtonSize.Lg,
-                    onPress: () =>
-                      handleFooterAction(
-                        onBuy,
-                        strings('asset_overview.buy_button'),
-                      ),
-                  },
-                ]
-              : []),
-          ]}
-          buttonsAlignment={ButtonsAlignment.Horizontal}
-        />
+        <View testID="bottomsheetfooter" style={[styles.footer, footerStyle]}>
+          {showSwapButton && (
+            <Button
+              variant={
+                swapIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
+              }
+              style={styles.button}
+              twClassName={swapIsSuccess ? 'bg-success-default' : undefined}
+              textProps={swapIsSuccess ? successTextProps : undefined}
+              onPress={() =>
+                handleFooterAction(onSwap, strings('asset_overview.swap'))
+              }
+            >
+              {strings('asset_overview.swap')}
+            </Button>
+          )}
+          {showBuyButton && (
+            <Button
+              variant={
+                buyIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
+              }
+              style={showSwapButton ? styles.subsequentButton : styles.button}
+              twClassName={buyIsSuccess ? 'bg-success-default' : undefined}
+              textProps={buyIsSuccess ? successTextProps : undefined}
+              onPress={() =>
+                handleFooterAction(onBuy, strings('asset_overview.buy_button'))
+              }
+            >
+              {strings('asset_overview.buy_button')}
+            </Button>
+          )}
+        </View>
       )}
     </>
   );

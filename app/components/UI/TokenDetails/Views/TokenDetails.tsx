@@ -376,6 +376,7 @@ const TokenDetails: React.FC<{
         <TokenDetailsStickyFooter
           token={token}
           securityData={securityData}
+          fiatBalance={fiatBalance}
           onBuy={onBuy}
           onSwap={handleStickySwapPress}
           hasEligibleSwapTokens={hasEligibleSwapTokens}
