@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { Image, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -47,22 +47,10 @@ const BenefitFullView = () => {
         benefit.id,
         benefit.type.id,
       )
-      .catch((error: unknown) => {
-        Logger.error(
-          error instanceof Error
-            ? error
-            : new Error('Failed to post benefit impression'),
-          {
-            message: 'BenefitFullView: Failed to post benefit impression',
-            benefitId: benefit.id,
-            benefitTypeId: benefit.type.id,
-            subscriptionId,
-          },
-        );
-      });
+      .catch();
   }, [benefit, subscriptionId]);
 
-  const handleClaim = useCallback(() => {
+  const handleClaim = () => {
     if (benefit.url) {
       navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
@@ -72,15 +60,12 @@ const BenefitFullView = () => {
         },
       });
     }
-  }, [benefit, navigation]);
+  };
 
-  const nowRef = useRef(Date.now());
-  const remainingTime = useMemo(() => {
-    if (benefit.actionDate == null) {
-      return null;
-    }
-    return formatDateRemaining(benefit.actionDate, nowRef.current);
-  }, [benefit.actionDate]);
+  const remainingTime =
+    benefit.actionDate == null
+      ? null
+      : formatDateRemaining(benefit.actionDate, Date.now());
 
   return (
     <ErrorBoundary navigation={navigation} view="BenefitFullView">

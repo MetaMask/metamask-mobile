@@ -11,6 +11,8 @@ import type { SubscriptionBenefitsState } from '../../../../core/Engine/controll
 import { useFocusEffect } from '@react-navigation/native';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
+const GET_ALL_BENEFITS_LIMIT = 200;
+
 export const useBenefits = (): {
   getAllBenefits: () => Promise<void>;
 } => {
@@ -18,43 +20,36 @@ export const useBenefits = (): {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isLoadingRef = useRef(false);
 
-  const fetchBenefits = useCallback(
-    async (limit: number) => {
-      if (!subscriptionId) {
-        dispatch(setBenefitsError(false));
-        dispatch(setBenefitsLoading(false));
-        return;
-      }
-      if (isLoadingRef.current) {
-        return;
-      }
-      isLoadingRef.current = true;
-
-      try {
-        dispatch(setBenefitsLoading(true));
-        dispatch(setBenefitsError(false));
-
-        const benefitsState: SubscriptionBenefitsState =
-          await Engine.controllerMessenger.call(
-            'RewardsController:getBenefits',
-            subscriptionId,
-            limit,
-          );
-
-        dispatch(setBenefits(benefitsState));
-      } catch (error) {
-        dispatch(setBenefitsError(true));
-      } finally {
-        isLoadingRef.current = false;
-        dispatch(setBenefitsLoading(false));
-      }
-    },
-    [dispatch, subscriptionId],
-  );
-
   const getAllBenefits = useCallback(async (): Promise<void> => {
-    await fetchBenefits(200);
-  }, [fetchBenefits]);
+    if (!subscriptionId) {
+      dispatch(setBenefitsError(false));
+      dispatch(setBenefitsLoading(false));
+      return;
+    }
+    if (isLoadingRef.current) {
+      return;
+    }
+    isLoadingRef.current = true;
+
+    try {
+      dispatch(setBenefitsLoading(true));
+      dispatch(setBenefitsError(false));
+
+      const benefitsState: SubscriptionBenefitsState =
+        await Engine.controllerMessenger.call(
+          'RewardsController:getBenefits',
+          subscriptionId,
+          GET_ALL_BENEFITS_LIMIT,
+        );
+
+      dispatch(setBenefits(benefitsState));
+    } catch (error) {
+      dispatch(setBenefitsError(true));
+    } finally {
+      isLoadingRef.current = false;
+      dispatch(setBenefitsLoading(false));
+    }
+  }, [dispatch, subscriptionId]);
 
   useFocusEffect(
     useCallback(() => {

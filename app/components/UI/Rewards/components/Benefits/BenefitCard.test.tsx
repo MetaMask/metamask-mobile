@@ -119,7 +119,7 @@ describe('BenefitCard', () => {
       expect(mockFormatDateRemaining).toHaveBeenCalledTimes(1);
       expect(mockFormatDateRemaining).toHaveBeenCalledWith(
         '2026-09-01T00:00:00Z',
-        undefined,
+        expect.any(Number),
       );
       expect(getByText('1m 3d')).toBeOnTheScreen();
     });

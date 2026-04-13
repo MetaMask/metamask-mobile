@@ -1,5 +1,5 @@
 import { Text, TextVariant } from '@metamask/design-system-react-native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants.ts';
 import { useSelector } from 'react-redux';
@@ -26,35 +26,28 @@ const BenefitsFullView = () => {
 
   const { getAllBenefits } = useBenefits();
 
-  const onRefresh = useCallback(async () => {
+  const onRefresh = async () => {
     setRefreshing(true);
     try {
       await getAllBenefits();
     } finally {
       setRefreshing(false);
     }
-  }, [getAllBenefits]);
+  };
 
-  const hasBenefits = useMemo(() => benefits.length > 0, [benefits.length]);
-  const nowRef = useRef(Date.now());
+  const hasBenefits = benefits.length > 0;
 
-  const renderBenefitItem: ListRenderItem<SubscriptionBenefitDto> = useCallback(
-    ({ item }) => <BenefitCard benefit={item} now={nowRef.current} />,
-    [],
-  );
+  const renderBenefitItem: ListRenderItem<SubscriptionBenefitDto> = ({
+    item,
+  }) => <BenefitCard benefit={item} />;
 
-  const renderListFooter = useMemo(() => {
-    if (hasBenefits) return <TheMiracleFooter />;
-  }, [hasBenefits]);
+  const renderListFooter = hasBenefits ? <TheMiracleFooter /> : undefined;
 
-  const renderListHeader = useMemo(() => {
-    if (hasBenefits)
-      return (
-        <Text twClassName="py-3" variant={TextVariant.HeadingMd}>
-          {strings('rewards.benefits.list_header')}
-        </Text>
-      );
-  }, [hasBenefits]);
+  const renderListHeader = hasBenefits ? (
+    <Text twClassName="py-3" variant={TextVariant.HeadingMd}>
+      {strings('rewards.benefits.list_header')}
+    </Text>
+  ) : undefined;
 
   return (
     <ErrorBoundary navigation={navigation} view="BenefitsFullView">

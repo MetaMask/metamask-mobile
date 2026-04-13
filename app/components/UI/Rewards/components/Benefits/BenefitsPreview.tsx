@@ -9,7 +9,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useMemo } from 'react';
+import React from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
@@ -22,41 +22,23 @@ import { useBenefits } from '../../hooks/useBenefits.ts';
 import BenefitCard from './BenefitCard.tsx';
 import Routes from '../../../../../constants/navigation/Routes.ts';
 import { useNavigation } from '@react-navigation/native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BenefitEmptyList from './BenefitEmptyList.tsx';
 
 const BenefitsPreview = () => {
-  const tw = useTailwind();
   const benefits = useSelector(selectBenefits);
   const isLoading = useSelector(selectBenefitsLoading);
   const navigation = useNavigation();
   useBenefits();
 
-  const handleNavigateToBenefitsFullView = useCallback(() => {
+  const handleNavigateToBenefitsFullView = () => {
     navigation.navigate(Routes.REWARD_BENEFITS_FULL_VIEW);
-  }, [navigation]);
+  };
 
-  const hasBenefits = useMemo(() => benefits.length > 0, [benefits]);
-  const topBenefits = useMemo(() => benefits.slice(0, 3), [benefits]);
+  const hasBenefits = benefits.length > 0;
+  const topBenefits = benefits.slice(0, 3);
 
-  const displayHeader = useMemo(() => {
-    if (hasBenefits) {
-      return (
-        <Pressable onPress={handleNavigateToBenefitsFullView}>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
-          >
-            <Text variant={TextVariant.HeadingMd}>
-              {strings('rewards.benefits.title')}
-            </Text>
-            <Icon name={IconName.ArrowRight} size={IconSize.Md} />
-          </Box>
-        </Pressable>
-      );
-    }
-    return (
+  const displayHeader = hasBenefits ? (
+    <Pressable onPress={handleNavigateToBenefitsFullView}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -65,29 +47,35 @@ const BenefitsPreview = () => {
         <Text variant={TextVariant.HeadingMd}>
           {strings('rewards.benefits.title')}
         </Text>
+        <Icon name={IconName.ArrowRight} size={IconSize.Md} />
       </Box>
-    );
-  }, [hasBenefits, handleNavigateToBenefitsFullView]);
+    </Pressable>
+  ) : (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-2"
+    >
+      <Text variant={TextVariant.HeadingMd}>
+        {strings('rewards.benefits.title')}
+      </Text>
+    </Box>
+  );
 
-  const displayContent = useMemo(() => {
-    const now = Date.now();
-    if (isLoading) {
-      return <Skeleton style={tw.style('h-[154px] rounded-xl')} />;
-    }
-    if (!hasBenefits) {
-      return <BenefitEmptyList />;
-    }
-    return (
-      <Box
-        twClassName={`gap-3`}
-        testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS}
-      >
-        {topBenefits.map((benefit) => (
-          <BenefitCard key={benefit.id} benefit={benefit} now={now} />
-        ))}
-      </Box>
-    );
-  }, [isLoading, hasBenefits, topBenefits, tw]);
+  const displayContent = isLoading ? (
+    <Skeleton height={154} twClassName="rounded-lg" />
+  ) : hasBenefits ? (
+    <Box
+      twClassName={`gap-3`}
+      testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS}
+    >
+      {topBenefits.map((benefit) => (
+        <BenefitCard key={benefit.id} benefit={benefit} />
+      ))}
+    </Box>
+  ) : (
+    <BenefitEmptyList />
+  );
 
   return (
     <Box
