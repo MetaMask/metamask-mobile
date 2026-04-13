@@ -197,7 +197,15 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
         }
         testID="account-address"
       />
-      <RCTSafeAreaView
+      <RNCSafeAreaView
+        edges={
+          {
+            "bottom": "additive",
+            "left": "additive",
+            "right": "additive",
+            "top": "additive",
+          }
+        }
         style={
           {
             "paddingVertical": 10,
@@ -282,8 +290,16 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Generate
           </Text>
         </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
+      </RNCSafeAreaView>
+      <RNCSafeAreaView
+        edges={
+          {
+            "bottom": "additive",
+            "left": "additive",
+            "right": "additive",
+            "top": "additive",
+          }
+        }
         style={
           {
             "paddingVertical": 10,
@@ -393,8 +409,16 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Generate
           </Text>
         </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
+      </RNCSafeAreaView>
+      <RNCSafeAreaView
+        edges={
+          {
+            "bottom": "additive",
+            "left": "additive",
+            "right": "additive",
+            "top": "additive",
+          }
+        }
         style={
           {
             "paddingVertical": 10,
@@ -504,8 +528,16 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Encrypt
           </Text>
         </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
+      </RNCSafeAreaView>
+      <RNCSafeAreaView
+        edges={
+          {
+            "bottom": "additive",
+            "left": "additive",
+            "right": "additive",
+            "top": "additive",
+          }
+        }
         style={
           {
             "paddingVertical": 10,
@@ -590,8 +622,16 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Decrypt
           </Text>
         </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
+      </RNCSafeAreaView>
+      <RNCSafeAreaView
+        edges={
+          {
+            "bottom": "additive",
+            "left": "additive",
+            "right": "additive",
+            "top": "additive",
+          }
+        }
         style={
           {
             "paddingVertical": 10,
@@ -701,8 +741,16 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Encrypt
           </Text>
         </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
+      </RNCSafeAreaView>
+      <RNCSafeAreaView
+        edges={
+          {
+            "bottom": "additive",
+            "left": "additive",
+            "right": "additive",
+            "top": "additive",
+          }
+        }
         style={
           {
             "paddingVertical": 10,
@@ -787,7 +835,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Decrypt
           </Text>
         </TouchableOpacity>
-      </RCTSafeAreaView>
+      </RNCSafeAreaView>
     </View>
   </RCTScrollView>
 </RNCSafeAreaView>

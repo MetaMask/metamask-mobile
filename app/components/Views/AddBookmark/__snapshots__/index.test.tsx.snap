@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddBookmark should render correctly 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "white",
@@ -272,5 +280,5 @@ exports[`AddBookmark should render correctly 1`] = `
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

@@ -30,6 +30,7 @@ jest.mock('react-native-safe-area-context', () => {
   const frame = { width: 0, height: 0, x: 0, y: 0 };
   return {
     SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaView: jest.fn().mockImplementation(({ children }) => children),
     SafeAreaConsumer: jest
       .fn()
       .mockImplementation(({ children }) => children(inset)),
