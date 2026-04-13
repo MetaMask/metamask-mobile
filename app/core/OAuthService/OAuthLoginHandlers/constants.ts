@@ -1,10 +1,10 @@
 import { ACTIONS, PREFIXES, PROTOCOLS } from '../../../constants/deeplinks';
 import Device from '../../../util/device';
 import ReduxService from '../../redux';
-import { isQa } from '../../../util/test/utils';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
-import { BUILD_TYPE, OAUTH_CONFIG } from './config';
+import { OAUTH_CONFIG } from './config';
+import { resolveOAuthConfigKey } from './oauthBuildType';
 import {
   DEFAULT_LEGACY_IOS_GOOGLE_CONFIG_ENABLED,
   selectLegacyIosGoogleConfigEnabled,
@@ -13,60 +13,7 @@ import {
 export const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
-/**
- * Mapping of old Build Type to new BuildType formatting for oauth config
- * Main -> main_prod
- * QA -> main_uat
- * Debug -> main_dev
- * flask -> flask_prod
- * flask QA -> flask_uat
- * flask Debug -> flask_dev
- *
- * new build types
- * main_beta -> main_prod
- * main_rc -> main_prod
- *
- * @param buildType - The build type to map
- * @param isDev - Whether the build is a development build
- * @returns The mapped build type
- */
-const buildTypeMapping = (buildType: string, isDev: boolean) => {
-  // use development config for now
-  if (process.env.DEV_OAUTH_CONFIG === 'true' && isDev) {
-    return 'development';
-  }
-
-  switch (buildType) {
-    case 'qa':
-      return 'main_uat';
-    case 'main':
-      return isQa ? 'main_uat' : isDev ? 'main_dev' : 'main_prod';
-    case 'flask':
-      return isQa ? 'flask_uat' : isDev ? 'flask_dev' : 'flask_prod';
-    default:
-      return 'development';
-  }
-};
-
-const resolveOAuthConfigKey = (): keyof typeof OAUTH_CONFIG => {
-  const fromEnv = process.env.OAUTH_BUILD_TYPE;
-  if (
-    typeof fromEnv === 'string' &&
-    fromEnv.length > 0 &&
-    fromEnv in OAUTH_CONFIG
-  ) {
-    return fromEnv as keyof typeof OAUTH_CONFIG;
-  }
-  const mapped = buildTypeMapping(
-    AppConstants.METAMASK_BUILD_TYPE || 'main',
-    AppConstants.IS_DEV,
-  );
-  if (mapped in OAUTH_CONFIG) {
-    return mapped as keyof typeof OAUTH_CONFIG;
-  }
-  return BUILD_TYPE.development;
-};
-
+/** OAuth config key: env override or build-type mapping */
 const BuildType = resolveOAuthConfigKey();
 const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
 
