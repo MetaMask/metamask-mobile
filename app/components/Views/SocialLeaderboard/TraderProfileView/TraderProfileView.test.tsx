@@ -186,13 +186,13 @@ describe('TraderProfileView', () => {
     expect(
       screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('45 followers')).toBeNull();
+    expect(screen.queryByText('45 followers')).not.toBeOnTheScreen();
   });
 
   it('renders position skeletons when positions are loading', () => {
     mockPositionsResult.isLoadingOpen = true;
     renderWithProvider(<TraderProfileView />);
-    expect(screen.queryByText('STARKBOT')).toBeNull();
+    expect(screen.queryByText('STARKBOT')).not.toBeOnTheScreen();
   });
 
   it('renders closed position skeletons when closed tab is loading', () => {
@@ -201,7 +201,7 @@ describe('TraderProfileView', () => {
     fireEvent.press(
       screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
     );
-    expect(screen.queryByText('No positions yet')).toBeNull();
+    expect(screen.queryByText('No positions yet')).not.toBeOnTheScreen();
   });
 
   it('notification button press is a no-op', () => {
@@ -217,7 +217,7 @@ describe('TraderProfileView', () => {
   it('renders skeleton when profile is null even if not loading', () => {
     mockProfileResult.profile = null;
     renderWithProvider(<TraderProfileView />);
-    expect(screen.queryByText('45 followers')).toBeNull();
+    expect(screen.queryByText('45 followers')).not.toBeOnTheScreen();
   });
 
   describe('error state', () => {
@@ -252,8 +252,8 @@ describe('TraderProfileView', () => {
 
     it('does not show skeleton when error is present', () => {
       renderWithProvider(<TraderProfileView />);
-      expect(screen.queryByText('45 followers')).toBeNull();
-      expect(screen.queryByText('Follow')).toBeNull();
+      expect(screen.queryByText('45 followers')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Follow')).not.toBeOnTheScreen();
     });
 
     it('does not show error banner while still loading', () => {
@@ -261,7 +261,7 @@ describe('TraderProfileView', () => {
       renderWithProvider(<TraderProfileView />);
       expect(
         screen.queryByTestId(TraderProfileViewSelectorsIDs.ERROR_BANNER),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('does not show error banner when profile loaded successfully', () => {
@@ -270,7 +270,7 @@ describe('TraderProfileView', () => {
       renderWithProvider(<TraderProfileView />);
       expect(
         screen.queryByTestId(TraderProfileViewSelectorsIDs.ERROR_BANNER),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
       expect(screen.getByText('45 followers')).toBeOnTheScreen();
     });
   });
