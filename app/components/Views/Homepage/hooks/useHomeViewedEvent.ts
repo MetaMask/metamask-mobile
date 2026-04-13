@@ -24,8 +24,8 @@ export type HomeSectionName =
 interface UseHomeViewedEventParams {
   /**
    * Ref to the section's root View. Pass `null` when the section does not
-   * render (e.g. DeFi with no positions) — the event will fire immediately
-   * once `isLoading` is false.
+   * render — once `isLoading` is false, the hook may fire immediately (see
+   * `fireImmediateWhenNoView`) or not, depending on product rules.
    */
   sectionRef: RefObject<View> | null;
   /** Whether the section data is still being fetched. */
@@ -42,6 +42,14 @@ interface UseHomeViewedEventParams {
    * E.g. for Tokens: number of token rows. For NFTs in empty state: 0.
    */
   itemCount: number;
+  /**
+   * When `sectionRef` is `null` and loading has finished, fire `HOME_VIEWED`
+   * once (e.g. What's Happening with no items still wants an empty impression).
+   * Set to `false` when the section is omitted from the UI entirely (e.g. DeFi
+   * with no positions).
+   * @default true
+   */
+  fireImmediateWhenNoView?: boolean;
 }
 
 /**
@@ -49,8 +57,11 @@ interface UseHomeViewedEventParams {
  * user's viewport (≥ 30 % of the section is visible).
  *
  * - Re-fires on every homepage visit (when `visitId` increments).
- * - For sections that do not render (e.g. DeFi with no positions), fires
- * immediately once loading has finished (when `sectionRef` is `null`).
+ * - For sections that do not render but still want an impression (e.g. What's
+ * Happening empty), may fire immediately once loading has finished when
+ * `sectionRef` is `null` and `fireImmediateWhenNoView` is true (default).
+ * - Viewport tracking is deferred until `isLoading` is false so skeletons do not
+ * emit section_viewed for content that will be hidden when load completes.
  * - Uses a subscription pattern instead of React state so scroll events do
  * not trigger re-renders of section components.
  */
@@ -62,6 +73,7 @@ const useHomeViewedEvent = ({
   totalSectionsLoaded,
   isEmpty,
   itemCount,
+  fireImmediateWhenNoView = true,
 }: UseHomeViewedEventParams) => {
   const {
     subscribeToScroll,
@@ -128,8 +140,9 @@ const useHomeViewedEvent = ({
   // the event to re-fire after hasFiredRef is reset by the effect above.
   useEffect(() => {
     if (sectionRef !== null || isLoading) return;
+    if (!fireImmediateWhenNoView) return;
     fireEvent();
-  }, [sectionRef, isLoading, fireEvent, visitId]);
+  }, [sectionRef, isLoading, fireEvent, visitId, fireImmediateWhenNoView]);
 
   // Holds the latest checkVisibility so the onLayout callback can re-trigger
   // a check after the native layout pass completes.
@@ -139,7 +152,7 @@ const useHomeViewedEvent = ({
   // every scroll event. Uses subscribeToScroll so no React re-renders occur
   // during scrolling.
   useEffect(() => {
-    if (!sectionRef?.current || viewportHeight === 0) return;
+    if (isLoading || !sectionRef?.current || viewportHeight === 0) return;
 
     const checkVisibility = () => {
       if (hasFiredRef.current) return;
@@ -178,6 +191,7 @@ const useHomeViewedEvent = ({
     sectionRef,
     subscribeToScroll,
     fireEvent,
+    isLoading,
   ]);
 
   // Sections attach this to their root View's onLayout prop. onLayout fires
