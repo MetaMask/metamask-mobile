@@ -153,15 +153,40 @@ export class HyperLiquidClientService {
 
       // Wait for WebSocket to actually be ready before setting CONNECTED
       // This ensures we have a real connection, not just client objects
-      await this.#wsTransport.ready();
+      try {
+        await this.#wsTransport.ready();
+        this.#updateConnectionState(WebSocketConnectionState.Connected);
+      } catch (wsError) {
+        // WebSocket failed but HTTP clients are functional — fall back gracefully.
+        // This happens in E2E tests or restricted networks where WSS is unavailable.
+        this.#deps.debugLogger.log(
+          'HyperLiquid WebSocket connection failed, falling back to HTTP-only',
+          {
+            error: ensureError(wsError, 'WebSocketTransport.ready').message,
+            network,
+          },
+        );
 
-      this.#updateConnectionState(WebSocketConnectionState.Connected);
+        // Clean up WebSocket-dependent clients
+        this.#subscriptionClient = undefined;
+        this.#infoClient = this.#infoClientHttp;
+        if (this.#wsTransport) {
+          try {
+            await this.#wsTransport.close();
+          } catch {
+            // Ignore cleanup errors
+          }
+          this.#wsTransport = undefined;
+        }
+
+        this.#updateConnectionState(WebSocketConnectionState.Disconnected);
+      }
 
       this.#deps.debugLogger.log('HyperLiquid SDK clients initialized', {
         testnet: this.#isTestnet,
         timestamp: new Date().toISOString(),
         connectionState: this.#connectionState,
-        note: 'Using WebSocket for InfoClient (default), HTTP fallback available',
+        hasWebSocket: Boolean(this.#wsTransport),
       });
     } catch (error) {
       // Cleanup on failure to prevent leaks and ensure isInitialized() returns false
@@ -307,11 +332,10 @@ export class HyperLiquidClientService {
    * @returns True if all SDK clients are initialized.
    */
   public isInitialized(): boolean {
+    // Core clients (exchange + info) are required; subscription is optional
+    // (unavailable when WebSocket fails and HTTP-only fallback is active)
     return Boolean(
-      this.#exchangeClient &&
-        this.#infoClient &&
-        this.#infoClientHttp &&
-        this.#subscriptionClient,
+      this.#exchangeClient && this.#infoClient && this.#infoClientHttp,
     );
   }
 
