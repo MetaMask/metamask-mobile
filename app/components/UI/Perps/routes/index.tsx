@@ -43,6 +43,7 @@ import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWa
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
+import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
 const Stack = createStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createStackNavigator();
@@ -97,16 +98,8 @@ const PerpsModalStack = () => {
       <PerpsStreamProvider>
         <ModalStack.Navigator
           screenOptions={{
-            headerShown: false,
-            presentation: 'modal',
-            cardStyle: {
-              backgroundColor: 'transparent',
-            },
-            cardStyleInterpolator: () => ({
-              overlayStyle: {
-                opacity: 0,
-              },
-            }),
+            ...clearStackNavigatorOptions,
+            presentation: 'transparentModal',
           }}
         >
           <ModalStack.Screen

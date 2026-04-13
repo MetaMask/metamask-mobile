@@ -19,6 +19,7 @@ import PredictFeed from '../views/PredictFeed';
 import PredictGTMModal from '../components/PredictGTMModal';
 import { Dimensions } from 'react-native';
 import { selectPredictWithAnyTokenEnabledFlag } from '../selectors/featureFlags';
+import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
 interface PredictConfirmationRouteParams {
   animationEnabled?: boolean;
@@ -57,11 +58,8 @@ const ModalStack = createStackNavigator<PredictNavigationParamList>();
 const PredictModalStack = () => (
   <ModalStack.Navigator
     screenOptions={{
-      headerShown: false,
+      ...clearStackNavigatorOptions,
       presentation: 'transparentModal',
-      cardStyle: {
-        backgroundColor: 'transparent',
-      },
     }}
   >
     <ModalStack.Screen
