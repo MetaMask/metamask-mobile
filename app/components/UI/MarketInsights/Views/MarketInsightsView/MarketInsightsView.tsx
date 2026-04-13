@@ -619,7 +619,7 @@ const MarketInsightsView: React.FC = () => {
         contentContainerStyle={tw.style('pb-4')}
         showsVerticalScrollIndicator={false}
       >
-        <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
+        <Box twClassName="w-full" style={{ aspectRatio: 786 / 240 }}>
           {showLastFrame && (
             <Image
               source={lastFrameImage}
