@@ -10,6 +10,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
 import { ImageSourcePropType } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -70,7 +71,7 @@ const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
           gap={2}
         >
           <AvatarNetwork
-            src={imageSource}
+            src={imageSource as ImageOrSvgSrc}
             size={AvatarNetworkSize.Xs}
             name={label}
             shape={AvatarBaseShape.Square}

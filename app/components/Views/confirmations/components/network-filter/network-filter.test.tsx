@@ -79,15 +79,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-jest.mock('../../../../../component-library/components/Avatars/Avatar', () => ({
-  __esModule: true,
-  default: ({ name }: { name: string }) => {
-    const { View } = jest.requireActual('react-native');
-    return <View testID={`avatar-${name}`} />;
-  },
-  AvatarSize: { Xs: 'xs' },
-  AvatarVariant: { Network: 'network' },
-}));
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { View } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    AvatarNetwork: ({ name }: { name: string }) => (
+      <View testID={`avatar-${name}`} />
+    ),
+  };
+});
 
 describe('NetworkFilter', () => {
   const mockUseNetworks = jest.mocked(useNetworks);
