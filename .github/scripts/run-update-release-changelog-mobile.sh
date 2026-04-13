@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Invokes MetaMask github-tools update-release-changelog.sh with OTA version handling.
 #
-# OTA hotfix detection: a two-digit patch in the branch version (e.g. release/7.77.01).
-# auto-changelog rejects these as invalid SemVer (leading zeros are forbidden).
+# OTA hotfix detection: a multi-digit patch whose last digit is non-zero (e.g. release/7.77.01, release/7.77.11).
+# auto-changelog rejects leading-zero patches as invalid SemVer.
 #
 # This wrapper converts the Runway OTA version to a valid SemVer prerelease
 # for the changelog tool:
 #   Runway 7.77.01  → SemVer 7.77.0-ota.1
 #   Runway 7.77.21  → SemVer 7.77.2-ota.1
+#   Runway 7.77.111 → SemVer 7.77.11-ota.1
 #
 # The SemVer prerelease format stays in CHANGELOG.md permanently. auto-changelog
 # validates ALL version headers on every run, so non-SemVer versions like 7.77.01
@@ -15,7 +16,9 @@
 #
 # The Runway version (7.77.01) is used only in branch names, OTA_VERSION, and PR titles.
 #
-# Mapping (two-digit patch AB):  X.Y.AB → X.Y.A-ota.B
+# Mapping: patch % 10 = OTA iteration, patch / 10 = base binary patch.
+#   X.Y.{patch} → X.Y.{patch/10}-ota.{patch%10}
+# Multi-digit patches with last digit 0 (e.g. 10, 20) are binary hotfixes, not OTA.
 # Single-digit patches pass through unchanged.
 set -euo pipefail
 
@@ -40,10 +43,10 @@ fi
 
 PATCH="${RUNWAY_VERSION##*.}"
 
-if [[ ${#PATCH} -eq 2 ]]; then
-  # OTA hotfix: two-digit patch AB → X.Y.A-ota.B
-  BASE_PATCH="${PATCH:0:1}"
-  OTA_NUM="${PATCH:1:1}"
+if [[ ${#PATCH} -ge 2 && $((10#$PATCH % 10)) -ne 0 ]]; then
+  # OTA hotfix: last digit = OTA iteration, remaining digits = base binary patch
+  BASE_PATCH=$((10#$PATCH / 10))
+  OTA_NUM=$((10#$PATCH % 10))
   SEMVER_VERSION="${RUNWAY_VERSION%.*}.${BASE_PATCH}-ota.${OTA_NUM}"
 
   echo "OTA hotfix detected: Runway ${RUNWAY_VERSION} → SemVer ${SEMVER_VERSION}"

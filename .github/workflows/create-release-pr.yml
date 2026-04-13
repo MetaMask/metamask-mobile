@@ -46,12 +46,13 @@ jobs:
           fi
 
           patch="${SEMVER##*.}"
-          # OTA hotfix: patch has exactly two digits (e.g. 01, 21, 22).
-          # Two-digit patch AB → base patch A, OTA iteration B.
-          # Single-digit patches are regular hotfixes; single-digit 0 is a regular release.
-          if [[ ${#patch} -eq 2 ]]; then
+          # OTA hotfix: multi-digit patch whose last digit is non-zero.
+          # patch % 10 != 0 → OTA hotfix (last digit = OTA iteration, remaining digits = base binary patch).
+          # patch % 10 == 0 → binary hotfix (e.g. 10, 20) or regular release (0).
+          # Single-digit patches (1-9) are always binary hotfixes; 0 is a regular release.
+          if [[ ${#patch} -ge 2 && $((10#$patch % 10)) -ne 0 ]]; then
             echo "is_ota=true" >> "$GITHUB_OUTPUT"
-            echo "OTA hotfix (two-digit patch: ${patch}): branch release/${SEMVER}; OTA_VERSION v${SEMVER}."
+            echo "OTA hotfix (patch: ${patch}, last digit: $((10#$patch % 10))): branch release/${SEMVER}; OTA_VERSION v${SEMVER}."
           else
             echo "is_ota=false" >> "$GITHUB_OUTPUT"
             echo "Not OTA hotfix (patch segment: ${patch})."
@@ -165,7 +166,7 @@ jobs:
             git push origin "$BRANCH"
           fi
 
-      # Changelog: run-update-release-changelog-mobile.sh converts OTA two-digit patches to valid SemVer prereleases. The SemVer format stays in CHANGELOG.md permanently.
+      # Changelog: run-update-release-changelog-mobile.sh converts OTA patches to valid SemVer prereleases. The SemVer format stays in CHANGELOG.md permanently.
       - name: Checkout github-tools (release changelog)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
         uses: actions/checkout@v4
@@ -210,7 +211,7 @@ jobs:
           set -euo pipefail
           BRANCH="release/${SEMVER}"
           PATCH="${SEMVER##*.}"
-          SEMVER_CL="${SEMVER%.*}.${PATCH:0:1}-ota.${PATCH:1:1}"
+          SEMVER_CL="${SEMVER%.*}.$((10#$PATCH / 10))-ota.$((10#$PATCH % 10))"
           BODY="OTA hotfix: branch \`${BRANCH}\`."
           BODY="${BODY}"$'\n\n'"- Native semver and build version are **not** bumped."
           BODY="${BODY}"$'\n'"- \`OTA_VERSION\` in \`app/constants/ota.ts\` is \`v${SEMVER}\`."

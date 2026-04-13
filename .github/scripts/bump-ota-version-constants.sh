@@ -3,7 +3,7 @@
 #
 # With a semver second argument (OTA hotfix release workflow): sets OTA_VERSION to v<semver>
 # exactly as provided (e.g. 7.73.01 -> v7.73.01, 7.73.21 -> v7.73.21). No normalization is applied.
-# Two-digit patch AB means OTA hotfix: base patch A, iteration B.
+# OTA hotfix: multi-digit patch whose last digit (patch % 10) is the OTA iteration.
 #
 # Without semver (local / legacy): increments in place — vX.XX.X -> v0, vN -> v(N+1), vA.B.C -> vA.B.(C+1)
 set -euo pipefail
