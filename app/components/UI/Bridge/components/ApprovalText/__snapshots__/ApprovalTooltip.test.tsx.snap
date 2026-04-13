@@ -8,8 +8,7 @@ exports[`ApprovalTooltip renders correctly with given props 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -377,6 +376,6 @@ exports[`ApprovalTooltip renders correctly with given props 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

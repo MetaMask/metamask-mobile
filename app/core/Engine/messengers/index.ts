@@ -150,6 +150,8 @@ import {
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
+import { getSocialServiceMessenger } from './social-service-messenger';
+import { getSocialControllerMessenger } from './social-controller-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
@@ -466,6 +468,14 @@ export const MESSENGER_FACTORIES = {
   },
   AiDigestController: {
     getMessenger: getAiDigestControllerMessenger,
+    getInitMessenger: noop,
+  },
+  SocialService: {
+    getMessenger: getSocialServiceMessenger,
+    getInitMessenger: noop,
+  },
+  SocialController: {
+    getMessenger: getSocialControllerMessenger,
     getInitMessenger: noop,
   },
   CardController: {

@@ -7928,7 +7928,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-data-service@npm:^0.1.0":
+"@metamask/base-data-service@npm:^0.1.0, @metamask/base-data-service@npm:^0.1.1":
   version: 0.1.1
   resolution: "@metamask/base-data-service@npm:0.1.1"
   dependencies:
@@ -9904,6 +9904,19 @@ __metadata:
     ses: "npm:^1.15.0"
     validate-npm-package-name: "npm:^5.0.0"
   checksum: 10/cf36670f9946e2ab737d7fd1fd5be5c0e915c66b57e76d5f4bfc509061420f79b442b353c52a94c5f953fceba75f910ebd512592956a62e831f4eb43d0b0a40f
+  languageName: node
+  linkType: hard
+
+"@metamask/social-controllers@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@metamask/social-controllers@npm:0.1.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.1"
+    "@metamask/base-data-service": "npm:^0.1.1"
+    "@metamask/controller-utils": "npm:^11.20.0"
+    "@metamask/messenger": "npm:^1.1.0"
+    "@metamask/superstruct": "npm:^3.1.0"
+  checksum: 10/8ab6cf945b2020c0d3e1d16373ec8790e80736294814f779128f7984ddf715a79f4d3a5552ac9029075d98fa81db85c14abf9967f9395d8b20c5c828294aab7d
   languageName: node
   linkType: hard
 
@@ -35655,6 +35668,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^15.0.1"
     "@metamask/snaps-sdk": "npm:^11.0.0"
     "@metamask/snaps-utils": "npm:^12.1.2"
+    "@metamask/social-controllers": "npm:^0.1.0"
     "@metamask/solana-wallet-snap": "npm:^2.8.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
