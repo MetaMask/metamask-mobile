@@ -595,20 +595,6 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                 >
                                   Mock Account Name
                                 </Text>
-                                <SvgMock
-                                  color="#131416"
-                                  fill="currentColor"
-                                  height={16}
-                                  name="ArrowDown"
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "marginLeft": 8,
-                                      "width": 16,
-                                    }
-                                  }
-                                  width={16}
-                                />
                               </TouchableOpacity>
                             </View>
                             <View

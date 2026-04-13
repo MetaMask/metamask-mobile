@@ -50,7 +50,7 @@ describe('PickerBase', () => {
     expect(icon).toBeTruthy();
   });
 
-  it('should not render dropdown icon when showDropdownIcon is false', () => {
+  it('does not render dropdown icon when showDropdownIcon is false', () => {
     const { UNSAFE_queryByProps } = render(
       <PickerBase onPress={jest.fn()} showDropdownIcon={false}>
         <Text>Test Content</Text>
