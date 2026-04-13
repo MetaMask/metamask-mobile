@@ -24,7 +24,7 @@ describe('PickerAccount', () => {
 
   describe('Rendering', () => {
     it('renders with required props', () => {
-      const { getByText, getByTestId, UNSAFE_queryByProps } = render(
+      const { getByText, getByTestId } = render(
         <PickerAccount {...defaultProps} />,
       );
 
@@ -37,6 +37,12 @@ describe('PickerAccount', () => {
       expect(
         getByTestId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
       ).toBeOnTheScreen();
+    });
+
+    it('does not render dropdown icon', () => {
+      const { UNSAFE_queryByProps } = render(
+        <PickerAccount {...defaultProps} />,
+      );
 
       expect(UNSAFE_queryByProps({ name: IconName.ArrowDown })).toBeNull();
     });
