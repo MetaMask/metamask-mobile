@@ -11,7 +11,13 @@ import type {
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  return { ...actual };
+  const ReactActual = jest.requireActual('react');
+  const RN = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Text: (props: Record<string, unknown>) =>
+      ReactActual.createElement(RN.Text, props, props.children),
+  };
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
