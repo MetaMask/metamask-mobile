@@ -1,6 +1,7 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -27,6 +28,7 @@ import {
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 import type { NetworkFilterSelection } from '../../Homepage/Sections/TopTraders/types';
 import type { CaipChainId } from '@metamask/utils';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
 const SKELETON_COUNT = 5;
 const SKELETON_KEYS = Array.from(
@@ -43,8 +45,17 @@ const SKELETON_KEYS = Array.from(
 const TopTradersView = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const isEnabled = useSelector(selectSocialLeaderboardEnabled);
 
-  const { traders, isLoading, toggleFollow } = useTopTraders();
+  const { traders, isLoading, toggleFollow } = useTopTraders({
+    enabled: isEnabled,
+  });
+
+  useEffect(() => {
+    if (!isEnabled) {
+      navigation.goBack();
+    }
+  }, [isEnabled, navigation]);
 
   const [showNetworkBottomSheet, setShowNetworkBottomSheet] = useState(false);
   const [selectedNetwork, setSelectedNetwork] =

@@ -6,11 +6,11 @@ import {
   SocialService,
   type SocialServiceMessenger,
 } from '@metamask/social-controllers';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<SocialServiceMessenger>
+  MessengerClientInitRequest<SocialServiceMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
     namespace: MOCK_ANY_NAMESPACE,

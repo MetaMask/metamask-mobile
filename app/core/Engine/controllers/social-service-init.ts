@@ -2,7 +2,7 @@ import {
   SocialService,
   type SocialServiceMessenger,
 } from '@metamask/social-controllers';
-import type { ControllerInitFunction } from '../types';
+import type { MessengerClientInitFunction } from '../types';
 import AppConstants from '../../AppConstants';
 import Logger from '../../../util/Logger';
 
@@ -13,7 +13,7 @@ import Logger from '../../../util/Logger';
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized SocialService.
  */
-export const socialServiceInit: ControllerInitFunction<
+export const socialServiceInit: MessengerClientInitFunction<
   SocialService,
   SocialServiceMessenger
 > = ({ controllerMessenger }) => {
