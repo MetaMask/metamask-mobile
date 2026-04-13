@@ -47,6 +47,15 @@ import {
   mergeOrderFills,
 } from '../utils/transactionTransforms';
 
+function deduplicateById(transactions: PerpsTransaction[]): PerpsTransaction[] {
+  const seen = new Set<string>();
+  return transactions.filter((tx) => {
+    if (seen.has(tx.id)) return false;
+    seen.add(tx.id);
+    return true;
+  });
+}
+
 function deduplicateByTxHash(
   walletTxs: PerpsTransaction[],
   restHashes: Set<string>,
@@ -242,14 +251,7 @@ export const usePerpsTransactionHistory = ({
           (a.asset ?? '').localeCompare(b.asset ?? ''),
       );
 
-      // Remove duplicates based on ID
-      const uniqueTransactions = allTransactions.reduce((acc, transaction) => {
-        const existingIndex = acc.findIndex((t) => t.id === transaction.id);
-        if (existingIndex === -1) {
-          acc.push(transaction);
-        }
-        return acc;
-      }, [] as PerpsTransaction[]);
+      const uniqueTransactions = deduplicateById(allTransactions);
 
       DevLogger.log('Combined transactions:', uniqueTransactions);
       setTransactions(uniqueTransactions);
@@ -334,20 +336,13 @@ export const usePerpsTransactionHistory = ({
       fundingCursorRef.current = cursorStartTime;
 
       const olderFundingTxs = transformFundingToTransactions(olderFunding);
-      setTransactions((prev) => {
-        const combined = [...prev, ...olderFundingTxs];
-        const seen = new Set<string>();
-        const deduped = combined.filter((tx) => {
-          if (seen.has(tx.id)) return false;
-          seen.add(tx.id);
-          return true;
-        });
-        return deduped.sort(
+      setTransactions((prev) =>
+        deduplicateById([...prev, ...olderFundingTxs]).sort(
           (a, b) =>
             b.timestamp - a.timestamp ||
             (a.asset ?? '').localeCompare(b.asset ?? ''),
-        );
-      });
+        ),
+      );
 
       if (Math.max(cursorStartTime, maxStartTime) <= maxStartTime) {
         setHasFundingMore(false);
