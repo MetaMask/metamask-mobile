@@ -22,7 +22,7 @@ export interface HardwareWalletContextValue {
    */
   ensureDeviceReady: (deviceId?: string | null) => Promise<boolean>;
   /** Set the target wallet type for "Add Hardware Wallet" flows (no account yet). */
-  setTargetWalletType: (walletType: HardwareWalletType) => void;
+  setTargetWalletType: (walletType: HardwareWalletType | null) => void;
   /** Show a hardware wallet error in the bottom sheet. Use after ensureDeviceReady succeeds. */
   showHardwareWalletError: (error: unknown) => void;
   /** Show "awaiting confirmation" bottom sheet. */

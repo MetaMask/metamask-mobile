@@ -665,6 +665,95 @@ describe('HardwareWalletProvider', () => {
     });
   });
 
+  describe('handleBottomSheetConnectionSuccess (internal, via bottom sheet props)', () => {
+    it('resets refs and delegates to handleConnectionSuccess', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      const useTestActions = () => {
+        const hw = useHardwareWallet();
+        return {
+          actions: hw,
+          state: { connectionState: hw.connectionState },
+        };
+      };
+
+      const { result } = renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+
+      // Put provider into awaiting-confirmation so refs are populated
+      await act(async () => {
+        result.current.actions.showAwaitingConfirmation('transaction');
+      });
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.AwaitingConfirmation,
+      );
+
+      const internalOnConnectionSuccess =
+        capturedBottomSheetProps.onConnectionSuccess as () => void;
+      await act(async () => {
+        internalOnConnectionSuccess();
+      });
+
+      // After connection success the flow resets to Disconnected
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.Disconnected,
+      );
+    });
+  });
+
+  describe('handleAwaitingConfirmationCancel (internal, via bottom sheet props)', () => {
+    it('disconnects adapter, invokes rejection callback, and hides confirmation', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      const onReject = jest.fn();
+
+      const useTestActions = () => {
+        const hw = useHardwareWallet();
+        return {
+          actions: hw,
+          state: { connectionState: hw.connectionState },
+        };
+      };
+
+      const { result } = renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+
+      // Show awaiting confirmation with a rejection callback
+      await act(async () => {
+        result.current.actions.showAwaitingConfirmation(
+          'transaction',
+          onReject,
+        );
+      });
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.AwaitingConfirmation,
+      );
+
+      const internalCancel =
+        capturedBottomSheetProps.onAwaitingConfirmationCancel as () => void;
+      await act(async () => {
+        internalCancel();
+      });
+
+      // Adapter should disconnect
+      expect(mockAdapterInstance.disconnect).toHaveBeenCalled();
+      // Rejection callback should fire
+      expect(onReject).toHaveBeenCalled();
+      // State should return to disconnected
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.Disconnected,
+      );
+    });
+  });
+
   describe('setTargetWalletType', () => {
     const useTestActions = () => {
       const hw = useHardwareWallet();

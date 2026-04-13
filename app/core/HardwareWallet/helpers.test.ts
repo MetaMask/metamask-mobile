@@ -2,6 +2,7 @@ import {
   getHardwareWalletTypeName,
   getHardwareWalletTypeForAddress,
   getConnectionTipsForWalletType,
+  getDeviceIdForAddress,
 } from './helpers';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
@@ -27,6 +28,12 @@ jest.mock('../../constants/keyringTypes', () => ({
     ledger: 'Ledger Hardware',
     qr: 'QR Hardware Wallet Device',
   },
+}));
+
+const mockGetDeviceId = jest.fn();
+
+jest.mock('../Ledger/Ledger', () => ({
+  getDeviceId: () => mockGetDeviceId(),
 }));
 
 describe('HardwareWallet helpers', () => {
@@ -123,16 +130,57 @@ describe('HardwareWallet helpers', () => {
       ]);
     });
 
-    it('returns empty array for QR wallet type', () => {
+    it('returns QR-specific tips for QR wallet type', () => {
       const tips = getConnectionTipsForWalletType(HardwareWalletType.Qr);
 
-      expect(tips).toEqual([]);
+      expect(tips).toEqual([
+        'hardware_wallet.connecting.qr_tip_scan',
+        'hardware_wallet.connecting.qr_tip_align',
+        'hardware_wallet.connecting.qr_tip_lighting',
+      ]);
     });
 
     it('returns empty array for null wallet type', () => {
       const tips = getConnectionTipsForWalletType(null);
 
       expect(tips).toEqual([]);
+    });
+  });
+
+  describe('getDeviceIdForAddress', () => {
+    const testAddress = '0x1234567890abcdef1234567890abcdef12345678';
+
+    it('returns the Ledger device id for Ledger accounts', async () => {
+      mockIsHardwareAccount.mockReset();
+      mockIsHardwareAccount
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(false);
+      mockGetDeviceId.mockResolvedValue('ledger-device-id');
+
+      await expect(getDeviceIdForAddress(testAddress)).resolves.toBe(
+        'ledger-device-id',
+      );
+      expect(mockGetDeviceId).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns undefined for QR accounts', async () => {
+      mockIsHardwareAccount.mockReset();
+      mockIsHardwareAccount
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(true);
+
+      await expect(getDeviceIdForAddress(testAddress)).resolves.toBeUndefined();
+      expect(mockGetDeviceId).not.toHaveBeenCalled();
+    });
+
+    it('returns undefined for non-hardware accounts', async () => {
+      mockIsHardwareAccount.mockReset();
+      mockIsHardwareAccount
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(false);
+
+      await expect(getDeviceIdForAddress(testAddress)).resolves.toBeUndefined();
+      expect(mockGetDeviceId).not.toHaveBeenCalled();
     });
   });
 });

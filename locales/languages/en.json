@@ -7559,9 +7559,7 @@
       "loading": "Loading available tokens...",
       "load_error": "Unable to load tokens. Please try again.",
       "retry": "Try again",
-      "on_linea": "on Linea",
-      "account_label": "Account",
-      "token_label": "Token"
+      "on_linea": "on Linea"
     },
     "cashback_screen": {
       "title": "Cashback",
@@ -8003,7 +8001,6 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "musd": {
-      "page_title": "mUSD",
       "title": "mUSD bonus calculator",
       "description": "See how much you could earn by converting your stablecoins to mUSD.",
       "amount_label": "Amount converted",
@@ -8012,7 +8009,6 @@
       "daily_bonus": "Daily claimable bonus",
       "annualized_bonus": "Annualized bonus",
       "disclaimer": "This is only an estimate. The bonus is subject to change.",
-      "disclaimer_brief": "The bonus is an estimate and may change.",
       "buy_button": "Buy mUSD",
       "swap_button": "Swap to mUSD"
     },
@@ -8052,7 +8048,7 @@
       "starts_date": "Starts {{date}}",
       "ends_date": "Ends {{date}}",
       "ended_date": "Ended {{date}}",
-      "pill_up_next": "Coming soon",
+      "pill_up_next": "Up next",
       "pill_active": "Live",
       "pill_complete": "Complete",
       "enter_now": "Enter now",
@@ -8306,7 +8302,6 @@
     "sites": "Sites",
     "popular_sites": "Popular sites",
     "search_sites": "Search sites",
-    "view_all": "View all",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
     "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
@@ -8346,7 +8341,10 @@
       "tip_enable_bluetooth": "Bluetooth is turned on",
       "tip_bluetooth_permission": "Location and Bluetooth permission is granted",
       "tip_bluetooth_permission_v12": "Nearby devices permission is granted",
-      "tip_stay_close": "Your device stays close to your phone"
+      "tip_stay_close": "Your device stays close to your phone",
+      "qr_tip_scan": "Your camera is ready to scan the QR code",
+      "qr_tip_align": "Align the QR code within the frame",
+      "qr_tip_lighting": "Ensure good lighting for clear scanning"
     },
     "awaiting_app": {
       "title": "Open {{app}}",
