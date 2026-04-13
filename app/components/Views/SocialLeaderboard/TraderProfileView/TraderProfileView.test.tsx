@@ -123,8 +123,7 @@ describe('TraderProfileView', () => {
 
   it('displays the trader name', () => {
     renderWithProvider(<TraderProfileView />);
-    const nameElements = screen.getAllByText('dutchiono');
-    expect(nameElements.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('dutchiono')[0]).toBeOnTheScreen();
   });
 
   it('calls goBack when the back button is pressed', () => {

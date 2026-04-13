@@ -21,10 +21,11 @@ export interface PositionRowProps {
 
 function formatUsd(value: number | null | undefined): string {
   if (value == null) return '\u2014';
-  const rounded = Math.round(value * 100) / 100;
-  const [whole, frac = ''] = rounded.toString().split('.');
+  const sign = value < 0 ? '-' : '';
+  const abs = Math.round(Math.abs(value) * 100) / 100;
+  const [whole, frac = ''] = abs.toString().split('.');
   const paddedFrac = frac.padEnd(2, '0').slice(0, 2);
-  return `$${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${'.'}${paddedFrac}`;
+  return `${sign}$${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${'.'}${paddedFrac}`;
 }
 
 function formatPercent(value: number | null | undefined): string {

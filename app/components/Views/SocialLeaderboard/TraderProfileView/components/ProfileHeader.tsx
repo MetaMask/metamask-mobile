@@ -65,9 +65,12 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           fontWeight={FontWeight.Medium}
           color={TextColor.TextMuted}
         >
-          {strings('social_leaderboard.trader_profile.followers_count', {
-            count: followerCount,
-          })}
+          {strings(
+            followerCount === 1
+              ? 'social_leaderboard.trader_profile.followers_count'
+              : 'social_leaderboard.trader_profile.followers_count_plural',
+            { count: followerCount },
+          )}
         </Text>
       </Box>
     </Box>
