@@ -1,5 +1,3 @@
-import AppConstants from '../core/AppConstants';
-
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
@@ -148,13 +146,13 @@ export const MM_DEPRECATED_NETWORKS =
 export const MM_APP_STORE_LINK =
   'itms-apps://apps.apple.com/app/metamask-blockchain-wallet/id1438144202';
 
-export const MM_PLAY_STORE_LINK = `market://details?id=${AppConstants.BUNDLE_IDS.ANDROID}`;
+export const MM_PLAY_STORE_LINK = 'market://details?id=io.metamask';
 
 // SDK
-export const MM_SDK_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/connect?`;
+export const MM_SDK_DEEPLINK = 'https://metamask.app.link/connect?';
 
 // WalletConnect
-export const MM_WALLETCONNECT_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/wc?`;
+export const MM_WALLETCONNECT_DEEPLINK = 'https://metamask.app.link/wc?';
 
 export const FALSE_POSITIVE_REPORT_BASE_URL =
   'https://blockaid-false-positive-portal.metamask.io';
