@@ -50,10 +50,11 @@ const TopTradersView = () => {
   const { colors } = useTheme();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
 
-  const { traders, isLoading, isRefreshing, refresh, toggleFollow } =
-    useTopTraders({
-      enabled: isEnabled,
-    });
+  const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
+    enabled: isEnabled,
+  });
+
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (!isEnabled) {
@@ -86,7 +87,15 @@ const TopTradersView = () => {
   }, []);
 
   const handleRefresh = useCallback(async () => {
-    await refresh();
+    setRefreshing(true);
+    try {
+      const minDuration = new Promise<void>((resolve) =>
+        setTimeout(resolve, 1000),
+      );
+      await Promise.all([refresh(), minDuration]);
+    } finally {
+      setRefreshing(false);
+    }
   }, [refresh]);
 
   const handleTraderPress = useCallback(
@@ -158,7 +167,7 @@ const TopTradersView = () => {
           <RefreshControl
             colors={[colors.primary.default]}
             tintColor={colors.icon.default}
-            refreshing={isRefreshing}
+            refreshing={refreshing}
             onRefresh={handleRefresh}
           />
         }

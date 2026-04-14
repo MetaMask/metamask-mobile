@@ -54,7 +54,7 @@ const mockUseTopTraders: UseTopTradersResult = {
   isLoading: false,
   isRefreshing: false,
   error: null,
-  refresh: mockRefresh,
+  refresh: mockRefresh as () => Promise<void>,
   toggleFollow: mockToggleFollow,
 };
 
