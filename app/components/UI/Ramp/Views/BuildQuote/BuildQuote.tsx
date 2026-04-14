@@ -858,32 +858,32 @@ function BuildQuote() {
 
   return (
     <>
-      <HeaderCompactStandard
-        title={
-          selectedToken?.symbol
-            ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
-            : undefined
-        }
-        subtitle={
-          networkInfo?.networkName
-            ? strings('fiat_on_ramp.on_network', {
-                networkName: networkInfo.networkName,
-              })
-            : undefined
-        }
-        onBack={handleBackPress}
-        backButtonProps={{ testID: BUILD_QUOTE_TEST_IDS.BACK_BUTTON }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Setting,
-            onPress: handleSettingsPress,
-            testID: BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON,
-          },
-        ]}
-        includesTopInset
-      />
       <ScreenLayout>
         <ScreenLayout.Body>
+          <HeaderCompactStandard
+            title={
+              selectedToken?.symbol
+                ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
+                : undefined
+            }
+            subtitle={
+              networkInfo?.networkName
+                ? strings('fiat_on_ramp.on_network', {
+                    networkName: networkInfo.networkName,
+                  })
+                : undefined
+            }
+            onBack={handleBackPress}
+            backButtonProps={{ testID: BUILD_QUOTE_TEST_IDS.BACK_BUTTON }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Setting,
+                onPress: handleSettingsPress,
+                testID: BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON,
+              },
+            ]}
+            includesTopInset
+          />
           <ScreenLayout.Content style={styles.content}>
             <View style={styles.centerGroup}>
               <View style={styles.amountContainer}>
