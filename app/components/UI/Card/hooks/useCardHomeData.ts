@@ -65,8 +65,8 @@ export const useCardHomeData = () => {
     return {
       ...primaryAssetToken,
       asset: info?.asset,
-      balanceFiat: info?.balanceFiat ?? '',
-      balanceFormatted: info?.balanceFormatted ?? '',
+      balanceFiat: info?.balanceFiat,
+      balanceFormatted: info?.balanceFormatted,
       rawFiatNumber: info?.rawFiatNumber,
       rawTokenBalance: info?.rawTokenBalance,
     };
@@ -79,8 +79,8 @@ export const useCardHomeData = () => {
         return {
           ...token,
           asset: info?.asset,
-          balanceFiat: info?.balanceFiat ?? '',
-          balanceFormatted: info?.balanceFormatted ?? '',
+          balanceFiat: info?.balanceFiat,
+          balanceFormatted: info?.balanceFormatted,
           rawFiatNumber: info?.rawFiatNumber,
           rawTokenBalance: info?.rawTokenBalance,
         };
@@ -95,8 +95,8 @@ export const useCardHomeData = () => {
         return {
           ...token,
           asset: info?.asset,
-          balanceFiat: info?.balanceFiat ?? '',
-          balanceFormatted: info?.balanceFormatted ?? '',
+          balanceFiat: info?.balanceFiat,
+          balanceFormatted: info?.balanceFormatted,
           rawFiatNumber: info?.rawFiatNumber,
           rawTokenBalance: info?.rawTokenBalance,
         };

@@ -230,7 +230,7 @@ describe('useCardHomeData', () => {
       });
     });
 
-    it('returns enriched token with empty balance fields when map has no match', () => {
+    it('returns enriched token with undefined balance fields when map has no match', () => {
       setupSelectors(
         { primaryAsset: mockAsset, supportedTokens: [], assets: [] },
         'success',
@@ -241,8 +241,8 @@ describe('useCardHomeData', () => {
 
       expect(result.current.primaryAsset).toEqual({
         ...mockLegacyToken,
-        balanceFiat: '',
-        balanceFormatted: '',
+        balanceFiat: undefined,
+        balanceFormatted: undefined,
         rawFiatNumber: undefined,
         rawTokenBalance: undefined,
       });

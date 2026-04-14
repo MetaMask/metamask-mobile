@@ -96,8 +96,8 @@ export type CardTokenAllowance = {
  * route param or hook that expects CardTokenAllowance (extra fields are ignored).
  */
 export type CardAssetWithBalance = CardTokenAllowance & {
-  balanceFiat: string;
-  balanceFormatted: string;
+  balanceFiat: string | undefined;
+  balanceFormatted: string | undefined;
   rawFiatNumber: number | undefined;
   rawTokenBalance: number | undefined;
   /** Token object for logo/icon display — populated by useCardHomeData, not needed for delegation/spending-limit flows. */
