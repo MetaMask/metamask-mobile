@@ -277,6 +277,11 @@ export type PredictOutcome = {
   resolutionStatus?: string;
 };
 
+export type PredictOutcomeGroup = {
+  key: string;
+  outcomes: PredictOutcome[];
+};
+
 export type PredictOutcomeToken = {
   id: string;
   title: string;

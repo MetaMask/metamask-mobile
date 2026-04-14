@@ -348,6 +348,7 @@ const Routes = {
   SOCIAL_LEADERBOARD: {
     ROOT: 'SocialLeaderboard',
     VIEW: 'TopTradersView',
+    PROFILE: 'TraderProfileView',
   },
   PREDICT: {
     ROOT: 'Predict',
@@ -407,9 +408,6 @@ const Routes = {
     ROOT: 'MoneyScreens',
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
-  },
-  MONEY_ACCOUNT: {
-    ROOT: 'MoneyAccountScreens',
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',

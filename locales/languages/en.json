@@ -1019,7 +1019,18 @@
     },
     "follow": "Follow",
     "following": "Following",
-    "all_networks": "All networks"
+    "all_networks": "All networks",
+    "trader_profile": {
+      "followers_count": "{{count}} follower",
+      "followers_count_plural": "{{count}} followers",
+      "win_rate": "win rate",
+      "pnl_30d": "30D P&L",
+      "avg_hold": "avg. hold",
+      "open": "Open",
+      "closed": "Closed",
+      "no_positions": "No positions yet",
+      "error_loading_profile": "Couldn't load profile"
+    }
   },
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
@@ -2196,6 +2207,21 @@
       "about": "About",
       "positions": "Positions",
       "outcomes": "Outcomes"
+    },
+    "outcome_groups": {
+      "game_lines": "Game Lines",
+      "assists": "Assists",
+      "points": "Points",
+      "rebounds": "Rebounds",
+      "goals": "Goals",
+      "first_half": "1st Half",
+      "totals": "Totals",
+      "spreads": "Spreads",
+      "both_teams_to_score": "Both Teams to Score",
+      "goalscorers": "Goalscorers",
+      "exact_score": "Exact Score",
+      "halftime_result": "Halftime Result",
+      "corners": "Corners"
     },
     "sell_position": "Sell position",
     "cash_out": "Cash out",
@@ -6045,7 +6071,7 @@
     "your_bonus_tooltip_your_bonus": "Your bonus",
     "your_bonus_tooltip_your_bonus_desc": ":  {{percentage}}% annualized bonus you earn just for holding mUSD. You can claim it daily on Linea. ",
     "your_bonus_tooltip_annual_bonus": "Estimated annual bonus: ",
-    "your_bonus_tooltip_annual_bonus_desc": "A projection of what you'd earn over a year based on your current balance and rate.",
+    "your_bonus_tooltip_annual_bonus_desc": "A projection of what you'd earn over a year based on your current balance and rate. Rate is variable and may change.",
     "your_bonus_tooltip_lifetime_bonus": "Lifetime bonus claimed: ",
     "your_bonus_tooltip_lifetime_bonus_desc": "The total bonus you've claimed since you started.",
     "learn_more": "Learn more",
@@ -7603,6 +7629,7 @@
     },
     "card_authentication": {
       "title": "Log in to your card account",
+      "auth_prompt_info": "Log in to your card account to access this feature.",
       "location_button_text": "International",
       "location_button_text_us": "United States",
       "email_label": "Email",
