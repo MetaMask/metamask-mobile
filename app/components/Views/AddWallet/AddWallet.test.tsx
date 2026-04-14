@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 
+import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { renderScreen } from '../../../util/test/renderWithProvider';
@@ -48,15 +49,33 @@ describe('AddWallet', () => {
     });
 
     expect(screen.getByTestId(AddWalletTestIds.SCREEN)).toBeOnTheScreen();
-    expect(screen.getByText('Add wallet')).toBeOnTheScreen();
-    expect(screen.getByText('Import a wallet')).toBeOnTheScreen();
     expect(
-      screen.getByText('Using a 12, 18 or 24-word seed phrase'),
+      screen.getByText(strings('multichain_accounts.add_wallet')),
     ).toBeOnTheScreen();
-    expect(screen.getByText('Import an account')).toBeOnTheScreen();
-    expect(screen.getByText('Via a private key')).toBeOnTheScreen();
-    expect(screen.getByText('Connect a hardware wallet')).toBeOnTheScreen();
-    expect(screen.getByText('Using Bluetooth or a QR Code')).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('account_actions.import_wallet')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('multichain_accounts.add_wallet_srp_description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('accounts.import_account')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('multichain_accounts.add_wallet_private_key_description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('connect_hardware.title_select_hardware')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('multichain_accounts.add_wallet_hardware_description'),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('goes back when the back button is pressed', () => {
@@ -92,7 +111,7 @@ describe('AddWallet', () => {
 
     fireEvent.press(screen.getByTestId(AddWalletTestIds.IMPORT_ACCOUNT_BUTTON));
 
-    expect(mockedNavigate).toHaveBeenCalledWith('ImportPrivateKeyView');
+    expect(mockedNavigate).toHaveBeenCalledWith(Routes.IMPORT_PRIVATE_KEY_VIEW);
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
     );

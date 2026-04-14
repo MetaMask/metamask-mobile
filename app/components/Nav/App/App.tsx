@@ -998,7 +998,7 @@ const AppFlow = () => {
         component={RootModalFlow as ScreenComponent}
       />
       <Stack.Screen
-        name="ImportPrivateKeyView"
+        name={Routes.IMPORT_PRIVATE_KEY_VIEW}
         component={ImportPrivateKeyView}
         options={{
           animationEnabled: true,

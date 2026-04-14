@@ -56,7 +56,7 @@ const AddWallet = () => {
           'multichain_accounts.add_wallet_private_key_description',
         ),
         iconName: IconName.Download,
-        routeName: 'ImportPrivateKeyView',
+        routeName: Routes.IMPORT_PRIVATE_KEY_VIEW,
         testID: AddWalletTestIds.IMPORT_ACCOUNT_BUTTON,
         title: strings('accounts.import_account'),
       },
