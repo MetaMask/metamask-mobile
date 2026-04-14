@@ -18,6 +18,7 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
+import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import { TrendingTokenNetworkBottomSheet } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
@@ -93,6 +94,8 @@ const TopTradersView = () => {
         setTimeout(resolve, 1000),
       );
       await Promise.all([refresh(), minDuration]);
+    } catch (err) {
+      Logger.error(err as Error, 'TopTradersView: pull-to-refresh failed');
     } finally {
       setRefreshing(false);
     }

@@ -130,19 +130,25 @@ describe('TopTradersView', () => {
     expect(mockToggleFollow).toHaveBeenCalledWith(fixtureTraders[0].id);
   });
 
-  it('renders a RefreshControl on the trader list scroll view', () => {
+  it('renders a RefreshControl with the correct props on the trader list', () => {
     renderWithProvider(<TopTradersView />);
+
     const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
-    expect(list.props.refreshControl).toBeDefined();
+    const { refreshControl } = list.props;
+
+    expect(typeof refreshControl.props.onRefresh).toBe('function');
+    expect(typeof refreshControl.props.refreshing).toBe('boolean');
   });
 
   it('calls refresh when the scroll view is pulled down', async () => {
     mockRefresh.mockResolvedValue(undefined);
     renderWithProvider(<TopTradersView />);
     const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+
     await act(async () => {
       await list.props.refreshControl.props.onRefresh();
     });
+
     expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
