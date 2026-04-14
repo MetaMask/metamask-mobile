@@ -10,19 +10,19 @@ import {
   TimerFlushPolicy,
   type SegmentClient,
 } from '@segment/analytics-react-native';
-import { BrazePlugin } from '@segment/analytics-react-native-plugin-braze';
+import { BrazePlugin } from './BrazePlugin';
 import { segmentPersistor } from '../../../../util/analytics/SegmentPersistor';
 import Logger from '../../../../util/Logger';
 import MetaMetricsPrivacySegmentPlugin from '../../../../util/analytics/privacySegmentPlugin';
 
-let brazePluginInstance: BrazePlugin | null = null;
+let BrazePluginInstance: BrazePlugin | null = null;
 
 /**
- * Forward a profile-level identity to the Braze Segment plugin.
+ * Forward a profile-level identity to the Braze plugin.
  * When `profileId` is `undefined` the plugin silently drops all Braze calls.
  */
 export const setBrazeProfileId = (profileId: string | undefined): void => {
-  brazePluginInstance?.setBrazeProfileId(profileId);
+  BrazePluginInstance?.setBrazeProfileId(profileId);
 };
 
 const getSegmentClient = (): SegmentClient => {
@@ -46,15 +46,6 @@ const getSegmentClient = (): SegmentClient => {
         parseInt(process.env.SEGMENT_FLUSH_INTERVAL || '30', 10) * 1000,
       ),
     ],
-    defaultSettings: {
-      integrations: {
-        Appboy: {
-          // Enable Braze device-mode destination even if settings download fails
-          apiKey: '',
-          logPurchaseWhenRevenuePresent: false,
-        },
-      },
-    },
   };
 
   return createClient(config);
@@ -66,8 +57,8 @@ const getSegmentClient = (): SegmentClient => {
 export const createPlatformAdapter = (): AnalyticsPlatformAdapter => {
   const client = getSegmentClient();
 
-  brazePluginInstance = new BrazePlugin();
-  client.add({ plugin: brazePluginInstance });
+  BrazePluginInstance = new BrazePlugin();
+  client.add({ plugin: BrazePluginInstance });
 
   Logger.log('Analytics Adapter: Segment client initialized');
 

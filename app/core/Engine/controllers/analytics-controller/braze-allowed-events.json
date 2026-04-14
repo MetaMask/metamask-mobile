@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "allowedEvents": [
+    "On-ramp Purchase Completed",
+    "Unified SwapBridge Completed",
+    "Unified SwapBridge Quotes Requested",
+    "Earn Transaction Submitted",
+    "Perp Screen Viewed",
+    "Swap Completed",
+    "STX Confirmed",
+    "Dapp Transaction Completed",
+    "mUSD Conversion Status Updated"
+  ],
+  "allowedTraits": ["has_marketing_consent", "has_rewards_opted_in"]
+}

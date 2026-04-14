@@ -1,6 +1,6 @@
 import { createPlatformAdapter, setBrazeProfileId } from './platform-adapter';
 import type { SegmentClient } from '@segment/analytics-react-native';
-import { BrazePlugin } from '@segment/analytics-react-native-plugin-braze';
+import { BrazePlugin } from './BrazePlugin';
 import MetaMetricsPrivacySegmentPlugin from '../../../../util/analytics/privacySegmentPlugin';
 
 // Mock Logger (not in global setup)
@@ -32,7 +32,14 @@ jest.mock('../../../../util/analytics/SegmentPersistor', () => ({
   },
 }));
 
-// Segment client is already mocked in testSetup.js via @segment/analytics-react-native
+jest.mock('./BrazePlugin', () => ({
+  BrazePlugin: jest.fn().mockImplementation(() => ({
+    type: 'destination',
+    key: 'Appboy',
+    setBrazeProfileId: jest.fn(),
+  })),
+}));
+
 interface GlobalWithSegmentClient {
   segmentMockClient: SegmentClient;
 }
@@ -152,7 +159,10 @@ describe('createPlatformAdapter', () => {
 
       expect(MockBrazePlugin).toHaveBeenCalledTimes(1);
       expect(segmentMockClient.add).toHaveBeenCalledWith({
-        plugin: expect.objectContaining({ key: 'Appboy' }),
+        plugin: expect.objectContaining({
+          type: 'destination',
+          key: 'Appboy',
+        }),
       });
     });
   });
