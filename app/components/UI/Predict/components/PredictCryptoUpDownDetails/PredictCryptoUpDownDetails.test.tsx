@@ -25,21 +25,6 @@ jest.mock('react-native-reanimated', () => {
   };
 });
 
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: View,
-    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 375, height: 812 }),
-  };
-});
-
 jest.mock(
   '../../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated',
   () => ({

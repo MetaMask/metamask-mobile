@@ -12,7 +12,6 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../../../util/theme';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
@@ -39,9 +38,9 @@ import { sanitizeCustomLimit } from '../util/sanitizeCustomLimit';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
-import { cardQueries } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import { createSpendingLimitOptionsNavigationDetails } from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
+import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
@@ -125,7 +124,6 @@ const useSpendingLimit = ({
   routeParams,
 }: UseSpendingLimitParams): UseSpendingLimitReturn => {
   const navigation = useNavigation();
-  const queryClient = useQueryClient();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -536,11 +534,9 @@ const useSpendingLimit = ({
         network,
       });
 
-      // Wait for backend to process
+      // Wait for backend to process, then refresh card home data
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      await queryClient.invalidateQueries({
-        queryKey: cardQueries.dashboard.keys.externalWalletDetails(),
-      });
+      await Engine.context.CardController.fetchCardHomeData();
 
       if (!isOnboardingFlow) {
         showSuccessToast();
@@ -572,7 +568,6 @@ const useSpendingLimit = ({
     priorityToken,
     delegationAmount,
     submitDelegation,
-    queryClient,
     isOnboardingFlow,
     showSuccessToast,
     showErrorToast,

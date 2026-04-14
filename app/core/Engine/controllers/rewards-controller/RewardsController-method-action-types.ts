@@ -502,6 +502,19 @@ export type RewardsControllerGetOndoCampaignLeaderboardAction = {
 };
 
 /**
+ * Get campaign-wide total deposits.
+ * This is a public endpoint - no authentication required.
+ * Results are cached for 5 minutes.
+ *
+ * @param campaignId - The campaign ID to get deposits for.
+ * @returns The total USD deposited across all participants.
+ */
+export type RewardsControllerGetOndoCampaignDepositsAction = {
+  type: `RewardsController:getOndoCampaignDeposits`;
+  handler: RewardsController['getOndoCampaignDeposits'];
+};
+
+/**
  * Get the current user's position on the campaign leaderboard.
  * This is an authenticated endpoint.
  * Results are cached for 5 minutes.
@@ -712,6 +725,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerOptInToCampaignAction
   | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetOndoCampaignLeaderboardAction
+  | RewardsControllerGetOndoCampaignDepositsAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
   | RewardsControllerGetOndoCampaignActivityAction

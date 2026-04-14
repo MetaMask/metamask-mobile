@@ -24,8 +24,8 @@ import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/d
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
-import { ControllerInitRequest } from '../../types';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { MessengerClientInitRequest } from '../../types';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import {
   handleTransactionAddedEventForMetrics,
   handleTransactionApprovedEventForMetrics,
@@ -103,7 +103,7 @@ function buildControllerMock(
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >
@@ -115,7 +115,7 @@ function buildInitRequestMock(
     namespace: MOCK_ANY_NAMESPACE,
   });
   const requestMock = {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     initMessenger:
       initMessenger as unknown as TransactionControllerInitMessenger,
     controllerMessenger:
