@@ -15,11 +15,12 @@ import OndoCampaignRwaSelectorView from './Views/OndoCampaignRwaSelectorView';
 import OndoCampaignPortfolioView from './Views/OndoCampaignPortfolioView';
 import OndoCampaignStatsView from './Views/OndoCampaignStatsView';
 import CampaignTourStepView from './Views/CampaignTourStepView';
+import BenefitsView from './Views/BenefitsView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useTheme } from '../../../util/theme';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
@@ -32,6 +33,10 @@ const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
   const navigation = useNavigation();
+  const route = useRoute();
+  const deepLinkParams = route.params as
+    | { page?: string; campaign?: string }
+    | undefined;
   const { colors } = useTheme();
 
   useRewardsVersionGuard();
@@ -64,11 +69,23 @@ const RewardsNavigator: React.FC = () => {
       return;
     }
     if (subscriptionId) {
-      navigation.navigate(Routes.REWARDS_DASHBOARD);
+      if (deepLinkParams?.page === 'campaigns') {
+        navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW);
+      } else if (deepLinkParams?.campaign === 'ondo') {
+        navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW);
+      } else if (deepLinkParams?.campaign === 'season1') {
+        navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW);
+      } else if (deepLinkParams?.page === 'musd') {
+        navigation.navigate(Routes.REWARDS_MUSD_CALCULATOR_VIEW);
+      } else if (deepLinkParams?.page === 'benefits') {
+        navigation.navigate(Routes.REWARDS_BENEFITS_VIEW);
+      } else {
+        navigation.navigate(Routes.REWARDS_DASHBOARD);
+      }
     } else {
       navigation.navigate(Routes.REWARDS_ONBOARDING_FLOW);
     }
-  }, [navigation, subscriptionId, isVersionBlocked]);
+  }, [navigation, subscriptionId, isVersionBlocked, deepLinkParams]);
 
   if (isVersionBlocked) {
     return <RewardsUpdateRequired />;
@@ -149,6 +166,11 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_ONDO_CAMPAIGN_STATS}
             component={OndoCampaignStatsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_BENEFITS_VIEW}
+            component={BenefitsView}
             options={{ headerShown: false }}
           />
         </>

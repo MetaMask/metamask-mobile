@@ -14,6 +14,8 @@ interface HandleRewardsUrlParams {
  */
 interface RewardsNavigationParams {
   referral?: string;
+  page?: 'campaigns' | 'musd' | 'benefits';
+  campaign?: 'ondo' | 'season1';
 }
 
 /**
@@ -28,10 +30,19 @@ const parseRewardsNavigationParams = (
     rewardsPath.includes('?') ? rewardsPath.split('?')[1] : '',
   );
 
+  const pageParam = urlParams.get('page');
+  const campaignParam = urlParams.get('campaign');
+
   return {
     referral:
       (urlParams.get('referral') as RewardsNavigationParams['referral']) ||
       undefined,
+    page: (['campaigns', 'musd', 'benefits'].includes(pageParam ?? '')
+      ? pageParam
+      : undefined) as RewardsNavigationParams['page'],
+    campaign: (['ondo', 'season1'].includes(campaignParam ?? '')
+      ? campaignParam
+      : undefined) as RewardsNavigationParams['campaign'],
   };
 };
 
@@ -43,6 +54,11 @@ const parseRewardsNavigationParams = (
  * Supported URL formats:
  * - https://link.metamask.io/rewards
  * - https://link.metamask.io/rewards?referral=code
+ * - https://link.metamask.io/rewards?page=campaigns
+ * - https://link.metamask.io/rewards?page=musd
+ * - https://link.metamask.io/rewards?page=benefits
+ * - https://link.metamask.io/rewards?campaign=ondo
+ * - https://link.metamask.io/rewards?campaign=season1
  */
 export const handleRewardsUrl = async ({
   rewardsPath,
@@ -66,7 +82,14 @@ export const handleRewardsUrl = async ({
       // Clear any existing referral code
       ReduxService.store.dispatch(setOnboardingReferralCode(null));
     }
-    NavigationService.navigation.navigate(Routes.REWARDS_VIEW);
+    if (urlParams.page || urlParams.campaign) {
+      NavigationService.navigation.navigate(Routes.REWARDS_VIEW, {
+        page: urlParams.page,
+        campaign: urlParams.campaign,
+      });
+    } else {
+      NavigationService.navigation.navigate(Routes.REWARDS_VIEW);
+    }
   } catch (error) {
     DevLogger.log('Failed to handle rewards deeplink:', error);
     // Fallback to wallet home on error

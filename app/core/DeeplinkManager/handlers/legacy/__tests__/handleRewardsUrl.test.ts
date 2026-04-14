@@ -119,6 +119,77 @@ describe('handleRewardsUrl', () => {
     });
   });
 
+  describe('with page/campaign navigation params', () => {
+    it('navigates to rewards view with page=campaigns param', async () => {
+      await handleRewardsUrl({ rewardsPath: '?page=campaigns' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
+        page: 'campaigns',
+        campaign: undefined,
+      });
+    });
+
+    it('navigates to rewards view with campaign=ondo param', async () => {
+      await handleRewardsUrl({ rewardsPath: '?campaign=ondo' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
+        page: undefined,
+        campaign: 'ondo',
+      });
+    });
+
+    it('navigates to rewards view with campaign=season1 param', async () => {
+      await handleRewardsUrl({ rewardsPath: '?campaign=season1' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
+        page: undefined,
+        campaign: 'season1',
+      });
+    });
+
+    it('navigates to rewards view with page=musd param', async () => {
+      await handleRewardsUrl({ rewardsPath: '?page=musd' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
+        page: 'musd',
+        campaign: undefined,
+      });
+    });
+
+    it('navigates to rewards view with page=benefits param', async () => {
+      await handleRewardsUrl({ rewardsPath: '?page=benefits' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
+        page: 'benefits',
+        campaign: undefined,
+      });
+    });
+
+    it('ignores unknown page value and navigates without params', async () => {
+      await handleRewardsUrl({ rewardsPath: '?page=unknown' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
+    });
+
+    it('ignores unknown campaign value and navigates without params', async () => {
+      await handleRewardsUrl({ rewardsPath: '?campaign=unknown' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
+    });
+
+    it('dispatches referral code and passes page param when both are present', async () => {
+      await handleRewardsUrl({
+        rewardsPath: '?referral=abc123&page=campaigns',
+      });
+
+      expect(setOnboardingReferralCode).toHaveBeenCalledWith('abc123');
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
+        page: 'campaigns',
+        campaign: undefined,
+      });
+    });
+  });
+
   describe('error handling', () => {
     it('falls back to wallet view when navigation fails', async () => {
       mockNavigate.mockImplementationOnce(() => {
