@@ -38,6 +38,7 @@ export function usePredictDefaultPaymentToken() {
 
     const bestToken = tokens.find(
       (token) =>
+        Boolean(token.address && token.chainId) &&
         token.fiat?.balance != null &&
         new BigNumber(token.fiat.balance).isGreaterThan(0),
     );
