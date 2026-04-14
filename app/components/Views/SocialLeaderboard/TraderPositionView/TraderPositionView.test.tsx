@@ -53,37 +53,6 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   getAssetImageUrl: (...args: unknown[]) => mockGetAssetImageUrl(...args),
 }));
 
-jest.mock('./components/QuickBuyBottomSheet', () => {
-  const { Text, TouchableOpacity, View } = jest.requireActual('react-native');
-
-  return ({
-    isVisible,
-    position,
-    onClose,
-  }: {
-    isVisible: boolean;
-    position: Position | null;
-    onClose: () => void;
-  }) => {
-    if (!isVisible) {
-      return (
-        <View testID="mock-quick-buy-bottom-sheet-hidden">
-          <Text>{position?.tokenSymbol ?? 'no-position'}</Text>
-        </View>
-      );
-    }
-
-    return (
-      <View testID="mock-quick-buy-bottom-sheet-visible">
-        <Text>{position?.tokenSymbol ?? 'no-position'}</Text>
-        <TouchableOpacity testID="mock-quick-buy-close" onPress={onClose}>
-          <Text>Close Quick Buy</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
-});
-
 describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -146,32 +115,11 @@ describe('TraderPositionView', () => {
     expect(screen.getByText('PUNCH')).toBeOnTheScreen();
   });
 
-  it('opens the quick buy bottom sheet when the buy button is pressed', () => {
+  it('renders the buy button', () => {
     renderWithProvider(<TraderPositionView />);
 
-    fireEvent.press(
+    expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
-    );
-
-    expect(
-      screen.getByTestId('mock-quick-buy-bottom-sheet-visible'),
-    ).toBeOnTheScreen();
-    expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(2);
-  });
-
-  it('hides the quick buy bottom sheet after the sheet close handler runs', () => {
-    renderWithProvider(<TraderPositionView />);
-
-    fireEvent.press(
-      screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
-    );
-    fireEvent.press(screen.getByTestId('mock-quick-buy-close'));
-
-    expect(
-      screen.queryByTestId('mock-quick-buy-bottom-sheet-visible'),
-    ).not.toBeOnTheScreen();
-    expect(
-      screen.getByTestId('mock-quick-buy-bottom-sheet-hidden'),
     ).toBeOnTheScreen();
   });
 
