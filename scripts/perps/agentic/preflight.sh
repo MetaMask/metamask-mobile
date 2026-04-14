@@ -635,7 +635,7 @@ for p in json.loads(sys.stdin.read() or "[]"):
 fi
 
 # Verify CDP is connected to the right platform (status may return object or array)
-CDP_STATUS=$(node "$SCRIPTS/cdp-bridge.js" status 2>&1 || true)
+CDP_STATUS=$(node "$SCRIPTS/cdp-bridge.js" status 2>>"$CDP_LOG" || true)
 printf '[final-status]\n%s\n' "$CDP_STATUS" >>"$CDP_LOG"
 CDP_HAS_PLAT=$(echo "$CDP_STATUS" | jq -r 'if type == "array" then [.[].platform] else [.platform] end | map(select(. == "'"$PLAT"'")) | length' 2>/dev/null || echo 0)
 if [ "$CDP_HAS_PLAT" = "0" ]; then
