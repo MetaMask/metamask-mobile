@@ -195,7 +195,7 @@ const RewardsDashboard: React.FC = () => {
             {
               iconName: IconName.UserCircleAdd,
               onPress: () => navigation.navigate(Routes.REFERRAL_REWARDS_VIEW),
-              disabled: !subscriptionId,
+              testID: REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
             },
           ]}
         />
