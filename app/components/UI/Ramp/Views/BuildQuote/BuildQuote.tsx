@@ -857,8 +857,7 @@ function BuildQuote() {
     : strings('fiat_on_ramp.no_quotes_available');
 
   return (
-    <>
-      <ScreenLayout>
+    <ScreenLayout>
         <ScreenLayout.Body>
           <HeaderCompactStandard
             title={
@@ -1014,7 +1013,6 @@ function BuildQuote() {
           </ScreenLayout.Content>
         </ScreenLayout.Body>
       </ScreenLayout>
-    </>
   );
 }
 
