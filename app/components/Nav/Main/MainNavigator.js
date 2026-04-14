@@ -770,11 +770,6 @@ const HomeTabs = () => {
   const renderTabBar = ({ state, descriptors, navigation }) => {
     const currentRoute = state.routes[state.index];
 
-    // Hide tab bar for rewards onboarding splash screen
-    if (currentRoute.name?.startsWith('Rewards') && !rewardsSubscription) {
-      return null;
-    }
-
     // Hide tab bar when in browser
     const currentStackRouteName =
       currentRoute?.state?.routes?.[currentRoute?.state?.index]?.name;

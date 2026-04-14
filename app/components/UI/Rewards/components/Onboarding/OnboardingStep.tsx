@@ -41,7 +41,8 @@ interface OnboardingStepProps {
 
   // Button props
   nextButtonText?: string;
-  nextButtonAlternative?: () => ReactNode;
+  renderReferralSection?: () => ReactNode;
+  renderLegalDisclaimer?: () => ReactNode;
 
   // Render props for customizable content
   renderStepImage?: () => ReactNode;
@@ -61,7 +62,8 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
   onNextLoadingText,
   onNextDisabled,
   nextButtonText,
-  nextButtonAlternative,
+  renderReferralSection,
+  renderLegalDisclaimer,
   renderStepImage,
   renderStepInfo,
   disableSwipe = false,
@@ -128,53 +130,47 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
           />
         )}
       </Box>
-      <Box twClassName="flex-col flex-1 justify-between items-center">
-        {/* Only render image container if renderStepImage is provided */}
+      <Box twClassName="flex-col flex-1 items-center justify-between mt-16">
         <Box
           justifyContent={BoxJustifyContent.Center}
           alignItems={BoxAlignItems.Center}
           flexDirection={BoxFlexDirection.Column}
-          twClassName="flex-1"
         >
           {renderStepImage?.()}
+          {renderStepInfo()}
         </Box>
 
-        <Box twClassName="gap-4 w-full flex justify-between">
-          <Box twClassName="flex-col flex-grow justify-end">
-            {renderStepInfo()}
-          </Box>
+        <Box twClassName="w-full flex-col gap-4 items-center">
+          {renderReferralSection?.()}
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            onPress={onNext}
+            twClassName="w-full"
+            isLoading={onNextLoading}
+            loadingText={onNextLoadingText}
+            isDisabled={onNextDisabled || onNextLoading}
+            testID={REWARDS_VIEW_SELECTORS.NEXT_BUTTON}
+          >
+            {nextButtonText || strings('rewards.onboarding.step_confirm')}
+          </Button>
 
-          <Box twClassName="w-full flex-col gap-2">
+          {onSkip && (
             <Button
-              variant={ButtonVariant.Primary}
+              variant={ButtonVariant.Tertiary}
               size={ButtonSize.Lg}
-              onPress={onNext}
-              twClassName="w-full"
-              isLoading={onNextLoading}
-              loadingText={onNextLoadingText}
-              isDisabled={onNextDisabled || onNextLoading}
-              testID={REWARDS_VIEW_SELECTORS.NEXT_BUTTON}
+              onPress={onSkip}
+              twClassName="w-full bg-gray-500 border-gray-500"
+              testID={REWARDS_VIEW_SELECTORS.SKIP_BUTTON}
             >
-              {nextButtonText || strings('rewards.onboarding.step_confirm')}
+              <Text twClassName="text-text-default">
+                {strings('rewards.onboarding.step_skip')}
+              </Text>
             </Button>
-
-            {onSkip && (
-              <Button
-                variant={ButtonVariant.Tertiary}
-                size={ButtonSize.Lg}
-                onPress={onSkip}
-                twClassName="w-full bg-gray-500 border-gray-500"
-                testID={REWARDS_VIEW_SELECTORS.SKIP_BUTTON}
-              >
-                <Text twClassName="text-text-default">
-                  {strings('rewards.onboarding.step_skip')}
-                </Text>
-              </Button>
-            )}
-
-            {nextButtonAlternative?.()}
-          </Box>
+          )}
         </Box>
+
+        <Box twClassName="w-full">{renderLegalDisclaimer?.()}</Box>
       </Box>
     </KeyboardAwareScrollView>
   );
