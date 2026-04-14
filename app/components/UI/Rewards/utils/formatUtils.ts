@@ -206,20 +206,21 @@ export const formatDateRemaining = (
     );
   };
 
-  let cursor = new Date(start.getTime());
+  let totalMonths = 0;
   let year = 0;
   let month = 0;
 
-  while (addUtcMonths(cursor, 12) <= end) {
-    cursor = addUtcMonths(cursor, 12);
+  while (addUtcMonths(start, totalMonths + 12) <= end) {
+    totalMonths += 12;
     year += 1;
   }
 
-  while (addUtcMonths(cursor, 1) <= end) {
-    cursor = addUtcMonths(cursor, 1);
+  while (addUtcMonths(start, totalMonths + 1) <= end) {
+    totalMonths += 1;
     month += 1;
   }
 
+  const cursor = addUtcMonths(start, totalMonths);
   const remainingMs = end.getTime() - cursor.getTime();
   const day = Math.floor(remainingMs / msInDay);
   const hour = Math.floor((remainingMs % msInDay) / msInHour);

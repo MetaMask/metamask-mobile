@@ -62,9 +62,7 @@ const BenefitsPreview = () => {
     </Box>
   );
 
-  const displayContent = isLoading ? (
-    <Skeleton height={154} twClassName="rounded-lg" />
-  ) : hasBenefits ? (
+  const displayContent = hasBenefits ? (
     <Box
       twClassName={`gap-3`}
       testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS}
@@ -83,7 +81,11 @@ const BenefitsPreview = () => {
       testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_SECTION}
     >
       {displayHeader}
-      {displayContent}
+      {isLoading ? (
+        <Skeleton height={154} twClassName="rounded-lg" />
+      ) : (
+        displayContent
+      )}
     </Box>
   );
 };

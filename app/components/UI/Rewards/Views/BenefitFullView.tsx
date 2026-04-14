@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Image, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -62,10 +62,13 @@ const BenefitFullView = () => {
     }
   };
 
-  const remainingTime =
-    benefit.actionDate == null
-      ? null
-      : formatDateRemaining(benefit.actionDate, Date.now());
+  const remainingTime = useMemo(
+    () =>
+      benefit.actionDate == null
+        ? null
+        : formatDateRemaining(benefit.actionDate, Date.now()),
+    [benefit.actionDate],
+  );
 
   return (
     <ErrorBoundary navigation={navigation} view="BenefitFullView">

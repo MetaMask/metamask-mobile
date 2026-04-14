@@ -4672,7 +4672,7 @@ describe('setBenefits', () => {
     ],
   };
 
-  it('should set benefits from payload', () => {
+  it('sets benefits from payload', () => {
     const action = setBenefits(mockBenefitsPayload);
 
     const state = rewardsReducer(initialState, action);
@@ -4680,7 +4680,7 @@ describe('setBenefits', () => {
     expect(state.benefits).toEqual(mockBenefitsPayload.benefits);
   });
 
-  it('should replace existing benefits with new payload benefits', () => {
+  it('replaces existing benefits with new payload benefits', () => {
     const stateWithBenefits: RewardsState = {
       ...initialState,
       benefits: mockBenefitsPayload.benefits,
@@ -4703,7 +4703,7 @@ describe('setBenefits', () => {
     expect(state.benefits).toEqual(nextBenefitsPayload.benefits);
   });
 
-  it('should only update benefits and preserve unrelated fields', () => {
+  it('updates benefits and preserves unrelated fields', () => {
     const stateWithOtherFlags: RewardsState = {
       ...initialState,
       benefitsLoading: true,
@@ -4724,7 +4724,7 @@ describe('setBenefits', () => {
 });
 
 describe('setBenefitsLoading', () => {
-  it('should set benefitsLoading to true', () => {
+  it('sets benefitsLoading to true', () => {
     const action = setBenefitsLoading(true);
 
     const state = rewardsReducer(initialState, action);
@@ -4732,7 +4732,7 @@ describe('setBenefitsLoading', () => {
     expect(state.benefitsLoading).toBe(true);
   });
 
-  it('should set benefitsLoading to false', () => {
+  it('sets benefitsLoading to false', () => {
     const stateWithLoading: RewardsState = {
       ...initialState,
       benefitsLoading: true,
@@ -4746,7 +4746,7 @@ describe('setBenefitsLoading', () => {
 });
 
 describe('setBenefitsError', () => {
-  it('should set benefitsError to true', () => {
+  it('sets benefitsError to true', () => {
     const action = setBenefitsError(true);
 
     const state = rewardsReducer(initialState, action);
@@ -4754,7 +4754,7 @@ describe('setBenefitsError', () => {
     expect(state.benefitsError).toBe(true);
   });
 
-  it('should set benefitsError to false', () => {
+  it('sets benefitsError to false', () => {
     const stateWithError: RewardsState = {
       ...initialState,
       benefitsError: true,

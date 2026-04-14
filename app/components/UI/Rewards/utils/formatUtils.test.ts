@@ -410,6 +410,14 @@ describe('formatUtils', () => {
       expect(result).toBe('1mo 3d');
     });
 
+    it('keeps end-of-month anchor when stepping across shorter months', () => {
+      const now = new Date('2025-01-31T00:00:00Z');
+
+      const result = formatDateRemaining('2025-03-31T00:00:00Z', now);
+
+      expect(result).toBe('2mo');
+    });
+
     it('returns null for past dates', () => {
       jest.useFakeTimers().setSystemTime(new Date('2025-03-03T00:00:00Z'));
 
