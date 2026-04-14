@@ -8,9 +8,9 @@ import {
   addTransaction,
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { selectDefaultEndpointByChainId } from '../../../../selectors/networkController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdraw,
@@ -22,13 +22,14 @@ import { ConfirmationLoader } from '../../../Views/confirmations/components/conf
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 
 function useMoneyAccountContext() {
-  const selectedAccount = useSelector(selectSelectedInternalAccountAddress);
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const endpoint = useSelector((state: RootState) =>
     vaultConfig.chainId
       ? selectDefaultEndpointByChainId(state, vaultConfig.chainId as Hex)
       : undefined,
   );
+
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
 
   const getProvider = useCallback(():
     | ethers.providers.Web3Provider
@@ -43,11 +44,11 @@ function useMoneyAccountContext() {
     return new ethers.providers.Web3Provider(externalProvider);
   }, [endpoint]);
 
-  return { selectedAccount, vaultConfig, endpoint, getProvider };
+  return { primaryMoneyAccount, vaultConfig, endpoint, getProvider };
 }
 
 export function useMoneyAccountDeposit() {
-  const { selectedAccount, vaultConfig, endpoint, getProvider } =
+  const { primaryMoneyAccount, vaultConfig, endpoint, getProvider } =
     useMoneyAccountContext();
   const { navigateToConfirmation } = useConfirmNavigation();
 
@@ -62,7 +63,7 @@ export function useMoneyAccountDeposit() {
       } = vaultConfig;
 
       if (
-        !selectedAccount ||
+        !primaryMoneyAccount?.address ||
         !chainId ||
         !boringVault ||
         !tellerAddress ||
@@ -90,11 +91,15 @@ export function useMoneyAccountDeposit() {
 
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
-        stack: Routes.PREDICT.ROOT,
+        stack: Routes.MONEY.ROOT,
       });
 
+      /*
+       * We are only setting the transaction we want to do from the money account. MM pay takes care of selecting users account and moving the funds to the money account.
+       * Because of that we need from to be set to the money account and networkClientId needs to be set to the network the money account is on.
+       */
       await addTransactionBatch({
-        from: selectedAccount as Hex,
+        from: primaryMoneyAccount.address as Hex,
         networkClientId: endpoint.networkClientId,
         origin: ORIGIN_METAMASK,
         disableHook: true,
@@ -104,7 +109,7 @@ export function useMoneyAccountDeposit() {
     },
     [
       navigateToConfirmation,
-      selectedAccount,
+      primaryMoneyAccount,
       vaultConfig,
       endpoint,
       getProvider,
@@ -115,7 +120,7 @@ export function useMoneyAccountDeposit() {
 }
 
 export function useMoneyAccountWithdrawal() {
-  const { selectedAccount, vaultConfig, endpoint, getProvider } =
+  const { primaryMoneyAccount, vaultConfig, endpoint, getProvider } =
     useMoneyAccountContext();
   const { navigateToConfirmation } = useConfirmNavigation();
 
@@ -124,7 +129,7 @@ export function useMoneyAccountWithdrawal() {
       const { chainId, tellerAddress, accountantAddress } = vaultConfig;
 
       if (
-        !selectedAccount ||
+        !primaryMoneyAccount?.address ||
         !chainId ||
         !tellerAddress ||
         !accountantAddress ||
@@ -143,17 +148,17 @@ export function useMoneyAccountWithdrawal() {
         chainId: chainId as Hex,
         tellerAddress,
         accountantAddress,
-        toAddress: selectedAccount,
+        toAddress: primaryMoneyAccount.address as Hex,
         provider,
       });
 
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
-        stack: Routes.PREDICT.ROOT,
+        stack: Routes.MONEY.ROOT,
       });
 
       await addTransaction(
-        { from: selectedAccount as Hex, ...params },
+        { from: primaryMoneyAccount.address as Hex, ...params },
         {
           ...options,
           networkClientId: endpoint.networkClientId,
@@ -163,7 +168,7 @@ export function useMoneyAccountWithdrawal() {
     },
     [
       navigateToConfirmation,
-      selectedAccount,
+      primaryMoneyAccount,
       vaultConfig,
       endpoint,
       getProvider,
