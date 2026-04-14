@@ -9185,6 +9185,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/money-account-balance-service@file:.yalc/@metamask/money-account-balance-service::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/money-account-balance-service@file:.yalc/@metamask/money-account-balance-service#.yalc/@metamask/money-account-balance-service::hash=e8c366&locator=metamask%40workspace%3A."
+  dependencies:
+    "@ethersproject/contracts": "npm:^5.7.0"
+    "@ethersproject/providers": "npm:^5.7.0"
+    "@metamask/base-data-service": "npm:^0.1.1"
+    "@metamask/controller-utils": "npm:^11.20.0"
+    "@metamask/messenger": "npm:^1.1.1"
+    "@metamask/metamask-eth-abis": "npm:^3.1.1"
+    "@metamask/network-controller": "npm:^30.0.1"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/utils": "npm:^11.9.0"
+  checksum: 10/a374901fcb3ce7350bb4289c8b99ed2eee78685fae38d500d4d554ce9fcba5b72a11878c3f9d2a27ab61c8c6b5c57448df6bdc6c0051101fd7d30e58503167bd
+  languageName: node
+  linkType: hard
+
 "@metamask/money-account-controller@npm:^0.1.0":
   version: 0.1.0
   resolution: "@metamask/money-account-controller@npm:0.1.0"
@@ -35890,6 +35907,7 @@ __metadata:
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
+    "@metamask/money-account-balance-service": "file:.yalc/@metamask/money-account-balance-service"
     "@metamask/money-account-controller": "npm:^0.1.0"
     "@metamask/multichain-account-service": "npm:^8.0.1"
     "@metamask/multichain-api-client": "npm:^0.10.1"

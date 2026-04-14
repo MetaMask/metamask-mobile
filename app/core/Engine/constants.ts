@@ -21,6 +21,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'TransakService',
   'ComplianceService',
   'SocialService',
+  'MoneyAccountBalanceService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [

@@ -302,6 +302,7 @@ import {
   MoneyAccountControllerEvents,
   MoneyAccountControllerState,
 } from '@metamask/money-account-controller';
+import { MoneyAccountBalanceService } from '@metamask/money-account-balance-service';
 import {
   GeolocationController,
   GeolocationControllerState,
@@ -769,6 +770,7 @@ export type MessengerClients = {
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
   MoneyAccountController: MoneyAccountController;
+  MoneyAccountBalanceService: MoneyAccountBalanceService;
   GeolocationController: GeolocationController;
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
