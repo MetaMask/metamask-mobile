@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { ImageBackground, Pressable, useColorScheme } from 'react-native';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -11,10 +10,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -26,7 +21,6 @@ import {
   getCampaignStatusInfo,
   isCampaignTypeSupported,
 } from './CampaignTile.utils';
-import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
 import { strings } from '../../../../../../locales/i18n';
 import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
 
@@ -53,15 +47,10 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
 
-  const participantCount = useSelector(
-    selectCampaignParticipantCount(campaign.id),
-  );
-
   const {
     status: campaignStatus,
     statusLabel,
-    /* dateLabel,
-    dateLabelIcon, */
+    dateLabel,
   } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
 
   const { status: participantStatus, isLoading: isParticipantStatusLoading } =
@@ -129,108 +118,62 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
       >
         <Box
           flexDirection={BoxFlexDirection.Column}
-          justifyContent={BoxJustifyContent.Between}
+          justifyContent={BoxJustifyContent.End}
           twClassName="p-4 flex-1"
         >
-          {/* Date label */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="gap-1"
-            testID="campaign-tile-date-label"
+            testID="campaign-tile-status-label"
           >
-            {/* removed content for now; will be moved to bottom half of card instead */}
-          </Box>
-          <Box>
-            <Box>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-1"
-                testID="campaign-tile-status-label"
+            {participantStatus?.optedIn === true ? (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.SuccessDefault}
+                fontWeight={FontWeight.Medium}
+                testID="campaign-tile-entered-label"
               >
-                {participantStatus?.optedIn === true ? (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.SuccessDefault}
-                    fontWeight={FontWeight.Medium}
-                    testID="campaign-tile-entered-label"
-                  >
-                    {strings('rewards.campaign.entered')}
-                  </Text>
-                ) : (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={
-                      colorScheme === 'dark'
-                        ? TextColor.SuccessDefault
-                        : TextColor.OverlayInverse
-                    }
-                    fontWeight={FontWeight.Medium}
-                  >
-                    {statusLabel}
-                  </Text>
-                )}
-                {participantCount != null ? (
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    twClassName="gap-1"
-                    testID="campaign-tile-participant-count"
-                  >
-                    <Icon
-                      name={IconName.TrendUp}
-                      size={IconSize.Sm}
-                      color={IconColor.OverlayInverse}
-                    />
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.OverlayInverse}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {strings('rewards.campaign.participant_count', {
-                        count: participantCount.toLocaleString(),
-                      })}
-                    </Text>
-                  </Box>
-                ) : campaignStatus === 'active' &&
-                  participantStatus?.optedIn !== true ? (
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    twClassName="gap-1"
-                    testID="campaign-tile-enter"
-                  >
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.OverlayInverse}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      •
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.OverlayInverse}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {strings('rewards.campaign.enter')}
-                    </Text>
-                  </Box>
-                ) : (
-                  <></>
-                )}
-              </Box>
-            </Box>
-
+                {strings('rewards.campaign.entered')}
+              </Text>
+            ) : (
+              <Text
+                variant={TextVariant.BodySm}
+                color={
+                  colorScheme === 'dark'
+                    ? TextColor.SuccessDefault
+                    : TextColor.OverlayInverse
+                }
+                fontWeight={FontWeight.Medium}
+              >
+                {statusLabel}
+              </Text>
+            )}
             <Text
-              variant={TextVariant.HeadingLg}
+              variant={TextVariant.BodySm}
               color={TextColor.OverlayInverse}
-              twClassName="font-bold"
-              testID="campaign-tile-name"
+              fontWeight={FontWeight.Medium}
             >
-              {campaign.name}
+              •
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.OverlayInverse}
+              fontWeight={FontWeight.Medium}
+              testID="campaign-tile-date-info"
+            >
+              {dateLabel}
             </Text>
           </Box>
+
+          <Text
+            variant={TextVariant.HeadingLg}
+            color={TextColor.OverlayInverse}
+            twClassName="font-bold"
+            testID="campaign-tile-name"
+          >
+            {campaign.name}
+          </Text>
         </Box>
       </ImageBackground>
     </Pressable>

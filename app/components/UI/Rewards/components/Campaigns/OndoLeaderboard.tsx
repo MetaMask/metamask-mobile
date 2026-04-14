@@ -122,7 +122,13 @@ const LeaderboardEntryRow: React.FC<{
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
-      color={isCurrentUser ? TextColor.SuccessDefault : TextColor.TextDefault}
+      color={
+        isCurrentUser
+          ? entry.rateOfReturn >= 0
+            ? TextColor.SuccessDefault
+            : TextColor.ErrorDefault
+          : TextColor.TextDefault
+      }
     >
       {formatRateOfReturn(entry.rateOfReturn)}
     </Text>

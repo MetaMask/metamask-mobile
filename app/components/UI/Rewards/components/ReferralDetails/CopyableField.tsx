@@ -40,7 +40,7 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
 
   return (
     <Box
-      twClassName="bg-muted border-muted rounded-md px-4 py-3"
+      twClassName="bg-muted rounded-lg px-4 py-1 border border-solid border-muted"
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
     >
@@ -55,7 +55,7 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
         )}
       </Box>
       <ButtonIcon
-        iconName={isCopied ? IconName.CopySuccess : IconName.Copy}
+        iconName={isCopied ? IconName.Confirmation : IconName.Copy}
         size={ButtonIconSize.Md}
         onPress={handleCopy}
         isDisabled={!value}

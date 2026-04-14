@@ -77,7 +77,7 @@ const BenefitsPreview = () => {
 
   return (
     <Box
-      twClassName="gap-3 p-4 pb-6"
+      twClassName="gap-3 px-4 pb-6"
       testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_SECTION}
     >
       {displayHeader}

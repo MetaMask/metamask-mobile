@@ -97,7 +97,7 @@ const OndoCampaignStatsView: React.FC = () => {
     refetch: refetchLeaderboardPosition,
   } = useGetOndoLeaderboardPosition(isOptedIn ? campaignId : undefined);
 
-  const { leaderboard: leaderboardData } = useGetOndoLeaderboard(campaignId, {
+  useGetOndoLeaderboard(campaignId, {
     defaultTier: leaderboardPosition?.projectedTier,
   });
 
@@ -137,6 +137,10 @@ const OndoCampaignStatsView: React.FC = () => {
   const netDepositedValue = portfolioData?.summary
     ? formatUsd(portfolioData.summary.netDeposit)
     : '-';
+
+  const hasCashedOut = portfolioData?.summary
+    ? parseFloat(portfolioData.summary.totalCashedOut) > 0
+    : false;
 
   const cashedOutValue = portfolioData?.summary
     ? formatUsd(portfolioData.summary.totalCashedOut)
@@ -238,7 +242,7 @@ const OndoCampaignStatsView: React.FC = () => {
               )}
             </Box>
 
-            {isNegativeReturn ? (
+            {hasCashedOut ? (
               <>
                 <Box flexDirection={BoxFlexDirection.Row}>
                   <StatCell
@@ -247,7 +251,7 @@ const OndoCampaignStatsView: React.FC = () => {
                     )}
                     value={marketValue}
                     isLoading={portfolioLoading}
-                    valueColor={TextColor.ErrorDefault}
+                    valueColor={returnColor}
                   />
                   <StatCell
                     label={strings(
@@ -276,14 +280,14 @@ const OndoCampaignStatsView: React.FC = () => {
                   )}
                   value={marketValue}
                   isLoading={portfolioLoading}
-                  valueColor={TextColor.SuccessDefault}
+                  valueColor={returnColor}
                 />
                 <Box twClassName="flex-1" />
               </Box>
             )}
 
             {/* ── Divider ── */}
-            <Box twClassName="my-5 border-b border-border-muted" />
+            <Box twClassName="my-1 border-b border-border-muted" />
 
             {/* ── Rank section heading ── */}
             <Box
