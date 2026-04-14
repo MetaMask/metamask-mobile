@@ -3,6 +3,7 @@ import { RootState } from '../../../../reducers';
 import { useMemo, useCallback } from 'react';
 import { Hex } from '@metamask/utils';
 import { AllowanceState, CardTokenAllowance } from '../types';
+import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
@@ -647,7 +648,7 @@ export const useAssetBalances = (
       }
 
       // Create a unique key for this token
-      const tokenKey = `${token.address?.toLowerCase()}-${token.caipChainId}-${token.walletAddress?.toLowerCase()}`;
+      const tokenKey = getAssetBalanceKey(token);
       const isSolana = isSolanaChainId(token.caipChainId);
 
       // Get asset address and chain ID

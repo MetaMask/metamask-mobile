@@ -61,3 +61,11 @@ export function groupPortfolioPositionsByAsset(
 
   return Array.from(map.values());
 }
+
+const MAX_TOKEN_NAME_LENGTH = 20;
+
+export function sanitizeTokenName(raw: string): string {
+  const cleaned = raw.replace(/\(Ondo Tokenized\)/gi, '').trim();
+  if (cleaned.length <= MAX_TOKEN_NAME_LENGTH) return cleaned;
+  return `${cleaned.slice(0, MAX_TOKEN_NAME_LENGTH).trim()}...`;
+}

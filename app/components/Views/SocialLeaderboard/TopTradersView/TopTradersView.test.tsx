@@ -7,6 +7,7 @@ import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hoo
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
 
@@ -14,7 +15,7 @@ jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack }),
+    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   };
 });
 
@@ -56,10 +57,11 @@ const mockUseTopTraders: UseTopTradersResult = {
   toggleFollow: mockToggleFollow,
 };
 
+const mockSelectSocialLeaderboardEnabled = jest.fn((): boolean => true);
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
-    selectSocialLeaderboardEnabled: jest.fn(() => true),
+    selectSocialLeaderboardEnabled: () => mockSelectSocialLeaderboardEnabled(),
   }),
 );
 
@@ -97,7 +99,7 @@ describe('TopTradersView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('handles search button press without error', () => {
+  it('search button press fires with no side effects', () => {
     renderWithProvider(<TopTradersView />);
     fireEvent.press(
       screen.getByTestId(TopTradersViewSelectorsIDs.SEARCH_BUTTON),
@@ -126,5 +128,11 @@ describe('TopTradersView', () => {
     const followButtons = screen.getAllByText('Follow');
     fireEvent.press(followButtons[0]);
     expect(mockToggleFollow).toHaveBeenCalledWith(fixtureTraders[0].id);
+  });
+
+  it('navigates back when the feature flag is disabled', () => {
+    mockSelectSocialLeaderboardEnabled.mockReturnValue(false);
+    renderWithProvider(<TopTradersView />);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });

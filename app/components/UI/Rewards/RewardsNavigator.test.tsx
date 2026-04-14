@@ -221,6 +221,13 @@ jest.mock('./hooks/useGeoRewardsMetadata', () => ({
   useGeoRewardsMetadata: jest.fn(),
 }));
 
+// Mock useReferralDetails hook
+jest.mock('./hooks/useReferralDetails', () => ({
+  useReferralDetails: jest.fn().mockReturnValue({
+    fetchReferralDetails: jest.fn(),
+  }),
+}));
+
 // Mock useRewardsVersionGuard hook
 jest.mock('./hooks/useRewardsVersionGuard', () => ({
   __esModule: true,
