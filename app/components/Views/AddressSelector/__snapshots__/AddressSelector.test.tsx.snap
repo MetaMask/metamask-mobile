@@ -8,8 +8,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -410,8 +409,8 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -425,7 +424,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -494,8 +493,9 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
+                                        "fontWeight": 700,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -780,6 +780,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#131416",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 24,
                                                       },
@@ -798,6 +799,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#66676a",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 14,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       },
@@ -959,6 +961,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#131416",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 24,
                                                       },
@@ -977,6 +980,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#66676a",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 14,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       },
@@ -1123,6 +1127,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#131416",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 24,
                                                       },
@@ -1141,6 +1146,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#66676a",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 14,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       },
@@ -1287,6 +1293,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#131416",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 24,
                                                       },
@@ -1305,6 +1312,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#66676a",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 14,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       },
@@ -1451,6 +1459,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#131416",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 24,
                                                       },
@@ -1469,6 +1478,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#66676a",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 14,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       },
@@ -1615,6 +1625,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#131416",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 24,
                                                       },
@@ -1633,6 +1644,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#66676a",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 14,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       },
@@ -1779,6 +1791,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#131416",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 24,
                                                       },
@@ -1797,6 +1810,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#66676a",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 14,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       },
@@ -1943,6 +1957,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#131416",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 24,
                                                       },
@@ -1961,6 +1976,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                         "color": "#66676a",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 14,
+                                                        "fontWeight": 400,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       },
@@ -2006,6 +2022,6 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

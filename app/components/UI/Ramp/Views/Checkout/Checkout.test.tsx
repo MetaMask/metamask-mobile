@@ -215,17 +215,6 @@ jest.mock('../../../../../util/device', () => ({
   isAndroid: jest.fn(() => false),
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- jest mock factory
-  const { View } = require('react-native');
-  return {
-    SafeAreaProvider: View,
-    SafeAreaView: View,
-    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
-    useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
-  };
-});
-
 const mockUseParams = jest.requireMock(
   '../../../../../util/navigation/navUtils',
 ).useParams as jest.Mock;

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`EditAccountName should render correctly 1`] = `
-<RCTSafeAreaView
+<View
   style={
     {
       "backgroundColor": "#ffffff",
@@ -235,183 +235,86 @@ exports[`EditAccountName should render correctly 1`] = `
       }
     }
   >
-    <View
-      accessibilityLabel="Cancel"
+    <TouchableOpacity
       accessibilityRole="button"
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
       accessible={true}
-      collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+      activeOpacity={1}
+      onPress={[MockFunction]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
-        [
-          {
-            "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
-            "borderColor": "transparent",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "columnGap": 8,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "minWidth": 80,
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingLeft": 16,
-            "paddingRight": 16,
-            "width": "100%",
-          },
-          {
-            "flex": 1,
-            "marginRight": 8,
-          },
-          {
-            "transform": [
-              {
-                "scale": 1,
-              },
-            ],
-          },
-        ]
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#b4b4b528",
+          "borderColor": "transparent",
+          "borderRadius": 12,
+          "borderWidth": 1,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "marginRight": 8,
+          "overflow": "hidden",
+          "paddingHorizontal": 16,
+        }
       }
     >
       <Text
         accessibilityRole="text"
-        ellipsizeMode="clip"
-        numberOfLines={1}
         style={
-          [
-            {
-              "color": "#131416",
-              "flexGrow": 0,
-              "flexShrink": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "center",
-            },
-            undefined,
-          ]
+          {
+            "color": "#131416",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
         }
       >
         Cancel
       </Text>
-    </View>
-    <View
-      accessibilityLabel="Save"
+    </TouchableOpacity>
+    <TouchableOpacity
       accessibilityRole="button"
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
       accessible={true}
-      collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
-        [
-          {
-            "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "columnGap": 8,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "minWidth": 80,
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingLeft": 16,
-            "paddingRight": 16,
-            "width": "100%",
-          },
-          {
-            "flex": 1,
-            "marginLeft": 8,
-          },
-          {
-            "transform": [
-              {
-                "scale": 1,
-              },
-            ],
-          },
-        ]
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#131416",
+          "borderRadius": 12,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "marginLeft": 8,
+          "overflow": "hidden",
+          "paddingHorizontal": 16,
+        }
       }
       testID="edit-account-name-save-button"
     >
       <Text
         accessibilityRole="text"
-        ellipsizeMode="clip"
-        numberOfLines={1}
         style={
-          [
-            {
-              "color": "#ffffff",
-              "flexGrow": 0,
-              "flexShrink": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "center",
-            },
-            undefined,
-          ]
+          {
+            "color": "#ffffff",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
         }
       >
         Save
       </Text>
-    </View>
+    </TouchableOpacity>
   </View>
-</RCTSafeAreaView>
+</View>
 `;

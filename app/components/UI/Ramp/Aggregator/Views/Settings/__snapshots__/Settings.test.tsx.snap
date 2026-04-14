@@ -8,8 +8,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,14 +333,11 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "off",
-                            "left": "off",
-                            "right": "off",
-                            "top": "additive",
-                          }
+                          [
+                            "top",
+                          ]
                         }
                         style={
                           {
@@ -471,8 +467,9 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -503,14 +500,13 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                             ]
                           }
                         >
-                          <RNCSafeAreaView
+                          <View
                             edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "off",
-                              }
+                              [
+                                "right",
+                                "bottom",
+                                "left",
+                              ]
                             }
                             style={
                               {
@@ -1270,9 +1266,9 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                 </View>
                               </View>
                             </RCTScrollView>
-                          </RNCSafeAreaView>
+                          </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1282,7 +1278,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1294,8 +1290,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1620,14 +1615,11 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "off",
-                            "left": "off",
-                            "right": "off",
-                            "top": "additive",
-                          }
+                          [
+                            "top",
+                          ]
                         }
                         style={
                           {
@@ -1757,8 +1749,9 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -1789,14 +1782,13 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                             ]
                           }
                         >
-                          <RNCSafeAreaView
+                          <View
                             edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "off",
-                              }
+                              [
+                                "right",
+                                "bottom",
+                                "left",
+                              ]
                             }
                             style={
                               {
@@ -2114,9 +2106,9 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                 </View>
                               </View>
                             </RCTScrollView>
-                          </RNCSafeAreaView>
+                          </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2126,7 +2118,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2138,8 +2130,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2464,14 +2455,11 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "off",
-                            "left": "off",
-                            "right": "off",
-                            "top": "additive",
-                          }
+                          [
+                            "top",
+                          ]
                         }
                         style={
                           {
@@ -2601,8 +2589,9 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -2633,14 +2622,13 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                             ]
                           }
                         >
-                          <RNCSafeAreaView
+                          <View
                             edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "off",
-                              }
+                              [
+                                "right",
+                                "bottom",
+                                "left",
+                              ]
                             }
                             style={
                               {
@@ -2789,9 +2777,9 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                 </View>
                               </View>
                             </RCTScrollView>
-                          </RNCSafeAreaView>
+                          </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2801,7 +2789,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2813,8 +2801,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3139,14 +3126,11 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "off",
-                            "left": "off",
-                            "right": "off",
-                            "top": "additive",
-                          }
+                          [
+                            "top",
+                          ]
                         }
                         style={
                           {
@@ -3276,8 +3260,9 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -3308,14 +3293,13 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                             ]
                           }
                         >
-                          <RNCSafeAreaView
+                          <View
                             edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "off",
-                              }
+                              [
+                                "right",
+                                "bottom",
+                                "left",
+                              ]
                             }
                             style={
                               {
@@ -3502,9 +3486,9 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                 </View>
                               </View>
                             </RCTScrollView>
-                          </RNCSafeAreaView>
+                          </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -3514,7 +3498,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3526,8 +3510,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3852,14 +3835,11 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "off",
-                            "left": "off",
-                            "right": "off",
-                            "top": "additive",
-                          }
+                          [
+                            "top",
+                          ]
                         }
                         style={
                           {
@@ -3989,8 +3969,9 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -4021,14 +4002,13 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                             ]
                           }
                         >
-                          <RNCSafeAreaView
+                          <View
                             edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "off",
-                              }
+                              [
+                                "right",
+                                "bottom",
+                                "left",
+                              ]
                             }
                             style={
                               {
@@ -4213,9 +4193,9 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                 </View>
                               </View>
                             </RCTScrollView>
-                          </RNCSafeAreaView>
+                          </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -4225,7 +4205,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -4237,8 +4217,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -4563,14 +4542,11 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "off",
-                            "left": "off",
-                            "right": "off",
-                            "top": "additive",
-                          }
+                          [
+                            "top",
+                          ]
                         }
                         style={
                           {
@@ -4700,8 +4676,9 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -4732,14 +4709,13 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                             ]
                           }
                         >
-                          <RNCSafeAreaView
+                          <View
                             edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "off",
-                              }
+                              [
+                                "right",
+                                "bottom",
+                                "left",
+                              ]
                             }
                             style={
                               {
@@ -4924,9 +4900,9 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                 </View>
                               </View>
                             </RCTScrollView>
-                          </RNCSafeAreaView>
+                          </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -4936,7 +4912,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -4948,8 +4924,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -5274,14 +5249,11 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "off",
-                            "left": "off",
-                            "right": "off",
-                            "top": "additive",
-                          }
+                          [
+                            "top",
+                          ]
                         }
                         style={
                           {
@@ -5411,8 +5383,9 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -5443,14 +5416,13 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                             ]
                           }
                         >
-                          <RNCSafeAreaView
+                          <View
                             edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "off",
-                              }
+                              [
+                                "right",
+                                "bottom",
+                                "left",
+                              ]
                             }
                             style={
                               {
@@ -5635,9 +5607,9 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                 </View>
                               </View>
                             </RCTScrollView>
-                          </RNCSafeAreaView>
+                          </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -5647,7 +5619,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -5659,8 +5631,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -5985,14 +5956,11 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "off",
-                            "left": "off",
-                            "right": "off",
-                            "top": "additive",
-                          }
+                          [
+                            "top",
+                          ]
                         }
                         style={
                           {
@@ -6122,8 +6090,9 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -6154,14 +6123,13 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                             ]
                           }
                         >
-                          <RNCSafeAreaView
+                          <View
                             edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "off",
-                              }
+                              [
+                                "right",
+                                "bottom",
+                                "left",
+                              ]
                             }
                             style={
                               {
@@ -6346,9 +6314,9 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                 </View>
                               </View>
                             </RCTScrollView>
-                          </RNCSafeAreaView>
+                          </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -6358,7 +6326,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -6370,8 +6338,7 @@ exports[`Settings renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -6696,14 +6663,11 @@ exports[`Settings renders correctly 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "off",
-                            "left": "off",
-                            "right": "off",
-                            "top": "additive",
-                          }
+                          [
+                            "top",
+                          ]
                         }
                         style={
                           {
@@ -6833,8 +6797,9 @@ exports[`Settings renders correctly 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -6865,14 +6830,13 @@ exports[`Settings renders correctly 1`] = `
                             ]
                           }
                         >
-                          <RNCSafeAreaView
+                          <View
                             edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "off",
-                              }
+                              [
+                                "right",
+                                "bottom",
+                                "left",
+                              ]
                             }
                             style={
                               {
@@ -7057,9 +7021,9 @@ exports[`Settings renders correctly 1`] = `
                                 </View>
                               </View>
                             </RCTScrollView>
-                          </RNCSafeAreaView>
+                          </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -7069,7 +7033,7 @@ exports[`Settings renders correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -7081,8 +7045,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -7407,14 +7370,11 @@ exports[`Settings renders correctly for internal builds 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "off",
-                            "left": "off",
-                            "right": "off",
-                            "top": "additive",
-                          }
+                          [
+                            "top",
+                          ]
                         }
                         style={
                           {
@@ -7544,8 +7504,9 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -7576,14 +7537,13 @@ exports[`Settings renders correctly for internal builds 1`] = `
                             ]
                           }
                         >
-                          <RNCSafeAreaView
+                          <View
                             edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "off",
-                              }
+                              [
+                                "right",
+                                "bottom",
+                                "left",
+                              ]
                             }
                             style={
                               {
@@ -8339,9 +8299,9 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                 </View>
                               </View>
                             </RCTScrollView>
-                          </RNCSafeAreaView>
+                          </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -8351,6 +8311,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

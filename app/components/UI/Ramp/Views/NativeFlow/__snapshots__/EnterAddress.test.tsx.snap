@@ -1,14 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`V2EnterAddress matches snapshot 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "off",
-    }
+    [
+      "right",
+      "bottom",
+      "left",
+    ]
   }
   style={
     {
@@ -188,8 +187,9 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                   [
                     {
                       "color": "#131416",
-                      "fontFamily": "Geist-SemiBold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 24,
+                      "fontWeight": 700,
                       "letterSpacing": 0,
                       "lineHeight": 32,
                     },
@@ -207,6 +207,7 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                       "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -238,6 +239,7 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                       "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -356,6 +358,7 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                       "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -486,6 +489,7 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                         "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
+                        "fontWeight": 400,
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       },
@@ -605,6 +609,7 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                         "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
+                        "fontWeight": 400,
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       },
@@ -729,6 +734,7 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                         "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
+                        "fontWeight": 400,
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       },
@@ -849,6 +855,7 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                         "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
+                        "fontWeight": 400,
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       },
@@ -921,6 +928,7 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                             "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
+                            "fontWeight": 400,
                             "letterSpacing": 0,
                             "lineHeight": 24,
                           },
@@ -1154,6 +1162,7 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                     "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
+                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -1179,18 +1188,17 @@ exports[`V2EnterAddress matches snapshot 1`] = `
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "off",
-    }
+    [
+      "right",
+      "bottom",
+      "left",
+    ]
   }
   style={
     {
@@ -1370,8 +1378,9 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                   [
                     {
                       "color": "#131416",
-                      "fontFamily": "Geist-SemiBold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 24,
+                      "fontWeight": 700,
                       "letterSpacing": 0,
                       "lineHeight": 32,
                     },
@@ -1389,6 +1398,7 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                       "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -1420,6 +1430,7 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                       "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -1538,6 +1549,7 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                       "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -1668,6 +1680,7 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                         "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
+                        "fontWeight": 400,
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       },
@@ -1787,6 +1800,7 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                         "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
+                        "fontWeight": 400,
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       },
@@ -1911,6 +1925,7 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                         "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
+                        "fontWeight": 400,
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       },
@@ -2031,6 +2046,7 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                         "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
+                        "fontWeight": 400,
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       },
@@ -2103,6 +2119,7 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                             "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
+                            "fontWeight": 400,
                             "letterSpacing": 0,
                             "lineHeight": 24,
                           },
@@ -2336,6 +2353,7 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                     "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
+                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -2361,5 +2379,5 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;

@@ -8,8 +8,7 @@ exports[`OrderDetails matches snapshot when order exists 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -386,7 +385,7 @@ exports[`OrderDetails matches snapshot when order exists 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -398,8 +397,7 @@ exports[`OrderDetails renders empty ScreenLayout when order is not found 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -734,6 +732,6 @@ exports[`OrderDetails renders empty ScreenLayout when order is not found 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

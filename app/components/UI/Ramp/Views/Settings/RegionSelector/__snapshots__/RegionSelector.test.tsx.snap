@@ -8,8 +8,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -364,6 +363,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -680,6 +680,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -705,6 +706,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -789,6 +791,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -814,6 +817,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -930,6 +934,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -955,6 +960,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -1071,6 +1077,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -1096,6 +1103,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -1124,7 +1132,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1136,8 +1144,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1492,6 +1499,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -1808,6 +1816,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -1833,6 +1842,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -1917,6 +1927,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -1942,6 +1953,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -2058,6 +2070,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -2083,6 +2096,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -2199,6 +2213,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -2224,6 +2239,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -2252,7 +2268,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2264,8 +2280,7 @@ exports[`RegionSelector displays empty state when search has no results 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2620,6 +2635,7 @@ exports[`RegionSelector displays empty state when search has no results 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -2830,6 +2846,7 @@ exports[`RegionSelector displays empty state when search has no results 1`] = `
                                       "color": "#131416",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 20,
+                                      "fontWeight": 500,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -2852,7 +2869,7 @@ exports[`RegionSelector displays empty state when search has no results 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2864,8 +2881,7 @@ exports[`RegionSelector displays grouped search results showing country and matc
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3220,6 +3236,7 @@ exports[`RegionSelector displays grouped search results showing country and matc
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -3531,6 +3548,7 @@ exports[`RegionSelector displays grouped search results showing country and matc
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
                                                     "fontSize": 20,
+                                                    "fontWeight": 500,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -3556,6 +3574,7 @@ exports[`RegionSelector displays grouped search results showing country and matc
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
                                                     "fontSize": 20,
+                                                    "fontWeight": 500,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -3671,6 +3690,7 @@ exports[`RegionSelector displays grouped search results showing country and matc
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
                                                     "fontSize": 20,
+                                                    "fontWeight": 500,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -3700,7 +3720,7 @@ exports[`RegionSelector displays grouped search results showing country and matc
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3712,8 +3732,7 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -4068,6 +4087,7 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -4348,6 +4368,7 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -4373,6 +4394,7 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -4401,7 +4423,7 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -4413,8 +4435,7 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -4769,6 +4790,7 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -5080,6 +5102,7 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
                                                     "fontSize": 20,
+                                                    "fontWeight": 500,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -5105,6 +5128,7 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
                                                     "fontSize": 20,
+                                                    "fontWeight": 500,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -5220,6 +5244,7 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
                                                     "fontSize": 20,
+                                                    "fontWeight": 500,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -5249,7 +5274,7 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -5261,8 +5286,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -5617,6 +5641,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -5953,6 +5978,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -5978,6 +6004,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -6062,6 +6089,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -6087,6 +6115,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -6203,6 +6232,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -6228,6 +6258,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -6344,6 +6375,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -6369,6 +6401,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -6397,7 +6430,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -6409,8 +6442,7 @@ exports[`RegionSelector does not highlight state when country does not match 1`]
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -7009,6 +7041,7 @@ exports[`RegionSelector does not highlight state when country does not match 1`]
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -7092,6 +7125,7 @@ exports[`RegionSelector does not highlight state when country does not match 1`]
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -7120,7 +7154,7 @@ exports[`RegionSelector does not highlight state when country does not match 1`]
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -7132,8 +7166,7 @@ exports[`RegionSelector does not highlight state when state ID does not match 1`
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -7732,6 +7765,7 @@ exports[`RegionSelector does not highlight state when state ID does not match 1`
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -7815,6 +7849,7 @@ exports[`RegionSelector does not highlight state when state ID does not match 1`
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -7858,7 +7893,7 @@ exports[`RegionSelector does not highlight state when state ID does not match 1`
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -7870,8 +7905,7 @@ exports[`RegionSelector does not highlight state when userRegion has no state 1`
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -8463,6 +8497,7 @@ exports[`RegionSelector does not highlight state when userRegion has no state 1`
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -8546,6 +8581,7 @@ exports[`RegionSelector does not highlight state when userRegion has no state 1`
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -8574,7 +8610,7 @@ exports[`RegionSelector does not highlight state when userRegion has no state 1`
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -8586,8 +8622,7 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -8942,6 +8977,7 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -9272,6 +9308,7 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
                                                     "fontSize": 20,
+                                                    "fontWeight": 500,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -9297,6 +9334,7 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
                                                     "fontSize": 20,
+                                                    "fontWeight": 500,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -9314,6 +9352,7 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                                                     "color": "#babbbe",
                                                     "fontFamily": "Geist-Regular",
                                                     "fontSize": 16,
+                                                    "fontWeight": 400,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -9444,6 +9483,7 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
                                                     "fontSize": 20,
+                                                    "fontWeight": 500,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -9488,7 +9528,7 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -9500,8 +9540,7 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -9856,6 +9895,7 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -10158,6 +10198,7 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
                                                     "fontSize": 20,
+                                                    "fontWeight": 500,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -10183,6 +10224,7 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
                                                     "fontSize": 20,
+                                                    "fontWeight": 500,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -10244,7 +10286,7 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -10256,8 +10298,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -10612,6 +10653,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -10948,6 +10990,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -10973,6 +11016,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -11072,6 +11116,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -11097,6 +11142,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -11213,6 +11259,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -11238,6 +11285,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -11354,6 +11402,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -11379,6 +11428,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -11407,7 +11457,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -11419,8 +11469,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -11775,6 +11824,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -12118,6 +12168,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -12143,6 +12194,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -12227,6 +12279,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -12252,6 +12305,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -12269,6 +12323,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                                   "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
+                                                  "fontWeight": 400,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -12400,6 +12455,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -12425,6 +12481,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -12541,6 +12598,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -12566,6 +12624,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -12594,7 +12653,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -12606,8 +12665,7 @@ exports[`RegionSelector highlights state in grouped search results when parent c
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -12962,6 +13020,7 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -13300,6 +13359,7 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
                                                     "fontSize": 20,
+                                                    "fontWeight": 500,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -13325,6 +13385,7 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
                                                     "fontSize": 20,
+                                                    "fontWeight": 500,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -13342,6 +13403,7 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                                                     "color": "#babbbe",
                                                     "fontFamily": "Geist-Regular",
                                                     "fontSize": 16,
+                                                    "fontWeight": 400,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -13472,6 +13534,7 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
                                                     "fontSize": 20,
+                                                    "fontWeight": 500,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   },
@@ -13516,7 +13579,7 @@ exports[`RegionSelector highlights state in grouped search results when parent c
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -13528,8 +13591,7 @@ exports[`RegionSelector highlights state when selected in state view 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -14128,6 +14190,7 @@ exports[`RegionSelector highlights state when selected in state view 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -14226,6 +14289,7 @@ exports[`RegionSelector highlights state when selected in state view 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -14254,7 +14318,7 @@ exports[`RegionSelector highlights state when selected in state view 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -14266,8 +14330,7 @@ exports[`RegionSelector limits search results 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -14622,6 +14685,7 @@ exports[`RegionSelector limits search results 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -15225,6 +15289,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -15250,6 +15315,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -15334,6 +15400,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -15359,6 +15426,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -15443,6 +15511,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -15468,6 +15537,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -15552,6 +15622,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -15577,6 +15648,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -15661,6 +15733,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -15686,6 +15759,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -15770,6 +15844,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -15795,6 +15870,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -15879,6 +15955,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -15904,6 +15981,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -15988,6 +16066,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -16013,6 +16092,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -16097,6 +16177,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -16122,6 +16203,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -16206,6 +16288,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -16231,6 +16314,7 @@ exports[`RegionSelector limits search results 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -16266,7 +16350,7 @@ exports[`RegionSelector limits search results 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -16278,8 +16362,7 @@ exports[`RegionSelector navigates back to countries view when back button is pre
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -16851,6 +16934,7 @@ exports[`RegionSelector navigates back to countries view when back button is pre
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -16934,6 +17018,7 @@ exports[`RegionSelector navigates back to countries view when back button is pre
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -16962,7 +17047,7 @@ exports[`RegionSelector navigates back to countries view when back button is pre
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -16974,8 +17059,7 @@ exports[`RegionSelector navigates to states view when country with states is sel
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -17547,6 +17631,7 @@ exports[`RegionSelector navigates to states view when country with states is sel
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -17630,6 +17715,7 @@ exports[`RegionSelector navigates to states view when country with states is sel
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -17658,7 +17744,7 @@ exports[`RegionSelector navigates to states view when country with states is sel
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -17670,8 +17756,7 @@ exports[`RegionSelector renders countries list 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -18026,6 +18111,7 @@ exports[`RegionSelector renders countries list 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -18342,6 +18428,7 @@ exports[`RegionSelector renders countries list 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -18367,6 +18454,7 @@ exports[`RegionSelector renders countries list 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -18451,6 +18539,7 @@ exports[`RegionSelector renders countries list 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -18476,6 +18565,7 @@ exports[`RegionSelector renders countries list 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -18592,6 +18682,7 @@ exports[`RegionSelector renders countries list 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -18617,6 +18708,7 @@ exports[`RegionSelector renders countries list 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -18733,6 +18825,7 @@ exports[`RegionSelector renders countries list 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -18758,6 +18851,7 @@ exports[`RegionSelector renders countries list 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -18786,7 +18880,7 @@ exports[`RegionSelector renders countries list 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -18798,8 +18892,7 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -19154,6 +19247,7 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -19393,6 +19487,7 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -19418,6 +19513,7 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -19446,7 +19542,7 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -19458,8 +19554,7 @@ exports[`RegionSelector renders country without flag 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -19814,6 +19909,7 @@ exports[`RegionSelector renders country without flag 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -20061,6 +20157,7 @@ exports[`RegionSelector renders country without flag 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -20121,7 +20218,7 @@ exports[`RegionSelector renders country without flag 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -20133,8 +20230,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -20489,6 +20585,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -20805,6 +20902,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -20830,6 +20928,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -20914,6 +21013,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -20939,6 +21039,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -21055,6 +21156,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -21080,6 +21182,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -21196,6 +21299,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -21221,6 +21325,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -21249,7 +21354,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -21261,8 +21366,7 @@ exports[`RegionSelector renders description text only in country view 2`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -21834,6 +21938,7 @@ exports[`RegionSelector renders description text only in country view 2`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -21917,6 +22022,7 @@ exports[`RegionSelector renders description text only in country view 2`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -21945,7 +22051,7 @@ exports[`RegionSelector renders description text only in country view 2`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -21957,8 +22063,7 @@ exports[`RegionSelector renders disabled country 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -22313,6 +22418,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -22629,6 +22735,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -22654,6 +22761,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -22738,6 +22846,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -22763,6 +22872,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -22879,6 +22989,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -22904,6 +23015,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -23020,6 +23132,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -23045,6 +23158,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -23073,7 +23187,7 @@ exports[`RegionSelector renders disabled country 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -23085,8 +23199,7 @@ exports[`RegionSelector renders disabled state 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -23658,6 +23771,7 @@ exports[`RegionSelector renders disabled state 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -23741,6 +23855,7 @@ exports[`RegionSelector renders disabled state 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -23769,7 +23884,7 @@ exports[`RegionSelector renders disabled state 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -23781,8 +23896,7 @@ exports[`RegionSelector renders error state when countries error occurs 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -24137,6 +24251,7 @@ exports[`RegionSelector renders error state when countries error occurs 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -24306,6 +24421,7 @@ exports[`RegionSelector renders error state when countries error occurs 1`] = `
                                       "color": "#131416",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 20,
+                                      "fontWeight": 500,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -24326,6 +24442,7 @@ exports[`RegionSelector renders error state when countries error occurs 1`] = `
                                       "color": "#66676a",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -24348,7 +24465,7 @@ exports[`RegionSelector renders error state when countries error occurs 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -24360,8 +24477,7 @@ exports[`RegionSelector renders loading state when regions are loading 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -24716,6 +24832,7 @@ exports[`RegionSelector renders loading state when regions are loading 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -24894,7 +25011,7 @@ exports[`RegionSelector renders loading state when regions are loading 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -24906,8 +25023,7 @@ exports[`RegionSelector renders recommended countries 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -25262,6 +25378,7 @@ exports[`RegionSelector renders recommended countries 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -25518,6 +25635,7 @@ exports[`RegionSelector renders recommended countries 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -25543,6 +25661,7 @@ exports[`RegionSelector renders recommended countries 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -25627,6 +25746,7 @@ exports[`RegionSelector renders recommended countries 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -25652,6 +25772,7 @@ exports[`RegionSelector renders recommended countries 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -25680,7 +25801,7 @@ exports[`RegionSelector renders recommended countries 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -25692,8 +25813,7 @@ exports[`RegionSelector renders state with supported set to false 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -26257,6 +26377,7 @@ exports[`RegionSelector renders state with supported set to false 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -26285,7 +26406,7 @@ exports[`RegionSelector renders state with supported set to false 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -26297,8 +26418,7 @@ exports[`RegionSelector renders state without stateId 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -26653,6 +26773,7 @@ exports[`RegionSelector renders state without stateId 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -26900,6 +27021,7 @@ exports[`RegionSelector renders state without stateId 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -26925,6 +27047,7 @@ exports[`RegionSelector renders state without stateId 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -26985,7 +27108,7 @@ exports[`RegionSelector renders state without stateId 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -26997,8 +27120,7 @@ exports[`RegionSelector renders states view 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -27570,6 +27692,7 @@ exports[`RegionSelector renders states view 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -27653,6 +27776,7 @@ exports[`RegionSelector renders states view 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -27681,7 +27805,7 @@ exports[`RegionSelector renders states view 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -27693,8 +27817,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -28049,6 +28172,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -28365,6 +28489,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -28390,6 +28515,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -28474,6 +28600,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -28499,6 +28626,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -28615,6 +28743,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -28640,6 +28769,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -28756,6 +28886,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -28781,6 +28912,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -28809,7 +28941,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -28821,8 +28953,7 @@ exports[`RegionSelector renders unsupported state 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -29394,6 +29525,7 @@ exports[`RegionSelector renders unsupported state 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -29477,6 +29609,7 @@ exports[`RegionSelector renders unsupported state 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -29505,7 +29638,7 @@ exports[`RegionSelector renders unsupported state 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -29517,8 +29650,7 @@ exports[`RegionSelector renders when country has states and user region state is
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -29873,6 +30005,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -30216,6 +30349,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -30241,6 +30375,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -30325,6 +30460,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -30350,6 +30486,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -30367,6 +30504,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                                   "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
+                                                  "fontWeight": 400,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -30498,6 +30636,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -30523,6 +30662,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -30639,6 +30779,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -30664,6 +30805,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -30692,7 +30834,7 @@ exports[`RegionSelector renders when country has states and user region state is
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -30704,8 +30846,7 @@ exports[`RegionSelector renders with empty regions array 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -31060,6 +31201,7 @@ exports[`RegionSelector renders with empty regions array 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -31222,7 +31364,7 @@ exports[`RegionSelector renders with empty regions array 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -31234,8 +31376,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -31590,6 +31731,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -31933,6 +32075,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -31958,6 +32101,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -32042,6 +32186,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -32067,6 +32212,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -32084,6 +32230,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                                   "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
+                                                  "fontWeight": 400,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -32215,6 +32362,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -32240,6 +32388,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -32356,6 +32505,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -32381,6 +32531,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -32409,7 +32560,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -32421,8 +32572,7 @@ exports[`RegionSelector resets search when navigating to state view 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -32994,6 +33144,7 @@ exports[`RegionSelector resets search when navigating to state view 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -33077,6 +33228,7 @@ exports[`RegionSelector resets search when navigating to state view 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -33105,7 +33257,7 @@ exports[`RegionSelector resets search when navigating to state view 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -33117,8 +33269,7 @@ exports[`RegionSelector scrolls to top when search text changes 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -33473,6 +33624,7 @@ exports[`RegionSelector scrolls to top when search text changes 1`] = `
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -33683,6 +33835,7 @@ exports[`RegionSelector scrolls to top when search text changes 1`] = `
                                       "color": "#131416",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 20,
+                                      "fontWeight": 500,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -33705,7 +33858,7 @@ exports[`RegionSelector scrolls to top when search text changes 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -33717,8 +33870,7 @@ exports[`RegionSelector sets up back button in state view 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -34290,6 +34442,7 @@ exports[`RegionSelector sets up back button in state view 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -34373,6 +34526,7 @@ exports[`RegionSelector sets up back button in state view 1`] = `
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -34401,7 +34555,7 @@ exports[`RegionSelector sets up back button in state view 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -34413,8 +34567,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -34769,6 +34922,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -35122,6 +35276,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -35147,6 +35302,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -35231,6 +35387,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -35256,6 +35413,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -35273,6 +35431,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                                   "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
+                                                  "fontWeight": 400,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -35404,6 +35563,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -35429,6 +35589,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -35545,6 +35706,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -35570,6 +35732,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                                   "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -35598,7 +35761,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -35610,8 +35773,7 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -35966,6 +36128,7 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                                   "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
+                                  "fontWeight": 400,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 },
@@ -36239,6 +36402,7 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -36264,6 +36428,7 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -36348,6 +36513,7 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -36373,6 +36539,7 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -36457,6 +36624,7 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -36482,6 +36650,7 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
+                                                  "fontWeight": 500,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -36510,6 +36679,6 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

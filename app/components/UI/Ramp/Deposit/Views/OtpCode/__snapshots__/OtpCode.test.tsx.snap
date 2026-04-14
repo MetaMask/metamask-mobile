@@ -8,8 +8,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,14 +333,13 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -480,7 +478,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                 style={
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 24,
                                     "fontWeight": "bold",
                                     "letterSpacing": 0,
@@ -571,7 +569,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -604,7 +602,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -637,7 +635,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -670,7 +668,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -703,7 +701,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -736,7 +734,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -879,7 +877,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -889,7 +887,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -901,8 +899,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1227,14 +1224,13 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -1373,7 +1369,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 24,
                                     "fontWeight": "bold",
                                     "letterSpacing": 0,
@@ -1464,7 +1460,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -1497,7 +1493,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -1530,7 +1526,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -1563,7 +1559,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -1596,7 +1592,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -1629,7 +1625,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -1792,7 +1788,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1802,7 +1798,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1814,8 +1810,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2140,14 +2135,13 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -2286,7 +2280,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                 style={
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 24,
                                     "fontWeight": "bold",
                                     "letterSpacing": 0,
@@ -2377,7 +2371,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -2410,7 +2404,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -2443,7 +2437,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -2476,7 +2470,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -2509,7 +2503,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -2542,7 +2536,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -2685,7 +2679,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2695,7 +2689,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2707,8 +2701,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3033,14 +3026,13 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -3179,7 +3171,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                 style={
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 24,
                                     "fontWeight": "bold",
                                     "letterSpacing": 0,
@@ -3270,7 +3262,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -3305,7 +3297,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -3340,7 +3332,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -3375,7 +3367,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -3410,7 +3402,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -3445,7 +3437,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -3623,7 +3615,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -3633,7 +3625,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3645,8 +3637,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3971,14 +3962,13 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -4117,7 +4107,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                 style={
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 24,
                                     "fontWeight": "bold",
                                     "letterSpacing": 0,
@@ -4208,7 +4198,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -4241,7 +4231,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -4274,7 +4264,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -4307,7 +4297,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -4340,7 +4330,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -4373,7 +4363,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,
@@ -4536,7 +4526,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -4546,6 +4536,6 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

@@ -16,6 +16,8 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en-US' },
   strings: (key: string) => key,
   I18nEvents: { addListener: jest.fn() },
 }));

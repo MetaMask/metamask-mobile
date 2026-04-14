@@ -234,6 +234,7 @@ export const PERPS_EVENT_VALUE = {
     ADD_FUNDS_ACTION: 'add_funds_action',
     CANCEL_ORDER: 'cancel_order',
     ASSET_DETAIL_SCREEN: 'asset_detail_screen',
+    MARKET_INSIGHTS: 'market_insights',
     // TAT-2449: Geo-block sources for close/modify actions
     CLOSE_POSITION_ACTION: 'close_position_action',
     MODIFY_POSITION_ACTION: 'modify_position_action',
@@ -388,7 +389,6 @@ export const PERPS_EVENT_VALUE = {
     ADD_MARGIN: 'add_margin',
     REMOVE_MARGIN: 'remove_margin',
     GEO_BLOCK_NOTIF: 'geo_block_notif',
-    COMPLIANCE_BLOCK_NOTIF: 'compliance_block_notif',
     // Deposit + order (pay-with token) cancel toast
     CANCEL_TRADE_WITH_TOKEN_TOAST: 'cancel_trade_with_token_toast',
   },

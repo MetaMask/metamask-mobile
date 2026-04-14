@@ -8,8 +8,7 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -410,7 +409,7 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -424,7 +423,7 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -472,7 +471,7 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 20,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -689,7 +688,7 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -701,8 +700,7 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1103,7 +1101,7 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -1117,7 +1115,7 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -1165,7 +1163,7 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 20,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1386,6 +1384,6 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

@@ -8,8 +8,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -193,14 +192,13 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -523,7 +521,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -849,7 +847,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -902,7 +900,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -955,7 +953,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1022,7 +1020,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1075,7 +1073,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1128,7 +1126,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1195,7 +1193,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1248,7 +1246,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1301,7 +1299,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1370,7 +1368,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1421,7 +1419,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1544,7 +1542,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -1682,8 +1680,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -1794,7 +1793,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1806,8 +1805,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1991,14 +1989,13 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -2321,7 +2318,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -2647,7 +2644,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -2700,7 +2697,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -2753,7 +2750,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -2820,7 +2817,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -2873,7 +2870,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -2926,7 +2923,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -2993,7 +2990,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -3046,7 +3043,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -3099,7 +3096,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -3168,7 +3165,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -3219,7 +3216,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -3342,7 +3339,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -3480,8 +3477,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -3592,7 +3590,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3604,8 +3602,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3789,14 +3786,13 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -4119,7 +4115,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -4445,7 +4441,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -4498,7 +4494,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -4551,7 +4547,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -4618,7 +4614,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -4671,7 +4667,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -4724,7 +4720,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -4791,7 +4787,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -4844,7 +4840,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -4897,7 +4893,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -4966,7 +4962,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -5017,7 +5013,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -5140,7 +5136,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -5278,8 +5274,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -5390,7 +5387,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -5402,8 +5399,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -5587,14 +5583,13 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -5934,7 +5929,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -6182,7 +6177,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -6235,7 +6230,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -6288,7 +6283,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -6355,7 +6350,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -6408,7 +6403,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -6461,7 +6456,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -6528,7 +6523,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -6581,7 +6576,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -6634,7 +6629,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -6703,7 +6698,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -6754,7 +6749,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -6877,7 +6872,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -7015,8 +7010,9 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -7127,7 +7123,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -7139,8 +7135,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -7324,14 +7319,13 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -7671,7 +7665,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -7919,7 +7913,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -7972,7 +7966,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -8025,7 +8019,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -8092,7 +8086,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -8145,7 +8139,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -8198,7 +8192,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -8265,7 +8259,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -8318,7 +8312,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -8371,7 +8365,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -8440,7 +8434,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -8491,7 +8485,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -8613,7 +8607,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -8751,8 +8745,9 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -8863,7 +8858,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -8875,8 +8870,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -9060,14 +9054,13 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -9407,7 +9400,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -9655,7 +9648,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -9708,7 +9701,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -9761,7 +9754,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -9828,7 +9821,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -9881,7 +9874,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -9934,7 +9927,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -10001,7 +9994,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -10054,7 +10047,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -10107,7 +10100,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -10176,7 +10169,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -10227,7 +10220,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -10350,7 +10343,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -10488,8 +10481,9 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -10600,7 +10594,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -10612,8 +10606,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -10797,14 +10790,13 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -11144,7 +11136,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -11485,7 +11477,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -11538,7 +11530,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -11591,7 +11583,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -11658,7 +11650,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -11711,7 +11703,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -11764,7 +11756,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -11831,7 +11823,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -11884,7 +11876,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -11937,7 +11929,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -12006,7 +11998,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -12057,7 +12049,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -12180,7 +12172,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -12318,8 +12310,9 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -12430,7 +12423,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -12442,8 +12435,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -12627,14 +12619,13 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -12974,7 +12965,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -13177,7 +13168,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -13230,7 +13221,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -13283,7 +13274,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -13350,7 +13341,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -13403,7 +13394,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -13456,7 +13447,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -13523,7 +13514,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -13576,7 +13567,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -13629,7 +13620,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -13698,7 +13689,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -13749,7 +13740,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -13872,7 +13863,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -14010,8 +14001,9 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -14122,7 +14114,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -14134,8 +14126,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -14319,14 +14310,13 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -14666,7 +14656,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -14914,7 +14904,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -14967,7 +14957,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -15020,7 +15010,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -15087,7 +15077,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -15140,7 +15130,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -15193,7 +15183,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -15260,7 +15250,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -15313,7 +15303,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -15366,7 +15356,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -15435,7 +15425,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -15486,7 +15476,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -15609,7 +15599,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -15747,8 +15737,9 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -15859,7 +15850,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -15871,8 +15862,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -16056,14 +16046,13 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -16403,7 +16392,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -16651,7 +16640,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -16704,7 +16693,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -16757,7 +16746,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -16824,7 +16813,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -16877,7 +16866,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -16930,7 +16919,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -16997,7 +16986,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -17050,7 +17039,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -17103,7 +17092,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -17172,7 +17161,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -17223,7 +17212,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -17346,7 +17335,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -17484,8 +17473,9 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -17596,7 +17586,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -17608,8 +17598,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -17793,14 +17782,13 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -18140,7 +18128,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -18388,7 +18376,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -18441,7 +18429,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -18494,7 +18482,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -18561,7 +18549,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -18614,7 +18602,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -18667,7 +18655,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -18734,7 +18722,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -18787,7 +18775,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -18840,7 +18828,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -18909,7 +18897,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -18960,7 +18948,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -19083,7 +19071,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -19221,8 +19209,9 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -19333,7 +19322,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -19345,8 +19334,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -19530,14 +19518,13 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -19877,7 +19864,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -20125,7 +20112,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -20178,7 +20165,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -20231,7 +20218,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -20298,7 +20285,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -20351,7 +20338,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -20404,7 +20391,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -20471,7 +20458,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -20524,7 +20511,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -20577,7 +20564,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -20646,7 +20633,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -20697,7 +20684,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -20820,7 +20807,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -20958,8 +20945,9 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -21070,7 +21058,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -21082,8 +21070,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -21267,14 +21254,13 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -21614,7 +21600,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -21955,7 +21941,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -22008,7 +21994,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -22061,7 +22047,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -22128,7 +22114,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -22181,7 +22167,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -22234,7 +22220,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -22301,7 +22287,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -22354,7 +22340,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -22407,7 +22393,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -22476,7 +22462,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -22527,7 +22513,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -22650,7 +22636,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -22788,8 +22774,9 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -22900,7 +22887,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -22912,8 +22899,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -23097,14 +23083,13 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -23442,7 +23427,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -23690,7 +23675,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -23743,7 +23728,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -23796,7 +23781,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -23863,7 +23848,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -23916,7 +23901,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -23969,7 +23954,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -24036,7 +24021,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -24089,7 +24074,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -24142,7 +24127,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -24211,7 +24196,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -24262,7 +24247,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -24385,7 +24370,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -24523,8 +24508,9 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -24635,7 +24621,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -24647,8 +24633,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -24832,14 +24817,13 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -25177,7 +25161,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -25518,7 +25502,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -25571,7 +25555,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -25624,7 +25608,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -25691,7 +25675,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -25744,7 +25728,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -25797,7 +25781,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -25864,7 +25848,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -25917,7 +25901,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -25970,7 +25954,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -26039,7 +26023,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -26090,7 +26074,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -26213,7 +26197,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -26351,8 +26335,9 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -26463,7 +26448,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -26475,8 +26460,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -26660,14 +26644,13 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -27007,7 +26990,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -27348,7 +27331,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -27401,7 +27384,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -27454,7 +27437,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -27521,7 +27504,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -27574,7 +27557,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -27627,7 +27610,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -27694,7 +27677,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -27747,7 +27730,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -27800,7 +27783,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -27869,7 +27852,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -27920,7 +27903,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -28043,7 +28026,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -28181,8 +28164,9 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -28293,7 +28277,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -28305,8 +28289,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -28490,14 +28473,13 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -28837,7 +28819,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -29085,7 +29067,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -29138,7 +29120,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -29191,7 +29173,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -29258,7 +29240,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -29311,7 +29293,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -29364,7 +29346,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -29431,7 +29413,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -29484,7 +29466,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -29537,7 +29519,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -29606,7 +29588,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -29657,7 +29639,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           [
                                             {
                                               "color": "#131416",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 32,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -29780,7 +29762,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -29918,8 +29900,9 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -30030,6 +30013,6 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

@@ -8,8 +8,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -193,14 +192,13 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -435,6 +433,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -690,7 +689,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                                 style={
                                                   {
                                                     "color": "#131416",
-                                                    "fontFamily": "Geist-SemiBold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -759,6 +758,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -900,7 +900,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                                 style={
                                                   {
                                                     "color": "#131416",
-                                                    "fontFamily": "Geist-SemiBold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -981,6 +981,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                           "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -1120,7 +1121,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                               style={
                                                 {
                                                   "color": "#131416",
-                                                  "fontFamily": "Geist-SemiBold",
+                                                  "fontFamily": "Geist-Bold",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1509,7 +1510,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -1562,7 +1563,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -1615,7 +1616,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -1682,7 +1683,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -1735,7 +1736,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -1788,7 +1789,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -1855,7 +1856,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -1908,7 +1909,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -1961,7 +1962,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -2030,7 +2031,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -2083,7 +2084,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -2200,7 +2201,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -2338,8 +2339,9 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -2450,7 +2452,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2462,8 +2464,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2647,14 +2648,13 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -2752,7 +2752,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -2862,7 +2862,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -3000,8 +3000,9 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -3112,7 +3113,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3124,8 +3125,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3309,14 +3309,13 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -3414,7 +3413,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -3524,7 +3523,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -3662,8 +3661,9 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -3705,7 +3705,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3717,8 +3717,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3902,14 +3901,13 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -4007,7 +4005,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -4117,7 +4115,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -4255,8 +4253,9 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -4367,7 +4366,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -4379,8 +4378,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -4564,14 +4562,13 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -4806,6 +4803,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -5026,6 +5024,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -5167,7 +5166,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                                 style={
                                                   {
                                                     "color": "#131416",
-                                                    "fontFamily": "Geist-SemiBold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -5248,6 +5247,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                           "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -5726,7 +5726,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -5779,7 +5779,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -5832,7 +5832,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -5899,7 +5899,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -5952,7 +5952,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -6005,7 +6005,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -6072,7 +6072,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -6125,7 +6125,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -6178,7 +6178,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -6247,7 +6247,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -6300,7 +6300,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -6417,7 +6417,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -6555,8 +6555,9 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -6667,7 +6668,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -6679,8 +6680,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -6864,14 +6864,13 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -6969,7 +6968,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -7079,7 +7078,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -7217,8 +7216,9 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -7329,7 +7329,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -7341,8 +7341,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -7526,14 +7525,13 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -7768,6 +7766,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -7988,6 +7987,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -8190,6 +8190,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                           "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -8668,7 +8669,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -8721,7 +8722,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -8774,7 +8775,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -8841,7 +8842,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -8894,7 +8895,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -8947,7 +8948,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -9014,7 +9015,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -9067,7 +9068,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -9120,7 +9121,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -9189,7 +9190,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -9242,7 +9243,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -9359,7 +9360,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -9497,8 +9498,9 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -9609,7 +9611,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -9621,8 +9623,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -9806,14 +9807,13 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -9911,7 +9911,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -10021,7 +10021,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -10159,8 +10159,9 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -10271,7 +10272,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -10283,8 +10284,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -10468,14 +10468,13 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -10710,6 +10709,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -10965,7 +10965,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 style={
                                                   {
                                                     "color": "#131416",
-                                                    "fontFamily": "Geist-SemiBold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -11034,6 +11034,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -11175,7 +11176,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 style={
                                                   {
                                                     "color": "#131416",
-                                                    "fontFamily": "Geist-SemiBold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -11256,6 +11257,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -11395,7 +11397,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                               style={
                                                 {
                                                   "color": "#131416",
-                                                  "fontFamily": "Geist-SemiBold",
+                                                  "fontFamily": "Geist-Bold",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -11741,7 +11743,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -11794,7 +11796,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -11847,7 +11849,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -11914,7 +11916,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -11967,7 +11969,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -12020,7 +12022,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -12087,7 +12089,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -12140,7 +12142,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -12193,7 +12195,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -12262,7 +12264,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -12315,7 +12317,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -12432,7 +12434,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -12570,8 +12572,9 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -12682,7 +12685,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -12694,8 +12697,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -12879,14 +12881,13 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -13121,6 +13122,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -13376,7 +13378,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                                 style={
                                                   {
                                                     "color": "#131416",
-                                                    "fontFamily": "Geist-SemiBold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -13445,6 +13447,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -13586,7 +13589,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                                 style={
                                                   {
                                                     "color": "#131416",
-                                                    "fontFamily": "Geist-SemiBold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -13667,6 +13670,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                           "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -14145,7 +14149,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -14198,7 +14202,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -14251,7 +14255,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -14318,7 +14322,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -14371,7 +14375,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -14424,7 +14428,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -14491,7 +14495,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -14544,7 +14548,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -14597,7 +14601,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -14666,7 +14670,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -14719,7 +14723,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -14836,7 +14840,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -14974,8 +14978,9 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -15086,7 +15091,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -15098,8 +15103,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -15283,14 +15287,13 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -15388,7 +15391,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -15498,7 +15501,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -15636,8 +15639,9 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -15748,7 +15752,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -15760,8 +15764,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -15945,14 +15948,13 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -16163,6 +16165,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -16383,6 +16386,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -16585,6 +16589,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                           "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -17063,7 +17068,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -17116,7 +17121,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -17169,7 +17174,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -17236,7 +17241,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -17289,7 +17294,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -17342,7 +17347,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -17409,7 +17414,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -17462,7 +17467,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -17515,7 +17520,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -17584,7 +17589,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -17637,7 +17642,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -17754,7 +17759,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -17892,8 +17897,9 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -18004,7 +18010,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -18016,8 +18022,7 @@ exports[`BuildQuote View renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -18201,14 +18206,13 @@ exports[`BuildQuote View renders correctly 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -18443,6 +18447,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -18698,7 +18703,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 style={
                                                   {
                                                     "color": "#131416",
-                                                    "fontFamily": "Geist-SemiBold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -18767,6 +18772,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -18908,7 +18914,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 style={
                                                   {
                                                     "color": "#131416",
-                                                    "fontFamily": "Geist-SemiBold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -18989,6 +18995,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -19128,7 +19135,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#131416",
-                                                  "fontFamily": "Geist-SemiBold",
+                                                  "fontFamily": "Geist-Bold",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -19517,7 +19524,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -19570,7 +19577,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -19623,7 +19630,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -19690,7 +19697,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -19743,7 +19750,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -19796,7 +19803,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -19863,7 +19870,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -19916,7 +19923,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -19969,7 +19976,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -20038,7 +20045,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -20091,7 +20098,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -20208,7 +20215,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -20346,8 +20353,9 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -20458,7 +20466,7 @@ exports[`BuildQuote View renders correctly 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -20470,8 +20478,7 @@ exports[`BuildQuote View renders correctly 2`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -20655,14 +20662,13 @@ exports[`BuildQuote View renders correctly 2`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -20952,6 +20958,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -21207,7 +21214,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                                 style={
                                                   {
                                                     "color": "#131416",
-                                                    "fontFamily": "Geist-SemiBold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -21276,6 +21283,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       },
@@ -21418,6 +21426,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -21557,7 +21566,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                               style={
                                                 {
                                                   "color": "#131416",
-                                                  "fontFamily": "Geist-SemiBold",
+                                                  "fontFamily": "Geist-Bold",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -21986,7 +21995,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -22039,7 +22048,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -22092,7 +22101,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -22159,7 +22168,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -22212,7 +22221,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -22265,7 +22274,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -22332,7 +22341,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -22385,7 +22394,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -22438,7 +22447,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -22507,7 +22516,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -22560,7 +22569,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#131416",
-                                            "fontFamily": "Geist-SemiBold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -22677,7 +22686,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -22815,8 +22824,9 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -22858,7 +22868,7 @@ exports[`BuildQuote View renders correctly 2`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -22870,8 +22880,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -23055,14 +23064,13 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -23160,7 +23168,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -23270,7 +23278,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -23408,8 +23416,9 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -23520,7 +23529,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -23532,8 +23541,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -23717,14 +23725,13 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -23822,7 +23829,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -23932,7 +23939,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -24070,8 +24077,9 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -24113,6 +24121,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

@@ -8,8 +8,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -410,7 +409,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -424,7 +423,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -504,8 +503,9 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -776,7 +776,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -788,8 +788,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1190,7 +1189,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -1204,7 +1203,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -1284,8 +1283,9 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -1752,7 +1752,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1764,8 +1764,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2166,7 +2165,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -2180,7 +2179,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -2260,8 +2259,9 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -2960,7 +2960,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2972,8 +2972,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3374,7 +3373,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -3388,7 +3387,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -3468,8 +3467,9 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -3780,7 +3780,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3792,8 +3792,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -4194,7 +4193,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -4208,7 +4207,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -4288,8 +4287,9 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -4688,7 +4688,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -4700,8 +4700,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -5102,7 +5101,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -5116,7 +5115,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -5196,8 +5195,9 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -5896,7 +5896,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -5908,8 +5908,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -6310,7 +6309,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -6324,7 +6323,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -6404,8 +6403,9 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -7104,7 +7104,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -7116,8 +7116,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -7518,7 +7517,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -7532,7 +7531,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -7612,8 +7611,9 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -8312,6 +8312,6 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

@@ -1,13 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SecuritySettings renders correctly 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -141,8 +138,9 @@ exports[`SecuritySettings renders correctly 1`] = `
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
+                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -196,7 +194,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 24,
                 "letterSpacing": 0,
                 "lineHeight": 32,
@@ -324,92 +322,43 @@ exports[`SecuritySettings renders correctly 1`] = `
               </Text>
             </View>
           </View>
-          <View
-            accessibilityLabel="Back up now"
+          <TouchableOpacity
             accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
             accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
-              [
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#131416",
-                  "borderRadius": 12,
-                  "columnGap": 8,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "minWidth": 80,
-                  "opacity": 1,
-                  "overflow": "hidden",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                  "width": "100%",
-                },
-                {
-                  "marginTop": 16,
-                },
-                {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              ]
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "#131416",
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "marginTop": 16,
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+              }
             }
           >
             <Text
               accessibilityRole="text"
-              ellipsizeMode="clip"
-              numberOfLines={1}
               style={
-                [
-                  {
-                    "color": "#ffffff",
-                    "flexGrow": 0,
-                    "flexShrink": 1,
-                    "flexWrap": "wrap",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "textAlign": "center",
-                  },
-                  undefined,
-                ]
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Back up now
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
         <View
           style={
@@ -448,93 +397,44 @@ exports[`SecuritySettings renders correctly 1`] = `
           >
             Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your Secret Recovery Phrase to re-import your wallet.
           </Text>
-          <View
-            accessibilityLabel="Change password"
+          <TouchableOpacity
             accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
             accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
-              [
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#131416",
-                  "borderRadius": 12,
-                  "columnGap": 8,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "minWidth": 80,
-                  "opacity": 1,
-                  "overflow": "hidden",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                  "width": "100%",
-                },
-                {
-                  "marginTop": 16,
-                },
-                {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              ]
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "#131416",
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "marginTop": 16,
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+              }
             }
             testID="change-password-button"
           >
             <Text
               accessibilityRole="text"
-              ellipsizeMode="clip"
-              numberOfLines={1}
               style={
-                [
-                  {
-                    "color": "#ffffff",
-                    "flexGrow": 0,
-                    "flexShrink": 1,
-                    "flexWrap": "wrap",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "textAlign": "center",
-                  },
-                  undefined,
-                ]
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Change password
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
         <View
           style={
@@ -838,7 +738,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 24,
                 "letterSpacing": 0,
                 "lineHeight": 32,
@@ -887,7 +787,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1012,92 +912,45 @@ exports[`SecuritySettings renders correctly 1`] = `
               }
             }
           >
-            <View
-              accessibilityLabel="Clear privacy data"
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": false,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "backgroundColor": "#b4b4b528",
-                    "borderColor": "transparent",
-                    "borderRadius": 12,
-                    "borderWidth": 1,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 1,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                    "width": "100%",
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
               testID="clear-privacy-data-button"
             >
               <Text
                 accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 Clear privacy data
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
           <View />
         </View>
@@ -1145,91 +998,46 @@ exports[`SecuritySettings renders correctly 1`] = `
               }
             }
           >
-            <View
-              accessibilityLabel="Clear browser history"
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": true,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              disabled={true}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "backgroundColor": "#b4b4b528",
-                    "borderColor": "transparent",
-                    "borderRadius": 12,
-                    "borderWidth": 1,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 0.5,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                    "width": "100%",
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "opacity": 0.5,
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
             >
               <Text
                 accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 Clear browser history
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
         <View
@@ -1275,91 +1083,46 @@ exports[`SecuritySettings renders correctly 1`] = `
               }
             }
           >
-            <View
-              accessibilityLabel="Clear browser cookies"
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": true,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              disabled={true}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "backgroundColor": "#b4b4b528",
-                    "borderColor": "transparent",
-                    "borderRadius": 12,
-                    "borderWidth": 1,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 0.5,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                    "width": "100%",
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "opacity": 0.5,
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
             >
               <Text
                 accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 Clear browser cookies
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
         <View />
@@ -1465,7 +1228,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               style={
                 {
                   "color": "#131416",
-                  "fontFamily": "Geist-SemiBold",
+                  "fontFamily": "Geist-Bold",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -2507,5 +2270,5 @@ exports[`SecuritySettings renders correctly 1`] = `
     </View>
   </RCTScrollView>
   <View />
-</RNCSafeAreaView>
+</View>
 `;

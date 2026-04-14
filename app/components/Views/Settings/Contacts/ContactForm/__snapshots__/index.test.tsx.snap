@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ContactForm renders correctly 1`] = `
-<RCTSafeAreaView
+<View
   style={
     {
       "backgroundColor": "#ffffff",
@@ -59,7 +59,7 @@ exports[`ContactForm renders correctly 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 14,
               "paddingVertical": 12,
             }
@@ -103,7 +103,7 @@ exports[`ContactForm renders correctly 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 14,
               "paddingVertical": 12,
             }
@@ -203,7 +203,7 @@ exports[`ContactForm renders correctly 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 14,
               "paddingVertical": 12,
             }
@@ -269,7 +269,7 @@ exports[`ContactForm renders correctly 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 14,
               "paddingVertical": 12,
             }
@@ -445,7 +445,7 @@ exports[`ContactForm renders correctly 1`] = `
                     },
                     [
                       {
-                        "fontFamily": "Geist-SemiBold",
+                        "fontFamily": "Geist-Bold",
                         "fontSize": 14,
                         "textAlign": "center",
                       },
@@ -468,5 +468,5 @@ exports[`ContactForm renders correctly 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</RCTSafeAreaView>
+</View>
 `;

@@ -8,8 +8,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -410,7 +409,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -424,7 +423,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -504,8 +503,9 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -871,7 +871,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -883,8 +883,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1285,7 +1284,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -1299,7 +1298,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -1379,8 +1378,9 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -1690,7 +1690,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1702,8 +1702,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2104,7 +2103,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -2118,7 +2117,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -2198,8 +2197,9 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -2565,7 +2565,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2577,8 +2577,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2979,7 +2978,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -2993,7 +2992,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -3073,8 +3072,9 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -3440,7 +3440,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3452,8 +3452,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3854,7 +3853,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -3868,7 +3867,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -3948,8 +3947,9 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -4579,7 +4579,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -4591,8 +4591,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -4993,7 +4992,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -5007,7 +5006,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -5087,8 +5086,9 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -5454,6 +5454,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

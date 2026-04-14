@@ -8,8 +8,7 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -410,8 +409,8 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -425,7 +424,7 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -563,14 +562,13 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                                 </View>
                               </View>
                             </View>
-                            <RNCSafeAreaView
+                            <View
                               edges={
-                                {
-                                  "bottom": "additive",
-                                  "left": "additive",
-                                  "right": "additive",
-                                  "top": "off",
-                                }
+                                [
+                                  "right",
+                                  "bottom",
+                                  "left",
+                                ]
                               }
                               style={
                                 {
@@ -600,7 +598,7 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                                   }
                                 />
                               </View>
-                            </RNCSafeAreaView>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -613,7 +611,7 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -625,8 +623,7 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1027,8 +1024,8 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -1042,7 +1039,7 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -1180,14 +1177,13 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                 </View>
                               </View>
                             </View>
-                            <RNCSafeAreaView
+                            <View
                               edges={
-                                {
-                                  "bottom": "additive",
-                                  "left": "additive",
-                                  "right": "additive",
-                                  "top": "off",
-                                }
+                                [
+                                  "right",
+                                  "bottom",
+                                  "left",
+                                ]
                               }
                               style={
                                 {
@@ -1216,14 +1212,13 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                     ]
                                   }
                                 >
-                                  <RNCSafeAreaView
+                                  <View
                                     edges={
-                                      {
-                                        "bottom": "additive",
-                                        "left": "additive",
-                                        "right": "additive",
-                                        "top": "off",
-                                      }
+                                      [
+                                        "right",
+                                        "bottom",
+                                        "left",
+                                      ]
                                     }
                                     style={
                                       {
@@ -1290,7 +1285,7 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                           style={
                                             {
                                               "color": "#ca3542",
-                                              "fontFamily": "Geist-SemiBold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1317,10 +1312,10 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                         </Text>
                                       </View>
                                     </View>
-                                  </RNCSafeAreaView>
+                                  </View>
                                 </View>
                               </View>
-                            </RNCSafeAreaView>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1333,6 +1328,6 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

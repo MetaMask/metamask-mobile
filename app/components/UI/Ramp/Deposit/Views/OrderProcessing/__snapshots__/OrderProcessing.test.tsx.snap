@@ -1,14 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OrderProcessing Component renders created state correctly 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "off",
-    }
+    [
+      "right",
+      "bottom",
+      "left",
+    ]
   }
   style={
     {
@@ -227,7 +226,7 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 40,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -592,18 +591,17 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`OrderProcessing Component renders error state correctly 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "off",
-    }
+    [
+      "right",
+      "bottom",
+      "left",
+    ]
   }
   style={
     {
@@ -818,7 +816,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 40,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -1222,18 +1220,17 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`OrderProcessing Component renders no order found state 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "off",
-    }
+    [
+      "right",
+      "bottom",
+      "left",
+    ]
   }
   style={
     {
@@ -1272,18 +1269,17 @@ exports[`OrderProcessing Component renders no order found state 1`] = `
       />
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`OrderProcessing Component renders processing state correctly 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "off",
-    }
+    [
+      "right",
+      "bottom",
+      "left",
+    ]
   }
   style={
     {
@@ -1502,7 +1498,7 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 40,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -1867,18 +1863,17 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`OrderProcessing Component renders success state correctly 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "off",
-    }
+    [
+      "right",
+      "bottom",
+      "left",
+    ]
   }
   style={
     {
@@ -2093,7 +2088,7 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 40,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -2458,5 +2453,5 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;

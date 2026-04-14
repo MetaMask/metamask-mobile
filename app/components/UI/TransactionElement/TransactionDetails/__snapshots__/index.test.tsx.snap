@@ -8,8 +8,7 @@ exports[`TransactionDetails should render correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -428,7 +427,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                   },
                                   {
                                     "color": "#457a39",
@@ -1120,7 +1119,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                     undefined,
                                     undefined,
                                     {
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                     },
                                     undefined,
                                     undefined,
@@ -1164,7 +1163,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                     undefined,
                                     undefined,
                                     {
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                     },
                                     undefined,
                                     undefined,
@@ -1296,7 +1295,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1308,8 +1307,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1728,7 +1726,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                   },
                                   {
                                     "color": "#457a39",
@@ -2420,7 +2418,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                     undefined,
                                     undefined,
                                     {
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                     },
                                     undefined,
                                     undefined,
@@ -2464,7 +2462,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                     undefined,
                                     undefined,
                                     {
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                     },
                                     undefined,
                                     undefined,
@@ -2596,7 +2594,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2608,8 +2606,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3028,7 +3025,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                   },
                                   {
                                     "color": "#457a39",
@@ -3720,7 +3717,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                     undefined,
                                     undefined,
                                     {
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                     },
                                     undefined,
                                     undefined,
@@ -3764,7 +3761,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                     undefined,
                                     undefined,
                                     {
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                     },
                                     undefined,
                                     undefined,
@@ -3896,6 +3893,6 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

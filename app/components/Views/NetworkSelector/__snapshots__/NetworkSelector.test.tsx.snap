@@ -8,8 +8,7 @@ exports[`Network Selector renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -439,7 +438,7 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 {
                                   "color": "#131416",
-                                  "fontFamily": "Geist-SemiBold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 20,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -1468,96 +1467,47 @@ exports[`Network Selector renders correctly 1`] = `
                                   </View>
                                 </View>
                               </RCTScrollView>
-                              <View
-                                accessibilityLabel="Add network"
+                              <TouchableOpacity
                                 accessibilityRole="button"
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
                                 accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                                activeOpacity={1}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "transparent",
-                                      "borderRadius": 12,
-                                      "borderWidth": 1,
-                                      "columnGap": 8,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "minWidth": 80,
-                                      "opacity": 1,
-                                      "overflow": "hidden",
-                                      "paddingLeft": 16,
-                                      "paddingRight": 16,
-                                      "width": "100%",
-                                    },
-                                    {
-                                      "marginBottom": 0,
-                                      "marginHorizontal": 16,
-                                    },
-                                    {
-                                      "transform": [
-                                        {
-                                          "scale": 1,
-                                        },
-                                      ],
-                                    },
-                                  ]
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "#b4b4b528",
+                                    "borderColor": "transparent",
+                                    "borderRadius": 12,
+                                    "borderWidth": 1,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "marginBottom": 0,
+                                    "marginHorizontal": 16,
+                                    "overflow": "hidden",
+                                    "paddingHorizontal": 16,
+                                  }
                                 }
                                 testID="add-network-button"
                               >
                                 <Text
                                   accessibilityRole="text"
-                                  ellipsizeMode="clip"
-                                  numberOfLines={1}
                                   style={
-                                    [
-                                      {
-                                        "color": "#131416",
-                                        "flexGrow": 0,
-                                        "flexShrink": 1,
-                                        "flexWrap": "wrap",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "textAlign": "center",
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#131416",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
                                   }
                                 >
                                   Add network
                                 </Text>
-                              </View>
+                              </TouchableOpacity>
                             </View>
                           </View>
                         </View>
@@ -1571,7 +1521,7 @@ exports[`Network Selector renders correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1583,8 +1533,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2014,7 +1963,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                               style={
                                 {
                                   "color": "#131416",
-                                  "fontFamily": "Geist-SemiBold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 20,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -5230,96 +5179,47 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   </View>
                                 </View>
                               </RCTScrollView>
-                              <View
-                                accessibilityLabel="Add a custom network"
+                              <TouchableOpacity
                                 accessibilityRole="button"
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
                                 accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                                activeOpacity={1}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "transparent",
-                                      "borderRadius": 12,
-                                      "borderWidth": 1,
-                                      "columnGap": 8,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "minWidth": 80,
-                                      "opacity": 1,
-                                      "overflow": "hidden",
-                                      "paddingLeft": 16,
-                                      "paddingRight": 16,
-                                      "width": "100%",
-                                    },
-                                    {
-                                      "marginBottom": 12,
-                                      "marginHorizontal": 16,
-                                    },
-                                    {
-                                      "transform": [
-                                        {
-                                          "scale": 1,
-                                        },
-                                      ],
-                                    },
-                                  ]
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "#b4b4b528",
+                                    "borderColor": "transparent",
+                                    "borderRadius": 12,
+                                    "borderWidth": 1,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "marginBottom": 12,
+                                    "marginHorizontal": 16,
+                                    "overflow": "hidden",
+                                    "paddingHorizontal": 16,
+                                  }
                                 }
                                 testID="add-network-button"
                               >
                                 <Text
                                   accessibilityRole="text"
-                                  ellipsizeMode="clip"
-                                  numberOfLines={1}
                                   style={
-                                    [
-                                      {
-                                        "color": "#131416",
-                                        "flexGrow": 0,
-                                        "flexShrink": 1,
-                                        "flexWrap": "wrap",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "textAlign": "center",
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#131416",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
                                   }
                                 >
                                   Add a custom network
                                 </Text>
-                              </View>
+                              </TouchableOpacity>
                             </View>
                           </View>
                         </View>
@@ -5333,6 +5233,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

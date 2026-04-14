@@ -8,8 +8,7 @@ exports[`Contacts renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -194,13 +193,10 @@ exports[`Contacts renders correctly 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -335,8 +331,9 @@ exports[`Contacts renders correctly 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -439,7 +436,7 @@ exports[`Contacts renders correctly 1`] = `
                                 null,
                                 [
                                   {
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 14,
                                     "textAlign": "center",
                                   },
@@ -455,7 +452,7 @@ exports[`Contacts renders correctly 1`] = `
                             Add contact
                           </Text>
                         </TouchableOpacity>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -479,6 +476,6 @@ exports[`Contacts renders correctly 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

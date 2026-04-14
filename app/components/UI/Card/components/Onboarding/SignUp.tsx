@@ -27,9 +27,11 @@ import { validateEmail } from '../../../Ramp/Deposit/utils';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import useRegions from '../../hooks/useRegions';
-import { setContactVerificationId } from '../../../../../core/redux/slices/card';
+import {
+  setContactVerificationId,
+  setUserCardLocation,
+} from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
-import Engine from '../../../../../core/Engine';
 import { validatePassword } from '../../util/validatePassword';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -44,14 +46,6 @@ import SelectField from './SelectField';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import type { Region } from '../../types';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
-import { HUBSPOT_WAITLIST_URL } from '../../constants';
-
-const buildWaitlistUrl = (countryName: string, email?: string): string => {
-  // country must come first per HubSpot field ordering
-  let query = `country=${encodeURIComponent(countryName)}`;
-  if (email) query += `&email=${encodeURIComponent(email)}`;
-  return `${HUBSPOT_WAITLIST_URL}?${query}`;
-};
 
 const SignUp = () => {
   const navigation = useNavigation();
@@ -67,7 +61,7 @@ const SignUp = () => {
   const hasAutoSelectedCountry = useRef(false);
   const geoLocation = useSelector(selectGeolocationLocation);
   const {
-    allRegions,
+    signUpRegions,
     getRegionByCode,
     isLoading: isLoadingRegistrationSettings,
   } = useRegions();
@@ -95,7 +89,7 @@ const SignUp = () => {
   const debouncedPassword = useDebouncedValue(password, 1000);
 
   useEffect(() => {
-    if (!allRegions.length || geoLocation === 'UNKNOWN') {
+    if (!signUpRegions.length || geoLocation === 'UNKNOWN') {
       return;
     }
 
@@ -108,14 +102,14 @@ const SignUp = () => {
 
     const matchedRegion = getRegionByCode(geoLocation);
 
-    if (matchedRegion) {
+    // Only pre-select countries that are eligible for sign-up.
+    // getRegionByCode searches allRegions, which includes canSignUp: false entries.
+    if (matchedRegion?.canSignUp) {
       hasAutoSelectedCountry.current = true;
       setSelectedCountry(matchedRegion);
-      Engine.context.CardController.setUserLocation(
-        mapCountryToLocation(matchedRegion.key),
-      );
+      dispatch(setUserCardLocation(mapCountryToLocation(matchedRegion.key)));
     }
-  }, [allRegions.length, geoLocation, getRegionByCode]);
+  }, [signUpRegions.length, geoLocation, dispatch, getRegionByCode]);
 
   useEffect(() => {
     if (!debouncedEmail) {
@@ -135,41 +129,25 @@ const SignUp = () => {
     setIsPasswordValid(isValid);
   }, [debouncedPassword]);
 
-  const isWaitlistMode = Boolean(selectedCountry && !selectedCountry.canSignUp);
-
-  const isDisabled = useMemo(() => {
-    if (isWaitlistMode) {
-      return false;
-    }
-    return (
+  const isDisabled = useMemo(
+    () =>
       !email ||
       !password ||
       !selectedCountry ||
       !isEmailValid ||
       !isPasswordValid ||
       emailVerificationIsError ||
-      emailVerificationIsLoading
-    );
-  }, [
-    isWaitlistMode,
-    email,
-    password,
-    selectedCountry,
-    isEmailValid,
-    isPasswordValid,
-    emailVerificationIsError,
-    emailVerificationIsLoading,
-  ]);
-
-  const handleJoinWaitlist = useCallback(() => {
-    if (!selectedCountry) return;
-    navigation.navigate(Routes.CARD.MODALS.ID, {
-      screen: Routes.CARD.MODALS.WAITLIST_FORM,
-      params: {
-        url: buildWaitlistUrl(selectedCountry.name, email || undefined),
-      },
-    });
-  }, [selectedCountry, email, navigation]);
+      emailVerificationIsLoading,
+    [
+      email,
+      password,
+      selectedCountry,
+      isEmailValid,
+      isPasswordValid,
+      emailVerificationIsError,
+      emailVerificationIsLoading,
+    ],
+  );
 
   const handleEmailChange = useCallback(
     (emailText: string) => {
@@ -244,23 +222,22 @@ const SignUp = () => {
     resetEmailVerificationSend();
     setOnValueChange((region) => {
       setSelectedCountry(region);
-      Engine.context.CardController.setUserLocation(
-        mapCountryToLocation(region.key),
-      );
+      dispatch(setUserCardLocation(mapCountryToLocation(region.key)));
     });
 
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({
-        regions: allRegions,
+        regions: signUpRegions,
         selectedRegionKey: selectedCountry?.key ?? null,
       }),
     );
   }, [
     navigation,
-    allRegions,
+    signUpRegions,
     selectedCountry?.key,
     resetEmailVerificationSend,
     isLoadingRegistrationSettings,
+    dispatch,
   ]);
 
   useEffect(() => () => clearOnValueChange(), []);
@@ -283,15 +260,6 @@ const SignUp = () => {
             isDisabled={isLoadingRegistrationSettings}
             testID="signup-country-select"
           />
-        )}
-        {isWaitlistMode && (
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-text-alternative mt-1"
-            testID="signup-country-not-available-text"
-          >
-            {strings('card.card_onboarding.sign_up.country_not_available')}
-          </Text>
         )}
       </Box>
 
@@ -330,54 +298,50 @@ const SignUp = () => {
         ) : null}
       </Box>
 
-      {!isWaitlistMode && (
-        <Box>
-          <Label>
-            {strings('card.card_onboarding.sign_up.password_label')}
-          </Label>
-          <TextField
-            autoCapitalize={'none'}
-            onChangeText={handlePasswordChange}
-            numberOfLines={1}
-            value={password}
-            maxLength={255}
-            secureTextEntry={!isPasswordVisible}
-            autoComplete="one-time-code"
-            accessibilityLabel={strings(
-              'card.card_onboarding.sign_up.password_label',
-            )}
-            isError={debouncedPassword.length > 0 && isPasswordError}
-            testID="signup-password-input"
-            endAccessory={
-              <TouchableOpacity
-                onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                testID="signup-password-visibility-toggle"
-              >
-                <Icon
-                  name={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
-                  size={IconSize.Md}
-                />
-              </TouchableOpacity>
-            }
-          />
-          {debouncedPassword.length > 0 && isPasswordError ? (
-            <Text
-              testID="signup-password-error-text"
-              variant={TextVariant.BodySm}
-              twClassName="text-error-default"
-            >
-              {strings('card.card_onboarding.sign_up.invalid_password')}
-            </Text>
-          ) : (
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-text-alternative"
-            >
-              {strings('card.card_onboarding.sign_up.password_description')}
-            </Text>
+      <Box>
+        <Label>{strings('card.card_onboarding.sign_up.password_label')}</Label>
+        <TextField
+          autoCapitalize={'none'}
+          onChangeText={handlePasswordChange}
+          numberOfLines={1}
+          value={password}
+          maxLength={255}
+          secureTextEntry={!isPasswordVisible}
+          autoComplete="one-time-code"
+          accessibilityLabel={strings(
+            'card.card_onboarding.sign_up.password_label',
           )}
-        </Box>
-      )}
+          isError={debouncedPassword.length > 0 && isPasswordError}
+          testID="signup-password-input"
+          endAccessory={
+            <TouchableOpacity
+              onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+              testID="signup-password-visibility-toggle"
+            >
+              <Icon
+                name={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
+                size={IconSize.Md}
+              />
+            </TouchableOpacity>
+          }
+        />
+        {debouncedPassword.length > 0 && isPasswordError ? (
+          <Text
+            testID="signup-password-error-text"
+            variant={TextVariant.BodySm}
+            twClassName="text-error-default"
+          >
+            {strings('card.card_onboarding.sign_up.invalid_password')}
+          </Text>
+        ) : (
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-text-alternative"
+          >
+            {strings('card.card_onboarding.sign_up.password_description')}
+          </Text>
+        )}
+      </Box>
     </>
   );
 
@@ -386,15 +350,13 @@ const SignUp = () => {
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
-        onPress={isWaitlistMode ? handleJoinWaitlist : handleContinue}
+        onPress={handleContinue}
         isFullWidth
         isDisabled={isDisabled}
-        isLoading={!isWaitlistMode && emailVerificationIsLoading}
+        isLoading={emailVerificationIsLoading}
         testID="signup-continue-button"
       >
-        {isWaitlistMode
-          ? strings('card.card_onboarding.sign_up.join_waitlist')
-          : strings('card.card_onboarding.continue_button')}
+        {strings('card.card_onboarding.continue_button')}
       </Button>
       <TouchableOpacity
         onPress={() => navigation.navigate(Routes.CARD.AUTHENTICATION)}
