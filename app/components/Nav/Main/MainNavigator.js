@@ -142,6 +142,7 @@ import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/Level
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
+import OndoPendingSheet from '../../UI/Rewards/components/Campaigns/OndoPendingSheet';
 import CampaignTourStepView from '../../UI/Rewards/Views/CampaignTourStepView';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
@@ -345,10 +346,12 @@ const RewardsHome = () => {
       <Stack.Screen
         name={Routes.MODAL.REWARDS_SELECT_SHEET}
         component={RewardsSelectSheet}
-        options={{
-          presentation: 'transparentModal',
-          cardStyle: { backgroundColor: 'transparent' },
-        }}
+        options={{ presentation: 'transparentModal' }}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.REWARDS_ONDO_PENDING_SHEET}
+        component={OndoPendingSheet}
+        options={{ presentation: 'transparentModal' }}
       />
     </Stack.Navigator>
   );
