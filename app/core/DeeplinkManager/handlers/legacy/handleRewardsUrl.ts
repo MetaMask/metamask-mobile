@@ -14,7 +14,7 @@ interface HandleRewardsUrlParams {
  */
 interface RewardsNavigationParams {
   referral?: string;
-  page?: 'campaigns' | 'musd';
+  page?: 'campaigns' | 'musd' | 'benefits';
   campaign?: 'ondo' | 'season1';
 }
 
@@ -37,7 +37,7 @@ const parseRewardsNavigationParams = (
     referral:
       (urlParams.get('referral') as RewardsNavigationParams['referral']) ||
       undefined,
-    page: (['campaigns', 'musd'].includes(pageParam ?? '')
+    page: (['campaigns', 'musd', 'benefits'].includes(pageParam ?? '')
       ? pageParam
       : undefined) as RewardsNavigationParams['page'],
     campaign: (['ondo', 'season1'].includes(campaignParam ?? '')
@@ -56,6 +56,7 @@ const parseRewardsNavigationParams = (
  * - https://link.metamask.io/rewards?referral=code
  * - https://link.metamask.io/rewards?page=campaigns
  * - https://link.metamask.io/rewards?page=musd
+ * - https://link.metamask.io/rewards?page=benefits
  * - https://link.metamask.io/rewards?campaign=ondo
  * - https://link.metamask.io/rewards?campaign=season1
  */

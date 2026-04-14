@@ -675,13 +675,15 @@ describe('RewardsNavigator', () => {
       });
     });
 
-    it('navigates to dashboard when page=benefits param is set (placeholder until Benefits page lands)', async () => {
+    it('navigates to benefits full view when page=benefits param is set', async () => {
       mockRouteParams = { page: 'benefits' };
 
       renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.REWARD_BENEFITS_FULL_VIEW,
+        );
       });
     });
 

@@ -89,6 +89,8 @@ const RewardsNavigator: React.FC = () => {
         navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW);
       } else if (deepLinkPage === 'musd') {
         navigation.navigate(Routes.REWARDS_MUSD_CALCULATOR_VIEW);
+      } else if (deepLinkPage === 'benefits') {
+        navigation.navigate(Routes.REWARD_BENEFITS_FULL_VIEW);
       } else {
         navigation.navigate(Routes.REWARDS_DASHBOARD);
       }
