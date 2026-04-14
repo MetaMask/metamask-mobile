@@ -608,6 +608,22 @@ describe('CampaignStatsSummary', () => {
     expect(getAllByText('Ineligible')).toHaveLength(2);
   });
 
+  it('shows dash for rank and tier when isIneligible=true even with leaderboard data', () => {
+    const { getByTestId } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={{ ...MOCK_POSITION, rank: 5, projectedTier: 'MID' }}
+        isIneligible
+      />,
+    );
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
+    ).toBe('-');
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER).props.children,
+    ).toBe('-');
+  });
+
   it('shows not-eligible banner when isIneligible=true', () => {
     const { getByTestId, getByText } = render(
       <CampaignStatsSummary

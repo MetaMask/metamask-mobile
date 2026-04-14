@@ -115,11 +115,11 @@ export const QualifiedTag: React.FC<{ testID?: string }> = ({ testID }) => (
 );
 
 export const IneligibleTag: React.FC<{ testID?: string }> = ({ testID }) => (
-  <Box twClassName="bg-muted rounded-[6px] px-1.5" testID={testID}>
+  <Box twClassName="bg-warning-muted rounded-[6px] px-1.5" testID={testID}>
     <Text
       variant={TextVariant.BodyXs}
       fontWeight={FontWeight.Medium}
-      color={TextColor.TextAlternative}
+      color={TextColor.WarningDefault}
     >
       {strings('rewards.ondo_campaign_leaderboard.ineligible')}
     </Text>
@@ -187,11 +187,15 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
     ? formatUsd(portfolioSummary.totalCurrentValue)
     : '-';
 
-  const rankValue = leaderboardPosition ? `${leaderboardPosition.rank}` : '-';
+  const rankValue =
+    isIneligible || !leaderboardPosition
+      ? '-'
+      : `${leaderboardPosition.rank}`;
 
-  const tierValue = leaderboardPosition
-    ? formatTierDisplayName(leaderboardPosition.projectedTier)
-    : '-';
+  const tierValue =
+    isIneligible || !leaderboardPosition
+      ? '-'
+      : formatTierDisplayName(leaderboardPosition.projectedTier);
 
   return (
     <Box twClassName="gap-3" testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.CONTAINER}>

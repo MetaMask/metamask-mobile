@@ -587,6 +587,14 @@ describe('OndoCampaignStatsView', () => {
       ).toBeNull();
     });
 
+    it('shows dash for rank and tier values when ineligible', () => {
+      setupIneligible();
+      // position has rank: 8 and projectedTier: 'STARTER' — neither should appear
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(queryByText('8')).toBeNull();
+      expect(queryByText('STARTER')).toBeNull();
+    });
+
     it('does not show ineligible tag when qualified even if campaign ends soon', () => {
       mockGetCampaignStatus.mockReturnValue('active');
       mockUseRewardCampaigns.mockReturnValue({
