@@ -1019,6 +1019,78 @@ jobs:
         run: |
           echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
 
+  update-e2e-timings:
+    name: 'Update E2E test timings'
+    runs-on: ubuntu-latest
+    # Runs after E2E tests complete (success or failure — partial data is still useful).
+    # Downloads all JUnit artifacts from this run, merges timing data via EMA, then:
+    #   - Uploads the JSON as an artifact (always — for inspection on any branch/PR)
+    #   - Saves to Actions cache (always) so the next run on any branch gets updated timings
+    # No git commits needed — cache is inherited from main by PR branches automatically.
+    if: >-
+      ${{
+        !cancelled() &&
+        !github.event.pull_request.head.repo.fork &&
+        (needs.e2e-smoke-tests-android.result == 'success' || needs.e2e-smoke-tests-ios.result == 'success')
+      }}
+    needs: [e2e-smoke-tests-android, e2e-smoke-tests-ios]
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Restore latest timings from cache (baseline)
+        uses: actions/cache/restore@v4
+        with:
+          path: tests/e2e-test-timings.json
+          key: e2e-timings-never-match
+          restore-keys: e2e-timings-
+
+      - name: Download JUnit artifacts from this run
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-e2e-*-junit-results
+          path: junit-artifacts
+          merge-multiple: false
+
+      - name: Merge timing data from all shards
+        run: |
+          set -euo pipefail
+          shopt -s globstar nullglob
+          processed=0
+          for xmlfile in junit-artifacts/**/junit.xml; do
+            dir=$(basename "$(dirname "$xmlfile")")
+            if echo "$dir" | grep -qi "ios"; then
+              platform="ios"
+            else
+              platform="android"
+            fi
+            echo "📊 Processing $xmlfile (platform: $platform)"
+            PLATFORM="$platform" \
+            JUNIT_REPORT_PATH="$xmlfile" \
+            TIMINGS_FILE="tests/e2e-test-timings.json" \
+              node .github/scripts/e2e-update-test-timings.mjs \
+              && processed=$((processed + 1)) \
+              || echo "⚠️  Failed for $xmlfile (non-blocking)"
+          done
+          echo "✅ Processed $processed shard(s)"
+          echo "📄 Timing DB now has $(node -e "const f=require('./tests/e2e-test-timings.json'); console.log(Object.keys(f.timings).length)") entries"
+
+      - name: Save updated timings to cache
+        uses: actions/cache/save@v4
+        with:
+          path: tests/e2e-test-timings.json
+          # Unique key per run — next run restores via the e2e-timings- prefix
+          key: e2e-timings-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Upload updated timings as artifact (for inspection)
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-timings
+          path: tests/e2e-test-timings.json
+          retention-days: 30
+
   check-all-jobs-pass:
     # [CI-DEV] Flask tests removed from needs/checks — re-enable before merging.
     name: Check all jobs pass
@@ -1034,6 +1106,7 @@ jobs:
       - provide-ios-artifact
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
+      - update-e2e-timings
     env:
       SKIPPED: ${{ needs.check-skip-merge-queue.outputs.skip-merge-queue == 'true' }}
     steps:

@@ -4,7 +4,8 @@ import { spawn } from 'node:child_process';
 import { extractTestResults } from './e2e-extract-test-results.mjs';
 
 // 1) Find all specs files that include the given E2E tags
-// 2) Compute sharding split (evenly across runners)
+// 2) Compute sharding split using time-based bin-packing (LPT algorithm)
+//    Falls back to even count split if no timing data is available.
 // 3) On re-runs, skip passed tests and only run failed/not-executed tests
 // 4) Flaky test detector mechanism in PRs (test retries)
 // 5) Log and run the selected specs for the given shard split
@@ -23,16 +24,14 @@ const env = {
   RUN_ATTEMPT: Number(process.env.RUN_ATTEMPT || '1'),
   PREVIOUS_RESULTS_PATH: process.env.PREVIOUS_RESULTS_PATH || '',
 };
-// Example of format of CHANGED_FILES: .github/scripts/e2e-check-build-needed.mjs .github/scripts/needs-e2e-builds.mjs
+
+const TIMINGS_FILE = path.resolve('tests/e2e-test-timings.json');
 
 if (!fs.existsSync(env.BASE_DIR)) throw new Error(`❌ Base directory not found: ${env.BASE_DIR}`);
 if (!env.TEST_SUITE_TAG) throw new Error('❌ Missing TEST_SUITE_TAG env var');
 
 /**
  * Minimal GitHub GraphQL helper
- * @param {*} query - The query to run
- * @param {*} variables - The variables to pass to the query
- * @returns The data from the query
  */
 async function githubGraphql(query, variables = {}) {
   try {
@@ -60,7 +59,6 @@ async function githubGraphql(query, variables = {}) {
     }
     return data.data;
   } catch (err) {
-    // Re-throw with more context
     if (err.message) throw err;
     throw new Error(`GraphQL request failed: ${String(err)}`);
   }
@@ -68,7 +66,6 @@ async function githubGraphql(query, variables = {}) {
 
 /**
  * Check if the flakiness detection (tests retries) should be skipped.
- * @returns True if the retries should be skipped, false otherwise
  */
 async function shouldSkipFlakinessDetection() {
   if (!env.PR_NUMBER) {
@@ -106,8 +103,6 @@ async function shouldSkipFlakinessDetection() {
 
 /**
  * Check if a file is a spec file
- * @param {*} filePath - The path to the file
- * @returns True if the file is a spec file, false otherwise
  */
 function isSpecFile(filePath) {
   return (filePath.endsWith('.spec.js') || filePath.endsWith('.spec.ts')) &&
@@ -116,8 +111,6 @@ function isSpecFile(filePath) {
 
 /**
  * Synchronous generator to recursively walk a directory
- * @param {*} dir - The directory to walk
- * @returns A generator of the files in the directory, sorted alphabetically
  */
 function* walk(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -133,17 +126,11 @@ function* walk(dir) {
 
 /**
  * Find all spec files that contain the provided tag string
- * @param {*} baseDir - The base directory to search
- * @param {*} tag - The tag to search for
- * @returns The matching files, sorted alphabetically
  */
 function findMatchingFiles(baseDir, tag) {
   const resolvedBase = path.resolve(baseDir);
   const results = [];
-  // Escape the tag for safe usage in RegExp
   const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  // Match tag with word-boundary semantics similar to `grep -w -F`
-  // We require a non-word (or start) before and after the tag to avoid substring matches
   const boundaryPattern = new RegExp(
     `(^|[^A-Za-z0-9_])${escapeRegExp(tag)}([^A-Za-z0-9_]|$)`,
     'm',
@@ -152,7 +139,6 @@ function findMatchingFiles(baseDir, tag) {
     if (!isSpecFile(filePath)) continue;
     const content = fs.readFileSync(filePath, 'utf8');
     if (boundaryPattern.test(content)) {
-      // Return repo-relative paths similar to the bash script output
       results.push(path.relative(process.cwd(), filePath));
     }
   }
@@ -161,21 +147,15 @@ function findMatchingFiles(baseDir, tag) {
 }
 
 /**
- * Compute the ceiling of a division
- * @param {*} a - The dividend
- * @param {*} b - The divisor
- * @returns The ceiling of the division
+ * Compute ceiling of a division
  */
 function ceilDiv(a, b) {
   return Math.floor((a + b - 1) / b);
 }
 
 /**
- * Split files evenly across runners
- * @param {*} files - The files to split
- * @param {*} splitNumber - The number of the split (1-based index)
- * @param {*} totalSplits - The total number of splits
- * @returns The split files for this runner
+ * LEGACY: Split files evenly across runners by count (alphabetical slicing).
+ * Used as fallback when no timing data is available.
  */
 function computeShardingSplit(files, splitNumber, totalSplits) {
   const filesPerSplit = ceilDiv(files.length, totalSplits);
@@ -184,13 +164,146 @@ function computeShardingSplit(files, splitNumber, totalSplits) {
   return files.slice(startIndex, endIndex);
 }
 
+// ---------------------------------------------------------------------------
+// Time-based bin-packing sharding
+// ---------------------------------------------------------------------------
+
 /**
- * Spawn a yarn script with inherited stdio
- * @param {*} scriptName - The name of the script to run
- * @param {*} args - The arguments to pass to the script
- * @param {*} extraEnv - The extra environment variables to set
- * @returns A promise that resolves when the script exits
+ * Load the test timings database from disk.
+ * Returns an empty object if the file does not exist or cannot be parsed.
+ *
+ * @returns {{ [filePath: string]: { ios?: number, android?: number } }}
  */
+function loadTestTimings() {
+  if (!fs.existsSync(TIMINGS_FILE)) {
+    console.log(`ℹ️  No timings file found at ${TIMINGS_FILE} — falling back to equal-count split.`);
+    return null;
+  }
+  try {
+    const raw = JSON.parse(fs.readFileSync(TIMINGS_FILE, 'utf8'));
+    return raw.timings ?? null;
+  } catch (e) {
+    console.warn(`⚠️  Could not parse timings file: ${e.message} — falling back to equal-count split.`);
+    return null;
+  }
+}
+
+/**
+ * Compute the median value from an array of numbers.
+ * Returns a default fallback value if the array is empty.
+ *
+ * @param {number[]} values
+ * @param {number} fallback - value to use when no observations are available
+ * @returns {number}
+ */
+function computeMedian(values, fallback = 60) {
+  if (values.length === 0) return fallback;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? (sorted[mid - 1] + sorted[mid]) / 2
+    : sorted[mid];
+}
+
+/**
+ * Assign files to shards using the Longest Processing Time (LPT) greedy
+ * bin-packing algorithm so each shard finishes in roughly equal wall-clock time.
+ *
+ * Algorithm:
+ *   1. Estimate each file's duration from the timings database.
+ *      Unknown files get the median of all known durations for this platform
+ *      (conservative estimate so they don't all pile into the "lightest" shard).
+ *   2. Sort files descending by estimated duration (longest first — this
+ *      gives the best approximation for LPT).
+ *   3. Greedily assign each file to the shard with the current minimum total.
+ *   4. Return the file list assigned to the requested shard number.
+ *
+ * @param {string[]} files - all spec files for this tag, sorted alphabetically
+ * @param {{ [filePath: string]: { ios?: number, android?: number } }} timings
+ * @param {string} platform - 'ios' | 'android'
+ * @param {number} splitNumber - which shard we are (1-based)
+ * @param {number} totalSplits - total number of shards
+ * @returns {string[]} files assigned to this shard
+ */
+function binPackShards(files, timings, platform, splitNumber, totalSplits) {
+  const platformKey = platform.toLowerCase() === 'ios' ? 'ios' : 'android';
+
+  // Collect all known durations for this platform to derive a median fallback
+  const knownDurations = files
+    .map((f) => timings[f]?.[platformKey])
+    .filter((t) => typeof t === 'number' && t > 0);
+
+  const medianDuration = computeMedian(knownDurations, 60);
+  const unknownFiles = files.filter((f) => typeof timings[f]?.[platformKey] !== 'number');
+
+  if (unknownFiles.length > 0) {
+    console.log(`ℹ️  ${unknownFiles.length} file(s) have no recorded timing — using median fallback of ${medianDuration.toFixed(1)}s each:`);
+    unknownFiles.forEach((f) => console.log(`     - ${f}`));
+  }
+
+  // Pair each file with its estimated duration
+  const filesWithDuration = files.map((f) => ({
+    file: f,
+    duration: timings[f]?.[platformKey] ?? medianDuration,
+  }));
+
+  // Sort longest-first for LPT
+  filesWithDuration.sort((a, b) => b.duration - a.duration);
+
+  // Initialise N empty shards
+  const shards = Array.from({ length: totalSplits }, (_, i) => ({
+    index: i + 1,
+    files: [],
+    totalDuration: 0,
+  }));
+
+  // Greedy assignment
+  for (const { file, duration } of filesWithDuration) {
+    const lightest = shards.reduce((min, s) => s.totalDuration < min.totalDuration ? s : min);
+    lightest.files.push(file);
+    lightest.totalDuration += duration;
+  }
+
+  // Log estimated wall-clock time for every shard (helpful for debugging)
+  console.log(`\n📊 Estimated shard durations (${platformKey}, ${totalSplits} shards):`);
+  for (const shard of shards) {
+    const mins = Math.floor(shard.totalDuration / 60);
+    const secs = Math.round(shard.totalDuration % 60);
+    const marker = shard.index === splitNumber ? ' ← this runner' : '';
+    console.log(`   Shard ${shard.index}: ~${mins}m${String(secs).padStart(2, '0')}s (${shard.files.length} files)${marker}`);
+  }
+
+  const thisShard = shards.find((s) => s.index === splitNumber);
+  return thisShard ? thisShard.files : [];
+}
+
+/**
+ * Select the sharding strategy:
+ *   - Uses time-based bin-packing when timing data is available.
+ *   - Falls back to legacy equal-count alphabetical split otherwise.
+ *
+ * @param {string[]} files
+ * @param {number} splitNumber
+ * @param {number} totalSplits
+ * @param {string} platform
+ * @returns {string[]}
+ */
+function selectShardFiles(files, splitNumber, totalSplits, platform) {
+  const timings = loadTestTimings();
+
+  if (timings) {
+    console.log(`⏱️  Using time-based bin-packing sharding (timings loaded from ${TIMINGS_FILE})`);
+    return binPackShards(files, timings, platform, splitNumber, totalSplits);
+  }
+
+  console.log(`📦 Using equal-count sharding (no timings available)`);
+  return computeShardingSplit(files, splitNumber, totalSplits);
+}
+
+// ---------------------------------------------------------------------------
+// Helpers unchanged from original
+// ---------------------------------------------------------------------------
+
 function runYarn(scriptName, args, extraEnv = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn('yarn', [scriptName, ...args], {
@@ -205,14 +318,7 @@ function runYarn(scriptName, args, extraEnv = {}) {
   });
 }
 
-/**
- * Derive the retry filename for a given spec: base -> base-retry-N
- * @param {*} originalPath - The original path to the spec file
- * @param {*} retryIndex - The retry index
- * @returns The retry filename, or null if the original path is not a spec file
- */
 function computeRetryFilePath(originalPath, retryIndex) {
-  // originalPath must end with .spec.ts or .spec.js
   const match = originalPath.match(/^(.*)\.spec\.(ts|js)$/);
   if (!match) return null;
   const base = match[1];
@@ -220,10 +326,6 @@ function computeRetryFilePath(originalPath, retryIndex) {
   return `${base}-retry-${retryIndex}.spec.${ext}`;
 }
 
-/**
- * Create retry copies of a given spec if not already present
- * @param {*} originalPath - The original path to the spec file
- */
 function duplicateSpecFile(originalPath) {
   try {
     const srcPath = path.resolve(originalPath);
@@ -246,26 +348,15 @@ function duplicateSpecFile(originalPath) {
   }
 }
 
-/**
- * Normalize a path (repo-relative) for comparisons
- * @param {*} p - The path to normalize
- * @returns The normalized path, relative to the current working directory
- */
 function normalizePathForCompare(p) {
-  // Ensure relative to CWD, normalized separators
   const rel = path.isAbsolute(p) ? path.relative(process.cwd(), p) : p;
   return path.normalize(rel);
 }
 
-/**
- * Parse CHANGED_FILES env var to extract changed spec files
- * @returns Set of normalized spec file paths
- */
 function getChangedSpecFiles() {
   const raw = (env.CHANGED_FILES || '').trim();
   if (!raw) return new Set();
 
-  // Handle "changed_files=path1 path2" format
   let cleaned = raw;
   const eqIdx = raw.indexOf('=');
   if (eqIdx > -1 && /changed_files/i.test(raw.slice(0, eqIdx))) {
@@ -282,18 +373,12 @@ function getChangedSpecFiles() {
   return specFiles;
 }
 
-/**
- * Apply flakiness detection: duplicate changed spec files assigned to this shard
- * @param {string[]} splitFiles - The test files assigned to this shard
- * @returns {string[]} Expanded list with base + retry files for changed tests
- */
 function applyFlakinessDetection(splitFiles) {
   const changedSpecs = getChangedSpecFiles();
   if (changedSpecs.size === 0) {
     return splitFiles;
   }
 
-  // Find which changed files are in this shard's split
   const selectedSet = new Set(splitFiles.map(normalizePathForCompare));
   const duplicatedSet = new Set();
   for (const changed of changedSpecs) {
@@ -308,18 +393,14 @@ function applyFlakinessDetection(splitFiles) {
     return splitFiles;
   }
 
-  // Build expanded list: base + retry files for duplicated files
   const expanded = [];
   for (const file of splitFiles) {
     const normalized = normalizePathForCompare(file);
     if (duplicatedSet.has(normalized)) {
-      // Add base file
       expanded.push(file);
-      // Add retry files
       const retry1 = computeRetryFilePath(normalized, 1);
       if (retry1) expanded.push(retry1);
     } else {
-      // Not changed, add as-is
       expanded.push(file);
     }
   }
@@ -328,21 +409,24 @@ function applyFlakinessDetection(splitFiles) {
   return expanded;
 }
 
-async function main() {
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
 
-  console.log("🚀 Starting E2E tests...");
+async function main() {
+  console.log('🚀 Starting E2E tests...');
   console.log(`GitHub Actions: attempt ${env.RUN_ATTEMPT}`);
 
-  // 1) Find all specs files that include the given E2E tags
+  // 1) Find all spec files for the given tag
   console.log(`Searching for E2E test files with tags: ${env.TEST_SUITE_TAG}`);
-  let allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG); // TODO - review this function (!).
+  const allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG);
   if (allMatches.length === 0) throw new Error(`❌ No test files found containing tags: ${env.TEST_SUITE_TAG}`);
   console.log(`Found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`);
 
-
-  // 2) Compute sharding split (evenly across runners)
-  const splitFiles = computeShardingSplit(allMatches, env.SPLIT_NUMBER, env.TOTAL_SPLITS);
+  // 2) Assign files to this shard using time-based bin-packing (or fallback)
+  const splitFiles = selectShardFiles(allMatches, env.SPLIT_NUMBER, env.TOTAL_SPLITS, env.PLATFORM);
   let runFiles = [...splitFiles];
+
   if (runFiles.length === 0) {
     console.log(`⚠️  No test files for split ${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS} (only ${allMatches.length} test files found, but ${env.TOTAL_SPLITS} runners configured).`);
     console.log(`    💡 Tip: Reduce shard splits or add more tests to this tag ${env.TEST_SUITE_TAG}`);
@@ -350,21 +434,14 @@ async function main() {
   }
 
   // 3) On re-runs, skip passed tests and only run failed/not-executed tests
-  //    This avoids running all tests over and over again on re-runs
   if (env.RUN_ATTEMPT > 1 && env.PREVIOUS_RESULTS_PATH) {
     console.log(`\n🔄 Re-run detected (attempt ${env.RUN_ATTEMPT}), checking for failed tests to re-run...`);
 
     const { passed, failed, executed } = await extractTestResults(env.PREVIOUS_RESULTS_PATH);
 
-    // If no tests were executed in previous run, something is wrong - run all tests
     if (executed.length === 0) {
       console.log('⚠️  No test results found from previous run, running all tests in chunk.');
     } else {
-      // Re-run tests that failed OR were never executed in previous run
-      // Only skip tests that explicitly passed - this ensures:
-      // 1. Failed tests get re-run
-      // 2. Tests that never executed (due to crash/cancel) also get run
-      // 3. Only confirmed passing tests are skipped
       const passedSet = new Set(passed.map(normalizePathForCompare));
       const testsToRerun = splitFiles.filter(
         (testPath) => !passedSet.has(normalizePathForCompare(testPath))
@@ -383,7 +460,6 @@ async function main() {
         testsToRerun.forEach((t) => console.log(`  - ${t}`));
         runFiles = testsToRerun;
       } else {
-        // No tests to re-run - all tests in this chunk passed
         console.log('✅ All tests in this chunk passed, skipping.');
         process.exit(0);
       }
@@ -391,9 +467,6 @@ async function main() {
   }
 
   // 4) Flaky test detector mechanism in PRs (test retries)
-  //    - Only duplicates changed files that are in this shard's split
-  //    - Creates base + retry files for flakiness detection
-  //    - Skip flakiness detection on re-runs since we're already re-running failed tests
   if (env.RUN_ATTEMPT === 1) {
     const shouldSkipFlakinessGate = await shouldSkipFlakinessDetection();
     if (!shouldSkipFlakinessGate) {
@@ -416,7 +489,7 @@ async function main() {
       console.log('\n 🤖 Running Android tests for build type: ', env.METAMASK_BUILD_TYPE);
       await runYarn(`test:e2e:android:${env.METAMASK_BUILD_TYPE}:ci`, args);
     }
-    console.log("✅ Test execution completed");
+    console.log('✅ Test execution completed');
   } catch (err) {
     console.error(err.message || String(err));
     process.exit(1);

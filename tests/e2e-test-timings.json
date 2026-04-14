@@ -1,0 +1,317 @@
+{
+  "version": 1,
+  "timings": {
+    "tests/smoke/account-activity/web-socket-connection.spec.ts": {
+      "android": 100.1,
+      "ios": 147.9
+    },
+    "tests/smoke/accounts/reveal-secret-recovery-phrase.spec.ts": {
+      "android": 45.4,
+      "ios": 71.2
+    },
+    "tests/smoke/accounts/wallet-details.spec.ts": {
+      "android": 48.7,
+      "ios": 60.8
+    },
+    "tests/smoke/assets/defi/view-defi-details.spec.ts": {
+      "android": 35.2,
+      "ios": 46.3
+    },
+    "tests/smoke/assets/market-insights/view-market-insights.spec.ts": {
+      "android": 218.9,
+      "ios": 278.4
+    },
+    "tests/smoke/card/card-button.spec.ts": {
+      "android": 53.5,
+      "ios": 69.1
+    },
+    "tests/smoke/card/card-home-add-funds.spec.ts": {
+      "android": 69.0,
+      "ios": 86.1
+    },
+    "tests/smoke/card/card-home-manage-card.spec.ts": {
+      "android": 62.5,
+      "ios": 80.7
+    },
+    "tests/smoke/confirmations/send/send-btc-token.spec.ts": {
+      "android": 33.7,
+      "ios": 38.1
+    },
+    "tests/smoke/confirmations/send/send-erc20-token.spec.ts": {
+      "android": 131.4,
+      "ios": 144.8
+    },
+    "tests/smoke/confirmations/send/send-native-token.spec.ts": {
+      "android": 80.7,
+      "ios": 83.9
+    },
+    "tests/smoke/confirmations/send/send-solana-token.spec.ts": {
+      "android": 31.0,
+      "ios": 38.5
+    },
+    "tests/smoke/confirmations/signatures/alert-system.spec.ts": {
+      "android": 169.8,
+      "ios": 240.6
+    },
+    "tests/smoke/confirmations/signatures/signatures-typed.spec.ts": {
+      "android": 136.1,
+      "ios": 191.9
+    },
+    "tests/smoke/confirmations/signatures/signatures.spec.ts": {
+      "android": 91.3,
+      "ios": 135.4
+    },
+    "tests/smoke/confirmations/transactions/7702/batch-transaction.spec.ts": {
+      "android": 64.1,
+      "ios": 92.7
+    },
+    "tests/smoke/confirmations/transactions/contract-deployment.spec.ts": {
+      "android": 52.1,
+      "ios": 73.3
+    },
+    "tests/smoke/confirmations/transactions/contract-interaction.spec.ts": {
+      "android": 51.0,
+      "ios": 71.7
+    },
+    "tests/smoke/confirmations/transactions/dapp-initiated-transfer.spec.ts": {
+      "android": 51.7,
+      "ios": 70.8
+    },
+    "tests/smoke/confirmations/transactions/gas-fee-tokens-eip-7702-sponsored.spec.ts": {
+      "android": 92.8,
+      "ios": 116.3
+    },
+    "tests/smoke/confirmations/transactions/gas-fee-tokens-eip-7702.spec.ts": {
+      "android": 57.9,
+      "ios": 55.6
+    },
+    "tests/smoke/confirmations/transactions/per-dapp-selected-network.spec.ts": {
+      "android": 66.4,
+      "ios": 116.2
+    },
+    "tests/smoke/confirmations/transactions/token-approve/approve.spec.ts": {
+      "android": 109.6,
+      "ios": 165.9
+    },
+    "tests/smoke/confirmations/transactions/token-approve/increase-allowance.spec.ts": {
+      "android": 56.3,
+      "ios": 87.9
+    },
+    "tests/smoke/confirmations/transactions/token-approve/set-approval-for-all.spec.ts": {
+      "android": 168.4,
+      "ios": 240.6
+    },
+    "tests/smoke/confirmations/transactions/transaction-pay.spec.ts": {
+      "android": 47.7,
+      "ios": 54.9
+    },
+    "tests/smoke/identity/account-syncing/account-syncing-settings-toggle.spec.ts": {
+      "android": 72.9,
+      "ios": 111.0
+    },
+    "tests/smoke/identity/account-syncing/adding-and-renaming-accounts.spec.ts": {
+      "android": 95.4,
+      "ios": 131.4
+    },
+    "tests/smoke/identity/account-syncing/discovery.spec.ts": {
+      "android": 61.8,
+      "ios": 83.6
+    },
+    "tests/smoke/identity/account-syncing/imported-accounts.spec.ts": {
+      "android": 68.3,
+      "ios": 107.4
+    },
+    "tests/smoke/identity/contact-syncing/contact-sync-toggle.spec.ts": {
+      "android": 111.1,
+      "ios": 194.7
+    },
+    "tests/smoke/identity/contact-syncing/sync-users-contacts.spec.ts": {
+      "android": 58.4,
+      "ios": 95.4
+    },
+    "tests/smoke/multichain-accounts/delete-account.spec.ts": {
+      "android": 31.5,
+      "ios": 43.6
+    },
+    "tests/smoke/multichain/connections/multiple-provider-connections.spec.ts": {
+      "android": 137.4,
+      "ios": 187.9
+    },
+    "tests/smoke/multichain/permissions/chains/permission-system-dapp-chain-switch-grant.spec.ts": {
+      "android": 51.1,
+      "ios": 78.6
+    },
+    "tests/smoke/multichain/permissions/chains/permission-system-initial-connection.spec.ts": {
+      "android": 98.8,
+      "ios": 151.9
+    },
+    "tests/smoke/multichain/solana-wallet-standard/connect.spec.ts": {
+      "android": 129.4,
+      "ios": 187.1
+    },
+    "tests/smoke/multichain/solana-wallet-standard/signMessage.spec.ts": {
+      "android": 43.2,
+      "ios": 62.0
+    },
+    "tests/smoke/multichain/solana-wallet-standard/transferSol.spec.ts": {
+      "android": 52.2,
+      "ios": 63.7
+    },
+    "tests/smoke/multichain/wallet-createSession.spec.ts": {
+      "android": 428.5,
+      "ios": 457.4
+    },
+    "tests/smoke/multichain/wallet-getSession.spec.ts": {
+      "android": 277.3,
+      "ios": 291.0
+    },
+    "tests/smoke/multichain/wallet-revokeSession.spec.ts": {
+      "android": 66.5,
+      "ios": 71.2
+    },
+    "tests/smoke/multichain/wallet-sessionChanged.spec.ts": {
+      "android": 86.9,
+      "ios": 87.3
+    },
+    "tests/smoke/multisrp/add-account.spec.ts": {
+      "android": 33.3,
+      "ios": 48.7
+    },
+    "tests/smoke/multisrp/export-srp-from-settings.spec.ts": {
+      "android": 189.7,
+      "ios": 266.3
+    },
+    "tests/smoke/networks/network-manager2.spec.ts": {
+      "android": 274.6,
+      "ios": 382.0
+    },
+    "tests/smoke/notifications/enable-notifications-after-onboarding.spec.ts": {
+      "android": 84.6,
+      "ios": 161.0
+    },
+    "tests/smoke/predict/predict-api-down.spec.ts": {
+      "android": 26.8,
+      "ios": 39.8
+    },
+    "tests/smoke/predict/predict-claim-positions.spec.ts": {
+      "android": 119.2,
+      "ios": 174.0
+    },
+    "tests/smoke/predict/predict-existing-polymarket-balance.spec.ts": {
+      "android": 61.0,
+      "ios": 79.8
+    },
+    "tests/smoke/predict/predict-geo-restriction.spec.ts": {
+      "android": 98.3,
+      "ios": 149.3
+    },
+    "tests/smoke/predict/predict-open-position.spec.ts": {
+      "android": 98.0,
+      "ios": 149.8
+    },
+    "tests/smoke/predict/predict-withdraw.spec.ts": {
+      "android": 39.5,
+      "ios": 60.4
+    },
+    "tests/smoke/ramps/deeplink-to-buy-flow.spec.ts": {
+      "android": 61.2,
+      "ios": 111.7
+    },
+    "tests/smoke/ramps/deeplink-to-sell-flow.spec.ts": {
+      "android": 32.8,
+      "ios": 62.1
+    },
+    "tests/smoke/ramps/onramp-unified-buy.spec.ts": {
+      "android": 107.3,
+      "ios": 186.3
+    },
+    "tests/smoke/seedless/apple-login-existing-user.spec.ts": {
+      "android": 37.3,
+      "ios": 48.2
+    },
+    "tests/smoke/seedless/apple-login-new-user.spec.ts": {
+      "android": 66.4,
+      "ios": 86.7
+    },
+    "tests/smoke/seedless/google-login-add-srp.spec.ts": {
+      "android": 83.9,
+      "ios": 154.5
+    },
+    "tests/smoke/seedless/google-login-existing-user.spec.ts": {
+      "android": 45.9,
+      "ios": 55.4
+    },
+    "tests/smoke/seedless/google-login-lock-unlock.spec.ts": {
+      "android": 87.1,
+      "ios": 59.1
+    },
+    "tests/smoke/seedless/google-login-new-user.spec.ts": {
+      "android": 67.1,
+      "ios": 85.9
+    },
+    "tests/smoke/seedless/google-login-reset-wallet.spec.ts": {
+      "android": 83.2,
+      "ios": 54.0
+    },
+    "tests/smoke/stake/stake-action-smoke.spec.ts": {
+      "android": 43.5,
+      "ios": 53.7
+    },
+    "tests/smoke/swap/bridge-action-smoke.spec.ts": {
+      "android": 58.7,
+      "ios": 78.8
+    },
+    "tests/smoke/swap/gasless-swap.spec.ts": {
+      "android": 46.3,
+      "ios": 66.7
+    },
+    "tests/smoke/swap/swap-action-smoke.spec.ts": {
+      "android": 72.4,
+      "ios": 89.1
+    },
+    "tests/smoke/swap/swap-deeplink-smoke.spec.ts": {
+      "android": 86.8,
+      "ios": 161.7
+    },
+    "tests/smoke/swap/swap-trending-tokens.spec.ts": {
+      "android": 46.6,
+      "ios": 237.1
+    },
+    "tests/smoke/swap/unified-ui-wallet-actions.spec.ts": {
+      "android": 59.1,
+      "ios": 79.8
+    },
+    "tests/smoke/trending/trending-browser.spec.ts": {
+      "android": 37.1,
+      "ios": 52.4
+    },
+    "tests/smoke/trending/trending-feed.spec.ts": {
+      "android": 99.5,
+      "ios": 169.3
+    },
+    "tests/smoke/trending/trending-search.spec.ts": {
+      "android": 34.4,
+      "ios": 45.7
+    },
+    "tests/smoke/wallet/analytics/new-wallet.spec.ts": {
+      "android": 275.8,
+      "ios": 412.2
+    },
+    "tests/smoke/wallet/connections/evm-provider-events.spec.ts": {
+      "android": 141.5,
+      "ios": 214.1
+    },
+    "tests/smoke/wallet/import-srp.spec.ts": {
+      "android": 34.7,
+      "ios": 98.7
+    },
+    "tests/smoke/wallet/incoming-transactions.spec.ts": {
+      "android": 99.9,
+      "ios": 116.7
+    },
+    "tests/smoke/wallet/musd-conversion-happy-path.spec.ts": {
+      "android": 128.1,
+      "ios": 121.6
+    }
+  }
+}

@@ -108,6 +108,44 @@ jobs:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
+      # TEMPORARY: Bitrise runners use Vagrant (user=vagrant, HOME=/Users/vagrant).
+      # GitHub Actions tools hardcode /Users/runner paths. Create symlink to fix.
+      - name: Fix Vagrant environment paths (Bitrise runners)
+        if: ${{ inputs.use_bitrise_runner && inputs.platform == 'ios' }}
+        run: |
+          if [ -L /Users/runner ]; then
+            current_target="$(readlink /Users/runner)"
+            if [ "$current_target" = "/Users/vagrant" ]; then
+              echo "Symlink already correct: /Users/runner → /Users/vagrant"
+            else
+              echo "Replacing incorrect symlink /Users/runner → $current_target"
+              sudo rm /Users/runner
+              sudo ln -s /Users/vagrant /Users/runner
+              echo "Recreated symlink: /Users/runner → /Users/vagrant"
+            fi
+          elif [ -e /Users/runner ]; then
+            echo "Error: /Users/runner exists but is not a symlink"
+            ls -ld /Users/runner
+            exit 1
+          else
+            sudo ln -s /Users/vagrant /Users/runner
+            echo "Created symlink /Users/runner → /Users/vagrant"
+          fi
+          mkdir -p "$HOME/hostedtoolcache" "$HOME/tmp"
+          echo "RUNNER_TOOL_CACHE=$HOME/hostedtoolcache" >> "$GITHUB_ENV"
+          echo "RUNNER_TEMP=$HOME/tmp" >> "$GITHUB_ENV"
+        shell: bash
+
+      - name: Restore E2E timings cache
+        uses: actions/cache/restore@v4
+        with:
+          path: tests/e2e-test-timings.json
+          # Restore the most recent timing data saved by a previous run.
+          # The key never matches exactly so it always falls back to restore-keys,
+          # picking up the latest cache saved by update-e2e-timings.
+          key: e2e-timings-never-match
+          restore-keys: e2e-timings-
+
       - name: Set up E2E environment
         timeout-minutes: 15
         uses: ./.github/actions/setup-e2e-env
@@ -269,6 +307,15 @@ jobs:
 
           # Clean up temporary node_modules
           rm -rf node_modules temp-deps
+
+      - name: Extract per-file timing data for shard balancing
+        if: ${{ !cancelled() }}
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          JUNIT_REPORT_PATH: tests/reports/junit.xml
+          TIMINGS_FILE: tests/e2e-test-timings.json
+        run: |
+          node .github/scripts/e2e-update-test-timings.mjs || echo "⚠️  Timing extraction failed (non-blocking)"
 
       # Merge previous test results with current results to preserve pass/fail history across re-runs.
       # Without this, tests that passed in attempt N but were skipped in attempt N+1 would have no
