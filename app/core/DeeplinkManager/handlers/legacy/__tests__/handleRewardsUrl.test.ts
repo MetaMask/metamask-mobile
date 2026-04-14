@@ -156,13 +156,10 @@ describe('handleRewardsUrl', () => {
       });
     });
 
-    it('navigates to rewards view with page=benefits param', async () => {
+    it('navigates to rewards view without params when page=benefits (routes to dashboard until Benefits page lands)', async () => {
       await handleRewardsUrl({ rewardsPath: '?page=benefits' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
-        page: 'benefits',
-        campaign: undefined,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });
 
     it('ignores unknown page value and navigates without params', async () => {

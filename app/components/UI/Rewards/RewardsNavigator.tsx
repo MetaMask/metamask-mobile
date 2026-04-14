@@ -89,8 +89,6 @@ const RewardsNavigator: React.FC = () => {
         navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW);
       } else if (deepLinkPage === 'musd') {
         navigation.navigate(Routes.REWARDS_MUSD_CALCULATOR_VIEW);
-      } else if (deepLinkPage === 'benefits') {
-        navigation.navigate(Routes.REWARDS_BENEFITS_VIEW);
       } else {
         navigation.navigate(Routes.REWARDS_DASHBOARD);
       }
@@ -191,11 +189,6 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_ONDO_CAMPAIGN_STATS}
             component={OndoCampaignStatsView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_BENEFITS_VIEW}
-            component={BenefitsView}
             options={{ headerShown: false }}
           />
         </>

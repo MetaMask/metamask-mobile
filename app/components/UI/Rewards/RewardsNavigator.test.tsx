@@ -250,21 +250,6 @@ jest.mock('./hooks/useRewardsVersionGuard', () => ({
   default: jest.fn().mockReturnValue({ fetchVersionRequirements: jest.fn() }),
 }));
 
-jest.mock('./Views/BenefitsView', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockBenefitsView() {
-      return ReactActual.createElement(
-        View,
-        { testID: 'benefits-view' },
-        ReactActual.createElement(Text, null, 'Benefits View'),
-      );
-    },
-  };
-});
-
 // Mock RewardsUpdateRequired component
 jest.mock('./components/RewardsUpdateRequired/RewardsUpdateRequired', () => {
   const ReactActual = jest.requireActual('react');
@@ -690,13 +675,13 @@ describe('RewardsNavigator', () => {
       });
     });
 
-    it('navigates to benefits view when page=benefits param is set', async () => {
+    it('navigates to dashboard when page=benefits param is set (placeholder until Benefits page lands)', async () => {
       mockRouteParams = { page: 'benefits' };
 
       renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_BENEFITS_VIEW);
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
       });
     });
 
