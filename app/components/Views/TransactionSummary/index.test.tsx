@@ -56,6 +56,24 @@ describe('TransactionSummary', () => {
     expect(screen.getAllByText('0.5 ETH')).toHaveLength(2);
   });
 
+  it('hides secondary total amount row when gas is sponsored', () => {
+    renderWithTheme({
+      ...defaultProps,
+      isGasFeeSponsored: true,
+    });
+
+    expect(screen.queryByText('$1,000.00')).toBeNull();
+  });
+
+  it('shows secondary total amount row when gas is not sponsored', () => {
+    renderWithTheme({
+      ...defaultProps,
+      isGasFeeSponsored: false,
+    });
+
+    expect(screen.getByText('$1,000.00')).toBeTruthy();
+  });
+
   it('displays fee and totalAmount when gas is not sponsored', () => {
     renderWithTheme({
       ...defaultProps,

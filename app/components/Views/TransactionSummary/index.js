@@ -168,13 +168,15 @@ export default class TransactionSummary extends PureComponent {
             </Text>,
           )}
         </Summary.Row>
-        <Summary.Row end last>
-          {this.renderIfGastEstimationReady(
-            <Text small right upper={!isTestNetResult}>
-              {secondaryTotalAmount}
-            </Text>,
-          )}
-        </Summary.Row>
+        {!isGasFeeSponsored && (
+          <Summary.Row end last>
+            {this.renderIfGastEstimationReady(
+              <Text small right upper={!isTestNetResult}>
+                {secondaryTotalAmount}
+              </Text>,
+            )}
+          </Summary.Row>
+        )}
       </Summary>
     );
   };
