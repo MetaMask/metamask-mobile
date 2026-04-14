@@ -12,12 +12,13 @@ const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
   callback?.();
 });
 
-jest.mock(
-  '../../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return ReactActual.forwardRef(
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
       (
         {
           children,
@@ -33,9 +34,9 @@ jest.mock(
         }));
         return <View testID={testID}>{children}</View>;
       },
-    );
-  },
-);
+    ),
+  };
+});
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
