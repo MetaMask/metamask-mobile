@@ -123,6 +123,8 @@ const Routes = {
   REWARDS_ONBOARDING_2: 'RewardsOnboarding2',
   REWARDS_ONBOARDING_3: 'RewardsOnboarding3',
   REWARDS_ONBOARDING_4: 'RewardsOnboarding4',
+  REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
+  REWARD_BENEFIT_FULL_VIEW: 'BenefitFullView',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -350,6 +352,7 @@ const Routes = {
   SOCIAL_LEADERBOARD: {
     ROOT: 'SocialLeaderboard',
     VIEW: 'TopTradersView',
+    PROFILE: 'TraderProfileView',
   },
   PREDICT: {
     ROOT: 'Predict',
@@ -409,9 +412,6 @@ const Routes = {
     ROOT: 'MoneyScreens',
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
-  },
-  MONEY_ACCOUNT: {
-    ROOT: 'MoneyAccountScreens',
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',

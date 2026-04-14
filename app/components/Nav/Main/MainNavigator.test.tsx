@@ -202,6 +202,11 @@ describe('MainNavigator', () => {
       interface ScreenChild {
         name: string;
         component: { name: string };
+        options?: {
+          headerShown?: boolean;
+          animationEnabled?: boolean;
+          cardStyleInterpolator?: unknown;
+        };
       }
       return container.root.children
         .filter(
@@ -214,6 +219,7 @@ describe('MainNavigator', () => {
         .map((child) => ({
           name: child.props.name,
           component: child.props.component,
+          options: child.props.options,
         })) as ScreenChild[];
     };
 
@@ -648,6 +654,11 @@ describe('MainNavigator', () => {
       interface ScreenChild {
         name: string;
         component: { name: string };
+        options?: {
+          headerShown?: boolean;
+          animationEnabled?: boolean;
+          cardStyleInterpolator?: unknown;
+        };
       }
       return container.root.children
         .filter(
@@ -660,6 +671,7 @@ describe('MainNavigator', () => {
         .map((child) => ({
           name: child.props.name,
           component: child.props.component,
+          options: child.props.options,
         })) as ScreenChild[];
     };
 
@@ -982,6 +994,38 @@ describe('MainNavigator', () => {
       );
 
       expect(screen).toBeDefined();
+    });
+
+    it('includes Benefits full view route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === Routes.REWARD_BENEFITS_FULL_VIEW,
+      );
+
+      expect(screen).toBeDefined();
+      expect(screen?.options?.headerShown).toBe(false);
+      expect(screen?.options?.animationEnabled).toBe(true);
+      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
+    });
+
+    it('includes Benefit detail full view route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === Routes.REWARD_BENEFIT_FULL_VIEW,
+      );
+
+      expect(screen).toBeDefined();
+      expect(screen?.options?.headerShown).toBe(false);
+      expect(screen?.options?.animationEnabled).toBe(true);
+      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
     });
   });
 
