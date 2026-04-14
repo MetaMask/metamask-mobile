@@ -92,14 +92,33 @@ const PredictPreviewSheetContext = createContext<
   PredictPreviewSheetContextValue | undefined
 >(undefined);
 
+/**
+ * Returns the sheet context when inside PredictPreviewSheetProvider,
+ * otherwise falls back to navigation-based routing so components rendered
+ * outside PredictScreenStack (e.g. home carousel, trending feed) don't crash.
+ */
 export const usePredictPreviewSheet = (): PredictPreviewSheetContextValue => {
   const ctx = useContext(PredictPreviewSheetContext);
-  if (!ctx) {
-    throw new Error(
-      'usePredictPreviewSheet must be used within a PredictPreviewSheetProvider',
-    );
+  const navigation = useNavigation();
+
+  if (ctx) {
+    return ctx;
   }
-  return ctx;
+
+  return {
+    openBuySheet: (params: PredictBuyPreviewParams) => {
+      navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+        params,
+      });
+    },
+    openSellSheet: (params: PredictSellPreviewParams) => {
+      navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+        params,
+      });
+    },
+  };
 };
 
 interface PredictPreviewSheetProviderProps {

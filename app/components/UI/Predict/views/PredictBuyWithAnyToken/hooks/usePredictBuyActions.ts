@@ -138,11 +138,18 @@ export const usePredictBuyActions = ({
       return;
     }
 
+    if (isSheetMode) {
+      return () => {
+        onRejectRef.current(undefined, true);
+        clearActiveOrderTransactionIdRef.current();
+      };
+    }
+
     return navigation.addListener('beforeRemove', () => {
       onRejectRef.current(undefined, true);
       clearActiveOrderTransactionIdRef.current();
     });
-  }, [navigation, payWithAnyTokenEnabled]);
+  }, [navigation, payWithAnyTokenEnabled, isSheetMode]);
 
   const handlePlaceOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {

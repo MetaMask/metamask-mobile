@@ -657,7 +657,7 @@ describe('usePredictBuyActions', () => {
       expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
     });
 
-    it('registers beforeRemove listener and cleans up on unmount when isSheetMode is true', () => {
+    it('runs cleanup on unmount instead of beforeRemove when isSheetMode is true', () => {
       const params = {
         ...createDefaultParams(),
         isSheetMode: true,
@@ -665,12 +665,15 @@ describe('usePredictBuyActions', () => {
       };
       const { unmount } = renderHook(() => usePredictBuyActions(params));
 
-      expect(mockAddListener).toHaveBeenCalledWith(
+      expect(mockAddListener).not.toHaveBeenCalledWith(
         'beforeRemove',
         expect.any(Function),
       );
 
       unmount();
+
+      expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
+      expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
     });
 
     it('falls back to StackActions.pop when isSheetMode is false (default)', async () => {

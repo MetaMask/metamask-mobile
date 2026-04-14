@@ -3,6 +3,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictBuyWithAnyToken from './PredictBuyWithAnyToken';
+import type { PredictBuyPreviewContentProps } from '../../types/navigation';
 
 const mockHandleConfirm = jest.fn();
 const mockPlaceOrder = jest.fn();
@@ -421,7 +422,7 @@ describe('PredictBuyWithAnyToken', () => {
       outcomeToken: { id: 'token-1', title: 'Yes', price: 0.62 },
       entryPoint: 'market_details',
       onClose: jest.fn(),
-    };
+    } as unknown as Partial<PredictBuyPreviewContentProps>;
 
     it('hides PredictBuyPreviewHeader in sheet mode', () => {
       renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);

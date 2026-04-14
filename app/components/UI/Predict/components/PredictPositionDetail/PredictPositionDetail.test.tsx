@@ -356,6 +356,7 @@ describe('PredictPositionDetail', () => {
         outcome: expect.objectContaining({ id: 'outcome-1' }),
       }),
     );
+    expect(global.__mockNavigate).not.toHaveBeenCalled();
   });
 
   describe('preview loading and error states', () => {
@@ -454,19 +455,5 @@ describe('PredictPositionDetail', () => {
     );
 
     expect(cashOutButton).toHaveProp('disabled', true);
-  });
-
-  it('opens sell sheet via context on cash out', () => {
-    renderComponent();
-
-    fireEvent.press(screen.getByText('Cash out'));
-
-    expect(mockOpenSellSheet).toHaveBeenCalledWith(
-      expect.objectContaining({
-        position: expect.objectContaining({ id: 'pos-1' }),
-        outcome: expect.objectContaining({ id: 'outcome-1' }),
-      }),
-    );
-    expect(global.__mockNavigate).not.toHaveBeenCalled();
   });
 });

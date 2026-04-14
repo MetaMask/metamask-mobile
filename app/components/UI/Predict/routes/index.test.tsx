@@ -19,8 +19,8 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../selectors/featureFlags', () => ({
-  selectPredictWithAnyTokenEnabledFlag: (...args: unknown[]) =>
-    mockSelectPredictWithAnyTokenEnabledFlag(...args),
+  selectPredictWithAnyTokenEnabledFlag: () =>
+    mockSelectPredictWithAnyTokenEnabledFlag(),
 }));
 
 jest.mock('../contexts', () => {

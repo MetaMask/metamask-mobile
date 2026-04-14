@@ -255,17 +255,26 @@ describe('PredictPreviewSheetContext', () => {
     expect(screen.queryByTestId('predict-sell-preview-sheet')).toBeNull();
   });
 
-  it('throws when usePredictPreviewSheet is used outside provider', () => {
-    const consoleError = jest
-      .spyOn(console, 'error')
-      // eslint-disable-next-line no-empty-function
-      .mockImplementation(() => {});
+  it('falls back to navigation when used outside provider', () => {
+    render(<TestConsumer />);
 
-    expect(() => render(<TestConsumer />)).toThrow(
-      'usePredictPreviewSheet must be used within a PredictPreviewSheetProvider',
-    );
+    fireEvent.press(screen.getByTestId('open-buy'));
 
-    consoleError.mockRestore();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: buyParams,
+    });
+  });
+
+  it('falls back to navigation for sell when used outside provider', () => {
+    render(<TestConsumer />);
+
+    fireEvent.press(screen.getByTestId('open-sell'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+      params: sellParams,
+    });
   });
 
   it('renders PredictBuyWithAnyToken when payWithAnyToken flag is ON', () => {
