@@ -181,4 +181,46 @@ describe('TopTradersView', () => {
     renderWithProvider(<TopTradersView />);
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
+
+  it('renders all four chain filter pills', () => {
+    renderWithProvider(<TopTradersView />);
+    expect(screen.getByTestId('chain-filter-all')).toBeOnTheScreen();
+    expect(screen.getByTestId('chain-filter-base')).toBeOnTheScreen();
+    expect(screen.getByTestId('chain-filter-solana')).toBeOnTheScreen();
+    expect(screen.getByTestId('chain-filter-ethereum')).toBeOnTheScreen();
+  });
+
+  it('filters traders when a chain pill is tapped', () => {
+    renderWithProvider(<TopTradersView />);
+    fireEvent.press(screen.getByTestId('chain-filter-base'));
+    expect(screen.getByText('sniperliquid.hl')).toBeOnTheScreen();
+    expect(screen.getByText('nervousdegen')).toBeOnTheScreen();
+    expect(screen.queryByText('baznocap')).not.toBeOnTheScreen();
+  });
+
+  it('shows all traders when All filter is tapped after filtering', () => {
+    renderWithProvider(<TopTradersView />);
+    fireEvent.press(screen.getByTestId('chain-filter-solana'));
+    expect(screen.queryByText('sniperliquid.hl')).not.toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('chain-filter-all'));
+    expect(screen.getByText('sniperliquid.hl')).toBeOnTheScreen();
+    expect(screen.getByText('baznocap')).toBeOnTheScreen();
+  });
+
+  it('re-ranks traders within filtered results', () => {
+    renderWithProvider(<TopTradersView />);
+    fireEvent.press(screen.getByTestId('chain-filter-solana'));
+    expect(screen.getByText('1.')).toBeOnTheScreen();
+    expect(screen.queryByText('3.')).not.toBeOnTheScreen();
+  });
+
+  it('renders skeletons during initial load', () => {
+    const original = { ...mockUseTopTraders };
+    mockUseTopTraders.isLoading = true;
+    mockUseTopTraders.traders = [];
+    renderWithProvider(<TopTradersView />);
+    expect(screen.queryByTestId('chain-filter-all')).toBeOnTheScreen();
+    expect(screen.queryByText('sniperliquid.hl')).not.toBeOnTheScreen();
+    Object.assign(mockUseTopTraders, original);
+  });
 });

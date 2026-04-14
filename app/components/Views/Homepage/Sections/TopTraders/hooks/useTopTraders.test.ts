@@ -92,6 +92,7 @@ describe('useTopTraders', () => {
         avatarUri: first.imageUrl,
         percentageChange: first.roiPercent30d * 100,
         pnlValue: first.pnl30d,
+        pnlPerChain: first.pnlPerChain ?? {},
         isFollowing: false,
       });
     });
