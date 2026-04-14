@@ -216,10 +216,15 @@ export const useDeviceConnectionFlow = ({
         adapter.resetFlowState();
       }
 
-      const transportUnavailable =
-        await checkTransportEnabledOrShowError(adapter);
-      if (transportUnavailable) {
-        return createBlockingPromise();
+      // Avoid pre-gating scan mode on transport state. BLE state can be
+      // briefly unknown/stale on startup and wrongly show "Bluetooth required"
+      // before discovery starts.
+      if (targetDeviceId) {
+        const transportUnavailable =
+          await checkTransportEnabledOrShowError(adapter);
+        if (transportUnavailable) {
+          return createBlockingPromise();
+        }
       }
 
       return createBlockingPromise(() => {

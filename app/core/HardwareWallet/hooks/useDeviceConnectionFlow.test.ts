@@ -83,6 +83,42 @@ describe('useDeviceConnectionFlow', () => {
         await readyPromise;
       });
     });
+
+    it('does not pre-check transport when entering scan mode without deviceId', async () => {
+      const mockAdapter = {
+        walletType: HardwareWalletType.Ledger,
+        resetFlowState: jest.fn(),
+        isTransportAvailable: jest.fn().mockResolvedValue(true),
+        startDeviceDiscovery: jest.fn(),
+        stopDeviceDiscovery: jest.fn(),
+        connect: jest.fn().mockResolvedValue(undefined),
+        disconnect: jest.fn(),
+        getConnectedDeviceId: jest.fn().mockReturnValue(null),
+      };
+      const checkTransportEnabledOrShowError = jest.fn();
+      const options = createDefaultOptions({
+        createAdapterWithCallbacks: jest.fn().mockReturnValue(mockAdapter),
+        checkTransportEnabledOrShowError,
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      let readyPromise: Promise<boolean>;
+      await act(async () => {
+        readyPromise = result.current.ensureDeviceReady();
+        await Promise.resolve();
+      });
+
+      expect(checkTransportEnabledOrShowError).not.toHaveBeenCalled();
+      expect(options.updateConnectionState).toHaveBeenCalledWith({
+        status: ConnectionStatus.Scanning,
+      });
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
+    });
   });
 
   describe('closeFlow', () => {
