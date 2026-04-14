@@ -44,6 +44,7 @@ const MoneyHomeView = () => {
   const handleAddPress = noopHandler;
   const handleTransferPress = noopHandler;
   const handleCardPress = noopHandler;
+  const handleApyInfoPress = noopHandler;
   const handleAddMusdPress = noopHandler;
   const handleGetNowPress = noopHandler;
   const handleHeaderPress = noopHandler;
@@ -81,7 +82,10 @@ const MoneyHomeView = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <MoneyBalanceSummary apy={String(MUSD_CONVERSION_APY)} />
+        <MoneyBalanceSummary
+          apy={String(MUSD_CONVERSION_APY)}
+          onApyInfoPress={handleApyInfoPress}
+        />
         <MoneyActionButtonRow
           onAddPress={handleAddPress}
           onTransferPress={handleTransferPress}

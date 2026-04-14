@@ -6231,6 +6231,7 @@
   "money": {
     "title": "Money",
     "apy_label": "{{percentage}}% APY",
+    "apy_info_label": "APY info",
     "action": {
       "add": "Add",
       "transfer": "Transfer",
