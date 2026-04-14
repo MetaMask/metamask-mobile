@@ -154,7 +154,9 @@ export class HyperLiquidClientService {
       // Wait for WebSocket to actually be ready before setting CONNECTED
       // This ensures we have a real connection, not just client objects
       try {
-        await this.#wsTransport.ready();
+        await this.#wsTransport.ready(
+          AbortSignal.timeout(HYPERLIQUID_TRANSPORT_CONFIG.timeout),
+        );
         this.#updateConnectionState(WebSocketConnectionState.Connected);
       } catch (wsError) {
         // WebSocket failed but HTTP clients are functional — fall back gracefully.
