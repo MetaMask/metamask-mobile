@@ -8161,6 +8161,7 @@
       "select_tier": "Select Tier",
       "pending": "Pending",
       "qualified": "Qualified",
+      "ineligible": "Ineligible",
       "pending_sheet_title": "Pending",
       "pending_sheet_tier_label": "Tier",
       "pending_sheet_net_deposit_label": "Net Deposit",
@@ -8186,7 +8187,9 @@
       "label_net_deposit": "Net deposit",
       "label_days_held": "Days held",
       "qualified_title": "You're qualified",
-      "qualified_description": "Keep your net deposit above {{minNetDeposit}} through the final day to stay eligible."
+      "qualified_description": "Keep your net deposit above {{minNetDeposit}} through the final day to stay eligible.",
+      "not_eligible_title": "Not eligible",
+      "not_eligible_description": "Trades opened too late to meet the {{days}}-day hold requirement won't count toward your rank or tier."
     },
     "ondo_campaign_activity": {
       "title": "All activity",

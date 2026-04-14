@@ -512,6 +512,134 @@ describe('OndoCampaignStatsView', () => {
     ).toBeDefined();
   });
 
+  describe('ineligible state', () => {
+    const makeIneligibleCampaign = (): CampaignDto => {
+      const now = new Date();
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const endDate = new Date(now);
+      endDate.setDate(endDate.getDate() + 5); // 6 days available — below 10-day threshold
+      return createTestCampaign({
+        startDate: yesterday.toISOString(),
+        endDate: endDate.toISOString(),
+      });
+    };
+
+    const setupIneligible = () => {
+      mockGetCampaignStatus.mockReturnValue('active');
+      mockUseRewardCampaigns.mockReturnValue({
+        campaigns: [makeIneligibleCampaign()],
+        categorizedCampaigns: { active: [], upcoming: [], previous: [] },
+        isLoading: false,
+        hasLoaded: true,
+        hasError: false,
+        fetchCampaigns: jest.fn(),
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        ...positionDefaults,
+        position: makePendingPosition({ qualifiedDays: 0 }),
+      });
+    };
+
+    it('shows ineligible tag when not enough days remain', () => {
+      setupIneligible();
+      const { getByText } = render(<OndoCampaignStatsView />);
+      expect(
+        getByText('rewards.ondo_campaign_leaderboard.ineligible'),
+      ).toBeDefined();
+    });
+
+    it('does not show pending tag when ineligible', () => {
+      setupIneligible();
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(
+        queryByText('rewards.ondo_campaign_leaderboard.pending'),
+      ).toBeNull();
+    });
+
+    it('does not show qualified tag when ineligible', () => {
+      setupIneligible();
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(
+        queryByText('rewards.ondo_campaign_leaderboard.qualified'),
+      ).toBeNull();
+    });
+
+    it('shows not-eligible banner when ineligible', () => {
+      setupIneligible();
+      const { getByTestId } = render(<OndoCampaignStatsView />);
+      expect(
+        getByTestId('campaign-stats-summary-not-eligible-banner'),
+      ).toBeDefined();
+    });
+
+    it('hides qualify card when ineligible', () => {
+      setupIneligible();
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(
+        queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
+      ).toBeNull();
+    });
+
+    it('does not show ineligible tag when qualified even if campaign ends soon', () => {
+      mockGetCampaignStatus.mockReturnValue('active');
+      mockUseRewardCampaigns.mockReturnValue({
+        campaigns: [makeIneligibleCampaign()],
+        categorizedCampaigns: { active: [], upcoming: [], previous: [] },
+        isLoading: false,
+        hasLoaded: true,
+        hasError: false,
+        fetchCampaigns: jest.fn(),
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        ...positionDefaults,
+        position: makeQualifiedPosition(),
+      });
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(
+        queryByText('rewards.ondo_campaign_leaderboard.ineligible'),
+      ).toBeNull();
+    });
+
+    it('does not show ineligible tag when campaign is complete', () => {
+      mockGetCampaignStatus.mockReturnValue('complete');
+      mockUseRewardCampaigns.mockReturnValue({
+        campaigns: [makeIneligibleCampaign()],
+        categorizedCampaigns: { active: [], upcoming: [], previous: [] },
+        isLoading: false,
+        hasLoaded: true,
+        hasError: false,
+        fetchCampaigns: jest.fn(),
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        ...positionDefaults,
+        position: makePendingPosition({ qualifiedDays: 0 }),
+      });
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(
+        queryByText('rewards.ondo_campaign_leaderboard.ineligible'),
+      ).toBeNull();
+    });
+  });
+
   it('hides qualified card when campaign is complete even if position is qualified', () => {
     mockGetCampaignStatus.mockReturnValue('complete');
     mockUseRewardCampaigns.mockReturnValue({

@@ -23,6 +23,8 @@ import {
   StatCell,
   PendingTag,
   QualifiedTag,
+  IneligibleTag,
+  CAMPAIGN_STATS_SUMMARY_TEST_IDS,
 } from '../components/Campaigns/CampaignStatsSummary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import {
@@ -107,6 +109,22 @@ const OndoCampaignStatsView: React.FC = () => {
   const isQualified =
     leaderboardPosition != null && leaderboardPosition.qualified;
 
+  const isIneligible = useMemo((): boolean => {
+    if (!campaign) return false;
+    if (leaderboardPosition?.qualified) return false;
+    if (getCampaignStatus(campaign) !== 'active') return false;
+    const now = new Date();
+    const startOfTodayUTC = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+    );
+    const endDate = new Date(campaign.endDate).getTime();
+    const daysAvailable =
+      Math.floor((endDate - startOfTodayUTC) / (1000 * 60 * 60 * 24)) + 1;
+    return daysAvailable < ONDO_GM_REQUIRED_QUALIFIED_DAYS;
+  }, [campaign, leaderboardPosition]);
+
   const isNegativeReturn = (leaderboardPosition?.rateOfReturn ?? 0) < 0;
 
   const returnValue = leaderboardPosition
@@ -164,6 +182,7 @@ const OndoCampaignStatsView: React.FC = () => {
   const showQualifyCard =
     isCampaignActive &&
     isPending &&
+    !isIneligible &&
     daysRemaining > 0 &&
     tierMinDeposit != null;
 
@@ -262,8 +281,13 @@ const OndoCampaignStatsView: React.FC = () => {
               <Text variant={TextVariant.HeadingMd}>
                 {strings('rewards.ondo_campaign_stats.label_your_rank')}
               </Text>
-              {isPending && <PendingTag />}
-              {isQualified && <QualifiedTag />}
+              {isIneligible && (
+                <IneligibleTag
+                  testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG}
+                />
+              )}
+              {!isIneligible && isPending && <PendingTag />}
+              {!isIneligible && isQualified && <QualifiedTag />}
             </Box>
 
             {/* Rank | Tier */}
@@ -353,8 +377,32 @@ const OndoCampaignStatsView: React.FC = () => {
               </Pressable>
             )}
 
+            {/* ── Not eligible banner ── */}
+            {isIneligible && (
+              <Box
+                twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
+                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('rewards.ondo_campaign_stats.not_eligible_title')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings(
+                    'rewards.ondo_campaign_stats.not_eligible_description',
+                    { days: ONDO_GM_REQUIRED_QUALIFIED_DAYS },
+                  )}
+                </Text>
+              </Box>
+            )}
+
             {/* ── You're qualified card ── */}
-            {isQualified && tierMinDeposit != null && (
+            {!isIneligible && isQualified && tierMinDeposit != null && (
               <Box twClassName="bg-muted rounded-xl p-4 mt-2 gap-2">
                 <Text
                   variant={TextVariant.BodyMd}

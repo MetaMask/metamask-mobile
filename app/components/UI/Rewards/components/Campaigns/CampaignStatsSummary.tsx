@@ -84,6 +84,8 @@ export const CAMPAIGN_STATS_SUMMARY_TEST_IDS = {
   RANK: 'campaign-stats-summary-rank',
   TIER: 'campaign-stats-summary-tier',
   PENDING_TAG: 'campaign-stats-summary-pending-tag',
+  INELIGIBLE_TAG: 'campaign-stats-summary-ineligible-tag',
+  NOT_ELIGIBLE_BANNER: 'campaign-stats-summary-not-eligible-banner',
   STATS_ERROR: 'campaign-stats-summary-stats-error',
 } as const;
 
@@ -111,6 +113,18 @@ export const QualifiedTag: React.FC<{ testID?: string }> = ({ testID }) => (
   </Box>
 );
 
+export const IneligibleTag: React.FC<{ testID?: string }> = ({ testID }) => (
+  <Box twClassName="bg-muted rounded-[6px] px-1.5" testID={testID}>
+    <Text
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
+    >
+      {strings('rewards.ondo_campaign_leaderboard.ineligible')}
+    </Text>
+  </Box>
+);
+
 interface DataSourceState {
   isLoading: boolean;
   hasError: boolean;
@@ -127,6 +141,8 @@ interface CampaignStatsSummaryProps {
   tierMinDeposit?: number | null;
   /** Called when the user taps the "Qualify for this rank" card arrow */
   onQualifyPress?: () => void;
+  /** User joined too late to ever accumulate enough qualifying days */
+  isIneligible?: boolean;
 }
 
 const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
@@ -137,6 +153,7 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
   showHeader = true,
   tierMinDeposit,
   onQualifyPress,
+  isIneligible = false,
 }) => {
   const leaderboardLoading = leaderboard.isLoading && !leaderboardPosition;
   const portfolioLoading = portfolio.isLoading && !portfolioSummary;
@@ -207,7 +224,11 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
           isLoading={leaderboardLoading}
           testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK}
           suffix={
-            isPending ? (
+            isIneligible ? (
+              <IneligibleTag
+                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG}
+              />
+            ) : isPending ? (
               <PendingTag
                 testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG}
               />
@@ -220,7 +241,11 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
           isLoading={leaderboardLoading}
           testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER}
           suffix={
-            isPending ? (
+            isIneligible ? (
+              <IneligibleTag
+                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG}
+              />
+            ) : isPending ? (
               <PendingTag
                 testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG}
               />
@@ -233,7 +258,24 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
         />
       </Box>
 
-      {isPending &&
+      {isIneligible && (
+        <Box
+          twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
+          testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER}
+        >
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {strings('rewards.ondo_campaign_stats.not_eligible_title')}
+          </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('rewards.ondo_campaign_stats.not_eligible_description', {
+              days: ONDO_GM_REQUIRED_QUALIFIED_DAYS,
+            })}
+          </Text>
+        </Box>
+      )}
+
+      {!isIneligible &&
+        isPending &&
         tierMinDeposit != null &&
         leaderboardPosition &&
         Math.max(

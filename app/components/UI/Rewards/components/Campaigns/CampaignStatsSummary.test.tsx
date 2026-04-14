@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import CampaignStatsSummary, {
+  IneligibleTag,
   CAMPAIGN_STATS_SUMMARY_TEST_IDS,
 } from './CampaignStatsSummary';
 import type {
@@ -63,6 +64,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_leaderboard.tier_upper': 'Platinum',
       'rewards.ondo_campaign_leaderboard.pending': 'Pending',
       'rewards.ondo_campaign_leaderboard.qualified': 'Qualified',
+      'rewards.ondo_campaign_leaderboard.ineligible': 'Ineligible',
+      'rewards.ondo_campaign_stats.not_eligible_title': 'Not eligible',
+      'rewards.ondo_campaign_stats.not_eligible_description':
+        "Trades opened too late to meet the 10-day hold requirement won't count toward your rank or tier.",
       'rewards.ondo_campaign_stats.title': 'Stats',
       'rewards.ondo_campaign_stats.stats_error_title':
         'Unable to load all stats',
@@ -577,5 +582,116 @@ describe('CampaignStatsSummary', () => {
       getByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
     );
     expect(mockOnQualifyPress).toHaveBeenCalledTimes(1);
+  });
+
+  // ── Ineligible state ──────────────────────────────────────────────
+
+  it('shows ineligible tags on both rank and tier cells when isIneligible=true', () => {
+    const pendingPosition: CampaignLeaderboardPositionDto = {
+      ...MOCK_POSITION,
+      qualified: false,
+      qualifiedDays: 0,
+    };
+    const { getAllByTestId, getAllByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={pendingPosition}
+        isIneligible
+      />,
+    );
+    expect(
+      getAllByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG),
+    ).toHaveLength(2);
+    expect(getAllByText('Ineligible')).toHaveLength(2);
+  });
+
+  it('shows not-eligible banner when isIneligible=true', () => {
+    const { getByTestId, getByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={{
+          ...MOCK_POSITION,
+          qualified: false,
+          qualifiedDays: 0,
+        }}
+        isIneligible
+      />,
+    );
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
+    ).toBeDefined();
+    expect(getByText('Not eligible')).toBeDefined();
+  });
+
+  it('hides pending tags when isIneligible=true', () => {
+    const { queryAllByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={{
+          ...MOCK_POSITION,
+          qualified: false,
+          qualifiedDays: 0,
+        }}
+        isIneligible
+      />,
+    );
+    expect(queryAllByText('Pending')).toHaveLength(0);
+  });
+
+  it('hides qualify card when isIneligible=true even with tierMinDeposit set', () => {
+    const { queryByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={{
+          ...MOCK_POSITION,
+          qualified: false,
+          qualifiedDays: 3,
+        }}
+        tierMinDeposit={500}
+        isIneligible
+      />,
+    );
+    expect(
+      queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
+    ).toBeNull();
+  });
+
+  it('does not show ineligible tags when isIneligible=false', () => {
+    const { queryAllByText, queryByTestId } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={{
+          ...MOCK_POSITION,
+          qualified: false,
+          qualifiedDays: 0,
+        }}
+        isIneligible={false}
+      />,
+    );
+    expect(queryAllByText('Ineligible')).toHaveLength(0);
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
+    ).toBeNull();
+  });
+
+  it('does not show not-eligible banner when isIneligible defaults to false', () => {
+    const { queryByTestId } = render(<CampaignStatsSummary {...baseProps} />);
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
+    ).toBeNull();
+  });
+});
+
+describe('IneligibleTag', () => {
+  it('renders ineligible label', () => {
+    const { getByText } = render(<IneligibleTag />);
+    expect(getByText('Ineligible')).toBeDefined();
+  });
+
+  it('passes testID through', () => {
+    const { getByTestId } = render(
+      <IneligibleTag testID="test-ineligible-tag" />,
+    );
+    expect(getByTestId('test-ineligible-tag')).toBeDefined();
   });
 });

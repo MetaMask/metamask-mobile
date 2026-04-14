@@ -351,6 +351,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       }}
                       showHeader={false}
                       tierMinDeposit={tierMinDeposit}
+                      isIneligible={notEligibleForCampaign}
                       onQualifyPress={
                         leaderboardPendingSheetPosition
                           ? () =>
