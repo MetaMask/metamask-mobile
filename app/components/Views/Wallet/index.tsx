@@ -1463,6 +1463,10 @@ const Wallet = ({
                   isScrollEnabled={shouldEnableParentScroll}
                   scrollViewProps={{
                     testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
+                    // Keep the iOS scroll container out of the accessibility tree so
+                    // Appium can discover child identifiers (section headers/assets)
+                    // as individual nodes instead of one aggregated label.
+                    accessible: false,
                     contentContainerStyle: scrollViewContentStyle,
                     showsVerticalScrollIndicator: false,
                     onScroll: isHomepageSectionsV1Enabled
