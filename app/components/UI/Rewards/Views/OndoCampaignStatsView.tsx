@@ -23,6 +23,8 @@ import {
   StatCell,
   PendingTag,
   QualifiedTag,
+  IneligibleTag,
+  CAMPAIGN_STATS_SUMMARY_TEST_IDS,
 } from '../components/Campaigns/CampaignStatsSummary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import {
@@ -31,7 +33,10 @@ import {
 } from '../components/Campaigns/OndoLeaderboard.utils';
 import { strings } from '../../../../../locales/i18n';
 import { formatPercentChange, formatUsd } from '../utils/formatUtils';
-import { ONDO_GM_REQUIRED_QUALIFIED_DAYS } from '../utils/ondoCampaignConstants';
+import {
+  ONDO_GM_REQUIRED_QUALIFIED_DAYS,
+  isCampaignIneligible,
+} from '../utils/ondoCampaignConstants';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
@@ -107,6 +112,11 @@ const OndoCampaignStatsView: React.FC = () => {
   const isQualified =
     leaderboardPosition != null && leaderboardPosition.qualified;
 
+  const isIneligible = useMemo(
+    () => isCampaignIneligible(campaign, leaderboardPosition?.qualified),
+    [campaign, leaderboardPosition],
+  );
+
   const isNegativeReturn = (leaderboardPosition?.rateOfReturn ?? 0) < 0;
 
   const returnValue = leaderboardPosition
@@ -129,11 +139,13 @@ const OndoCampaignStatsView: React.FC = () => {
     ? formatUsd(portfolioData.summary.totalCashedOut)
     : '-';
 
-  const rankValue = leaderboardPosition ? `${leaderboardPosition.rank}` : '-';
+  const rankValue =
+    isIneligible || !leaderboardPosition ? '-' : `${leaderboardPosition.rank}`;
 
-  const tierValue = leaderboardPosition
-    ? formatTierDisplayName(leaderboardPosition.projectedTier)
-    : '-';
+  const tierValue =
+    isIneligible || !leaderboardPosition
+      ? '-'
+      : formatTierDisplayName(leaderboardPosition.projectedTier);
 
   const netDepositValue = leaderboardPosition
     ? formatUsd(leaderboardPosition.netDeposit)
@@ -164,6 +176,7 @@ const OndoCampaignStatsView: React.FC = () => {
   const showQualifyCard =
     isCampaignActive &&
     isPending &&
+    !isIneligible &&
     daysRemaining > 0 &&
     tierMinDeposit != null;
 
@@ -262,8 +275,13 @@ const OndoCampaignStatsView: React.FC = () => {
               <Text variant={TextVariant.HeadingMd}>
                 {strings('rewards.ondo_campaign_stats.label_your_rank')}
               </Text>
-              {isPending && <PendingTag />}
-              {isQualified && <QualifiedTag />}
+              {isIneligible && (
+                <IneligibleTag
+                  testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG}
+                />
+              )}
+              {!isIneligible && isPending && <PendingTag />}
+              {!isIneligible && isQualified && <QualifiedTag />}
             </Box>
 
             {/* Rank | Tier */}
@@ -353,8 +371,32 @@ const OndoCampaignStatsView: React.FC = () => {
               </Pressable>
             )}
 
+            {/* ── Not eligible banner ── */}
+            {isIneligible && (
+              <Box
+                twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
+                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('rewards.ondo_campaign_stats.not_eligible_title')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings(
+                    'rewards.ondo_campaign_stats.not_eligible_description',
+                    { days: ONDO_GM_REQUIRED_QUALIFIED_DAYS },
+                  )}
+                </Text>
+              </Box>
+            )}
+
             {/* ── You're qualified card ── */}
-            {isQualified && tierMinDeposit != null && (
+            {!isIneligible && isQualified && tierMinDeposit != null && (
               <Box twClassName="bg-muted rounded-xl p-4 mt-2 gap-2">
                 <Text
                   variant={TextVariant.BodyMd}
