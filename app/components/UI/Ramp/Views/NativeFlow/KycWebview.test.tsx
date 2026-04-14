@@ -3,7 +3,7 @@ import { render, act } from '@testing-library/react-native';
 import KycWebview from './KycWebview';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
-const mockRouteAfterAuthentication = jest.fn();
+const mockRouteAfterAuthentication = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../hooks/useTransakRouting', () => ({
   useTransakRouting: () => ({
@@ -21,6 +21,10 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
   I18nEvents: { addListener: jest.fn() },
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  error: jest.fn(),
 }));
 
 const mockQuote = { id: 'quote-123' };
@@ -127,6 +131,68 @@ describe('KycWebview', () => {
     });
 
     expect(mockRouteAfterAuthentication).toHaveBeenCalledTimes(1);
+  });
+
+  it('logs error when routeAfterAuthentication fails', async () => {
+    const Logger = jest.requireMock('../../../../../util/Logger') as {
+      error: jest.Mock;
+    };
+    mockRouteAfterAuthentication.mockRejectedValueOnce(
+      new Error('Route failed'),
+    );
+    mockIdProofStatus = 'SUBMITTED';
+
+    renderWithTheme(<KycWebview />);
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        message: 'KycWebview::routeAfterAuthentication error',
+      }),
+    );
+  });
+
+  it('retries after routeAfterAuthentication failure when deps change', async () => {
+    mockRouteAfterAuthentication
+      .mockRejectedValueOnce(new Error('Route failed'))
+      .mockResolvedValueOnce(undefined);
+    mockIdProofStatus = 'SUBMITTED';
+
+    const { rerender } = renderWithTheme(<KycWebview />);
+
+    // First call fails, ref resets
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockRouteAfterAuthentication).toHaveBeenCalledTimes(1);
+
+    // Simulate polling cycle: status changes away then back to SUBMITTED
+    mockIdProofStatus = 'NOT_SUBMITTED';
+    await act(async () => {
+      rerender(
+        <ThemeContext.Provider value={mockTheme}>
+          <KycWebview />
+        </ThemeContext.Provider>,
+      );
+    });
+
+    mockIdProofStatus = 'SUBMITTED';
+    await act(async () => {
+      rerender(
+        <ThemeContext.Provider value={mockTheme}>
+          <KycWebview />
+        </ThemeContext.Provider>,
+      );
+    });
+
+    expect(mockRouteAfterAuthentication).toHaveBeenCalledTimes(2);
   });
 
   it('passes workFlowRunId to useTransakIdProofPolling', () => {

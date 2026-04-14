@@ -9,6 +9,7 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
+import Logger from '../../../../../util/Logger';
 
 interface KycWebviewParams {
   url: string;
@@ -39,7 +40,17 @@ function KycWebview() {
   useEffect(() => {
     if (idProofStatus === 'SUBMITTED' && quote && !hasNavigatedRef.current) {
       hasNavigatedRef.current = true;
-      routeAfterAuthentication(quote, amount);
+      const navigate = async () => {
+        try {
+          await routeAfterAuthentication(quote, amount);
+        } catch (err) {
+          hasNavigatedRef.current = false;
+          Logger.error(err as Error, {
+            message: 'KycWebview::routeAfterAuthentication error',
+          });
+        }
+      };
+      navigate();
     }
   }, [idProofStatus, quote, amount, routeAfterAuthentication]);
 

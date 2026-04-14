@@ -90,7 +90,6 @@ const Checkout = () => {
     network,
     userAgent,
     onNavigationStateChange,
-    callbackKey,
   } = params ?? {};
   const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 
