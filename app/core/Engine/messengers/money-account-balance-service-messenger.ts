@@ -16,10 +16,21 @@ import { RootMessenger } from '../types';
 export function getMoneyAccountBalanceServiceMessenger(
   rootMessenger: RootMessenger,
 ): MoneyAccountBalanceServiceMessenger {
-  return new Messenger<
+  const messenger = new Messenger<
     'MoneyAccountBalanceService',
     MessengerActions<MoneyAccountBalanceServiceMessenger>,
     MessengerEvents<MoneyAccountBalanceServiceMessenger>,
     RootMessenger
   >({ namespace: 'MoneyAccountBalanceService', parent: rootMessenger });
+
+  rootMessenger.delegate({
+    messenger,
+    actions: [
+      'NetworkController:getNetworkConfigurationByChainId',
+      'NetworkController:getNetworkClientById',
+    ],
+    events: [],
+  });
+
+  return messenger;
 }

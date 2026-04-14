@@ -938,6 +938,7 @@ export type MessengerClientsToInitialize =
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'
+  | 'MoneyAccountBalanceService'
   | 'StorageService'
   | 'LoggingController'
   | 'NetworkController'
