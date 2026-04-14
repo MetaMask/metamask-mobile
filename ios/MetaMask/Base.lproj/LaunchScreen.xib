@@ -14,19 +14,12 @@
             <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <subviews>
-                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="fox-splash-screen" translatesAutoresizingMaskIntoConstraints="NO" id="ZAJ-dt-PAV">
-                    <rect key="frame" x="112.5" y="277.5" width="150" height="112"/>
-                    <constraints>
-                        <constraint firstAttribute="width" constant="150" id="fox-width-constraint"/>
-                        <constraint firstAttribute="height" constant="112" id="fox-height-constraint"/>
-                    </constraints>
+                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" fixedFrame="YES" image="fox-splash-screen" translatesAutoresizingMaskIntoConstraints="NO" id="ZAJ-dt-PAV">
+                    <rect key="frame" x="112" y="277" width="150" height="112"/>
+                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 </imageView>
             </subviews>
             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-            <constraints>
-                <constraint firstItem="ZAJ-dt-PAV" firstAttribute="centerX" secondItem="K95-sP-dnD" secondAttribute="centerX" id="fox-center-x-constraint"/>
-                <constraint firstItem="ZAJ-dt-PAV" firstAttribute="centerY" secondItem="K95-sP-dnD" secondAttribute="centerY" id="fox-center-y-constraint"/>
-            </constraints>
             <point key="canvasLocation" x="292" y="857"/>
         </view>
     </objects>
