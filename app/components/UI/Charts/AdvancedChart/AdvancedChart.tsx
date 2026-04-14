@@ -92,6 +92,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       isLoading = false,
       lineChrome,
       visibleFromMs,
+      visibleToMs,
     },
     ref,
   ) => {
@@ -185,6 +186,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const visibleFromMsRef = useRef<number | undefined>(visibleFromMs);
     visibleFromMsRef.current = visibleFromMs;
 
+    const visibleToMsRef = useRef<number | undefined>(visibleToMs);
+    visibleToMsRef.current = visibleToMs;
+
     const sendOHLCVData = useCallback(
       (data: OHLCVBar[]) => {
         postMessage({
@@ -193,6 +197,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             data,
             pagination: paginationRef.current,
             visibleFromMs: visibleFromMsRef.current,
+            visibleToMs: visibleToMsRef.current,
           },
         });
       },
