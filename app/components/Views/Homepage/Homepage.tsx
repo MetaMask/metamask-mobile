@@ -11,7 +11,6 @@ import { Box } from '@metamask/design-system-react-native';
 import { CashSection } from './Sections/Cash';
 import TokensSection from './Sections/Tokens';
 import WhatsHappeningSection from './Sections/WhatsHappening';
-import PerpsSection from './Sections/Perpetuals';
 import { PerpsSection as PerpsSectionBase } from './Sections/Perpetuals/PerpsSection';
 import PredictionsSection from './Sections/Predictions';
 import TopTradersSection from './Sections/TopTraders';
@@ -352,6 +351,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
           ref={tokensSectionRef}
           sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
           totalSectionsLoaded={totalSectionsLoaded}
+          mode={sectionMode}
         />
         {isTopTradersEnabled && (
           <TopTradersSection
@@ -360,11 +360,18 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
             totalSectionsLoaded={totalSectionsLoaded}
           />
         )}
-        <PerpsSection
-          ref={perpsSectionRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-          totalSectionsLoaded={totalSectionsLoaded}
-        />
+        {isPerpsEnabled && (
+          <PerpsConnectionProvider suppressErrorView>
+            <PerpsStreamProvider>
+              <PerpsSectionBase
+                ref={perpsSectionRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+                totalSectionsLoaded={totalSectionsLoaded}
+                mode={sectionMode}
+              />
+            </PerpsStreamProvider>
+          </PerpsConnectionProvider>
+        )}
         <PredictionsSection
           ref={predictionsSectionRef}
           sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}

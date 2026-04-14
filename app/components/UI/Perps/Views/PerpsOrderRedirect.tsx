@@ -65,41 +65,62 @@ const PerpsOrderRedirect: React.FC = () => {
       asset,
     });
 
-    withPendingTransactionActiveAbTests(transactionActiveAbTests, () =>
-      depositWithOrder()
-        .then(() => {
-          Logger.log(
-            '[PerpsOrderRedirect] depositWithOrder resolved, navigating to confirmation',
-          );
-          // Replace current screen with confirmation (no back to loader)
-          navigation.dispatch(
-            StackActions.replace(
-              Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-              {
-                direction,
-                asset,
-                fromTokenDetails,
-                assetsASSETS2493AbtestTokenDetailsLayout,
-                source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-                showPerpsHeader:
-                  CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
-              },
-            ),
-          );
-        })
-        .catch((error: unknown) => {
-          const err = ensureError(error, 'PerpsOrderRedirect.depositWithOrder');
-          Logger.error(err, {
-            tags: { feature: PERPS_CONSTANTS.FeatureName },
-            context: { name: 'PerpsOrderRedirect.depositWithOrder', data: {} },
-          });
-          showToast(
-            PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
-          );
-          // Go back to token details on failure
-          navigation.goBack();
-        }),
-    );
+    let cancelled = false;
+
+    const runDepositFlow = async (): Promise<void> => {
+      try {
+        await withPendingTransactionActiveAbTests(
+          transactionActiveAbTests,
+          async () => depositWithOrder(),
+        );
+        if (cancelled) {
+          return;
+        }
+        Logger.log(
+          '[PerpsOrderRedirect] depositWithOrder resolved, navigating to confirmation',
+        );
+        // Replace current screen with confirmation (no back to loader)
+        navigation.dispatch(
+          StackActions.replace(
+            Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            {
+              direction,
+              asset,
+              fromTokenDetails,
+              assetsASSETS2493AbtestTokenDetailsLayout,
+              source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+              showPerpsHeader:
+                CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+            },
+          ),
+        );
+      } catch (error: unknown) {
+        if (cancelled) {
+          return;
+        }
+        const err = ensureError(error, 'PerpsOrderRedirect.depositWithOrder');
+        Logger.error(err, {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: { name: 'PerpsOrderRedirect.depositWithOrder', data: {} },
+        });
+        showToast(
+          PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+        );
+        // Go back to token details on failure
+        navigation.goBack();
+      }
+    };
+
+    runDepositFlow().catch((error: unknown) => {
+      Logger.error(ensureError(error, 'PerpsOrderRedirect.runDepositFlow'), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        context: { name: 'PerpsOrderRedirect.runDepositFlow', data: {} },
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     isConnected,
     isInitialized,
