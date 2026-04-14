@@ -4,10 +4,9 @@ import type { PaymentMethod } from '@metamask/ramps-controller';
 import { useWindowDimensions, View, ScrollView } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxJustifyContent,
@@ -255,7 +254,7 @@ function PaymentSelectionModal() {
   };
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <View style={styles.containerOuter}>
         <View style={styles.paymentPanelContent}>
           <HeaderCompactStandard

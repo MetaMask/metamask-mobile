@@ -11,6 +11,7 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { addCurrencySymbol } from '../../../../util/number';
+import { toDateFormat } from '../../../../util/date';
 import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import styleSheet from './Price.styles';
 import { TOKEN_OVERVIEW_CHART_HEIGHT as CHART_HEIGHT } from './tokenOverviewChart.constants';
@@ -64,10 +65,8 @@ const TIME_RANGE_LABELS: Record<TimeRange, string> = {
 
 export interface PriceAdvancedProps {
   asset: TokenI;
-  priceDiff: number;
   currentPrice: number;
   currentCurrency: string;
-  comparePrice: number;
   isLoading: boolean;
   prices?: TokenPrice[];
   timePeriod?: TimePeriod;
@@ -77,10 +76,8 @@ export interface PriceAdvancedProps {
 
 const PriceAdvanced = ({
   asset,
-  priceDiff,
   currentPrice,
   currentCurrency,
-  comparePrice,
   isLoading,
   prices = [],
   timePeriod = '1d',
@@ -207,14 +204,62 @@ const PriceAdvanced = ({
     }),
     [nextCursor, hasMore, assetId, currentCurrency],
   );
-  // This is to make sure we show only data relevant to selected timeframe even if api returns a lot more data than that
+  // Anchor the visible window to the last candle so the timeframe constructor
+  // spans exactly durationMs (e.g. 24 h) and the leftmost rendered bar matches
+  // the reference price used for the header percentage.
+  const lastBarTime = ohlcvData[ohlcvData.length - 1]?.time;
+
   const visibleFromMs = useMemo(() => {
-    const lastBar = ohlcvData[ohlcvData.length - 1];
-    if (!lastBar) return undefined;
-    return lastBar.time - config.durationMs;
-  }, [ohlcvData, config.durationMs]);
+    if (lastBarTime == null) return undefined;
+    return lastBarTime - config.durationMs;
+  }, [lastBarTime, config.durationMs]);
+
+  const visibleToMs = lastBarTime;
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
+
+  // Calculate the current compare price from OHLCV data
+  const currentComparePrice = useMemo(() => {
+    if (ohlcvData.length === 0 || visibleFromMs == null) return null;
+    const firstVisible =
+      ohlcvData.find((c) => c.time >= visibleFromMs) ?? ohlcvData[0];
+    return firstVisible.close;
+  }, [ohlcvData, visibleFromMs]);
+
+  // Store last good compare price to show during loading
+  const stableComparePriceRef = useRef<number | null>(null);
+  const stableSeriesKeyRef = useRef<string>(ohlcvSeriesKey);
+
+  // Update stable compare price when chart finishes loading AND series matches
+  useEffect(() => {
+    if (stableSeriesKeyRef.current !== ohlcvSeriesKey) {
+      stableSeriesKeyRef.current = ohlcvSeriesKey;
+    } else if (!chartLoading && currentComparePrice !== null) {
+      stableComparePriceRef.current = currentComparePrice;
+    }
+  }, [chartLoading, currentComparePrice, ohlcvSeriesKey]);
+
+  // Use stable while (loading OR series mismatch), otherwise use current
+  const dynamicComparePrice =
+    (chartLoading || stableSeriesKeyRef.current !== ohlcvSeriesKey) &&
+    stableComparePriceRef.current !== null
+      ? stableComparePriceRef.current
+      : currentComparePrice;
+
+  // Use last bar's close price for consistent percentage calculation with chart data
+  const lastBarClose = ohlcvData[ohlcvData.length - 1]?.close;
+  const displayPrice = crosshairData?.close ?? lastBarClose ?? currentPrice;
+  const displayDiff = useMemo(() => {
+    if (dynamicComparePrice === null) return null;
+    return (
+      (crosshairData?.close ?? lastBarClose ?? currentPrice) -
+      dynamicComparePrice
+    );
+  }, [crosshairData, lastBarClose, currentPrice, dynamicComparePrice]);
+
+  const displayDate = crosshairData
+    ? toDateFormat(crosshairData.time)
+    : dateLabel;
 
   const { styles, theme } = useStyles(styleSheet);
 
@@ -277,7 +322,7 @@ const PriceAdvanced = ({
                 </SkeletonPlaceholder>
               </View>
             ) : (
-              formatPriceWithSubscriptNotation(currentPrice, currentCurrency)
+              formatPriceWithSubscriptNotation(displayPrice, currentCurrency)
             )}
           </Text>
         )}
@@ -295,25 +340,25 @@ const PriceAdvanced = ({
                 />
               </SkeletonPlaceholder>
             </View>
-          ) : (
+          ) : displayDiff !== null && dynamicComparePrice !== null ? (
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={
-                priceDiff > 0
+                displayDiff > 0
                   ? TextColor.SuccessDefault
-                  : priceDiff < 0
+                  : displayDiff < 0
                     ? TextColor.ErrorDefault
                     : TextColor.TextAlternative
               }
               allowFontScaling={false}
             >
-              {priceDiff > 0 ? '+' : ''}
-              {addCurrencySymbol(priceDiff, currentCurrency, true)} (
-              {priceDiff > 0 ? '+' : ''}
-              {priceDiff === 0 || comparePrice === 0
+              {displayDiff > 0 ? '+' : ''}
+              {addCurrencySymbol(displayDiff, currentCurrency, true)} (
+              {displayDiff > 0 ? '+' : ''}
+              {displayDiff === 0 || dynamicComparePrice === 0
                 ? '0'
-                : ((priceDiff / comparePrice) * 100).toFixed(2)}
+                : ((displayDiff / dynamicComparePrice) * 100).toFixed(2)}
               %){' '}
               <Text
                 testID="price-label"
@@ -322,10 +367,10 @@ const PriceAdvanced = ({
                 fontWeight={FontWeight.Medium}
                 allowFontScaling={false}
               >
-                {dateLabel}
+                {displayDate}
               </Text>
             </Text>
-          )}
+          ) : null}
         </Text>
       </View>
       <Box twClassName={showEmptyState ? 'mt-3 mb-6' : 'mt-3'}>
@@ -358,6 +403,7 @@ const PriceAdvanced = ({
               isLoading={chartLoading}
               ohlcvPagination={ohlcvPagination}
               visibleFromMs={visibleFromMs}
+              visibleToMs={visibleToMs}
               onCrosshairMove={handleCrosshairMove}
               onChartInteracted={handleChartInteracted}
               onChartTradingViewClicked={handleChartTradingViewClicked}

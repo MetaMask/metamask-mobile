@@ -41,6 +41,8 @@ const Price = (props: PriceProps) => {
     isLoading,
     chartNavigationButtons,
     setTimePeriod,
+    currentPrice,
+    currentCurrency,
     ...rest
   } = props;
 
@@ -53,6 +55,8 @@ const Price = (props: PriceProps) => {
         chartNavigationButtons={chartNavigationButtons}
         setTimePeriod={setTimePeriod}
         isLoading={isLoading}
+        currentPrice={currentPrice}
+        currentCurrency={currentCurrency}
         {...rest}
       />
     );
@@ -64,6 +68,8 @@ const Price = (props: PriceProps) => {
       chartNavigationButtons={chartNavigationButtons}
       onTimePeriodChange={setTimePeriod}
       isLoading={isLoading}
+      currentPrice={currentPrice}
+      currentCurrency={currentCurrency}
       {...rest}
     />
   );
