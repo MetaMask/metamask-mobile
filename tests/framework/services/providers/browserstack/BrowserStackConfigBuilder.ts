@@ -134,7 +134,7 @@ export class BrowserStackConfigBuilder {
           enable: true,
           samplesX: 3,
           samplesY: 3,
-          maxDepth: 15,
+          maxDepth: 70, // Homepage has 30+ native view levels before content; 15 was too shallow
         },
       },
     };

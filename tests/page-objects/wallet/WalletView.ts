@@ -420,10 +420,17 @@ class WalletView {
   tokenRow(token: string, index = 0): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(token, index),
-      appium: () =>
-        PlaywrightMatchers.getElementById(getAssetTestId(token), {
-          exact: true,
-        }),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(getAssetTestId(token), {
+            exact: true,
+          }),
+        // iOS: TokenListItem sets accessibilityLabel to "Name, $fiat, balance"
+        // so the iOS predicate `name` (= accessibilityLabel) differs from testID.
+        // Use `~testID` which maps to accessibilityIdentifier (= testID).
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(getAssetTestId(token)),
+      },
     });
   }
 

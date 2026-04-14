@@ -242,12 +242,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     }
 
     return (
-      <View
-        ref={sectionViewRef}
-        onLayout={onLayout}
-        style={styles.sectionGap}
-        accessible={false}
-      >
+      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
         <SectionHeader
           title={title}
           onPress={handleViewAllTokens}
@@ -361,12 +356,7 @@ const TokensSectionTrendingOnly = forwardRef<
     }
 
     return (
-      <View
-        ref={sectionViewRef}
-        onLayout={onLayout}
-        style={styles.sectionGap}
-        accessible={false}
-      >
+      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
         <SectionHeader
           title={title}
           onPress={handleViewAllTokens}
