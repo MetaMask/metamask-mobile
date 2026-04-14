@@ -1,6 +1,8 @@
-import { createPlatformAdapter, setBrazeProfileId } from './platform-adapter';
-import type { SegmentClient } from '@segment/analytics-react-native';
-import { BrazePlugin } from './BrazePlugin';
+import { createPlatformAdapter } from './platform-adapter';
+import {
+  type SegmentClient,
+  DestinationPlugin,
+} from '@segment/analytics-react-native';
 import MetaMetricsPrivacySegmentPlugin from '../../../../util/analytics/privacySegmentPlugin';
 
 // Mock Logger (not in global setup)
@@ -32,19 +34,9 @@ jest.mock('../../../../util/analytics/SegmentPersistor', () => ({
   },
 }));
 
-jest.mock('./BrazePlugin', () => ({
-  BrazePlugin: jest.fn().mockImplementation(() => ({
-    type: 'destination',
-    key: 'Appboy',
-    setBrazeProfileId: jest.fn(),
-  })),
-}));
-
 interface GlobalWithSegmentClient {
   segmentMockClient: SegmentClient;
 }
-
-const MockBrazePlugin = BrazePlugin as jest.MockedClass<typeof BrazePlugin>;
 
 describe('createPlatformAdapter', () => {
   beforeEach(() => {
@@ -151,47 +143,21 @@ describe('createPlatformAdapter', () => {
     });
   });
 
-  describe('BrazePlugin', () => {
-    it('adds BrazePlugin to the Segment client on creation', () => {
-      createPlatformAdapter();
+  describe('segmentPlugins parameter', () => {
+    it('adds provided plugins to the Segment client', () => {
+      const mockPlugin = new DestinationPlugin();
+
+      createPlatformAdapter([mockPlugin]);
       const { segmentMockClient } =
         global as unknown as GlobalWithSegmentClient;
 
-      expect(MockBrazePlugin).toHaveBeenCalledTimes(1);
       expect(segmentMockClient.add).toHaveBeenCalledWith({
-        plugin: expect.objectContaining({
-          type: 'destination',
-          key: 'Appboy',
-        }),
+        plugin: mockPlugin,
       });
     });
-  });
 
-  describe('setBrazeProfileId', () => {
-    it('forwards profileId to the BrazePlugin instance', () => {
-      createPlatformAdapter();
-      const pluginInstance = MockBrazePlugin.mock.results[0]
-        .value as ReturnType<typeof MockBrazePlugin>;
-
-      setBrazeProfileId('profile-123');
-
-      expect(pluginInstance.setBrazeProfileId).toHaveBeenCalledWith(
-        'profile-123',
-      );
-    });
-
-    it('forwards undefined to clear the BrazePlugin identity', () => {
-      createPlatformAdapter();
-      const pluginInstance = MockBrazePlugin.mock.results[0]
-        .value as ReturnType<typeof MockBrazePlugin>;
-
-      setBrazeProfileId(undefined);
-
-      expect(pluginInstance.setBrazeProfileId).toHaveBeenCalledWith(undefined);
-    });
-
-    it('does nothing when called before adapter is created', () => {
-      expect(() => setBrazeProfileId('profile-123')).not.toThrow();
+    it('does not throw when no plugins are provided', () => {
+      expect(() => createPlatformAdapter()).not.toThrow();
     });
   });
 

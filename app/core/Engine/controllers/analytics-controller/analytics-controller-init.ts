@@ -8,6 +8,7 @@ import {
 import { createPlatformAdapter } from './platform-adapter';
 import { createPlatformAdapter as createE2EPlatformAdapter } from './platform-adapter-e2e';
 import { isE2E } from '../../../../util/test/utils';
+import { getBrazePlugin } from '../../../Braze';
 
 /**
  * Initialize the analytics controller.
@@ -33,7 +34,7 @@ export const analyticsControllerInit: MessengerClientInitFunction<
 
   const platformAdapter = isE2E
     ? createE2EPlatformAdapter()
-    : createPlatformAdapter();
+    : createPlatformAdapter([getBrazePlugin()]);
 
   const controller = new AnalyticsController({
     messenger: controllerMessenger,

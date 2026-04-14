@@ -9,21 +9,11 @@ import {
   CountFlushPolicy,
   TimerFlushPolicy,
   type SegmentClient,
+  type Plugin,
 } from '@segment/analytics-react-native';
-import { BrazePlugin } from './BrazePlugin';
 import { segmentPersistor } from '../../../../util/analytics/SegmentPersistor';
 import Logger from '../../../../util/Logger';
 import MetaMetricsPrivacySegmentPlugin from '../../../../util/analytics/privacySegmentPlugin';
-
-let BrazePluginInstance: BrazePlugin | null = null;
-
-/**
- * Forward a profile-level identity to the Braze plugin.
- * When `profileId` is `undefined` the plugin silently drops all Braze calls.
- */
-export const setBrazeProfileId = (profileId: string | undefined): void => {
-  BrazePluginInstance?.setBrazeProfileId(profileId);
-};
 
 const getSegmentClient = (): SegmentClient => {
   const config: Config = {
@@ -53,14 +43,19 @@ const getSegmentClient = (): SegmentClient => {
 
 /**
  * Platform adapter for the AnalyticsController.
+ *
+ * @param segmentPlugins - Optional Segment plugins to add to the client.
  */
-export const createPlatformAdapter = (): AnalyticsPlatformAdapter => {
+export const createPlatformAdapter = (
+  segmentPlugins?: Plugin[],
+): AnalyticsPlatformAdapter => {
   const client = getSegmentClient();
 
-  BrazePluginInstance = new BrazePlugin();
-  client.add({ plugin: BrazePluginInstance });
-
   Logger.log('Analytics Adapter: Segment client initialized');
+
+  segmentPlugins?.forEach((plugin) => {
+    client.add({ plugin });
+  });
 
   return {
     track(eventName: string, properties?: AnalyticsEventProperties): void {
