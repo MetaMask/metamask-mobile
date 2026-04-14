@@ -33,7 +33,10 @@ import {
 } from '../components/Campaigns/OndoLeaderboard.utils';
 import { strings } from '../../../../../locales/i18n';
 import { formatPercentChange, formatUsd } from '../utils/formatUtils';
-import { ONDO_GM_REQUIRED_QUALIFIED_DAYS } from '../utils/ondoCampaignConstants';
+import {
+  ONDO_GM_REQUIRED_QUALIFIED_DAYS,
+  isCampaignIneligible,
+} from '../utils/ondoCampaignConstants';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
@@ -109,21 +112,10 @@ const OndoCampaignStatsView: React.FC = () => {
   const isQualified =
     leaderboardPosition != null && leaderboardPosition.qualified;
 
-  const isIneligible = useMemo((): boolean => {
-    if (!campaign) return false;
-    if (leaderboardPosition?.qualified) return false;
-    if (getCampaignStatus(campaign) !== 'active') return false;
-    const now = new Date();
-    const startOfTodayUTC = Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate(),
-    );
-    const endDate = new Date(campaign.endDate).getTime();
-    const daysAvailable =
-      Math.floor((endDate - startOfTodayUTC) / (1000 * 60 * 60 * 24)) + 1;
-    return daysAvailable < ONDO_GM_REQUIRED_QUALIFIED_DAYS;
-  }, [campaign, leaderboardPosition]);
+  const isIneligible = useMemo(
+    () => isCampaignIneligible(campaign, leaderboardPosition?.qualified),
+    [campaign, leaderboardPosition],
+  );
 
   const isNegativeReturn = (leaderboardPosition?.rateOfReturn ?? 0) < 0;
 
