@@ -182,7 +182,14 @@ const OnboardingSuccessFlow = () => {
   const { colors } = useTheme();
 
   return (
-    <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
+    <Stack.Navigator
+      initialRouteName={Routes.ONBOARDING.SUCCESS}
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+        headerStyle: { backgroundColor: colors.background.default },
+        headerShadowVisible: false,
+      }}
+    >
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS}
         component={OnboardingSuccess}
@@ -193,10 +200,6 @@ const OnboardingSuccessFlow = () => {
       <Stack.Screen
         name={Routes.ONBOARDING.DEFAULT_SETTINGS}
         component={DefaultSettings}
-        options={{
-          headerStyle: { backgroundColor: colors.background.default },
-          cardStyle: { backgroundColor: colors.background.default },
-        }}
       />
       <Stack.Screen
         name={Routes.ONBOARDING.GENERAL_SETTINGS}
@@ -222,7 +225,12 @@ const OnboardingNav = () => {
   const { colors } = useTheme();
 
   return (
-    <Stack.Navigator initialRouteName={'Onboarding'}>
+    <Stack.Navigator
+      initialRouteName={'Onboarding'}
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
       <Stack.Screen name="Onboarding" component={Onboarding} />
       <Stack.Screen
         name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
@@ -254,7 +262,6 @@ const OnboardingNav = () => {
         component={DefaultSettings}
         options={{
           headerStyle: { backgroundColor: colors.background.default },
-          cardStyle: { backgroundColor: colors.background.default },
         }}
       />
       <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
@@ -683,6 +690,7 @@ const ImportSRPView = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
+      presentation: 'transparentModal',
     }}
   >
     <Stack.Screen
@@ -698,7 +706,6 @@ const ImportSRPView = () => (
       name={Routes.SHEET.SEEDPHRASE_MODAL}
       component={SeedphraseModal}
       options={{
-        presentation: 'modal',
         cardStyle: { backgroundColor: 'transparent' },
         cardStyleInterpolator: () => ({
           overlayStyle: {

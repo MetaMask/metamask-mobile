@@ -183,6 +183,16 @@ jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
   selectSocialLeaderboardEnabled: jest.fn(() => false),
 }));
 
+jest.mock('./Sections/TopTraders/hooks', () => ({
+  useTopTraders: jest.fn(() => ({
+    traders: [],
+    isLoading: false,
+    error: null,
+    refresh: jest.fn().mockResolvedValue(undefined),
+    toggleFollow: jest.fn(),
+  })),
+}));
+
 /** Shape of first argument to useHomeViewedEvent (for asserting in tests). */
 interface UseHomeViewedEventParamsSnapshot {
   sectionName?: string;

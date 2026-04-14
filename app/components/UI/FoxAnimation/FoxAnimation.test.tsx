@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
-import { Platform } from 'react-native';
 import FoxAnimation from './FoxAnimation';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
@@ -9,20 +8,10 @@ import {
   __clearLastMockedMethods,
   __resetAllMocks,
 } from '../../../__mocks__/rive-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Mock dependencies
 jest.mock('../../../util/Logger');
 jest.mock('../../../util/device');
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(() => ({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  })),
-}));
-
 // Use the proper mock from __mocks__ directory
 jest.mock('rive-react-native', () =>
   jest.requireActual('../../../__mocks__/rive-react-native'),
@@ -296,156 +285,6 @@ describe('FoxAnimation', () => {
 
       // Act
       rerender(<FoxAnimation hasFooter />);
-
-      // Assert
-      expect(root).toBeTruthy();
-    });
-  });
-
-  describe('platform-specific positioning', () => {
-    const mockUseSafeAreaInsets = useSafeAreaInsets as jest.Mock;
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockUseSafeAreaInsets.mockReturnValue({
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-      });
-    });
-
-    it('calculates iOS position with footer and safe area insets', () => {
-      // Arrange
-      Platform.OS = 'ios';
-      mockUseSafeAreaInsets.mockReturnValue({
-        top: 0,
-        bottom: 40,
-        left: 0,
-        right: 0,
-      });
-
-      // Act
-      const { root } = render(<FoxAnimation hasFooter />);
-
-      // Assert
-      expect(root).toBeTruthy();
-    });
-
-    it('calculates iOS position with basePadding greater than 0', () => {
-      // Arrange
-      Platform.OS = 'ios';
-      mockUseSafeAreaInsets.mockReturnValue({
-        top: 0,
-        bottom: 30,
-        left: 0,
-        right: 0,
-      });
-
-      // Act
-      const { root } = render(<FoxAnimation hasFooter={false} />);
-
-      // Assert
-      expect(root).toBeTruthy();
-    });
-
-    it('calculates Android position with basePadding greater than 20 with footer', () => {
-      // Arrange
-      Platform.OS = 'android';
-      mockUseSafeAreaInsets.mockReturnValue({
-        top: 0,
-        bottom: 30,
-        left: 0,
-        right: 0,
-      });
-
-      // Act
-      const { root } = render(<FoxAnimation hasFooter />);
-
-      // Assert
-      expect(root).toBeTruthy();
-    });
-
-    it('calculates Android position with basePadding greater than 20 without footer', () => {
-      // Arrange
-      Platform.OS = 'android';
-      mockUseSafeAreaInsets.mockReturnValue({
-        top: 0,
-        bottom: 30,
-        left: 0,
-        right: 0,
-      });
-
-      // Act
-      const { root } = render(<FoxAnimation hasFooter={false} />);
-
-      // Assert
-      expect(root).toBeTruthy();
-    });
-
-    it('calculates Android position for standard devices with footer', () => {
-      // Arrange
-      Platform.OS = 'android';
-      mockUseSafeAreaInsets.mockReturnValue({
-        top: 0,
-        bottom: 10,
-        left: 0,
-        right: 0,
-      });
-
-      // Act
-      const { root } = render(<FoxAnimation hasFooter />);
-
-      // Assert
-      expect(root).toBeTruthy();
-    });
-
-    it('calculates Android position for standard devices without footer', () => {
-      // Arrange
-      Platform.OS = 'android';
-      mockUseSafeAreaInsets.mockReturnValue({
-        top: 0,
-        bottom: 10,
-        left: 0,
-        right: 0,
-      });
-
-      // Act
-      const { root } = render(<FoxAnimation hasFooter={false} />);
-
-      // Assert
-      expect(root).toBeTruthy();
-    });
-
-    it('uses fallback position for other platforms with footer', () => {
-      // Arrange
-      Platform.OS = 'windows' as typeof Platform.OS;
-      mockUseSafeAreaInsets.mockReturnValue({
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-      });
-
-      // Act
-      const { root } = render(<FoxAnimation hasFooter />);
-
-      // Assert
-      expect(root).toBeTruthy();
-    });
-
-    it('uses fallback position for other platforms without footer', () => {
-      // Arrange
-      Platform.OS = 'windows' as typeof Platform.OS;
-      mockUseSafeAreaInsets.mockReturnValue({
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-      });
-
-      // Act
-      const { root } = render(<FoxAnimation hasFooter={false} />);
 
       // Assert
       expect(root).toBeTruthy();
