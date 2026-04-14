@@ -62,7 +62,6 @@ import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import AccountSelector from '../../AccountSelector';
-import { updateEditableParams } from '../../../../../../util/transaction-controller';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -123,41 +122,31 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
-    const [selectedRecipientAddress, setSelectedRecipientAddress] = useState<
+    const [selectedAccountAddress, setSelectedAccountAddress] = useState<
       string | undefined
     >(undefined);
 
-    const [selectedFromAddress, setSelectedFromAddress] = useState<
-      string | undefined
-    >(undefined);
-
-    const handleRecipientAccountSelected = useCallback(
+    const handleAccountSelected = useCallback(
       (address: string) => {
         if (transactionId) {
           Engine.context.TransactionPayController.setTransactionConfig(
             transactionId,
             (config) => {
-              config.refundTo = address as Hex;
+              config.accountOverride = address as Hex;
+              if (isMoneyAccountWithdraw) {
+                config.isPostQuote = true;
+              }
             },
           );
         }
-        setSelectedRecipientAddress(address);
+        setSelectedAccountAddress(address);
       },
-      [transactionId],
+      [transactionId, isMoneyAccountWithdraw],
     );
 
-    const handleFromAccountSelected = useCallback(
-      (address: string) => {
-        if (transactionId) {
-          updateEditableParams(transactionId, { from: address as Hex });
-        }
-        setSelectedFromAddress(address);
-      },
-      [transactionId],
-    );
-
-    const isRecipientMissing =
-      isMoneyAccountWithdraw && !selectedRecipientAddress;
+    const isAccountMissing =
+      (isMoneyAccountWithdraw || isMoneyAccountDeposit) &&
+      !selectedAccountAddress;
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
@@ -238,14 +227,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {isMoneyAccountDeposit && (
                 <AccountSelector
                   label={strings('confirm.label.from')}
-                  selectedAddress={selectedFromAddress}
-                  onAccountSelected={handleFromAccountSelected}
+                  selectedAddress={selectedAccountAddress}
+                  onAccountSelected={handleAccountSelected}
                 />
               )}
               {isMoneyAccountWithdraw && (
                 <AccountSelector
-                  selectedAddress={selectedRecipientAddress}
-                  onAccountSelected={handleRecipientAccountSelected}
+                  selectedAddress={selectedAccountAddress}
+                  onAccountSelected={handleAccountSelected}
                 />
               )}
             </>
@@ -293,7 +282,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
-              disableConfirm={disableConfirm || isRecipientMissing}
+              disableConfirm={disableConfirm || isAccountMissing}
             />
           )}
         </Box>

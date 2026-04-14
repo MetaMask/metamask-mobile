@@ -61,9 +61,7 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
     canSelectWithdrawToken: false,
   })),
 }));
-jest.mock('../../../../../../util/transaction-controller', () => ({
-  updateEditableParams: jest.fn(),
-}));
+jest.mock('../../../../../../util/transaction-controller', () => ({}));
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
@@ -430,7 +428,7 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('account-selector')).toBeOnTheScreen();
   });
 
-  it('calls setTransactionConfig with refundTo when recipient account is selected', async () => {
+  it('calls setTransactionConfig when withdraw account is selected', async () => {
     const setTransactionConfigMock = jest.mocked(
       Engine.context.TransactionPayController.setTransactionConfig,
     );
@@ -455,7 +453,7 @@ describe('CustomAmountInfo', () => {
     );
   });
 
-  it('sets config.refundTo to the selected recipient address', async () => {
+  it('sets accountOverride and isPostQuote for withdraw account selection', async () => {
     const setTransactionConfigMock = jest.mocked(
       Engine.context.TransactionPayController.setTransactionConfig,
     );
@@ -475,10 +473,11 @@ describe('CustomAmountInfo', () => {
     });
 
     const configCallback = setTransactionConfigMock.mock.calls[0][1];
-    const config = {} as { refundTo?: Hex };
+    const config = {} as { accountOverride?: Hex; isPostQuote?: boolean };
     configCallback(config as never);
 
-    expect(config.refundTo).toBe('0xTestRecipient');
+    expect(config.accountOverride).toBe('0xTestRecipient');
+    expect(config.isPostQuote).toBe(true);
   });
 
   it('does not call setTransactionConfig when transactionId is missing', async () => {
@@ -571,9 +570,9 @@ describe('CustomAmountInfo', () => {
     );
   });
 
-  it('calls updateEditableParams with from key when deposit account is selected', async () => {
-    const { updateEditableParams } = jest.requireMock(
-      '../../../../../../util/transaction-controller',
+  it('sets accountOverride without isPostQuote for deposit account selection', async () => {
+    const setTransactionConfigMock = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
     );
 
     useTransactionMetadataRequestMock.mockReturnValue({
@@ -590,9 +589,17 @@ describe('CustomAmountInfo', () => {
       fireEvent.press(getByTestId('account-selector'));
     });
 
-    expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
-      from: '0xTestRecipient',
-    });
+    expect(setTransactionConfigMock).toHaveBeenCalledWith(
+      'mock-tx-id',
+      expect.any(Function),
+    );
+
+    const configCallback = setTransactionConfigMock.mock.calls[0][1];
+    const config = {} as { accountOverride?: Hex; isPostQuote?: boolean };
+    configCallback(config as never);
+
+    expect(config.accountOverride).toBe('0xTestRecipient');
+    expect(config.isPostQuote).toBeUndefined();
   });
 
   describe('showPaymentDetails', () => {
