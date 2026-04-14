@@ -63,7 +63,9 @@ export async function executeHardwareWalletOperation({
     }
 
     showAwaitingConfirmation(operationType, () => {
-      void rejectOnce();
+      // The UI callback is synchronous, so swallow async rejection here to
+      // avoid an unhandled promise rejection from caller-provided cleanup.
+      rejectOnce().catch(() => undefined);
     });
 
     await execute();

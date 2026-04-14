@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
@@ -19,7 +19,17 @@ export const useQRSigningState = (): QRSigningContextValue => {
 
   const isSigningQRObject = pendingScanRequest?.type === QrScanRequestType.SIGN;
 
+  // This provider outlives individual QR signing requests, so completion state
+  // must be cleared whenever Redux surfaces a new pending request.
   const [isRequestCompleted, setIsRequestCompleted] = useState(false);
+
+  useEffect(() => {
+    // `isRequestCompleted` suppresses cancel-on-navigate for the active request
+    // only; reset it when a fresh request becomes pending.
+    if (pendingScanRequest) {
+      setIsRequestCompleted(false);
+    }
+  }, [pendingScanRequest]);
 
   const cancelQRScanRequestIfPresent = useCallback(async () => {
     if (!isSigningQRObject) {

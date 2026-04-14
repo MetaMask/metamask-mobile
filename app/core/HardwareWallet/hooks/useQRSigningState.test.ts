@@ -2,6 +2,7 @@ import { act } from '@testing-library/react-native';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
+import { scanRequested } from '../../redux/slices/qrKeyringScanner';
 import { useQRSigningState } from './useQRSigningState';
 
 const mockQrScanner = {
@@ -58,6 +59,48 @@ describe('useQRSigningState', () => {
     });
 
     expect(result.current.isRequestCompleted).toBe(true);
+  });
+
+  it('resets request completion when a new signing request arrives', () => {
+    const { result, store } = renderHookWithProvider(
+      () => useQRSigningState(),
+      {
+        state: {
+          qrKeyringScanner: {
+            pendingScanRequest: {
+              type: QrScanRequestType.SIGN,
+              request: {
+                requestId: 'first-request',
+                payload: { type: 'eth-sign-request', cbor: 'abc' },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    act(() => {
+      result.current.setRequestCompleted();
+    });
+
+    expect(result.current.isRequestCompleted).toBe(true);
+
+    act(() => {
+      store.dispatch(
+        scanRequested({
+          type: QrScanRequestType.SIGN,
+          request: {
+            requestId: 'second-request',
+            payload: { type: 'eth-sign-request', cbor: 'def' },
+          },
+        }),
+      );
+    });
+
+    expect(result.current.pendingScanRequest?.request?.requestId).toBe(
+      'second-request',
+    );
+    expect(result.current.isRequestCompleted).toBe(false);
   });
 
   it('cancelQRScanRequestIfPresent rejects pending scan when signing', async () => {
