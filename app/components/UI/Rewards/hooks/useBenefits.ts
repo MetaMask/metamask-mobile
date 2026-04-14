@@ -22,6 +22,13 @@ export const useBenefits = (): {
 
   const getAllBenefits = useCallback(async (): Promise<void> => {
     if (!subscriptionId) {
+      dispatch(
+        setBenefits({
+          benefits: [],
+          limit: GET_ALL_BENEFITS_LIMIT,
+          lastFetched: Date.now(),
+        }),
+      );
       dispatch(setBenefitsError(false));
       dispatch(setBenefitsLoading(false));
       return;
