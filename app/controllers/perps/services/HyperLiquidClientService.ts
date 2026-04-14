@@ -833,8 +833,15 @@ export class HyperLiquidClientService {
       return;
     }
 
-    // If already disconnected, return immediately
-    if (this.#connectionState === WebSocketConnectionState.Disconnected) {
+    // If already disconnected and no clients remain, return immediately.
+    // In HTTP-only fallback mode the state is Disconnected but HTTP clients
+    // are still alive and need cleanup.
+    if (
+      this.#connectionState === WebSocketConnectionState.Disconnected &&
+      !this.#exchangeClient &&
+      !this.#infoClient &&
+      !this.#infoClientHttp
+    ) {
       return;
     }
 
