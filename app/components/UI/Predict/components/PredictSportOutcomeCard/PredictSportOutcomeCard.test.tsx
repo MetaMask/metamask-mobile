@@ -267,4 +267,57 @@ describe('PredictSportOutcomeCard', () => {
       expect(screen.getByText('AWAY · 25¢')).toBeOnTheScreen();
     });
   });
+
+  describe('line selector', () => {
+    it('renders line selector when lines, selectedLine, and onSelectLine are provided', () => {
+      const props = createDefaultProps({
+        lines: [4.5, 5, 5.5],
+        selectedLine: 5,
+        onSelectLine: jest.fn(),
+      });
+
+      renderWithProvider(<PredictSportOutcomeCard {...props} />);
+
+      expect(
+        screen.getByTestId(PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.LINE_SELECTOR),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides line selector when lines has only one item', () => {
+      const props = createDefaultProps({
+        lines: [5],
+        selectedLine: 5,
+        onSelectLine: jest.fn(),
+      });
+
+      renderWithProvider(<PredictSportOutcomeCard {...props} />);
+
+      expect(
+        screen.queryByTestId(PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.LINE_SELECTOR),
+      ).toBeNull();
+    });
+
+    it('hides line selector when lines prop is omitted', () => {
+      const props = createDefaultProps();
+
+      renderWithProvider(<PredictSportOutcomeCard {...props} />);
+
+      expect(
+        screen.queryByTestId(PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.LINE_SELECTOR),
+      ).toBeNull();
+    });
+
+    it('hides line selector when onSelectLine is omitted', () => {
+      const props = createDefaultProps({
+        lines: [4.5, 5, 5.5],
+        selectedLine: 5,
+      });
+
+      renderWithProvider(<PredictSportOutcomeCard {...props} />);
+
+      expect(
+        screen.queryByTestId(PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.LINE_SELECTOR),
+      ).toBeNull();
+    });
+  });
 });

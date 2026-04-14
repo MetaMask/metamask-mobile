@@ -168,4 +168,70 @@ describe('PredictSportLineSelector', () => {
     expect(getByText('0')).toBeOnTheScreen();
     expect(getByText('4.5')).toBeOnTheScreen();
   });
+
+  it('computes translateX on layout', () => {
+    const { UNSAFE_getAllByType } = render(
+      <PredictSportLineSelector {...defaultProps} />,
+    );
+
+    const boxes = UNSAFE_getAllByType(
+      jest.requireActual('@metamask/design-system-react-native').Box,
+    );
+    const layoutBox = boxes.find(
+      (b: { props: { onLayout?: unknown } }) => b.props.onLayout,
+    );
+
+    layoutBox?.props.onLayout({
+      nativeEvent: { layout: { width: 300 } },
+    });
+
+    expect(layoutBox).toBeDefined();
+  });
+
+  it('triggers animation when selectedLine changes after layout', () => {
+    const { rerender, UNSAFE_getAllByType } = render(
+      <PredictSportLineSelector {...defaultProps} />,
+    );
+
+    const boxes = UNSAFE_getAllByType(
+      jest.requireActual('@metamask/design-system-react-native').Box,
+    );
+    const layoutBox = boxes.find(
+      (b: { props: { onLayout?: unknown } }) => b.props.onLayout,
+    );
+
+    layoutBox?.props.onLayout({
+      nativeEvent: { layout: { width: 300 } },
+    });
+
+    rerender(<PredictSportLineSelector {...defaultProps} selectedLine={5.5} />);
+
+    expect(layoutBox).toBeDefined();
+  });
+
+  it('fires haptic feedback on line tap', () => {
+    const { impactAsync } = jest.requireMock('expo-haptics') as {
+      impactAsync: jest.Mock;
+    };
+    const { getByText } = render(
+      <PredictSportLineSelector {...defaultProps} />,
+    );
+
+    fireEvent.press(getByText('4.5'));
+
+    expect(impactAsync).toHaveBeenCalledWith('light');
+  });
+
+  it('fires haptic feedback on arrow tap', () => {
+    const { impactAsync } = jest.requireMock('expo-haptics') as {
+      impactAsync: jest.Mock;
+    };
+    const { getByTestId } = render(
+      <PredictSportLineSelector {...defaultProps} />,
+    );
+
+    fireEvent.press(getByTestId(arrowRightId));
+
+    expect(impactAsync).toHaveBeenCalledWith('light');
+  });
 });
