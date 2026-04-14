@@ -610,6 +610,7 @@ export class Engine {
       CardController: cardController,
       ComplianceService: complianceService,
       ComplianceController: complianceController,
+      ChompApiService: messengerClientsByName.ChompApiService,
     };
 
     const childControllers = Object.assign({}, this.context);
