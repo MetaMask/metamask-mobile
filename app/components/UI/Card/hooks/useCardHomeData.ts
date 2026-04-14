@@ -47,15 +47,20 @@ export const useCardHomeData = () => {
     [data?.assets],
   );
 
-  // One useAssetBalances call covering all known card tokens.
-  const allTokensForBalance = useMemo(
-    () => [
+  // One useAssetBalances call covering all known card tokens, deduplicated by key.
+  const allTokensForBalance = useMemo(() => {
+    const seen = new Set<string>();
+    return [
       ...(primaryAssetToken ? [primaryAssetToken] : []),
       ...supportedAssetTokens,
       ...allAssetTokens,
-    ],
-    [primaryAssetToken, supportedAssetTokens, allAssetTokens],
-  );
+    ].filter((token) => {
+      const key = getAssetBalanceKey(token);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [primaryAssetToken, supportedAssetTokens, allAssetTokens]);
   const assetBalancesMap = useAssetBalances(allTokensForBalance);
 
   // Merge balance info into enriched token objects.

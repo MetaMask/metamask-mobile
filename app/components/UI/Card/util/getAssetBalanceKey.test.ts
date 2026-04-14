@@ -23,7 +23,7 @@ describe('getAssetBalanceKey', () => {
     expect(key).toBe('0xuppercase-eip155:59144-0xalsoupper');
   });
 
-  it('handles undefined address', () => {
+  it('includes literal "undefined" string when address is undefined', () => {
     const key = getAssetBalanceKey({
       address: undefined,
       caipChainId: CHAIN,
@@ -32,7 +32,7 @@ describe('getAssetBalanceKey', () => {
     expect(key).toBe('undefined-eip155:59144-0x123456');
   });
 
-  it('handles undefined walletAddress', () => {
+  it('includes literal "undefined" string when walletAddress is undefined', () => {
     const key = getAssetBalanceKey({
       address: '0xABCDEF',
       caipChainId: CHAIN,

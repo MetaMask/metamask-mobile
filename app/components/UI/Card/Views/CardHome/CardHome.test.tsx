@@ -74,10 +74,12 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   AllowanceState,
+  CardAssetWithBalance,
   CardStateWarning,
   CardStatus,
   CardType,
 } from '../../types';
+import type { TokenI } from '../../../Tokens/types';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -905,7 +907,7 @@ function setupLoadCardDataMock(
 // Use once=true to override only the next render, false to override all subsequent renders.
 // This replaces mockUseAssetBalances overrides — balance now flows via useCardHomeData().primaryAsset.
 function overrideCardHomeDataBalance(
-  assetOverrides: Partial<typeof mockPrimaryAssetWithBalance>,
+  assetOverrides: Partial<CardAssetWithBalance>,
   once = false,
 ) {
   const mockReturn = {
@@ -1332,19 +1334,17 @@ describe('CardHome Component', () => {
   });
 
   it('passes formatted balance to CardAssetItem', () => {
-    // Given: asset balances with formatted balance
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: '$1,000.00',
-        asset: {
-          symbol: 'USDC',
-          image: 'usdc-image-url',
-        },
-        balanceFormatted: '1000.000000 USDC',
-        rawTokenBalance: 1000,
-        rawFiatNumber: 1000,
-      }),
-    );
+    // Given: primary asset includes formatted balance and token metadata (from useCardHomeData)
+    overrideCardHomeDataBalance({
+      balanceFiat: '$1,000.00',
+      asset: {
+        symbol: 'USDC',
+        image: 'usdc-image-url',
+      } as TokenI,
+      balanceFormatted: '1000.000000 USDC',
+      rawTokenBalance: 1000,
+      rawFiatNumber: 1000,
+    });
 
     // When: component renders
     render();
@@ -1618,15 +1618,15 @@ describe('CardHome Component', () => {
   });
 
   it('fires CARD_HOME_VIEWED once when only balanceFormatted is valid', async () => {
-    // Given: only formatted balance is available
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: undefined as unknown as string,
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+    // Given: only formatted balance is available (no fiat / no raw fiat from useCardHomeData)
+    overrideCardHomeDataBalance(
+      {
+        balanceFiat: undefined,
         balanceFormatted: '1000.000000 USDC',
         rawTokenBalance: 1000,
-        // rawFiatNumber omitted
-      }),
+        rawFiatNumber: undefined,
+      },
+      true,
     );
 
     // When: component renders
