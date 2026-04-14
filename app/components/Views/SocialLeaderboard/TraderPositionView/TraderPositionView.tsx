@@ -4,8 +4,10 @@ import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
   useRoute,
+  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -32,19 +34,6 @@ import { strings } from '../../../../../locales/i18n';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import { chainNameToId } from '../utils/chainMapping';
 import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
-
-// ---------------------------------------------------------------------------
-// Route params
-// ---------------------------------------------------------------------------
-
-interface TraderPositionRouteParams {
-  TraderPositionView: {
-    traderId: string;
-    traderName: string;
-    tokenSymbol: string;
-    position?: Position;
-  };
-}
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -176,7 +165,7 @@ const TradeRow: React.FC<TradeRowProps> = ({ trade }) => (
       </Box>
     </Box>
 
-    <Box alignItems={BoxAlignItems.FlexEnd}>
+    <Box alignItems={BoxAlignItems.End}>
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -198,9 +187,8 @@ const TradeRow: React.FC<TradeRowProps> = ({ trade }) => (
 // ---------------------------------------------------------------------------
 
 const TraderPositionView = () => {
-  const navigation = useNavigation();
-  const route =
-    useRoute<RouteProp<TraderPositionRouteParams, 'TraderPositionView'>>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'TraderPositionView'>>();
   const tw = useTailwind();
 
   const { traderName, tokenSymbol, position: positionParam } = route.params;
@@ -297,7 +285,7 @@ const TraderPositionView = () => {
             </Box>
           </Box>
 
-          <Box alignItems={BoxAlignItems.FlexEnd}>
+          <Box alignItems={BoxAlignItems.End}>
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
@@ -339,7 +327,7 @@ const TraderPositionView = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
-            alignItems={BoxAlignItems.FlexStart}
+            alignItems={BoxAlignItems.Start}
           >
             <Box>
               <Text
@@ -357,7 +345,7 @@ const TraderPositionView = () => {
                 {strings('social_leaderboard.trader_position.position')}
               </Text>
             </Box>
-            <Box alignItems={BoxAlignItems.FlexEnd}>
+            <Box alignItems={BoxAlignItems.End}>
               <Text
                 variant={TextVariant.HeadingMd}
                 fontWeight={FontWeight.Bold}

@@ -4,6 +4,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
   useRoute,
+  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
@@ -28,7 +29,6 @@ import { strings } from '../../../../../locales/i18n';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import { useTraderProfile, useTraderPositions } from './hooks';
 import type { Position } from '@metamask/social-controllers';
-import Routes from '../../../../constants/navigation/Routes';
 import ProfileHeader from './components/ProfileHeader';
 import StatsRow from './components/StatsRow';
 import PositionRow from './components/PositionRow';
@@ -76,7 +76,7 @@ const TabButton: React.FC<TabButtonProps> = ({
 // ---------------------------------------------------------------------------
 
 const TraderProfileView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderProfileView'>>();
   const tw = useTailwind();
 
@@ -105,15 +105,12 @@ const TraderProfileView = () => {
 
   const handlePositionPress = useCallback(
     (position: Position) => {
-      navigation.navigate(
-        Routes.SOCIAL_LEADERBOARD.POSITION as never,
-        {
-          traderId,
-          traderName,
-          tokenSymbol: position.tokenSymbol,
-          position,
-        } as never,
-      );
+      navigation.navigate('TraderPositionView', {
+        traderId,
+        traderName,
+        tokenSymbol: position.tokenSymbol,
+        position,
+      });
     },
     [navigation, traderId, traderName],
   );
