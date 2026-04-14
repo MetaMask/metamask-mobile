@@ -107,6 +107,32 @@ describe('useTraderPositions', () => {
       expect(calls[0][0]).toEqual(expect.objectContaining({ enabled: false }));
       expect(calls[1][0]).toEqual(expect.objectContaining({ enabled: false }));
     });
+
+    it('forwards refetchInterval only to the open positions query', () => {
+      renderHook(() =>
+        useTraderPositions('trader-1', { refetchInterval: 30_000 }),
+      );
+
+      const calls = mockUseQuery.mock.calls;
+      expect(calls[0][0]).toEqual(
+        expect.objectContaining({ refetchInterval: 30_000 }),
+      );
+      expect(calls[1][0]).not.toEqual(
+        expect.objectContaining({ refetchInterval: expect.anything() }),
+      );
+    });
+
+    it('does not set refetchInterval on either query when option is omitted', () => {
+      renderHook(() => useTraderPositions('trader-1'));
+
+      const calls = mockUseQuery.mock.calls;
+      expect(calls[0][0]).toEqual(
+        expect.objectContaining({ refetchInterval: undefined }),
+      );
+      expect(calls[1][0]).not.toEqual(
+        expect.objectContaining({ refetchInterval: expect.anything() }),
+      );
+    });
   });
 
   describe('position data', () => {

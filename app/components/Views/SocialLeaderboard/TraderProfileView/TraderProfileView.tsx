@@ -61,7 +61,7 @@ const TabButton: React.FC<TabButtonProps> = ({
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        color={isActive ? TextColor.TextDefault : TextColor.TextMuted}
+        color={isActive ? TextColor.TextDefault : TextColor.TextAlternative}
       >
         {label}
       </Text>
@@ -87,9 +87,9 @@ const TraderProfileView = () => {
     isFollowing,
     toggleFollow,
     refresh,
-  } = useTraderProfile(traderId);
+  } = useTraderProfile(traderId, { refetchInterval: 30_000 });
   const { openPositions, closedPositions, isLoadingOpen, isLoadingClosed } =
-    useTraderPositions(traderId);
+    useTraderPositions(traderId, { refetchInterval: 30_000 });
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
 
@@ -223,7 +223,7 @@ const TraderProfileView = () => {
                   >
                     <Text
                       variant={TextVariant.BodyMd}
-                      color={TextColor.TextMuted}
+                      color={TextColor.TextAlternative}
                     >
                       {strings(
                         'social_leaderboard.trader_profile.no_positions',

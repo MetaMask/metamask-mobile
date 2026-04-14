@@ -15,6 +15,10 @@ import type { Position } from '@metamask/social-controllers';
 import { getAssetImageUrl } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { chainNameToId } from '../../utils/chainMapping';
 import { addThousandsSeparator } from '../../utils/numberFormatting';
+import {
+  formatPerpsFiat,
+  formatPercentage,
+} from '../../../../UI/Perps/utils/formatUtils';
 
 export interface PositionRowProps {
   position: Position;
@@ -23,10 +27,7 @@ export interface PositionRowProps {
 function formatUsd(value: number | null | undefined): string {
   if (value == null) return '\u2014';
   const sign = value < 0 ? '-' : '';
-  const abs = Math.round(Math.abs(value) * 100) / 100;
-  const [whole, frac = ''] = abs.toString().split('.');
-  const paddedFrac = frac.padEnd(2, '0').slice(0, 2);
-  return `${sign}$${addThousandsSeparator(whole)}${'.'}${paddedFrac}`;
+  return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
 }
 
 function formatTokenAmount(value: number): string {
@@ -39,8 +40,7 @@ function formatTokenAmount(value: number): string {
 
 function formatPercent(value: number | null | undefined): string {
   if (value == null) return '\u2014';
-  const sign = value >= 0 ? '+' : '';
-  return `${sign}${value.toFixed(0)}%`;
+  return formatPercentage(value, 0);
 }
 
 const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
@@ -84,7 +84,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
           </Text>
           <Text
             variant={TextVariant.BodySm}
-            color={TextColor.TextMuted}
+            color={TextColor.TextAlternative}
             numberOfLines={1}
           >
             {`${formatTokenAmount(position.positionAmount)} ${position.tokenSymbol}`}
@@ -102,7 +102,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
         </Text>
         <Text
           variant={TextVariant.BodySm}
-          color={hasPnl ? undefined : TextColor.TextMuted}
+          color={hasPnl ? undefined : TextColor.TextAlternative}
           twClassName={
             hasPnl
               ? isPnlPositive
