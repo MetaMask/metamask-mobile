@@ -1,6 +1,6 @@
 {
   "title": "Benchmark: Perf — Perps add funds flow timing",
-  "description": "Mirrors performance/login/perps-add-funds.spec.ts. Navigates to Perps, handles tutorial if present, opens Add Funds, types amount, taps Continue, verifies quote screen. Performance spec measures timing; recipe measures wall-clock execution time.",
+  "description": "Mirrors performance/login/perps-add-funds.spec.ts. Navigates to Perps, handles tutorial if present, opens Add Funds, and types amount. Performance spec measures timing; recipe measures wall-clock execution time.",
   "validate": {
     "workflow": {
       "pre_conditions": ["wallet.unlocked", "perps.feature_enabled"],

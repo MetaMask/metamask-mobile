@@ -1,6 +1,6 @@
 {
   "title": "Benchmark: Perps Add Funds — navigate to deposit screen and enter amount",
-  "description": "Mirrors smoke/perps/perps-add-funds.spec.ts. Navigates to Perps, taps Add Funds, enters amount via keypad, taps Continue to reach review screen. Detox spec also confirms deposit via mock server; recipe validates the UI flow up to review (deposit execution requires E2E mock infrastructure).",
+  "description": "Mirrors smoke/perps/perps-add-funds.spec.ts. Navigates to Perps, taps Add Funds, and enters amount via keypad. Detox spec also confirms deposit via mock server; recipe validates the UI flow up to amount entry (deposit execution requires E2E mock infrastructure).",
   "validate": {
     "workflow": {
       "pre_conditions": ["wallet.unlocked", "perps.ready_to_trade"],
