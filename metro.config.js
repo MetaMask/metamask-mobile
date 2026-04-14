@@ -48,13 +48,12 @@ module.exports = function (baseConfig) {
     process.env.METAMASK_ENVIRONMENT === 'e2e';
 
   /**
-   * E2E Metro redirects under tests/module-mocking.
-   * Enables both: seedless-onboarding-controller + OAuthLoginHandlers mocks.
-   * True when IS_TEST / METAMASK_ENVIRONMENT=e2e OR E2E_MOCK_OAUTH.
+   * E2E / perf Metro redirect for OAuthLoginHandlers only (tests/module-mocking/oauth).
+   * Active when IS_TEST / METAMASK_ENVIRONMENT=e2e OR E2E_MOCK_OAUTH.
    */
   const isE2EMockOAuth = process.env.E2E_MOCK_OAUTH === 'true';
 
-  const e2eAllowsSeedlessOAuthMetroMocks = isE2E || isE2EMockOAuth;
+  const e2eAllowsOAuthMetroMocks = isE2E || isE2EMockOAuth;
 
   // For less powerful machines, leave room to do other tasks. For instance,
   // if you have 10 cores but only 16GB, only 3 workers would get used.
@@ -160,30 +159,7 @@ module.exports = function (baseConfig) {
               };
             }
           }
-          // Mock the seedless-onboarding-controller only for E2E smoke tests.
-          // Performance tests (E2E_MOCK_OAUTH only) use the real controller
-          // so TOPRF authentication runs against live nodes.
-          if (isE2E) {
-            if (
-              moduleName.endsWith(
-                'controllers/seedless-onboarding-controller',
-              ) ||
-              moduleName.endsWith(
-                'controllers/seedless-onboarding-controller/index',
-              ) ||
-              moduleName === './seedless-onboarding-controller' ||
-              moduleName === '../seedless-onboarding-controller'
-            ) {
-              return {
-                type: 'sourceFile',
-                filePath: path.resolve(
-                  __dirname,
-                  'tests/module-mocking/seedless/index.ts',
-                ),
-              };
-            }
-          }
-          if (e2eAllowsSeedlessOAuthMetroMocks) {
+          if (e2eAllowsOAuthMetroMocks) {
             // Skips native Google/Apple UI; tokens still hit auth server (see module mock).
             if (
               moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||

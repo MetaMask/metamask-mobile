@@ -1,9 +1,12 @@
 /**
  * Mock OAuthLoginHandlers for E2E Testing
+ *
+ * Random email
  */
 
 import { Platform } from 'react-native';
-import { E2EOAuthHelpers } from '../E2EOAuthHelpers';
+import { LaunchArguments } from 'react-native-launch-arguments';
+import QuickCrypto from 'react-native-quick-crypto';
 
 // Re-export types from real module
 export { AuthConnection } from '../../../../app/core/OAuthService/OAuthInterface';
@@ -17,6 +20,22 @@ import type { BaseHandlerOptions } from '../../../../app/core/OAuthService/OAuth
 
 function getMockGoogleOAuthClientId(): string {
   return '387141446914-5ja3p4dfanfkm8uq238fm1b8t1rkscv4.apps.googleusercontent.com';
+}
+
+/**
+ * Get the E2E mock email.
+ */
+function getE2EMockEmail(): string {
+  const raw = LaunchArguments.value() as Record<string, unknown>;
+  const launchArgEmail = raw?.mockOAuthEmail;
+  if (typeof launchArgEmail === 'string' && launchArgEmail.length > 0) {
+    console.log('[E2E Mock] Using email from launchArgs:', launchArgEmail);
+    return launchArgEmail;
+  }
+  const rand = QuickCrypto.randomBytes(4).toString('hex').slice(0, 8);
+  const randomEmail = `${rand}${Date.now()}+e2e@web3auth.io`;
+  console.log('[E2E Mock] Generated random email:', randomEmail);
+  return randomEmail;
 }
 
 /**
@@ -139,7 +158,7 @@ class MockGoogleLoginHandler extends MockBaseLoginHandler {
   }
 
   async login(): Promise<LoginHandlerResult> {
-    const email = E2EOAuthHelpers.getE2EEmail();
+    const email = getE2EMockEmail();
     console.log(`[E2E Mock] Google login with email: ${email}`);
 
     // Simulate brief delay
@@ -165,7 +184,7 @@ class MockGoogleLoginHandler extends MockBaseLoginHandler {
       login_provider: this.authConnection,
       network: params.web3AuthNetwork,
       code_verifier: params.codeVerifier,
-      email: params.email || E2EOAuthHelpers.getE2EEmail(),
+      email: params.email,
     };
   }
 }
@@ -191,7 +210,7 @@ class MockAppleLoginHandler extends MockBaseLoginHandler {
   }
 
   async login(): Promise<LoginHandlerResult> {
-    const email = E2EOAuthHelpers.getE2EEmail();
+    const email = getE2EMockEmail();
     console.log(`[E2E Mock] Apple login with email: ${email}`);
 
     // Simulate brief delay
@@ -233,7 +252,7 @@ class MockAppleLoginHandler extends MockBaseLoginHandler {
       id_token: params.idToken,
       login_provider: this.authConnection,
       network: params.web3AuthNetwork,
-      email: params.email || E2EOAuthHelpers.getE2EEmail(),
+      email: params.email,
     };
   }
 }

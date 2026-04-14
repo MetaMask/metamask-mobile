@@ -659,7 +659,7 @@ describe('OAuth login service', () => {
       expect(body.access_type).toBe('offline');
       expect(body.email_id).toMatch(/^[a-f0-9]+\d+\+e2e@web3auth\.io$/);
       expect(mockAuthenticate).toHaveBeenCalledTimes(1);
-      expect(mockLoginHandlerResponse).not.toHaveBeenCalled();
+      expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
       expect(mockGetAuthTokens).not.toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'SET_SEEDLESS_ONBOARDING',
@@ -722,12 +722,12 @@ describe('OAuth login service', () => {
       expect(mockAuthenticate).not.toHaveBeenCalled();
     });
 
-    it('does not call provider login or getAuthTokens but does call seedless authenticate', async () => {
+    it('calls provider login for email but skips getAuthTokens, and calls seedless authenticate', async () => {
       const loginHandler = mockCreateLoginHandler();
 
       await OAuthLoginService.handleOAuthLogin(loginHandler, false);
 
-      expect(mockLoginHandlerResponse).not.toHaveBeenCalled();
+      expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
       expect(mockGetAuthTokens).not.toHaveBeenCalled();
       expect(mockAuthenticate).toHaveBeenCalledTimes(1);
       expect(mockDispatch).toHaveBeenCalledWith({

@@ -197,8 +197,16 @@ export class OAuthService {
   #handleMockOAuthLogin = async (
     loginHandler: BaseLoginHandler,
   ): Promise<HandleOAuthLoginResult> => {
+    const loginResult = await loginHandler.login();
+    const mockEmail = (loginResult as unknown as Record<string, unknown>)
+      ?.email as string | undefined;
+
     const { data, userId, accountName } =
-      await QAMockOAuthService.exchangeTokens(loginHandler);
+      await QAMockOAuthService.exchangeTokens(
+        loginHandler,
+        global.fetch,
+        mockEmail,
+      );
 
     this.updateLocalState({ userId, accountName });
 

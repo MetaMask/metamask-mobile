@@ -30,11 +30,19 @@ export class QAMockOAuthService {
   static async exchangeTokens(
     loginHandler: BaseLoginHandler,
     fetchImpl: typeof fetch = global.fetch,
+    emailOverride?: string,
   ): Promise<QAMockTokenExchangeResult> {
     const byoaSecret = getE2EByoaAuthSecret() ?? DEFAULT_E2E_BYOA_AUTH_SECRET;
 
-    const emailForMock =
-      getE2EMockOAuthEmailForQaMock() ?? generateUniqueE2EEmail();
+    const envEmail = getE2EMockOAuthEmailForQaMock();
+    const emailForMock = emailOverride ?? envEmail ?? generateUniqueE2EEmail();
+
+    const requestBody = {
+      email_id: emailForMock,
+      client_id: loginHandler.options.clientId,
+      login_provider: loginHandler.authConnection,
+      access_type: 'offline',
+    };
 
     const response = await fetchImpl(E2E_QA_MOCK_OAUTH_TOKEN_URL, {
       method: 'POST',
@@ -42,12 +50,7 @@ export class QAMockOAuthService {
         'Content-Type': 'application/json',
         'byoa-auth-secret': byoaSecret,
       },
-      body: JSON.stringify({
-        email_id: emailForMock,
-        client_id: loginHandler.options.clientId,
-        login_provider: loginHandler.authConnection,
-        access_type: 'offline',
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
