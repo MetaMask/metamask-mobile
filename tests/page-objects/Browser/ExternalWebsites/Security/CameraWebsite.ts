@@ -22,7 +22,10 @@ class CameraWebsite {
           BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
           "//p[@id='status' and contains(text(), 'Camera access granted')]",
         ),
-        { timeout: 5000 },
+        {
+          timeout: 5000,
+          description: 'Camera access granted status text is visible (iOS)',
+        },
       );
     } else {
       // On Android, the WebView shows its own permission dialog.
@@ -39,7 +42,10 @@ class CameraWebsite {
           BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
           "//p[@id='status' and contains(text(), 'Camera access granted')]",
         ),
-        { timeout: 5000 },
+        {
+          timeout: 5000,
+          description: 'Camera access granted status text is visible (Android)',
+        },
       );
     }
   }

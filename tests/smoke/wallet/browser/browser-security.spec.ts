@@ -21,7 +21,7 @@ describe(SmokeWalletPlatform('Browser Security'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should show camera permission dialog when page requests camera access', async () => {
+  it('shows camera permission dialog when page requests camera access', async () => {
     // On Android, pre-grant the OS-level camera permission so only the
     // WebView permission dialog remains (Detox can interact with that one).
     const isAndroid = device.getPlatform() === 'android';
@@ -48,7 +48,7 @@ describe(SmokeWalletPlatform('Browser Security'), () => {
     );
   });
 
-  it('should not disclose history of visited pages', async () => {
+  it('does not disclose history of visited pages', async () => {
     await withFixtures(
       {
         dapps: [
