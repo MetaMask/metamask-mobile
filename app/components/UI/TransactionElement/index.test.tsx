@@ -58,15 +58,6 @@ jest.mock('../../../core/Engine', () => ({
       findNetworkClientIdByChainId: () => 'mainnet',
       setActiveNetwork: jest.fn(),
     },
-    TokenListController: {
-      state: {
-        tokensChainsCache: {
-          '0x1': {
-            data: [],
-          },
-        },
-      },
-    },
   },
 }));
 
