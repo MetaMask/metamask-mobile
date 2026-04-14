@@ -5,6 +5,11 @@ import TopTradersView from './TopTradersView';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hooks/useTopTraders';
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
+import Logger from '../../../../util/Logger';
+
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -150,6 +155,22 @@ describe('TopTradersView', () => {
     });
 
     expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('logs an error when refresh fails', async () => {
+    const refreshError = new Error('fetch failed');
+    mockRefresh.mockRejectedValue(refreshError);
+    renderWithProvider(<TopTradersView />);
+    const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+
+    await act(async () => {
+      await list.props.refreshControl.props.onRefresh();
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      refreshError,
+      'TopTradersView: pull-to-refresh failed',
+    );
   });
 
   it('navigates back when the feature flag is disabled', () => {
