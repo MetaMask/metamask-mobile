@@ -57,7 +57,7 @@ import { usePredictBuyError } from './hooks/usePredictBuyError';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 
 const PredictBuyWithAnyToken = (
-  contentProps?: PredictBuyPreviewContentProps,
+  contentProps: Partial<PredictBuyPreviewContentProps> = {},
 ) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
@@ -65,9 +65,9 @@ const PredictBuyWithAnyToken = (
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const isSheetMode = !!contentProps?.onClose;
+  const isSheetMode = !!contentProps.onClose;
   const { market, outcome, outcomeToken, entryPoint } = isSheetMode
-    ? contentProps
+    ? (contentProps as PredictBuyPreviewContentProps)
     : route.params;
 
   const { isPlacingOrder } = usePredictActiveOrder();
@@ -195,7 +195,7 @@ const PredictBuyWithAnyToken = (
     preview,
     setIsConfirming,
     isSheetMode,
-    onClose: contentProps?.onClose,
+    onClose: contentProps.onClose,
   });
 
   useEffect(() => {

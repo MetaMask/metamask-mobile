@@ -52,16 +52,18 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import styleSheet from './PredictSellPreview.styles';
 import { PREDICT_SELL_PREVIEW_TEST_IDS } from './PredictSellPreview.testIds';
 
-const PredictSellPreview = (contentProps?: PredictSellPreviewContentProps) => {
+const PredictSellPreview = (
+  contentProps: Partial<PredictSellPreviewContentProps> = {},
+) => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
   const { goBack, dispatch } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
 
-  const isSheetMode = !!contentProps?.onClose;
+  const isSheetMode = !!contentProps.onClose;
   const { market, position, outcome, entryPoint } = isSheetMode
-    ? contentProps
+    ? (contentProps as PredictSellPreviewContentProps)
     : route.params;
 
   const { icon, title, initialValue, size } = position;
@@ -170,7 +172,7 @@ const PredictSellPreview = (contentProps?: PredictSellPreviewContentProps) => {
   useEffect(() => {
     if (result?.success) {
       if (isSheetMode) {
-        contentProps?.onClose();
+        contentProps.onClose?.();
       } else {
         dispatch(StackActions.pop());
       }

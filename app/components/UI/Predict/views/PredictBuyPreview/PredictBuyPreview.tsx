@@ -70,7 +70,9 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { MINIMUM_BET } from '../../constants/transactions';
 
-const PredictBuyPreview = (contentProps?: PredictBuyPreviewContentProps) => {
+const PredictBuyPreview = (
+  contentProps: Partial<PredictBuyPreviewContentProps> = {},
+) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
@@ -78,9 +80,9 @@ const PredictBuyPreview = (contentProps?: PredictBuyPreviewContentProps) => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const isSheetMode = !!contentProps?.onClose;
+  const isSheetMode = !!contentProps.onClose;
   const { market, outcome, outcomeToken, entryPoint } = isSheetMode
-    ? contentProps
+    ? (contentProps as PredictBuyPreviewContentProps)
     : route.params;
 
   const analyticsProperties = useMemo(
@@ -215,7 +217,7 @@ const PredictBuyPreview = (contentProps?: PredictBuyPreviewContentProps) => {
   useEffect(() => {
     if (result?.success) {
       if (isSheetMode) {
-        contentProps?.onClose();
+        contentProps.onClose?.();
       } else {
         dispatch(StackActions.pop());
       }
@@ -253,7 +255,7 @@ const PredictBuyPreview = (contentProps?: PredictBuyPreviewContentProps) => {
     >
       <TouchableOpacity
         testID="back-button"
-        onPress={() => (isSheetMode ? contentProps?.onClose() : goBack())}
+        onPress={() => (isSheetMode ? contentProps.onClose?.() : goBack())}
       >
         <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
       </TouchableOpacity>

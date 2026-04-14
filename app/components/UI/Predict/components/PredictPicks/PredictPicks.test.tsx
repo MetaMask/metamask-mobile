@@ -615,10 +615,15 @@ describe('PredictPicks', () => {
         outcomeId: 'outcome-1',
         claimable: false,
       });
-      setupPositionsMock({ livePositions: [position] });
       mockExecuteGuardedAction.mockImplementation((callback) => callback());
 
-      render(<PredictPicks market={market} />);
+      render(
+        <PredictPicks
+          market={market}
+          positions={[position]}
+          claimablePositions={[]}
+        />,
+      );
       fireEvent.press(
         screen.getByTestId('predict-picks-cash-out-button-pos-1'),
       );
