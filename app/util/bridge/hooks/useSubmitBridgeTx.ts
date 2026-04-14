@@ -17,6 +17,10 @@ import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
 } from '../../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
+import {
+  STICKY_FOOTER_SWAP_LABEL_AB_KEY,
+  STICKY_FOOTER_SWAP_LABEL_VARIANTS,
+} from '../../../components/UI/TokenDetails/components/abTestConfig';
 import { useMemo } from 'react';
 
 export default function useSubmitBridgeTx() {
@@ -31,6 +35,13 @@ export default function useSubmitBridgeTx() {
   } = useABTest(
     TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
     TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  );
+  const {
+    variantName: stickyFooterVariantName,
+    isActive: isStickyFooterAbActive,
+  } = useABTest(
+    STICKY_FOOTER_SWAP_LABEL_AB_KEY,
+    STICKY_FOOTER_SWAP_LABEL_VARIANTS,
   );
 
   const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
@@ -56,12 +67,21 @@ export default function useSubmitBridgeTx() {
       });
     }
 
+    if (isStickyFooterAbActive) {
+      tests.push({
+        key: STICKY_FOOTER_SWAP_LABEL_AB_KEY,
+        value: stickyFooterVariantName,
+      });
+    }
+
     return tests.length > 0 ? tests : undefined;
   }, [
     isNumpadAbActive,
     numpadVariantName,
     isTokenSelectorAbActive,
     tokenSelectorVariantName,
+    isStickyFooterAbActive,
+    stickyFooterVariantName,
   ]);
 
   const submitBridgeTx = async ({

@@ -27,5 +27,10 @@ export const STICKY_FOOTER_SWAP_LABEL_AB_TEST_ANALYTICS_MAPPING: ABTestAnalytics
     eventNames: [
       EVENT_NAME.TOKEN_DETAILS_OPENED,
       EVENT_NAME.TOKEN_DETAILS_STICKY_BOTTOM_CTA_CLICKED,
+      // Funnel 1 entry point – fires through useAnalytics().trackEvent (shared wrapper, auto-enriched)
+      EVENT_NAME.SWAP_PAGE_VIEWED,
+      // Funnel 2 – fire through analytics.trackEvent (shared wrapper, auto-enriched)
+      EVENT_NAME.ONRAMP_PURCHASE_SUBMITTED,
+      EVENT_NAME.ONRAMP_PURCHASE_COMPLETED,
     ],
   };
