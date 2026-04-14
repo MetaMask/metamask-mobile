@@ -46,7 +46,6 @@ const PickerAccount: React.ForwardRefRenderFunction<
 
   return (
     <PickerBase
-      {...props}
       style={pressed ? styles.basePressed : styles.base}
       onPress={onPress}
       onPressIn={triggerOnPressedIn}
@@ -54,6 +53,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
       hitSlop={hitSlop}
       activeOpacity={1}
       showDropdownIcon={false}
+      {...props}
     >
       <DSText
         variant={TextVariant.BodyMDMedium}
