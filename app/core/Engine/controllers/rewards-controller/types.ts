@@ -1337,6 +1337,28 @@ export type SubscriptionSeasonReferralDetailState = {
   lastFetched?: number;
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionBenefitDto = {
+  id: number;
+  longTitle: string;
+  shortDescription: string;
+  longDescription: string;
+  thumbnail: string;
+  validFrom: string;
+  validTo: string;
+  url: string;
+  actionDate: string | null;
+  chain: string;
+  type: { id: number; name: string };
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionBenefitsState = {
+  benefits: SubscriptionBenefitDto[];
+  limit: number;
+  lastFetched: number;
+};
+
 // Serializable versions for state storage (Date objects converted to timestamps)
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonRewardDtoState = {
@@ -1768,6 +1790,9 @@ export type RewardsControllerState = {
   seasons: { [seasonId: string]: SeasonDtoState };
   subscriptionReferralDetails: {
     [compositeId: string]: SubscriptionSeasonReferralDetailState;
+  };
+  subscriptionBenefits: {
+    [subscriptionId: string]: SubscriptionBenefitsState;
   };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
