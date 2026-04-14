@@ -12,6 +12,9 @@ import {
   selectSeedlessOnboardingLoginFlow,
 } from '../../../selectors/seedlessOnboardingController';
 import { selectGoogleLoginIosUnsupportedBlockingEnabled } from '../../../selectors/featureFlagController/googleLoginIosUnsupportedBlocking';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 /**
  * Cooldown between reminder presentations of the iOS Google version warning sheet after the user
@@ -26,6 +29,16 @@ export const IOS_GOOGLE_WARNING_SHEET_REMINDER_INTERVAL_MS =
 const promptIosGoogleWarningSheet = async function () {
   const navigation = NavigationService.navigation;
   await presentIosGoogleLoginVersionWarningSheetReminder(navigation);
+
+  if (analytics.isEnabled()) {
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED,
+      )
+        .addProperties({ location: 'ios_google_warning_saga' })
+        .build(),
+    );
+  }
 };
 
 /**
