@@ -7,14 +7,13 @@ import React, {
   useRef,
 } from 'react';
 import {
-  SafeAreaView,
   Image,
   BackHandler,
   TouchableOpacity,
   Platform,
   Alert,
-  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../locales/i18n';
@@ -191,18 +190,18 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       const marketingOptInStatus = await OAuthService.getMarketingOptInStatus();
       dispatch(setDataCollectionForMarketing(marketingOptInStatus.is_opt_in));
       analytics.identify({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]:
-          marketingOptInStatus.is_opt_in
-            ? UserProfileProperty.ON
-            : UserProfileProperty.OFF,
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
+          marketingOptInStatus.is_opt_in,
+        ),
       });
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
         )
           .addProperties({
-            [UserProfileProperty.HAS_MARKETING_CONSENT]:
+            [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
               marketingOptInStatus.is_opt_in,
+            ),
             updated_after_onboarding: true,
             location: 'oauth_rehydration',
             account_type: getSocialAccountType(authConnection, true),
@@ -806,9 +805,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         style={[
           tw.style('flex-1'),
           { backgroundColor: colors.background.default },
-          Platform.OS === 'android' && {
-            paddingTop: StatusBar.currentHeight ?? 0,
-          },
         ]}
       >
         <KeyboardAwareScrollView

@@ -4810,11 +4810,9 @@
     "body_for_seedphrase": "Τώρα που προστέθηκε η αξία στο πορτοφόλι σας, προστατέψτε το πορτοφόλι σας καθορίζοντας έναν κωδικό πρόσβασης και αποθηκεύοντας τη Μυστική Φράση Ανάκτησης (απαιτείται).",
     "button": "Προστασία πορτοφολιού"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Η ενημέρωση της συναλλαγής απέτυχε",
-    "text": "Θέλετε να προσπαθήσετε ξανά;",
-    "cancel_button": "Άκυρο",
-    "retry_button": "Ξαναδοκιμάστε"
+    "already_confirmed": "Αυτή η συναλλαγή έχει ήδη επιβεβαιωθεί και δεν μπορεί να τροποποιηθεί."
   },
   "payment_request": {
     "title": "Αίτημα",
@@ -6638,7 +6636,6 @@
     "nested_transaction_heading": "Συναλλαγή {{index}}",
     "transaction": "Προστασία",
     "available_balance": "Διαθέσιμο υπόλοιπο: ",
-    "available_perps_balance": "Διαθέσιμο υπόλοιπο για Perps: ",
     "edit_amount_done": "Συνεχίστε",
     "deposit_edit_amount_done": "Προσθήκη κεφαλαίων",
     "deposit_edit_amount_predict_withdraw": "Ανάληψη",

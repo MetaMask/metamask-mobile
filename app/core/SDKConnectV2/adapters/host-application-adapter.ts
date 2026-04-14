@@ -118,6 +118,7 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
           dappId: conn.info.metadata.dapp.name,
           apiVersion: conn.info.metadata.sdk.version,
           platform: conn.info.metadata.sdk.platform,
+          anonId: conn.info.metadata.analytics?.remote_session_id,
         },
         isV2: true, // Flag to identify this as a V2 connection
       };

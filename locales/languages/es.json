@@ -4810,11 +4810,9 @@
     "body_for_seedphrase": "Ahora que se agregó valor a su monedero, para protegerlo, establezca una contraseña y guarde la frase secreta de recuperación (obligatorio).",
     "button": "Proteger monedero"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Error en la actualización de la transacción",
-    "text": "¿Quiere intentarlo de nuevo?",
-    "cancel_button": "Cancelar",
-    "retry_button": "Intente de nuevo"
+    "already_confirmed": "Esta transacción ya se ha confirmado y no se puede modificar."
   },
   "payment_request": {
     "title": "Solicitar",
@@ -6638,7 +6636,6 @@
     "nested_transaction_heading": "{{index}} de transacción",
     "transaction": "Transacción",
     "available_balance": "Saldo disponible: ",
-    "available_perps_balance": "Saldo disponible de contratos perpetuos: ",
     "edit_amount_done": "Continuar",
     "deposit_edit_amount_done": "Agregar fondos",
     "deposit_edit_amount_predict_withdraw": "Retirar",

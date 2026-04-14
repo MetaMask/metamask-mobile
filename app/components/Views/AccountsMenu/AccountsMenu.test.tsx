@@ -226,8 +226,10 @@ describe('AccountsMenu', () => {
 
       const { queryByText, queryByTestId } = render(<AccountsMenu />);
 
-      expect(queryByText('accounts_menu.buy')).toBeNull();
-      expect(queryByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON)).toBeNull();
+      expect(queryByText('accounts_menu.buy')).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('navigate to buy flow and track analytics when Buy is pressed', () => {
@@ -435,7 +437,7 @@ describe('AccountsMenu', () => {
 
       const { queryByText } = render(<AccountsMenu />);
 
-      expect(queryByText('accounts_menu.notifications')).toBeNull();
+      expect(queryByText('accounts_menu.notifications')).not.toBeOnTheScreen();
     });
 
     it('navigate to notifications view when enabled and pressed', () => {
@@ -494,7 +496,7 @@ describe('AccountsMenu', () => {
       const { queryByText } = render(<AccountsMenu />);
 
       // Badge should not be visible
-      expect(queryByText('0')).toBeNull();
+      expect(queryByText('0')).not.toBeOnTheScreen();
     });
 
     it('track NOTIFICATIONS_MENU_OPENED event when enabled and pressed', () => {

@@ -471,11 +471,6 @@ export const submitClobOrder = async ({
   }
 };
 
-export const isSportEvent = (event: PolymarketApiEvent): boolean =>
-  (Array.isArray(event.tags) ? event.tags : []).some(
-    (tag) => tag.slug === 'sports',
-  );
-
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
 
@@ -597,7 +592,7 @@ const parsePolymarketMarketOutcomes = (
  * 3. Within each group, sort by liquidity + volume (descending)
  * 4. Return flattened array of all groups in order
  */
-export const sortSportMarkets = (
+export const sortGameMarkets = (
   markets: PolymarketApiMarket[],
 ): PolymarketApiMarket[] => {
   // Group markets by sportsMarketType
@@ -663,12 +658,21 @@ export const sortMarketsByField = (
   });
 };
 
-export const sortMarkets = (
-  event: PolymarketApiEvent,
-  sortBy?: 'price' | 'ascending' | 'descending',
-): PolymarketApiMarket[] => {
+export const sortMarkets = ({
+  event,
+  sortBy,
+  isGameEvent,
+}: {
+  event: PolymarketApiEvent;
+  sortBy?: 'price' | 'ascending' | 'descending';
+  isGameEvent?: boolean;
+}): PolymarketApiMarket[] => {
   const markets = Array.isArray(event.markets) ? event.markets : [];
   const eventSortBy = event.sortBy;
+
+  if (isGameEvent) {
+    return sortGameMarkets(markets);
+  }
 
   if (sortBy) {
     return sortMarketsByField(markets, sortBy);
@@ -676,10 +680,6 @@ export const sortMarkets = (
 
   if (eventSortBy) {
     return sortMarketsByField(markets, eventSortBy);
-  }
-
-  if (isSportEvent(event)) {
-    return sortSportMarkets(markets);
   }
 
   return markets;
@@ -738,10 +738,6 @@ export const parsePolymarketEvents = (
       const tags = Array.isArray(event.tags) ? event.tags : [];
       const eventLeague = getEventLeague(event);
 
-      const markets = sortMarkets(event, sortBy).filter(
-        (market: PolymarketApiMarket) => market?.active !== false,
-      );
-
       const predictTeamLookup: TeamLookup | undefined = teamLookup
         ? (league, abbr) => {
             const apiTeam = teamLookup(league, abbr);
@@ -753,6 +749,12 @@ export const parsePolymarketEvents = (
         eventLeague && predictTeamLookup
           ? (buildGameData(event, eventLeague, predictTeamLookup) ?? undefined)
           : undefined;
+
+      const markets = sortMarkets({
+        event,
+        sortBy,
+        isGameEvent: !!game,
+      }).filter((market: PolymarketApiMarket) => market?.active !== false);
 
       // As per Polymarket's team, we should use the first market's description
       // rather than the event's description. The event's description is not

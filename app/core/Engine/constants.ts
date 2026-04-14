@@ -20,6 +20,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'RampsService',
   'TransakService',
   'ComplianceService',
+  'SocialService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -91,6 +92,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'DelegationController:stateChange',
   'ProfileMetricsController:stateChange',
   'ComplianceController:stateChange',
+  'SocialController:stateChange',
 ] as const;
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';

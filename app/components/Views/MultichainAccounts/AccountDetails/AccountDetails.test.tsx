@@ -9,21 +9,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { formatAddress } from '../../../../util/address';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
-
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 1, right: 2, bottom: 3, left: 4 };
-  const frame = { width: 5, height: 6, x: 7, y: 8 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
 
 jest.mock('../../confirmations/hooks/7702/useEIP7702Networks', () => ({
   useEIP7702Networks: jest.fn().mockReturnValue({
@@ -78,35 +64,30 @@ const renderWithAccount = (account: InternalAccount | undefined) => {
       }
     : MOCK_ACCOUNTS_CONTROLLER_STATE;
 
-  return renderWithProvider(
-    <SafeAreaProvider>
-      <AccountDetails />
-    </SafeAreaProvider>,
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            AccountsController: mockAccountsState,
-            KeyringController: {
-              keyrings: [
-                {
-                  type: KeyringTypes.hd,
-                  accounts: [mockAccount.address],
-                  metadata: {
-                    id: 'mock-keyring-id',
-                    name: 'mock-keyring-name',
-                  },
+  return renderWithProvider(<AccountDetails />, {
+    state: {
+      engine: {
+        backgroundState: {
+          AccountsController: mockAccountsState,
+          KeyringController: {
+            keyrings: [
+              {
+                type: KeyringTypes.hd,
+                accounts: [mockAccount.address],
+                metadata: {
+                  id: 'mock-keyring-id',
+                  name: 'mock-keyring-name',
                 },
-              ],
-            },
+              },
+            ],
           },
         },
-        settings: {
-          avatarAccountType: AvatarAccountType.Maskicon,
-        },
+      },
+      settings: {
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
     },
-  );
+  });
 };
 
 describe('AccountDetails', () => {
@@ -137,35 +118,30 @@ describe('AccountDetails', () => {
       account: nonExistentAccount,
     };
 
-    renderWithProvider(
-      <SafeAreaProvider>
-        <AccountDetails />
-      </SafeAreaProvider>,
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE, // Don't include the non-existent account
-              KeyringController: {
-                keyrings: [
-                  {
-                    type: KeyringTypes.hd,
-                    accounts: [mockAccount.address],
-                    metadata: {
-                      id: 'mock-keyring-id',
-                      name: 'mock-keyring-name',
-                    },
+    renderWithProvider(<AccountDetails />, {
+      state: {
+        engine: {
+          backgroundState: {
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE, // Don't include the non-existent account
+            KeyringController: {
+              keyrings: [
+                {
+                  type: KeyringTypes.hd,
+                  accounts: [mockAccount.address],
+                  metadata: {
+                    id: 'mock-keyring-id',
+                    name: 'mock-keyring-name',
                   },
-                ],
-              },
+                },
+              ],
             },
           },
-          settings: {
-            avatarAccountType: AvatarAccountType.Maskicon,
-          },
+        },
+        settings: {
+          avatarAccountType: AvatarAccountType.Maskicon,
         },
       },
-    );
+    });
 
     expect(mockNavigate).toHaveBeenCalledWith('AccountSelector');
   });
