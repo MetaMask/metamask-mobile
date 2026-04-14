@@ -65,17 +65,12 @@ const PerpsOrderRedirect: React.FC = () => {
       asset,
     });
 
-    let cancelled = false;
-
     const runDepositFlow = async (): Promise<void> => {
       try {
         await withPendingTransactionActiveAbTests(
           transactionActiveAbTests,
           async () => depositWithOrder(),
         );
-        if (cancelled) {
-          return;
-        }
         Logger.log(
           '[PerpsOrderRedirect] depositWithOrder resolved, navigating to confirmation',
         );
@@ -95,9 +90,6 @@ const PerpsOrderRedirect: React.FC = () => {
           ),
         );
       } catch (error: unknown) {
-        if (cancelled) {
-          return;
-        }
         const err = ensureError(error, 'PerpsOrderRedirect.depositWithOrder');
         Logger.error(err, {
           tags: { feature: PERPS_CONSTANTS.FeatureName },
@@ -117,10 +109,6 @@ const PerpsOrderRedirect: React.FC = () => {
         context: { name: 'PerpsOrderRedirect.runDepositFlow', data: {} },
       });
     });
-
-    return () => {
-      cancelled = true;
-    };
   }, [
     isConnected,
     isInitialized,
