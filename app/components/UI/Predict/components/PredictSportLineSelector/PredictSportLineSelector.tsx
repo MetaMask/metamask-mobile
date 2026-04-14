@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { LayoutChangeEvent, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import Animated, {
   useAnimatedStyle,
@@ -58,7 +58,7 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
   }, []);
 
   const handleLayout = useCallback(
-    (event: LayoutChangeEvent) => {
+    (event: { nativeEvent: { layout: { width: number } } }) => {
       const width = event.nativeEvent.layout.width;
       containerWidth.value = width;
       translateX.value = computeTranslateX(selectedIndex, width);
