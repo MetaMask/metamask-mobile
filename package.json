@@ -230,7 +230,7 @@
     "@ledgerhq/react-native-hw-transport-ble": "^6.37.0",
     "@metamask-previews/design-system-react-native": "0.18.0-preview.9d477a9",
     "@metamask-previews/design-system-twrnc-preset": "npm:@metamask/design-system-twrnc-preset@0.4.1",
-    "@metamask-previews/design-tokens": "8.3.0-preview.9d477a9",
+    "@metamask-previews/design-tokens": "npm:@metamask/design-tokens@8.3.0",
     "@metamask/abi-utils": "^3.0.0",
     "@metamask/account-api": "^1.0.0",
     "@metamask/account-tree-controller": "^7.1.0",
