@@ -24,7 +24,6 @@ import {
   ButtonSize,
   Label,
   TextField,
-  TextFieldSize,
   Icon,
   IconName,
   IconSize,
@@ -58,6 +57,10 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  AccountType,
+  getSocialAccountType,
+} from '../../../constants/onboarding';
 import type {
   IMetaMetricsEvent,
   ITrackingEvent,
@@ -91,7 +94,6 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
-import { getSocialAccountType } from '../../../constants/onboarding';
 
 interface KeyringState {
   type: string;
@@ -439,7 +441,9 @@ const ChoosePassword = () => {
     if (!validation.valid) return;
 
     const provider = route.params?.provider;
-    const accountType = provider ? `metamask_${provider}` : 'metamask';
+    const accountType = provider
+      ? getSocialAccountType(provider, false)
+      : AccountType.Metamask;
     const isSocialLogin = getOauth2LoginSuccess();
 
     track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
@@ -730,7 +734,6 @@ const ChoosePassword = () => {
                     autoFocus
                     secureTextEntry={showPasswordIndex.includes(0)}
                     value={password}
-                    size={TextFieldSize.Lg}
                     onChangeText={onPasswordChange}
                     onFocus={() => setIsPasswordFieldFocused(true)}
                     onBlur={() => setIsPasswordFieldFocused(false)}
@@ -787,7 +790,6 @@ const ChoosePassword = () => {
                   <TextField
                     ref={confirmPasswordInputRef}
                     value={confirmPassword}
-                    size={TextFieldSize.Lg}
                     onChangeText={setConfirmPasswordValue}
                     secureTextEntry={showPasswordIndex.includes(1)}
                     testID={

@@ -457,11 +457,6 @@ jest.mock('../TokenSelectorItem', () => ({
   },
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaView: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
-}));
 jest.mock('react-native-gesture-handler', () => {
   const { FlatList, ScrollView } = jest.requireActual('react-native');
   return { FlatList, ScrollView };

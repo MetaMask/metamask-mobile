@@ -11,6 +11,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import { strings } from '../../../../../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -20,11 +21,13 @@ import Icon, {
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { useTransactionPayToken } from '../../../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import { hasTransactionType } from '../../../../../../Views/confirmations/utils/transaction';
 import { TokenIcon } from '../../../../../../Views/confirmations/components/token-icon';
 import { isHardwareAccount } from '../../../../../../../util/address';
 import { POLYGON_USDCE } from '../../../../../../Views/confirmations/constants/predict';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
 import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
+import { usePredictDefaultPaymentToken } from '../../hooks/usePredictDefaultPaymentToken';
 
 interface PredictPayWithRowProps {
   disabled?: boolean;
@@ -33,11 +36,18 @@ interface PredictPayWithRowProps {
 export function PredictPayWithRow({
   disabled = false,
 }: PredictPayWithRowProps) {
+  usePredictDefaultPaymentToken();
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const from = transactionMeta?.txParams?.from;
-  const canEdit = !isHardwareAccount((from as string) ?? '') && !disabled;
+  const isPredictDepositAndOrder = hasTransactionType(transactionMeta, [
+    TransactionType.predictDepositAndOrder,
+  ]);
+  const canEdit =
+    !isHardwareAccount((from as string) ?? '') &&
+    !disabled &&
+    isPredictDepositAndOrder;
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
 
@@ -60,28 +70,43 @@ export function PredictPayWithRow({
     : (payToken?.chainId as Hex | undefined);
 
   return (
-    <TouchableOpacity onPress={handlePress} disabled={!canEdit}>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName={`rounded-full  py-2 pl-[9px] pr-[16px] mt-2 ${disabled ? '' : 'bg-muted'}`}
-        gap={3}
-      >
-        {tokenIconAddress && tokenIconChainId && (
-          <TokenIcon address={tokenIconAddress} chainId={tokenIconChainId} />
-        )}
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-          {`${label} ${displaySymbol}`}
+    <Box
+      flexDirection={BoxFlexDirection.Column}
+      alignItems={BoxAlignItems.Center}
+      gap={3}
+    >
+      <TouchableOpacity onPress={handlePress} disabled={!canEdit}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName={`rounded-full py-2 pl-[9px] pr-[16px] mt-2 ${!canEdit ? '' : 'bg-muted'} mx-auto`}
+          gap={3}
+        >
+          {tokenIconAddress && tokenIconChainId && (
+            <TokenIcon address={tokenIconAddress} chainId={tokenIconChainId} />
+          )}
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            {`${label} ${displaySymbol}`}
+          </Text>
+          {canEdit && (
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+            />
+          )}
+        </Box>
+      </TouchableOpacity>
+      {!isPredictBalanceSelected && (
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName="font-medium"
+          color={TextColor.TextDefault}
+        >
+          {strings('predict.order.predict_balance_first')}
         </Text>
-        {canEdit && (
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Sm}
-            color={IconColor.Alternative}
-          />
-        )}
-      </Box>
-    </TouchableOpacity>
+      )}
+    </Box>
   );
 }

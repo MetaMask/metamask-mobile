@@ -168,9 +168,9 @@ const AccountActions = () => {
 
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+      navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
         keyringId,
+        popToTopOnDone: true,
       });
     });
   };

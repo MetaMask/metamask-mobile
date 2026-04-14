@@ -129,10 +129,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { Token } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import {
-  selectHomepageRedesignV1Enabled,
-  selectHomepageSectionsV1Enabled,
-} from '../../../selectors/featureFlagController/homepage';
+import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import Homepage from '../Homepage';
 import { SectionRefreshHandle } from '../Homepage/types';
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
@@ -187,7 +184,6 @@ import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
-import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
@@ -327,9 +323,6 @@ const WalletTokensTabView = forwardRef<
   WalletTokensTabViewProps
 >((props, ref) => {
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
-  const isHomepageRedesignV1Enabled = useSelector(
-    selectHomepageRedesignV1Enabled,
-  );
   // With BIP-44 multichain accounts, perps is enabled for both EVM and non-EVM networks
   const isPerpsEnabled = isPerpsFlagEnabled;
   const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
@@ -475,17 +468,6 @@ const WalletTokensTabView = forwardRef<
   }
   const isPredictTabVisible = currentTabIndex === predictTabIndex;
 
-  // Background preload perps market data when feature is enabled
-  useEffect(() => {
-    const controller = Engine.context.PerpsController;
-    if (isPerpsEnabled) {
-      controller.startMarketDataPreload();
-    } else {
-      controller.stopMarketDataPreload();
-    }
-    return () => controller.stopMarketDataPreload();
-  }, [isPerpsEnabled]);
-
   // Handle deep link effects
   useHomeDeepLinkEffects({
     navigation,
@@ -581,9 +563,7 @@ const WalletTokensTabView = forwardRef<
         key={tabsKey}
         ref={tabsListRef}
         onChangeTab={handleTabChange}
-        tabsListContentTwClassName={
-          isHomepageRedesignV1Enabled ? '!flex-initial' : ''
-        }
+        tabsListContentTwClassName={'!flex-initial'}
       >
         {tabsToRender}
       </TabsList>
@@ -1033,10 +1013,6 @@ const Wallet = ({
     accountBalanceByChainId?.balance,
   ]);
 
-  const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
-  const isHomepageRedesignV1Enabled = useSelector(
-    selectHomepageRedesignV1Enabled,
-  );
   const isHomepageSectionsV1Enabled = useSelector(
     selectHomepageSectionsV1Enabled,
   );
@@ -1044,10 +1020,6 @@ const Wallet = ({
   const isFocused = useIsFocused();
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
-
-  // Enable parent scroll when homepage redesign or sections feature flags are enabled
-  const shouldEnableParentScroll =
-    isHomepageRedesignV1Enabled || isHomepageSectionsV1Enabled;
 
   // Notifies scroll subscribers directly (no React state update = no re-renders).
   const handleHomepageScroll = useCallback(() => {
@@ -1223,11 +1195,8 @@ const Wallet = ({
     assetsDefiPositionsEnabled;
 
   const scrollViewContentStyle = useMemo(
-    () => [
-      styles.wrapper,
-      shouldEnableParentScroll && { flex: undefined, flexGrow: 0 },
-    ],
-    [styles.wrapper, shouldEnableParentScroll],
+    () => [styles.wrapper, { flex: undefined, flexGrow: 0 }],
+    [styles.wrapper],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1397,12 +1366,10 @@ const Wallet = ({
                       >
                         <AddressCopy hitSlop={touchAreaSlop} />
                       </View>
-                      {shouldDisplayCardButton && (
-                        <CardButton
-                          onPress={handleCardPress}
-                          touchAreaSlop={touchAreaSlop}
-                        />
-                      )}
+                      <CardButton
+                        onPress={handleCardPress}
+                        touchAreaSlop={touchAreaSlop}
+                      />
                       {isNotificationsFeatureEnabled() ? (
                         <BadgeWrapper
                           position={BadgeWrapperPosition.TopRight}
@@ -1474,7 +1441,7 @@ const Wallet = ({
               >
                 <ConditionalScrollView
                   ref={scrollViewRef}
-                  isScrollEnabled={shouldEnableParentScroll}
+                  isScrollEnabled
                   scrollViewProps={{
                     testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
                     contentContainerStyle: scrollViewContentStyle,
@@ -1483,14 +1450,14 @@ const Wallet = ({
                       ? handleHomepageScroll
                       : undefined,
                     scrollEventThrottle: 16,
-                    refreshControl: shouldEnableParentScroll ? (
+                    refreshControl: (
                       <RefreshControl
                         colors={[colors.primary.default]}
                         tintColor={colors.icon.default}
                         refreshing={refreshing}
                         onRefresh={handleRefresh}
                       />
-                    ) : undefined,
+                    ),
                   }}
                 >
                   {content}

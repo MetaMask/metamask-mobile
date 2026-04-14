@@ -14,6 +14,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { TraderProfile } from '@metamask/social-controllers';
+import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 
 const AVATAR_SIZE = 40;
 
@@ -34,7 +35,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       alignItems={BoxAlignItems.Center}
       twClassName="px-4 py-3"
       gap={4}
-      testID="trader-profile-header"
+      testID={TraderProfileViewSelectorsIDs.HEADER}
     >
       {profile.imageUrl ? (
         <Image
@@ -65,9 +66,12 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           fontWeight={FontWeight.Medium}
           color={TextColor.TextMuted}
         >
-          {strings('social_leaderboard.trader_profile.followers_count', {
-            count: followerCount,
-          })}
+          {strings(
+            followerCount === 1
+              ? 'social_leaderboard.trader_profile.followers_count'
+              : 'social_leaderboard.trader_profile.followers_count_plural',
+            { count: followerCount },
+          )}
         </Text>
       </Box>
     </Box>

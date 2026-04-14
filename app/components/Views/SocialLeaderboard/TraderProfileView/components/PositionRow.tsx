@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
   Box,
@@ -9,10 +9,13 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  AvatarBase,
-  AvatarBaseSize,
+  AvatarToken,
+  AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
+import { getAssetImageUrl } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { chainNameToId } from '../../utils/chainMapping';
+import { addThousandsSeparator } from '../../utils/numberFormatting';
 
 export interface PositionRowProps {
   position: Position;
@@ -21,10 +24,19 @@ export interface PositionRowProps {
 
 function formatUsd(value: number | null | undefined): string {
   if (value == null) return '\u2014';
-  return `$${value.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+  const sign = value < 0 ? '-' : '';
+  const abs = Math.round(Math.abs(value) * 100) / 100;
+  const [whole, frac = ''] = abs.toString().split('.');
+  const paddedFrac = frac.padEnd(2, '0').slice(0, 2);
+  return `${sign}$${addThousandsSeparator(whole)}${'.'}${paddedFrac}`;
+}
+
+function formatTokenAmount(value: number): string {
+  const sign = value < 0 ? '-' : '';
+  const abs = Math.abs(value);
+  const [whole, frac = ''] = abs.toString().split('.');
+  const commaWhole = addThousandsSeparator(whole);
+  return frac ? `${sign}${commaWhole}.${frac}` : `${sign}${commaWhole}`;
 }
 
 function formatPercent(value: number | null | undefined): string {
@@ -36,6 +48,13 @@ function formatPercent(value: number | null | undefined): string {
 const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
   const hasPnl = position.pnlPercent != null;
   const isPnlPositive = hasPnl && (position.pnlPercent ?? 0) >= 0;
+  const testID = `position-row-${position.tokenSymbol}`;
+
+  const tokenImageUrl = useMemo(() => {
+    const chainId = chainNameToId(position.chain);
+    if (!chainId) return undefined;
+    return getAssetImageUrl(position.tokenAddress, chainId);
+  }, [position.chain, position.tokenAddress]);
 
   const content = (
     <Box
@@ -43,7 +62,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
       twClassName="px-4 py-3"
-      testID={`position-row-${position.tokenSymbol}`}
+      testID={onPress ? undefined : testID}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -51,9 +70,10 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
         gap={4}
         twClassName="flex-1 min-w-0 mr-3"
       >
-        <AvatarBase
-          size={AvatarBaseSize.Lg}
-          fallbackText={position.tokenSymbol.charAt(0).toUpperCase()}
+        <AvatarToken
+          name={position.tokenSymbol}
+          src={tokenImageUrl ? { uri: tokenImageUrl } : undefined}
+          size={AvatarTokenSize.Lg}
         />
 
         <Box twClassName="flex-1 min-w-0">
@@ -70,12 +90,12 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
             color={TextColor.TextMuted}
             numberOfLines={1}
           >
-            {`${position.positionAmount.toLocaleString()} ${position.tokenSymbol}`}
+            {`${formatTokenAmount(position.positionAmount)} ${position.tokenSymbol}`}
           </Text>
         </Box>
       </Box>
 
-      <Box alignItems={BoxAlignItems.FlexEnd}>
+      <Box alignItems={BoxAlignItems.End}>
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
@@ -102,7 +122,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={() => onPress(position)}>
+      <TouchableOpacity onPress={() => onPress(position)} testID={testID}>
         {content}
       </TouchableOpacity>
     );

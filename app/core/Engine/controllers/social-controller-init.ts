@@ -2,7 +2,7 @@ import {
   SocialController,
   type SocialControllerMessenger,
 } from '@metamask/social-controllers';
-import type { ControllerInitFunction } from '../types';
+import type { MessengerClientInitFunction } from '../types';
 import Logger from '../../../util/Logger';
 
 /**
@@ -13,7 +13,7 @@ import Logger from '../../../util/Logger';
  * @param request.persistedState - The persisted state to hydrate from.
  * @returns The initialized controller.
  */
-export const socialControllerInit: ControllerInitFunction<
+export const socialControllerInit: MessengerClientInitFunction<
   SocialController,
   SocialControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

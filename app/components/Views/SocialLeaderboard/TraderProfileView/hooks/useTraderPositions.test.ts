@@ -24,39 +24,39 @@ const makeQueryResult = (
 
 const mockOpenPositions = [
   {
-    tokenSymbol: 'STARKBOT',
-    tokenName: 'Starkbot',
-    tokenAddress: '0x123',
-    chain: 'base',
-    positionAmount: 1500000000,
-    boughtUsd: 1200,
+    tokenSymbol: 'ETH',
+    tokenName: 'Ethereum',
+    tokenAddress: '0x1',
+    chain: 'ethereum',
+    positionAmount: 5,
+    boughtUsd: 10000,
     soldUsd: 0,
     realizedPnl: 0,
-    costBasis: 1200,
+    costBasis: 10000,
     trades: [],
     lastTradeAt: Date.now(),
-    currentValueUSD: 2259.96,
-    pnlValueUsd: 1059.96,
-    pnlPercent: 182,
+    currentValueUSD: 15000,
+    pnlValueUsd: 5000,
+    pnlPercent: 50,
   },
 ];
 
 const mockClosedPositions = [
   {
-    tokenSymbol: 'PEPE',
-    tokenName: 'Pepe',
-    tokenAddress: '0x456',
-    chain: 'ethereum',
+    tokenSymbol: 'USDC',
+    tokenName: 'USD Coin',
+    tokenAddress: '0x2',
+    chain: 'base',
     positionAmount: 1000,
-    boughtUsd: 500,
-    soldUsd: 600,
+    boughtUsd: 1000,
+    soldUsd: 1100,
     realizedPnl: 100,
-    costBasis: 500,
+    costBasis: 1000,
     trades: [],
     lastTradeAt: Date.now(),
-    currentValueUSD: null,
+    currentValueUSD: 0,
     pnlValueUsd: 100,
-    pnlPercent: 20,
+    pnlPercent: 10,
   },
 ];
 
@@ -66,140 +66,12 @@ describe('useTraderPositions', () => {
     mockUseQuery.mockReturnValue(makeQueryResult());
   });
 
-  describe('positions data', () => {
-    it('returns empty arrays when both queries return undefined data', () => {
-      const { result } = renderHook(() => useTraderPositions('trader-1'));
-      expect(result.current.openPositions).toEqual([]);
-      expect(result.current.closedPositions).toEqual([]);
-    });
-
-    it('returns open positions from openData.positions', () => {
-      mockUseQuery.mockImplementation((options: { queryKey: unknown[] }) => {
-        if (options.queryKey[0] === 'SocialService:fetchOpenPositions') {
-          return makeQueryResult({
-            data: { positions: mockOpenPositions } as never,
-          });
-        }
-        return makeQueryResult();
-      });
-
-      const { result } = renderHook(() => useTraderPositions('trader-1'));
-      expect(result.current.openPositions).toEqual(mockOpenPositions);
-    });
-
-    it('returns closed positions from closedData.positions', () => {
-      mockUseQuery.mockImplementation((options: { queryKey: unknown[] }) => {
-        if (options.queryKey[0] === 'SocialService:fetchClosedPositions') {
-          return makeQueryResult({
-            data: { positions: mockClosedPositions } as never,
-          });
-        }
-        return makeQueryResult();
-      });
-
-      const { result } = renderHook(() => useTraderPositions('trader-1'));
-      expect(result.current.closedPositions).toEqual(mockClosedPositions);
-    });
-
-    it('defaults to empty array when positions is missing on the response', () => {
-      mockUseQuery.mockReturnValue(makeQueryResult({ data: {} as never }));
-      const { result } = renderHook(() => useTraderPositions('trader-1'));
-      expect(result.current.openPositions).toEqual([]);
-      expect(result.current.closedPositions).toEqual([]);
-    });
-  });
-
-  describe('loading states', () => {
-    it('exposes isLoadingOpen from the open query', () => {
-      mockUseQuery.mockImplementation((options: { queryKey: unknown[] }) => {
-        if (options.queryKey[0] === 'SocialService:fetchOpenPositions') {
-          return makeQueryResult({ isLoading: true });
-        }
-        return makeQueryResult({ isLoading: false });
-      });
-
-      const { result } = renderHook(() => useTraderPositions('trader-1'));
-      expect(result.current.isLoadingOpen).toBe(true);
-      expect(result.current.isLoadingClosed).toBe(false);
-    });
-
-    it('exposes isLoadingClosed from the closed query', () => {
-      mockUseQuery.mockImplementation((options: { queryKey: unknown[] }) => {
-        if (options.queryKey[0] === 'SocialService:fetchClosedPositions') {
-          return makeQueryResult({ isLoading: true });
-        }
-        return makeQueryResult({ isLoading: false });
-      });
-
-      const { result } = renderHook(() => useTraderPositions('trader-1'));
-      expect(result.current.isLoadingOpen).toBe(false);
-      expect(result.current.isLoadingClosed).toBe(true);
-    });
-  });
-
-  describe('error handling', () => {
-    it('returns null when there are no errors', () => {
-      const { result } = renderHook(() => useTraderPositions('trader-1'));
-      expect(result.current.error).toBeNull();
-    });
-
-    it('surfaces the open query error as an error string', () => {
-      mockUseQuery.mockImplementation((options: { queryKey: unknown[] }) => {
-        if (options.queryKey[0] === 'SocialService:fetchOpenPositions') {
-          return makeQueryResult({ error: new Error('Open error') });
-        }
-        return makeQueryResult();
-      });
-
-      const { result } = renderHook(() => useTraderPositions('trader-1'));
-      expect(result.current.error).toBe('Open error');
-    });
-
-    it('surfaces the closed query error when the open query has no error', () => {
-      mockUseQuery.mockImplementation((options: { queryKey: unknown[] }) => {
-        if (options.queryKey[0] === 'SocialService:fetchClosedPositions') {
-          return makeQueryResult({ error: new Error('Closed error') });
-        }
-        return makeQueryResult();
-      });
-
-      const { result } = renderHook(() => useTraderPositions('trader-1'));
-      expect(result.current.error).toBe('Closed error');
-    });
-
-    it('converts a non-Error error value to string', () => {
-      mockUseQuery.mockImplementation((options: { queryKey: unknown[] }) => {
-        if (options.queryKey[0] === 'SocialService:fetchOpenPositions') {
-          return makeQueryResult({ error: 'raw error' as never });
-        }
-        return makeQueryResult();
-      });
-
-      const { result } = renderHook(() => useTraderPositions('trader-1'));
-      expect(result.current.error).toBe('raw error');
-    });
-
-    it('logs the combined error via Logger.error', () => {
-      const err = new Error('Network error');
-      mockUseQuery.mockImplementation((options: { queryKey: unknown[] }) => {
-        if (options.queryKey[0] === 'SocialService:fetchOpenPositions') {
-          return makeQueryResult({ error: err });
-        }
-        return makeQueryResult();
-      });
-
+  describe('query configuration', () => {
+    it('passes the correct queryKeys for open and closed positions', () => {
       renderHook(() => useTraderPositions('trader-1'));
-      expect(Logger.error).toHaveBeenCalledWith(
-        err,
-        'useTraderPositions: positions fetch failed',
-      );
-    });
-  });
 
-  describe('query options', () => {
-    it('calls useQuery with the open positions queryKey', () => {
-      renderHook(() => useTraderPositions('trader-1'));
-      expect(mockUseQuery).toHaveBeenCalledWith(
+      expect(mockUseQuery).toHaveBeenNthCalledWith(
+        1,
         expect.objectContaining({
           queryKey: [
             'SocialService:fetchOpenPositions',
@@ -207,11 +79,8 @@ describe('useTraderPositions', () => {
           ],
         }),
       );
-    });
-
-    it('calls useQuery with the closed positions queryKey', () => {
-      renderHook(() => useTraderPositions('trader-1'));
-      expect(mockUseQuery).toHaveBeenCalledWith(
+      expect(mockUseQuery).toHaveBeenNthCalledWith(
+        2,
         expect.objectContaining({
           queryKey: [
             'SocialService:fetchClosedPositions',
@@ -221,20 +90,161 @@ describe('useTraderPositions', () => {
       );
     });
 
-    it('sets enabled: false for both queries when addressOrId is empty', () => {
-      renderHook(() => useTraderPositions(''));
-      expect(mockUseQuery).toHaveBeenCalledTimes(2);
-      mockUseQuery.mock.calls.forEach((call) => {
-        expect(call[0]).toMatchObject({ enabled: false });
-      });
+    it('enables both queries when addressOrId is non-empty', () => {
+      renderHook(() => useTraderPositions('trader-1'));
+
+      expect(mockUseQuery.mock.calls[0][0]).toEqual(
+        expect.objectContaining({ enabled: true }),
+      );
+      expect(mockUseQuery.mock.calls[1][0]).toEqual(
+        expect.objectContaining({ enabled: true }),
+      );
     });
 
-    it('sets enabled: true for both queries when addressOrId is provided', () => {
+    it('disables both queries when addressOrId is empty', () => {
+      renderHook(() => useTraderPositions(''));
+
+      expect(mockUseQuery.mock.calls[0][0]).toEqual(
+        expect.objectContaining({ enabled: false }),
+      );
+      expect(mockUseQuery.mock.calls[1][0]).toEqual(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+  });
+
+  describe('position data', () => {
+    it('returns empty arrays when both queries return undefined data', () => {
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      expect(result.current.openPositions).toEqual([]);
+      expect(result.current.closedPositions).toEqual([]);
+    });
+
+    it('returns open positions from the open query', () => {
+      mockUseQuery
+        .mockReturnValueOnce(
+          makeQueryResult({ data: { positions: mockOpenPositions } as never }),
+        )
+        .mockReturnValueOnce(makeQueryResult());
+
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      expect(result.current.openPositions).toEqual(mockOpenPositions);
+    });
+
+    it('returns closed positions from the closed query', () => {
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult())
+        .mockReturnValueOnce(
+          makeQueryResult({
+            data: { positions: mockClosedPositions } as never,
+          }),
+        );
+
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      expect(result.current.closedPositions).toEqual(mockClosedPositions);
+    });
+
+    it('falls back to empty arrays when positions is missing', () => {
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult({ data: {} as never }))
+        .mockReturnValueOnce(makeQueryResult({ data: {} as never }));
+
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      expect(result.current.openPositions).toEqual([]);
+      expect(result.current.closedPositions).toEqual([]);
+    });
+  });
+
+  describe('loading states', () => {
+    it('exposes isLoadingOpen from the open query', () => {
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult({ isLoading: true }))
+        .mockReturnValueOnce(makeQueryResult());
+
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      expect(result.current.isLoadingOpen).toBe(true);
+      expect(result.current.isLoadingClosed).toBe(false);
+    });
+
+    it('exposes isLoadingClosed from the closed query', () => {
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult())
+        .mockReturnValueOnce(makeQueryResult({ isLoading: true }));
+
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      expect(result.current.isLoadingOpen).toBe(false);
+      expect(result.current.isLoadingClosed).toBe(true);
+    });
+  });
+
+  describe('error handling', () => {
+    it('returns null when there are no errors', () => {
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      expect(result.current.error).toBeNull();
+    });
+
+    it('returns the open query error before the closed query error', () => {
+      mockUseQuery
+        .mockReturnValueOnce(
+          makeQueryResult({ error: new Error('open error') }),
+        )
+        .mockReturnValueOnce(
+          makeQueryResult({ error: new Error('closed error') }),
+        );
+
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      expect(result.current.error).toBe('open error');
+    });
+
+    it('returns the closed query error when the open query succeeds', () => {
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult())
+        .mockReturnValueOnce(
+          makeQueryResult({ error: new Error('closed error') }),
+        );
+
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      expect(result.current.error).toBe('closed error');
+    });
+
+    it('converts non-Error values to strings', () => {
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult({ error: 'raw error' as never }))
+        .mockReturnValueOnce(makeQueryResult());
+
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      expect(result.current.error).toBe('raw error');
+    });
+
+    it('logs the combined error', () => {
+      const error = new Error('fetch failed');
+
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult({ error }))
+        .mockReturnValueOnce(makeQueryResult());
+
       renderHook(() => useTraderPositions('trader-1'));
-      expect(mockUseQuery).toHaveBeenCalledTimes(2);
-      mockUseQuery.mock.calls.forEach((call) => {
-        expect(call[0]).toMatchObject({ enabled: true });
-      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'useTraderPositions: positions fetch failed',
+      );
+    });
+
+    it('does not log when there is no error', () => {
+      renderHook(() => useTraderPositions('trader-1'));
+
+      expect(Logger.error).not.toHaveBeenCalled();
     });
   });
 });

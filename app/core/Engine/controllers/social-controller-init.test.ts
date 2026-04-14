@@ -1,4 +1,4 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getSocialControllerMessenger } from '../messengers/social-controller-messenger';
 import { socialControllerInit } from './social-controller-init';
@@ -6,20 +6,20 @@ import {
   SocialController,
   type SocialControllerMessenger,
 } from '@metamask/social-controllers';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/social-controllers');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<SocialControllerMessenger>
+  MessengerClientInitRequest<SocialControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   return {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getSocialControllerMessenger(baseMessenger),
   };
 }

@@ -277,9 +277,10 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
-  # Local development / Expo development build (Runway .app for simulator)
+  # Local development / Expo development build (simulator .app + optional device IPA when IS_DEVICE_BUILD)
   main-dev:
     github_environment: build-exp
+    signing: *signing_uat
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
@@ -296,6 +297,7 @@ builds:
       IS_TEST: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       IS_SIM_BUILD: 'true'
+      IS_DEVICE_BUILD: 'true'
       CONFIGURATION: 'Debug'
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets

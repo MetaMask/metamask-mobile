@@ -6,25 +6,24 @@
  */
 
 import { Platform } from 'react-native';
-import { CardSDK } from '../sdk/CardSDK';
-import { GalileoCardAdapter, ICardProviderAdapter } from './adapters/card';
-import { GoogleWalletAdapter, IWalletProviderAdapter } from './adapters/wallet';
+import { ControllerCardAdapter, ICardProviderAdapter } from './adapters/card';
+import {
+  AppleWalletAdapter,
+  GoogleWalletAdapter,
+  IWalletProviderAdapter,
+} from './adapters/wallet';
 import { CardLocation } from '../types';
 
 /**
- * Get the appropriate card provider adapter based on user location
- *
- * @param userCardLocation - The user's card location ('us' or 'international')
- * @param cardSDK - The CardSDK instance
- * @returns The card provider adapter for the user's location
+ * Get the appropriate card provider adapter based on user location.
+ * Uses CardController under the hood (no direct SDK dependency).
  */
 export function getCardProvider(
-  userCardLocation: CardLocation,
-  cardSDK: CardSDK,
+  userCardLocation: CardLocation | null,
 ): ICardProviderAdapter | null {
   switch (userCardLocation) {
     case 'us':
-      return new GalileoCardAdapter(cardSDK);
+      return new ControllerCardAdapter();
     case 'international':
     default:
       return null;
@@ -32,13 +31,15 @@ export function getCardProvider(
 }
 
 /**
- * Get the appropriate wallet provider adapter based on platform OS
- *
- * @returns The wallet provider adapter for the current platform, or null if not supported
+ * Get the appropriate wallet provider adapter based on platform
  */
 export function getWalletProvider(): IWalletProviderAdapter | null {
-  if (Platform.OS === 'android') {
-    return new GoogleWalletAdapter();
+  switch (Platform.OS) {
+    case 'android':
+      return new GoogleWalletAdapter();
+    case 'ios':
+      return new AppleWalletAdapter();
+    default:
+      return null;
   }
-  return null;
 }

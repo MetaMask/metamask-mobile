@@ -12,28 +12,37 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import type { TraderStats } from '@metamask/social-controllers';
 import { formatPnl } from '../../../Homepage/Sections/TopTraders/utils/formatPnl';
+import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 
 export interface StatsRowProps {
   stats: TraderStats;
+  avgHoldMinutes?: number | null;
 }
 
-const StatsRow: React.FC<StatsRowProps> = ({ stats }) => {
+function formatHoldTime(minutes: number): string {
+  if (minutes < 60) return `${Math.round(minutes)}m`;
+  if (minutes < 1440) return `${(minutes / 60).toFixed(1)} hrs`;
+  return `${(minutes / 1440).toFixed(1)} days`;
+}
+
+const StatsRow: React.FC<StatsRowProps> = ({ stats, avgHoldMinutes }) => {
   const winRate =
     stats.winRate30d != null
       ? `${Math.round(stats.winRate30d * 100)}%`
       : '\u2014';
   const isWinRatePositive = (stats.winRate30d ?? 0) > 0;
 
+  const hasPnl = stats.pnl30d != null;
   const pnl = stats.pnl30d != null ? formatPnl(stats.pnl30d) : '\u2014';
-  const isPnlPositive = (stats.pnl30d ?? 0) >= 0;
+  const isPnlPositive = stats.pnl30d != null && stats.pnl30d >= 0;
 
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.SpaceAround}
+      justifyContent={BoxJustifyContent.Around}
       twClassName="px-4 py-3"
-      testID="trader-profile-stats-row"
+      testID={TraderProfileViewSelectorsIDs.STATS_ROW}
     >
       <Box alignItems={BoxAlignItems.Center} twClassName="flex-1">
         <Text
@@ -57,8 +66,13 @@ const StatsRow: React.FC<StatsRowProps> = ({ stats }) => {
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
+          color={hasPnl ? undefined : TextColor.TextDefault}
           twClassName={
-            isPnlPositive ? 'text-success-default' : 'text-error-default'
+            hasPnl
+              ? isPnlPositive
+                ? 'text-success-default'
+                : 'text-error-default'
+              : undefined
           }
         >
           {pnl}
@@ -78,7 +92,7 @@ const StatsRow: React.FC<StatsRowProps> = ({ stats }) => {
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
         >
-          {'\u2014'}
+          {avgHoldMinutes != null ? formatHoldTime(avgHoldMinutes) : '\u2014'}
         </Text>
         <Text
           variant={TextVariant.BodySm}

@@ -27,8 +27,43 @@ jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({ goToBuy: jest.fn() }),
 }));
 jest.mock('../../UI/Earn/hooks/useMusdConversion', () => ({
-  useMusdConversion: () => ({ initiateCustomConversion: jest.fn() }),
+  useMusdConversion: () => ({
+    initiateCustomConversion: jest.fn(),
+    initiateMaxConversion: jest.fn(),
+    clearError: jest.fn(),
+    error: null,
+    hasSeenConversionEducationScreen: true,
+  }),
 }));
+jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
+  useMusdConversionTokens: () => ({ tokens: [] }),
+}));
+jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
+  useSwapBridgeNavigation: () => ({ goToSwaps: jest.fn() }),
+  SwapBridgeNavigationLocation: { MainView: 'MainView' },
+}));
+jest.mock(
+  '../../UI/Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: (props: Record<string, unknown>) => (
+        <View testID="money-convert-stablecoins-container" {...props} />
+      ),
+    };
+  },
+);
+jest.mock(
+  '../../UI/Earn/components/AssetOverviewClaimBonus/AssetOverviewClaimBonus',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () => <View testID="asset-overview-claim-bonus" />,
+    };
+  },
+);
 jest.mock('../../UI/Earn/hooks/useMusdConversionFlowData', () => ({
   useMusdConversionFlowData: () => ({
     hasConvertibleTokens: true,
@@ -87,6 +122,7 @@ describe('CashTokensFullView', () => {
     mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: null,
+      lifetimeBonusClaimed: null,
       hasPendingClaim: false,
       isClaiming: false,
       error: null,
@@ -96,7 +132,7 @@ describe('CashTokensFullView', () => {
 
   it('renders mUSD title', () => {
     renderWithProvider(<CashTokensFullView />);
-    expect(screen.getByText('Cash')).toBeOnTheScreen();
+    expect(screen.getByText('Money')).toBeOnTheScreen();
   });
 
   it('renders Get mUSD empty state when user has no mUSD', () => {

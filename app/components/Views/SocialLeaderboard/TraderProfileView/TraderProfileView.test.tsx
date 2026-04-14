@@ -14,6 +14,10 @@ const mockGoBack = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
 
+jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
+  getAssetImageUrl: () => 'https://example.com/token.png',
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -119,8 +123,7 @@ describe('TraderProfileView', () => {
 
   it('displays the trader name', () => {
     renderWithProvider(<TraderProfileView />);
-    const nameElements = screen.getAllByText('dutchiono');
-    expect(nameElements.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('dutchiono')[0]).toBeOnTheScreen();
   });
 
   it('calls goBack when the back button is pressed', () => {
@@ -174,5 +177,101 @@ describe('TraderProfileView', () => {
     renderWithProvider(<TraderProfileView />);
     fireEvent.press(screen.getByTestId('trader-profile-tab-closed'));
     expect(screen.getByText('No positions yet')).toBeOnTheScreen();
+  });
+
+  it('renders skeleton placeholders when profile is loading', () => {
+    mockProfileResult.isLoading = true;
+    mockProfileResult.profile = null;
+    renderWithProvider(<TraderProfileView />);
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('45 followers')).not.toBeOnTheScreen();
+  });
+
+  it('renders position skeletons when positions are loading', () => {
+    mockPositionsResult.isLoadingOpen = true;
+    renderWithProvider(<TraderProfileView />);
+    expect(screen.queryByText('STARKBOT')).not.toBeOnTheScreen();
+  });
+
+  it('renders closed position skeletons when closed tab is loading', () => {
+    mockPositionsResult.isLoadingClosed = true;
+    renderWithProvider(<TraderProfileView />);
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
+    );
+    expect(screen.queryByText('No positions yet')).not.toBeOnTheScreen();
+  });
+
+  it('notification button press is a no-op', () => {
+    renderWithProvider(<TraderProfileView />);
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON),
+    );
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders skeleton when profile is null even if not loading', () => {
+    mockProfileResult.profile = null;
+    renderWithProvider(<TraderProfileView />);
+    expect(screen.queryByText('45 followers')).not.toBeOnTheScreen();
+  });
+
+  describe('error state', () => {
+    beforeEach(() => {
+      mockProfileResult.profile = null;
+      mockProfileResult.isLoading = false;
+      mockProfileResult.error = 'Network request failed';
+    });
+
+    it('shows the error banner instead of skeleton when profile fetch fails', () => {
+      renderWithProvider(<TraderProfileView />);
+      expect(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.ERROR_BANNER),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays the error message text', () => {
+      renderWithProvider(<TraderProfileView />);
+      expect(screen.getByText("Couldn't load profile")).toBeOnTheScreen();
+    });
+
+    it('displays the retry button', () => {
+      renderWithProvider(<TraderProfileView />);
+      expect(screen.getByText('Retry')).toBeOnTheScreen();
+    });
+
+    it('calls refresh when the retry button is pressed', () => {
+      renderWithProvider(<TraderProfileView />);
+      fireEvent.press(screen.getByText('Retry'));
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not show skeleton when error is present', () => {
+      renderWithProvider(<TraderProfileView />);
+      expect(screen.queryByText('45 followers')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Follow')).not.toBeOnTheScreen();
+    });
+
+    it('does not show error banner while still loading', () => {
+      mockProfileResult.isLoading = true;
+      renderWithProvider(<TraderProfileView />);
+      expect(
+        screen.queryByTestId(TraderProfileViewSelectorsIDs.ERROR_BANNER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not show error banner when profile loaded successfully', () => {
+      mockProfileResult.profile = fixtureProfile;
+      mockProfileResult.error = 'stale error';
+      renderWithProvider(<TraderProfileView />);
+      expect(
+        screen.queryByTestId(TraderProfileViewSelectorsIDs.ERROR_BANNER),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByText('45 followers')).toBeOnTheScreen();
+    });
   });
 });

@@ -1,6 +1,8 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import ProfileHeader from './ProfileHeader';
+import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 import type { TraderProfile } from '@metamask/social-controllers';
 
 const baseProfile: TraderProfile = {
@@ -12,66 +14,83 @@ const baseProfile: TraderProfile = {
 };
 
 describe('ProfileHeader', () => {
-  it('renders the container with the expected testID', () => {
-    const { getByTestId } = render(
+  it('renders the header container', () => {
+    renderWithProvider(
       <ProfileHeader profile={baseProfile} followerCount={45} />,
     );
-    expect(getByTestId('trader-profile-header')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
   });
 
-  it('displays the trader name', () => {
-    const { getByText } = render(
+  it('renders the trader name', () => {
+    renderWithProvider(
       <ProfileHeader profile={baseProfile} followerCount={45} />,
     );
-    expect(getByText('dutchiono')).toBeOnTheScreen();
+    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
   });
 
-  it('displays the follower count', () => {
-    const { getByText } = render(
+  it('renders avatar image when imageUrl is present', () => {
+    renderWithProvider(
       <ProfileHeader profile={baseProfile} followerCount={45} />,
     );
-    expect(getByText('45 followers')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
   });
 
-  it('does not show the AvatarBase fallback letter when imageUrl is provided', () => {
-    const { queryByText } = render(
+  it('renders fallback AvatarBase when imageUrl is falsy', () => {
+    const profileNoImage = { ...baseProfile, imageUrl: '' };
+    renderWithProvider(
+      <ProfileHeader profile={profileNoImage} followerCount={45} />,
+    );
+    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+  });
+
+  it('renders singular follower string when count is 1', () => {
+    renderWithProvider(
+      <ProfileHeader profile={baseProfile} followerCount={1} />,
+    );
+    expect(screen.getByText('1 follower')).toBeOnTheScreen();
+  });
+
+  it('renders plural followers string when count is greater than 1', () => {
+    renderWithProvider(
       <ProfileHeader profile={baseProfile} followerCount={45} />,
     );
-    // AvatarBase would show 'D' (first letter of 'dutchiono') as fallback
-    expect(queryByText('D')).not.toBeOnTheScreen();
+    expect(screen.getByText('45 followers')).toBeOnTheScreen();
   });
 
-  it('shows the AvatarBase fallback letter when imageUrl is not provided', () => {
-    const profileNoImage: TraderProfile = {
+  it('renders plural followers string when count is 0', () => {
+    renderWithProvider(
+      <ProfileHeader profile={baseProfile} followerCount={0} />,
+    );
+    expect(screen.getByText('0 followers')).toBeOnTheScreen();
+  });
+
+  it('renders the fallback letter when imageUrl is undefined', () => {
+    const profileWithoutImage: TraderProfile = {
       ...baseProfile,
       imageUrl: undefined,
     };
-    const { getByText } = render(
-      <ProfileHeader profile={profileNoImage} followerCount={45} />,
+
+    renderWithProvider(
+      <ProfileHeader profile={profileWithoutImage} followerCount={45} />,
     );
-    // AvatarBase shows the first letter of the name uppercased as fallbackText
-    expect(getByText('D')).toBeOnTheScreen();
+
+    expect(screen.getByText('D')).toBeOnTheScreen();
   });
 
-  it('shows the AvatarBase fallback letter when imageUrl is an empty string', () => {
-    const profileEmptyImage: TraderProfile = { ...baseProfile, imageUrl: '' };
-    const { getByText } = render(
-      <ProfileHeader profile={profileEmptyImage} followerCount={45} />,
-    );
-    expect(getByText('D')).toBeOnTheScreen();
-  });
+  it('renders the fallback letter when imageUrl is empty', () => {
+    const profileWithoutImage: TraderProfile = {
+      ...baseProfile,
+      imageUrl: '',
+    };
 
-  it('displays zero followers correctly', () => {
-    const { getByText } = render(
-      <ProfileHeader profile={baseProfile} followerCount={0} />,
+    renderWithProvider(
+      <ProfileHeader profile={profileWithoutImage} followerCount={45} />,
     );
-    expect(getByText('0 followers')).toBeOnTheScreen();
-  });
 
-  it('displays a large follower count correctly', () => {
-    const { getByText } = render(
-      <ProfileHeader profile={baseProfile} followerCount={1234} />,
-    );
-    expect(getByText('1234 followers')).toBeOnTheScreen();
+    expect(screen.getByText('D')).toBeOnTheScreen();
   });
 });

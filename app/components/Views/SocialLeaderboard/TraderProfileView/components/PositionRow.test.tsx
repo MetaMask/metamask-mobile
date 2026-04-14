@@ -1,7 +1,18 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PositionRow from './PositionRow';
 import type { Position } from '@metamask/social-controllers';
+
+jest.mock('../../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
+  getAssetImageUrl: jest.fn().mockReturnValue('https://example.com/token.png'),
+}));
+
+jest.mock('../../utils/chainMapping', () => ({
+  chainNameToId: jest.fn((chain: string) =>
+    chain === 'unknown' ? undefined : '0x1',
+  ),
+}));
 
 const basePosition: Position = {
   tokenSymbol: 'STARKBOT',
@@ -21,69 +32,142 @@ const basePosition: Position = {
 };
 
 describe('PositionRow', () => {
-  it('renders the container with the expected testID', () => {
-    const { getByTestId } = render(<PositionRow position={basePosition} />);
-    expect(getByTestId('position-row-STARKBOT')).toBeOnTheScreen();
+  it('renders the row testID', () => {
+    renderWithProvider(<PositionRow position={basePosition} />);
+
+    expect(screen.getByTestId('position-row-STARKBOT')).toBeOnTheScreen();
   });
 
-  it('displays the token symbol', () => {
-    const { getAllByText } = render(<PositionRow position={basePosition} />);
-    // tokenSymbol appears in the name row and in the amount row
-    expect(getAllByText('STARKBOT').length).toBeGreaterThanOrEqual(1);
+  it('renders the token symbol', () => {
+    renderWithProvider(<PositionRow position={basePosition} />);
+
+    expect(screen.getAllByText('STARKBOT')[0]).toBeOnTheScreen();
   });
 
-  it('displays the formatted USD value', () => {
-    const { getByText } = render(<PositionRow position={basePosition} />);
-    expect(getByText('$2,259.96')).toBeOnTheScreen();
+  it('renders formatted token amount', () => {
+    renderWithProvider(<PositionRow position={basePosition} />);
+
+    expect(screen.getByText('1,500,000,000 STARKBOT')).toBeOnTheScreen();
   });
 
-  it('displays PnL with a + prefix for a positive percent', () => {
-    const { getByText } = render(<PositionRow position={basePosition} />);
-    expect(getByText('+182%')).toBeOnTheScreen();
+  it('renders current value formatted as USD', () => {
+    renderWithProvider(<PositionRow position={basePosition} />);
+
+    expect(screen.getByText('$2,259.96')).toBeOnTheScreen();
   });
 
-  it('displays PnL without a + prefix for a negative percent', () => {
-    const position = { ...basePosition, pnlPercent: -50 };
-    const { getByText } = render(<PositionRow position={position} />);
-    expect(getByText('-50%')).toBeOnTheScreen();
+  it('renders positive PnL percent with plus sign', () => {
+    renderWithProvider(<PositionRow position={basePosition} />);
+
+    expect(screen.getByText('+182%')).toBeOnTheScreen();
   });
 
-  it('displays PnL as 0% when pnlPercent is 0', () => {
+  it('renders negative PnL percent', () => {
+    const position = { ...basePosition, pnlPercent: -25 };
+
+    renderWithProvider(<PositionRow position={position} />);
+
+    expect(screen.getByText('-25%')).toBeOnTheScreen();
+  });
+
+  it('renders dash when pnlPercent is null', () => {
+    const position = {
+      ...basePosition,
+      pnlPercent: null,
+    } as unknown as Position;
+
+    renderWithProvider(<PositionRow position={position} />);
+
+    expect(screen.getByText('\u2014')).toBeOnTheScreen();
+  });
+
+  it('renders dash when currentValueUSD is null', () => {
+    const position = {
+      ...basePosition,
+      currentValueUSD: null,
+    } as unknown as Position;
+
+    renderWithProvider(<PositionRow position={position} />);
+
+    const dashes = screen.getAllByText('\u2014');
+
+    expect(dashes.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('renders zero PnL percent with plus sign', () => {
     const position = { ...basePosition, pnlPercent: 0 };
-    const { getByText } = render(<PositionRow position={position} />);
-    expect(getByText('+0%')).toBeOnTheScreen();
+
+    renderWithProvider(<PositionRow position={position} />);
+
+    expect(screen.getByText('+0%')).toBeOnTheScreen();
   });
 
-  it('shows an em-dash when currentValueUSD is null', () => {
-    const position = { ...basePosition, currentValueUSD: null };
-    const { getAllByText } = render(<PositionRow position={position} />);
-    expect(getAllByText('\u2014').length).toBeGreaterThanOrEqual(1);
+  it('renders negative USD value', () => {
+    const position = { ...basePosition, currentValueUSD: -150.5 };
+
+    renderWithProvider(<PositionRow position={position} />);
+
+    expect(screen.getByText('-$150.50')).toBeOnTheScreen();
   });
 
-  it('shows an em-dash when pnlPercent is null', () => {
-    const position = { ...basePosition, pnlPercent: null };
-    const { getAllByText } = render(<PositionRow position={position} />);
-    expect(getAllByText('\u2014').length).toBeGreaterThanOrEqual(1);
+  it('renders zero USD value', () => {
+    const position = { ...basePosition, currentValueUSD: 0 };
+
+    renderWithProvider(<PositionRow position={position} />);
+
+    expect(screen.getByText('$0.00')).toBeOnTheScreen();
   });
 
-  it('calls onPress with the position object when pressed', () => {
+  it('renders token amount with decimals', () => {
+    const position = { ...basePosition, positionAmount: 1.5 };
+
+    renderWithProvider(<PositionRow position={position} />);
+
+    expect(screen.getByText('1.5 STARKBOT')).toBeOnTheScreen();
+  });
+
+  it('renders negative token amount', () => {
+    const position = { ...basePosition, positionAmount: -500 };
+
+    renderWithProvider(<PositionRow position={position} />);
+
+    expect(screen.getByText('-500 STARKBOT')).toBeOnTheScreen();
+  });
+
+  it('calls onPress with the position when tapped', () => {
     const onPress = jest.fn();
-    const { getByTestId } = render(
+
+    renderWithProvider(
       <PositionRow position={basePosition} onPress={onPress} />,
     );
-    fireEvent.press(getByTestId('position-row-STARKBOT'));
+
+    fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
+
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(onPress).toHaveBeenCalledWith(basePosition);
   });
 
-  it('renders without crashing when onPress is not provided', () => {
-    const { getByTestId } = render(<PositionRow position={basePosition} />);
-    expect(getByTestId('position-row-STARKBOT')).toBeOnTheScreen();
+  it('renders the row without a token image when the chain is not recognized', () => {
+    const position = { ...basePosition, chain: 'unknown' };
+
+    renderWithProvider(<PositionRow position={position} />);
+
+    expect(screen.getByTestId('position-row-STARKBOT')).toBeOnTheScreen();
   });
 
-  it('uses the tokenSymbol for the testID', () => {
+  it('formats large USD values with commas', () => {
+    const position = { ...basePosition, currentValueUSD: 1234567.89 };
+
+    renderWithProvider(<PositionRow position={position} />);
+
+    expect(screen.getByText('$1,234,567.89')).toBeOnTheScreen();
+  });
+
+  it('uses the token symbol in the testID', () => {
     const position = { ...basePosition, tokenSymbol: 'PEPE' };
-    const { getByTestId } = render(<PositionRow position={position} />);
-    expect(getByTestId('position-row-PEPE')).toBeOnTheScreen();
+
+    renderWithProvider(<PositionRow position={position} />);
+
+    expect(screen.getByTestId('position-row-PEPE')).toBeOnTheScreen();
   });
 });
