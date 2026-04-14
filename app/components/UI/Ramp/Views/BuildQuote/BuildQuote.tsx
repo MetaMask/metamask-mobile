@@ -75,6 +75,7 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2VerifyIdentityNavDetails } from '../NativeFlow/VerifyIdentity';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { getLocalizedPaymentMethodName } from '../../utils/localizePaymentMethodName';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useSelector } from 'react-redux';
@@ -929,7 +930,7 @@ function BuildQuote() {
                 </View>
                 <PaymentMethodPill
                   label={
-                    selectedPaymentMethod?.name ||
+                    getLocalizedPaymentMethodName(selectedPaymentMethod) ||
                     strings('fiat_on_ramp.select_payment_method')
                   }
                   paymentMethod={selectedPaymentMethod}

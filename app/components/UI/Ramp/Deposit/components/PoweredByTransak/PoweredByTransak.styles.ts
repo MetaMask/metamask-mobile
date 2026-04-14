@@ -9,6 +9,9 @@ const styleSheet = (params: { theme: Theme }) => {
       height: 24,
       color: theme.colors.text.alternative,
     },
+    text: {
+      textAlign: 'center',
+    },
   });
 };
 

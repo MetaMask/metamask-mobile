@@ -18,6 +18,7 @@ import { useFormatters } from '../../../../../hooks/useFormatters';
 import { useTheme } from '../../../../../../util/theme';
 import type { Colors } from '../../../../../../util/theme/models';
 import type { PaymentMethod, Quote } from '@metamask/ramps-controller';
+import { getLocalizedPaymentMethodName } from '../../../utils/localizePaymentMethodName';
 
 const ICON_CIRCLE_SIZE = 44;
 
@@ -62,6 +63,8 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const { formatToken, formatCurrency } = useFormatters();
+  const localizedPaymentMethodName =
+    getLocalizedPaymentMethodName(paymentMethod);
 
   const delayText =
     Array.isArray(paymentMethod.delay) && paymentMethod.delay.length >= 2
@@ -100,7 +103,7 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Fill}>
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {paymentMethod.name}
+          {localizedPaymentMethodName}
         </Text>
         {delayText ? (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>

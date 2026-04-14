@@ -3,6 +3,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import PaymentMethodListItem from './PaymentMethodListItem';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 import type { PaymentMethod, Quote } from '@metamask/ramps-controller';
+import I18n from '../../../../../../../locales/i18n';
 
 const renderWithTheme = (component: React.ReactElement) =>
   render(
@@ -46,6 +47,10 @@ const mockQuote: Quote = {
 };
 
 describe('PaymentMethodListItem', () => {
+  afterEach(() => {
+    I18n.locale = 'en';
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -121,5 +126,18 @@ describe('PaymentMethodListItem', () => {
     );
 
     expect(getByText('Debit or Credit')).toBeOnTheScreen();
+  });
+
+  it('renders localized debit card name on non-English locales', () => {
+    I18n.locale = 'es';
+
+    const { getByText } = renderWithTheme(
+      <PaymentMethodListItem
+        paymentMethod={mockPaymentMethod}
+        {...defaultQuoteProps}
+      />,
+    );
+
+    expect(getByText('Tarjeta de débito')).toBeOnTheScreen();
   });
 });
