@@ -7714,6 +7714,57 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask-previews/design-system-react-native@npm:0.18.0-preview.9d477a9":
+  version: 0.18.0-preview.9d477a9
+  resolution: "@metamask-previews/design-system-react-native@npm:0.18.0-preview.9d477a9"
+  dependencies:
+    "@metamask-previews/design-system-shared": "npm:0.11.0-preview.9d477a9"
+    fast-text-encoding: "npm:^1.0.6"
+    react-native-jazzicon: "npm:^0.1.2"
+  peerDependencies:
+    "@metamask/design-system-twrnc-preset": ^0.4.0
+    "@metamask/design-tokens": ^8.2.0
+    "@metamask/utils": ^11.11.0
+    lodash: ^4.17.23
+    react: ">=18.2.0"
+    react-native: ">=0.72.0"
+    react-native-gesture-handler: ">=1.10.3"
+    react-native-reanimated: ">=3.3.0"
+    react-native-safe-area-context: ">=4.0.0"
+  checksum: 10/b37b3670e0f794932b905ad93965aa08201e4c7f5f538b37a8623f193641c3f93075d4fe79205a39888e937b5c69e2ade87f200d5ae5fc376d156459a0e46b5b
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/design-system-shared@npm:0.11.0-preview.9d477a9":
+  version: 0.11.0-preview.9d477a9
+  resolution: "@metamask-previews/design-system-shared@npm:0.11.0-preview.9d477a9"
+  dependencies:
+    "@metamask/utils": "npm:^11.11.0"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0
+  checksum: 10/89d59468b06794d5d0f3516f2137b8f3a3002a36e7c1732f1f6346b6b89eb970f3a6ee152d507cfb20b43973160d31bed3069f3a0fb2a56cc66132c7349e70fb
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/design-system-twrnc-preset@npm:0.4.1-preview.9d477a9":
+  version: 0.4.1-preview.9d477a9
+  resolution: "@metamask-previews/design-system-twrnc-preset@npm:0.4.1-preview.9d477a9"
+  dependencies:
+    twrnc: "npm:^4.5.1"
+  peerDependencies:
+    "@metamask/design-tokens": ^8.0.0
+    react: ^18.2.0
+  checksum: 10/304c6db9fbdbdadc9bc15d5d275f84837943c799428148c13e0f668a742a443ab081f2659fd963377be9077d254d11e4bd813c7b3a26684207b4e29d37c55a08
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/design-tokens@npm:8.3.0-preview.9d477a9":
+  version: 8.3.0-preview.9d477a9
+  resolution: "@metamask-previews/design-tokens@npm:8.3.0-preview.9d477a9"
+  checksum: 10/df731aeafd69f77980dc4579bb57a00f8be3a528245177e111688f23fb5e8b2927ed82278f63a29c35b910e0975da7007e4660879f0c72222f96457567b05e89
+  languageName: node
+  linkType: hard
+
 "@metamask/7715-permission-types@npm:^0.5.0":
   version: 0.5.0
   resolution: "@metamask/7715-permission-types@npm:0.5.0"
@@ -10375,25 +10426,6 @@ __metadata:
   linkType: hard
 
 "@metamask/utils@npm:^11.0.0, @metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.1.0, @metamask/utils@npm:^11.10.0, @metamask/utils@npm:^11.11.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.4.2, @metamask/utils@npm:^11.5.0, @metamask/utils@npm:^11.8.1, @metamask/utils@npm:^11.9.0":
-  version: 11.11.0
-  resolution: "@metamask/utils@npm:11.11.0"
-  dependencies:
-    "@ethereumjs/tx": "npm:^4.2.0"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@noble/hashes": "npm:^1.3.1"
-    "@scure/base": "npm:^1.1.3"
-    "@types/debug": "npm:^4.1.7"
-    "@types/lodash": "npm:^4.17.20"
-    debug: "npm:^4.3.4"
-    lodash: "npm:^4.17.21"
-    pony-cause: "npm:^2.1.10"
-    semver: "npm:^7.5.4"
-    uuid: "npm:^9.0.1"
-  checksum: 10/c4381b9e451a9616bde84ac659bc0d1848ef06b6e605f877bfa065b78c8ed5015706683ea88a3387de5eaeb3a50d1af9af0994f04f9e06258d992598fe2be3bf
-  languageName: node
-  linkType: hard
-
-"@metamask/utils@npm:^11.11.0":
   version: 11.11.0
   resolution: "@metamask/utils@npm:11.11.0"
   dependencies:
@@ -35815,6 +35847,9 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
+    "@metamask-previews/design-system-react-native": "npm:0.18.0-preview.9d477a9"
+    "@metamask-previews/design-system-twrnc-preset": "npm:0.4.1-preview.9d477a9"
+    "@metamask-previews/design-tokens": "npm:8.3.0-preview.9d477a9"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.0"
     "@metamask/account-tree-controller": "npm:^7.1.0"
