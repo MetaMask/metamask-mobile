@@ -84,6 +84,7 @@ export const CAMPAIGN_STATS_SUMMARY_TEST_IDS = {
   RANK: 'campaign-stats-summary-rank',
   TIER: 'campaign-stats-summary-tier',
   PENDING_TAG: 'campaign-stats-summary-pending-tag',
+  QUALIFIED_TAG: 'campaign-stats-summary-qualified-tag',
   INELIGIBLE_TAG: 'campaign-stats-summary-ineligible-tag',
   NOT_ELIGIBLE_BANNER: 'campaign-stats-summary-not-eligible-banner',
   STATS_ERROR: 'campaign-stats-summary-stats-error',
@@ -251,7 +252,7 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
               />
             ) : isQualified ? (
               <QualifiedTag
-                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG}
+                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.QUALIFIED_TAG}
               />
             ) : undefined
           }

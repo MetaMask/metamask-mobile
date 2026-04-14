@@ -552,7 +552,7 @@ describe('OndoCampaignStatsView', () => {
       const { getByText } = render(<OndoCampaignStatsView />);
       expect(
         getByText('rewards.ondo_campaign_leaderboard.ineligible'),
-      ).toBeDefined();
+      ).toBeOnTheScreen();
     });
 
     it('does not show pending tag when ineligible', () => {
@@ -576,7 +576,7 @@ describe('OndoCampaignStatsView', () => {
       const { getByTestId } = render(<OndoCampaignStatsView />);
       expect(
         getByTestId('campaign-stats-summary-not-eligible-banner'),
-      ).toBeDefined();
+      ).toBeOnTheScreen();
     });
 
     it('hides qualify card when ineligible', () => {

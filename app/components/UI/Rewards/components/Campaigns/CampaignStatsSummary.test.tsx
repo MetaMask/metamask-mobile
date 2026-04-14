@@ -279,16 +279,19 @@ describe('CampaignStatsSummary', () => {
     expect(getAllByText('Pending')).toHaveLength(2);
   });
 
-  it('renders Qualified tag only next to tier when qualified is true', () => {
-    const { getAllByTestId, getByText, queryAllByText } = render(
+  it('renders Qualified tag on tier cell and no Pending tags when qualified is true', () => {
+    const { getByTestId, getByText, queryAllByText, queryByTestId } = render(
       <CampaignStatsSummary {...baseProps} />,
     );
 
     expect(
-      getAllByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
-    ).toHaveLength(1);
-    expect(getByText('Qualified')).toBeDefined();
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.QUALIFIED_TAG),
+    ).toBeOnTheScreen();
+    expect(getByText('Qualified')).toBeOnTheScreen();
     expect(queryAllByText('Pending')).toHaveLength(0);
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
+    ).toBeNull();
   });
 
   it('does not render tags when leaderboardPosition is null', () => {
@@ -619,8 +622,8 @@ describe('CampaignStatsSummary', () => {
     );
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
-    ).toBeDefined();
-    expect(getByText('Not eligible')).toBeDefined();
+    ).toBeOnTheScreen();
+    expect(getByText('Not eligible')).toBeOnTheScreen();
   });
 
   it('hides pending tags when isIneligible=true', () => {
@@ -685,13 +688,13 @@ describe('CampaignStatsSummary', () => {
 describe('IneligibleTag', () => {
   it('renders ineligible label', () => {
     const { getByText } = render(<IneligibleTag />);
-    expect(getByText('Ineligible')).toBeDefined();
+    expect(getByText('Ineligible')).toBeOnTheScreen();
   });
 
   it('passes testID through', () => {
     const { getByTestId } = render(
       <IneligibleTag testID="test-ineligible-tag" />,
     );
-    expect(getByTestId('test-ineligible-tag')).toBeDefined();
+    expect(getByTestId('test-ineligible-tag')).toBeOnTheScreen();
   });
 });
