@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import {
@@ -93,7 +93,9 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         testID={testID}
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={typeof title === 'string' ? title : undefined}
+        accessibilityLabel={
+          Platform.OS === 'ios' || typeof title !== 'string' ? undefined : title
+        }
         style={containerStyle}
       >
         {children}

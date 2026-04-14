@@ -569,11 +569,6 @@ export const TokenListItem = React.memo(
         }}
         style={styles.itemWrapper}
         accessible={Platform.OS === 'ios'}
-        accessibilityLabel={
-          Platform.OS === 'ios'
-            ? `${asset.name || asset.symbol}, ${fiatBalance}, ${tokenBalance}`
-            : undefined
-        }
         {...generateTestId(Platform, getAssetTestId(asset.symbol))}
       >
         {/* Column: 1 - Token logo */}
