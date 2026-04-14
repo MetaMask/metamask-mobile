@@ -48,7 +48,7 @@ describe('EarnControllerInit', () => {
   });
 
   it('calls init() on the controller after construction', () => {
-    const { controller } = earnControllerInit(getInitRequestMock());
-    expect(controller.init).toHaveBeenCalledTimes(1);
+    const { messengerClient } = earnControllerInit(getInitRequestMock());
+    expect(messengerClient.init).toHaveBeenCalledTimes(1);
   });
 });

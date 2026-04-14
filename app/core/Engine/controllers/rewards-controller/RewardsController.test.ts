@@ -6927,7 +6927,7 @@ describe('RewardsController', () => {
         lastFetched: 100,
       };
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -6938,7 +6938,7 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      const result = await controller.getBenefits(
+      const result = await messengerClient.getBenefits(
         mockSubscriptionId,
         mockLimit,
       );
@@ -6954,7 +6954,7 @@ describe('RewardsController', () => {
     it('fetches fresh benefits when cache is empty', async () => {
       const apiBenefits = [createMockBenefit({ id: 2 })];
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => false,
@@ -6962,7 +6962,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(apiBenefits);
 
-      const result = await controller.getBenefits(
+      const result = await messengerClient.getBenefits(
         mockSubscriptionId,
         mockLimit,
       );
@@ -6986,7 +6986,7 @@ describe('RewardsController', () => {
 
       const freshFromApi = [createMockBenefit({ id: 4 })];
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -6999,7 +6999,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(freshFromApi);
 
-      const result = await controller.getBenefits(
+      const result = await messengerClient.getBenefits(
         mockSubscriptionId,
         mockLimit,
       );
@@ -7016,7 +7016,7 @@ describe('RewardsController', () => {
     it('persists fetched benefits to subscriptionBenefits state', async () => {
       const apiBenefits = [createMockBenefit({ id: 5 })];
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => false,
@@ -7024,21 +7024,21 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(apiBenefits);
 
-      await controller.getBenefits(mockSubscriptionId, mockLimit);
+      await messengerClient.getBenefits(mockSubscriptionId, mockLimit);
 
-      expect(controller.state.subscriptionBenefits[mockSubscriptionId]).toEqual(
-        {
-          benefits: apiBenefits,
-          limit: mockLimit,
-          lastFetched: 123,
-        },
-      );
+      expect(
+        messengerClient.state.subscriptionBenefits[mockSubscriptionId],
+      ).toEqual({
+        benefits: apiBenefits,
+        limit: mockLimit,
+        lastFetched: 123,
+      });
     });
 
     it('logs and rethrows when the benefits API call fails', async () => {
       mockLogger.log.mockClear();
 
-      controller = new RewardsController({
+      messengerClient = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => false,
@@ -7048,7 +7048,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(apiError);
 
       await expect(
-        controller.getBenefits(mockSubscriptionId, mockLimit),
+        messengerClient.getBenefits(mockSubscriptionId, mockLimit),
       ).rejects.toThrow('Benefits API failed');
 
       expect(mockLogger.log).toHaveBeenCalledWith(
@@ -7066,7 +7066,7 @@ describe('RewardsController', () => {
     it('calls RewardsDataService to post a benefit impression', async () => {
       mockMessenger.call.mockResolvedValue(undefined);
 
-      await controller.postBenefitImpression(
+      await messengerClient.postBenefitImpression(
         mockSubscriptionId,
         mockBenefitId,
         mockBenefitType,
@@ -7087,7 +7087,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(apiError);
 
       await expect(
-        controller.postBenefitImpression(
+        messengerClient.postBenefitImpression(
           mockSubscriptionId,
           mockBenefitId,
           mockBenefitType,
