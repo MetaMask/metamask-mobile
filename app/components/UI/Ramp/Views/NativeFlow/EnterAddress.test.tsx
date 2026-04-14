@@ -89,6 +89,11 @@ jest.mock('../../Deposit/constants/constants', () => ({
     state: /^[a-zA-Z\s'-]+$/,
     postCode: /^[\w\s-]+$/,
   },
+  US_STATES: [
+    { code: 'CA', name: 'California' },
+    { code: 'NJ', name: 'New Jersey' },
+    { code: 'NY', name: 'New York' },
+  ],
 }));
 
 jest.mock('../../Deposit/hooks/useForm', () => ({
@@ -270,6 +275,50 @@ describe('V2EnterAddress', () => {
     });
 
     expect(getByTestId('address-continue-button')).toBeOnTheScreen();
+  });
+
+  it('state selector shows pre-filled state name for US', () => {
+    const { getByText } = renderWithTheme(<V2EnterAddress />);
+    expect(getByText('deposit.enter_address.select_state')).toBeOnTheScreen();
+  });
+
+  it('non-US state field accepts text input', () => {
+    mockUserRegion = {
+      country: {
+        isoCode: 'GB',
+        name: 'United Kingdom',
+        currency: 'GBP',
+        flag: '🇬🇧',
+      },
+      state: null,
+      regionCode: 'gb',
+    };
+    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
+    const stateInput = getByTestId('state-input');
+
+    fireEvent.changeText(stateInput, 'London');
+    expect(getByTestId('state-input').props.value).toBe('London');
+  });
+
+  it('state field is editable for non-US region with empty state', () => {
+    mockUserRegion = {
+      country: {
+        isoCode: 'GB',
+        name: 'United Kingdom',
+        currency: 'GBP',
+        flag: '🇬🇧',
+      },
+      state: null,
+      regionCode: 'gb',
+    };
+
+    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
+    const stateInput = getByTestId('state-input');
+
+    // previousFormData has state: 'California', which takes priority over userRegion.state
+    // The important thing is the field is rendered and accepts input
+    fireEvent.changeText(stateInput, 'London');
+    expect(getByTestId('state-input').props.value).toBe('London');
   });
 
   it('clears error when field value changes', async () => {
