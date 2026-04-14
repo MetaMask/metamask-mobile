@@ -173,15 +173,6 @@ ENGINE_MOCK.context = {
       provider: {} as Provider,
     }),
   },
-  TokenListController: {
-    state: {
-      tokensChainsCache: {
-        '0x1': {
-          data: [],
-        },
-      },
-    },
-  },
 };
 
 const spyOnQueryMethod = (returnValue: string | undefined) =>
@@ -2594,31 +2585,9 @@ describe('Transactions utils :: isSmartContractAddress', () => {
     expect(result).toBe(false);
   });
 
-  it('returns true when address is in token cache for mainnet', async () => {
-    const address = '0x1234567890123456789012345678901234567890';
-
-    // Mock the Engine context for mainnet with cached token
-    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
-      '0x1': {
-        data: {
-          [address]: { symbol: 'TEST' },
-        },
-      },
-    };
-
-    const result = await isSmartContractAddress(address, '0x1');
-    expect(result).toBe(true);
-  });
-
   it('returns true when contract code is found', async () => {
     const address = '0x1234567890123456789012345678901234567890';
 
-    // Clear token cache
-    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
-      '0x5': { data: {} },
-    };
-
-    // Mock contract code
     spyOnQueryMethod('0x608060405234801561001057600080fd5b50');
 
     const result = await isSmartContractAddress(address, '0x5');
@@ -2628,12 +2597,6 @@ describe('Transactions utils :: isSmartContractAddress', () => {
   it('returns false when no contract code is found', async () => {
     const address = '0x1234567890123456789012345678901234567890';
 
-    // Clear token cache
-    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
-      '0x5': { data: {} },
-    };
-
-    // Mock empty contract code
     spyOnQueryMethod('0x');
 
     const result = await isSmartContractAddress(address, '0x5');
@@ -2643,10 +2606,6 @@ describe('Transactions utils :: isSmartContractAddress', () => {
   it('uses provided networkClientId when specified', async () => {
     const address = '0x1234567890123456789012345678901234567890';
     const customNetworkClientId = 'custom-network';
-
-    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
-      '0x5': { data: {} },
-    };
 
     spyOnQueryMethod('0x608060405234801561001057600080fd5b50');
 
