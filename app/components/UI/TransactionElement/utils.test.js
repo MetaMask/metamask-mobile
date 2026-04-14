@@ -11,11 +11,6 @@ jest.mock('../../../core/Engine', () => ({
     KeyringController: {
       getQRKeyringState: async () => ({ subscribe: () => ({}) }),
     },
-    TokenListController: {
-      state: {
-        tokensChainsCache: {},
-      },
-    },
   },
 }));
 
