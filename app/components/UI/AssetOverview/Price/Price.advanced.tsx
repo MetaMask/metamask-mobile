@@ -67,6 +67,10 @@ export interface PriceAdvancedProps {
   asset: TokenI;
   currentPrice: number;
   currentCurrency: string;
+  /** From parent (`Price`); used when falling back to {@link PriceLegacy}. */
+  priceDiff: number;
+  /** From parent (`Price`); used when falling back to {@link PriceLegacy}. */
+  comparePrice: number;
   isLoading: boolean;
   prices?: TokenPrice[];
   timePeriod?: TimePeriod;
@@ -78,6 +82,8 @@ const PriceAdvanced = ({
   asset,
   currentPrice,
   currentCurrency,
+  priceDiff,
+  comparePrice,
   isLoading,
   prices = [],
   timePeriod = '1d',

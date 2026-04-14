@@ -128,6 +128,8 @@ const baseProps: PriceAdvancedProps = {
   asset: mockAsset,
   currentPrice: 105,
   currentCurrency: 'USD',
+  priceDiff: 5,
+  comparePrice: 100,
   isLoading: false,
 };
 
