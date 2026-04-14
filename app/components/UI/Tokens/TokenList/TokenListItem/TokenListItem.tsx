@@ -563,6 +563,7 @@ export const TokenListItem = React.memo(
 
     return (
       <Pressable
+        accessible={Platform.OS === 'ios' ? true : undefined}
         onPress={() => {
           onItemPress?.(asset);
         }}

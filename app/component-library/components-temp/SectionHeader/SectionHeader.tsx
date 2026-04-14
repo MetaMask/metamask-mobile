@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 // External dependencies.
 import {
@@ -90,9 +90,9 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   if (onPress) {
     return (
       <Pressable
+        accessible={Platform.OS === 'ios' ? true : undefined}
         testID={testID}
         onPress={onPress}
-        accessibilityRole="button"
         accessibilityLabel={typeof title === 'string' ? title : undefined}
         style={containerStyle}
       >
