@@ -3,7 +3,6 @@ import { Mockttp } from 'mockttp';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
-import TestHelpers from '../../helpers';
 
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import SettingsView from '../../page-objects/Settings/SettingsView';
@@ -61,6 +60,7 @@ describe(SmokeSeedlessOnboarding('Google Login - Change Password'), () => {
         await SecurityAndPrivacy.tapChangePassword();
 
         await ChangePasswordView.typeInConfirmPasswordInputBox(currentPassword);
+        await ChangePasswordView.tapSubmitButton();
 
         await ChangePasswordView.typeInConfirmPasswordInputBox(NEW_PASSWORD);
         await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
