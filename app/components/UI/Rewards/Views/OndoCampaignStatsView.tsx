@@ -134,7 +134,7 @@ const OndoCampaignStatsView: React.FC = () => {
     ? formatUsd(portfolioData.summary.totalCurrentValue)
     : '-';
 
-  const netDepositedValue = portfolioData?.summary
+  const netDepositValue = portfolioData?.summary
     ? formatUsd(portfolioData.summary.netDeposit)
     : '-';
 
@@ -155,10 +155,6 @@ const OndoCampaignStatsView: React.FC = () => {
     isIneligible || !leaderboardPosition
       ? '-'
       : formatTierDisplayName(leaderboardPosition.projectedTier);
-
-  const netDepositValue = portfolioData?.summary
-    ? formatUsd(portfolioData.summary.netDeposit)
-    : '-';
 
   const daysHeldValue = leaderboardPosition
     ? `${leaderboardPosition.qualifiedDays}/${ONDO_GM_REQUIRED_QUALIFIED_DAYS}`
@@ -257,7 +253,7 @@ const OndoCampaignStatsView: React.FC = () => {
                     label={strings(
                       'rewards.ondo_campaign_stats.label_net_deposited',
                     )}
-                    value={netDepositedValue}
+                    value={netDepositValue}
                     isLoading={portfolioLoading}
                   />
                 </Box>
@@ -326,7 +322,7 @@ const OndoCampaignStatsView: React.FC = () => {
               <StatCell
                 label={strings('rewards.ondo_campaign_stats.label_net_deposit')}
                 value={netDepositValue}
-                isLoading={leaderboardLoading}
+                isLoading={portfolioLoading}
                 suffix={isQualified ? <CheckIcon /> : undefined}
               />
               <StatCell
@@ -352,7 +348,9 @@ const OndoCampaignStatsView: React.FC = () => {
                   navigation.navigate(Routes.MODAL.REWARDS_ONDO_PENDING_SHEET, {
                     variant: 'own',
                     tier: leaderboardPosition.projectedTier,
-                    netDeposit: leaderboardPosition.netDeposit,
+                    netDeposit: parseFloat(
+                      portfolioData?.summary?.netDeposit ?? '0',
+                    ),
                     qualifiedDays: leaderboardPosition.qualifiedDays,
                     tierMinDeposit,
                   });
