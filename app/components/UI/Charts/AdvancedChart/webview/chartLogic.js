@@ -1264,23 +1264,20 @@ function updateVisibleEdgeOutlinePriceLabel() {
 }
 
 /**
- * Tries main price scale APIs; returns pixel Y or `null`.
+ * Uses `priceToCoordinate` on the main source price scale when present (not listed on IPriceScaleApi
+ * in Advanced Charts docs; fallback is `getVisiblePriceRange` + linear map in the caller).
  */
 function priceScalePriceToY(scale, p) {
   if (typeof scale.priceToCoordinate === 'function') {
     var y = scale.priceToCoordinate(p);
     if (y !== null && y !== undefined && !isNaN(y)) return y;
   }
-  if (typeof scale.priceToPixels === 'function') {
-    y = scale.priceToPixels(p);
-    if (y !== null && y !== undefined && !isNaN(y)) return y;
-  }
   return null;
 }
 
 /**
- * Y pixel for a price (same space as crosshair `offsetY`). Uses
- * `priceToCoordinate` / `priceToPixels` when present; else visible range → pane height.
+ * Y pixel for a price (same space as crosshair `offsetY`). Prefers `priceToCoordinate` when
+ * present; else maps using `getVisiblePriceRange` and pane height (including clamped price).
  */
 function getPriceYForLastCloseOverlay(chart, price) {
   if (!chart || price === undefined || price === null || isNaN(Number(price))) {
