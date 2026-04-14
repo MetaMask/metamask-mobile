@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -30,7 +31,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Hex, type CaipChainId } from '@metamask/utils';
+import { parseCaipAccountId, Hex, type CaipChainId } from '@metamask/utils';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import TrendingTokenLogo from '../../Trending/components/TrendingTokenLogo';
@@ -54,6 +55,8 @@ import { TimeOption } from '../../Trending/components/TrendingTokensBottomSheet/
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import OndoAfterHoursSheet from '../components/Campaigns/OndoAfterHoursSheet';
+import { selectCurrentSubscriptionAccounts } from '../../../../selectors/rewards';
+import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -138,6 +141,49 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     chainIds,
   });
 
+  const subscriptionAccounts = useSelector(selectCurrentSubscriptionAccounts);
+  const allTokenBalances = useSelector(selectAllTokenBalances);
+
+  // Find the USDY token from the fetched RWA token list.
+  const ondoUsdToken = useMemo(
+    () => rwaTokens.find((t) => t.symbol === 'USDY'),
+    [rwaTokens],
+  );
+
+  // In open_position mode, preset USDY as the source if the user holds a balance.
+  const ondoUsdSrcToken = useMemo((): BridgeToken | undefined => {
+    if (
+      mode !== 'open_position' ||
+      !ondoUsdToken ||
+      !subscriptionAccounts?.length
+    )
+      return undefined;
+    const parsed = parseCaip19(ondoUsdToken.assetId);
+    if (!parsed || parsed.namespace !== 'eip155') return undefined;
+    const chainHex = caipChainIdToHex(
+      `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
+    );
+    const tokenHex = parsed.assetReference.toLowerCase() as Hex;
+    const hasBalance = subscriptionAccounts.some((a) => {
+      const address = parseCaipAccountId(a.account).address;
+      const bal =
+        allTokenBalances?.[address.toLowerCase() as Hex]?.[chainHex]?.[
+          tokenHex
+        ];
+      return bal !== undefined && !!parseInt(bal, 16);
+    });
+    if (!hasBalance) return undefined;
+    return {
+      address: parsed.assetReference,
+      symbol: ondoUsdToken.symbol,
+      name: ondoUsdToken.name,
+      decimals: ondoUsdToken.decimals,
+      chainId: `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
+      image: getTrendingTokenImageUrl(ondoUsdToken.assetId),
+      rwaData: ondoUsdToken.rwaData as BridgeToken['rwaData'],
+    };
+  }, [mode, ondoUsdToken, subscriptionAccounts, allTokenBalances]);
+
   // Show skeleton while client-side filters are being applied.
   // useRwaTokens applies search/sort synchronously but via useStableReference,
   // which delays opts by one render cycle — so rwaTokens lags behind the inputs
@@ -203,9 +249,9 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
         return;
       }
 
-      goToSwaps(undefined, destToken);
+      goToSwaps(ondoUsdSrcToken, destToken);
     },
-    [goToSwaps, isTokenTradingOpen],
+    [goToSwaps, isTokenTradingOpen, ondoUsdSrcToken],
   );
 
   const title =
@@ -347,7 +393,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
               setIsAfterHoursSheetOpen(false);
               setAfterHoursNextOpen(null);
               if (afterHoursPendingToken) {
-                goToSwaps(undefined, afterHoursPendingToken);
+                goToSwaps(ondoUsdSrcToken, afterHoursPendingToken);
               }
               setAfterHoursPendingToken(null);
             }}

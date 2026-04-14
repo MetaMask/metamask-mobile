@@ -1,7 +1,10 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import OndoCampaignRwaSelectorView from './OndoCampaignRwaSelectorView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import { selectCurrentSubscriptionAccounts } from '../../../../selectors/rewards';
+import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 
 const mockGoBack = jest.fn();
 const mockGoToSwaps = jest.fn();
@@ -14,6 +17,16 @@ let mockRouteParams: {
   srcTokenName?: string;
   srcTokenDecimals?: number;
 } = { mode: 'open_position', campaignId: 'campaign-1' };
+
+jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
+
+jest.mock('../../../../selectors/rewards', () => ({
+  selectCurrentSubscriptionAccounts: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/tokenBalancesController', () => ({
+  selectAllTokenBalances: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack }),
@@ -136,7 +149,9 @@ jest.mock(
 
 // Silence utility mocks
 jest.mock('../../Trending/utils/getTrendingTokenImageUrl', () => ({
-  getTrendingTokenImageUrl: jest.fn(() => 'https://mock.image'),
+  getTrendingTokenImageUrl: jest.fn(
+    (assetId: string) => `https://mock.image/${assetId}`,
+  ),
 }));
 
 jest.mock('../../../../util/theme', () => ({
@@ -161,6 +176,13 @@ jest.mock('../../Trending/components/TrendingTokenLogo', () => {
   };
 });
 
+jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
+  parseCaipAccountId: jest.fn((caipAccount: string) => ({
+    address: caipAccount.split(':').pop() ?? '0xaccount',
+  })),
+}));
+
 const buildToken = (symbol: string, assetId?: string): TrendingAsset =>
   ({
     symbol,
@@ -170,11 +192,36 @@ const buildToken = (symbol: string, assetId?: string): TrendingAsset =>
     rwaData: null,
   }) as unknown as TrendingAsset;
 
+const USDY_ASSET_ID = 'eip155:1/erc20:0xusdy';
+const buildUsdyToken = (): TrendingAsset =>
+  ({
+    symbol: 'USDY',
+    name: 'Ondo USD Yield',
+    decimals: 18,
+    assetId: USDY_ASSET_ID,
+    rwaData: null,
+  }) as unknown as TrendingAsset;
+
+// Default mock values: no subscription accounts, no balances
+let mockSubscriptionAccounts: { account: string }[] = [];
+let mockAllTokenBalances: Record<
+  string,
+  Record<string, Record<string, string>>
+> = {};
+
 describe('OndoCampaignRwaSelectorView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
     mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
+    mockSubscriptionAccounts = [];
+    mockAllTokenBalances = {};
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectCurrentSubscriptionAccounts)
+        return mockSubscriptionAccounts;
+      if (selector === selectAllTokenBalances) return mockAllTokenBalances;
+      return undefined;
+    });
   });
 
   it('renders without crashing', () => {
@@ -291,6 +338,122 @@ describe('OndoCampaignRwaSelectorView', () => {
       fireEvent.changeText(input, 'AAPL');
       // Skeleton replaces the token list
       expect(queryByTestId('token-row-MSFT')).toBeNull();
+    });
+  });
+
+  describe('open_position mode — USDY source preselection', () => {
+    const ACCOUNT_CAIP = 'eip155:1:0xaccount1';
+    const USDY_HEX_ADDRESS = '0xabc'; // matches parseCaip19 mock → assetReference: '0xabc'
+
+    beforeEach(() => {
+      mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
+    });
+
+    it('passes USDY as source token when user holds a non-zero USDY balance', () => {
+      const usdy = buildUsdyToken();
+      const aapl = buildToken('AAPL');
+      mockUseRwaTokens.mockReturnValue({
+        data: [usdy, aapl],
+        isLoading: false,
+      });
+      mockSubscriptionAccounts = [{ account: ACCOUNT_CAIP }];
+      // allTokenBalances[address][chainHex][tokenHex] = non-zero hex
+      mockAllTokenBalances = {
+        '0xaccount1': { '0x1': { [USDY_HEX_ADDRESS]: '0x64' } },
+      };
+
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      fireEvent.press(getByTestId('token-row-AAPL'));
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      const [srcArg, destArg] = mockGoToSwaps.mock.calls[0];
+      expect(srcArg).toBeDefined();
+      expect(srcArg?.symbol).toBe('USDY');
+      expect(destArg?.symbol).toBe('AAPL');
+    });
+
+    it('passes undefined as source token when subscription accounts are empty', () => {
+      const usdy = buildUsdyToken();
+      const aapl = buildToken('AAPL');
+      mockUseRwaTokens.mockReturnValue({
+        data: [usdy, aapl],
+        isLoading: false,
+      });
+      mockSubscriptionAccounts = [];
+
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      fireEvent.press(getByTestId('token-row-AAPL'));
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      const [srcArg] = mockGoToSwaps.mock.calls[0];
+      expect(srcArg).toBeUndefined();
+    });
+
+    it('passes undefined as source token when USDY balance is zero', () => {
+      const usdy = buildUsdyToken();
+      const aapl = buildToken('AAPL');
+      mockUseRwaTokens.mockReturnValue({
+        data: [usdy, aapl],
+        isLoading: false,
+      });
+      mockSubscriptionAccounts = [{ account: ACCOUNT_CAIP }];
+      mockAllTokenBalances = {
+        '0xaccount1': { '0x1': { [USDY_HEX_ADDRESS]: '0x0' } },
+      };
+
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      fireEvent.press(getByTestId('token-row-AAPL'));
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      const [srcArg] = mockGoToSwaps.mock.calls[0];
+      expect(srcArg).toBeUndefined();
+    });
+
+    it('passes undefined as source token when USDY is not in the token list', () => {
+      const aapl = buildToken('AAPL');
+      mockUseRwaTokens.mockReturnValue({
+        data: [aapl],
+        isLoading: false,
+      });
+      mockSubscriptionAccounts = [{ account: ACCOUNT_CAIP }];
+      mockAllTokenBalances = {
+        '0xaccount1': { '0x1': { [USDY_HEX_ADDRESS]: '0x64' } },
+      };
+
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      fireEvent.press(getByTestId('token-row-AAPL'));
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      const [srcArg] = mockGoToSwaps.mock.calls[0];
+      expect(srcArg).toBeUndefined();
+    });
+
+    it('does not preset USDY as source in swap mode even when user holds balance', () => {
+      mockRouteParams = {
+        mode: 'swap',
+        campaignId: 'campaign-1',
+        srcTokenAsset: 'eip155:1/erc20:0xabc',
+        srcTokenSymbol: 'USDC',
+        srcTokenDecimals: 6,
+      };
+      const usdy = buildUsdyToken();
+      const aapl = buildToken('AAPL');
+      mockUseRwaTokens.mockReturnValue({
+        data: [usdy, aapl],
+        isLoading: false,
+      });
+      mockSubscriptionAccounts = [{ account: ACCOUNT_CAIP }];
+      mockAllTokenBalances = {
+        '0xaccount1': { '0x1': { [USDY_HEX_ADDRESS]: '0x64' } },
+      };
+
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      fireEvent.press(getByTestId('token-row-AAPL'));
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      // In swap mode ondoUsdSrcToken is always undefined
+      const [srcArg] = mockGoToSwaps.mock.calls[0];
+      expect(srcArg).toBeUndefined();
     });
   });
 });
