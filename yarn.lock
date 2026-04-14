@@ -7746,18 +7746,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask-previews/design-system-twrnc-preset@npm:0.4.1-preview.9d477a9":
-  version: 0.4.1-preview.9d477a9
-  resolution: "@metamask-previews/design-system-twrnc-preset@npm:0.4.1-preview.9d477a9"
-  dependencies:
-    twrnc: "npm:^4.5.1"
-  peerDependencies:
-    "@metamask/design-tokens": ^8.0.0
-    react: ^18.2.0
-  checksum: 10/304c6db9fbdbdadc9bc15d5d275f84837943c799428148c13e0f668a742a443ab081f2659fd963377be9077d254d11e4bd813c7b3a26684207b4e29d37c55a08
-  languageName: node
-  linkType: hard
-
 "@metamask-previews/design-tokens@npm:8.3.0-preview.9d477a9":
   version: 8.3.0-preview.9d477a9
   resolution: "@metamask-previews/design-tokens@npm:8.3.0-preview.9d477a9"
@@ -35848,7 +35836,6 @@ __metadata:
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
     "@metamask-previews/design-system-react-native": "npm:0.18.0-preview.9d477a9"
-    "@metamask-previews/design-system-twrnc-preset": "npm:0.4.1-preview.9d477a9"
     "@metamask-previews/design-tokens": "npm:8.3.0-preview.9d477a9"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.0"
