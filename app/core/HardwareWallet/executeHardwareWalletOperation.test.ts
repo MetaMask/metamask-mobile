@@ -22,6 +22,7 @@ describe('executeHardwareWalletOperation', () => {
   const showHardwareWalletError = jest.fn();
   const setTargetWalletType = jest.fn();
   const execute = jest.fn();
+  const onError = jest.fn();
   const onRejected = jest.fn();
 
   const baseOptions = {
@@ -32,6 +33,7 @@ describe('executeHardwareWalletOperation', () => {
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
+    onError,
     execute,
     onRejected,
   };
@@ -42,6 +44,7 @@ describe('executeHardwareWalletOperation', () => {
     mockGetHardwareWalletTypeForAddress.mockReturnValue('ledger');
     ensureDeviceReady.mockResolvedValue(true);
     execute.mockResolvedValue(undefined);
+    onError.mockResolvedValue(false);
   });
 
   it('resolves the device id before checking readiness', async () => {
@@ -94,6 +97,20 @@ describe('executeHardwareWalletOperation', () => {
 
     expect(hideAwaitingConfirmation).toHaveBeenCalledTimes(1);
     expect(showHardwareWalletError).toHaveBeenCalledWith(error);
+    expect(onRejected).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets callers handle non-user cancellations without showing the shared hardware wallet error', async () => {
+    const error = new Error('keystone cancelled');
+    execute.mockRejectedValueOnce(error);
+    onError.mockResolvedValueOnce(true);
+
+    await expect(executeHardwareWalletOperation(baseOptions)).resolves.toBe(
+      false,
+    );
+
+    expect(onError).toHaveBeenCalledWith(error);
+    expect(showHardwareWalletError).not.toHaveBeenCalled();
     expect(onRejected).toHaveBeenCalledTimes(1);
   });
 

@@ -145,6 +145,7 @@ describe('RootRPCMethodsUI', () => {
         showAwaitingConfirmation: expect.any(Function),
         hideAwaitingConfirmation: expect.any(Function),
         showHardwareWalletError: expect.any(Function),
+        onError: expect.any(Function),
         execute: expect.any(Function),
         onRejected: expect.any(Function),
       });
@@ -187,9 +188,12 @@ describe('RootRPCMethodsUI', () => {
     });
   });
 
-  it('calls trackEvent for DAPP_TRANSACTION_CANCELLED on keystone cancel', async () => {
-    mockExecuteHardwareWalletOperation.mockRejectedValueOnce(
-      new Error('KeystoneError#Tx_canceled'),
+  it('tracks DAPP_TRANSACTION_CANCELLED when the shared hardware wallet flow handles a keystone cancel', async () => {
+    mockExecuteHardwareWalletOperation.mockImplementationOnce(
+      async ({ onError }) => {
+        await onError?.(new Error('KeystoneError#Tx_canceled'));
+        return false;
+      },
     );
 
     render(<RootRPCMethodsUI navigation={{ navigate: jest.fn() }} />);

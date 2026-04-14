@@ -44,6 +44,27 @@ const RootRPCMethodsUI = (props) => {
     showHardwareWalletError,
   } = useHardwareWallet();
 
+  const trackCancelledTransaction = useCallback(
+    (error) => {
+      const message = error?.message ?? '';
+
+      if (
+        !message.startsWith(KEYSTONE_TX_CANCELED) &&
+        !message.startsWith(STX_NO_HASH_ERROR)
+      ) {
+        return false;
+      }
+
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
+        ).build(),
+      );
+      return true;
+    },
+    [trackEvent, createEventBuilder],
+  );
+
   const autoSign = useCallback(
     async (transactionMeta) => {
       try {
@@ -79,6 +100,7 @@ const RootRPCMethodsUI = (props) => {
           showAwaitingConfirmation,
           hideAwaitingConfirmation,
           showHardwareWalletError,
+          onError: trackCancelledTransaction,
           execute: async () => {
             await Engine.context.ApprovalController.acceptRequest(
               transactionMeta.id,
@@ -97,22 +119,13 @@ const RootRPCMethodsUI = (props) => {
           },
         });
       } catch (error) {
-        if (
-          !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
-          !error?.message.startsWith(STX_NO_HASH_ERROR)
-        ) {
+        if (!trackCancelledTransaction(error)) {
           Alert.alert(
             strings('transactions.transaction_error'),
             error && error.message,
             [{ text: strings('navigation.ok') }],
           );
           Logger.error(error, 'error while trying to send transaction (Main)');
-        } else {
-          trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
-            ).build(),
-          );
         }
       }
     },
@@ -125,6 +138,7 @@ const RootRPCMethodsUI = (props) => {
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
       showHardwareWalletError,
+      trackCancelledTransaction,
     ],
   );
 

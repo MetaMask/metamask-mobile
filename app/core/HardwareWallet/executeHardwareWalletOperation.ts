@@ -16,6 +16,7 @@ interface ExecuteHardwareWalletOperationOptions {
   ) => void;
   hideAwaitingConfirmation: () => void;
   showHardwareWalletError: (error: unknown) => void;
+  onError?: (error: unknown) => boolean | Promise<boolean>;
   execute: () => Promise<void>;
   onRejected?: () => void | Promise<void>;
 }
@@ -32,6 +33,7 @@ export async function executeHardwareWalletOperation({
   showAwaitingConfirmation,
   hideAwaitingConfirmation,
   showHardwareWalletError,
+  onError,
   execute,
   onRejected,
 }: ExecuteHardwareWalletOperationOptions): Promise<boolean> {
@@ -69,8 +71,9 @@ export async function executeHardwareWalletOperation({
     return true;
   } catch (error) {
     hideAwaitingConfirmation();
+    const hasHandledError = (await onError?.(error)) ?? false;
 
-    if (!hasRejected && !isUserCancellation(error)) {
+    if (!hasRejected && !hasHandledError && !isUserCancellation(error)) {
       showHardwareWalletError(error);
     }
 
