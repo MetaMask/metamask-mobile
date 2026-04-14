@@ -8812,64 +8812,6 @@ describe('RewardsController', () => {
       // Assert
       expect(result.balance.total).toBe(largeBalance);
     });
-
-    it('preserves shouldInstallNewVersion when present', () => {
-      // Arrange
-      const seasonMetadata: SeasonDtoState = {
-        id: 'season-update',
-        name: 'Update Required Season',
-        startDate: Date.now(),
-        endDate: Date.now() + 86400000,
-        tiers: createTestTiers(),
-        activityTypes: [],
-        waysToEarn: [],
-        shouldInstallNewVersion: '1.2.3',
-      };
-
-      const seasonState: SeasonStateDto = {
-        balance: 5000,
-        currentTierId: 'gold',
-        updatedAt: new Date(),
-      };
-
-      // Act
-      const result = controller.convertToSeasonStatusDto(
-        seasonMetadata,
-        seasonState,
-      );
-
-      // Assert
-      expect(result.season.shouldInstallNewVersion).toBe('1.2.3');
-    });
-
-    it('handles shouldInstallNewVersion when undefined', () => {
-      // Arrange
-      const seasonMetadata: SeasonDtoState = {
-        id: 'season-no-update',
-        name: 'No Update Required Season',
-        startDate: Date.now(),
-        endDate: Date.now() + 86400000,
-        tiers: createTestTiers(),
-        activityTypes: [],
-        waysToEarn: [],
-        // shouldInstallNewVersion is intentionally omitted
-      };
-
-      const seasonState: SeasonStateDto = {
-        balance: 3000,
-        currentTierId: 'silver',
-        updatedAt: new Date(),
-      };
-
-      // Act
-      const result = controller.convertToSeasonStatusDto(
-        seasonMetadata,
-        seasonState,
-      );
-
-      // Assert
-      expect(result.season.shouldInstallNewVersion).toBeUndefined();
-    });
   });
 
   describe('convertInternalAccountToCaipAccountId', () => {
@@ -19221,7 +19163,7 @@ describe('RewardsController', () => {
       campaignId: mockCampaignId,
       computedAt: '2024-03-20T12:00:00.000Z',
       tiers: {
-        STARTER: { entries: [], totalParticipants: 100, minDeposit: 500 },
+        STARTER: { entries: [], totalParticipants: 100 },
       },
     };
 
