@@ -612,7 +612,11 @@ describe('CampaignStatsSummary', () => {
     const { getByTestId } = render(
       <CampaignStatsSummary
         {...baseProps}
-        leaderboardPosition={{ ...MOCK_POSITION, rank: 5, projectedTier: 'MID' }}
+        leaderboardPosition={{
+          ...MOCK_POSITION,
+          rank: 5,
+          projectedTier: 'MID',
+        }}
         isIneligible
       />,
     );

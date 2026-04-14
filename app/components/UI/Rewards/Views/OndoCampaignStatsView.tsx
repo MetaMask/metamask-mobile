@@ -140,9 +140,7 @@ const OndoCampaignStatsView: React.FC = () => {
     : '-';
 
   const rankValue =
-    isIneligible || !leaderboardPosition
-      ? '-'
-      : `${leaderboardPosition.rank}`;
+    isIneligible || !leaderboardPosition ? '-' : `${leaderboardPosition.rank}`;
 
   const tierValue =
     isIneligible || !leaderboardPosition

@@ -188,9 +188,7 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
     : '-';
 
   const rankValue =
-    isIneligible || !leaderboardPosition
-      ? '-'
-      : `${leaderboardPosition.rank}`;
+    isIneligible || !leaderboardPosition ? '-' : `${leaderboardPosition.rank}`;
 
   const tierValue =
     isIneligible || !leaderboardPosition
