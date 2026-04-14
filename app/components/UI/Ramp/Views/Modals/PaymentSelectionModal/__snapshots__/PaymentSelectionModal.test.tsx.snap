@@ -8,8 +8,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -912,7 +911,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -924,8 +923,7 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1554,7 +1552,7 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1566,8 +1564,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3976,7 +3973,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3988,8 +3985,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -4617,6 +4613,6 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

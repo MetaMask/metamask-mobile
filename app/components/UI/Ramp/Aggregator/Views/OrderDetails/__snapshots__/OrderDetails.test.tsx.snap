@@ -8,8 +8,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -194,14 +193,13 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -1384,7 +1382,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                             </View>
                           </RCTScrollView>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1408,7 +1406,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1420,8 +1418,7 @@ exports[`OrderDetails renders a completed order 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1606,14 +1603,13 @@ exports[`OrderDetails renders a completed order 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -2814,7 +2810,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                             </View>
                           </RCTScrollView>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2838,7 +2834,7 @@ exports[`OrderDetails renders a completed order 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2850,8 +2846,7 @@ exports[`OrderDetails renders a created order 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3036,14 +3031,13 @@ exports[`OrderDetails renders a created order 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -4222,7 +4216,7 @@ exports[`OrderDetails renders a created order 1`] = `
                             </View>
                           </RCTScrollView>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -4246,7 +4240,7 @@ exports[`OrderDetails renders a created order 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -4258,8 +4252,7 @@ exports[`OrderDetails renders a failed order 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -4444,14 +4437,13 @@ exports[`OrderDetails renders a failed order 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -5634,7 +5626,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                             </View>
                           </RCTScrollView>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -5658,7 +5650,7 @@ exports[`OrderDetails renders a failed order 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -5670,8 +5662,7 @@ exports[`OrderDetails renders a pending order 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -5856,14 +5847,13 @@ exports[`OrderDetails renders a pending order 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -7042,7 +7032,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                             </View>
                           </RCTScrollView>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -7066,7 +7056,7 @@ exports[`OrderDetails renders a pending order 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -7078,8 +7068,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -7264,14 +7253,13 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -7435,7 +7423,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -7459,7 +7447,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -7471,8 +7459,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -7657,14 +7644,13 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -8016,7 +8002,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -8040,7 +8026,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -8052,8 +8038,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -8238,14 +8223,13 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -9489,7 +9473,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                             </View>
                           </RCTScrollView>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -9513,7 +9497,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -9525,8 +9509,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -9711,14 +9694,13 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -10965,7 +10947,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                             </View>
                           </RCTScrollView>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -10989,7 +10971,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -11001,8 +10983,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -11187,14 +11168,13 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -12373,7 +12353,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                             </View>
                           </RCTScrollView>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -12397,7 +12377,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -12409,8 +12389,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -12595,14 +12574,13 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -13796,7 +13774,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                             </View>
                           </RCTScrollView>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -13820,6 +13798,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

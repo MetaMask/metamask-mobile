@@ -245,14 +245,13 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when quote is n
       </View>
     </View>
   </View>,
-  <RNCSafeAreaView
+  <View
     edges={
-      {
-        "bottom": "additive",
-        "left": "additive",
-        "right": "additive",
-        "top": "off",
-      }
+      [
+        "right",
+        "bottom",
+        "left",
+      ]
     }
     style={
       {
@@ -695,7 +694,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when quote is n
         </View>
       </View>
     </View>
-  </RNCSafeAreaView>,
+  </View>,
 ]
 `;
 
@@ -944,14 +943,13 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakChe
       </View>
     </View>
   </View>,
-  <RNCSafeAreaView
+  <View
     edges={
-      {
-        "bottom": "additive",
-        "left": "additive",
-        "right": "additive",
-        "top": "off",
-      }
+      [
+        "right",
+        "bottom",
+        "left",
+      ]
     }
     style={
       {
@@ -1394,7 +1392,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakChe
         </View>
       </View>
     </View>
-  </RNCSafeAreaView>,
+  </View>,
 ]
 `;
 
@@ -1643,14 +1641,13 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakRou
       </View>
     </View>
   </View>,
-  <RNCSafeAreaView
+  <View
     edges={
-      {
-        "bottom": "additive",
-        "left": "additive",
-        "right": "additive",
-        "top": "off",
-      }
+      [
+        "right",
+        "bottom",
+        "left",
+      ]
     }
     style={
       {
@@ -2093,7 +2090,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakRou
         </View>
       </View>
     </View>
-  </RNCSafeAreaView>,
+  </View>,
 ]
 `;
 
@@ -2342,14 +2339,13 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
       </View>
     </View>
   </View>,
-  <RNCSafeAreaView
+  <View
     edges={
-      {
-        "bottom": "additive",
-        "left": "additive",
-        "right": "additive",
-        "top": "off",
-      }
+      [
+        "right",
+        "bottom",
+        "left",
+      ]
     }
     style={
       {
@@ -2792,7 +2788,7 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
         </View>
       </View>
     </View>
-  </RNCSafeAreaView>,
+  </View>,
 ]
 `;
 
@@ -3041,14 +3037,13 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
       </View>
     </View>
   </View>,
-  <RNCSafeAreaView
+  <View
     edges={
-      {
-        "bottom": "additive",
-        "left": "additive",
-        "right": "additive",
-        "top": "off",
-      }
+      [
+        "right",
+        "bottom",
+        "left",
+      ]
     }
     style={
       {
@@ -3491,7 +3486,7 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
         </View>
       </View>
     </View>
-  </RNCSafeAreaView>,
+  </View>,
 ]
 `;
 
@@ -3740,14 +3735,13 @@ exports[`BuildQuote quoteFetchError tracks RAMPS_QUOTE_ERROR and shows BannerAle
       </View>
     </View>
   </View>,
-  <RNCSafeAreaView
+  <View
     edges={
-      {
-        "bottom": "additive",
-        "left": "additive",
-        "right": "additive",
-        "top": "off",
-      }
+      [
+        "right",
+        "bottom",
+        "left",
+      ]
     }
     style={
       {
@@ -4199,6 +4193,6 @@ exports[`BuildQuote quoteFetchError tracks RAMPS_QUOTE_ERROR and shows BannerAle
         </View>
       </View>
     </View>
-  </RNCSafeAreaView>,
+  </View>,
 ]
 `;

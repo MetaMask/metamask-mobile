@@ -8,8 +8,7 @@ exports[`MultichainAddWalletActions renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,7 +333,13 @@ exports[`MultichainAddWalletActions renders correctly 1`] = `
                         }
                       }
                     >
-                      <RCTSafeAreaView>
+                      <View
+                        edges={
+                          [
+                            "bottom",
+                          ]
+                        }
+                      >
                         <View
                           accessibilityState={
                             {
@@ -737,7 +742,7 @@ exports[`MultichainAddWalletActions renders correctly 1`] = `
                             </View>
                           </View>
                         </View>
-                      </RCTSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -747,6 +752,6 @@ exports[`MultichainAddWalletActions renders correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

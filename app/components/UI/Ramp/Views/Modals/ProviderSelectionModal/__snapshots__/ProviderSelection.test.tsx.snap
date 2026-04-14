@@ -8,8 +8,7 @@ exports[`ProviderSelection filters out custom-action quotes when displaying prov
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -685,7 +684,7 @@ exports[`ProviderSelection filters out custom-action quotes when displaying prov
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -697,8 +696,7 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1326,7 +1324,7 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1338,8 +1336,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2620,7 +2617,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2632,8 +2629,7 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3336,7 +3332,7 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3348,8 +3344,7 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3977,6 +3972,6 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

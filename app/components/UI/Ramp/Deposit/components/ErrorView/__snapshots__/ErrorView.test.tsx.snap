@@ -8,8 +8,7 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,14 +333,13 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -471,7 +469,7 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -481,7 +479,7 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -493,8 +491,7 @@ exports[`ErrorView Component renders with default props and matches snapshot 1`]
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -819,14 +816,13 @@ exports[`ErrorView Component renders with default props and matches snapshot 1`]
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -920,7 +916,7 @@ exports[`ErrorView Component renders with default props and matches snapshot 1`]
                             </Text>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -930,6 +926,6 @@ exports[`ErrorView Component renders with default props and matches snapshot 1`]
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
