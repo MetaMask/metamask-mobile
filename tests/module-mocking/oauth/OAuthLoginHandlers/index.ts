@@ -15,8 +15,15 @@ import {
 } from '../../../../app/core/OAuthService/OAuthLoginHandlers/constants';
 import type { BaseHandlerOptions } from '../../../../app/core/OAuthService/OAuthLoginHandlers/baseHandler';
 
+const MOCK_GOOGLE_OAUTH_CLIENT_ID_IOS =
+  '387141446914-5ja3p4dfanfkm8uq238fm1b8t1rkscv4.apps.googleusercontent.com';
+const MOCK_GOOGLE_OAUTH_CLIENT_ID_ANDROID =
+  '387141446914-olajr83p1bbvabh1u8tfglt1k4u6jlcb.apps.googleusercontent.com';
+
 function getMockGoogleOAuthClientId(): string {
-  return '387141446914-5ja3p4dfanfkm8uq238fm1b8t1rkscv4.apps.googleusercontent.com';
+  return Platform.OS === 'ios'
+    ? MOCK_GOOGLE_OAUTH_CLIENT_ID_IOS
+    : MOCK_GOOGLE_OAUTH_CLIENT_ID_ANDROID;
 }
 
 /**
