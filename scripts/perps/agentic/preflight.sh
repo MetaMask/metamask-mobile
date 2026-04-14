@@ -37,6 +37,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/../../.."
+ROOT_DIR="$(pwd)"
 # Source .js.env but only for vars not already set, so caller env takes precedence.
 if [ -f .js.env ]; then
   while IFS= read -r _line || [ -n "$_line" ]; do
@@ -49,10 +50,22 @@ if [ -f .js.env ]; then
   unset _line _key
 fi
 
+resolve_path() {
+  case "$1" in
+    /*) printf '%s\n' "$1" ;;
+    *) printf '%s/%s\n' "$ROOT_DIR" "$1" ;;
+  esac
+}
+
 PORT="${WATCHER_PORT:-8081}"
 SCRIPTS="scripts/perps/agentic"
-LOGFILE=".agent/metro.log"
-CDP_TIMEOUT=90
+LOGFILE="$(resolve_path '.agent/metro.log')"
+LOG_DIR="$(resolve_path "${PREP_LOG_DIR:-.agent/preflight-logs}")"
+DEPS_LOG="${LOG_DIR}/deps.log"
+POD_INSTALL_LOG="${LOG_DIR}/pod-install.log"
+CDP_LOG="${LOG_DIR}/cdp.log"
+WALLET_LOG="${LOG_DIR}/wallet-setup.log"
+CDP_WAIT_TIMEOUT=90
 CDP_RETRY=0
 
 # Flags
@@ -106,6 +119,7 @@ GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[0;33m'; BLUE='\033[0;34m'; BO
 ok()   { echo -e "  ${GREEN}✓${NC} $*"; }
 warn() { echo -e "  ${YELLOW}⚠${NC} $*"; }
 fail() { echo -e "  ${RED}✗${NC} $*"; exit 1; }
+stage_log() { echo -e "  ${DIM}Log: $1${NC}"; }
 
 # Kill a process and all its descendants.
 # We need this because `$!` after `eval "$EXPO_CMD" &` points at the yarn
@@ -170,6 +184,8 @@ if $DO_WALLET_SETUP; then
   done
   ok "Fixture validated: $WALLET_FIXTURE (password + ${FIX_ACCT_COUNT} accounts)"
 fi
+
+mkdir -p "$LOG_DIR"
 
 # Timing
 PREFLIGHT_START=$(python3 -c "import time; print(int(time.time()))")
@@ -270,7 +286,14 @@ if $DO_CLEAN; then
     echo "  Cleaning Android build artifacts..."
     rm -rf android/app/build
   fi
-  yarn setup 2>&1 | tail -3
+  stage_log "$DEPS_LOG"
+  printf '$ yarn setup\n' > "$DEPS_LOG"
+  if ! yarn setup >>"$DEPS_LOG" 2>&1; then
+    echo ""
+    echo -e "  ${RED}Dependencies failed — see $DEPS_LOG${NC}"
+    tail -20 "$DEPS_LOG" | sed 's/^/    /'
+    fail "yarn setup failed"
+  fi
   ok "yarn setup complete"
 fi
 
@@ -313,7 +336,13 @@ if [ "$PLAT" = "ios" ]; then
     echo ""
 
     echo "  Running pod install via bundler..."
-    (cd ios && bundle exec pod install --repo-update --ansi 2>&1 | tail -3) || warn "pod install had issues"
+    stage_log "$POD_INSTALL_LOG"
+    printf '$ (cd ios && bundle exec pod install --repo-update --ansi)\n' > "$POD_INSTALL_LOG"
+    if (cd ios && bundle exec pod install --repo-update --ansi >>"$POD_INSTALL_LOG" 2>&1); then
+      ok "pod install complete"
+    else
+      warn "pod install had issues — see $POD_INSTALL_LOG"
+    fi
 
     # Must pass --port (never --no-bundler): @expo/cli rejects that combo
     # (resolveBundlerProps.js), and without --port expo's headless bundler silently
@@ -330,9 +359,10 @@ if [ "$PLAT" = "ios" ]; then
     # subprocess tree. We must walk the tree (yarn → corepack → yarn.cjs → node
     # expo/cli) because killing only $! leaves the deep child alive and orphaned,
     # still holding $PORT — which would defeat start-metro.sh and break CDP.
-    BUILD_LOG=".agent/ios-expo-build.log"
+    BUILD_LOG="$(resolve_path '.agent/ios-expo-build.log')"
     mkdir -p "$(dirname "$BUILD_LOG")"
     : > "$BUILD_LOG"
+    stage_log "$BUILD_LOG"
     BUILD_START=$(date +%s)
 
     set +e
@@ -502,7 +532,8 @@ else
       echo -n "$GOOGLE_SERVICES_B64_ANDROID" | base64 -d > ./android/app/google-services.json
     fi
 
-    BUILD_LOG=".agent/android-build.log"
+    BUILD_LOG="$(resolve_path '.agent/android-build.log')"
+    stage_log "$BUILD_LOG"
     set +e
     (cd android && SENTRY_DISABLE_AUTO_UPLOAD=true ./gradlew app:assembleProdDebug -PreactNativeArchitectures=arm64-v8a) 2>&1 | tee "$BUILD_LOG" | while IFS= read -r line; do
       case "$line" in
@@ -538,6 +569,7 @@ fi
 
 # ── Step: Metro ─────────────────────────────────────────────────────
 step "Starting Metro" "Bundler on port $PORT → logs at $LOGFILE"
+stage_log "$LOGFILE"
 # start-metro.sh detects running Metro and skips start. With --launch it
 # opens the app via expo deeplink for the target platform regardless.
 bash "$SCRIPTS/start-metro.sh" --platform "$PLAT" $($DO_LAUNCH && echo "--launch" || echo "")
@@ -549,8 +581,12 @@ ok "Metro running on port $PORT"
 
 # ── Step: CDP ───────────────────────────────────────────────────────
 step "Connecting CDP" "Waiting for app to expose debug target"
-while [ $CDP_RETRY -lt $CDP_TIMEOUT ]; do
-  if node "$SCRIPTS/cdp-bridge.js" status 2>/dev/null | grep -q '"route"' 2>/dev/null; then
+stage_log "$CDP_LOG"
+printf '$ node %s/cdp-bridge.js status\n' "$SCRIPTS" > "$CDP_LOG"
+while [ $CDP_RETRY -lt $CDP_WAIT_TIMEOUT ]; do
+  CDP_STATUS_OUTPUT=$(node "$SCRIPTS/cdp-bridge.js" status 2>&1 || true)
+  printf '[attempt %s]\n%s\n' "$((CDP_RETRY + 1))" "$CDP_STATUS_OUTPUT" >>"$CDP_LOG"
+  if echo "$CDP_STATUS_OUTPUT" | grep -q '"route"' 2>/dev/null; then
     ok "CDP connected"
     break
   fi
@@ -559,7 +595,7 @@ while [ $CDP_RETRY -lt $CDP_TIMEOUT ]; do
   [ $CDP_RETRY -eq 5 ] && echo -e "  ${DIM}Still waiting... app may still be loading JS bundle${NC}"
   [ $CDP_RETRY -eq 15 ] && echo -e "  ${DIM}Taking longer than usual — check device${NC}"
 done
-if [ $CDP_RETRY -ge $CDP_TIMEOUT ]; then
+if [ $CDP_RETRY -ge $CDP_WAIT_TIMEOUT ]; then
   # Diagnostic: probe candidate ports before failing. The symptom we hit most
   # often is the app registering its Hermes inspector on 8081 instead of our
   # $PORT when a stale expo dev server lingers — surface that explicitly so we
@@ -595,11 +631,12 @@ for p in json.loads(sys.stdin.read() or "[]"):
     echo -e "  ${DIM}A stale 'expo run:ios' without --port is likely holding 8081.${NC}"
     echo -e "  ${DIM}Run: pgrep -fl 'expo run:ios' to confirm, then kill it and retry.${NC}"
   fi
-  fail "CDP did not become available after ${CDP_TIMEOUT}s"
+  fail "CDP did not become available after ${CDP_WAIT_TIMEOUT}s — see $CDP_LOG"
 fi
 
 # Verify CDP is connected to the right platform (status may return object or array)
-CDP_STATUS=$(node "$SCRIPTS/cdp-bridge.js" status 2>/dev/null || true)
+CDP_STATUS=$(node "$SCRIPTS/cdp-bridge.js" status 2>&1 || true)
+printf '[final-status]\n%s\n' "$CDP_STATUS" >>"$CDP_LOG"
 CDP_HAS_PLAT=$(echo "$CDP_STATUS" | jq -r 'if type == "array" then [.[].platform] else [.platform] end | map(select(. == "'"$PLAT"'")) | length' 2>/dev/null || echo 0)
 if [ "$CDP_HAS_PLAT" = "0" ]; then
   warn "CDP did not find $PLAT app — it may still be loading"
@@ -614,7 +651,14 @@ if $DO_WALLET_SETUP; then
   FIXTURE_FLAG=""
   [ "$WALLET_FIXTURE" != ".agent/wallet-fixture.json" ] && FIXTURE_FLAG="--fixture $WALLET_FIXTURE"
   if [ -f "$WALLET_FIXTURE" ] || [ -n "$FIXTURE_FLAG" ]; then
-    bash "$SCRIPTS/setup-wallet.sh" $FIXTURE_FLAG && ok "Wallet configured" || warn "Wallet setup failed — check fixture file"
+    stage_log "$WALLET_LOG"
+    printf '$ bash %s/setup-wallet.sh %s\n' "$SCRIPTS" "$FIXTURE_FLAG" > "$WALLET_LOG"
+    if bash "$SCRIPTS/setup-wallet.sh" $FIXTURE_FLAG >>"$WALLET_LOG" 2>&1; then
+      tail -12 "$WALLET_LOG" | sed 's/^/  /'
+      ok "Wallet configured"
+    else
+      warn "Wallet setup failed — see $WALLET_LOG"
+    fi
   else
     warn "No fixture at $WALLET_FIXTURE"
     echo -e "  ${DIM}cp scripts/perps/agentic/wallet-fixture.example.json .agent/wallet-fixture.json${NC}"
@@ -638,6 +682,7 @@ echo -e "  Platform ${DIM}$PLAT${NC}"
 echo -e "  Metro    ${DIM}http://localhost:$PORT/status${NC}"
 echo -e "  Logs     ${DIM}tail -f $LOGFILE${NC}"
 echo -e "  CDP      ${DIM}node $SCRIPTS/cdp-bridge.js status${NC}"
+echo -e "  Stage logs ${DIM}$LOG_DIR${NC}"
 echo ""
 echo -e "${DIM}Timing:${NC}"
 echo -e "$STEP_TIMES"
