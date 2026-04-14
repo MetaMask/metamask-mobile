@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -194,6 +194,7 @@ jest.mock('../../../selectors/rewards', () => ({
 
 jest.mock('../../../reducers/rewards/selectors', () => ({
   selectIsRewardsVersionBlocked: jest.fn(),
+  selectPendingDeeplink: jest.fn(),
 }));
 
 // Mock react-navigation/native hooks
@@ -201,7 +202,7 @@ const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockSetParams = jest.fn();
 const mockIsFocused = jest.fn();
-let mockRouteParams: { page?: string; campaign?: string } = {};
+const mockReactReduxDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -212,8 +213,15 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetOptions,
       setParams: mockSetParams,
     }),
-    useRoute: () => ({ params: mockRouteParams }),
     useIsFocused: () => mockIsFocused(),
+  };
+});
+
+jest.mock('react-redux', () => {
+  const actual = jest.requireActual('react-redux');
+  return {
+    ...actual,
+    useDispatch: () => mockReactReduxDispatch,
   };
 });
 
@@ -268,7 +276,11 @@ jest.mock('./components/RewardsUpdateRequired/RewardsUpdateRequired', () => {
 
 // Import mocked selectors and hooks for setup
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
+import {
+  selectIsRewardsVersionBlocked,
+  selectPendingDeeplink,
+} from '../../../reducers/rewards/selectors';
+import { setPendingDeeplink } from '../../../reducers/rewards';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 
@@ -281,6 +293,10 @@ const mockSelectIsRewardsVersionBlocked =
   selectIsRewardsVersionBlocked as jest.MockedFunction<
     typeof selectIsRewardsVersionBlocked
   >;
+
+const mockSelectPendingDeeplink = selectPendingDeeplink as jest.MockedFunction<
+  typeof selectPendingDeeplink
+>;
 
 const mockUseSeasonStatus = useSeasonStatus as jest.MockedFunction<
   typeof useSeasonStatus
@@ -295,10 +311,10 @@ describe('RewardsNavigator', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = {};
 
     // Set default mock return values
     mockSelectRewardsSubscriptionId.mockReturnValue(null);
+    mockSelectPendingDeeplink.mockReturnValue(null);
     mockUseSeasonStatus.mockReturnValue({
       fetchSeasonStatus: jest.fn(),
     });
@@ -624,10 +640,11 @@ describe('RewardsNavigator', () => {
     beforeEach(() => {
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
       mockNavigate.mockClear();
+      mockReactReduxDispatch.mockClear();
     });
 
-    it('navigates to campaigns view when page=campaigns param is set', async () => {
-      mockRouteParams = { page: 'campaigns' };
+    it('navigates to campaigns view when pendingDeeplink.page=campaigns', async () => {
+      mockSelectPendingDeeplink.mockReturnValue({ page: 'campaigns' });
 
       renderWithNavigation(<RewardsNavigator />);
 
@@ -638,8 +655,8 @@ describe('RewardsNavigator', () => {
       });
     });
 
-    it('navigates to ondo campaign when campaign=ondo param is set', async () => {
-      mockRouteParams = { campaign: 'ondo' };
+    it('navigates to ondo campaign when pendingDeeplink.campaign=ondo', async () => {
+      mockSelectPendingDeeplink.mockReturnValue({ campaign: 'ondo' });
 
       renderWithNavigation(<RewardsNavigator />);
 
@@ -650,8 +667,8 @@ describe('RewardsNavigator', () => {
       });
     });
 
-    it('navigates to season1 campaign when campaign=season1 param is set', async () => {
-      mockRouteParams = { campaign: 'season1' };
+    it('navigates to season1 campaign when pendingDeeplink.campaign=season1', async () => {
+      mockSelectPendingDeeplink.mockReturnValue({ campaign: 'season1' });
 
       renderWithNavigation(<RewardsNavigator />);
 
@@ -662,8 +679,8 @@ describe('RewardsNavigator', () => {
       });
     });
 
-    it('navigates to musd calculator when page=musd param is set', async () => {
-      mockRouteParams = { page: 'musd' };
+    it('navigates to musd calculator when pendingDeeplink.page=musd', async () => {
+      mockSelectPendingDeeplink.mockReturnValue({ page: 'musd' });
 
       renderWithNavigation(<RewardsNavigator />);
 
@@ -674,8 +691,8 @@ describe('RewardsNavigator', () => {
       });
     });
 
-    it('navigates to benefits full view when page=benefits param is set', async () => {
-      mockRouteParams = { page: 'benefits' };
+    it('navigates to benefits full view when pendingDeeplink.page=benefits', async () => {
+      mockSelectPendingDeeplink.mockReturnValue({ page: 'benefits' });
 
       renderWithNavigation(<RewardsNavigator />);
 
@@ -686,14 +703,79 @@ describe('RewardsNavigator', () => {
       });
     });
 
-    it('navigates to dashboard when no deeplink params are set', async () => {
-      mockRouteParams = {};
+    it('navigates to dashboard when pendingDeeplink is null', async () => {
+      mockSelectPendingDeeplink.mockReturnValue(null);
 
       renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
       });
+    });
+
+    it('dispatches setPendingDeeplink(null) after handling page deeplink', async () => {
+      mockSelectPendingDeeplink.mockReturnValue({ page: 'campaigns' });
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockReactReduxDispatch).toHaveBeenCalledWith(
+          setPendingDeeplink(null),
+        );
+      });
+    });
+
+    it('dispatches setPendingDeeplink(null) after handling campaign deeplink', async () => {
+      mockSelectPendingDeeplink.mockReturnValue({ campaign: 'ondo' });
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockReactReduxDispatch).toHaveBeenCalledWith(
+          setPendingDeeplink(null),
+        );
+      });
+    });
+
+    it('does not dispatch setPendingDeeplink when no deeplink is pending', async () => {
+      mockSelectPendingDeeplink.mockReturnValue(null);
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
+      });
+      expect(mockReactReduxDispatch).not.toHaveBeenCalledWith(
+        setPendingDeeplink(null),
+      );
+    });
+
+    it('does not navigate to dashboard after pending deeplink is consumed', async () => {
+      // Regression: the useEffect re-fires when dispatch(setPendingDeeplink(null))
+      // changes the pendingDeeplink dep to null. Without the skipNextEffectRef guard
+      // it would fall through to navigate(REWARDS_DASHBOARD), overriding the
+      // deeplink destination.
+      mockSelectPendingDeeplink.mockReturnValue({ page: 'campaigns' });
+
+      const { rerender } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.REWARDS_CAMPAIGNS_VIEW,
+        );
+      });
+
+      // Simulate Redux clearing the pending deeplink (what happens after the
+      // real dispatch(setPendingDeeplink(null)) updates the store).
+      mockSelectPendingDeeplink.mockReturnValue(null);
+      mockNavigate.mockClear();
+
+      await act(async () => {
+        rerender(buildNavWrapper(<RewardsNavigator />));
+      });
+
+      // The skipNextEffectRef guard must prevent navigate(REWARDS_DASHBOARD).
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
     });
   });
 

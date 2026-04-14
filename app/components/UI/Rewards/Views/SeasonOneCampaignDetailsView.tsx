@@ -9,13 +9,14 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import PreviousSeasonSummary from '../components/PreviousSeason/PreviousSeasonSummary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../locales/i18n';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type SeasonOneCampaignDetailsRouteParams = {
-  SeasonOneCampaignDetails: { campaignId: string };
+  SeasonOneCampaignDetails: { campaignId?: string };
 };
 
 const SeasonOneCampaignDetailsView: React.FC = () => {
@@ -25,13 +26,18 @@ const SeasonOneCampaignDetailsView: React.FC = () => {
     useRoute<
       RouteProp<SeasonOneCampaignDetailsRouteParams, 'SeasonOneCampaignDetails'>
     >();
-  const { campaignId } = route.params;
+  // campaignId may be absent when arriving via a deeplink (no ID in the URL).
+  // In that case we fall back to finding the campaign by type.
+  const campaignId = route.params?.campaignId;
 
   const { campaigns, isLoading, hasError, hasLoaded, fetchCampaigns } =
     useRewardCampaigns();
 
   const campaign = useMemo(
-    () => campaigns.find((c) => c.id === campaignId) ?? null,
+    () =>
+      campaigns.find((c) =>
+        campaignId ? c.id === campaignId : c.type === CampaignType.SEASON_1,
+      ) ?? null,
     [campaigns, campaignId],
   );
 
