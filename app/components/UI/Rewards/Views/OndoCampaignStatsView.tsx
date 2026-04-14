@@ -25,7 +25,10 @@ import {
   QualifiedTag,
 } from '../components/Campaigns/CampaignStatsSummary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
-import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
+import {
+  formatTierDisplayName,
+  getTierMinNetDeposit,
+} from '../components/Campaigns/OndoLeaderboard.utils';
 import { strings } from '../../../../../locales/i18n';
 import { formatPercentChange, formatUsd } from '../utils/formatUtils';
 import { ONDO_GM_REQUIRED_QUALIFIED_DAYS } from '../utils/ondoCampaignConstants';
@@ -149,11 +152,13 @@ const OndoCampaignStatsView: React.FC = () => {
 
   const tierMinDeposit = useMemo(
     () =>
-      leaderboardPosition && leaderboardData && isCampaignActive
-        ? (leaderboardData.tiers[leaderboardPosition.projectedTier]
-            ?.minDeposit ?? null)
+      leaderboardPosition && campaign && isCampaignActive
+        ? getTierMinNetDeposit(
+            campaign.details?.tiers,
+            leaderboardPosition.projectedTier,
+          )
         : null,
-    [leaderboardData, leaderboardPosition, isCampaignActive],
+    [campaign, leaderboardPosition, isCampaignActive],
   );
 
   const showQualifyCard =
@@ -339,7 +344,7 @@ const OndoCampaignStatsView: React.FC = () => {
                     {strings(
                       'rewards.ondo_campaign_leaderboard.qualify_for_rank_description',
                       {
-                        minDeposit: formatUsd(tierMinDeposit ?? 0),
+                        minNetDeposit: formatUsd(tierMinDeposit ?? 0),
                         daysRemaining,
                       },
                     )}
@@ -363,7 +368,7 @@ const OndoCampaignStatsView: React.FC = () => {
                 >
                   {strings(
                     'rewards.ondo_campaign_stats.qualified_description',
-                    { minDeposit: formatUsd(tierMinDeposit) },
+                    { minNetDeposit: formatUsd(tierMinDeposit) },
                   )}
                 </Text>
               </Box>

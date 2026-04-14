@@ -268,7 +268,7 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
                 {strings(
                   'rewards.ondo_campaign_leaderboard.qualify_for_rank_description',
                   {
-                    minDeposit: formatUsd(tierMinDeposit),
+                    minNetDeposit: formatUsd(tierMinDeposit),
                     daysRemaining: Math.max(
                       ONDO_GM_REQUIRED_QUALIFIED_DAYS -
                         leaderboardPosition.qualifiedDays,

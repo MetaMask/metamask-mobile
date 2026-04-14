@@ -5,17 +5,12 @@ import {
   MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
-import {
-  getEarnControllerMessenger,
-  getEarnControllerInitMessenger,
-  EarnControllerInitMessenger,
-} from './earn-controller-messenger';
+import { getEarnControllerMessenger } from './earn-controller-messenger';
 import { EarnControllerMessenger } from '@metamask/earn-controller';
 
 type RootMessenger = Messenger<
   MockAnyNamespace,
-  | MessengerActions<EarnControllerMessenger>
-  | MessengerActions<EarnControllerInitMessenger>,
+  MessengerActions<EarnControllerMessenger>,
   MessengerEvents<EarnControllerMessenger>
 >;
 
@@ -31,15 +26,5 @@ describe('getEarnControllerMessenger', () => {
     const earnControllerMessenger = getEarnControllerMessenger(rootMessenger);
 
     expect(earnControllerMessenger).toBeInstanceOf(Messenger);
-  });
-});
-
-describe('getEarnControllerInitMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
-    const earnControllerInitMessenger =
-      getEarnControllerInitMessenger(rootMessenger);
-
-    expect(earnControllerInitMessenger).toBeInstanceOf(Messenger);
   });
 });
