@@ -6,6 +6,7 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import { MoneyHeaderTestIds } from '../../components/MoneyHeader/MoneyHeader.testIds';
 import { MoneyBalanceSummaryTestIds } from '../../components/MoneyBalanceSummary/MoneyBalanceSummary.testIds';
 import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
+import { MoneyOnboardingCardTestIds } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
 import { MoneyYourPositionTestIds } from '../../components/MoneyYourPosition/MoneyYourPosition.testIds';
 import { MoneyHowItWorksTestIds } from '../../components/MoneyHowItWorks/MoneyHowItWorks.testIds';
 import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings.testIds';
@@ -129,6 +130,12 @@ describe('MoneyHomeView', () => {
     expect(
       getByTestId(MoneyActionButtonRowTestIds.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the onboarding card', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    expect(getByTestId(MoneyOnboardingCardTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
   it('renders the your position section', () => {

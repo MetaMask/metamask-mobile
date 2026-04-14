@@ -7,6 +7,7 @@ import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
+import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
 import MoneyYourPosition from '../../components/MoneyYourPosition';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -91,6 +92,7 @@ const MoneyHomeView = () => {
           onTransferPress={handleTransferPress}
           onCardPress={handleCardPress}
         />
+        <MoneyOnboardingCard onAddPress={handleAddPress} />
         <MoneyYourPosition />
         <Divider />
         <MoneyHowItWorks

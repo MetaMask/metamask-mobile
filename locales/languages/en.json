@@ -6232,6 +6232,12 @@
     "title": "Money",
     "apy_label": "{{percentage}}% APY",
     "apy_info_label": "APY info",
+    "onboarding": {
+      "step_progress": "Step {{current}} of {{total}}",
+      "title": "Add money",
+      "description": "Buy mUSD and start earning APY today.",
+      "add": "Add"
+    },
     "action": {
       "add": "Add",
       "transfer": "Transfer",
