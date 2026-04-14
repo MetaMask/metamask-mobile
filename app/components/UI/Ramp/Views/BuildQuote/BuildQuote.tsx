@@ -252,6 +252,17 @@ function BuildQuote() {
   // when the combination changes.
   const lastShownUnavailableKeyRef = useRef<string>('');
 
+  // Tracks providers already attempted for the current token during
+  // auto-switch.  Prevents an infinite loop when every candidate
+  // provider claims static support but returns empty payment methods.
+  const triedProvidersRef = useRef<Set<string>>(new Set());
+  const triedProvidersAssetRef = useRef<string | undefined>();
+
+  if (effectiveAssetId !== triedProvidersAssetRef.current) {
+    triedProvidersRef.current = new Set();
+    triedProvidersAssetRef.current = effectiveAssetId;
+  }
+
   // Bump a counter on screen focus so the modal effect re-evaluates
   // when the user navigates away (e.g. token selection) and comes back.
   const [focusTrigger, setFocusTrigger] = useState(0);
@@ -298,9 +309,14 @@ function BuildQuote() {
     }
 
     if (providerAutoSelected && effectiveAssetId) {
+      if (selectedProvider?.id) {
+        triedProvidersRef.current.add(selectedProvider.id);
+      }
+
       const supportingProvider = providers.find(
         (p) =>
           p.id !== selectedProvider?.id &&
+          !triedProvidersRef.current.has(p.id) &&
           providerSupportsAsset(p, effectiveAssetId),
       );
       if (supportingProvider) {
@@ -973,7 +989,8 @@ function BuildQuote() {
                       amount={amountAsNumber}
                     />
                   ) : (
-                    selectedProvider && (
+                    selectedProvider &&
+                    !(providerAutoSelected && isTokenUnavailable) && (
                       <Text
                         variant={TextVariant.BodySm}
                         style={styles.poweredByText}

@@ -1324,10 +1324,9 @@ describe('BuildQuote', () => {
         mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
 
         renderWithProvider(<BuildQuote />, { state: autoSelectedState });
-        act(() => {
-          jest.advanceTimersByTime(650);
-        });
 
+        // The effect should immediately switch to coinbase (which
+        // supports BTC) and return early — no modal timer started.
         expect(mockSetSelectedProvider).toHaveBeenCalledWith(coinbaseProvider, {
           autoSelected: true,
         });
@@ -1389,6 +1388,120 @@ describe('BuildQuote', () => {
             screen: 'RampTokenNotAvailableModal',
           }),
         );
+      });
+
+      it('tries each provider once then shows modal when all return empty', () => {
+        const SOL_ASSET = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+
+        const robinhoodProvider = {
+          id: '/providers/robinhood',
+          name: 'Robinhood',
+          supportedCryptoCurrencies: {
+            [TOKEN_ASSET]: true,
+            [SOL_ASSET]: true,
+          },
+          links: [],
+        };
+
+        const moonpayProvider = {
+          id: '/providers/moonpay',
+          name: 'Moonpay',
+          supportedCryptoCurrencies: {
+            [TOKEN_ASSET]: true,
+            [SOL_ASSET]: true,
+          },
+          links: [],
+        };
+
+        // First render: PayPal selected, SOL token, empty payment methods.
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, robinhoodProvider, moonpayProvider],
+          selectedToken: {
+            assetId: SOL_ASSET,
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            symbol: 'SOL',
+          },
+        });
+        mockUseParams.mockReturnValue({ assetId: SOL_ASSET });
+
+        const { rerender } = renderWithProvider(<BuildQuote />, {
+          state: autoSelectedState,
+        });
+
+        // First switch: PayPal -> Robinhood
+        expect(mockSetSelectedProvider).toHaveBeenCalledWith(
+          robinhoodProvider,
+          { autoSelected: true },
+        );
+
+        // Simulate Robinhood also returning empty payment methods.
+        mockSetSelectedProvider.mockClear();
+        mockUnavailableController({
+          selectedProvider: robinhoodProvider,
+          providers: [paypalProvider, robinhoodProvider, moonpayProvider],
+          selectedToken: {
+            assetId: SOL_ASSET,
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            symbol: 'SOL',
+          },
+        });
+        rerender(<BuildQuote />);
+
+        // Second switch: Robinhood -> Moonpay (PayPal already tried)
+        expect(mockSetSelectedProvider).toHaveBeenCalledTimes(1);
+        expect(mockSetSelectedProvider).toHaveBeenCalledWith(moonpayProvider, {
+          autoSelected: true,
+        });
+
+        // Simulate Moonpay also returning empty.
+        mockSetSelectedProvider.mockClear();
+        mockNavigate.mockClear();
+        mockUnavailableController({
+          selectedProvider: moonpayProvider,
+          providers: [paypalProvider, robinhoodProvider, moonpayProvider],
+          selectedToken: {
+            assetId: SOL_ASSET,
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            symbol: 'SOL',
+          },
+        });
+        rerender(<BuildQuote />);
+
+        // All exhausted — no further switch.
+        expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+
+        // Falls through to modal.
+        act(() => {
+          jest.advanceTimersByTime(650);
+        });
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'RampModals',
+          expect.objectContaining({
+            screen: 'RampTokenNotAvailableModal',
+          }),
+        );
+      });
+
+      it('hides powered-by text while auto-switching between providers', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+
+        const { queryByText } = renderWithProvider(<BuildQuote />, {
+          state: autoSelectedState,
+        });
+
+        // While the token is unavailable and provider is auto-selected,
+        // the "Powered by" text should be suppressed to prevent flash.
+        expect(queryByText(/powered by/i)).toBeNull();
       });
     });
   });
