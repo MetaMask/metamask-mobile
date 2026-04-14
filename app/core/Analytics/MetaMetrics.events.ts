@@ -92,6 +92,11 @@ enum EVENT_NAME {
   CHART_EMPTY_DISPLAYED = 'chart_empty_displayed',
   SECURITY_TRUST_BOTTOM_SHEET_OPENED = 'Security Trust BottomSheet Opened',
   SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN = 'Security Trust BottomSheet Action Taken',
+  TOKEN_DETAIL_SECURITY_SECTION_VIEWED = 'token_detail_security_section_viewed',
+  TOKEN_DETAIL_SECURITY_SECTION_TAPPED = 'token_detail_security_section_tapped',
+  SECURITY_PAGE_VIEWED = 'security_page_viewed',
+  SECURITY_PAGE_ITEM_TAPPED = 'security_page_item_tapped',
+  SECURITY_PAGE_DISMISSED = 'security_page_dismissed',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
   VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
@@ -1530,6 +1535,15 @@ const events = {
   SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN: generateOpt(
     EVENT_NAME.SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN,
   ),
+  TOKEN_DETAIL_SECURITY_SECTION_VIEWED: generateOpt(
+    EVENT_NAME.TOKEN_DETAIL_SECURITY_SECTION_VIEWED,
+  ),
+  TOKEN_DETAIL_SECURITY_SECTION_TAPPED: generateOpt(
+    EVENT_NAME.TOKEN_DETAIL_SECURITY_SECTION_TAPPED,
+  ),
+  SECURITY_PAGE_VIEWED: generateOpt(EVENT_NAME.SECURITY_PAGE_VIEWED),
+  SECURITY_PAGE_ITEM_TAPPED: generateOpt(EVENT_NAME.SECURITY_PAGE_ITEM_TAPPED),
+  SECURITY_PAGE_DISMISSED: generateOpt(EVENT_NAME.SECURITY_PAGE_DISMISSED),
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   ScrollView,
   View,
@@ -41,6 +41,8 @@ import {
 import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetailsStickyFooter';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import { useTokenActions } from '../../TokenDetails/hooks/useTokenActions';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
   <Text
@@ -58,6 +60,9 @@ const SecurityTrustScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const insets = useSafeAreaInsets();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasTrackedView = useRef(false);
+  const timeSpentStart = useRef<number>(Date.now());
 
   const params = route.params as TokenDetailsRouteParams;
   const securityData = params?.securityData ?? null;
@@ -86,6 +91,28 @@ const SecurityTrustScreen: React.FC = () => {
       token: params,
       networkName,
     });
+
+  // Track page view once
+  useEffect(() => {
+    if (!hasTrackedView.current) {
+      hasTrackedView.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SECURITY_PAGE_VIEWED)
+          .addProperties({
+            token_symbol: params.symbol,
+            chain_id: params.chainId,
+            severity: securityData?.resultType || 'unknown',
+          })
+          .build(),
+      );
+    }
+  }, [
+    params.symbol,
+    params.chainId,
+    securityData?.resultType,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const fees = securityData?.fees ?? null;
   const features = securityData?.features ?? [];
@@ -141,9 +168,30 @@ const SecurityTrustScreen: React.FC = () => {
 
   const tokenType = params?.isNative ? 'Native' : 'ERC-20';
 
-  const openLink = useCallback((url: string) => {
-    Linking.openURL(url).catch(() => null);
-  }, []);
+  const openLink = useCallback(
+    (url: string, itemType: string) => {
+      // Track item tap
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SECURITY_PAGE_ITEM_TAPPED)
+          .addProperties({
+            token_symbol: params.symbol,
+            chain_id: params.chainId,
+            item_type: itemType,
+            severity: securityData?.resultType || 'unknown',
+          })
+          .build(),
+      );
+
+      Linking.openURL(url).catch(() => null);
+    },
+    [
+      params.symbol,
+      params.chainId,
+      securityData?.resultType,
+      trackEvent,
+      createEventBuilder,
+    ],
+  );
 
   const scrollContentStyle = React.useMemo(
     () => ({
@@ -166,7 +214,20 @@ const SecurityTrustScreen: React.FC = () => {
         style={{ paddingTop: insets.top + 8 }}
       >
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            const timeSpentMs = Date.now() - timeSpentStart.current;
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.SECURITY_PAGE_DISMISSED)
+                .addProperties({
+                  token_symbol: params.symbol,
+                  chain_id: params.chainId,
+                  time_spent_ms: timeSpentMs,
+                  severity: securityData?.resultType || 'unknown',
+                })
+                .build(),
+            );
+            navigation.goBack();
+          }}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           testID="security-trust-back-button"
         >
@@ -506,7 +567,7 @@ const SecurityTrustScreen: React.FC = () => {
               {metadata.externalLinks.homepage && (
                 <ButtonBase
                   onPress={() =>
-                    openLink(metadata.externalLinks.homepage || '')
+                    openLink(metadata.externalLinks.homepage || '', 'website')
                   }
                   size={ButtonBaseSize.Md}
                   twClassName={(pressed) =>
@@ -533,6 +594,7 @@ const SecurityTrustScreen: React.FC = () => {
                   onPress={() =>
                     openLink(
                       `https://x.com/${metadata.externalLinks.twitterPage}`,
+                      'twitter',
                     )
                   }
                   size={ButtonBaseSize.Md}
@@ -560,6 +622,7 @@ const SecurityTrustScreen: React.FC = () => {
                   onPress={() =>
                     openLink(
                       `https://t.me/${metadata.externalLinks.telegramChannelId}`,
+                      'telegram',
                     )
                   }
                   size={ButtonBaseSize.Md}
@@ -594,7 +657,9 @@ const SecurityTrustScreen: React.FC = () => {
 
                   return blockExplorerUrl ? (
                     <ButtonBase
-                      onPress={() => openLink(blockExplorerUrl)}
+                      onPress={() =>
+                        openLink(blockExplorerUrl, 'block_explorer')
+                      }
                       size={ButtonBaseSize.Md}
                       twClassName={(pressed) =>
                         `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`

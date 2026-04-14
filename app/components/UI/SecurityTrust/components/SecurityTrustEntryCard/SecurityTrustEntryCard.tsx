@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Skeleton from '../../../../../component-library/components-temp/Skeleton/Skeleton';
@@ -21,6 +21,8 @@ import { getFeatureTags, getResultTypeConfig } from '../../utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface SecurityTrustEntryCardProps {
   securityData: TokenSecurityData | null;
@@ -35,6 +37,8 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasTrackedView = useRef(false);
 
   const config = getResultTypeConfig(securityData?.resultType);
   const tagIcon = config.icon;
@@ -45,8 +49,45 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
 
   const hasDetails = (securityData?.features?.length ?? 0) > 0;
 
+  // Track when card becomes visible
+  useEffect(() => {
+    if (!isLoading && securityData && !hasTrackedView.current) {
+      hasTrackedView.current = true;
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.TOKEN_DETAIL_SECURITY_SECTION_VIEWED,
+        )
+          .addProperties({
+            token_symbol: token.symbol,
+            chain_id: token.chainId,
+            severity: securityData.resultType || 'unknown',
+          })
+          .build(),
+      );
+    }
+  }, [
+    isLoading,
+    securityData,
+    token.symbol,
+    token.chainId,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
   const handlePress = () => {
     if (!hasDetails) return;
+
+    // Track tap event
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_DETAIL_SECURITY_SECTION_TAPPED)
+        .addProperties({
+          token_symbol: token.symbol,
+          chain_id: token.chainId,
+          severity: securityData?.resultType || 'unknown',
+        })
+        .build(),
+    );
+
     navigation.navigate(Routes.SECURITY_TRUST, {
       ...token,
       securityData,
