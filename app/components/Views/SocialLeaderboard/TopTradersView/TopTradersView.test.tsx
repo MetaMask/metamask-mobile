@@ -52,6 +52,7 @@ const fixtureTraders: TopTrader[] = [
 const mockUseTopTraders: UseTopTradersResult = {
   traders: fixtureTraders,
   isLoading: false,
+  isRefreshing: false,
   error: null,
   refresh: mockRefresh,
   toggleFollow: mockToggleFollow,
@@ -128,6 +129,20 @@ describe('TopTradersView', () => {
     const followButtons = screen.getAllByText('Follow');
     fireEvent.press(followButtons[0]);
     expect(mockToggleFollow).toHaveBeenCalledWith(fixtureTraders[0].id);
+  });
+
+  it('renders a RefreshControl on the trader list scroll view', () => {
+    renderWithProvider(<TopTradersView />);
+    const list = screen.getByTestId('top-traders-view-list');
+    expect(list.props.refreshControl).toBeDefined();
+  });
+
+  it('calls refresh when the scroll view is pulled down', async () => {
+    mockRefresh.mockResolvedValue(undefined);
+    renderWithProvider(<TopTradersView />);
+    const list = screen.getByTestId('top-traders-view-list');
+    await list.props.refreshControl.props.onRefresh();
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
   it('navigates back when the feature flag is disabled', () => {

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -17,6 +18,7 @@ import {
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import { TrendingTokenNetworkBottomSheet } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
@@ -46,11 +48,13 @@ const SKELETON_KEYS = Array.from(
 const TopTradersView = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const { colors } = useTheme();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
 
-  const { traders, isLoading, toggleFollow } = useTopTraders({
-    enabled: isEnabled,
-  });
+  const { traders, isLoading, isRefreshing, refresh, toggleFollow } =
+    useTopTraders({
+      enabled: isEnabled,
+    });
 
   useEffect(() => {
     if (!isEnabled) {
@@ -81,6 +85,10 @@ const TopTradersView = () => {
   const handleNetworkBottomSheetClose = useCallback(() => {
     setShowNetworkBottomSheet(false);
   }, []);
+
+  const handleRefresh = useCallback(async () => {
+    await refresh();
+  }, [refresh]);
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
@@ -147,6 +155,14 @@ const TopTradersView = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('pb-6')}
         testID="top-traders-view-list"
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+          />
+        }
       >
         {isLoading
           ? SKELETON_KEYS.map((key) => <TraderRowSkeleton key={key} />)

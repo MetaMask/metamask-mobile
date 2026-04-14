@@ -13,6 +13,7 @@ import type { TopTrader } from '../types';
 export interface UseTopTradersResult {
   traders: TopTrader[];
   isLoading: boolean;
+  isRefreshing: boolean;
   error: string | null;
   refresh: () => Promise<void>;
   toggleFollow: (traderId: string) => void;
@@ -46,10 +47,11 @@ export const useTopTraders = (
     fetchOptions,
   ];
 
-  const { data, isLoading, error, refetch } = useQuery<LeaderboardResponse>({
-    queryKey,
-    enabled: options?.enabled ?? true,
-  });
+  const { data, isLoading, isFetching, error, refetch } =
+    useQuery<LeaderboardResponse>({
+      queryKey,
+      enabled: options?.enabled ?? true,
+    });
 
   const [localFollowOverrides, setLocalFollowOverrides] = useState<
     Record<string, boolean>
@@ -96,6 +98,7 @@ export const useTopTraders = (
   return {
     traders,
     isLoading,
+    isRefreshing: isFetching && !isLoading,
     error:
       error instanceof Error ? error.message : error ? String(error) : null,
     refresh,
