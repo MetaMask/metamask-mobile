@@ -20,7 +20,27 @@ import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import type { IMetaMetricsEvent } from '../../Analytics/MetaMetrics.types';
 import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
+
+/**
+ * Fire-and-forget analytics helper. Never throws — a broken analytics
+ * call must never abort connection establishment or error handling.
+ */
+function trackMwpEvent(
+  event: IMetaMetricsEvent,
+  properties: Record<string, unknown>,
+): void {
+  try {
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(event)
+        .addProperties(properties)
+        .build(),
+    );
+  } catch {
+    // Intentionally swallowed: analytics must not block MWP flows.
+  }
+}
 
 /**
  * Hard cap on the number of simultaneous active connections.
@@ -154,33 +174,21 @@ export class ConnectionRegistry {
     const conn = await this.store.get(id);
 
     if (conn) {
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED,
-        )
-          .addProperties({
-            remote_session_id: id,
-            platform: 'mobile',
-            sdk_version: conn.metadata?.sdk?.version,
-            sdk_platform: conn.metadata?.sdk?.platform,
-            found_in_store: true,
-          })
-          .build(),
-      );
+      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
+        remote_session_id: id,
+        platform: 'mobile',
+        sdk_version: conn.metadata?.sdk?.version,
+        sdk_platform: conn.metadata?.sdk?.platform,
+        found_in_store: true,
+      });
       return;
     }
 
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED,
-      )
-        .addProperties({
-          remote_session_id: id,
-          platform: 'mobile',
-          found_in_store: false,
-        })
-        .build(),
-    );
+    trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
+      remote_session_id: id,
+      platform: 'mobile',
+      found_in_store: false,
+    });
 
     logger.error(
       'Failed to find connection in store for simple deeplink with id:',
@@ -239,18 +247,12 @@ export class ConnectionRegistry {
     try {
       connReq = this.parseConnectionRequest(url);
 
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED,
-        )
-          .addProperties({
-            remote_session_id: connReq.sessionRequest.id,
-            platform: 'mobile',
-            sdk_version: connReq.metadata.sdk.version,
-            sdk_platform: connReq.metadata.sdk.platform,
-          })
-          .build(),
-      );
+      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
+        remote_session_id: connReq.sessionRequest.id,
+        platform: 'mobile',
+        sdk_version: connReq.metadata.sdk.version,
+        sdk_platform: connReq.metadata.sdk.platform,
+      });
 
       // Defense-in-depth: block connections whose self-reported dapp metadata
       // matches a known internal origin. This check is currently redundant
@@ -292,20 +294,13 @@ export class ConnectionRegistry {
       // protocol). User rejections of wallet_createSession are tracked by
       // the existing CONNECT_REQUEST_CANCELLED MetaMetrics event (with
       // source: 'sdk_connect_v2') — no double-fire occurs.
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
-        )
-          .addProperties({
-            remote_session_id: connReq?.sessionRequest?.id ?? 'unknown',
-            platform: 'mobile',
-            sdk_version: connReq?.metadata?.sdk?.version,
-            sdk_platform: connReq?.metadata?.sdk?.platform,
-            failure_reason:
-              error instanceof Error ? error.message : String(error),
-          })
-          .build(),
-      );
+      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED, {
+        remote_session_id: connReq?.sessionRequest?.id ?? 'unknown',
+        platform: 'mobile',
+        sdk_version: connReq?.metadata?.sdk?.version,
+        sdk_platform: connReq?.metadata?.sdk?.platform,
+        failure_reason: error instanceof Error ? error.message : String(error),
+      });
     } finally {
       if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
     }
