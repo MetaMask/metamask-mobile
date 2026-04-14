@@ -724,8 +724,12 @@ jest.mock('@braze/react-native-sdk', () => ({
     setCustomUserAttribute: jest.fn(),
     setLanguage: jest.fn(),
     addListener: jest.fn(() => ({ remove: jest.fn() })),
-    Events: { PUSH_NOTIFICATION_EVENT: 'push_notification_event' },
-    getInitialPushPayload: jest.fn(),
+    requestBannersRefresh: jest.fn(),
+    Events: {
+      PUSH_NOTIFICATION_EVENT: 'push_notification_event',
+      BANNER_CARDS_UPDATED: 'bannerCardsUpdated',
+    },
+    BrazeBannerView: 'BrazeBannerView',
   },
 }));
 
