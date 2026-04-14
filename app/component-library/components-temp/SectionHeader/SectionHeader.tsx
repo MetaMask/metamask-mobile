@@ -95,11 +95,19 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
       isIOSAutomationMode && testID ? testID : semanticLabel;
     const automationHint =
       isIOSAutomationMode && testID ? semanticLabel : undefined;
+    const shouldForceIOSAutomationNode = isIOSAutomationMode && Boolean(testID);
 
     return (
       <TouchableOpacity
         testID={testID}
         onPress={onPress}
+        // Ensure this wrapper is exposed as an individual iOS node in QA/E2E/RC
+        // builds instead of being merged into parent aggregated labels.
+        accessible
+        collapsable={!shouldForceIOSAutomationNode}
+        accessibilityElementsHidden={
+          shouldForceIOSAutomationNode ? false : undefined
+        }
         accessibilityRole="button"
         accessibilityLabel={automationLabel}
         accessibilityHint={automationHint}
@@ -111,7 +119,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   }
 
   return (
-    <View testID={testID} style={containerStyle}>
+    <View testID={testID} style={containerStyle} accessible={false}>
       {children}
     </View>
   );

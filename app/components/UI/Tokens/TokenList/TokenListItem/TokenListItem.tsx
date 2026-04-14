@@ -547,6 +547,7 @@ export const TokenListItem = React.memo(
     const semanticAssetLabel = `${asset.name || asset.symbol}, ${fiatBalance}, ${tokenBalance}`;
     const isIOSAutomationMode =
       Platform.OS === 'ios' && (isE2E || isQa || isRc);
+    const shouldForceIOSAutomationNode = isIOSAutomationMode;
 
     const isFiatBalanceLoading =
       fiatBalance === TOKEN_BALANCE_LOADING ||
@@ -574,6 +575,12 @@ export const TokenListItem = React.memo(
         }}
         style={styles.itemWrapper}
         accessible={Platform.OS === 'ios'}
+        // Keep each token row as an explicit native node for iOS automation
+        // builds so Appium can resolve per-asset selectors reliably.
+        collapsable={!shouldForceIOSAutomationNode}
+        accessibilityElementsHidden={
+          shouldForceIOSAutomationNode ? false : undefined
+        }
         accessibilityLabel={
           Platform.OS === 'ios'
             ? isIOSAutomationMode
