@@ -66,7 +66,7 @@ jest.mock('../../../../../reducers/rewards/selectors', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
-      'rewards.campaign.enter_now': 'Enter now',
+      'rewards.campaign.enter': 'Enter',
       'rewards.campaign.entered': 'Entered',
       'rewards.campaign.participant_count': `#${params?.count ?? ''}`,
     };

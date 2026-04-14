@@ -199,7 +199,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
                     twClassName="gap-1"
-                    testID="campaign-tile-enter-now"
+                    testID="campaign-tile-enter"
                   >
                     <Text
                       variant={TextVariant.BodySm}
@@ -213,7 +213,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
                       color={TextColor.OverlayInverse}
                       fontWeight={FontWeight.Medium}
                     >
-                      {strings('rewards.campaign.enter_now')}
+                      {strings('rewards.campaign.enter')}
                     </Text>
                   </Box>
                 ) : (

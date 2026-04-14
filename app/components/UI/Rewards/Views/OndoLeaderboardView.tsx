@@ -137,7 +137,7 @@ const OndoLeaderboardView: React.FC = () => {
               <Box flexDirection={BoxFlexDirection.Row}>
                 <StatCell
                   label="Rank"
-                  value={`${position.rank}`}
+                  value={String(position.rank).padStart(2, '0')}
                   isLoading={isPositionLoading}
                   suffix={isPending ? <PendingTag /> : undefined}
                 />

@@ -88,7 +88,7 @@ const LeaderboardEntryRow: React.FC<{
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName={`py-1 px-4 ${isCurrentUser ? 'bg-background-muted' : ''}`}
+    twClassName={`py-2 px-4 ${isCurrentUser ? 'bg-background-muted' : ''}`}
     testID={`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-${entry.rank}`}
   >
     <Box
@@ -97,7 +97,7 @@ const LeaderboardEntryRow: React.FC<{
       twClassName="gap-3"
     >
       <Text variant={TextVariant.BodyMd} twClassName="w-8">
-        #{String(entry.rank).padStart(2, '0')}
+        {String(entry.rank).padStart(2, '0')}.
       </Text>
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {entry.referralCode}

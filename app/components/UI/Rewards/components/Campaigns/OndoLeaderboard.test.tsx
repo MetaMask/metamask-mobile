@@ -291,15 +291,15 @@ describe('OndoLeaderboard', () => {
         getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-3`),
       ).toBeDefined();
 
-      expect(getByText('#01')).toBeDefined();
+      expect(getByText('01.')).toBeDefined();
       expect(getByText('AAA111')).toBeDefined();
       expect(getByText('+20.00%')).toBeDefined();
 
-      expect(getByText('#02')).toBeDefined();
+      expect(getByText('02.')).toBeDefined();
       expect(getByText('BBB222')).toBeDefined();
       expect(getByText('+15.00%')).toBeDefined();
 
-      expect(getByText('#03')).toBeDefined();
+      expect(getByText('03.')).toBeDefined();
       expect(getByText('CCC333')).toBeDefined();
       expect(getByText('-5.00%')).toBeDefined();
     });

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -41,9 +42,9 @@ import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPos
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
-import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectCampaignById } from '../../../../reducers/rewards/selectors';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -70,11 +71,11 @@ const OndoCampaignStatsView: React.FC = () => {
     useRoute<RouteProp<OndoCampaignStatsRouteParams, 'OndoCampaignStats'>>();
   const { campaignId } = route.params;
 
-  const { campaigns } = useRewardCampaigns();
-  const campaign = useMemo(
-    () => campaigns.find((c) => c.id === campaignId) ?? null,
-    [campaigns, campaignId],
+  const selectCampaign = useMemo(
+    () => selectCampaignById(campaignId),
+    [campaignId],
   );
+  const campaign = useSelector(selectCampaign);
   const isCampaignActive =
     campaign != null && getCampaignStatus(campaign) === 'active';
 
@@ -117,10 +118,12 @@ const OndoCampaignStatsView: React.FC = () => {
     [campaign, leaderboardPosition],
   );
 
-  const isNegativeReturn = (leaderboardPosition?.rateOfReturn ?? 0) < 0;
+  const isNegativeReturn = portfolioData?.summary
+    ? parseFloat(portfolioData.summary.portfolioPnlPercent) < 0
+    : false;
 
-  const returnValue = leaderboardPosition
-    ? formatPercentChange(leaderboardPosition.rateOfReturn)
+  const returnValue = portfolioData?.summary
+    ? formatPercentChange(portfolioData.summary.portfolioPnlPercent)
     : '-';
 
   const returnColor = isNegativeReturn
@@ -140,15 +143,17 @@ const OndoCampaignStatsView: React.FC = () => {
     : '-';
 
   const rankValue =
-    isIneligible || !leaderboardPosition ? '-' : `${leaderboardPosition.rank}`;
+    isIneligible || !leaderboardPosition
+      ? '-'
+      : String(leaderboardPosition.rank).padStart(2, '0');
 
   const tierValue =
     isIneligible || !leaderboardPosition
       ? '-'
       : formatTierDisplayName(leaderboardPosition.projectedTier);
 
-  const netDepositValue = leaderboardPosition
-    ? formatUsd(leaderboardPosition.netDeposit)
+  const netDepositValue = portfolioData?.summary
+    ? formatUsd(portfolioData.summary.netDeposit)
     : '-';
 
   const daysHeldValue = leaderboardPosition
@@ -220,7 +225,7 @@ const OndoCampaignStatsView: React.FC = () => {
                 {strings('rewards.ondo_campaign_stats.label_your_return')}
               </Text>
 
-              {leaderboardLoading ? (
+              {portfolioLoading ? (
                 <Skeleton style={tw.style('h-9 w-28 rounded')} />
               ) : (
                 <Text
