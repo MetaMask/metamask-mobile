@@ -10,8 +10,8 @@ let mockUpdateTokenAmountCallback = jest.fn();
 let mockActiveTransactionMeta: { id?: string } | null = null;
 let mockSelectedPaymentToken:
   | {
-      address?: string;
-      chainId?: string;
+      address: string;
+      chainId: string;
     }
   | undefined;
 let mockPayToken:
@@ -693,40 +693,6 @@ describe('PredictPayWithAnyTokenInfo', () => {
     it('does not call setPayToken when selectedPaymentToken is undefined', () => {
       mockActiveTransactionMeta = { id: 'tx-1' };
       mockSelectedPaymentToken = undefined;
-
-      render(
-        <PredictPayWithAnyTokenInfo
-          currentValue={100}
-          preview={defaultPreview}
-          isInputFocused={false}
-        />,
-      );
-
-      expect(mockSetPayToken).not.toHaveBeenCalled();
-    });
-
-    it('does not call setPayToken when selectedPaymentToken address is missing', () => {
-      mockActiveTransactionMeta = { id: 'tx-1' };
-      mockSelectedPaymentToken = {
-        chainId: '0x1',
-      };
-
-      render(
-        <PredictPayWithAnyTokenInfo
-          currentValue={100}
-          preview={defaultPreview}
-          isInputFocused={false}
-        />,
-      );
-
-      expect(mockSetPayToken).not.toHaveBeenCalled();
-    });
-
-    it('does not call setPayToken when selectedPaymentToken chainId is missing', () => {
-      mockActiveTransactionMeta = { id: 'tx-1' };
-      mockSelectedPaymentToken = {
-        address: '0xabc123',
-      };
 
       render(
         <PredictPayWithAnyTokenInfo

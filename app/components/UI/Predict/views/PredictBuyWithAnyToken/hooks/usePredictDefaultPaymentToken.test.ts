@@ -10,8 +10,8 @@ let mockActiveOrder: { state: ActiveOrderState } | undefined = {
   state: ActiveOrderState.PREVIEW,
 };
 let mockTokens: {
-  address?: string;
-  chainId?: string;
+  address: string;
+  chainId: string;
   symbol: string;
   fiat?: { balance?: number };
 }[] = [];
@@ -250,51 +250,6 @@ describe('usePredictDefaultPaymentToken', () => {
     expect(mockOnPaymentTokenChange).toHaveBeenCalledWith(
       expect.objectContaining({ address: '0x2', symbol: 'USDC' }),
     );
-  });
-
-  it('skips tokens without an address or chainId when auto-selecting', () => {
-    mockPredictBalance = 0.5;
-    mockTokens = [
-      {
-        address: '0x1',
-        chainId: undefined,
-        symbol: 'BROKEN',
-        fiat: { balance: 500 },
-      },
-      {
-        address: '0x2',
-        chainId: '0x1',
-        symbol: 'USDC',
-        fiat: { balance: 200 },
-      },
-    ];
-
-    renderHook(() => usePredictDefaultPaymentToken());
-
-    expect(mockOnPaymentTokenChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        address: '0x2',
-        chainId: '0x1',
-        symbol: 'USDC',
-      }),
-    );
-  });
-
-  it('falls back to predict balance when only invalid tokens have balance', () => {
-    mockPredictBalance = 0.5;
-    mockTokens = [
-      {
-        address: '0x1',
-        chainId: undefined,
-        symbol: 'BROKEN',
-        fiat: { balance: 500 },
-      },
-    ];
-
-    renderHook(() => usePredictDefaultPaymentToken());
-
-    expect(mockOnPaymentTokenChange).not.toHaveBeenCalled();
-    expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
   });
 
   it('runs only once across re-renders', () => {
