@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
@@ -18,11 +18,18 @@ import {
   PendingTag,
   QualifiedTag,
 } from '../components/Campaigns/CampaignStatsSummary';
-import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
+import {
+  formatTierDisplayName,
+  getTierMinNetDeposit,
+} from '../components/Campaigns/OndoLeaderboard.utils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
+import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { strings } from '../../../../../locales/i18n';
-import { selectReferralCode } from '../../../../reducers/rewards/selectors';
+import {
+  selectReferralCode,
+  selectCampaignById,
+} from '../../../../reducers/rewards/selectors';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -41,15 +48,23 @@ const OndoLeaderboardView: React.FC = () => {
     useRoute<RouteProp<OndoLeaderboardRouteParams, 'OndoLeaderboard'>>();
   const { campaignId } = route.params;
   const referralCode = useSelector(selectReferralCode);
+  const selectCampaign = useMemo(
+    () => selectCampaignById(campaignId),
+    [campaignId],
+  );
+  const campaign = useSelector(selectCampaign);
+
+  const { status: participantStatus } =
+    useGetCampaignParticipantStatus(campaignId);
+  const isOptedIn = participantStatus?.optedIn === true;
 
   const { position, isLoading: isPositionLoading } =
-    useGetOndoLeaderboardPosition(campaignId);
+    useGetOndoLeaderboardPosition(isOptedIn ? campaignId : undefined);
 
   const isPending = position != null && !position.qualified;
   const isQualified = position != null && position.qualified;
-
   const {
-    tierNames,
+    leaderboard: leaderboardData,
     selectedTier,
     selectedTierData,
     setSelectedTier,
@@ -61,6 +76,26 @@ const OndoLeaderboardView: React.FC = () => {
     defaultTier: position?.projectedTier,
   });
 
+  const tierNames = useMemo(
+    () => campaign?.details?.tiers?.map((t) => t.name) ?? [],
+    [campaign],
+  );
+
+  const pendingSheetPosition = useMemo(() => {
+    if (!position || position.qualified) return null;
+    const tierMinDeposit = getTierMinNetDeposit(
+      campaign?.details?.tiers,
+      position.projectedTier,
+    );
+    if (tierMinDeposit == null) return null;
+    return {
+      tier: position.projectedTier,
+      netDeposit: position.netDeposit,
+      qualifiedDays: position.qualifiedDays,
+      tierMinDeposit,
+    };
+  }, [position, campaign]);
+
   return (
     <ErrorBoundary navigation={navigation} view="OndoLeaderboardView">
       <SafeAreaView
@@ -70,6 +105,7 @@ const OndoLeaderboardView: React.FC = () => {
       >
         <HeaderCompactStandard
           title={strings('rewards.ondo_campaign_leaderboard.title')}
+          titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'ondo-leaderboard-back-button' }}
           includesTopInset
@@ -118,6 +154,7 @@ const OndoLeaderboardView: React.FC = () => {
               isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
               onRetry={refetchLeaderboard}
               currentUserReferralCode={referralCode}
+              pendingSheetPosition={pendingSheetPosition}
             />
           </Box>
         </ScrollView>

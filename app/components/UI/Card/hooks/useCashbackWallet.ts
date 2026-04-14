@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCardSDK } from '../sdk';
 import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
 import { cardQueries } from '../queries';
+import Engine from '../../../../core/Engine';
 
 type MonitoringStatus = 'idle' | 'monitoring' | 'success' | 'failed';
 
@@ -12,16 +12,15 @@ const TX_POLLING_TIMEOUT_MS = 3 * 60 * 1000;
 
 const useCashbackWallet = () => {
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
-  const { sdk } = useCardSDK();
   const queryClient = useQueryClient();
 
   const walletQuery = useQuery({
-    ...cardQueries.cashback.walletOptions(sdk),
-    enabled: !!sdk && isAuthenticated,
+    ...cardQueries.cashback.walletOptions(),
+    enabled: isAuthenticated,
   });
 
   const estimationQuery = useQuery(
-    cardQueries.cashback.withdrawEstimationOptions(sdk),
+    cardQueries.cashback.withdrawEstimationOptions(),
   );
 
   const [monitoringStatus, setMonitoringStatus] =
@@ -43,17 +42,17 @@ const useCashbackWallet = () => {
   );
 
   const fetchEstimation = useCallback(async () => {
-    const opts = cardQueries.cashback.withdrawEstimationOptions(sdk);
+    const opts = cardQueries.cashback.withdrawEstimationOptions();
     return queryClient.fetchQuery({
       queryKey: opts.queryKey,
       queryFn: opts.queryFn,
       staleTime: opts.staleTime,
     });
-  }, [queryClient, sdk]);
+  }, [queryClient]);
 
   const startTxPolling = useCallback(
     (hash: string) => {
-      if (!sdk || pollingIntervalRef.current) {
+      if (pollingIntervalRef.current) {
         return;
       }
 
@@ -76,20 +75,33 @@ const useCashbackWallet = () => {
         }
 
         try {
-          const receipt = await sdk.getTransactionReceipt(hash);
-          if (receipt) {
-            if (pollingIntervalRef.current) {
-              clearInterval(pollingIntervalRef.current);
-              pollingIntervalRef.current = null;
-            }
-            if (receipt.status === 1) {
-              setMonitoringStatus('success');
-              queryClient.invalidateQueries({
-                queryKey: cardQueries.cashback.keys.all(),
-              });
-            } else {
-              setMonitoringStatus('failed');
-              setMonitoringError(new Error('Transaction reverted on-chain'));
+          const { NetworkController } = Engine.context;
+          const provider = NetworkController.getNetworkClientById(
+            NetworkController.findNetworkClientIdByChainId('0xe708'),
+          )?.provider;
+          if (provider) {
+            const receipt = await provider.request({
+              method: 'eth_getTransactionReceipt',
+              params: [hash],
+            });
+            if (receipt) {
+              if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null;
+              }
+              const status =
+                typeof (receipt as { status?: string }).status === 'string'
+                  ? parseInt((receipt as { status: string }).status, 16)
+                  : (receipt as { status?: number }).status;
+              if (status === 1) {
+                setMonitoringStatus('success');
+                queryClient.invalidateQueries({
+                  queryKey: cardQueries.cashback.keys.all(),
+                });
+              } else {
+                setMonitoringStatus('failed');
+                setMonitoringError(new Error('Transaction reverted on-chain'));
+              }
             }
           }
         } catch {
@@ -97,14 +109,12 @@ const useCashbackWallet = () => {
         }
       }, TX_POLLING_INTERVAL_MS);
     },
-    [sdk, queryClient],
+    [queryClient],
   );
 
   const withdrawMutation = useMutation({
-    mutationFn: async (amount: string) => {
-      if (!sdk) throw new Error('CardSDK not available');
-      return sdk.withdrawCashback({ amount });
-    },
+    mutationFn: async (amount: string) =>
+      Engine.context.CardController.withdrawCashback({ amount }),
     onSuccess: (data) => {
       startTxPolling(data.txHash);
     },

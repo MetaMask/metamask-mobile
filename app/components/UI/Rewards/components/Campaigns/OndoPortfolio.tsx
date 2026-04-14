@@ -48,6 +48,7 @@ import {
   groupPortfolioPositionsByAsset,
   formatPnlPercent,
   isPnlNonNegative,
+  sanitizeTokenName,
 } from './OndoPortfolio.utils';
 import { formatComputedAt } from './OndoLeaderboard.utils';
 import { selectCurrentSubscriptionAccounts } from '../../../../../selectors/rewards';
@@ -148,6 +149,8 @@ interface OndoPortfolioProps {
   campaignId: string;
   onOpenAccountPicker: (config: AccountPickerConfig) => void;
   isCampaignComplete?: boolean;
+  notEligibleForCampaign?: boolean;
+  onNotEligible?: (confirmAction: () => void) => void;
 }
 
 const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
@@ -158,6 +161,8 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
   campaignId,
   onOpenAccountPicker,
   isCampaignComplete = false,
+  notEligibleForCampaign = false,
+  onNotEligible,
 }) => {
   const navigation = useNavigation();
 
@@ -283,6 +288,11 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
 
   const handleRowPress = useCallback(
     (row: OndoGmPortfolioPositionDto) => {
+      if (notEligibleForCampaign) {
+        onNotEligible?.(() => navigateToSwap(row));
+        return;
+      }
+
       const accountsForRow = getAccountsWithBalance(row);
       const groupsForRow = getGroupsFromAccounts(accountsForRow);
 
@@ -314,11 +324,13 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
       });
     },
     [
+      notEligibleForCampaign,
+      onNotEligible,
+      navigateToSwap,
       getAccountsWithBalance,
       getGroupsFromAccounts,
       getGroupBalance,
       selectedGroup,
-      navigateToSwap,
       onOpenAccountPicker,
       resolveTokenDecimals,
     ],
@@ -451,7 +463,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
                       variant={TextVariant.BodyMd}
                       fontWeight={FontWeight.Medium}
                     >
-                      {row.tokenName}
+                      {sanitizeTokenName(row.tokenName)}
                     </Text>
                     <Text
                       variant={TextVariant.BodyMd}

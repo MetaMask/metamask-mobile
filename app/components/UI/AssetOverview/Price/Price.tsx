@@ -32,16 +32,33 @@ const Price = (props: PriceProps) => {
   const isAdvancedChartEnabled = useSelector(
     selectTokenOverviewAdvancedChartEnabled,
   );
-  const { asset, prices, timePeriod, isLoading, ...rest } = props;
+  const {
+    asset,
+    prices,
+    timePeriod,
+    isLoading,
+    currentPrice,
+    currentCurrency,
+    ...rest
+  } = props;
 
   if (isAdvancedChartEnabled) {
-    return <PriceAdvanced asset={asset} isLoading={isLoading} {...rest} />;
+    return (
+      <PriceAdvanced
+        asset={asset}
+        isLoading={isLoading}
+        currentPrice={currentPrice}
+        currentCurrency={currentCurrency}
+      />
+    );
   }
   return (
     <PriceLegacy
       prices={prices}
       timePeriod={timePeriod}
       isLoading={isLoading}
+      currentPrice={currentPrice}
+      currentCurrency={currentCurrency}
       {...rest}
     />
   );

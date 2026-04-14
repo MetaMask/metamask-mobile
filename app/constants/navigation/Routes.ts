@@ -107,6 +107,7 @@ const Routes = {
   REWARDS_ONDO_CAMPAIGN_LEADERBOARD: 'RewardsOndoCampaignLeaderboard',
   REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR: 'RewardsOndoRwaAssetSelector',
   REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW: 'RewardsOndoCampaignPortfolioView',
+  REWARDS_ONDO_CAMPAIGN_STATS: 'RewardsOndoCampaignStats',
   REWARDS_CAMPAIGN_TOUR_STEP: 'RewardsCampaignTourStep',
   TRENDING_VIEW: 'TrendingView',
   TRENDING_FEED: 'TrendingFeed',
@@ -120,6 +121,8 @@ const Routes = {
   REWARDS_ONBOARDING_2: 'RewardsOnboarding2',
   REWARDS_ONBOARDING_3: 'RewardsOnboarding3',
   REWARDS_ONBOARDING_4: 'RewardsOnboarding4',
+  REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
+  REWARD_BENEFIT_FULL_VIEW: 'BenefitFullView',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -150,6 +153,7 @@ const Routes = {
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
+    REWARDS_ONDO_PENDING_SHEET: 'RewardsOndoPendingSheet',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -346,6 +350,7 @@ const Routes = {
   SOCIAL_LEADERBOARD: {
     ROOT: 'SocialLeaderboard',
     VIEW: 'TopTradersView',
+    PROFILE: 'TraderProfileView',
   },
   PREDICT: {
     ROOT: 'Predict',
@@ -405,9 +410,6 @@ const Routes = {
     ROOT: 'MoneyScreens',
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
-  },
-  MONEY_ACCOUNT: {
-    ROOT: 'MoneyAccountScreens',
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',

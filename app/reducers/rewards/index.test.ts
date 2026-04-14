@@ -24,6 +24,9 @@ import rewardsReducer, {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
+  setBenefits,
+  setBenefitsError,
+  setBenefitsLoading,
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
@@ -187,7 +190,6 @@ describe('rewardsReducer', () => {
       expect(state.currentTier?.id).toBe('tier-bronze');
       expect(state.nextTier?.id).toBe('tier-silver');
       expect(state.nextTierPointsNeeded).toBe(1000);
-      expect(state.seasonShouldInstallNewVersion).toBe(null);
     });
 
     it('should set fields to null when season status is null', () => {
@@ -212,7 +214,6 @@ describe('rewardsReducer', () => {
         ],
         balanceTotal: 1000,
         balanceRefereePortion: 200,
-        seasonShouldInstallNewVersion: '1.0.0',
         currentTier: {
           id: 'tier-gold',
           name: 'Gold',
@@ -242,7 +243,6 @@ describe('rewardsReducer', () => {
       expect(state.currentTier).toBe(null);
       expect(state.nextTier).toBe(null);
       expect(state.nextTierPointsNeeded).toBe(null);
-      expect(state.seasonShouldInstallNewVersion).toBe(null);
     });
 
     it('should handle season status with invalid balance types', () => {
@@ -478,96 +478,6 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(stateWithWaysToEarn, action);
 
       expect(state.seasonWaysToEarn).toEqual([]);
-    });
-
-    it('should set seasonShouldInstallNewVersion when provided', () => {
-      // Arrange
-      const mockSeasonStatus = {
-        season: {
-          id: 'season-with-version',
-          name: 'Season With Version',
-          startDate: new Date('2024-01-01').getTime(),
-          endDate: new Date('2024-12-31').getTime(),
-          tiers: [],
-          shouldInstallNewVersion: '2.0.0',
-        },
-        balance: {
-          total: 100,
-        },
-        tier: {
-          currentTier: null,
-          nextTier: null,
-          nextTierPointsNeeded: null,
-        },
-      } as unknown as SeasonStatusState;
-      const action = setSeasonStatus(mockSeasonStatus);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.seasonShouldInstallNewVersion).toBe('2.0.0');
-    });
-
-    it('should set seasonShouldInstallNewVersion to null when not provided', () => {
-      // Arrange
-      const mockSeasonStatus = {
-        season: {
-          id: 'season-without-version',
-          name: 'Season Without Version',
-          startDate: new Date('2024-01-01').getTime(),
-          endDate: new Date('2024-12-31').getTime(),
-          tiers: [],
-        },
-        balance: {
-          total: 100,
-        },
-        tier: {
-          currentTier: null,
-          nextTier: null,
-          nextTierPointsNeeded: null,
-        },
-      } as unknown as SeasonStatusState;
-      const action = setSeasonStatus(mockSeasonStatus);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.seasonShouldInstallNewVersion).toBe(null);
-    });
-
-    it('should set seasonShouldInstallNewVersion to null when undefined', () => {
-      // Arrange
-      const stateWithVersion = {
-        ...initialState,
-        seasonShouldInstallNewVersion: '1.0.0',
-      };
-      const mockSeasonStatus = {
-        season: {
-          id: 'season-undefined-version',
-          name: 'Season Undefined Version',
-          startDate: new Date('2024-01-01').getTime(),
-          endDate: new Date('2024-12-31').getTime(),
-          tiers: [],
-          shouldInstallNewVersion: undefined,
-        },
-        balance: {
-          total: 100,
-        },
-        tier: {
-          currentTier: null,
-          nextTier: null,
-          nextTierPointsNeeded: null,
-        },
-      } as unknown as SeasonStatusState;
-      const action = setSeasonStatus(mockSeasonStatus);
-
-      // Act
-      const state = rewardsReducer(stateWithVersion, action);
-
-      // Assert
-      expect(state.seasonShouldInstallNewVersion).toBe(null);
     });
   });
 
@@ -1507,7 +1417,6 @@ describe('rewardsReducer', () => {
               icon: 'Speedometer',
             },
           ],
-          seasonShouldInstallNewVersion: null,
         };
         const action = setCandidateSubscriptionId('new-subscription-id');
 
@@ -2105,7 +2014,6 @@ describe('rewardsReducer', () => {
         ],
         seasonActivityTypes: [],
         seasonWaysToEarn: [],
-        seasonShouldInstallNewVersion: null,
         onboardingActiveStep: OnboardingStep.STEP_1,
         onboardingReferralCode: 'REF123',
         candidateSubscriptionId: 'some-id',
@@ -2148,6 +2056,9 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
+        benefits: [],
+        benefitsLoading: false,
+        benefitsError: false,
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -2222,7 +2133,6 @@ describe('rewardsReducer', () => {
         ],
         seasonActivityTypes: [],
         seasonWaysToEarn: [],
-        seasonShouldInstallNewVersion: null,
         onboardingActiveStep: OnboardingStep.STEP_2,
         onboardingReferralCode: 'PERSISTED_REF',
         candidateSubscriptionId: 'some-id',
@@ -2266,6 +2176,9 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
+        benefits: [],
+        benefitsLoading: false,
+        benefitsError: false,
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -4636,6 +4549,125 @@ describe('persist/REHYDRATE with bulk link state', () => {
     expect(state.bulkLink.isRunning).toBe(false);
     expect(state.bulkLink.wasInterrupted).toBe(false);
     expect(state.bulkLink.initialSubscriptionId).toBe(null);
+  });
+});
+
+describe('setBenefits', () => {
+  const mockBenefitsPayload = {
+    limit: 10,
+    lastFetched: 1767225600000,
+    benefits: [
+      {
+        id: 101,
+        longTitle: 'Premium Access',
+        shortDescription: 'Get premium perks',
+        longDescription: 'Unlock premium partner benefits.',
+        thumbnail: 'https://example.com/benefits/premium.png',
+        validFrom: '2026-01-01T00:00:00.000Z',
+        validTo: '2026-12-31T00:00:00.000Z',
+        actionDate: '2026-06-01T00:00:00.000Z',
+        url: 'https://example.com/claim',
+        chain: 'ethereum',
+        type: {
+          id: 1,
+          name: 'Partner',
+        },
+      },
+    ],
+  };
+
+  it('sets benefits from payload', () => {
+    const action = setBenefits(mockBenefitsPayload);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.benefits).toEqual(mockBenefitsPayload.benefits);
+  });
+
+  it('replaces existing benefits with new payload benefits', () => {
+    const stateWithBenefits: RewardsState = {
+      ...initialState,
+      benefits: mockBenefitsPayload.benefits,
+    };
+    const nextBenefitsPayload = {
+      limit: 20,
+      lastFetched: 1769904000000,
+      benefits: [
+        {
+          ...mockBenefitsPayload.benefits[0],
+          id: 202,
+          longTitle: 'Travel Perk',
+        },
+      ],
+    };
+    const action = setBenefits(nextBenefitsPayload);
+
+    const state = rewardsReducer(stateWithBenefits, action);
+
+    expect(state.benefits).toEqual(nextBenefitsPayload.benefits);
+  });
+
+  it('updates benefits and preserves unrelated fields', () => {
+    const stateWithOtherFlags: RewardsState = {
+      ...initialState,
+      benefitsLoading: true,
+      benefitsError: true,
+      campaignsLoading: true,
+      activeTab: 'campaigns',
+    };
+    const action = setBenefits(mockBenefitsPayload);
+
+    const state = rewardsReducer(stateWithOtherFlags, action);
+
+    expect(state.benefits).toEqual(mockBenefitsPayload.benefits);
+    expect(state.benefitsLoading).toBe(true);
+    expect(state.benefitsError).toBe(true);
+    expect(state.campaignsLoading).toBe(true);
+    expect(state.activeTab).toBe('campaigns');
+  });
+});
+
+describe('setBenefitsLoading', () => {
+  it('sets benefitsLoading to true', () => {
+    const action = setBenefitsLoading(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.benefitsLoading).toBe(true);
+  });
+
+  it('sets benefitsLoading to false', () => {
+    const stateWithLoading: RewardsState = {
+      ...initialState,
+      benefitsLoading: true,
+    };
+    const action = setBenefitsLoading(false);
+
+    const state = rewardsReducer(stateWithLoading, action);
+
+    expect(state.benefitsLoading).toBe(false);
+  });
+});
+
+describe('setBenefitsError', () => {
+  it('sets benefitsError to true', () => {
+    const action = setBenefitsError(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.benefitsError).toBe(true);
+  });
+
+  it('sets benefitsError to false', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      benefitsError: true,
+    };
+    const action = setBenefitsError(false);
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.benefitsError).toBe(false);
   });
 });
 

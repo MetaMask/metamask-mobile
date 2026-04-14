@@ -39,10 +39,6 @@ jest.mock('../../../../selectors/preferencesController', () => ({
   selectIsTokenNetworkFilterEqualCurrentNetwork: jest.fn(() => true),
 }));
 
-jest.mock('../../../../selectors/featureFlagController/homepage', () => ({
-  selectHomepageRedesignV1Enabled: jest.fn(() => true),
-}));
-
 jest.mock('../../Earn/hooks/useMusdCtaVisibility', () => ({
   useMusdCtaVisibility: jest.fn(() => ({
     shouldShowGetMusdCta: false,
@@ -397,19 +393,14 @@ describe('TokenList', () => {
     expect(setShowScamWarningModal).not.toHaveBeenCalled();
   });
 
-  describe('Homepage Redesign V1 Features', () => {
+  describe('Token List Rendering', () => {
     beforeEach(() => {
       // Reset selector mocks for this describe block
       mockUseSelector.mockReset();
     });
 
-    it('renders tokens directly in Box when isHomepageRedesignV1Enabled is true and not full view', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
-          return true;
-        }
-        return selector({});
-      });
+    it('renders tokens directly in Box when not full view', () => {
+      mockUseSelector.mockImplementation((selector) => selector({}));
 
       const { getByTestId } = renderComponent({ isFullView: false });
 
@@ -417,13 +408,8 @@ describe('TokenList', () => {
       expect(getByTestId('token-item-0x456')).toBeOnTheScreen();
     });
 
-    it('renders FlashList when isHomepageRedesignV1Enabled is true but isFullView is true', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
-          return true;
-        }
-        return selector({});
-      });
+    it('renders FlashList when isFullView is true', () => {
+      mockUseSelector.mockImplementation((selector) => selector({}));
 
       const { getByTestId } = renderComponent({ isFullView: true });
 
@@ -432,46 +418,19 @@ describe('TokenList', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders FlashList when isHomepageRedesignV1Enabled is false', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
-          return false;
-        }
-        return selector({});
-      });
-
-      const { getByTestId } = renderComponent();
-
-      expect(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows view all button when homepage redesign is enabled and maxItems is exceeded', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
-          return true;
-        }
-        return selector({});
-      });
+    it('shows view all button when maxItems is exceeded and not full view', () => {
+      mockUseSelector.mockImplementation((selector) => selector({}));
 
       const { getByText } = renderComponent({ maxItems: 1, isFullView: false });
 
       expect(getByText('wallet.view_all_tokens')).toBeOnTheScreen();
     });
 
-    it('renders mapped token items when homepage redesign is enabled and not full view', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
-          return true;
-        }
-        return selector({});
-      });
+    it('renders mapped token items when not full view', () => {
+      mockUseSelector.mockImplementation((selector) => selector({}));
 
       const { queryByTestId } = renderComponent({ isFullView: false });
 
-      // When homepage redesign is enabled and not full view, tokens are rendered directly
-      // instead of in FlashList
       expect(queryByTestId('token-item-0x123')).toBeOnTheScreen();
       expect(queryByTestId('token-item-0x456')).toBeOnTheScreen();
     });
@@ -490,14 +449,8 @@ describe('TokenList', () => {
       DeviceEventEmitter.removeAllListeners('scrollToTokenIndex');
     });
 
-    it('scrolls to token using FlashList scrollToIndex when token is found and using FlashList mode', () => {
-      // Set up for FlashList mode (homepage redesign disabled)
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
-          return false;
-        }
-        return selector({});
-      });
+    it('scrolls to token using FlashList scrollToIndex when token is found and in full view', () => {
+      mockUseSelector.mockImplementation((selector) => selector({}));
 
       renderComponent({ isFullView: true });
 
@@ -517,12 +470,7 @@ describe('TokenList', () => {
     });
 
     it('scrolls to correct index when token is not first in list', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
-          return false;
-        }
-        return selector({});
-      });
+      mockUseSelector.mockImplementation((selector) => selector({}));
 
       renderComponent({ isFullView: true });
 
@@ -541,12 +489,7 @@ describe('TokenList', () => {
     });
 
     it('does not scroll when token is not found in the list', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
-          return false;
-        }
-        return selector({});
-      });
+      mockUseSelector.mockImplementation((selector) => selector({}));
 
       renderComponent({ isFullView: true });
 
@@ -561,12 +504,7 @@ describe('TokenList', () => {
     });
 
     it('does not scroll when chainId does not match', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
-          return false;
-        }
-        return selector({});
-      });
+      mockUseSelector.mockImplementation((selector) => selector({}));
 
       renderComponent({ isFullView: true });
 
@@ -580,13 +518,8 @@ describe('TokenList', () => {
       expect(mockScrollToIndex).not.toHaveBeenCalled();
     });
 
-    it('emits scrollToTokenIndex event in .map() mode (homepage redesign enabled, not full view)', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
-          return true;
-        }
-        return selector({});
-      });
+    it('emits scrollToTokenIndex event in .map() mode (not full view)', () => {
+      mockUseSelector.mockImplementation((selector) => selector({}));
 
       const scrollToTokenIndexHandler = jest.fn();
       DeviceEventEmitter.addListener(
@@ -611,12 +544,7 @@ describe('TokenList', () => {
     });
 
     it('calculates correct offset based on token index in .map() mode', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
-          return true;
-        }
-        return selector({});
-      });
+      mockUseSelector.mockImplementation((selector) => selector({}));
 
       const scrollToTokenIndexHandler = jest.fn();
       DeviceEventEmitter.addListener(
@@ -640,12 +568,7 @@ describe('TokenList', () => {
     });
 
     it('matches token address case-insensitively', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
-          return false;
-        }
-        return selector({});
-      });
+      mockUseSelector.mockImplementation((selector) => selector({}));
 
       renderComponent({ isFullView: true });
 
@@ -664,12 +587,7 @@ describe('TokenList', () => {
     });
 
     it('cleans up event listener on unmount', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
-          return false;
-        }
-        return selector({});
-      });
+      mockUseSelector.mockImplementation((selector) => selector({}));
 
       const { unmount } = renderComponent({ isFullView: true });
 

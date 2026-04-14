@@ -35,7 +35,6 @@ import Icon, {
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { DefiEmptyState } from '../DefiEmptyState';
-import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -60,9 +59,6 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
     selectDefiPositionsByEnabledNetworks,
   );
   const privacyMode = useSelector(selectPrivacyMode);
-  const isHomepageRedesignV1Enabled = useSelector(
-    selectHomepageRedesignV1Enabled,
-  );
   const { colors } = useTheme();
   const tw = useTailwind();
   const [refreshing, setRefreshing] = useState(false);
@@ -111,8 +107,6 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
       setRefreshing(false);
     }
   }, []);
-
-  const isScrollEnabled = isFullView || !isHomepageRedesignV1Enabled;
 
   const scrollViewProps = useMemo((): ScrollViewProps => {
     const base: ScrollViewProps = {
@@ -221,15 +215,13 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
 
   return (
     <View
-      style={
-        isFullView || !isHomepageRedesignV1Enabled ? styles.wrapper : undefined
-      }
+      style={isFullView ? styles.wrapper : undefined}
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
     >
       <DeFiPositionsControlBar />
       <ConditionalScrollView
-        isScrollEnabled={isScrollEnabled}
-        scrollViewProps={isScrollEnabled ? scrollViewProps : undefined}
+        isScrollEnabled={isFullView}
+        scrollViewProps={isFullView ? scrollViewProps : undefined}
       >
         {listBody}
       </ConditionalScrollView>
