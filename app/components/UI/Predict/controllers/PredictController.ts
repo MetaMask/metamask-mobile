@@ -720,8 +720,13 @@ export class PredictController extends BaseController<
         fallbackErrorCode: PREDICT_ERROR_CODES.UNKNOWN_ERROR,
       },
       async () => {
-        const price =
-          (await this.provider.getCryptoTargetPrice?.(params)) ?? null;
+        let price: number | null = null;
+        try {
+          price = (await this.provider.getCryptoTargetPrice?.(params)) ?? null;
+        } catch {
+          // Provider threw — fall through to groupItemThreshold fallback.
+        }
+
         if (price !== null) {
           return price;
         }
