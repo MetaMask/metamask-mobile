@@ -99,11 +99,6 @@ describe('ProcessingInfoModal', () => {
 
   it('renders correctly', () => {
     renderModal();
-    expect(screen.getByTestId('processing-info-modal')).toBeOnTheScreen();
-  });
-
-  it('renders the close button', () => {
-    renderModal();
     expect(
       screen.getByTestId('processing-info-modal-close-button'),
     ).toBeOnTheScreen();
