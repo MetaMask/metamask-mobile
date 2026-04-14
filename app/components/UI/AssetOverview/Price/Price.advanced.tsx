@@ -259,21 +259,35 @@ const PriceAdvanced = ({
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
-  // Use the first candle at or after visibleFromMs — i.e. the leftmost point
-  // the line chart actually draws. The API may return extra history before the
-  // visible window; we skip those so the header matches the chart direction.
-  const dynamicComparePrice = useMemo(() => {
+  // Calculate the current compare price from OHLCV data
+  const currentComparePrice = useMemo(() => {
     if (ohlcvData.length === 0 || visibleFromMs == null) return null;
-
     const firstVisible =
       ohlcvData.find((c) => c.time >= visibleFromMs) ?? ohlcvData[0];
-
     return firstVisible.close;
   }, [ohlcvData, visibleFromMs]);
 
-  // Display values: use crosshair data when hovering, otherwise use current values
-  const displayPrice = crosshairData?.close ?? currentPrice;
+  // Store last good compare price to show during loading
+  const stableComparePriceRef = useRef<number | null>(null);
+  const stableSeriesKeyRef = useRef<string>(ohlcvSeriesKey);
 
+  // Update stable compare price when chart finishes loading AND series matches
+  useEffect(() => {
+    if (stableSeriesKeyRef.current !== ohlcvSeriesKey) {
+      stableSeriesKeyRef.current = ohlcvSeriesKey;
+    } else if (!chartLoading && currentComparePrice !== null) {
+      stableComparePriceRef.current = currentComparePrice;
+    }
+  }, [chartLoading, currentComparePrice, ohlcvSeriesKey]);
+
+  // Use stable while (loading OR series mismatch), otherwise use current
+  const dynamicComparePrice =
+    (chartLoading || stableSeriesKeyRef.current !== ohlcvSeriesKey) &&
+    stableComparePriceRef.current !== null
+      ? stableComparePriceRef.current
+      : currentComparePrice;
+
+  const displayPrice = crosshairData?.close ?? currentPrice;
   const displayDiff = useMemo(() => {
     if (dynamicComparePrice === null) return null;
     return (crosshairData?.close ?? currentPrice) - dynamicComparePrice;
