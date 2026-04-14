@@ -11,7 +11,6 @@ import { Assertions, Gestures, Matchers } from '../../framework';
 import BrowserView from '../../page-objects/Browser/BrowserView';
 import TransactionConfirmView from '../../page-objects/Send/TransactionConfirmView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
-import { LOCAL_NODE_RPC_URL } from '../../framework/Constants';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 
 jest.setTimeout(150_000);
