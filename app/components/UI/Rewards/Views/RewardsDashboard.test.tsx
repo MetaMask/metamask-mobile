@@ -78,7 +78,6 @@ const mockSelectSelectedAccountGroup =
     typeof selectSelectedAccountGroup
   >;
 
-
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockBuild = jest.fn();
