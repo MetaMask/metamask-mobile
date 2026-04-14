@@ -493,8 +493,8 @@ describe('TransactionDetails', () => {
       transactionObj: { isGasFeeSponsored: true },
     });
 
-    expect(screen.getByTestId('paid-by-metamask')).toBeTruthy();
-    expect(screen.getByText('Paid by MetaMask')).toBeTruthy();
+    expect(screen.getByTestId('paid-by-metamask')).toBeOnTheScreen();
+    expect(screen.getByText('Paid by MetaMask')).toBeOnTheScreen();
   });
 
   it('does not show "Paid by MetaMask" when isGasFeeSponsored is false', () => {
@@ -502,6 +502,6 @@ describe('TransactionDetails', () => {
       state: initialState,
     });
 
-    expect(screen.queryByText('Paid by MetaMask')).toBeNull();
+    expect(screen.queryByText('Paid by MetaMask')).not.toBeOnTheScreen();
   });
 });
