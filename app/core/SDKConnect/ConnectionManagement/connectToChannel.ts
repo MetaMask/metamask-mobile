@@ -76,7 +76,7 @@ async function connectToChannel({
 
   if (anonId) {
     DevLogger.log(
-      `[MM SDK Analytics] event=${MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED} anonId=${anonId}`,
+      `[MM SDK Analytics] event=${MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED.category} anonId=${anonId}`,
     );
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(

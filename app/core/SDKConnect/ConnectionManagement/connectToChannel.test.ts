@@ -1,3 +1,4 @@
+import { MetaMetricsEvents } from '../../Analytics';
 import { Connection, ConnectionProps } from '../Connection';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import { SDKConnect } from './../SDKConnect';
@@ -277,7 +278,7 @@ describe('connectToChannel', () => {
 
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Remote Connection Request Received',
+          name: MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED.category,
           properties: expect.objectContaining({
             transport_type: 'socket_relay',
             remote_session_id: 'test-anon-id',

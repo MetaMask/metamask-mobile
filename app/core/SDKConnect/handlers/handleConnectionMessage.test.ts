@@ -23,6 +23,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { NETWORKS_CHAIN_ID } from '../../../../app/constants/network';
 import { mockNetworkState } from '../../../util/test/network';
 import { analytics } from '../../../util/analytics/analytics';
+import { MetaMetricsEvents } from '../../Analytics';
 
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
@@ -176,7 +177,7 @@ describe('handleConnectionMessage', () => {
 
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Remote Connection RPC Request Received',
+          name: MetaMetricsEvents.REMOTE_CONNECTION_RPC_REQUEST_RECEIVED.category,
           properties: expect.objectContaining({
             transport_type: 'socket_relay',
             rpc_method: 'eth_sendTransaction',
