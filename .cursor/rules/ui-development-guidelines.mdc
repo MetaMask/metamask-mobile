@@ -23,13 +23,13 @@ Always prioritize @metamask/design-system-react-native components and Tailwind C
    - **Always use for**: Badge variants (Count, Icon, Network, Status, Wrapper)
    - **Always use for**: BottomSheet, BottomSheetFooter, BottomSheetHeader, BottomSheetDialog, BottomSheetOverlay
    - **Always use for**: HeaderBase, HeaderRoot, HeaderSearch, HeaderStandard
-   - **Always use for**: Card, ListItem, Skeleton, Label, Input, TextField
+   - **Always use for**: BannerAlert, Card, ListItem, Skeleton, Label, Input, TextField
    - **Always use for**: KeyValueRow, KeyValueColumn, ActionListItem, MainActionButton, TabEmptyState
 
    - **Rule**: If it exists in the design system, you MUST use it
 
 2. **SECOND**: Use `app/component-library` ONLY if design system lacks it
-   - **Use for**: BannerAlert, Tabs, Tags, Cells, Modal, Overlay, Toast, Pickers, Select, Sheet/SheetHeader, etc.
+   - **Use for**: Tabs, Tags, Cells, Modal, Overlay, Toast, Pickers, Select, Sheet/SheetHeader, etc.
    - **Rule**: These are MetaMask-specific implementations not (yet) in the design system
    - **Important**: component-library components should themselves use design system primitives internally
 
@@ -47,12 +47,11 @@ Always prioritize @metamask/design-system-react-native components and Tailwind C
 ```
 Need a component?
   ├─ Is it Box, Text, Button, Icon, Avatar, Badge, Checkbox, RadioButton,
-  │  BottomSheet, Header, Card, ListItem, Skeleton, Label, TextField,
-  │  Input, KeyValueRow, SensitiveText, TextButton, or ActionListItem?
+  │  BottomSheet, Header, BannerAlert, Card, ListItem, Skeleton, Label,
+  │  TextField, Input, KeyValueRow, SensitiveText, TextButton, or ActionListItem?
   │  └─ YES → Use @metamask/design-system-react-native [STOP]
   │
-  ├─ Is it BannerAlert, Tabs, Tags, Cells, Modal, Overlay, Toast,
-  │  Pickers, Select, Sheet?
+  ├─ Is it Tabs, Tags, Cells, Modal, Overlay, Toast, Pickers, Select, Sheet?
   │  └─ YES → Use app/component-library [STOP]
   │
   ├─ Is it feature-specific UI (e.g., BridgeInputSelector, StakeInputView)?
