@@ -32,6 +32,7 @@ const fixtureTraders: TopTrader[] = [
     avatarUri: 'https://example.com/avatar1.png',
     percentageChange: 43,
     pnlValue: 963146.8,
+    pnlPerChain: { base: 500000, ethereum: 463146.8 },
     isFollowing: false,
   },
   {
@@ -41,6 +42,7 @@ const fixtureTraders: TopTrader[] = [
     avatarUri: 'https://example.com/avatar2.png',
     percentageChange: 359,
     pnlValue: 474751.45,
+    pnlPerChain: { base: 474751.45 },
     isFollowing: false,
   },
   {
@@ -50,6 +52,7 @@ const fixtureTraders: TopTrader[] = [
     avatarUri: 'https://example.com/avatar3.png',
     percentageChange: 617,
     pnlValue: 374735.16,
+    pnlPerChain: { solana: 374735.16 },
     isFollowing: false,
   },
 ];
