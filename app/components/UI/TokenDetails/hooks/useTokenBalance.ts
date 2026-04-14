@@ -9,6 +9,10 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '../../../../selectors/assets/assets-list';
 import { toFormattedAddress } from '../../../../util/address';
+import {
+  selectCurrencyRateForChainId,
+  selectUSDConversionRateByChainId,
+} from '../../../../selectors/currencyRateController';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import I18n from '../../../../../locales/i18n';
 import { formatWithThreshold } from '../../../../util/assets';
@@ -19,6 +23,8 @@ import { isTronNativeToken } from '../utils/isTronNativeToken';
 export interface UseTokenBalanceResult {
   balance: string | undefined;
   fiatBalance: string | undefined;
+  /** Token balance converted to USD regardless of the user's selected display currency. */
+  balanceFiatUsd: number | undefined;
   tokenFormattedBalance: string | undefined;
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   isTronNative: boolean;
@@ -35,6 +41,13 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
       chainId: token.chainId as Hex,
       isStaked: Boolean(token.isStaked),
     }),
+  );
+
+  const conversionRate = useSelector((state: RootState) =>
+    selectCurrencyRateForChainId(state, token.chainId as Hex),
+  );
+  const usdConversionRate = useSelector((state: RootState) =>
+    selectUSDConversionRateByChainId(state, token.chainId as Hex),
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -85,9 +98,21 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
 
   const balance = processedAsset?.balance;
 
+  const balanceFiatUsd = (() => {
+    if (!conversionRate || !usdConversionRate || !processedAsset?.balanceFiat) {
+      return undefined;
+    }
+    const fiatInSelectedCurrency = parseFloat(
+      processedAsset.balanceFiat.replace(/[^0-9.]/g, ''),
+    );
+    if (isNaN(fiatInSelectedCurrency)) return undefined;
+    return (fiatInSelectedCurrency / conversionRate) * usdConversionRate;
+  })();
+
   return {
     balance,
     fiatBalance: processedAsset?.balanceFiat,
+    balanceFiatUsd,
     tokenFormattedBalance: balance
       ? `${balance} ${processedAsset.symbol}`
       : undefined,

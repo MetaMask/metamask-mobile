@@ -293,6 +293,7 @@ describe('TokenDetails', () => {
     mockUseTokenBalance.mockReturnValue({
       balance: '1.5',
       fiatBalance: '$150.00',
+      balanceFiatUsd: 150,
       tokenFormattedBalance: '1.5 ETH',
     });
 

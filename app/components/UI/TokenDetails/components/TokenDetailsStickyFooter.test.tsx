@@ -57,7 +57,7 @@ const mockSecurityData: TokenSecurityData = {
 const defaultProps = {
   token: mockToken,
   securityData: mockSecurityData,
-  fiatBalance: '$50.00',
+  balanceFiatUsd: 50,
   onBuy: jest.fn(),
   onSwap: jest.fn(),
   hasEligibleSwapTokens: true,
@@ -197,17 +197,17 @@ describe('TokenDetailsStickyFooter', () => {
   });
 
   describe('success button logic - both buttons', () => {
-    it('applies success style to swap when fiat balance >= $100', () => {
+    it('applies success style to swap when balance >= $100', () => {
       const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} fiatBalance="$150.00" />,
+        <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={150} />,
       );
       expect(getByText('Swap')).toBeTruthy();
       expect(getByText('Buy')).toBeTruthy();
     });
 
-    it('applies success style to buy when fiat balance < $100', () => {
+    it('applies success style to buy when balance < $100', () => {
       const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} fiatBalance="$50.00" />,
+        <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={50} />,
       );
       expect(getByText('Swap')).toBeTruthy();
       expect(getByText('Buy')).toBeTruthy();
@@ -215,23 +215,18 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('applies success style to swap at exactly $100', () => {
       const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} fiatBalance="$100.00" />,
+        <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={100} />,
       );
       expect(getByText('Swap')).toBeTruthy();
       expect(getByText('Buy')).toBeTruthy();
     });
 
-    it('handles undefined fiatBalance gracefully (treats as $0, buy gets success)', () => {
+    it('handles undefined balanceFiatUsd gracefully (treats as $0, buy gets success)', () => {
       const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} fiatBalance={undefined} />,
-      );
-      expect(getByText('Swap')).toBeTruthy();
-      expect(getByText('Buy')).toBeTruthy();
-    });
-
-    it('handles fiatBalance with currency symbols and comma separators', () => {
-      const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} fiatBalance="$1,234.56" />,
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          balanceFiatUsd={undefined}
+        />,
       );
       expect(getByText('Swap')).toBeTruthy();
       expect(getByText('Buy')).toBeTruthy();
@@ -298,7 +293,7 @@ describe('TokenDetailsStickyFooter', () => {
         isActive: true,
       });
       const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} fiatBalance="$50.00" />,
+        <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={50} />,
       );
 
       fireEvent.press(getByText('Swap'));
@@ -323,7 +318,7 @@ describe('TokenDetailsStickyFooter', () => {
         isActive: true,
       });
       const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} fiatBalance="$50.00" />,
+        <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={50} />,
       );
 
       fireEvent.press(getByText('Buy'));
@@ -347,7 +342,7 @@ describe('TokenDetailsStickyFooter', () => {
         isActive: true,
       });
       const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} fiatBalance="$150.00" />,
+        <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={150} />,
       );
 
       fireEvent.press(getByText('Convert'));

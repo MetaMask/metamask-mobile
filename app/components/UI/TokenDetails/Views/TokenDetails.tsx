@@ -236,6 +236,7 @@ const TokenDetails: React.FC<{
   const {
     balance,
     fiatBalance,
+    balanceFiatUsd,
     tokenFormattedBalance,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     stakedTrxAsset,
@@ -246,12 +247,9 @@ const TokenDetails: React.FC<{
 
   useEffect(() => {
     if (onFiatBalanceResolved) {
-      const parsed = fiatBalance
-        ? parseFloat(fiatBalance.replace(/[^0-9.]/g, ''))
-        : NaN;
-      onFiatBalanceResolved(isNaN(parsed) ? null : parsed);
+      onFiatBalanceResolved(balanceFiatUsd ?? null);
     }
-  }, [fiatBalance, onFiatBalanceResolved]);
+  }, [balanceFiatUsd, onFiatBalanceResolved]);
 
   const {
     onBuy,
@@ -398,7 +396,7 @@ const TokenDetails: React.FC<{
         <TokenDetailsStickyFooter
           token={token}
           securityData={securityData}
-          fiatBalance={fiatBalance}
+          balanceFiatUsd={balanceFiatUsd}
           onBuy={onBuy}
           onSwap={handleStickySwapPress}
           hasEligibleSwapTokens={hasEligibleSwapTokens}

@@ -42,18 +42,11 @@ const styles = StyleSheet.create({
 
 const BALANCE_THRESHOLD_USD = 100;
 
-/** Parses a fiat balance string like "$1,234.56" into a number, returns 0 on failure. */
-function parseFiatBalance(fiatBalance: string | undefined): number {
-  if (!fiatBalance) return 0;
-  const parsed = parseFloat(fiatBalance.replace(/[^0-9.]/g, ''));
-  return isNaN(parsed) ? 0 : parsed;
-}
-
 interface TokenStickyFooterProps {
   token: TokenDetailsRouteParams;
   securityData: TokenSecurityData | null | undefined;
-  /** Formatted fiat balance string e.g. "$150.00". Used to determine which button gets the success style. */
-  fiatBalance: string | undefined;
+  /** Token balance in USD, currency-agnostic. Used to determine which button gets the success style. */
+  balanceFiatUsd: number | undefined;
   /** Action handlers from parent's useTokenActions hook */
   onBuy: () => void;
   onSwap: () => void;
@@ -64,7 +57,7 @@ interface TokenStickyFooterProps {
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   token,
   securityData,
-  fiatBalance,
+  balanceFiatUsd,
   onBuy,
   onSwap,
   hasEligibleSwapTokens,
@@ -100,10 +93,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     }
   }, [tradingOpen, showBothButtons, showSwapButton, onStickyButtonsResolved]);
 
-  const balanceUsd = useMemo(
-    () => parseFiatBalance(fiatBalance),
-    [fiatBalance],
-  );
+  const balanceUsd = balanceFiatUsd ?? 0;
 
   /**
    * When only one button is shown it always gets the success style.
@@ -222,7 +212,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                   isPrimary: swapIsSuccess,
                   tokenAddress: token.address ?? '',
                   chainId: token.chainId ?? '',
-                  balanceUsd: fiatBalance ? balanceUsd : undefined,
+                  balanceUsd: balanceFiatUsd,
                 });
                 handleFooterAction(onSwap, strings(buttonLabels.swapLabelKey));
               }}
@@ -246,7 +236,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                   isPrimary: buyIsSuccess,
                   tokenAddress: token.address ?? '',
                   chainId: token.chainId ?? '',
-                  balanceUsd: fiatBalance ? balanceUsd : undefined,
+                  balanceUsd: balanceFiatUsd,
                 });
                 handleFooterAction(onBuy, strings('asset_overview.buy_button'));
               }}
