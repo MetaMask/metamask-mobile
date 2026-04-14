@@ -3036,17 +3036,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  homepageRedesignV1: {
-    name: 'homepageRedesignV1',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: true,
-      minimumVersion: '7.59',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   homepageSectionsV1: {
     name: 'homepageSectionsV1',
     type: FeatureFlagType.Remote,

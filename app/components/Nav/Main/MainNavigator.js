@@ -119,7 +119,10 @@ import {
   selectMarketInsightsEnabled,
 } from '../../UI/MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
-import { TopTradersView } from '../../Views/SocialLeaderboard';
+import {
+  TopTradersView,
+  TraderProfileView,
+} from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -343,12 +346,18 @@ const RewardsHome = () => {
       <Stack.Screen
         name={Routes.MODAL.REWARDS_SELECT_SHEET}
         component={RewardsSelectSheet}
-        options={{ presentation: 'transparentModal' }}
+        options={{
+          presentation: 'transparentModal',
+          cardStyle: { backgroundColor: 'transparent' },
+        }}
       />
       <Stack.Screen
         name={Routes.MODAL.REWARDS_ONDO_PENDING_SHEET}
         component={OndoPendingSheet}
-        options={{ presentation: 'transparentModal' }}
+        options={{
+          presentation: 'transparentModal',
+          cardStyle: { backgroundColor: 'transparent' },
+        }}
       />
     </Stack.Navigator>
   );
@@ -1264,6 +1273,13 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SOCIAL_LEADERBOARD.VIEW}
           component={TopTradersView}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <Stack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.PROFILE}
+          component={TraderProfileView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
       )}
