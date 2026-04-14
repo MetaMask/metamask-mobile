@@ -1,7 +1,13 @@
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useSelector } from 'react-redux';
 import Badge, {
@@ -556,7 +562,7 @@ export const TokenListItem = React.memo(
     }
 
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={() => {
           onItemPress?.(asset);
         }}
@@ -727,7 +733,7 @@ export const TokenListItem = React.memo(
             </SensitiveText>
           </Box>
         </Box>
-      </TouchableOpacity>
+      </Pressable>
     );
   },
 );
