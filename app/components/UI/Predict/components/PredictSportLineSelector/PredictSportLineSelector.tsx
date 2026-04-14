@@ -50,20 +50,11 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
 
   const baseTestID = testID || PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.CONTAINER;
 
-  const computeTranslateX = useCallback(
-    (index: number, cWidth: number) => {
-      if (cWidth === 0) return 0;
-
-      const allItemsWidth = lines.length * ITEM_WIDTH;
-      const selectedItemCenter = index * ITEM_WIDTH + ITEM_WIDTH / 2;
-      const containerCenter = cWidth / 2;
-      const target = containerCenter - selectedItemCenter;
-
-      const minTranslate = -(allItemsWidth - cWidth);
-      return Math.max(minTranslate, Math.min(0, target));
-    },
-    [lines.length],
-  );
+  const computeTranslateX = useCallback((index: number, cWidth: number) => {
+    if (cWidth === 0) return 0;
+    const selectedItemCenter = index * ITEM_WIDTH + ITEM_WIDTH / 2;
+    return cWidth / 2 - selectedItemCenter;
+  }, []);
 
   const handleLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -144,7 +135,10 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
         />
       </Pressable>
 
-      <MaskedView style={tw.style('flex-1')} maskElement={fadeMask}>
+      <MaskedView
+        style={tw.style('flex-1 overflow-hidden')}
+        maskElement={fadeMask}
+      >
         <Box onLayout={handleLayout}>
           <Animated.View style={animatedStyle}>
             {lines.map((line) => {
