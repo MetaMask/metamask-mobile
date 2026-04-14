@@ -5,7 +5,18 @@ jest.mock('./events', () => ({
 import { trackEvent } from './events';
 import { parseArgs, main } from './tool-usage-collection';
 
+let mockExit: jest.SpyInstance;
+
+beforeEach(() => {
+  // Mirror real process.exit behaviour: throw so no code ever falls through past
+  // a process.exit() call, even when future branches are added to the CLI
+  mockExit = jest.spyOn(process, 'exit').mockImplementation((code) => {
+    throw new Error(`process.exit(${code})`);
+  });
+});
+
 afterEach(() => {
+  mockExit.mockRestore();
   jest.mocked(trackEvent).mockReset();
 });
 
@@ -52,6 +63,16 @@ describe('parseArgs', () => {
       '--tool', 't', '--type', 'skill', '--event', 'start', '--verbose',
     ]);
     expect(args.verbose).toBe(true);
+  });
+
+  it('prints usage and exits 0 on --help', () => {
+    const mockStdout = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+    expect(() => parseArgs(['--help'])).toThrow('process.exit(0)');
+    expect(mockStdout).toHaveBeenCalledWith(expect.stringContaining('Usage:'));
+    expect(mockExit).toHaveBeenCalledWith(0);
+
+    mockStdout.mockRestore();
   });
 
   it('throws when --tool is missing', () => {
@@ -101,6 +122,18 @@ describe('parseArgs', () => {
       parseArgs(['--tool', 't', '--type', 'skill', '--event', 'end', '--duration', '1.5']),
     ).toThrow('--duration must be a non-negative integer');
   });
+
+  it('throws when a flag is missing its value', () => {
+    expect(() =>
+      parseArgs(['--tool', 't', '--type', 'skill', '--event', 'start', '--agent']),
+    ).toThrow('--agent requires a value');
+  });
+
+  it('throws when a flag value is itself a flag', () => {
+    expect(() =>
+      parseArgs(['--tool', 't', '--type', 'skill', '--event', 'start', '--agent', '--verbose']),
+    ).toThrow('--agent requires a value');
+  });
 });
 
 describe('main', () => {
@@ -144,19 +177,14 @@ describe('main', () => {
   it('writes the parse error to stderr and exits 1 when args are invalid', async () => {
     process.argv = ['node', 'tool-usage-collection.ts'];
 
-    const mockExit = jest
-      .spyOn(process, 'exit')
-      .mockImplementation((_code?: string | number | null) => undefined as never);
-
-    await main();
+    // process.exit throws globally, so main() rejects — check stderr before asserting the exit
+    await expect(main()).rejects.toThrow('process.exit(1)');
 
     expect(stderrWrite).toHaveBeenCalledWith(
       expect.stringContaining('--tool is required'),
     );
     expect(mockExit).toHaveBeenCalledWith(1);
     expect(trackEvent).not.toHaveBeenCalled();
-
-    mockExit.mockRestore();
   });
 
   it('produces no stdout output by default (silent for hooks)', async () => {
