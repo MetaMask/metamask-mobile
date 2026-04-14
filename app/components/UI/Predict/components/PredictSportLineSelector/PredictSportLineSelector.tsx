@@ -1,16 +1,17 @@
-import React, { useEffect } from 'react';
-import { Pressable } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { LayoutChangeEvent, Pressable, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+import MaskedView from '@react-native-masked-view/masked-view';
+import LinearGradient from 'react-native-linear-gradient';
 import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
   Text,
   TextVariant,
   TextColor,
@@ -26,55 +27,67 @@ interface PredictSportLineSelectorProps {
   lines: number[];
   selectedLine: number;
   onSelectLine: (line: number) => void;
-  visibleCount?: number; // default: lines.length (show all)
   testID?: string;
 }
 
-const ITEM_WIDTH = 48;
+const ITEM_WIDTH = 56;
+const FADE_WIDTH = 24;
+const ANIMATION_DURATION = 250;
 
 const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
   lines,
   selectedLine,
   onSelectLine,
-  visibleCount,
   testID,
 }) => {
   const tw = useTailwind();
   const translateX = useSharedValue(0);
+  const containerWidth = useSharedValue(0);
 
   const selectedIndex = lines.indexOf(selectedLine);
   const isFirstSelected = selectedIndex === 0;
   const isLastSelected = selectedIndex === lines.length - 1;
 
-  const showAll = visibleCount === undefined || visibleCount >= lines.length;
-  const containerWidth =
-    showAll || visibleCount === undefined
-      ? undefined
-      : visibleCount * ITEM_WIDTH;
+  const baseTestID = testID || PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.CONTAINER;
+
+  const computeTranslateX = useCallback(
+    (index: number, cWidth: number) => {
+      if (cWidth === 0) return 0;
+
+      const allItemsWidth = lines.length * ITEM_WIDTH;
+      const selectedItemCenter = index * ITEM_WIDTH + ITEM_WIDTH / 2;
+      const containerCenter = cWidth / 2;
+      const target = containerCenter - selectedItemCenter;
+
+      const minTranslate = -(allItemsWidth - cWidth);
+      return Math.max(minTranslate, Math.min(0, target));
+    },
+    [lines.length],
+  );
+
+  const handleLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const width = event.nativeEvent.layout.width;
+      containerWidth.value = width;
+      translateX.value = computeTranslateX(selectedIndex, width);
+    },
+    [containerWidth, translateX, selectedIndex, computeTranslateX],
+  );
 
   useEffect(() => {
-    if (!showAll && visibleCount !== undefined) {
-      const halfVisible = Math.floor(visibleCount / 2);
-      const maxStartIndex = lines.length - visibleCount;
-      const windowStartIndex = Math.max(
-        0,
-        Math.min(selectedIndex - halfVisible, maxStartIndex),
-      );
+    if (containerWidth.value === 0) return;
 
-      translateX.value = withTiming(-(windowStartIndex * ITEM_WIDTH), {
-        duration: 250,
-        easing: Easing.inOut(Easing.ease),
-      });
-    } else {
-      translateX.value = 0;
-    }
-  }, [selectedIndex, showAll, visibleCount, lines.length, translateX]);
+    translateX.value = withTiming(
+      computeTranslateX(selectedIndex, containerWidth.value),
+      { duration: ANIMATION_DURATION, easing: Easing.inOut(Easing.ease) },
+    );
+  }, [selectedIndex, computeTranslateX, containerWidth, translateX]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-      transform: [{ translateX: translateX.value }],
-      flexDirection: 'row',
-      alignItems: 'center',
-    }));
+    transform: [{ translateX: translateX.value }],
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+  }));
 
   const handlePrevious = () => {
     if (!isFirstSelected) {
@@ -88,22 +101,38 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
     }
   };
 
+  const fadeMask = (
+    <View style={tw.style('flex-1 flex-row')}>
+      <LinearGradient
+        colors={['transparent', 'black']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={tw.style(`w-[${FADE_WIDTH}px]`)}
+      />
+      <View style={tw.style('flex-1 bg-black')} />
+      <LinearGradient
+        colors={['black', 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={tw.style(`w-[${FADE_WIDTH}px]`)}
+      />
+    </View>
+  );
+
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
-      twClassName="gap-2"
-      testID={testID || PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.CONTAINER}
+      testID={baseTestID}
     >
       <Pressable
         onPress={handlePrevious}
         disabled={isFirstSelected}
-        testID={`${testID || PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.CONTAINER}-${PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.ARROW_LEFT}`}
+        testID={`${baseTestID}-${PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.ARROW_LEFT}`}
         style={({ pressed }) =>
           tw.style(
-            'p-2 rounded-full',
-            pressed && 'bg-pressed',
+            'p-2',
+            pressed && 'opacity-70',
             isFirstSelected && 'opacity-30',
           )
         }
@@ -115,51 +144,50 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
         />
       </Pressable>
 
-      <Box
-        twClassName="overflow-hidden"
-        style={containerWidth ? { width: containerWidth } : undefined}
-      >
-        <Animated.View style={animatedStyle}>
-          {lines.map((line) => {
-            const isSelected = line === selectedLine;
-            return (
-              <Pressable
-                key={line}
-                onPress={() => onSelectLine(line)}
-                testID={`${testID || PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.CONTAINER}-${PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.LINE_PREFIX}${line}`}
-                style={({ pressed }) =>
-                  tw.style(
-                    'items-center justify-center py-2',
-                    pressed && 'opacity-70',
-                    { width: ITEM_WIDTH },
-                  )
-                }
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={
-                    isSelected
-                      ? TextColor.TextDefault
-                      : TextColor.TextAlternative
+      <MaskedView style={tw.style('flex-1')} maskElement={fadeMask}>
+        <Box onLayout={handleLayout}>
+          <Animated.View style={animatedStyle}>
+            {lines.map((line) => {
+              const isSelected = line === selectedLine;
+              return (
+                <Pressable
+                  key={line}
+                  onPress={() => onSelectLine(line)}
+                  testID={`${baseTestID}-${PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.LINE_PREFIX}${line}`}
+                  style={({ pressed }) =>
+                    tw.style(
+                      'items-center justify-center py-2',
+                      pressed && 'opacity-70',
+                      { width: ITEM_WIDTH },
+                    )
                   }
-                  twClassName={isSelected ? 'font-bold' : ''}
                 >
-                  {line}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </Animated.View>
-      </Box>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={
+                      isSelected
+                        ? TextColor.TextDefault
+                        : TextColor.TextAlternative
+                    }
+                    twClassName={isSelected ? 'font-bold' : ''}
+                  >
+                    {line}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </Animated.View>
+        </Box>
+      </MaskedView>
 
       <Pressable
         onPress={handleNext}
         disabled={isLastSelected}
-        testID={`${testID || PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.CONTAINER}-${PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.ARROW_RIGHT}`}
+        testID={`${baseTestID}-${PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.ARROW_RIGHT}`}
         style={({ pressed }) =>
           tw.style(
-            'p-2 rounded-full',
-            pressed && 'bg-pressed',
+            'p-2',
+            pressed && 'opacity-70',
             isLastSelected && 'opacity-30',
           )
         }

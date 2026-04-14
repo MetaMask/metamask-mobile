@@ -15,6 +15,19 @@ jest.mock('react-native-reanimated', () => {
   };
 });
 
+jest.mock('@react-native-masked-view/masked-view', () =>
+  jest.fn(
+    ({
+      children,
+    }: {
+      children?: React.ReactNode;
+      maskElement?: React.ReactNode;
+    }) => children,
+  ),
+);
+
+jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+
 const TEST_ID = 'line-selector';
 const IDS = PREDICT_SPORT_LINE_SELECTOR_TEST_IDS;
 
@@ -34,7 +47,7 @@ describe('PredictSportLineSelector', () => {
     jest.clearAllMocks();
   });
 
-  it('renders all lines when no visibleCount is provided', () => {
+  it('renders all lines', () => {
     const { getByText } = render(
       <PredictSportLineSelector {...defaultProps} />,
     );
