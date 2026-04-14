@@ -10,6 +10,6 @@ describe('BenefitsView', () => {
 
   it('renders the Benefits text', () => {
     const { getByText } = render(<BenefitsView />);
-    expect(getByText('Benefits')).toBeTruthy();
+    expect(getByText('Benefits')).toBeOnTheScreen();
   });
 });

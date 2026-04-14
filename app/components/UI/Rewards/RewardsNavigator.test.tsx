@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -339,16 +339,18 @@ describe('RewardsNavigator', () => {
     mockIsFocused.mockReturnValue(true);
   });
 
+  const buildNavWrapper = (component: React.ReactElement) => (
+    <Provider store={store}>
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen name="Test">{() => component}</Stack.Screen>
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Provider>
+  );
+
   const renderWithNavigation = (component: React.ReactElement) =>
-    render(
-      <Provider store={store}>
-        <NavigationContainer>
-          <Stack.Navigator>
-            <Stack.Screen name="Test">{() => component}</Stack.Screen>
-          </Stack.Navigator>
-        </NavigationContainer>
-      </Provider>,
-    );
+    render(buildNavWrapper(component));
 
   describe('Initial route determination', () => {
     beforeEach(() => {
@@ -711,6 +713,33 @@ describe('RewardsNavigator', () => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
       });
       expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate to dashboard after setParams clears deeplink params', async () => {
+      // Regression: the useEffect re-fires when setParams clears the params to
+      // undefined. Without the skipNextEffectRef guard it would fall through to
+      // navigate(REWARDS_DASHBOARD), overriding the deeplink destination.
+      mockRouteParams = { page: 'campaigns' };
+
+      const { rerender } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.REWARDS_CAMPAIGNS_VIEW,
+        );
+      });
+
+      // Simulate what setParams does in the real app: clear params and
+      // re-render the component with the updated route.
+      mockRouteParams = {};
+      mockNavigate.mockClear();
+
+      await act(async () => {
+        rerender(buildNavWrapper(<RewardsNavigator />));
+      });
+
+      // The guard must prevent a navigate(REWARDS_DASHBOARD) call here.
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
     });
   });
 

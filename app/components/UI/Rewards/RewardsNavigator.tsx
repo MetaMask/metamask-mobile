@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import OnboardingNavigator from './OnboardingNavigator';
@@ -36,6 +36,11 @@ const RewardsNavigator: React.FC = () => {
   const deepLinkCampaign = (route.params as { campaign?: string } | undefined)
     ?.campaign;
   const { colors } = useTheme();
+  // Tracks that the effect fired because setParams just cleared the deeplink
+  // params. The next fire (params → undefined) must be skipped to prevent the
+  // else-branch from navigating to REWARDS_DASHBOARD and overriding the
+  // intended deeplink destination.
+  const skipNextEffectRef = useRef(false);
 
   useRewardsVersionGuard();
 
@@ -64,6 +69,13 @@ const RewardsNavigator: React.FC = () => {
       return;
     }
     if (subscriptionId) {
+      // Skip this fire: it was triggered by setParams clearing the deeplink
+      // params. Without the guard the else-branch below would immediately
+      // navigate to REWARDS_DASHBOARD, overriding the deeplink destination.
+      if (skipNextEffectRef.current) {
+        skipNextEffectRef.current = false;
+        return;
+      }
       if (deepLinkPage === 'campaigns') {
         navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW);
       } else if (deepLinkCampaign === 'ondo') {
@@ -77,9 +89,11 @@ const RewardsNavigator: React.FC = () => {
       } else {
         navigation.navigate(Routes.REWARDS_DASHBOARD);
       }
-      // Clear deeplink params after first use so re-fires (e.g. on account
-      // switch) don't re-navigate the user away from where they are.
+      // Consume deeplink params after first use. setParams will re-fire this
+      // effect with both values as undefined; skipNextEffectRef prevents that
+      // from landing on REWARDS_DASHBOARD.
       if (deepLinkPage || deepLinkCampaign) {
+        skipNextEffectRef.current = true;
         navigation.setParams({ page: undefined, campaign: undefined });
       }
     } else {
