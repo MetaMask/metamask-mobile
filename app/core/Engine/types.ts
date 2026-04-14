@@ -458,6 +458,10 @@ import {
   ComplianceServiceActions,
   ComplianceServiceEvents,
 } from '@metamask/compliance-controller';
+import {
+  ChompApiService,
+  ChompApiServiceActions,
+} from '@metamask-previews/chomp-api-service';
 import { captureException } from '@sentry/react-native';
 
 /**
@@ -471,6 +475,7 @@ type RequiredControllers = Omit<
   | 'SnapKeyringBuilder'
   | 'StorageService'
   | 'ComplianceService'
+  | 'ChompApiService'
 >;
 
 /**
@@ -484,6 +489,7 @@ type OptionalControllers = Pick<
   | 'SnapKeyringBuilder'
   | 'StorageService'
   | 'ComplianceService'
+  | 'ChompApiService'
 >;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
@@ -590,7 +596,8 @@ type GlobalActions =
   | AuthenticatedUserStorageActions
   | ComplianceControllerActions
   | ComplianceServiceActions
-  | TransakServiceActions;
+  | TransakServiceActions
+  | ChompApiServiceActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -805,6 +812,7 @@ export type MessengerClients = {
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
   TransakService: TransakService;
+  ChompApiService: ChompApiService;
 };
 
 /**
@@ -1006,7 +1014,8 @@ export type MessengerClientsToInitialize =
   | 'SocialController'
   | 'AuthenticatedUserStorageService'
   | 'ComplianceService'
-  | 'ComplianceController';
+  | 'ComplianceController'
+  | 'ChompApiService';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
