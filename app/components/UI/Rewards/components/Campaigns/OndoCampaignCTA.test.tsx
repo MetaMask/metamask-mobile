@@ -37,6 +37,33 @@ jest.mock('./CampaignOptInSheet', () => {
   };
 });
 
+jest.mock('./OndoNotEligibleSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Pressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      onClose,
+      onConfirm,
+    }: {
+      onClose: () => void;
+      onConfirm: () => void;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'ondo-not-eligible-sheet' },
+        ReactActual.createElement(Pressable, {
+          testID: 'not-eligible-close',
+          onPress: onClose,
+        }),
+        ReactActual.createElement(Pressable, {
+          testID: 'not-eligible-confirm',
+          onPress: onConfirm,
+        }),
+      ),
+  };
+});
+
 const mockShowToast = jest.fn();
 const mockEntriesClosed = jest.fn(() => ({ variant: 'icon' }));
 
@@ -56,7 +83,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
       'rewards.campaign_details.join_campaign': 'Join Campaign',
-      'rewards.campaign_details.ondo.open_position': 'Open Position',
+      'rewards.campaign_details.ondo.open_position': 'Swap Ondo assets',
       'rewards.campaign_details.ondo.entries_closed_title': 'Entries closed',
       'rewards.campaign_details.ondo.entries_closed_description':
         'You missed the opt-in window. Check back for more campaigns in the future.',
@@ -188,7 +215,7 @@ describe('OndoCampaignCTA', () => {
   });
 
   describe('opted in, no portfolio positions', () => {
-    it('renders the "Open Position" button', () => {
+    it('renders the "Swap Ondo assets" button', () => {
       const { getByTestId, getByText } = render(
         <OndoCampaignCTA
           campaign={buildCampaign()}
@@ -199,7 +226,7 @@ describe('OndoCampaignCTA', () => {
       );
 
       expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
-      expect(getByText('Open Position')).toBeOnTheScreen();
+      expect(getByText('Swap Ondo assets')).toBeOnTheScreen();
     });
 
     it('navigates to RWA asset selector in open_position mode when pressed', () => {
@@ -221,7 +248,7 @@ describe('OndoCampaignCTA', () => {
   });
 
   describe('opted in, with portfolio positions', () => {
-    it('renders the "Open Position" button', () => {
+    it('renders the "Swap Ondo assets" button', () => {
       const { getByTestId, getByText } = render(
         <OndoCampaignCTA
           campaign={buildCampaign()}
@@ -232,7 +259,7 @@ describe('OndoCampaignCTA', () => {
       );
 
       expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
-      expect(getByText('Open Position')).toBeOnTheScreen();
+      expect(getByText('Swap Ondo assets')).toBeOnTheScreen();
     });
 
     it('navigates to RWA asset selector in swap mode when pressed', () => {
@@ -250,6 +277,135 @@ describe('OndoCampaignCTA', () => {
         Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR,
         { mode: 'swap', campaignId: 'campaign-1' },
       );
+    });
+  });
+
+  describe('notEligibleForCampaign', () => {
+    describe('not opted in + notEligibleForCampaign=true', () => {
+      it('shows the Join Campaign button', () => {
+        const { getByTestId, getByText } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign()}
+            participantStatus={notOptedIn}
+            {...defaultProps}
+            notEligibleForCampaign
+          />,
+        );
+        expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
+        expect(getByText('Join Campaign')).toBeOnTheScreen();
+      });
+
+      it('fires entries-closed toast (not the opt-in sheet) when pressed', () => {
+        const { getByTestId } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign()}
+            participantStatus={notOptedIn}
+            {...defaultProps}
+            notEligibleForCampaign
+          />,
+        );
+        fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+        expect(mockEntriesClosed).toHaveBeenCalledTimes(1);
+        expect(mockShowToast).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not open the opt-in sheet when pressed', () => {
+        const { getByTestId, queryByTestId } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign()}
+            participantStatus={notOptedIn}
+            {...defaultProps}
+            notEligibleForCampaign
+          />,
+        );
+        fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+        expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
+      });
+    });
+
+    describe('opted in + notEligibleForCampaign=true', () => {
+      it('shows the OndoNotEligibleSheet when the CTA is pressed', () => {
+        const { getByTestId } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign()}
+            participantStatus={optedIn}
+            {...defaultProps}
+            hasPositions={false}
+            notEligibleForCampaign
+          />,
+        );
+        fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+        expect(getByTestId('ondo-not-eligible-sheet')).toBeDefined();
+      });
+
+      it('dismisses the OndoNotEligibleSheet when close is pressed', () => {
+        const { getByTestId, queryByTestId } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign()}
+            participantStatus={optedIn}
+            {...defaultProps}
+            hasPositions={false}
+            notEligibleForCampaign
+          />,
+        );
+        fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+        expect(getByTestId('ondo-not-eligible-sheet')).toBeDefined();
+        fireEvent.press(getByTestId('not-eligible-close'));
+        expect(queryByTestId('ondo-not-eligible-sheet')).toBeNull();
+      });
+
+      it('navigates to open_position and dismisses the sheet on confirm (no positions)', () => {
+        const { getByTestId, queryByTestId } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign()}
+            participantStatus={optedIn}
+            {...defaultProps}
+            hasPositions={false}
+            notEligibleForCampaign
+          />,
+        );
+        fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+        fireEvent.press(getByTestId('not-eligible-confirm'));
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR,
+          { mode: 'open_position', campaignId: 'campaign-1' },
+        );
+        expect(queryByTestId('ondo-not-eligible-sheet')).toBeNull();
+      });
+
+      it('navigates to swap and dismisses the sheet on confirm (with positions)', () => {
+        const { getByTestId, queryByTestId } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign()}
+            participantStatus={optedIn}
+            {...defaultProps}
+            hasPositions
+            notEligibleForCampaign
+          />,
+        );
+        fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+        fireEvent.press(getByTestId('not-eligible-confirm'));
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR,
+          { mode: 'swap', campaignId: 'campaign-1' },
+        );
+        expect(queryByTestId('ondo-not-eligible-sheet')).toBeNull();
+      });
+
+      it('does not navigate when notEligibleForCampaign=false (normal flow)', () => {
+        const { getByTestId, queryByTestId } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign()}
+            participantStatus={optedIn}
+            {...defaultProps}
+            hasPositions={false}
+            notEligibleForCampaign={false}
+          />,
+        );
+        fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+        expect(queryByTestId('ondo-not-eligible-sheet')).toBeNull();
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

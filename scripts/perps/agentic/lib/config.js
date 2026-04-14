@@ -25,12 +25,15 @@ function loadPort() {
 
 /** Read IOS_SIMULATOR name from .js.env or env (default: none — accept any device) */
 function loadSimulatorName() {
-  return process.env.IOS_SIMULATOR || loadEnvValue('IOS_SIMULATOR') || '';
+  // Explicit empty string in env means "no simulator" — don't fall through to .js.env
+  if ('IOS_SIMULATOR' in process.env) return process.env.IOS_SIMULATOR;
+  return loadEnvValue('IOS_SIMULATOR') || '';
 }
 
 /** Read ANDROID_DEVICE serial from .js.env or env (default: none — accept any device) */
 function loadAndroidDevice() {
-  return process.env.ANDROID_DEVICE || loadEnvValue('ANDROID_DEVICE') || '';
+  if ('ANDROID_DEVICE' in process.env) return process.env.ANDROID_DEVICE;
+  return loadEnvValue('ANDROID_DEVICE') || '';
 }
 
 module.exports = { loadEnvValue, loadPort, loadSimulatorName, loadAndroidDevice };

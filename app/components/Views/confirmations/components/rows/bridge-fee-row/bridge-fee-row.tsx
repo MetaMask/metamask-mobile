@@ -67,7 +67,7 @@ function TransactionFeeRow({
   const hasQuotes = Boolean(quotes?.length);
 
   const feeTotalUsd = useMemo(() => {
-    if (!totals?.fees || !hasQuotes) return '';
+    if (!totals?.fees) return '';
 
     const metaMask = totals.fees.metaMask.usd ?? 0;
     const provider = totals.fees.provider.usd;
@@ -80,7 +80,7 @@ function TransactionFeeRow({
         .plus(sourceNetwork)
         .plus(targetNetwork),
     );
-  }, [totals, formatFiat, hasQuotes]);
+  }, [totals, formatFiat]);
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
 
