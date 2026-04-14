@@ -49,7 +49,6 @@ const MainActionButton = ({
         onPress={!isDisabled ? onPress : undefined}
         onPressIn={!isDisabled ? handlePressIn : undefined}
         onPressOut={!isDisabled ? handlePressOut : undefined}
-        accessible
         disabled={isDisabled}
         {...props}
       >
