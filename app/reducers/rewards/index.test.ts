@@ -24,6 +24,9 @@ import rewardsReducer, {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
+  setBenefits,
+  setBenefitsError,
+  setBenefitsLoading,
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
@@ -2053,6 +2056,9 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
+        benefits: [],
+        benefitsLoading: false,
+        benefitsError: false,
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -2170,6 +2176,9 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
+        benefits: [],
+        benefitsLoading: false,
+        benefitsError: false,
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -4540,6 +4549,125 @@ describe('persist/REHYDRATE with bulk link state', () => {
     expect(state.bulkLink.isRunning).toBe(false);
     expect(state.bulkLink.wasInterrupted).toBe(false);
     expect(state.bulkLink.initialSubscriptionId).toBe(null);
+  });
+});
+
+describe('setBenefits', () => {
+  const mockBenefitsPayload = {
+    limit: 10,
+    lastFetched: 1767225600000,
+    benefits: [
+      {
+        id: 101,
+        longTitle: 'Premium Access',
+        shortDescription: 'Get premium perks',
+        longDescription: 'Unlock premium partner benefits.',
+        thumbnail: 'https://example.com/benefits/premium.png',
+        validFrom: '2026-01-01T00:00:00.000Z',
+        validTo: '2026-12-31T00:00:00.000Z',
+        actionDate: '2026-06-01T00:00:00.000Z',
+        url: 'https://example.com/claim',
+        chain: 'ethereum',
+        type: {
+          id: 1,
+          name: 'Partner',
+        },
+      },
+    ],
+  };
+
+  it('sets benefits from payload', () => {
+    const action = setBenefits(mockBenefitsPayload);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.benefits).toEqual(mockBenefitsPayload.benefits);
+  });
+
+  it('replaces existing benefits with new payload benefits', () => {
+    const stateWithBenefits: RewardsState = {
+      ...initialState,
+      benefits: mockBenefitsPayload.benefits,
+    };
+    const nextBenefitsPayload = {
+      limit: 20,
+      lastFetched: 1769904000000,
+      benefits: [
+        {
+          ...mockBenefitsPayload.benefits[0],
+          id: 202,
+          longTitle: 'Travel Perk',
+        },
+      ],
+    };
+    const action = setBenefits(nextBenefitsPayload);
+
+    const state = rewardsReducer(stateWithBenefits, action);
+
+    expect(state.benefits).toEqual(nextBenefitsPayload.benefits);
+  });
+
+  it('updates benefits and preserves unrelated fields', () => {
+    const stateWithOtherFlags: RewardsState = {
+      ...initialState,
+      benefitsLoading: true,
+      benefitsError: true,
+      campaignsLoading: true,
+      activeTab: 'campaigns',
+    };
+    const action = setBenefits(mockBenefitsPayload);
+
+    const state = rewardsReducer(stateWithOtherFlags, action);
+
+    expect(state.benefits).toEqual(mockBenefitsPayload.benefits);
+    expect(state.benefitsLoading).toBe(true);
+    expect(state.benefitsError).toBe(true);
+    expect(state.campaignsLoading).toBe(true);
+    expect(state.activeTab).toBe('campaigns');
+  });
+});
+
+describe('setBenefitsLoading', () => {
+  it('sets benefitsLoading to true', () => {
+    const action = setBenefitsLoading(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.benefitsLoading).toBe(true);
+  });
+
+  it('sets benefitsLoading to false', () => {
+    const stateWithLoading: RewardsState = {
+      ...initialState,
+      benefitsLoading: true,
+    };
+    const action = setBenefitsLoading(false);
+
+    const state = rewardsReducer(stateWithLoading, action);
+
+    expect(state.benefitsLoading).toBe(false);
+  });
+});
+
+describe('setBenefitsError', () => {
+  it('sets benefitsError to true', () => {
+    const action = setBenefitsError(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.benefitsError).toBe(true);
+  });
+
+  it('sets benefitsError to false', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      benefitsError: true,
+    };
+    const action = setBenefitsError(false);
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.benefitsError).toBe(false);
   });
 });
 

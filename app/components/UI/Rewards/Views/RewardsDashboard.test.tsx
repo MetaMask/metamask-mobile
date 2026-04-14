@@ -160,6 +160,19 @@ jest.mock('../components/Campaigns/CampaignsPreview', () => ({
   },
 }));
 
+jest.mock('../components/Benefits/BenefitsPreview', () => ({
+  __esModule: true,
+  default: function MockBenefitsPreview() {
+    const ReactActual = jest.requireActual('react');
+    const { View, Text } = jest.requireActual('react-native');
+    return ReactActual.createElement(
+      View,
+      { testID: 'benefits-preview' },
+      ReactActual.createElement(Text, null, 'Benefits Preview'),
+    );
+  },
+}));
+
 // Mock hooks
 jest.mock('../hooks/useRewardOptinSummary', () => ({
   useRewardOptinSummary: jest.fn(),
@@ -332,6 +345,7 @@ describe('RewardsDashboard', () => {
       expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
       expect(getByTestId('campaigns-preview')).toBeTruthy();
       expect(getByTestId('earn-rewards-preview')).toBeTruthy();
+      expect(getByTestId('benefits-preview')).toBeTruthy();
     });
 
     it('calls modal hooks when component is rendered', () => {
