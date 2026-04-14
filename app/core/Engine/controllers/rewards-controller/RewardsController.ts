@@ -43,6 +43,7 @@ import {
   type ClientVersionRequirementDto,
   type CampaignState,
   type CampaignDtoState,
+  type SubscriptionBenefitsState,
   BASE32_REGEX,
   CampaignType,
 } from './types';
@@ -97,6 +98,9 @@ const SEASON_METADATA_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Referral details cache threshold
 const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
+
+// Benefits details cache threshold
+const BENEFITS_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 
 // Active boosts cache threshold
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
@@ -256,6 +260,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  subscriptionBenefits: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
 };
 
 /**
@@ -265,6 +275,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   activeAccount: null,
   accounts: {},
   subscriptions: {},
+  subscriptionBenefits: {},
   seasons: {},
   subscriptionReferralDetails: {},
   seasonStatuses: {},
@@ -377,6 +388,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getActivityIfChanged',
   'getActivityLastUpdated',
   'getActualSubscriptionId',
+  'getBenefits',
   'getCampaignParticipantStatus',
   'getCampaigns',
   'getCandidateSubscriptionId',
@@ -418,6 +430,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'optInToCampaign',
   'optOut',
   'performSilentAuth',
+  'postBenefitImpression',
   'resetAll',
   'resetState',
   'setActiveAccountFromCandidate',
@@ -4015,6 +4028,99 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to get Season 1 Linea reward tokens:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get benefits details with caching
+   * @param subscriptionId - The subscription ID for authentication
+   * @param limit - The maximum number of items requested
+   * @returns Promise<SubscriptionBenefitsState> - The benefits data
+   */
+  async getBenefits(
+    subscriptionId: string,
+    limit: number,
+  ): Promise<SubscriptionBenefitsState> {
+    return await wrapWithCache<SubscriptionBenefitsState>({
+      key: `${subscriptionId}`,
+      ttl: BENEFITS_DETAILS_CACHE_THRESHOLD_MS,
+      readCache: (key) => {
+        const cached = this.state.subscriptionBenefits[key] || undefined;
+        if (!cached) return;
+        return {
+          payload: cached,
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        try {
+          Logger.log(
+            'RewardsController: Fetching fresh benefits details data via API call for',
+            { subscriptionId, limit },
+          );
+          const benefits = await this.#withAuthRetry(
+            () =>
+              this.messenger.call(
+                'RewardsDataService:getBenefits',
+                subscriptionId,
+                limit,
+              ),
+            subscriptionId,
+          );
+          return {
+            benefits,
+            limit,
+            lastFetched: Date.now(),
+          };
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Failed to get benefits details:',
+            error instanceof Error ? error.message : String(error),
+          );
+          throw error;
+        }
+      },
+      writeCache: (key, payload) => {
+        this.update((state) => {
+          state.subscriptionBenefits[key] = payload;
+        });
+      },
+    });
+  }
+
+  /**
+   * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
+   * @param subscriptionId - The subscription ID for authentication
+   * @param benefitId - The specific benefit ID that was impressed
+   * @param benefitType - The type of the benefit that was impressed
+   * @returns Promise<SubscriptionBenefitsState> - The benefits data
+   */
+  async postBenefitImpression(
+    subscriptionId: string,
+    benefitId: number,
+    benefitType: number,
+  ): Promise<void> {
+    try {
+      Logger.log(
+        'RewardsController: Posting benefit impression via API call for',
+        { subscriptionId, benefitId },
+      );
+      await this.#withAuthRetry(
+        () =>
+          this.messenger.call(
+            'RewardsDataService:postBenefitImpression',
+            subscriptionId,
+            benefitId,
+            benefitType,
+          ),
+        subscriptionId,
+      );
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to post benefit impression:',
         error instanceof Error ? error.message : String(error),
       );
       throw error;
