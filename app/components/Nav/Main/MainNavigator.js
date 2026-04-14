@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  TransitionPresets,
+} from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
@@ -1198,7 +1201,10 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PERPS.ROOT}
             component={PerpsScreenStack}
-            options={slideFromRightAnimation}
+            options={{
+              ...TransitionPresets.SlideFromRightIOS,
+              headerShown: false,
+            }}
           />
           <Stack.Screen
             name={Routes.PERPS.TUTORIAL}

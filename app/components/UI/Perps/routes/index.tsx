@@ -1,7 +1,8 @@
+import { createStackNavigator } from '@react-navigation/stack';
 import {
-  createStackNavigator,
-  type StackNavigationOptions,
-} from '@react-navigation/stack';
+  createNativeStackNavigator,
+  type NativeStackNavigationOptions,
+} from '@react-navigation/native-stack';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import type { PerpsNavigationParamList } from '../types/navigation';
@@ -45,7 +46,7 @@ import { RouteProp, useRoute } from '@react-navigation/native';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
-const Stack = createStackNavigator<PerpsNavigationParamList>();
+const Stack = createNativeStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createStackNavigator();
 
 const styles = StyleSheet.create({
@@ -56,15 +57,15 @@ const styles = StyleSheet.create({
 
 function getRedesignedConfirmationsHeaderOptions({
   showPerpsHeader = CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader,
-}: PerpsNavigationParamList['RedesignedConfirmations'] = {}): StackNavigationOptions {
+}: PerpsNavigationParamList['RedesignedConfirmations'] = {}): NativeStackNavigationOptions {
   return showPerpsHeader
     ? ({
-        headerLeft: () => null,
+        headerBackVisible: false,
         headerShown: true,
         title: '',
         presentation: 'transparentModal',
       } as const)
-    : ({ header: () => null, presentation: 'transparentModal' } as const);
+    : ({ headerShown: false, presentation: 'transparentModal' } as const);
 }
 
 const PerpsConfirmScreen = () => {
@@ -370,18 +371,17 @@ const PerpsScreenStack = () => {
             }}
           />
 
-          {/* Modal stack for ClosePosition bottom sheets (triggered bytooltip) */}
+          {/* Modal stack for ClosePosition bottom sheets (triggered by tooltip) */}
           <Stack.Screen
             name={Routes.PERPS.MODALS.CLOSE_POSITION_MODALS}
             component={PerpsClosePositionBottomSheetStack}
             options={{
               headerShown: false,
-              cardStyle: {
+              contentStyle: {
                 backgroundColor: 'transparent',
               },
-              animationEnabled: false,
-              // adding detachPreviousScreen to specific screen, rather than to the entire global stack
-              detachPreviousScreen: false,
+              animation: 'none',
+              presentation: 'transparentModal',
             }}
           />
 
@@ -391,12 +391,11 @@ const PerpsScreenStack = () => {
             component={PerpsModalStack}
             options={{
               headerShown: false,
-              cardStyle: {
+              contentStyle: {
                 backgroundColor: 'transparent',
               },
-              animationEnabled: false,
-              // Keep previous screen rendered for transparent overlay
-              detachPreviousScreen: false,
+              animation: 'none',
+              presentation: 'transparentModal',
             }}
           />
 
