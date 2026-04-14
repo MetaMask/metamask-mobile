@@ -50,7 +50,6 @@ import {
 } from '../../../util/trace';
 import { setupSentry } from '../../../util/sentry/utils';
 import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
-import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
 import Device from '../../../util/device';
 import type { OptinMetricsRouteParams } from './OptinMetrics.types';
 import {
@@ -79,7 +78,6 @@ const OptinMetrics = () => {
 
   // Redux state selectors
   const events = useSelector((state: RootState) => state.onboarding.events);
-  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
   const reduxAccountType = useSelector(selectOnboardingAccountType);
 
   // State
@@ -437,12 +435,9 @@ const OptinMetrics = () => {
                 color={TextColor.TextAlternative}
                 twClassName="mt-1"
               >
-                {isPna25FlagEnabled
-                  ? strings(
-                      'privacy_policy.gather_basic_usage_description_updated',
-                    ) + ' '
-                  : strings('privacy_policy.gather_basic_usage_description') +
-                    ' '}
+                {strings(
+                  'privacy_policy.gather_basic_usage_description_updated',
+                ) + ' '}
                 <Text
                   color={TextColor.PrimaryDefault}
                   variant={TextVariant.BodySm}
