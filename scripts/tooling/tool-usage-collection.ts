@@ -31,8 +31,14 @@ export function parseArgs(argv: string[]): ParsedArgs {
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--verbose') {
       map.verbose = 'true';
-    } else if (argv[i].startsWith('--') && i + 1 < argv.length) {
-      map[argv[i].slice(2)] = argv[i + 1];
+    } else if (argv[i].startsWith('--')) {
+      const key = argv[i].slice(2);
+      const next = argv[i + 1];
+      // Reject flags that have no following value token or whose next token is itself a flag
+      if (next === undefined || next.startsWith('--')) {
+        throw new Error(`--${key} requires a value`);
+      }
+      map[key] = next;
       i++;
     }
   }
