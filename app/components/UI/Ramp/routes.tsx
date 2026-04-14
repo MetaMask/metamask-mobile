@@ -23,6 +23,8 @@ import ProviderSelectionModal from './Views/Modals/ProviderSelectionModal';
 import ErrorDetailsModal from './Views/Modals/ErrorDetailsModal';
 import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SsnInfoModal from './Deposit/Views/Modals/SsnInfoModal';
+import StateSelectorModal from './Views/Modals/StateSelectorModal';
+import UnsupportedStateModal from './Views/Modals/UnsupportedStateModal';
 import RampsOrderDetails from './Views/OrderDetails';
 import LockManagerService from '../../../core/LockManagerService';
 import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -116,6 +118,14 @@ const TokenListModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.SSN_INFO}
       component={SsnInfoModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.STATE_SELECTOR}
+      component={StateSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.UNSUPPORTED_STATE}
+      component={UnsupportedStateModal}
     />
   </ModalsStack.Navigator>
 );
