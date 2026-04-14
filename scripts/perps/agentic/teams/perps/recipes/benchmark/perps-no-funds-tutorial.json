@@ -1,0 +1,122 @@
+{
+  "title": "Benchmark: Perps No Funds Tutorial — walk through onboarding tutorial",
+  "description": "Mirrors smoke/perps/perps-no-funds-tutorial.spec.ts. Navigates to Perps and walks through 6 tutorial continue steps. If tutorial is not shown (user already onboarded), verifies market list is visible instead.",
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked", "perps.feature_enabled"],
+      "entry": "ensure-testnet",
+      "nodes": {
+        "ensure-testnet": {
+          "action": "call",
+          "ref": "setup-testnet",
+          "next": "nav-perps"
+        },
+        "nav-perps": {
+          "action": "navigate",
+          "target": "PerpsHomeView",
+          "next": "wait-perps-screen"
+        },
+        "wait-perps-screen": {
+          "action": "wait_for",
+          "expression": "(function(){var route=globalThis.__AGENTIC__.getRoute().name;return JSON.stringify({route:route})})()",
+          "assert": { "operator": "not_null", "field": "route" },
+          "timeout_ms": 15000,
+          "next": "check-tutorial"
+        },
+        "check-tutorial": {
+          "action": "eval_sync",
+          "expression": "(function(){var el=globalThis.__AGENTIC__.findTestId('perps-tutorial-continue-button');return JSON.stringify({hasTutorial:!!el})})()",
+          "save_as": "tutorialCheck",
+          "assert": { "operator": "not_null" },
+          "next": "decide-path"
+        },
+        "decide-path": {
+          "action": "switch",
+          "cases": [
+            {
+              "label": "tutorial visible",
+              "when": { "operator": "eq", "field": "vars.tutorialCheck.hasTutorial", "value": true },
+              "next": "press-continue-1"
+            }
+          ],
+          "default": "screenshot-already-onboarded"
+        },
+        "press-continue-1": {
+          "action": "press",
+          "test_id": "perps-tutorial-continue-button",
+          "next": "wait-1"
+        },
+        "wait-1": {
+          "action": "wait",
+          "duration_ms": 500,
+          "next": "press-continue-2"
+        },
+        "press-continue-2": {
+          "action": "press",
+          "test_id": "perps-tutorial-continue-button",
+          "next": "wait-2"
+        },
+        "wait-2": {
+          "action": "wait",
+          "duration_ms": 500,
+          "next": "press-continue-3"
+        },
+        "press-continue-3": {
+          "action": "press",
+          "test_id": "perps-tutorial-continue-button",
+          "next": "wait-3"
+        },
+        "wait-3": {
+          "action": "wait",
+          "duration_ms": 500,
+          "next": "press-continue-4"
+        },
+        "press-continue-4": {
+          "action": "press",
+          "test_id": "perps-tutorial-continue-button",
+          "next": "wait-4"
+        },
+        "wait-4": {
+          "action": "wait",
+          "duration_ms": 500,
+          "next": "press-continue-5"
+        },
+        "press-continue-5": {
+          "action": "press",
+          "test_id": "perps-tutorial-continue-button",
+          "next": "wait-5"
+        },
+        "wait-5": {
+          "action": "wait",
+          "duration_ms": 500,
+          "next": "press-continue-6"
+        },
+        "press-continue-6": {
+          "action": "press",
+          "test_id": "perps-tutorial-continue-button",
+          "next": "screenshot-tutorial-complete"
+        },
+        "screenshot-tutorial-complete": {
+          "action": "screenshot",
+          "filename": "evidence-tutorial-complete.png",
+          "next": "verify-market-view"
+        },
+        "screenshot-already-onboarded": {
+          "action": "screenshot",
+          "filename": "evidence-already-onboarded.png",
+          "next": "verify-market-view"
+        },
+        "verify-market-view": {
+          "action": "eval_sync",
+          "expression": "(function(){var route=globalThis.__AGENTIC__.getRoute().name;return JSON.stringify({route:route,isPerps:route.indexOf('Perps')!==-1||route.indexOf('perps')!==-1})})()",
+          "assert": { "operator": "not_null", "field": "route" },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "title": "Benchmark: Perps Position Liquidation — open long ETH, verify position exists",
+  "description": "Mirrors smoke/perps/perps-position-liquidation.spec.ts. Opens a long ETH position and verifies it exists. Detox spec pushes price to trigger liquidation via commandQueueServer; recipe validates position open (liquidation trigger requires E2E mock infrastructure for price manipulation).",
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked", "perps.ready_to_trade", "perps.sufficient_balance"],
+      "entry": "ensure-testnet",
+      "nodes": {
+        "ensure-testnet": {
+          "action": "call",
+          "ref": "setup-testnet",
+          "next": "clear-eth-position"
+        },
+        "clear-eth-position": {
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});if(!p)return JSON.stringify({cleared:true});return Engine.context.PerpsController.closePosition({symbol:'ETH'}).then(function(){return JSON.stringify({cleared:true})})})",
+          "assert": { "operator": "eq", "field": "cleared", "value": true },
+          "next": "open-long-eth"
+        },
+        "open-long-eth": {
+          "action": "call",
+          "ref": "trade-open-market",
+          "params": { "symbol": "ETH", "side": "long", "usdAmount": "10" },
+          "next": "wait-position"
+        },
+        "wait-position": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});return JSON.stringify({found:!!p,side:p?p.side:null,entryPrice:p?p.entryPrice:null})})",
+          "assert": { "operator": "eq", "field": "found", "value": true },
+          "timeout_ms": 15000,
+          "next": "verify-on-market-details"
+        },
+        "verify-on-market-details": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": { "symbol": "ETH", "name": "ETH", "price": "0", "change24h": "0", "change24hPercent": "0", "volume": "0", "maxLeverage": "100" }
+          },
+          "next": "wait-close-button"
+        },
+        "wait-close-button": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-close-button",
+          "timeout_ms": 15000,
+          "next": "screenshot-position"
+        },
+        "screenshot-position": {
+          "action": "screenshot",
+          "filename": "evidence-position-open-for-liquidation.png",
+          "next": "cleanup"
+        },
+        "cleanup": {
+          "action": "call",
+          "ref": "trade-close-position",
+          "params": { "symbol": "ETH" },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      }
+    }
+  }
+}

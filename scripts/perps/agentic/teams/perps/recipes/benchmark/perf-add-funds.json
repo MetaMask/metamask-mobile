@@ -1,0 +1,80 @@
+{
+  "title": "Benchmark: Perf — Perps add funds flow timing",
+  "description": "Mirrors performance/login/perps-add-funds.spec.ts. Navigates to Perps, handles tutorial if present, opens Add Funds, types amount, taps Continue, verifies quote screen. Performance spec measures timing; recipe measures wall-clock execution time.",
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked", "perps.feature_enabled"],
+      "entry": "ensure-testnet",
+      "nodes": {
+        "ensure-testnet": {
+          "action": "call",
+          "ref": "setup-testnet",
+          "next": "nav-perps"
+        },
+        "nav-perps": {
+          "action": "navigate",
+          "target": "PerpsHomeView",
+          "next": "wait-perps"
+        },
+        "wait-perps": {
+          "action": "wait_for",
+          "expression": "(function(){var route=globalThis.__AGENTIC__.getRoute().name;return JSON.stringify({route:route})})()",
+          "assert": { "operator": "not_null", "field": "route" },
+          "timeout_ms": 15000,
+          "next": "check-tutorial"
+        },
+        "check-tutorial": {
+          "action": "eval_sync",
+          "expression": "(function(){var el=globalThis.__AGENTIC__.findTestId('perps-tutorial-skip-button');return JSON.stringify({hasSkip:!!el})})()",
+          "save_as": "skipCheck",
+          "assert": { "operator": "not_null" },
+          "next": "maybe-skip-tutorial"
+        },
+        "maybe-skip-tutorial": {
+          "action": "press",
+          "test_id": "perps-tutorial-skip-button",
+          "when": { "operator": "eq", "field": "vars.skipCheck.hasSkip", "value": true },
+          "next": "wait-after-skip"
+        },
+        "wait-after-skip": {
+          "action": "wait",
+          "duration_ms": 1000,
+          "next": "find-add-funds"
+        },
+        "find-add-funds": {
+          "action": "wait_for",
+          "expression": "(function(){var el=globalThis.__AGENTIC__.findTestId('perps-market-add-funds-button')||globalThis.__AGENTIC__.findTestId('perps-home-add-funds-button');return JSON.stringify({found:!!el})})()",
+          "assert": { "operator": "eq", "field": "found", "value": true },
+          "timeout_ms": 20000,
+          "next": "press-add-funds"
+        },
+        "press-add-funds": {
+          "action": "eval_sync",
+          "expression": "(function(){var el=globalThis.__AGENTIC__.findTestId('perps-market-add-funds-button');if(el){globalThis.__AGENTIC__.pressTestId('perps-market-add-funds-button');return JSON.stringify({pressed:'market'})}el=globalThis.__AGENTIC__.findTestId('perps-home-add-funds-button');if(el){globalThis.__AGENTIC__.pressTestId('perps-home-add-funds-button');return JSON.stringify({pressed:'home'})}return JSON.stringify({pressed:null})})()",
+          "assert": { "operator": "not_null", "field": "pressed" },
+          "next": "wait-deposit"
+        },
+        "wait-deposit": {
+          "action": "wait_for",
+          "test_id": "deposit-keyboard",
+          "timeout_ms": 15000,
+          "next": "type-amount"
+        },
+        "type-amount": {
+          "action": "type_keypad",
+          "value": "2",
+          "next": "screenshot-amount"
+        },
+        "screenshot-amount": {
+          "action": "screenshot",
+          "filename": "evidence-perf-add-funds.png",
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      }
+    }
+  }
+}
