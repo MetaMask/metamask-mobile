@@ -28,6 +28,7 @@ const MainActionButton = ({
   style,
   containerStyle,
   isDisabled = false,
+  testID,
   ...props
 }: MainActionButtonProps) => {
   const { styles } = useStyles(styleSheet, {
@@ -42,6 +43,8 @@ const MainActionButton = ({
 
   return (
     <Animated.View
+      testID={testID}
+      accessible={false}
       style={[{ transform: [{ scale: scaleAnim }] }, containerStyle]}
     >
       <Pressable
