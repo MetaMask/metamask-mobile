@@ -443,7 +443,7 @@ describe('CustomAmountInfo', () => {
     });
   });
 
-  it('renders no funds message for moneyAccountDeposit when no tokens available', () => {
+  it('renders no funds alert message for moneyAccountDeposit when alert is present', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
       txParams: { from: '0x123' },
@@ -454,16 +454,21 @@ describe('CustomAmountInfo', () => {
       hasTokens: false,
     });
 
+    useTransactionCustomAmountAlertsMock.mockReturnValue({
+      alertTitle: strings('alert_system.account_no_funds.message'),
+      alertMessage: strings('alert_system.account_no_funds.message'),
+    });
+
     const { getByText } = render({
       transactionType: TransactionType.moneyAccountDeposit,
     });
 
     expect(
-      getByText(strings('confirm.no_funds_use_different_account')),
+      getByText(strings('alert_system.account_no_funds.message')),
     ).toBeOnTheScreen();
   });
 
-  it('does not render no funds message for moneyAccountDeposit when tokens available', () => {
+  it('does not render no funds alert for moneyAccountDeposit when tokens available', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
       txParams: { from: '0x123' },
@@ -474,8 +479,8 @@ describe('CustomAmountInfo', () => {
     });
 
     expect(
-      queryByText(strings('confirm.no_funds_use_different_account')),
-    ).not.toBeOnTheScreen();
+      queryByText(strings('alert_system.account_no_funds.message')),
+    ).toBeNull();
   });
 
   it('renders AccountSelector for moneyAccountDeposit transactions', () => {

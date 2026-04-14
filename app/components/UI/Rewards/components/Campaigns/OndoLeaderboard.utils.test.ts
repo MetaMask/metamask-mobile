@@ -1,4 +1,21 @@
-import { formatRateOfReturn, formatComputedAt } from './OndoLeaderboard.utils';
+import {
+  formatRateOfReturn,
+  formatComputedAt,
+  formatTierDisplayName,
+  getTierMinNetDeposit,
+} from './OndoLeaderboard.utils';
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const t: Record<string, string> = {
+      'rewards.ondo_campaign_leaderboard.tier_starter': 'Bronze',
+      'rewards.ondo_campaign_leaderboard.tier_mid': 'Silver',
+      'rewards.ondo_campaign_leaderboard.tier_upper': 'Platinum',
+    };
+    return t[key] ?? key;
+  },
+  default: { locale: 'en-US' },
+}));
 
 describe('OndoLeaderboard.utils', () => {
   describe('formatRateOfReturn', () => {
@@ -53,6 +70,55 @@ describe('OndoLeaderboard.utils', () => {
 
     it('returns empty string for an unparseable value', () => {
       expect(formatComputedAt('not-a-date')).toBe('');
+    });
+  });
+
+  describe('formatTierDisplayName', () => {
+    it('maps STARTER to Bronze', () => {
+      expect(formatTierDisplayName('STARTER')).toBe('Bronze');
+    });
+
+    it('maps MID to Silver', () => {
+      expect(formatTierDisplayName('MID')).toBe('Silver');
+    });
+
+    it('maps UPPER to Platinum', () => {
+      expect(formatTierDisplayName('UPPER')).toBe('Platinum');
+    });
+
+    it('handles lowercase input', () => {
+      expect(formatTierDisplayName('starter')).toBe('Bronze');
+    });
+
+    it('handles mixed-case input', () => {
+      expect(formatTierDisplayName('Mid')).toBe('Silver');
+    });
+
+    it('returns the raw key for an unknown tier', () => {
+      expect(formatTierDisplayName('UNKNOWN')).toBe('UNKNOWN');
+    });
+  });
+
+  describe('getTierMinNetDeposit', () => {
+    const tiers = [
+      { name: 'STARTER', minNetDeposit: 500 },
+      { name: 'MID', minNetDeposit: 1000 },
+    ];
+
+    it('returns minNetDeposit for a matching tier', () => {
+      expect(getTierMinNetDeposit(tiers, 'STARTER')).toBe(500);
+    });
+
+    it('is case-insensitive', () => {
+      expect(getTierMinNetDeposit(tiers, 'mid')).toBe(1000);
+    });
+
+    it('returns null for an unknown tier', () => {
+      expect(getTierMinNetDeposit(tiers, 'UPPER')).toBeNull();
+    });
+
+    it('returns null when tiers is undefined', () => {
+      expect(getTierMinNetDeposit(undefined, 'STARTER')).toBeNull();
     });
   });
 });

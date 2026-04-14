@@ -3,7 +3,10 @@
  */
 
 import {
+  formatDateRemaining,
   formatRewardsDate,
+  formatRewardsDateLabel,
+  formatRewardsTimeOnly,
   formatTimeRemaining,
   formatNumber,
   getIconName,
@@ -20,6 +23,9 @@ import {
   parseCaip19,
   caipChainIdToHex,
   shortenAddress,
+  formatUsd,
+  formatSignedUsd,
+  formatCompactUsd,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -72,6 +78,15 @@ jest.mock('../../../../util/intl', () => ({
   getIntlNumberFormatter: mockGetIntlNumberFormatter,
 }));
 
+jest.mock('../../../../util/formatFiat', () => ({
+  __esModule: true,
+  default: (amount: { toFixed: (dp: number) => string }) =>
+    `$${Number(amount.toFixed(2)).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`,
+}));
+
 describe('formatUtils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -96,6 +111,34 @@ describe('formatUtils', () => {
 
       // Then it should return formatted date in French locale
       expect(result).toMatch(/15 janv., \d{1,2}:\d{2}/);
+    });
+  });
+
+  describe('formatRewardsDateLabel', () => {
+    it('formats date with short month, day, and year', () => {
+      const date = new Date('2025-04-23T10:30:00Z');
+      const result = formatRewardsDateLabel(date, 'en-US');
+      expect(result).toBe('Apr 23, 2025');
+    });
+
+    it('formats date correctly with custom locale', () => {
+      const date = new Date('2025-04-23T10:30:00Z');
+      const result = formatRewardsDateLabel(date, 'fr-FR');
+      expect(result).toMatch(/23 avr\. 2025|23 avr 2025/);
+    });
+  });
+
+  describe('formatRewardsTimeOnly', () => {
+    it('formats time with hour and minute', () => {
+      const date = new Date('2025-04-23T14:30:00Z');
+      const result = formatRewardsTimeOnly(date, 'en-US');
+      expect(result).toMatch(/\d{1,2}:\d{2}\s?(AM|PM)/);
+    });
+
+    it('formats time correctly with custom locale', () => {
+      const date = new Date('2025-04-23T14:30:00Z');
+      const result = formatRewardsTimeOnly(date, 'fr-FR');
+      expect(result).toMatch(/\d{1,2}:\d{2}/);
     });
   });
 
@@ -343,6 +386,96 @@ describe('formatUtils', () => {
 
       // Then: should return days and hours format without trailing space
       expect(result).toBe('2d 3h');
+    });
+  });
+
+  describe('formatDateRemaining', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('handles multi-month day borrowing when previous month is shorter', () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-01-31T00:00:00Z'));
+
+      const result = formatDateRemaining('2025-03-03T00:00:00Z');
+
+      expect(result).toBe('1mo 3d');
+    });
+
+    it('handles leap-year February correctly with calendar month stepping', () => {
+      jest.useFakeTimers().setSystemTime(new Date('2024-01-31T00:00:00Z'));
+
+      const result = formatDateRemaining('2024-03-03T00:00:00Z');
+
+      expect(result).toBe('1mo 3d');
+    });
+
+    it('keeps end-of-month anchor when stepping across shorter months', () => {
+      const now = new Date('2025-01-31T00:00:00Z');
+
+      const result = formatDateRemaining('2025-03-31T00:00:00Z', now);
+
+      expect(result).toBe('2mo');
+    });
+
+    it('returns null for past dates', () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-03-03T00:00:00Z'));
+
+      const result = formatDateRemaining('2025-03-02T00:00:00Z');
+
+      expect(result).toBeNull();
+    });
+
+    it('uses explicit now when provided (no reliance on system time)', () => {
+      const now = new Date('2025-01-31T00:00:00Z');
+
+      const result = formatDateRemaining('2025-03-03T00:00:00Z', now);
+
+      expect(result).toBe('1mo 3d');
+    });
+
+    it('returns minutes only when remaining time is under one hour', () => {
+      const now = new Date('2025-03-03T10:00:00Z');
+
+      expect(formatDateRemaining('2025-03-03T10:45:00Z', now)).toBe('45min');
+      expect(formatDateRemaining('2025-03-03T10:59:00Z', now)).toBe('59min');
+    });
+
+    it('returns 1m when under one hour but less than one full minute remains', () => {
+      const now = new Date('2025-03-03T10:00:00Z');
+
+      expect(formatDateRemaining('2025-03-03T10:00:30Z', now)).toBe('1min');
+    });
+
+    it('returns hour and minute pair when same calendar day and at least one hour remains', () => {
+      const now = new Date('2025-03-03T10:00:00Z');
+
+      expect(formatDateRemaining('2025-03-03T11:00:00Z', now)).toBe('1h');
+      expect(formatDateRemaining('2025-03-03T12:30:00Z', now)).toBe('2h 30min');
+    });
+
+    it('returns day and hour pair when no full calendar months remain', () => {
+      const now = new Date('2025-03-01T00:00:00Z');
+
+      expect(formatDateRemaining('2025-03-02T01:00:00Z', now)).toBe('1d 1h');
+    });
+
+    it('returns year and month pair when at least one full year remains', () => {
+      const now = new Date('2024-01-15T00:00:00Z');
+
+      expect(formatDateRemaining('2026-03-20T00:00:00Z', now)).toBe('2y 2mo');
+    });
+
+    it('skips zero-value month and uses next non-zero unit', () => {
+      const now = new Date('2025-01-10T00:00:00Z');
+
+      expect(formatDateRemaining('2026-01-30T00:00:00Z', now)).toBe('1y 20d');
+    });
+
+    it('returns a single unit when only one non-zero unit remains', () => {
+      const now = new Date('2025-01-10T00:00:00Z');
+
+      expect(formatDateRemaining('2026-01-10T00:00:00Z', now)).toBe('1y');
     });
   });
 
@@ -1372,6 +1505,96 @@ describe('formatUtils', () => {
 
     it('returns strings of length 10 unchanged', () => {
       expect(shortenAddress('0x12345678')).toBe('0x12345678');
+    });
+  });
+
+  describe('formatUsd', () => {
+    it('formats a string with decimals', () => {
+      expect(formatUsd('11500.000000')).toBe('$11,500.00');
+    });
+
+    it('formats a number', () => {
+      expect(formatUsd(12500.5)).toBe('$12,500.50');
+    });
+
+    it('formats zero', () => {
+      expect(formatUsd('0')).toBe('$0.00');
+    });
+
+    it('formats a small decimal value', () => {
+      expect(formatUsd('0.99')).toBe('$0.99');
+    });
+
+    it('formats a large value', () => {
+      expect(formatUsd('1000000.00')).toBe('$1,000,000.00');
+    });
+
+    it('formats a negative value', () => {
+      expect(formatUsd('-500.75')).toBe('$-500.75');
+    });
+
+    it('formats an integer string', () => {
+      expect(formatUsd('100')).toBe('$100.00');
+    });
+  });
+
+  describe('formatSignedUsd', () => {
+    it('returns em dash for null', () => {
+      expect(formatSignedUsd(null)).toBe('—');
+    });
+
+    it('prepends + for positive amounts', () => {
+      expect(formatSignedUsd('5000.000000')).toBe('+$5,000.00');
+    });
+
+    it('keeps - for negative amounts', () => {
+      expect(formatSignedUsd('-1250.500000')).toBe('$-1,250.50');
+    });
+
+    it('formats zero without sign', () => {
+      expect(formatSignedUsd('0')).toBe('$0.00');
+    });
+
+    it('returns raw string for non-numeric input', () => {
+      expect(formatSignedUsd('abc')).toBe('abc');
+    });
+  });
+
+  describe('formatCompactUsd', () => {
+    it('formats millions with decimal', () => {
+      expect(formatCompactUsd(1_500_000)).toBe('$1.5M');
+    });
+
+    it('formats whole millions without trailing .0', () => {
+      expect(formatCompactUsd(6_000_000)).toBe('$6M');
+    });
+
+    it('formats thousands', () => {
+      expect(formatCompactUsd(25_000)).toBe('$25K');
+    });
+
+    it('formats thousands with decimal', () => {
+      expect(formatCompactUsd(2_500)).toBe('$2.5K');
+    });
+
+    it('formats whole thousands without trailing .0', () => {
+      expect(formatCompactUsd(50_000)).toBe('$50K');
+    });
+
+    it('formats small values without suffix', () => {
+      expect(formatCompactUsd(500)).toBe('$500');
+    });
+
+    it('formats zero', () => {
+      expect(formatCompactUsd(0)).toBe('$0');
+    });
+
+    it('formats negative millions', () => {
+      expect(formatCompactUsd(-3_500_000)).toBe('-$3.5M');
+    });
+
+    it('formats negative thousands', () => {
+      expect(formatCompactUsd(-75_000)).toBe('-$75K');
     });
   });
 });

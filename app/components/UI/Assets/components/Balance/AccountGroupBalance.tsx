@@ -15,10 +15,7 @@ import {
   selectBalanceChangeBySelectedAccountGroup,
   selectAccountGroupBalanceForEmptyState,
 } from '../../../../../selectors/assets/balances';
-import {
-  selectHomepageRedesignV1Enabled,
-  selectHomepageSectionsV1Enabled,
-} from '../../../../../selectors/featureFlagController/homepage';
+import { selectHomepageSectionsV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TEST_NETWORK_IDS } from '../../../../../constants/network';
@@ -78,9 +75,6 @@ const AccountGroupBalance = () => {
     selectAccountGroupBalanceForEmptyState,
   );
   const balanceChange1d = useSelector(balanceChange1dSelector);
-  const isHomepageRedesignV1Enabled = useSelector(
-    selectHomepageRedesignV1Enabled,
-  );
   const selectedChainId = useSelector(selectEvmChainId);
 
   // Track if balance has been fetched to prevent flash of empty state
@@ -166,10 +160,9 @@ const AccountGroupBalance = () => {
   // Check if current network is a testnet
   const isCurrentNetworkTestnet = TEST_NETWORK_IDS.includes(selectedChainId);
 
-  // Show empty state on accounts with an aggregated mainnet balance of zero (redesign + sections v1)
+  // Show empty state on accounts with an aggregated mainnet balance of zero (sections v1)
   const shouldShowEmptyState =
     hasZeroAccountGroupBalance &&
-    isHomepageRedesignV1Enabled &&
     isHomepageSectionsV1Enabled &&
     !isCurrentNetworkTestnet;
 

@@ -7,8 +7,10 @@ import {
   parseCaipAssetType,
   parseCaipChainId,
 } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
 import I18n from '../../../../../locales/i18n';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
+import formatFiat from '../../../../util/formatFiat';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
 /**
@@ -45,6 +47,37 @@ export const formatRewardsDate = (
   new Intl.DateTimeFormat(locale, {
     month: 'short',
     day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
+
+/**
+ * Formats a date as a date-only label for section headers.
+ * @param date - Date object
+ * @returns Formatted date string without time
+ * @example 'Apr 23, 2025'
+ */
+export const formatRewardsDateLabel = (
+  date: Date,
+  locale: string = I18n.locale,
+): string =>
+  new Intl.DateTimeFormat(locale, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
+
+/**
+ * Formats a date as a time-only string.
+ * @param date - Date object
+ * @returns Formatted time string
+ * @example '10:30 AM'
+ */
+export const formatRewardsTimeOnly = (
+  date: Date,
+  locale: string = I18n.locale,
+): string =>
+  new Intl.DateTimeFormat(locale, {
     hour: 'numeric',
     minute: '2-digit',
   }).format(date);
@@ -114,6 +147,100 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
   const minuteString = minutes > 0 ? `${minutes}m` : '';
 
   return `${dayString}${hourString}${minuteString}`?.trim();
+};
+
+/**
+ * Formats remaining time until `endDate` (UTC, calendar months).
+ * - Under 1 hour: minutes only (e.g. `45min`).
+ * - Otherwise exactly two units: `y`+`mo`, `mo`+`d`, `d`+`h`, or `h`+`min`.
+ * For long lists, pass one `now` (e.g. `Date.now()`) from the parent per render so each row does not allocate its own clock.
+ */
+export const formatDateRemaining = (
+  endDate: Date | string,
+  now?: Date | number,
+): string | null => {
+  const start = now !== undefined ? new Date(now) : new Date();
+  const end = new Date(endDate);
+
+  if (end <= start) return null;
+
+  const totalRemainingMs = end.getTime() - start.getTime();
+  const msInMinute = 60 * 1000;
+  const msInHour = 60 * msInMinute;
+  const msInDay = 24 * msInHour;
+
+  if (totalRemainingMs < msInHour) {
+    let minutes = Math.floor(totalRemainingMs / msInMinute);
+    if (minutes < 1) {
+      minutes = 1;
+    }
+    return `${minutes}min`;
+  }
+
+  const getDaysInUtcMonth = (year: number, monthIndex: number): number =>
+    new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+
+  // Adds calendar months while clamping day to the target month length.
+  // Example: Jan 31 + 1 month => Feb 28/29.
+  const addUtcMonths = (date: Date, monthsToAdd: number): Date => {
+    const currentYear = date.getUTCFullYear();
+    const currentMonth = date.getUTCMonth();
+    const totalMonth = currentMonth + monthsToAdd;
+    const targetYear = currentYear + Math.floor(totalMonth / 12);
+    const targetMonth = ((totalMonth % 12) + 12) % 12;
+    const targetDay = Math.min(
+      date.getUTCDate(),
+      getDaysInUtcMonth(targetYear, targetMonth),
+    );
+
+    return new Date(
+      Date.UTC(
+        targetYear,
+        targetMonth,
+        targetDay,
+        date.getUTCHours(),
+        date.getUTCMinutes(),
+        date.getUTCSeconds(),
+        date.getUTCMilliseconds(),
+      ),
+    );
+  };
+
+  let totalMonths = 0;
+  let year = 0;
+  let month = 0;
+
+  while (addUtcMonths(start, totalMonths + 12) <= end) {
+    totalMonths += 12;
+    year += 1;
+  }
+
+  while (addUtcMonths(start, totalMonths + 1) <= end) {
+    totalMonths += 1;
+    month += 1;
+  }
+
+  const cursor = addUtcMonths(start, totalMonths);
+  const remainingMs = end.getTime() - cursor.getTime();
+  const day = Math.floor(remainingMs / msInDay);
+  const hour = Math.floor((remainingMs % msInDay) / msInHour);
+  const minute = Math.floor(((remainingMs % msInDay) % msInHour) / msInMinute);
+
+  const units = [
+    { value: year, suffix: 'y' },
+    { value: month, suffix: 'mo' },
+    { value: day, suffix: 'd' },
+    { value: hour, suffix: 'h' },
+    { value: minute, suffix: 'min' },
+  ].filter((unit) => unit.value > 0);
+
+  if (units.length === 0) {
+    return null;
+  }
+  if (units.length === 1) {
+    return `${units[0].value}${units[0].suffix}`;
+  }
+  return `${units[0].value}${units[0].suffix} ${units[1].value}${units[1].suffix}`;
 };
 
 // Get icon name with fallback to Star if invalid
@@ -194,6 +321,58 @@ const emailRegex =
 export const validateEmail = (email: string): boolean => {
   if (!email || email.split('@').length !== 2) return false;
   return emailRegex.test(email);
+};
+
+// ── USD formatting ──────────────────────────────────────────────────────
+
+/**
+ * Formats a numeric string as a USD amount using locale-aware fiat formatting.
+ *
+ * @example formatUsd('11500.000000') // '$11,500.00'
+ * @example formatUsd(12500.5)        // '$12,500.50'
+ */
+export const formatUsd = (value: string | number): string =>
+  formatFiat(new BigNumber(value), 'USD');
+
+/**
+ * Formats a USD amount in compact notation (e.g. $1.5M, $350K).
+ * Implemented manually because Hermes does not support `notation: 'compact'`.
+ *
+ * @example formatCompactUsd(1500000) // '$1.5M'
+ * @example formatCompactUsd(6000000) // '$6M'
+ * @example formatCompactUsd(25000)   // '$25K'
+ * @example formatCompactUsd(500)     // '$500'
+ */
+export const formatCompactUsd = (value: number): string => {
+  const abs = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+
+  if (abs >= 1_000_000) {
+    const compact = abs / 1_000_000;
+    const formatted = compact % 1 === 0 ? `${compact}` : compact.toFixed(1);
+    return `${sign}$${formatted}M`;
+  }
+  if (abs >= 1_000) {
+    const compact = abs / 1_000;
+    const formatted = compact % 1 === 0 ? `${compact}` : compact.toFixed(1);
+    return `${sign}$${formatted}K`;
+  }
+  return `${sign}$${abs}`;
+};
+
+/**
+ * Formats a USD amount with a +/- sign prefix. Returns '—' for null.
+ *
+ * @example formatSignedUsd('5000.000000')  // '+$5,000.00'
+ * @example formatSignedUsd('-1250.50')     // '-$1,250.50'
+ * @example formatSignedUsd(null)           // '—'
+ */
+export const formatSignedUsd = (value: string | null): string => {
+  if (value === null) return '—';
+  const num = parseFloat(value);
+  if (Number.isNaN(num)) return value;
+  const sign = num > 0 ? '+' : '';
+  return `${sign}${formatUsd(value)}`;
 };
 
 // ── Percent / rate formatting ───────────────────────────────────────────
