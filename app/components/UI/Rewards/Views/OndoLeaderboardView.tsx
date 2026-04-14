@@ -4,6 +4,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
+  IconName,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -26,6 +27,7 @@ import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import {
   selectReferralCode,
   selectCampaignById,
@@ -108,6 +110,20 @@ const OndoLeaderboardView: React.FC = () => {
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'ondo-leaderboard-back-button' }}
+          endButtonIconProps={
+            campaign
+              ? [
+                  {
+                    iconName: IconName.Question,
+                    onPress: () =>
+                      navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
+                        campaignId,
+                      }),
+                    testID: 'leaderboard-mechanics-button',
+                  },
+                ]
+              : undefined
+          }
           includesTopInset
         />
 

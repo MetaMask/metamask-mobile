@@ -192,6 +192,20 @@ const OndoCampaignStatsView: React.FC = () => {
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'ondo-campaign-stats-back-button' }}
+          endButtonIconProps={
+            campaign
+              ? [
+                  {
+                    iconName: IconName.Question,
+                    onPress: () =>
+                      navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
+                        campaignId,
+                      }),
+                    testID: 'campaign-stats-mechanics-button',
+                  },
+                ]
+              : undefined
+          }
           includesTopInset
         />
 
