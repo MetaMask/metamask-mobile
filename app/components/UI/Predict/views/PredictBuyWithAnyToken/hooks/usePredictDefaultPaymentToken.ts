@@ -7,6 +7,7 @@ import { useAccountTokens } from '../../../../../Views/confirmations/hooks/send/
 import { TokenStandard } from '../../../../../Views/confirmations/types/token';
 import { MINIMUM_BET } from '../../../constants/transactions';
 import { ActiveOrderState } from '../../../types';
+import { isTestNet } from '../../../../../../util/networks';
 
 /**
  * Initializes the payment token selection on the buy screen. Waits for
@@ -41,7 +42,9 @@ export function usePredictDefaultPaymentToken() {
       (token) =>
         token.accountType?.includes('eip155') &&
         token.standard === TokenStandard.ERC20 &&
-        Boolean(token.address && token.chainId) &&
+        token.address &&
+        token.chainId &&
+        !isTestNet(token.chainId) &&
         token.fiat?.balance != null &&
         new BigNumber(token.fiat.balance).isGreaterThan(0),
     );

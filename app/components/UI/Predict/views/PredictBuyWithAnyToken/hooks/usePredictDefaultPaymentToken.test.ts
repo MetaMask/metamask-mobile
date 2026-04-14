@@ -317,4 +317,32 @@ describe('usePredictDefaultPaymentToken', () => {
       }),
     );
   });
+
+  it('skips testnet tokens when auto-selecting', () => {
+    mockPredictBalance = 0.5;
+    mockTokens = [
+      createEvmErc20Token({
+        address: '0x1',
+        chainId: '0xaa36a7',
+        symbol: 'TEST',
+        fiatBalance: 500,
+      }),
+      createEvmErc20Token({
+        address: '0x2',
+        chainId: '0x1',
+        symbol: 'USDC',
+        fiatBalance: 200,
+      }),
+    ];
+
+    renderHook(() => usePredictDefaultPaymentToken());
+
+    expect(mockOnPaymentTokenChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: '0x2',
+        chainId: '0x1',
+        symbol: 'USDC',
+      }),
+    );
+  });
 });
