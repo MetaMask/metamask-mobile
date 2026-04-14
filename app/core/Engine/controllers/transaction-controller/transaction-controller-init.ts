@@ -60,7 +60,6 @@ import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
 import { updateConfirmationMetric } from '../../../redux/slices/confirmationMetrics';
 import { store } from '../../../../store';
-import { registerPendingTransactionActiveAbTestsForTransactionIds } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const TRANSACTION_SUBMISSION_METHOD_METRIC_NAME =
   'transaction_submission_method';
@@ -538,18 +537,6 @@ function addTransactionControllerListeners(
         transactionMeta,
         transactionEventHandlerRequest,
       );
-    },
-  );
-
-  // Register pending A/B attribution before TRANSACTION_ADDED metrics run (same publish tick).
-  initMessenger.subscribe(
-    'TransactionController:unapprovedTransactionAdded',
-    (transactionMeta: TransactionMeta) => {
-      if (transactionMeta.id) {
-        registerPendingTransactionActiveAbTestsForTransactionIds([
-          transactionMeta.id,
-        ]);
-      }
     },
   );
 

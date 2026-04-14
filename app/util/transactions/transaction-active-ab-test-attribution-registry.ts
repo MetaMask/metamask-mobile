@@ -103,8 +103,8 @@ export function registerTransactionAbTestAttributionForIds(
 
 /**
  * Copies the current pending stash into the per-transaction attribution map for
- * each ID. Subscribed from `TransactionController:unapprovedTransactionAdded`
- * before TRANSACTION_ADDED metrics; does not clear the stash.
+ * each ID. Called synchronously at the start of the TRANSACTION_ADDED metrics
+ * handler (before async builders); does not clear the stash.
  */
 export function registerPendingTransactionActiveAbTestsForTransactionIds(
   transactionIds: string[],

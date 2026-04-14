@@ -59,6 +59,7 @@ import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
@@ -70,15 +71,15 @@ interface UsePerpsTrendingCarouselDataArgs {
 
 interface UsePerpsNavigationHandlersArgs {
   isDedicatedTrendingSection?: boolean;
+  trendingTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const usePerpsNavigationHandlers = ({
   isDedicatedTrendingSection = false,
+  trendingTransactionActiveAbTests,
 }: UsePerpsNavigationHandlersArgs = {}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
-  const trendingTransactionActiveAbTests =
-    useHomepageTrendingTransactionActiveAbTests();
 
   const navigateToTutorialOrScreen = useCallback(
     (screen: string, params: Record<string, unknown>) => {
@@ -506,8 +507,13 @@ const PerpsSectionTrendingOnly = forwardRef<
     const sectionViewRef = useRef<View>(null);
     const title = titleOverride ?? strings('homepage.sections.perpetuals');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PERPS;
+    const trendingTransactionActiveAbTests =
+      useHomepageTrendingTransactionActiveAbTests();
     const { handleViewAllPerps, handleViewMorePerps, handleTilePress } =
-      usePerpsNavigationHandlers({ isDedicatedTrendingSection: true });
+      usePerpsNavigationHandlers({
+        isDedicatedTrendingSection: true,
+        trendingTransactionActiveAbTests,
+      });
     const { marketsLoading, allCarouselMarkets, watchlistSymbolSet } =
       usePerpsTrendingCarouselData({});
     const carouselSymbols = useMemo(
