@@ -288,12 +288,9 @@ export class ConnectionRegistry {
     } catch (error) {
       logger.error('Failed to handle connect deeplink:', error, redactUrl(url));
       this.hostapp.showConnectionError();
-      if (conn) await this.disconnect(conn.id);
 
-      // This catch only handles connection-setup failures (parse, network,
-      // protocol). User rejections of wallet_createSession are tracked by
-      // the existing CONNECT_REQUEST_CANCELLED MetaMetrics event (with
-      // source: 'sdk_connect_v2') — no double-fire occurs.
+      // Track the failure before cleanup so the event fires even if
+      // disconnect() throws.
       trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED, {
         remote_session_id: connReq?.sessionRequest?.id ?? 'unknown',
         platform: 'mobile',
@@ -301,6 +298,8 @@ export class ConnectionRegistry {
         sdk_platform: connReq?.metadata?.sdk?.platform,
         failure_reason: error instanceof Error ? error.message : String(error),
       });
+
+      if (conn) await this.disconnect(conn.id);
     } finally {
       if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
     }
