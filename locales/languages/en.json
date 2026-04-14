@@ -8016,8 +8016,8 @@
         "share_referral_subject": "Join MetaMask Rewards"
       },
       "info": {
-        "title": "Share your code to earn more",
-        "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
+        "title": "Share your code with friends",
+        "description": "Some campaigns may have extra benefits for referrals. Check the description for each campaign to confirm."
       },
       "referral_code_copied": "Referral code copied to clipboard"
     },
@@ -8062,6 +8062,14 @@
       "reward_claimed": "Reward claimed",
       "time_left": "{{time}} left",
       "expired": "Expired"
+    },
+    "benefits": {
+      "title": "Benefits",
+      "list_header":  "Available",
+      "title_claim": "Claim Benefit",
+      "action": "Claim",
+      "empty-list":  "You don’t have any benefits right now.",
+      "powered_by": "Powered by"
     },
     "end_of_season_rewards": {
       "confirm_label_default": "Confirm",
@@ -8194,11 +8202,11 @@
       "pending_sheet_title": "Pending",
       "pending_sheet_tier_label": "Tier",
       "pending_sheet_net_deposit_label": "Net Deposit",
-      "pending_sheet_own_body": "Hold a minimum balance of {{minDeposit}} for {{daysRemaining}} more day(s) to qualify for this tier.",
+      "pending_sheet_own_body": "Hold a minimum balance of {{minNetDeposit}} for {{daysRemaining}} more day(s) to qualify for this tier.",
       "pending_sheet_other_body": "This participant hasn't yet met the holding requirement for their projected tier.",
       "pending_sheet_cta": "Got it",
       "qualify_for_rank_title": "Qualify for this rank",
-      "qualify_for_rank_description": "Keep your deposit above {{minDeposit}} for {{daysRemaining}} more days, including the final day."
+      "qualify_for_rank_description": "Keep your deposit above {{minNetDeposit}} for {{daysRemaining}} more days, including the final day."
     },
     "ondo_campaign_stats": {
       "title": "Stats",
@@ -8216,7 +8224,7 @@
       "label_net_deposit": "Net deposit",
       "label_days_held": "Days held",
       "qualified_title": "You're qualified",
-      "qualified_description": "Keep your net deposit above {{minDeposit}} through the final day to stay eligible."
+      "qualified_description": "Keep your net deposit above {{minNetDeposit}} through the final day to stay eligible."
     },
     "ondo_campaign_activity": {
       "title": "All activity",

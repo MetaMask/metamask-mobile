@@ -96,7 +96,7 @@ const OndoPendingSheet: React.FC<OndoPendingSheetProps> = ({ route }) => {
               {strings(
                 'rewards.ondo_campaign_leaderboard.pending_sheet_own_body',
                 {
-                  minDeposit: formatUsd(params.tierMinDeposit),
+                  minNetDeposit: formatUsd(params.tierMinDeposit),
                   daysRemaining: Math.max(
                     ONDO_GM_REQUIRED_QUALIFIED_DAYS - params.qualifiedDays,
                     1,
