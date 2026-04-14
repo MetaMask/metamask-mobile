@@ -7,7 +7,6 @@ import { TouchableOpacity, GestureResponderEvent } from 'react-native';
 // External dependencies.
 import DSText, { TextVariant } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
-import { IconSize } from '../../Icons/Icon';
 
 // Internal dependencies.
 import PickerBase from '../PickerBase';
@@ -47,14 +46,14 @@ const PickerAccount: React.ForwardRefRenderFunction<
 
   return (
     <PickerBase
-      showDropdownIcon={false}
+      {...props}
       style={pressed ? styles.basePressed : styles.base}
       onPress={onPress}
       onPressIn={triggerOnPressedIn}
       onPressOut={triggerOnPressedOut}
       hitSlop={hitSlop}
       activeOpacity={1}
-      {...props}
+      showDropdownIcon={false}
     >
       <DSText
         variant={TextVariant.BodyMDMedium}

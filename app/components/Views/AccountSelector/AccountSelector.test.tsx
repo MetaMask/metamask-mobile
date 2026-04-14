@@ -252,9 +252,7 @@ describe('AccountSelector', () => {
       fireEvent.press(addButton);
 
       // Footer button and overlay header both show "Add wallet" in full-page mode
-      expect(screen.getAllByText('Add wallet').length).toBeGreaterThanOrEqual(
-        1,
-      );
+      expect(screen.getAllByText('Add wallet')).toHaveLength(2);
 
       // Import SRP button should be visible
       expect(
@@ -561,9 +559,7 @@ describe('AccountSelector', () => {
       fireEvent.press(addButton);
 
       // Footer button and overlay header both show "Add wallet" in full-page mode
-      expect(screen.getAllByText('Add wallet').length).toBeGreaterThanOrEqual(
-        1,
-      );
+      expect(screen.getAllByText('Add wallet')).toHaveLength(2);
 
       // Import wallet option should be visible
       expect(screen.getByText('Import a wallet')).toBeOnTheScreen();
