@@ -9,7 +9,7 @@ import { addHexPrefix } from '../../../../util/number';
 import { isMainnetByChainId } from '../../../../util/networks';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import AppConstants from '../../../AppConstants';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { MessengerClientInitRequest } from '../../types';
 import { GasFeeControllerInit } from './gas-fee-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
@@ -47,7 +47,7 @@ function buildInitRequestMock(
     namespace: MOCK_ANY_NAMESPACE,
   });
   const requestMock = {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     controllerMessenger: baseControllerMessenger as unknown as GasFeeMessenger,
     getGlobalChainId: jest.fn().mockReturnValue('0x1'),
     ...initRequestProperties,
