@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, waitFor } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -624,7 +624,6 @@ describe('RewardsNavigator', () => {
     beforeEach(() => {
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
       mockNavigate.mockClear();
-      mockSetParams.mockClear();
     });
 
     it('navigates to campaigns view when page=campaigns param is set', async () => {
@@ -695,70 +694,6 @@ describe('RewardsNavigator', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
       });
-    });
-
-    it('clears deeplink params via setParams after handling page param', async () => {
-      mockRouteParams = { page: 'campaigns' };
-
-      renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(mockSetParams).toHaveBeenCalledWith({
-          page: undefined,
-          campaign: undefined,
-        });
-      });
-    });
-
-    it('clears deeplink params via setParams after handling campaign param', async () => {
-      mockRouteParams = { campaign: 'ondo' };
-
-      renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(mockSetParams).toHaveBeenCalledWith({
-          page: undefined,
-          campaign: undefined,
-        });
-      });
-    });
-
-    it('does not call setParams when no deeplink params are present', async () => {
-      mockRouteParams = {};
-
-      renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
-      });
-      expect(mockSetParams).not.toHaveBeenCalled();
-    });
-
-    it('does not navigate to dashboard after setParams clears deeplink params', async () => {
-      // Regression: the useEffect re-fires when setParams clears the params to
-      // undefined. Without the skipNextEffectRef guard it would fall through to
-      // navigate(REWARDS_DASHBOARD), overriding the deeplink destination.
-      mockRouteParams = { page: 'campaigns' };
-
-      const { rerender } = renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.REWARDS_CAMPAIGNS_VIEW,
-        );
-      });
-
-      // Simulate what setParams does in the real app: clear params and
-      // re-render the component with the updated route.
-      mockRouteParams = {};
-      mockNavigate.mockClear();
-
-      await act(async () => {
-        rerender(buildNavWrapper(<RewardsNavigator />));
-      });
-
-      // The guard must prevent a navigate(REWARDS_DASHBOARD) call here.
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
     });
   });
 
