@@ -1375,7 +1375,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}
-        options={clearStackNavigatorOptionsWithTransitionAnimation}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
       />
     </Stack.Navigator>
   );
