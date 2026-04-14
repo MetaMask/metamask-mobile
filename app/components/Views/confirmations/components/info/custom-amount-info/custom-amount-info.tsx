@@ -142,7 +142,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const handleRecipientAccountSelected = useCallback(
       (address: string) => {
         if (transactionId) {
-          updateEditableParams(transactionId, { to: address as Hex });
+          Engine.context.TransactionPayController.setTransactionConfig(
+            transactionId,
+            (config) => {
+              config.refundTo = address as Hex;
+            },
+          );
         }
         setSelectedRecipientAddress(address);
       },

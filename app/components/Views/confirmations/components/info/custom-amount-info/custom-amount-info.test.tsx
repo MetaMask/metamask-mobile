@@ -37,6 +37,7 @@ import { useTransactionConfirm } from '../../../hooks/transactions/useTransactio
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import Engine from '../../../../../../core/Engine';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
@@ -62,6 +63,13 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 }));
 jest.mock('../../../../../../util/transaction-controller', () => ({
   updateEditableParams: jest.fn(),
+}));
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    TransactionPayController: {
+      setTransactionConfig: jest.fn(),
+    },
+  },
 }));
 jest.mock('../../AccountSelector', () => {
   const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
@@ -419,9 +427,9 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('account-selector')).toBeOnTheScreen();
   });
 
-  it('calls updateEditableParams when recipient account is selected', async () => {
-    const { updateEditableParams } = jest.requireMock(
-      '../../../../../../util/transaction-controller',
+  it('calls setTransactionConfig with refundTo when recipient account is selected', async () => {
+    const setTransactionConfigMock = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
     );
 
     useTransactionMetadataRequestMock.mockReturnValue({
@@ -438,9 +446,57 @@ describe('CustomAmountInfo', () => {
       fireEvent.press(getByTestId('account-selector'));
     });
 
-    expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
-      to: '0xTestRecipient',
+    expect(setTransactionConfigMock).toHaveBeenCalledWith(
+      'mock-tx-id',
+      expect.any(Function),
+    );
+  });
+
+  it('sets config.refundTo to the selected recipient address', async () => {
+    const setTransactionConfigMock = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
+    );
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'mock-tx-id',
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByTestId } = render({
+      transactionType: TransactionType.moneyAccountWithdraw,
     });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('account-selector'));
+    });
+
+    const configCallback = setTransactionConfigMock.mock.calls[0][1];
+    const config = {} as { refundTo?: Hex };
+    configCallback(config as never);
+
+    expect(config.refundTo).toBe('0xTestRecipient');
+  });
+
+  it('does not call setTransactionConfig when transactionId is missing', async () => {
+    const setTransactionConfigMock = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
+    );
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByTestId } = render({
+      transactionType: TransactionType.moneyAccountWithdraw,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('account-selector'));
+    });
+
+    expect(setTransactionConfigMock).not.toHaveBeenCalled();
   });
 
   it('renders no funds alert message for moneyAccountDeposit when alert is present', () => {
