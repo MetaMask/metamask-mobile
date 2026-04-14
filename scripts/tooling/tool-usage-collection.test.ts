@@ -37,6 +37,16 @@ describe('parseArgs', () => {
     expect(args.agent).toBe('claude');
   });
 
+  it('parses optional --session flag', () => {
+    const args = parseArgs([
+      '--tool', 'yarn:setup',
+      '--type', 'yarn_script',
+      '--event', 'start',
+      '--session', 'session-uuid-123',
+    ]);
+    expect(args.session).toBe('session-uuid-123');
+  });
+
   it('parses --success true as boolean true', () => {
     const args = parseArgs([
       '--tool', 't', '--type', 'skill', '--event', 'end', '--success', 'true',
@@ -165,10 +175,33 @@ describe('main', () => {
     await main();
 
     expect(trackEvent).toHaveBeenCalledWith({
+      session_id: undefined,
       tool_name: 'yarn:setup:expo',
       tool_type: 'yarn_script',
       event_type: 'start',
       agent_vendor: 'claude',
+      success: undefined,
+      duration_ms: undefined,
+    });
+  });
+
+  it('passes --session through to trackEvent', async () => {
+    process.argv = [
+      'node', 'tool-usage-collection.ts',
+      '--tool', 'yarn:setup:expo',
+      '--type', 'yarn_script',
+      '--event', 'start',
+      '--session', 'session-uuid-123',
+    ];
+
+    await main();
+
+    expect(trackEvent).toHaveBeenCalledWith({
+      session_id: 'session-uuid-123',
+      tool_name: 'yarn:setup:expo',
+      tool_type: 'yarn_script',
+      event_type: 'start',
+      agent_vendor: undefined,
       success: undefined,
       duration_ms: undefined,
     });

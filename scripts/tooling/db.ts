@@ -32,6 +32,7 @@ export function openDb(dbPath = DEFAULT_DB_PATH): Database.Database {
   db.exec(`
     CREATE TABLE IF NOT EXISTS events (
       event_id     TEXT PRIMARY KEY,
+      session_id   TEXT,
       tool_name    TEXT NOT NULL,
       tool_type    TEXT NOT NULL,
       event_type   TEXT NOT NULL CHECK(event_type IN ('start', 'end')),

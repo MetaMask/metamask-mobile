@@ -22,6 +22,7 @@ describe('openDb', () => {
 
     expect(names).toEqual([
       'event_id',
+      'session_id',
       'tool_name',
       'tool_type',
       'event_type',
@@ -72,6 +73,7 @@ describe('openDb', () => {
 
     const event = {
       event_id: 'abc-123',
+      session_id: 'session-abc-123',
       tool_name: 'worktree-create',
       tool_type: 'skill',
       event_type: 'start',
@@ -85,9 +87,9 @@ describe('openDb', () => {
 
     db.prepare(`
       INSERT INTO events
-        (event_id, tool_name, tool_type, event_type, repo, agent_vendor, success, duration_ms, metadata, created_at)
+        (event_id, session_id, tool_name, tool_type, event_type, repo, agent_vendor, success, duration_ms, metadata, created_at)
       VALUES
-        (@event_id, @tool_name, @tool_type, @event_type, @repo, @agent_vendor, @success, @duration_ms, @metadata, @created_at)
+        (@event_id, @session_id, @tool_name, @tool_type, @event_type, @repo, @agent_vendor, @success, @duration_ms, @metadata, @created_at)
     `).run(event);
 
     const row = db

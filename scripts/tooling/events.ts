@@ -5,6 +5,8 @@ import { openDb } from './db';
 export type EventType = 'start' | 'end';
 
 export interface TrackEventParams {
+  /** Correlates start/end rows for abandonment and duration analytics. */
+  session_id?: string;
   tool_name: string;
   tool_type: string;
   event_type: EventType;
@@ -35,11 +37,12 @@ export function trackEvent(params: TrackEventParams): void {
 
     db.prepare(`
       INSERT INTO events
-        (event_id, tool_name, tool_type, event_type, repo, agent_vendor, success, duration_ms, metadata, created_at)
+        (event_id, session_id, tool_name, tool_type, event_type, repo, agent_vendor, success, duration_ms, metadata, created_at)
       VALUES
-        (@event_id, @tool_name, @tool_type, @event_type, @repo, @agent_vendor, @success, @duration_ms, @metadata, @created_at)
+        (@event_id, @session_id, @tool_name, @tool_type, @event_type, @repo, @agent_vendor, @success, @duration_ms, @metadata, @created_at)
     `).run({
       event_id: randomUUID(),
+      session_id: params.session_id ?? null,
       tool_name: params.tool_name,
       tool_type: params.tool_type,
       event_type: params.event_type,

@@ -79,6 +79,18 @@ describe('trackEvent', () => {
     expect(runArg.repo).toBe('MetaMask/metamask-mobile');
   });
 
+  it('writes session_id when provided', () => {
+    trackEvent({
+      session_id: 'session-uuid-123',
+      tool_name: 'test',
+      tool_type: 'skill',
+      event_type: 'start',
+    });
+
+    const runArg = mockRun.mock.calls[0][0] as Record<string, unknown>;
+    expect(runArg.session_id).toBe('session-uuid-123');
+  });
+
   it('maps success:true to integer 1', () => {
     trackEvent({
       tool_name: 'test',

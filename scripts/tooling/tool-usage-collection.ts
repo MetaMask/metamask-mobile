@@ -4,6 +4,7 @@ interface ParsedArgs {
   tool: string;
   type: string;
   event: EventType;
+  session?: string;
   agent?: string;
   success?: boolean;
   duration?: number;
@@ -13,7 +14,7 @@ interface ParsedArgs {
 const USAGE =
   'Usage: yarn tsx scripts/tooling/tool-usage-collection.ts ' +
   '--tool <name> --type <type> --event start|end ' +
-  '[--agent <vendor>] [--success true|false] [--duration <ms>] [--verbose]\n';
+  '[--session <uuid>] [--agent <vendor>] [--success true|false] [--duration <ms>] [--verbose]\n';
 
 /**
  * Parses `--key value` pairs from an argv array.
@@ -65,6 +66,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     tool: map.tool,
     type: map.type,
     event: map.event,
+    session: map.session,
     agent: map.agent,
     success: map.success != null ? map.success === 'true' : undefined,
     duration,
@@ -91,6 +93,7 @@ export async function main(): Promise<void> {
 
   // DB write is best-effort — errors are written to stderr by trackEvent, never thrown
   trackEvent({
+    session_id: args.session,
     tool_name: args.tool,
     tool_type: args.type,
     event_type: args.event,
