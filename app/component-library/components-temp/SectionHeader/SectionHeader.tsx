@@ -89,15 +89,16 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity
-        testID={testID}
-        onPress={onPress}
-        accessibilityRole="button"
-        accessibilityLabel={typeof title === 'string' ? title : undefined}
-        style={containerStyle}
-      >
-        {children}
-      </TouchableOpacity>
+      <View testID={testID} accessible={false}>
+        <TouchableOpacity
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={typeof title === 'string' ? title : undefined}
+          style={containerStyle}
+        >
+          {children}
+        </TouchableOpacity>
+      </View>
     );
   }
 

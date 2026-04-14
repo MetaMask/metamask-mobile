@@ -556,6 +556,10 @@ export const TokenListItem = React.memo(
     }
 
     return (
+      <View
+        {...generateTestId(Platform, getAssetTestId(asset.symbol))}
+        accessible={false}
+      >
       <TouchableOpacity
         onPress={() => {
           onItemPress?.(asset);
@@ -568,7 +572,6 @@ export const TokenListItem = React.memo(
           onLongPress?.(asset);
         }}
         style={styles.itemWrapper}
-        {...generateTestId(Platform, getAssetTestId(asset.symbol))}
       >
         {/* Column: 1 - Token logo */}
         <BadgeWrapper
@@ -723,6 +726,7 @@ export const TokenListItem = React.memo(
           </Box>
         </Box>
       </TouchableOpacity>
+      </View>
     );
   },
 );
