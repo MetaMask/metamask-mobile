@@ -58,6 +58,13 @@ import OndoAfterHoursSheet from '../components/Campaigns/OndoAfterHoursSheet';
 import { selectCurrentSubscriptionAccounts } from '../../../../selectors/rewards';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 
+// USDY (Ondo USD Yield) on Ethereum mainnet — used to preset the source token
+// for open_position mode. This is the only network where USDY is supported in
+// the RWA campaign feature.
+const USDY_CAIP19 =
+  'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c' as const;
+const USDY_DECIMALS = 18;
+
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type OndoCampaignRwaSelectorRouteParams = {
@@ -144,21 +151,14 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   const subscriptionAccounts = useSelector(selectCurrentSubscriptionAccounts);
   const allTokenBalances = useSelector(selectAllTokenBalances);
 
-  // Find the USDY token from the fetched RWA token list.
-  const ondoUsdToken = useMemo(
-    () => rwaTokens.find((t) => t.symbol === 'USDY'),
-    [rwaTokens],
-  );
-
   // In open_position mode, preset USDY as the source if the user holds a balance.
+  // Uses a hardcoded CAIP-19 so the preset is independent of the search state —
+  // rwaTokens is filtered by searchQuery and may not contain USDY when a user
+  // searches for another token (e.g. "AAPL").
   const ondoUsdSrcToken = useMemo((): BridgeToken | undefined => {
-    if (
-      mode !== 'open_position' ||
-      !ondoUsdToken ||
-      !subscriptionAccounts?.length
-    )
+    if (mode !== 'open_position' || !subscriptionAccounts?.length)
       return undefined;
-    const parsed = parseCaip19(ondoUsdToken.assetId);
+    const parsed = parseCaip19(USDY_CAIP19);
     if (!parsed || parsed.namespace !== 'eip155') return undefined;
     const chainHex = caipChainIdToHex(
       `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
@@ -175,14 +175,13 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     if (!hasBalance) return undefined;
     return {
       address: parsed.assetReference,
-      symbol: ondoUsdToken.symbol,
-      name: ondoUsdToken.name,
-      decimals: ondoUsdToken.decimals,
+      symbol: 'USDY',
+      name: 'Ondo USD Yield',
+      decimals: USDY_DECIMALS,
       chainId: `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
-      image: getTrendingTokenImageUrl(ondoUsdToken.assetId),
-      rwaData: ondoUsdToken.rwaData as BridgeToken['rwaData'],
+      image: getTrendingTokenImageUrl(USDY_CAIP19),
     };
-  }, [mode, ondoUsdToken, subscriptionAccounts, allTokenBalances]);
+  }, [mode, subscriptionAccounts, allTokenBalances]);
 
   // Show skeleton while client-side filters are being applied.
   // useRwaTokens applies search/sort synchronously but via useStableReference,
