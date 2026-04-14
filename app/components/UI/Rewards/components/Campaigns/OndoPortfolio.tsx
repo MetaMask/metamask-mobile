@@ -26,14 +26,17 @@ import { parseCaipAccountId, Hex, type CaipChainId } from '@metamask/utils';
 import type { AccountGroupObject } from '@metamask/account-tree-controller';
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
-import formatFiat from '../../../../../util/formatFiat';
+import {
+  formatUsd,
+  parseCaip19,
+  caipChainIdToHex,
+} from '../../utils/formatUtils';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import { parseCaip19, caipChainIdToHex } from '../../utils/formatUtils';
 import TrendingTokenLogo from '../../../Trending/components/TrendingTokenLogo';
 import type {
   OndoGmPortfolioDto,
@@ -81,14 +84,6 @@ export const ONDO_PORTFOLIO_TEST_IDS = {
   ERROR: 'ondo-campaign-portfolio-error',
   EMPTY: 'ondo-campaign-portfolio-empty',
 } as const;
-
-const formatUsd = (value: string): string => {
-  try {
-    return formatFiat(new BigNumber(value), 'USD');
-  } catch {
-    return value;
-  }
-};
 
 export interface AccountPickerConfig {
   row: OndoGmPortfolioPositionDto;
@@ -153,6 +148,8 @@ interface OndoPortfolioProps {
   campaignId: string;
   onOpenAccountPicker: (config: AccountPickerConfig) => void;
   isCampaignComplete?: boolean;
+  notEligibleForCampaign?: boolean;
+  onNotEligible?: (confirmAction: () => void) => void;
 }
 
 const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
@@ -163,6 +160,8 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
   campaignId,
   onOpenAccountPicker,
   isCampaignComplete = false,
+  notEligibleForCampaign = false,
+  onNotEligible,
 }) => {
   const navigation = useNavigation();
 
@@ -288,6 +287,11 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
 
   const handleRowPress = useCallback(
     (row: OndoGmPortfolioPositionDto) => {
+      if (notEligibleForCampaign) {
+        onNotEligible?.(() => navigateToSwap(row));
+        return;
+      }
+
       const accountsForRow = getAccountsWithBalance(row);
       const groupsForRow = getGroupsFromAccounts(accountsForRow);
 
@@ -319,11 +323,13 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
       });
     },
     [
+      notEligibleForCampaign,
+      onNotEligible,
+      navigateToSwap,
       getAccountsWithBalance,
       getGroupsFromAccounts,
       getGroupBalance,
       selectedGroup,
-      navigateToSwap,
       onOpenAccountPicker,
       resolveTokenDecimals,
     ],

@@ -3406,14 +3406,36 @@ describe('Rewards selectors', () => {
     tiers: {
       STARTER: {
         entries: [
-          { rank: 1, referralCode: 'ABC123', rateOfReturn: 0.15 },
-          { rank: 2, referralCode: 'DEF456', rateOfReturn: 0.1 },
+          {
+            rank: 1,
+            referralCode: 'ABC123',
+            rateOfReturn: 0.15,
+            qualifiedDays: 10,
+            qualified: true,
+          },
+          {
+            rank: 2,
+            referralCode: 'DEF456',
+            rateOfReturn: 0.1,
+            qualifiedDays: 10,
+            qualified: true,
+          },
         ],
         totalParticipants: 50,
+        minDeposit: 500,
       },
       MID: {
-        entries: [{ rank: 1, referralCode: 'GHI789', rateOfReturn: 0.2 }],
+        entries: [
+          {
+            rank: 1,
+            referralCode: 'GHI789',
+            rateOfReturn: 0.2,
+            qualifiedDays: 10,
+            qualified: true,
+          },
+        ],
         totalParticipants: 30,
+        minDeposit: 1000,
       },
     },
   };
@@ -3426,6 +3448,9 @@ describe('Rewards selectors', () => {
     currentUsdValue: 1000,
     totalUsdDeposited: 900,
     netDeposit: 800,
+    qualifiedDays: 10,
+    qualified: true,
+    neighbors: [],
     computedAt: '2024-03-20T12:00:00.000Z',
   };
 
@@ -3435,8 +3460,8 @@ describe('Rewards selectors', () => {
       tokenName: string;
       tokenAsset: string;
       units: string;
-      costBasis: string;
-      avgCostPerUnit: string;
+      bookPrice: string;
+      bookValue: string;
       currentPrice: string;
       currentValue: string;
       unrealizedPnl: string;
@@ -3444,9 +3469,10 @@ describe('Rewards selectors', () => {
     }[],
     summary: {
       totalCurrentValue: '1000',
-      totalCostBasis: '900',
+      totalBookValue: '900',
       totalUsdDeposited: '900',
       netDeposit: '800',
+      totalCashedOut: '0',
       portfolioPnl: '100',
       portfolioPnlPercent: '0.1',
     },

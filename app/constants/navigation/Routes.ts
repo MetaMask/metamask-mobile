@@ -107,6 +107,7 @@ const Routes = {
   REWARDS_ONDO_CAMPAIGN_LEADERBOARD: 'RewardsOndoCampaignLeaderboard',
   REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR: 'RewardsOndoRwaAssetSelector',
   REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW: 'RewardsOndoCampaignPortfolioView',
+  REWARDS_ONDO_CAMPAIGN_STATS: 'RewardsOndoCampaignStats',
   REWARDS_CAMPAIGN_TOUR_STEP: 'RewardsCampaignTourStep',
   TRENDING_VIEW: 'TrendingView',
   TRENDING_FEED: 'TrendingFeed',
@@ -149,6 +150,8 @@ const Routes = {
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
+    REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
+    REWARDS_ONDO_PENDING_SHEET: 'RewardsOndoPendingSheet',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -404,9 +407,6 @@ const Routes = {
     ROOT: 'MoneyScreens',
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
-  },
-  MONEY_ACCOUNT: {
-    ROOT: 'MoneyAccountScreens',
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',

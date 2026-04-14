@@ -4810,11 +4810,9 @@
     "body_for_seedphrase": "Ngayong nagdadag ng value sa iyong wallet, protektahan ang iyong wallet sa pamamagitan ng pagtakda ng password at pag-save ng iyong Lihim na Parirala sa Pagbawi (kinakailangan).",
     "button": "Protektahan ang wallet"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Nabigo ang pag-update sa transaksyon",
-    "text": "Nais mo bang subukan muli?",
-    "cancel_button": "Kanselahin",
-    "retry_button": "Subukan muli"
+    "already_confirmed": "Nakumpirma na ang transaksyong ito at hindi na maaaring baguhin."
   },
   "payment_request": {
     "title": "Humiling",
