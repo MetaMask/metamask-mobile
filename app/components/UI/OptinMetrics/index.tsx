@@ -435,9 +435,7 @@ const OptinMetrics = () => {
                 color={TextColor.TextAlternative}
                 twClassName="mt-1"
               >
-                {strings(
-                  'privacy_policy.gather_basic_usage_description_updated',
-                ) + ' '}
+                {strings('privacy_policy.gather_basic_usage_description') + ' '}
                 <Text
                   color={TextColor.PrimaryDefault}
                   variant={TextVariant.BodySm}
