@@ -1,4 +1,4 @@
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 
 jest.mock('../../../../lib/Money/feature-flags', () => ({
   isMoneyAccountEnabled: jest.fn(),
@@ -9,7 +9,7 @@ const mockIsMoneyAccountEnabled = jest.requireMock(
 ).isMoneyAccountEnabled as jest.Mock;
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getKeyringControllerMessenger } from '../../messengers/keyring-controller-messenger';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { keyringControllerInit } from './keyring-controller-init';
 import {
   KeyringController,
@@ -31,14 +31,14 @@ jest.mock('@metamask/eth-money-keyring', () => {
 const mockWithKeyringUnsafe = jest.fn();
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<KeyringControllerMessenger>
+  MessengerClientInitRequest<KeyringControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getKeyringControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };

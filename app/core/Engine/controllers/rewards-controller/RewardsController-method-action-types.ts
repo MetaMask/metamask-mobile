@@ -502,6 +502,19 @@ export type RewardsControllerGetOndoCampaignLeaderboardAction = {
 };
 
 /**
+ * Get campaign-wide total deposits.
+ * This is a public endpoint - no authentication required.
+ * Results are cached for 5 minutes.
+ *
+ * @param campaignId - The campaign ID to get deposits for.
+ * @returns The total USD deposited across all participants.
+ */
+export type RewardsControllerGetOndoCampaignDepositsAction = {
+  type: `RewardsController:getOndoCampaignDeposits`;
+  handler: RewardsController['getOndoCampaignDeposits'];
+};
+
+/**
  * Get the current user's position on the campaign leaderboard.
  * This is an authenticated endpoint.
  * Results are cached for 5 minutes.
@@ -529,6 +542,53 @@ export type RewardsControllerGetOndoCampaignLeaderboardPositionAction = {
 export type RewardsControllerGetOndoCampaignPortfolioPositionAction = {
   type: `RewardsController:getOndoCampaignPortfolioPosition`;
   handler: RewardsController['getOndoCampaignPortfolioPosition'];
+};
+
+/**
+ * Get paginated activity for an Ondo GM campaign.
+ * First page is cached for 1 minute; subsequent pages are always fetched fresh.
+ * When `forceFresh` is true the cache is bypassed but a last-updated check
+ * avoids redundant fetches if the server data hasn't changed.
+ *
+ * @param params - Campaign ID, subscription ID, pagination cursor, and optional forceFresh flag.
+ * @returns Paginated activity entries.
+ */
+export type RewardsControllerGetOndoCampaignActivityAction = {
+  type: `RewardsController:getOndoCampaignActivity`;
+  handler: RewardsController['getOndoCampaignActivity'];
+};
+
+/**
+ * Fetch the first page of activity only if the server data has changed
+ * since the last cached entry. Falls back to cached data when unchanged.
+ */
+export type RewardsControllerGetActivityIfChangedAction = {
+  type: `RewardsController:getActivityIfChanged`;
+  handler: RewardsController['getActivityIfChanged'];
+};
+
+/**
+ * Get the last-updated timestamp for Ondo GM campaign activity.
+ *
+ * @param campaignId - The campaign ID.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns The last-updated date, or null if no activity exists.
+ */
+export type RewardsControllerGetActivityLastUpdatedAction = {
+  type: `RewardsController:getActivityLastUpdated`;
+  handler: RewardsController['getActivityLastUpdated'];
+};
+
+/**
+ * Check if campaign activity has changed since the last fetch.
+ * Compares the server's last-updated timestamp against the most recent
+ * cached entry's timestamp.
+ *
+ * @returns true if fresh data should be fetched.
+ */
+export type RewardsControllerHasActivityChangedAction = {
+  type: `RewardsController:hasActivityChanged`;
+  handler: RewardsController['hasActivityChanged'];
 };
 
 /**
@@ -665,8 +725,13 @@ export type RewardsControllerMethodActions =
   | RewardsControllerOptInToCampaignAction
   | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetOndoCampaignLeaderboardAction
+  | RewardsControllerGetOndoCampaignDepositsAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
+  | RewardsControllerGetOndoCampaignActivityAction
+  | RewardsControllerGetActivityIfChangedAction
+  | RewardsControllerGetActivityLastUpdatedAction
+  | RewardsControllerHasActivityChangedAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerApplyReferralCodeAction

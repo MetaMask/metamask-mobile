@@ -76,6 +76,7 @@ export const getPolymarketEndpoints = () => ({
   CLOB_ENDPOINT: 'https://clob.polymarket.com',
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
+  HOMEPAGE_CAROUSEL_ENDPOINT: 'https://polymarket.com/api/homepage/carousel',
   CLOB_RELAYER:
     process.env.METAMASK_ENVIRONMENT === 'dev'
       ? 'https://predict.dev-api.cx.metamask.io'
@@ -470,11 +471,6 @@ export const submitClobOrder = async ({
   }
 };
 
-export const isSportEvent = (event: PolymarketApiEvent): boolean =>
-  (Array.isArray(event.tags) ? event.tags : []).some(
-    (tag) => tag.slug === 'sports',
-  );
-
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
 
@@ -596,7 +592,7 @@ const parsePolymarketMarketOutcomes = (
  * 3. Within each group, sort by liquidity + volume (descending)
  * 4. Return flattened array of all groups in order
  */
-export const sortSportMarkets = (
+export const sortGameMarkets = (
   markets: PolymarketApiMarket[],
 ): PolymarketApiMarket[] => {
   // Group markets by sportsMarketType
@@ -662,12 +658,21 @@ export const sortMarketsByField = (
   });
 };
 
-export const sortMarkets = (
-  event: PolymarketApiEvent,
-  sortBy?: 'price' | 'ascending' | 'descending',
-): PolymarketApiMarket[] => {
+export const sortMarkets = ({
+  event,
+  sortBy,
+  isGameEvent,
+}: {
+  event: PolymarketApiEvent;
+  sortBy?: 'price' | 'ascending' | 'descending';
+  isGameEvent?: boolean;
+}): PolymarketApiMarket[] => {
   const markets = Array.isArray(event.markets) ? event.markets : [];
   const eventSortBy = event.sortBy;
+
+  if (isGameEvent) {
+    return sortGameMarkets(markets);
+  }
 
   if (sortBy) {
     return sortMarketsByField(markets, sortBy);
@@ -675,10 +680,6 @@ export const sortMarkets = (
 
   if (eventSortBy) {
     return sortMarketsByField(markets, eventSortBy);
-  }
-
-  if (isSportEvent(event)) {
-    return sortSportMarkets(markets);
   }
 
   return markets;
@@ -737,10 +738,6 @@ export const parsePolymarketEvents = (
       const tags = Array.isArray(event.tags) ? event.tags : [];
       const eventLeague = getEventLeague(event);
 
-      const markets = sortMarkets(event, sortBy).filter(
-        (market: PolymarketApiMarket) => market?.active !== false,
-      );
-
       const predictTeamLookup: TeamLookup | undefined = teamLookup
         ? (league, abbr) => {
             const apiTeam = teamLookup(league, abbr);
@@ -753,6 +750,12 @@ export const parsePolymarketEvents = (
           ? (buildGameData(event, eventLeague, predictTeamLookup) ?? undefined)
           : undefined;
 
+      const markets = sortMarkets({
+        event,
+        sortBy,
+        isGameEvent: !!game,
+      }).filter((market: PolymarketApiMarket) => market?.active !== false);
+
       // As per Polymarket's team, we should use the first market's description
       // rather than the event's description. The event's description is not
       // guaranteed to be accurate. They also do this on their webbsite.
@@ -761,6 +764,16 @@ export const parsePolymarketEvents = (
       const description = game
         ? event.description
         : (event.markets?.[0]?.description ?? event.description);
+
+      const seriesData =
+        event.series?.length > 0
+          ? {
+              id: event.series[0].id,
+              slug: event.series[0].slug,
+              title: event.series[0].title,
+              recurrence: event.series[0].recurrence,
+            }
+          : undefined;
 
       return {
         id: event.id,
@@ -782,6 +795,7 @@ export const parsePolymarketEvents = (
         liquidity: event.liquidity,
         volume: event.volume,
         game,
+        ...(seriesData && { series: seriesData }),
       };
     },
   );
@@ -948,6 +962,51 @@ export const fetchEventsFromPolymarketApi = async (
     : [];
 
   return { events, category, isSearch: !!q };
+};
+
+export interface PolymarketCarouselItem {
+  event: PolymarketApiEvent;
+  type: string;
+  shortName: string;
+  options: PolymarketApiMarket[];
+}
+
+export const fetchCarouselFromPolymarketApi = async (): Promise<
+  PolymarketCarouselItem[]
+> => {
+  const { HOMEPAGE_CAROUSEL_ENDPOINT } = getPolymarketEndpoints();
+
+  DevLogger.log('Fetching carousel data from:', HOMEPAGE_CAROUSEL_ENDPOINT);
+
+  const response = await fetch(HOMEPAGE_CAROUSEL_ENDPOINT);
+  if (!response.ok) {
+    throw new Error('Failed to fetch carousel data');
+  }
+  const data = await response.json();
+  const rawItems: PolymarketCarouselItem[] = Array.isArray(data) ? data : [];
+
+  const items = rawItems.map((item) => ({
+    ...item,
+    event: {
+      ...item.event,
+      markets: item.event.markets?.map((market) => ({
+        ...market,
+        outcomes: Array.isArray(market.outcomes)
+          ? JSON.stringify(market.outcomes)
+          : market.outcomes,
+        outcomePrices: Array.isArray(market.outcomePrices)
+          ? JSON.stringify(market.outcomePrices)
+          : market.outcomePrices,
+        clobTokenIds: Array.isArray(market.clobTokenIds)
+          ? JSON.stringify(market.clobTokenIds)
+          : market.clobTokenIds,
+      })),
+    },
+  }));
+
+  DevLogger.log('Carousel data received:', items.length, 'items');
+
+  return items;
 };
 
 export const getParsedMarketsFromPolymarketApi = async (

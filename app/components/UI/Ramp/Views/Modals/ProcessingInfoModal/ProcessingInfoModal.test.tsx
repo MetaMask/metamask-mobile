@@ -43,19 +43,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 1, right: 2, bottom: 3, left: 4 };
-  const frame = { width: 5, height: 6, x: 7, y: 8 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
 jest.mock('react-native-inappbrowser-reborn', () => ({
   isAvailable: jest.fn(),
   open: jest.fn(),
@@ -112,7 +99,6 @@ describe('ProcessingInfoModal', () => {
   it('renders correctly', () => {
     renderModal();
     expect(screen.getByTestId('processing-info-modal')).toBeOnTheScreen();
-    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders the close button', () => {

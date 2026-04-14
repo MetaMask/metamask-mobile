@@ -63,6 +63,8 @@ jest.mock('react-native', () => {
   };
 });
 
+const defaultTestAssetId = 'eip155:1/slip44:60';
+
 const mockProviders = [
   {
     id: '/providers/transak',
@@ -77,6 +79,7 @@ const mockProviders = [
       height: 24,
       width: 90,
     },
+    supportedCryptoCurrencies: { [defaultTestAssetId]: true },
   },
   {
     id: '/providers/moonpay',
@@ -91,6 +94,7 @@ const mockProviders = [
       height: 24,
       width: 90,
     },
+    supportedCryptoCurrencies: { [defaultTestAssetId]: true },
   },
 ];
 
@@ -197,9 +201,9 @@ describe('ProviderSelectionModal', () => {
     mockUseParams.mockReturnValue({ amount: 100 });
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithProvider(ProviderSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders provider selection modal with providers list', () => {
+    const { getByText } = renderWithProvider(ProviderSelectionModal);
+    expect(getByText('Transak')).toBeOnTheScreen();
   });
 
   it('calls useRampsQuotes with provider params on mount', () => {
@@ -212,7 +216,6 @@ describe('ProviderSelectionModal', () => {
         assetId: 'eip155:1/slip44:60',
         providers: ['/providers/transak', '/providers/moonpay'],
         paymentMethods: ['/payments/debit-credit-card-1'],
-        forceRefresh: true,
       }),
     );
   });
@@ -246,6 +249,29 @@ describe('ProviderSelectionModal', () => {
     expect(mockUseRampsQuotes).toHaveBeenCalledWith(null);
   });
 
+  it('filters providers by selectedToken.assetId when route assetId is omitted', () => {
+    mockUseParams.mockReturnValue({ amount: 100, skipQuotes: true });
+    mockUseRampsController.mockImplementation(() => ({
+      ...defaultControllerReturn,
+      providers: [
+        {
+          ...mockProviders[0],
+          supportedCryptoCurrencies: { [defaultTestAssetId]: true },
+        },
+        {
+          ...mockProviders[1],
+          supportedCryptoCurrencies: { [defaultTestAssetId]: false },
+        },
+      ],
+    }));
+    const { getByText, queryByText } = renderWithProvider(
+      ProviderSelectionModal,
+    );
+
+    expect(getByText('Transak')).toBeOnTheScreen();
+    expect(queryByText('MoonPay')).not.toBeOnTheScreen();
+  });
+
   it('filters providers by assetId when provided', () => {
     const assetId = 'eip155:1/erc20:0x123';
     mockUseParams.mockReturnValue({ assetId, skipQuotes: true });
@@ -254,16 +280,25 @@ describe('ProviderSelectionModal', () => {
       providers: [
         {
           ...mockProviders[0],
-          supportedCryptoCurrencies: { [assetId]: true },
+          supportedCryptoCurrencies: {
+            [assetId]: true,
+            [defaultTestAssetId]: false,
+          },
         },
         {
           ...mockProviders[1],
-          supportedCryptoCurrencies: { [assetId]: true },
+          supportedCryptoCurrencies: {
+            [assetId]: true,
+            [defaultTestAssetId]: false,
+          },
         },
         {
           id: '/providers/other',
           name: 'Other',
-          supportedCryptoCurrencies: { 'eip155:1/slip44:60': true },
+          supportedCryptoCurrencies: {
+            [defaultTestAssetId]: true,
+            [assetId]: false,
+          },
           environmentType: 'PRODUCTION',
           description: '',
           hqAddress: '',
@@ -278,7 +313,7 @@ describe('ProviderSelectionModal', () => {
 
     expect(getByText('Transak')).toBeOnTheScreen();
     expect(getByText('MoonPay')).toBeOnTheScreen();
-    expect(queryByText('Other')).toBeNull();
+    expect(queryByText('Other')).not.toBeOnTheScreen();
   });
 
   it('navigates to token selection when dismissed without action and skipQuotes is true', () => {
@@ -313,7 +348,9 @@ describe('ProviderSelectionModal', () => {
     const { queryByText } = renderWithProvider(ProviderSelectionModal);
 
     // Should not show "no quotes available" error since showQuotes is false
-    expect(queryByText('fiat_on_ramp.no_quotes_available')).toBeNull();
+    expect(
+      queryByText('fiat_on_ramp.no_quotes_available'),
+    ).not.toBeOnTheScreen();
   });
 
   it('does not navigate to token selection when dismissed without action and skipQuotes is false', () => {

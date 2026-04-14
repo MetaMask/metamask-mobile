@@ -8,7 +8,7 @@ import React, {
   useRef,
 } from 'react';
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
-import { InteractionManager, View } from 'react-native';
+import { InteractionManager, ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -30,10 +30,7 @@ import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/ass
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  selectHomepageRedesignV1Enabled,
-  selectHomepageSectionsV1Enabled,
-} from '../../../selectors/featureFlagController/homepage';
+import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { useRemoveToken } from './hooks/useRemoveToken';
 import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
@@ -59,6 +56,7 @@ interface TokensProps {
    * (e.g. network filter set to a chain without mUSD).
    */
   hasMusdBalanceOnAnyChain?: boolean;
+  listFooterComponent?: React.ReactElement;
 }
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
@@ -67,6 +65,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       isFullView = false,
       showOnlyMusd = false,
       hasMusdBalanceOnAnyChain: hasMusdBalanceOnAnyChainProp,
+      listFooterComponent,
     },
     ref,
   ) => {
@@ -87,10 +86,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) ||
       null;
     const isSolanaSelected = selectedSolanaAccount !== null;
-
-    const isHomepageRedesignV1Enabled = useSelector(
-      selectHomepageRedesignV1Enabled,
-    );
 
     const isMusdConversionFlowEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
@@ -228,8 +223,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       if (isFullView) {
         return undefined;
       }
-      return isHomepageRedesignV1Enabled ? 10 : undefined;
-    }, [isFullView, isHomepageRedesignV1Enabled]);
+      return 10;
+    }, [isFullView]);
 
     // Determine which content to render based on loading and token state
     const tokenContent = useMemo(() => {
@@ -257,6 +252,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
               setShowScamWarningModal={handleScamWarningModal}
               maxItems={maxItems}
               isFullView={isFullView}
+              listFooterComponent={listFooterComponent}
             />
           </>
         );
@@ -269,7 +265,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
             ? strings('homepage.sections.cash_empty_description')
             : undefined;
 
-      return (
+      const emptyState = (
         <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
           {cashEmptyDescription !== undefined ? (
             <TokensEmptyState description={cashEmptyDescription} />
@@ -278,6 +274,17 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
           )}
         </Box>
       );
+
+      if (listFooterComponent) {
+        return (
+          <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
+            {emptyState}
+            {listFooterComponent}
+          </ScrollView>
+        );
+      }
+
+      return emptyState;
     }, [
       hasInitialLoad,
       isFullView,
@@ -292,15 +299,12 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       handleScamWarningModal,
       maxItems,
       isGeoEligible,
+      listFooterComponent,
     ]);
 
     return (
       <Box
-        twClassName={
-          isHomepageRedesignV1Enabled && !isFullView
-            ? 'bg-default'
-            : 'flex-1 bg-default'
-        }
+        twClassName={!isFullView ? 'bg-default' : 'flex-1 bg-default'}
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
         <TokenListControlBar

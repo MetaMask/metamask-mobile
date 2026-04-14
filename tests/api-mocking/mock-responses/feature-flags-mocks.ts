@@ -132,6 +132,13 @@ export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
     enabled: false,
     minimumVersion: '7.60.0',
   },
+  // Exclude 'nba' — NBA markets render PredictGameDetailsContent which uses a different cash-out testID not yet supported by E2E page objects
+  predictLiveSports: {
+    versions: {
+      '7.67.0': { enabled: true, leagues: ['nfl'] },
+      '7.70.0': { enabled: true, leagues: ['nfl'] },
+    },
+  },
 });
 
 export const remoteFeatureFlagHomepageSectionsV1Enabled = (enabled = true) => ({
@@ -192,6 +199,19 @@ export const remoteFeatureFlagExtensionUxPna25 = (enabled = true) => ({
 
 export const remoteFeatureFlagTronAccounts = (enabled = true) => ({
   tronAccounts: {
+    enabled,
+    minimumVersion: '0.0.0',
+  },
+});
+
+/**
+ * Enables the Market Insights (AI social market analysis) feature on asset details.
+ * Uses minimumVersion '0.0.0' so debug/test builds always pass the version gate.
+ * Selector: selectMarketInsightsEnabled (featureFlagController/marketInsights/index.ts)
+ * Flag key: aiSocialMarketAnalysisEnabled
+ */
+export const remoteFeatureFlagMarketInsightsEnabled = (enabled = true) => ({
+  aiSocialMarketAnalysisEnabled: {
     enabled,
     minimumVersion: '0.0.0',
   },

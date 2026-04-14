@@ -165,8 +165,25 @@ export interface CampaignDto {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OndoCampaignStepState = {
   title: string;
-  description: string;
+  description: Json | null;
   iconName: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignTourActionsState = {
+  next?: boolean;
+  skip?: boolean;
+};
+
+/**
+ * Serializable version of OndoCampaignTourStepDto for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignTourStepDtoState = {
+  title: string;
+  description: string;
+  image: ThemeImageState | null;
+  actions: OndoCampaignTourActionsState | null;
 };
 
 /**
@@ -178,6 +195,7 @@ export type OndoCampaignHowItWorksState = {
   description: string;
   steps: OndoCampaignStepState[];
   notes?: Json | null;
+  tour?: OndoCampaignTourStepDtoState[];
 };
 
 /**
@@ -195,7 +213,6 @@ export type ThemeImageState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignDetailsState = {
   howItWorks: OndoCampaignHowItWorksState;
-  depositCutoffDate?: string;
 };
 
 /**
@@ -258,6 +275,18 @@ export interface CampaignLeaderboardEntry {
    * @example 0.15
    */
   rateOfReturn: number;
+
+  /**
+   * Non-consecutive qualifying days at projected tier
+   * @example 8
+   */
+  qualifiedDays: number;
+
+  /**
+   * Whether hold requirement is met
+   * @example false
+   */
+  qualified: boolean;
 }
 
 /**
@@ -274,6 +303,12 @@ export interface CampaignLeaderboardTier {
    * @example 150
    */
   totalParticipants: number;
+
+  /**
+   * Minimum USD net deposit required to qualify for this tier
+   * @example 5000
+   */
+  minDeposit: number;
 }
 
 /**
@@ -348,6 +383,23 @@ export interface CampaignLeaderboardPositionDto {
   netDeposit: number;
 
   /**
+   * Non-consecutive qualifying days at projected tier
+   * @example 8
+   */
+  qualifiedDays: number;
+
+  /**
+   * Whether hold requirement is met
+   * @example false
+   */
+  qualified: boolean;
+
+  /**
+   * Neighboring entries around the user's rank (up to 1 before/after)
+   */
+  neighbors: CampaignLeaderboardEntry[];
+
+  /**
    * When the leaderboard was last computed (ISO timestamp)
    * @example '2024-03-20T12:00:00.000Z'
    */
@@ -380,14 +432,16 @@ export interface OndoGmPortfolioPositionDto {
   units: string;
 
   /**
-   * @example '9040.000000'
-   */
-  costBasis: string;
-
-  /**
+   * Weighted-average book price per whole token (USD)
    * @example '200.000000'
    */
-  avgCostPerUnit: string;
+  bookPrice: string;
+
+  /**
+   * Derived book value: units * bookPrice (USD)
+   * @example '9040.000000'
+   */
+  bookValue: string;
 
   /**
    * @example '215.500000'
@@ -420,9 +474,10 @@ export interface OndoGmPortfolioSummaryDto {
   totalCurrentValue: string;
 
   /**
+   * Sum of all position book values (USD)
    * @example '9040.000000'
    */
-  totalCostBasis: string;
+  totalBookValue: string;
 
   /**
    * @example '9040.000000'
@@ -433,6 +488,12 @@ export interface OndoGmPortfolioSummaryDto {
    * @example '9040.000000'
    */
   netDeposit: string;
+
+  /**
+   * Cumulative market value already cashed out from the portfolio
+   * @example '600.000000'
+   */
+  totalCashedOut: string;
 
   /**
    * @example '700.600000'
@@ -467,8 +528,8 @@ export type OndoGmPortfolioPositionState = {
   tokenName: string;
   tokenAsset: string;
   units: string;
-  costBasis: string;
-  avgCostPerUnit: string;
+  bookPrice: string;
+  bookValue: string;
   currentPrice: string;
   currentValue: string;
   unrealizedPnl: string;
@@ -481,11 +542,20 @@ export type OndoGmPortfolioPositionState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OndoGmPortfolioSummaryState = {
   totalCurrentValue: string;
-  totalCostBasis: string;
+  totalBookValue: string;
   totalUsdDeposited: string;
   netDeposit: string;
+  totalCashedOut: string;
   portfolioPnl: string;
   portfolioPnlPercent: string;
+};
+
+/**
+ * Campaign-wide total deposits (public endpoint).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmCampaignDepositsDto = {
+  totalUsdDeposited: string;
 };
 
 /**
@@ -496,6 +566,116 @@ export type OndoGmPortfolioState = {
   positions: OndoGmPortfolioPositionState[];
   summary: OndoGmPortfolioSummaryState;
   computedAt: string;
+  lastFetched: number;
+};
+
+/**
+ * Activity entry type for Ondo GM campaign transactions.
+ */
+export type ActivityEntryType =
+  | 'DEPOSIT'
+  | 'REBALANCE'
+  | 'WITHDRAW'
+  | 'EXTERNAL_OUTFLOW';
+
+/**
+ * Token metadata within an activity entry.
+ */
+export interface ActivityTokenDto {
+  /**
+   * CAIP-19 asset type identifier
+   * @example 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da'
+   */
+  tokenAsset: string;
+
+  /** @example 'AAPLon' */
+  tokenSymbol: string;
+
+  /** @example 'Apple Inc.' */
+  tokenName: string;
+}
+
+/**
+ * DTO for a single activity entry from GET /ondo-gm/:campaignId/activity/me
+ */
+export interface OndoGmActivityEntryDto {
+  /** @example 'DEPOSIT' */
+  type: ActivityEntryType;
+
+  /** Source token */
+  srcToken: ActivityTokenDto;
+
+  /** Destination token, null for withdrawals */
+  destToken: ActivityTokenDto | null;
+
+  /**
+   * Recipient wallet address (only set for EXTERNAL_OUTFLOW events)
+   * @example '0x1234567890abcdef1234567890abcdef12345678'
+   */
+  destAddress: string | null;
+
+  /**
+   * Signed USD value (6 decimals). Positive for deposits, negative for withdrawals. Null for rebalances.
+   * @example '125.000000'
+   */
+  usdAmount: string | null;
+
+  /**
+   * Block timestamp (ISO 8601 UTC)
+   * @example '2026-03-28T14:30:00.000Z'
+   */
+  timestamp: string;
+}
+
+/**
+ * Paginated response for Ondo GM campaign activity
+ */
+export interface PaginatedOndoGmActivityDto {
+  has_more: boolean;
+  cursor: string | null;
+  results: OndoGmActivityEntryDto[];
+}
+
+/**
+ * Serializable state for token metadata within an activity entry.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ActivityTokenState = {
+  tokenAsset: string;
+  tokenSymbol: string;
+  tokenName: string;
+};
+
+/**
+ * Serializable state for a single activity entry (mirrors {@link OndoGmActivityEntryDto}).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmActivityEntryState = {
+  type: string;
+  srcToken: ActivityTokenState;
+  destToken: ActivityTokenState | null;
+  destAddress: string | null;
+  usdAmount: string | null;
+  timestamp: string;
+};
+
+/**
+ * Cached activity page (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmActivityState = {
+  results: OndoGmActivityEntryState[];
+  has_more: boolean;
+  cursor: string | null;
+  lastFetched: number;
+};
+
+/**
+ * Cached campaign deposits (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmCampaignDepositsState = {
+  totalUsdDeposited: string;
   lastFetched: number;
 };
 
@@ -512,8 +692,11 @@ export type CampaignLeaderboardState = {
         rank: number;
         referralCode: string;
         rateOfReturn: number;
+        qualifiedDays: number;
+        qualified: boolean;
       }[];
       totalParticipants: number;
+      minDeposit: number;
     };
   };
   lastFetched: number;
@@ -531,6 +714,15 @@ export type CampaignLeaderboardPositionFoundState = {
   currentUsdValue: number;
   totalUsdDeposited: number;
   netDeposit: number;
+  qualifiedDays: number;
+  qualified: boolean;
+  neighbors: {
+    rank: number;
+    referralCode: string;
+    rateOfReturn: number;
+    qualifiedDays: number;
+    qualified: boolean;
+  }[];
   computedAt: string;
   lastFetched: number;
 };
@@ -555,8 +747,20 @@ export type CampaignParticipantStatusState = {
 
 export interface OndoCampaignStep {
   title: string;
-  description: string;
+  description: Json | null;
   iconName: string;
+}
+
+export interface OndoCampaignTourActions {
+  next?: boolean;
+  skip?: boolean;
+}
+
+export interface OndoCampaignTourStepDto {
+  title: string;
+  description: string;
+  image: ThemeImage | null;
+  actions: OndoCampaignTourActions | null;
 }
 
 export interface OndoCampaignHowItWorks {
@@ -564,11 +768,11 @@ export interface OndoCampaignHowItWorks {
   description: string;
   steps: OndoCampaignStep[];
   notes?: Json | null;
+  tour?: OndoCampaignTourStepDto[];
 }
 
 export interface OndoHoldingDetails {
   howItWorks: OndoCampaignHowItWorks;
-  depositCutoffDate?: string;
 }
 
 export type CampaignDetails = OndoHoldingDetails;
@@ -1587,6 +1791,15 @@ export type RewardsControllerState = {
   ondoCampaignPortfolio: {
     [compositeId: string]: OndoGmPortfolioState;
   };
+  /**
+   * Ondo campaign activity keyed by compositeId (subscriptionId:campaignId).
+   * First-page results are cached for 1 minute; pagination pages are not cached.
+   */
+  ondoCampaignActivity: {
+    [compositeId: string]: OndoGmActivityState;
+  };
+  /** Ondo campaign deposits keyed by campaignId (public endpoint). */
+  ondoCampaignDeposits: { [campaignId: string]: OndoGmCampaignDepositsState };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.

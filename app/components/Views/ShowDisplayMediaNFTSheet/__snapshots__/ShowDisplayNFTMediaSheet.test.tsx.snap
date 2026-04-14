@@ -8,8 +8,7 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -410,7 +409,7 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -424,7 +423,7 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -504,9 +503,8 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -613,7 +611,7 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#66676a",
-                                    "fontFamily": "Geist-Bold",
+                                    "fontFamily": "Geist-SemiBold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -647,7 +645,7 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#66676a",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -763,6 +761,6 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

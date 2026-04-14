@@ -6,9 +6,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import {
+  selectIsCardAuthenticated,
   selectCardholderAccounts,
-  selectIsAuthenticatedCard,
-} from '../../../../redux/slices/card';
+} from '../../../../../selectors/cardController';
 
 jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../redux', () => ({
@@ -25,6 +25,7 @@ jest.mock('../../../../Engine', () => ({
   setSelectedAddress: jest.fn(),
 }));
 jest.mock('../../../../redux/slices/card');
+jest.mock('../../../../../selectors/cardController');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
 jest.mock('../../../../../util/Logger');
 
@@ -51,7 +52,7 @@ describe('handleCardOnboarding', () => {
 
     // Default mocks
     (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
-    (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(false);
+    (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -62,7 +63,7 @@ describe('handleCardOnboarding', () => {
   describe('navigation behavior', () => {
     describe('when user is authenticated and has card-linked account', () => {
       beforeEach(() => {
-        (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
+        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
           true,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
@@ -105,7 +106,7 @@ describe('handleCardOnboarding', () => {
 
     describe('when user is authenticated but has no card-linked account', () => {
       beforeEach(() => {
-        (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
+        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
           true,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
@@ -135,7 +136,7 @@ describe('handleCardOnboarding', () => {
 
     describe('when user is not authenticated but has card-linked account', () => {
       beforeEach(() => {
-        (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
+        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
           false,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
@@ -169,7 +170,7 @@ describe('handleCardOnboarding', () => {
 
     describe('when user is not authenticated and has no card-linked account', () => {
       beforeEach(() => {
-        (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
+        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
           false,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);

@@ -66,8 +66,8 @@ import {
 } from '../../../../../selectors/geolocationController';
 import {
   selectIsCardholder,
-  selectIsAuthenticatedCard,
-} from '../../../../../core/redux/slices/card';
+  selectIsCardAuthenticated,
+} from '../../../../../selectors/cardController';
 
 interface SetupOptions {
   geoLocation?: string;
@@ -87,7 +87,7 @@ const setupSelectors = ({
       return geoLocation === undefined ? undefined : geoLocation;
     if (selector === selectGeolocationStatus) return geoStatus;
     if (selector === selectIsCardholder) return isCardholder;
-    if (selector === selectIsAuthenticatedCard) return isAuthenticatedCard;
+    if (selector === selectIsCardAuthenticated) return isAuthenticatedCard;
     return undefined;
   });
 };

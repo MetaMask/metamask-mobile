@@ -269,3 +269,22 @@ export const selectOndoCampaignPortfolioById =
           `${subscriptionId}:${campaignId}`
         ] ?? null)
       : null;
+
+export const selectOndoCampaignActivityById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId && state.rewards.ondoCampaignActivity
+      ? (state.rewards.ondoCampaignActivity[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;
+
+// Campaign deposits selectors
+export const selectOndoCampaignDeposits = (state: RootState) =>
+  state.rewards.ondoCampaignDeposits;
+
+export const selectOndoCampaignDepositsLoading = (state: RootState) =>
+  state.rewards.ondoCampaignDepositsLoading;
+
+export const selectOndoCampaignDepositsError = (state: RootState) =>
+  state.rewards.ondoCampaignDepositsError;

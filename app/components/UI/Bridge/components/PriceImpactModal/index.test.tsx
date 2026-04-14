@@ -9,23 +9,30 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 
-// Mock BottomSheet
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
+// Mock BottomSheet from design system
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactModule = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
 
-    return {
-      __esModule: true,
-      default: ReactModule.forwardRef(
-        (props: { children: unknown }, _ref: unknown) => (
-          <View testID="bottom-sheet">{props.children as React.ReactNode}</View>
-        ),
+  return {
+    ...actual,
+    BottomSheet: ReactModule.forwardRef(
+      (props: { children: unknown }, _ref: unknown) => (
+        <View testID="bottom-sheet">{props.children as React.ReactNode}</View>
       ),
-    };
-  },
-);
+    ),
+  };
+});
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(() => ({ goBack: jest.fn() })),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 // Mock sub-components so we can assert on the props they receive
 jest.mock('./PriceImpactHeader', () => ({
@@ -64,6 +71,8 @@ jest.mock('./PriceImpactDescription', () => ({
     }: {
       content: string;
       formattedPriceImpact?: string;
+      formattedPriceImpactFiat?: string;
+      isDanger: boolean;
     }) => {
       const { View, Text } = jest.requireActual('react-native');
       return (
@@ -138,6 +147,7 @@ jest.mock('../../hooks/usePriceImpactViewData', () => ({
   usePriceImpactViewData: jest.fn(),
 }));
 
+import { useSelector } from 'react-redux';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
@@ -168,6 +178,7 @@ const mockPriceImpactFooter = PriceImpactFooter as jest.MockedFunction<
   typeof PriceImpactFooter
 >;
 
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockConfirmBridge = jest.fn();
 
 const mockToken = {
@@ -194,6 +205,7 @@ const defaultViewData = {
 
 describe('PriceImpactModal', () => {
   beforeEach(() => {
+    mockUseSelector.mockReturnValue(undefined);
     mockUseParams.mockReturnValue(defaultParams);
     mockUseLatestBalance.mockReturnValue(undefined);
     mockUseBridgeConfirm.mockReturnValue(mockConfirmBridge);
@@ -291,6 +303,64 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactDescription).toHaveBeenCalledWith(
         expect.objectContaining({ formattedPriceImpact: undefined }),
+        expect.anything(),
+      );
+    });
+
+    it('passes formattedPriceImpactFiat to PriceImpactDescription when formattedQuoteData has it', () => {
+      mockUseBridgeQuoteData.mockReturnValue({
+        formattedQuoteData: { priceImpact: '5%', priceImpactFiat: '$3.50' },
+      } as ReturnType<typeof useBridgeQuoteData>);
+
+      render(<PriceImpactModal />);
+
+      expect(mockPriceImpactDescription).toHaveBeenCalledWith(
+        expect.objectContaining({ formattedPriceImpactFiat: '$3.50' }),
+        expect.anything(),
+      );
+    });
+
+    it('passes undefined formattedPriceImpactFiat when formattedQuoteData is absent', () => {
+      mockUseBridgeQuoteData.mockReturnValue({
+        formattedQuoteData: undefined,
+      } as ReturnType<typeof useBridgeQuoteData>);
+
+      render(<PriceImpactModal />);
+
+      expect(mockPriceImpactDescription).toHaveBeenCalledWith(
+        expect.objectContaining({ formattedPriceImpactFiat: undefined }),
+        expect.anything(),
+      );
+    });
+
+    it('passes isDanger=true to PriceImpactDescription when price impact exceeds error threshold', () => {
+      mockUseBridgeQuoteData.mockReturnValue({
+        activeQuote: {
+          quote: { priceData: { priceImpact: '0.96' } },
+        },
+        formattedQuoteData: { priceImpact: '96%', priceImpactFiat: '$7.05' },
+      } as ReturnType<typeof useBridgeQuoteData>);
+
+      render(<PriceImpactModal />);
+
+      expect(mockPriceImpactDescription).toHaveBeenCalledWith(
+        expect.objectContaining({ isDanger: true }),
+        expect.anything(),
+      );
+    });
+
+    it('passes isDanger=false to PriceImpactDescription when price impact is below error threshold', () => {
+      mockUseBridgeQuoteData.mockReturnValue({
+        activeQuote: {
+          quote: { priceData: { priceImpact: '0.05' } },
+        },
+        formattedQuoteData: { priceImpact: '5%', priceImpactFiat: '$0.50' },
+      } as ReturnType<typeof useBridgeQuoteData>);
+
+      render(<PriceImpactModal />);
+
+      expect(mockPriceImpactDescription).toHaveBeenCalledWith(
+        expect.objectContaining({ isDanger: false }),
         expect.anything(),
       );
     });

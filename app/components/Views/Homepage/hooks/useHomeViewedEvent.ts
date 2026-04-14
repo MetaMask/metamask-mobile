@@ -13,6 +13,9 @@ export const HomeSectionNames = {
   PREDICT: 'predict',
   NFTS: 'nfts',
   TOP_TRADERS: 'top_traders',
+  TRENDING_TOKENS: 'trending_tokens',
+  TRENDING_PERPS: 'trending_perps',
+  TRENDING_PREDICT: 'trending_predict',
 } as const;
 
 export type HomeSectionName =
@@ -67,6 +70,7 @@ const useHomeViewedEvent = ({
     entryPoint,
     visitId,
     notifySectionViewed,
+    appSessionId,
   } = useHomepageScrollContext();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -97,10 +101,15 @@ const useHomeViewedEvent = ({
           is_empty: isEmpty,
           item_count: itemCount,
           entry_point: entryPoint,
+          app_session_id: appSessionId,
+          visit_number: visitId,
         })
         .build(),
     );
-    notifySectionViewed(sectionName);
+    // recordDepth=true only for rendered sections (sectionRef !== null) that
+    // fired via a real viewport check. Non-rendered sections fire immediately
+    // and should not count toward max scroll depth.
+    notifySectionViewed(sectionName, sectionIndex, sectionRef !== null);
   }, [
     visitId,
     sectionName,
@@ -109,9 +118,11 @@ const useHomeViewedEvent = ({
     isEmpty,
     itemCount,
     entryPoint,
+    appSessionId,
     trackEvent,
     createEventBuilder,
     notifySectionViewed,
+    sectionRef,
   ]);
 
   // Reset on each homepage visit so the event re-fires.
