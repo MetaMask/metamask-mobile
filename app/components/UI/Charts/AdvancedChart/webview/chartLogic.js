@@ -38,6 +38,8 @@ window.ohlcvPagination = {
 };
 /** Bumped on each `SET_OHLCV_DATA` so in-flight fetches from a previous series are discarded. */
 window.ohlcvGeneration = 0;
+/** Tracks one in-flight older-history page fetch and coalesces duplicate callers. */
+window.pendingOlderBarsRequest = null;
 // Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
 window.currentChartType = 2;
 window.lineLastPriceShapeId = null;
@@ -404,6 +406,7 @@ function handleSetOHLCVData(payload) {
   window.ohlcvData = payload.data;
   bumpLineChartOhlcvEpoch();
   window.ohlcvGeneration++;
+  window.pendingOlderBarsRequest = null;
 
   if (payload.pagination) {
     window.ohlcvPagination = {
@@ -3013,6 +3016,10 @@ function filterBarsForRange(fromMs, toMs, countBack) {
 
 var OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
 
+function getOlderBarsErrorMessage(err) {
+  return err && err.message ? err.message : String(err);
+}
+
 /**
  * Fetches the next page of OHLCV history directly from the Price API inside the WebView.
  * Called from `getBars` when `window.ohlcvPagination` has a cursor, avoiding the RN round-trip.
@@ -3028,12 +3035,29 @@ function fetchOlderBars(pending) {
   }
 
   var gen = window.ohlcvGeneration;
+  var cursor = pag.nextCursor;
+  var existingRequest = window.pendingOlderBarsRequest;
+  if (
+    existingRequest &&
+    existingRequest.generation === gen &&
+    existingRequest.cursor === cursor
+  ) {
+    existingRequest.waiters.push(pending);
+    return;
+  }
+
+  var request = {
+    generation: gen,
+    cursor: cursor,
+    waiters: [pending],
+  };
+  window.pendingOlderBarsRequest = request;
   var url =
     OHLCV_BASE_URL +
     '/' +
     encodeURIComponent(pag.assetId) +
     '?nextCursor=' +
-    encodeURIComponent(pag.nextCursor);
+    encodeURIComponent(cursor);
   if (pag.vsCurrency) {
     url += '&vsCurrency=' + encodeURIComponent(pag.vsCurrency);
   }
@@ -3047,6 +3071,9 @@ function fetchOlderBars(pending) {
     })
     .then(function (result) {
       if (gen !== window.ohlcvGeneration) {
+        return;
+      }
+      if (window.pendingOlderBarsRequest !== request) {
         return;
       }
 
@@ -3074,14 +3101,19 @@ function fetchOlderBars(pending) {
         window.ohlcvData = newBars.concat(window.ohlcvData);
       }
 
-      var olderBars = [];
-      for (var j = 0; j < newBars.length; j++) {
-        if (newBars[j].time < pending.oldestAtDefer) {
-          olderBars.push(newBars[j]);
-        }
-      }
+      window.pendingOlderBarsRequest = null;
 
-      pending.onResult(olderBars, { noData: olderBars.length === 0 });
+      for (var w = 0; w < request.waiters.length; w++) {
+        var waiter = request.waiters[w];
+        var olderBars = [];
+        for (var j = 0; j < newBars.length; j++) {
+          if (newBars[j].time < waiter.oldestAtDefer) {
+            olderBars.push(newBars[j]);
+          }
+        }
+
+        waiter.onResult(olderBars, { noData: olderBars.length === 0 });
+      }
       if (window.__mmLayoutSettlePending) {
         queueTryCompleteLayoutSettleAfterData();
       }
@@ -3090,12 +3122,20 @@ function fetchOlderBars(pending) {
       if (gen !== window.ohlcvGeneration) {
         return;
       }
-      pending.onResult([], { noData: true });
+      if (window.pendingOlderBarsRequest !== request) {
+        return;
+      }
+      window.pendingOlderBarsRequest = null;
+
+      var errorMessage = getOlderBarsErrorMessage(err);
+      for (var w = 0; w < request.waiters.length; w++) {
+        request.waiters[w].onError(errorMessage);
+      }
       if (window.__mmLayoutSettlePending) {
         queueTryCompleteLayoutSettleAfterData();
       }
       sendToReactNative('DEBUG', {
-        message: 'fetchOlderBars error: ' + (err.message || String(err)),
+        message: 'fetchOlderBars error: ' + errorMessage,
       });
     });
 }
@@ -3203,6 +3243,7 @@ var customDatafeed = {
 
       fetchOlderBars({
         onResult: onResult,
+        onError: onError,
         oldestAtDefer: oldestTs,
       });
     } catch (error) {
