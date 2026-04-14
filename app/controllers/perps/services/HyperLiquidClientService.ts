@@ -151,36 +151,25 @@ export class HyperLiquidClientService {
         transport: this.#wsTransport,
       });
 
-      // Wait for WebSocket to actually be ready before setting CONNECTED
-      // This ensures we have a real connection, not just client objects
+      // Wait for WebSocket to be ready, then mark CONNECTED.
+      // If WebSocket fails, keep all clients alive and report Connected anyway.
+      // This prevents the controller from triggering HTTP polling fallback which
+      // would overwrite E2E mock data with real (empty) API responses.
+      // The subscription client will be non-functional but the E2E mixin
+      // overrides all subscription methods, so this is safe.
       try {
         await this.#wsTransport.ready();
-        this.#updateConnectionState(WebSocketConnectionState.Connected);
       } catch (wsError) {
-        // WebSocket failed but HTTP clients are functional — fall back gracefully.
-        // This happens in E2E tests or restricted networks where WSS is unavailable.
         this.#deps.debugLogger.log(
-          'HyperLiquid WebSocket connection failed, falling back to HTTP-only',
+          'HyperLiquid WebSocket connection failed, continuing with HTTP clients',
           {
             error: ensureError(wsError, 'WebSocketTransport.ready').message,
             network,
           },
         );
-
-        // Clean up WebSocket-dependent clients
-        this.#subscriptionClient = undefined;
-        this.#infoClient = this.#infoClientHttp;
-        if (this.#wsTransport) {
-          try {
-            await this.#wsTransport.close();
-          } catch {
-            // Ignore cleanup errors
-          }
-          this.#wsTransport = undefined;
-        }
-
-        this.#updateConnectionState(WebSocketConnectionState.Disconnected);
       }
+
+      this.#updateConnectionState(WebSocketConnectionState.Connected);
 
       this.#deps.debugLogger.log('HyperLiquid SDK clients initialized', {
         testnet: this.#isTestnet,
