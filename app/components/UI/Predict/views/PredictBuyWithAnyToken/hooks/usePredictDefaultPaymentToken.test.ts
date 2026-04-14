@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { usePredictDefaultPaymentToken } from './usePredictDefaultPaymentToken';
 import { ActiveOrderState } from '../../../types';
+import { TokenStandard } from '../../../../../Views/confirmations/types/token';
 
 let mockPredictBalance: number | undefined = 100;
 let mockIsBalanceLoading = false;
@@ -13,8 +14,29 @@ let mockTokens: {
   address?: string;
   chainId?: string;
   symbol: string;
+  accountType?: string;
+  standard?: TokenStandard;
   fiat?: { balance?: number };
 }[] = [];
+
+const createEvmErc20Token = ({
+  address,
+  chainId = '0x1',
+  symbol,
+  fiatBalance,
+}: {
+  address: string;
+  chainId?: string;
+  symbol: string;
+  fiatBalance?: number;
+}) => ({
+  address,
+  chainId,
+  symbol,
+  accountType: `eip155:1/erc20:${address.toLowerCase()}`,
+  standard: TokenStandard.ERC20,
+  fiat: fiatBalance != null ? { balance: fiatBalance } : undefined,
+});
 
 jest.mock('../../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => ({
@@ -59,12 +81,7 @@ describe('usePredictDefaultPaymentToken', () => {
   it('resets to predict balance when balance >= MINIMUM_BET', () => {
     mockPredictBalance = 5;
     mockTokens = [
-      {
-        address: '0x1',
-        chainId: '0x1',
-        symbol: 'USDC',
-        fiat: { balance: 100 },
-      },
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 100 }),
     ];
 
     renderHook(() => usePredictDefaultPaymentToken());
@@ -76,12 +93,7 @@ describe('usePredictDefaultPaymentToken', () => {
   it('resets to predict balance when balance equals MINIMUM_BET', () => {
     mockPredictBalance = 1;
     mockTokens = [
-      {
-        address: '0x1',
-        chainId: '0x1',
-        symbol: 'USDC',
-        fiat: { balance: 100 },
-      },
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 100 }),
     ];
 
     renderHook(() => usePredictDefaultPaymentToken());
@@ -93,12 +105,7 @@ describe('usePredictDefaultPaymentToken', () => {
   it('does not auto-select when predict balance equals MINIMUM_BET', () => {
     mockPredictBalance = 1;
     mockTokens = [
-      {
-        address: '0x1',
-        chainId: '0x1',
-        symbol: 'USDC',
-        fiat: { balance: 100 },
-      },
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 100 }),
     ];
 
     renderHook(() => usePredictDefaultPaymentToken());
@@ -109,13 +116,8 @@ describe('usePredictDefaultPaymentToken', () => {
   it('auto-selects token with highest fiat balance when predict balance < MINIMUM_BET', () => {
     mockPredictBalance = 0.5;
     mockTokens = [
-      {
-        address: '0x1',
-        chainId: '0x1',
-        symbol: 'USDC',
-        fiat: { balance: 500 },
-      },
-      { address: '0x2', chainId: '0x1', symbol: 'ETH', fiat: { balance: 200 } },
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 500 }),
+      createEvmErc20Token({ address: '0x2', symbol: 'ETH', fiatBalance: 200 }),
     ];
 
     renderHook(() => usePredictDefaultPaymentToken());
@@ -133,12 +135,7 @@ describe('usePredictDefaultPaymentToken', () => {
   it('auto-selects when predict balance is zero', () => {
     mockPredictBalance = 0;
     mockTokens = [
-      {
-        address: '0x1',
-        chainId: '0x1',
-        symbol: 'WETH',
-        fiat: { balance: 300 },
-      },
+      createEvmErc20Token({ address: '0x1', symbol: 'WETH', fiatBalance: 300 }),
     ];
 
     renderHook(() => usePredictDefaultPaymentToken());
@@ -151,7 +148,7 @@ describe('usePredictDefaultPaymentToken', () => {
   it('auto-selects when predict balance is undefined', () => {
     mockPredictBalance = undefined;
     mockTokens = [
-      { address: '0x1', chainId: '0x1', symbol: 'USDC', fiat: { balance: 50 } },
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 50 }),
     ];
 
     renderHook(() => usePredictDefaultPaymentToken());
@@ -163,12 +160,7 @@ describe('usePredictDefaultPaymentToken', () => {
     mockIsBalanceLoading = true;
     mockPredictBalance = 0;
     mockTokens = [
-      {
-        address: '0x1',
-        chainId: '0x1',
-        symbol: 'USDC',
-        fiat: { balance: 100 },
-      },
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 100 }),
     ];
 
     renderHook(() => usePredictDefaultPaymentToken());
@@ -180,12 +172,7 @@ describe('usePredictDefaultPaymentToken', () => {
     mockPredictBalance = 0.5;
     mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
     mockTokens = [
-      {
-        address: '0x1',
-        chainId: '0x1',
-        symbol: 'USDC',
-        fiat: { balance: 100 },
-      },
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 100 }),
     ];
 
     renderHook(() => usePredictDefaultPaymentToken());
@@ -197,12 +184,7 @@ describe('usePredictDefaultPaymentToken', () => {
     mockPredictBalance = 0.5;
     mockActiveOrder = undefined;
     mockTokens = [
-      {
-        address: '0x1',
-        chainId: '0x1',
-        symbol: 'USDC',
-        fiat: { balance: 100 },
-      },
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 100 }),
     ];
 
     renderHook(() => usePredictDefaultPaymentToken());
@@ -223,8 +205,8 @@ describe('usePredictDefaultPaymentToken', () => {
   it('falls back to predict balance when no tokens have positive fiat balance', () => {
     mockPredictBalance = 0.5;
     mockTokens = [
-      { address: '0x1', chainId: '0x1', symbol: 'USDC', fiat: { balance: 0 } },
-      { address: '0x2', chainId: '0x1', symbol: 'ETH' },
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 0 }),
+      createEvmErc20Token({ address: '0x2', symbol: 'ETH' }),
     ];
 
     renderHook(() => usePredictDefaultPaymentToken());
@@ -236,13 +218,8 @@ describe('usePredictDefaultPaymentToken', () => {
   it('skips tokens with undefined fiat balance', () => {
     mockPredictBalance = 0.5;
     mockTokens = [
-      {
-        address: '0x1',
-        chainId: '0x1',
-        symbol: 'UNKNOWN',
-        fiat: { balance: undefined },
-      },
-      { address: '0x2', chainId: '0x1', symbol: 'USDC', fiat: { balance: 50 } },
+      createEvmErc20Token({ address: '0x1', symbol: 'UNKNOWN' }),
+      createEvmErc20Token({ address: '0x2', symbol: 'USDC', fiatBalance: 50 }),
     ];
 
     renderHook(() => usePredictDefaultPaymentToken());
@@ -259,14 +236,11 @@ describe('usePredictDefaultPaymentToken', () => {
         address: '0x1',
         chainId: undefined,
         symbol: 'BROKEN',
+        accountType: 'eip155:1/erc20:0x1',
+        standard: TokenStandard.ERC20,
         fiat: { balance: 500 },
       },
-      {
-        address: '0x2',
-        chainId: '0x1',
-        symbol: 'USDC',
-        fiat: { balance: 200 },
-      },
+      createEvmErc20Token({ address: '0x2', symbol: 'USDC', fiatBalance: 200 }),
     ];
 
     renderHook(() => usePredictDefaultPaymentToken());
@@ -287,6 +261,8 @@ describe('usePredictDefaultPaymentToken', () => {
         address: '0x1',
         chainId: undefined,
         symbol: 'BROKEN',
+        accountType: 'eip155:1/erc20:0x1',
+        standard: TokenStandard.ERC20,
         fiat: { balance: 500 },
       },
     ];
@@ -300,12 +276,7 @@ describe('usePredictDefaultPaymentToken', () => {
   it('runs only once across re-renders', () => {
     mockPredictBalance = 0.5;
     mockTokens = [
-      {
-        address: '0x1',
-        chainId: '0x1',
-        symbol: 'USDC',
-        fiat: { balance: 100 },
-      },
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 100 }),
     ];
 
     const { rerender } = renderHook(() => usePredictDefaultPaymentToken());
@@ -313,5 +284,37 @@ describe('usePredictDefaultPaymentToken', () => {
     rerender({});
 
     expect(mockOnPaymentTokenChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips non-EVM or non-ERC20 tokens when auto-selecting', () => {
+    mockPredictBalance = 0.5;
+    mockTokens = [
+      {
+        address: '0x1',
+        chainId: 'solana:mainnet',
+        symbol: 'SOL',
+        accountType: 'solana:data-account',
+        fiat: { balance: 500 },
+      },
+      {
+        address: '0x2',
+        chainId: '0x1',
+        symbol: 'NFT',
+        accountType: 'eip155:1/erc721:0x2',
+        standard: TokenStandard.ERC721,
+        fiat: { balance: 400 },
+      },
+      createEvmErc20Token({ address: '0x3', symbol: 'USDC', fiatBalance: 200 }),
+    ];
+
+    renderHook(() => usePredictDefaultPaymentToken());
+
+    expect(mockOnPaymentTokenChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: '0x3',
+        chainId: '0x1',
+        symbol: 'USDC',
+      }),
+    );
   });
 });
