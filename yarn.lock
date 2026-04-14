@@ -8033,9 +8033,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/controller-utils@npm:^11.0.0, @metamask/controller-utils@npm:^11.14.1, @metamask/controller-utils@npm:^11.15.0, @metamask/controller-utils@npm:^11.16.0, @metamask/controller-utils@npm:^11.18.0, @metamask/controller-utils@npm:^11.19.0":
-  version: 11.19.0
-  resolution: "@metamask/controller-utils@npm:11.19.0"
+"@metamask/controller-utils@npm:^11.0.0, @metamask/controller-utils@npm:^11.14.1, @metamask/controller-utils@npm:^11.15.0, @metamask/controller-utils@npm:^11.16.0, @metamask/controller-utils@npm:^11.18.0, @metamask/controller-utils@npm:^11.19.0, @metamask/controller-utils@npm:^11.20.0":
+  version: 11.20.0
+  resolution: "@metamask/controller-utils@npm:11.20.0"
   dependencies:
     "@metamask/eth-query": "npm:^4.0.0"
     "@metamask/ethjs-unit": "npm:^0.3.0"
@@ -8050,7 +8050,7 @@ __metadata:
     lodash: "npm:^4.17.21"
   peerDependencies:
     "@babel/runtime": ^7.0.0
-  checksum: 10/d66ff170a6c2fb5726aa34c94e4870d79e96737043d3450f87d34eec8b24209b27a09df9935aad9e3e5bb685ebb3ee2c918e6d4cfbeec497c2fa823a177fc227
+  checksum: 10/a2ba778d00508a606ef4657cd6591a89f8f54136b3dd41f4f96f8effa2e9ad20de347e3c554f643cb248a002a17b478f95eafd4e3b4c3eca4bb40ae2e6bf7fdc
   languageName: node
   linkType: hard
 
@@ -8157,22 +8157,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/earn-controller@npm:^10.0.0":
-  version: 10.0.0
-  resolution: "@metamask/earn-controller@npm:10.0.0"
+"@metamask/earn-controller@npm:^12.0.0":
+  version: 12.0.0
+  resolution: "@metamask/earn-controller@npm:12.0.0"
   dependencies:
     "@ethersproject/bignumber": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.15.0"
-    "@metamask/keyring-api": "npm:^21.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/account-tree-controller": "npm:^7.0.0"
+    "@metamask/base-controller": "npm:^9.0.1"
+    "@metamask/controller-utils": "npm:^11.20.0"
+    "@metamask/keyring-api": "npm:^21.6.0"
+    "@metamask/messenger": "npm:^1.1.1"
+    "@metamask/network-controller": "npm:^30.0.1"
     "@metamask/stake-sdk": "npm:^3.2.1"
     reselect: "npm:^5.1.1"
-  peerDependencies:
-    "@metamask/account-tree-controller": ^3.0.0
-    "@metamask/network-controller": ^25.0.0
-  checksum: 10/a6da5236a422c8d775690d8a61f9853a0a541ca7a3aa82a44d32ae2d7e664ae6dbac3917cedfafbf928f663db8f5f9ff4bfcf795f0400052e6317ffb1dd4f336
+  checksum: 10/9579e17a686090bf887f761976c635b692cbdcc19a0afa1766b30e4c75a68ee4b9276a20137f105557dad13f083ef88d7011acb019746d617e4f76286f08d4b4
   languageName: node
   linkType: hard
 
@@ -8700,7 +8699,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^21.0.0, @metamask/keyring-api@npm:^21.4.0, @metamask/keyring-api@npm:^21.5.0, @metamask/keyring-api@npm:^21.6.0":
+"@metamask/keyring-api@npm:^21.4.0, @metamask/keyring-api@npm:^21.5.0, @metamask/keyring-api@npm:^21.6.0":
   version: 21.6.0
   resolution: "@metamask/keyring-api@npm:21.6.0"
   dependencies:
@@ -8871,18 +8870,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/messenger@npm:^1.0.0, @metamask/messenger@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@metamask/messenger@npm:1.1.0"
+"@metamask/messenger@npm:^1.0.0, @metamask/messenger@npm:^1.1.0, @metamask/messenger@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@metamask/messenger@npm:1.1.1"
   dependencies:
     "@metamask/utils": "npm:^11.9.0"
     yargs: "npm:^17.7.2"
   peerDependencies:
-    eslint: ">=8"
     typescript: ">=5.0.0"
   bin:
     messenger-generate-action-types: ./dist/generate-action-types/cli.mjs
-  checksum: 10/ea2b25c4d8cae8d60dd4365738763752283b27eca17cae749b3fedf6733207c180de917715a6ccb8b41f7c06ee769b82b01de5c43ed20c182b3fe6a0cf5c1ae1
+  checksum: 10/a959af95e9e117aa0f7ad1c280f7817fef2c0b575c76837b1a6c884c9c9ef1dd0faeaef0c2c0c2035f68c7638d1f87cd172956ee962dec97d8ab6176fa6964e3
   languageName: node
   linkType: hard
 
@@ -35396,7 +35394,7 @@ __metadata:
     "@metamask/design-system-react-native": "npm:^0.12.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.3.0"
     "@metamask/design-tokens": "npm:^8.2.2"
-    "@metamask/earn-controller": "npm:^10.0.0"
+    "@metamask/earn-controller": "npm:^12.0.0"
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
     "@metamask/ens-resolver-snap": "npm:^1.1.0"
