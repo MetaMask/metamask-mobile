@@ -720,7 +720,8 @@ export class PredictController extends BaseController<
         fallbackErrorCode: PREDICT_ERROR_CODES.UNKNOWN_ERROR,
       },
       async () => {
-        const price = await this.provider.getCryptoTargetPrice(params);
+        const price =
+          (await this.provider.getCryptoTargetPrice?.(params)) ?? null;
         if (price !== null) {
           return price;
         }
