@@ -363,9 +363,9 @@ describe('decodeSwapsTx', () => {
           estimatedProcessingTimeInSeconds: 0,
           slippagePercentage: 0,
           pricingData: {
-            amountSent: '17455763.24722',
-            amountSentInUsd: '17452621.2098355004',
-            quotedGasInUsd: '3.42027182428729424088',
+            amountSent: '5',
+            amountSentInUsd: '5.000',
+            quotedGasInUsd: '0.8',
             quotedReturnInUsd: '4.91728969054692914087',
           },
           account: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -383,9 +383,7 @@ describe('decodeSwapsTx', () => {
       },
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const res = decodeSwapsTx(args as unknown as any);
-    expect(res).toEqual([
+    const expectedResult = [
       {
         renderTo: '0x881d40237659c251811cec9c364ef91dc08d300c',
         renderFrom: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -409,7 +407,17 @@ describe('decodeSwapsTx', () => {
         summaryTotalAmount: '5.00053 ETH',
         summarySecondaryTotalAmount: '$6.33',
       },
-    ]);
+    ];
+    expect(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      decodeSwapsTx(args as unknown as any),
+    ).toEqual(expectedResult);
+
+    // Ensuring that the fallback works
+    const argsWithNoPricingData = cloneDeep(args) as unknown as any;
+    delete argsWithNoPricingData.bridgeTxHistoryData.bridgeTxHistoryItem
+      .pricingData;
+    expect(decodeSwapsTx(argsWithNoPricingData)).toEqual(expectedResult);
   });
 });
 
@@ -631,20 +639,27 @@ describe('decodeBridgeTx', () => {
       },
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const res = decodeBridgeTx(args as unknown as any);
-    expect(res).toEqual([
+    const expectedResult = [
       {
         renderTo: '0x0439e60f02a8900a951603950d8d4527f400c3f1',
         renderFrom: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
         actionKey: 'Bridge to Optimism',
         notificationKey: undefined,
-        value: '-0.00099 ETH',
-        fiatValue: '$2.49',
+        value: '-0.001 ETH',
+        fiatValue: '$2.51',
         transactionType: 'bridge_transaction',
       },
       {},
-    ]);
+    ];
+    expect(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      decodeBridgeTx(args as unknown as any),
+    ).toEqual(expectedResult);
+    // Ensuring that the fallback works
+    const argsWithNoPricingData = cloneDeep(args) as unknown as any;
+    delete argsWithNoPricingData.bridgeTxHistoryData.bridgeTxHistoryItem
+      .pricingData;
+    expect(decodeBridgeTx(argsWithNoPricingData)).toEqual(expectedResult);
   });
 });
 

@@ -43,7 +43,8 @@ import { toDateFormat } from '../../../../../util/date';
 import TagColored, {
   TagColor,
 } from '../../../../../component-library/components-temp/TagColored';
-// import { renderShortAddress } from '../../../../../util/address';
+import BigNumber from 'bignumber.js';
+import { getSourceAmountBaseUnitFromBridgeSwapQuote } from '../../utils/quoteUtils';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -204,7 +205,12 @@ export const BridgeTransactionDetails = (
     return null;
   }
 
-  const { quote, status: bridgeStatus, startTime } = bridgeTxHistoryItem;
+  const {
+    pricingData,
+    quote,
+    status: bridgeStatus,
+    startTime,
+  } = bridgeTxHistoryItem;
 
   const isSwap = quote.srcChainId === quote.destChainId;
   const isBridge = !isSwap;
@@ -225,9 +231,13 @@ export const BridgeTransactionDetails = (
     chainId: sourceChainId,
   };
 
-  const sourceTokenAmount = calcTokenAmount(
-    quote.srcTokenAmount,
-    quote.srcAsset.decimals,
+  const sourceTokenAmount = (
+    pricingData?.amountSent
+      ? BigNumber(String(pricingData.amountSent))
+      : calcTokenAmount(
+          getSourceAmountBaseUnitFromBridgeSwapQuote(quote),
+          quote.srcAsset.decimals,
+        )
   ).toFixed(5);
 
   const destinationChainId = isNonEvmChainId(quote.destChainId)
