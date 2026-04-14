@@ -23,9 +23,6 @@ describe(SmokeConfirmations('Send Bitcoin'), () => {
             {
               homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
               homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
-              tokenDetailsV2AbTest: {
-                value: { variant: 'control', minimumVersion: '0.0.0' },
-              },
             },
             1000,
           );
