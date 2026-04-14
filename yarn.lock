@@ -8181,11 +8181,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.14.0":
-  version: 0.14.0
-  resolution: "@metamask/design-system-react-native@npm:0.14.0"
+"@metamask/design-system-react-native@npm:^0.16.0":
+  version: 0.16.0
+  resolution: "@metamask/design-system-react-native@npm:0.16.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.7.0"
+    "@metamask/design-system-shared": "npm:^0.9.0"
     fast-text-encoding: "npm:^1.0.6"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
@@ -8198,18 +8198,18 @@ __metadata:
     react-native-gesture-handler: ">=1.10.3"
     react-native-reanimated: ">=3.3.0"
     react-native-safe-area-context: ">=4.0.0"
-  checksum: 10/fce2e0c048af8e2918b4be9be90b86528d02a12021d7782c0c9b20a0499a2c3221f388e348ad5bfc8ffd3e1af59a1b787206c0d149e023afcf8d5095a1df2a15
+  checksum: 10/64693d417d266793d5ebc80c4e112913af1223a827ac670ff004b4664904c3cedbd14bd08f1929ddc8b5f07861cc26c22ad0b49da064b820ba546287e0e1f19b
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@metamask/design-system-shared@npm:0.7.0"
+"@metamask/design-system-shared@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "@metamask/design-system-shared@npm:0.9.0"
   dependencies:
     "@metamask/utils": "npm:^11.11.0"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0
-  checksum: 10/6029af5621f4a80a1cdcfea226ab4391fce466ee8c0ed6259c0aa06e4ec4029c7b0049c93e6d53cf0bb0a77e630574c92242f80280d7a10e3fb1fdf0b9656a42
+  checksum: 10/d1c7d54fac099b119b9f4ad6580289abba3fdbc699db13ebceb23c17c1d162987237625e3bf67397bf869e286951cc8edf9879c600f74dfef50f5447b898d61f
   languageName: node
   linkType: hard
 
@@ -35581,7 +35581,7 @@ __metadata:
     "@metamask/core-backend": "npm:^6.2.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.14.0"
+    "@metamask/design-system-react-native": "npm:^0.16.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.4.1"
     "@metamask/design-tokens": "npm:^8.3.0"
     "@metamask/earn-controller": "npm:^12.0.0"
@@ -35680,7 +35680,7 @@ __metadata:
     "@metamask/transaction-controller": "npm:^64.2.0"
     "@metamask/transaction-pay-controller": "npm:^19.1.1"
     "@metamask/tron-wallet-snap": "npm:^1.25.2"
-    "@metamask/utils": "npm:^11.8.1"
+    "@metamask/utils": "npm:^11.11.0"
     "@myx-trade/sdk": "npm:^0.1.265"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.30.2"
