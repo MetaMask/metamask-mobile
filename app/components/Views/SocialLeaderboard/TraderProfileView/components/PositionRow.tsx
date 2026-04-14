@@ -84,7 +84,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
           </Text>
           <Text
             variant={TextVariant.BodySm}
-            color={TextColor.TextMuted}
+            color={TextColor.TextAlternative}
             numberOfLines={1}
           >
             {`${formatTokenAmount(position.positionAmount)} ${position.tokenSymbol}`}
@@ -102,7 +102,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
         </Text>
         <Text
           variant={TextVariant.BodySm}
-          color={hasPnl ? undefined : TextColor.TextMuted}
+          color={hasPnl ? undefined : TextColor.TextAlternative}
           twClassName={
             hasPnl
               ? isPnlPositive

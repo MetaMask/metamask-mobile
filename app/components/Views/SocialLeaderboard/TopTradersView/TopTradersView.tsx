@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshControl } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { RefreshControl, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';

@@ -110,7 +110,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
-            color={TextColor.TextMuted}
+            color={TextColor.TextAlternative}
           >
             {' 30D'}
           </Text>
