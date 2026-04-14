@@ -24,6 +24,7 @@ import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
 import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
+import { useProviderLimits } from '../../hooks/useProviderLimits';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
@@ -405,14 +406,23 @@ function BuildQuote() {
   );
 
   const debouncedPollingAmount = useDebouncedValue(amountAsNumber, 500);
+  const hasAmount = amountAsNumber > 0;
 
+  const { amountLimitError } = useProviderLimits({
+    provider: selectedProvider,
+    fiatCurrency: userRegion?.country?.currency,
+    paymentMethodId: selectedPaymentMethod?.id,
+    amount: amountAsNumber,
+    currency,
+  });
   const quoteFetchEnabled = !!(
     walletAddress &&
     selectedPaymentMethod &&
     selectedProvider &&
     selectedToken?.assetId &&
     tokenStateIsSettled &&
-    debouncedPollingAmount > 0
+    debouncedPollingAmount > 0 &&
+    !amountLimitError
   );
 
   /*
@@ -838,10 +848,11 @@ function BuildQuote() {
     handleWidgetProviderContinue,
   ]);
 
-  const hasAmount = amountAsNumber > 0;
-
   const canContinue =
-    hasAmount && !selectedQuoteLoading && selectedQuote !== null;
+    hasAmount &&
+    !amountLimitError &&
+    !selectedQuoteLoading &&
+    selectedQuote !== null;
 
   const hasNoQuotes =
     hasAmount &&
@@ -850,11 +861,69 @@ function BuildQuote() {
     quotesResponse !== null &&
     selectedQuote === null;
 
+  const providerQuoteError = useMemo(() => {
+    if (!hasNoQuotes || !quotesResponse?.error?.length) return undefined;
+    const firstError = quotesResponse.error[0];
+    return firstError?.error;
+  }, [hasNoQuotes, quotesResponse?.error]);
+
+  const inlineQuoteError = amountLimitError ?? providerQuoteError ?? null;
+  const hasGenericNoQuotes = hasNoQuotes && !providerQuoteError;
+  const amountInputHasError = Boolean(
+    rampsError || quoteFetchError || inlineQuoteError || hasGenericNoQuotes,
+  );
+
   const noQuotesErrorMessage = selectedProvider
     ? strings('fiat_on_ramp.no_quotes_error', {
         provider: selectedProvider.name,
       })
     : strings('fiat_on_ramp.no_quotes_available');
+
+  const actionSectionMessage = (() => {
+    if (rampsError) {
+      return (
+        <TruncatedError
+          error={rampsError}
+          providerName={selectedProvider?.name}
+          providerSupportUrl={
+            selectedProvider?.links?.find(
+              (link) => link.name === PROVIDER_LINKS.SUPPORT,
+            )?.url
+          }
+        />
+      );
+    }
+    if (inlineQuoteError) {
+      return (
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.ErrorDefault}
+          style={styles.centeredText}
+        >
+          {inlineQuoteError}
+        </Text>
+      );
+    }
+    if (hasGenericNoQuotes) {
+      return (
+        <TruncatedError
+          error={noQuotesErrorMessage}
+          showChangeProvider
+          amount={amountAsNumber}
+        />
+      );
+    }
+    if (selectedProvider) {
+      return (
+        <Text variant={TextVariant.BodySm} style={styles.poweredByText}>
+          {strings('fiat_on_ramp.powered_by_provider', {
+            provider: selectedProvider.name,
+          })}
+        </Text>
+      );
+    }
+    return null;
+  })();
 
   return (
     <ScreenLayout>
@@ -892,9 +961,7 @@ function BuildQuote() {
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Regular}
                   color={
-                    rampsError || hasNoQuotes || quoteFetchError
-                      ? TextColor.ErrorDefault
-                      : undefined
+                    amountInputHasError ? TextColor.ErrorDefault : undefined
                   }
                   twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
                   numberOfLines={1}
@@ -916,9 +983,7 @@ function BuildQuote() {
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Regular}
                     color={
-                      rampsError || hasNoQuotes || quoteFetchError
-                        ? TextColor.ErrorDefault
-                        : undefined
+                      amountInputHasError ? TextColor.ErrorDefault : undefined
                     }
                     twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
                   >
@@ -954,35 +1019,7 @@ function BuildQuote() {
           <View style={styles.actionSection}>
             {hasAmount ? (
               <>
-                {rampsError ? (
-                  <TruncatedError
-                    error={rampsError}
-                    providerName={selectedProvider?.name}
-                    providerSupportUrl={
-                      selectedProvider?.links?.find(
-                        (link) => link.name === PROVIDER_LINKS.SUPPORT,
-                      )?.url
-                    }
-                  />
-                ) : hasNoQuotes ? (
-                  <TruncatedError
-                    error={strings('fiat_on_ramp.encountered_error')}
-                    errorDetails={noQuotesErrorMessage}
-                    showChangeProvider
-                    amount={amountAsNumber}
-                  />
-                ) : (
-                  selectedProvider && (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      style={styles.poweredByText}
-                    >
-                      {strings('fiat_on_ramp.powered_by_provider', {
-                        provider: selectedProvider.name,
-                      })}
-                    </Text>
-                  )
-                )}
+                {actionSectionMessage}
                 <Button
                   variant={ButtonVariant.Primary}
                   size={ButtonSize.Lg}
