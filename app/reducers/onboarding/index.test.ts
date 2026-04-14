@@ -19,6 +19,7 @@ describe('onboardingReducer', () => {
     events: [],
     completedOnboarding: false,
     pendingSocialLoginMarketingConsentBackfill: null as string | null,
+    iosGoogleWarningSheetLastDismissedAt: null as number | null,
   };
 
   it('returns the initial state when no action is provided', () => {
