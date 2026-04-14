@@ -83,7 +83,8 @@ describe('handleSendMessage', () => {
 
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: MetaMetricsEvents.REMOTE_CONNECTION_RPC_REQUEST_APPROVED.category,
+          name: MetaMetricsEvents.REMOTE_CONNECTION_RPC_REQUEST_APPROVED
+            .category,
           properties: expect.objectContaining({
             transport_type: 'socket_relay',
             rpc_method: 'eth_sendTransaction',
@@ -99,7 +100,8 @@ describe('handleSendMessage', () => {
 
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: MetaMetricsEvents.REMOTE_CONNECTION_RPC_REQUEST_REJECTED.category,
+          name: MetaMetricsEvents.REMOTE_CONNECTION_RPC_REQUEST_REJECTED
+            .category,
           properties: expect.objectContaining({
             remote_session_id: 'test-anon-id',
           }),

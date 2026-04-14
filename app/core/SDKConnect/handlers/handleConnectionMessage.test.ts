@@ -177,7 +177,8 @@ describe('handleConnectionMessage', () => {
 
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: MetaMetricsEvents.REMOTE_CONNECTION_RPC_REQUEST_RECEIVED.category,
+          name: MetaMetricsEvents.REMOTE_CONNECTION_RPC_REQUEST_RECEIVED
+            .category,
           properties: expect.objectContaining({
             transport_type: 'socket_relay',
             rpc_method: 'eth_sendTransaction',
