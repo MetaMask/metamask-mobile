@@ -130,6 +130,7 @@ import {
   MarketInsightsDisclaimerBottomSheet,
   useMarketInsights,
 } from '../../../MarketInsights';
+import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
 import {
   createSelectIsWatchlistMarket,
@@ -1418,6 +1419,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 timeAgo={perpsInsightsTimeAgo}
                 onPress={handleMarketInsightsPress}
                 onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
+                testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
               />
             ) : (
               <MarketInsightsEntryCardSkeleton />

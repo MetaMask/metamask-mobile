@@ -119,7 +119,11 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   ]);
 
   const isAutoSelecting = Boolean(
-    paymentMethodsQuery.data?.length && !selectedPaymentMethod,
+    paymentMethodsQuery.data?.length &&
+      (!selectedPaymentMethod ||
+        paymentMethodsQuery.data.every(
+          (m) => m.id !== selectedPaymentMethod.id,
+        )),
   );
 
   const status = useMemo<RampsQueryStatus>(() => {

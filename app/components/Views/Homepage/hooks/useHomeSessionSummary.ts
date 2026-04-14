@@ -22,8 +22,13 @@ interface UseHomeSessionSummaryParams {
 const useHomeSessionSummary = ({
   totalSectionsLoaded,
 }: UseHomeSessionSummaryParams) => {
-  const { visitId, entryPoint, getViewedSectionCount } =
-    useHomepageScrollContext();
+  const {
+    visitId,
+    entryPoint,
+    getViewedSectionCount,
+    getVisitMaxDepth,
+    appSessionId,
+  } = useHomepageScrollContext();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const sessionStartRef = useRef<number>(Date.now());
@@ -33,18 +38,20 @@ const useHomeSessionSummary = ({
     sessionStartRef.current = Date.now();
   }, [visitId]);
 
-  // Stable refs so the blur callback always reads the latest values without
+  // Stable ref so the blur callback always reads the latest values without
   // needing them in its dependency array (which would re-create the callback
   // and trigger useFocusEffect cleanup → false blur events).
   const latestRef = useRef({
     visitId,
     entryPoint,
     totalSectionsLoaded,
+    appSessionId,
   });
   latestRef.current = {
     visitId,
     entryPoint,
     totalSectionsLoaded,
+    appSessionId,
   };
 
   // active_ab_tests is auto-injected by the analytics registry via
@@ -57,6 +64,7 @@ const useHomeSessionSummary = ({
         const sessionTime = Math.round(
           (Date.now() - sessionStartRef.current) / 1000,
         );
+
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HOME_VIEWED)
             .addProperties({
@@ -66,11 +74,14 @@ const useHomeSessionSummary = ({
               total_sections_loaded: snap.totalSectionsLoaded,
               entry_point: snap.entryPoint,
               session_time: sessionTime,
+              app_session_id: snap.appSessionId,
+              visit_number: snap.visitId,
+              max_scroll_depth_visit: getVisitMaxDepth(),
             })
             .build(),
         );
       },
-      [trackEvent, createEventBuilder, getViewedSectionCount],
+      [trackEvent, createEventBuilder, getViewedSectionCount, getVisitMaxDepth],
     ),
   );
 };
