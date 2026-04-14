@@ -75,11 +75,7 @@ const NftGridItemBottomSheet: React.FC<NftGridItemBottomSheetProps> = ({
   return (
     <View testID="nft-grid-item-bottom-sheet">
       <Modal visible transparent animationType="none" statusBarTranslucent>
-        <BottomSheet
-          shouldNavigateBack={false}
-          ref={sheetRef}
-          onClose={onClose}
-        >
+        <BottomSheet ref={sheetRef} onClose={onClose}>
           <BottomSheetHeader onClose={handleSheetClose}>
             <Text variant={TextVariant.HeadingMd}>
               {strings('wallet.collectible_action_title')}
