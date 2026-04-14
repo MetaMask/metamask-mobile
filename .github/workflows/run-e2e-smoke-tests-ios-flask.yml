@@ -50,7 +50,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn setup:github-ci --node
+          command: yarn setup:github-ci --no-build-ios --no-build-android
 
       - name: Download Main iOS App artifacts
         uses: actions/download-artifact@v4
