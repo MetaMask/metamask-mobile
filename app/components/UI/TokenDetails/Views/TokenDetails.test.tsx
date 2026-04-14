@@ -240,6 +240,18 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   }),
 }));
 
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: jest.fn(() => ({
+    variant: { swapLabelKey: 'asset_overview.swap' },
+    variantName: 'control',
+    isActive: false,
+  })),
+}));
+
+jest.mock('../hooks/useStickyFooterTracking', () => ({
+  useStickyFooterTracking: jest.fn(() => jest.fn()),
+}));
+
 jest.mock('../../MarketInsights', () => ({
   MarketInsightsDisclaimerBottomSheet: () => null,
 }));
@@ -398,6 +410,8 @@ describe('TokenDetails', () => {
           token_symbol: 'DAI',
           market_insights_displayed: true,
           has_perps_market: false,
+          balance_usd: 150,
+          sticky_buttons_shown: expect.stringMatching(/^(both|buy|swap)$/),
         }),
       );
     });

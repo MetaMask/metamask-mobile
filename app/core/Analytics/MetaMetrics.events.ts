@@ -77,6 +77,7 @@ enum EVENT_NAME {
   NFT_DETAILS_OPENED = 'NFT Details Opened',
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
+  STICKY_BUTTON_TAPPED = 'Sticky Button Tapped',
   /** Token overview advanced chart: user switched line vs candlestick */
   CHART_TYPE_CHANGED = 'chart_type_changed',
   /** Token overview advanced chart: user selected a different timeframe */
@@ -1519,6 +1520,7 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
+  STICKY_BUTTON_TAPPED: generateOpt(EVENT_NAME.STICKY_BUTTON_TAPPED),
   CHART_TYPE_CHANGED: generateOpt(EVENT_NAME.CHART_TYPE_CHANGED),
   CHART_TIMEFRAME_CHANGED: generateOpt(EVENT_NAME.CHART_TIMEFRAME_CHANGED),
   CHART_INTERACTED: generateOpt(EVENT_NAME.CHART_INTERACTED),

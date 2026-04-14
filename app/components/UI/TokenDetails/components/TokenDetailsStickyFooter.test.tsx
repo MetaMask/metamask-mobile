@@ -1,6 +1,10 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
+import {
+  STICKY_FOOTER_SWAP_LABEL_VARIANTS,
+  StickyFooterSwapLabelVariant,
+} from './abTestConfig';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 
@@ -29,6 +33,16 @@ jest.mock('../../../../util/theme', () => {
   return { useTheme: jest.fn(() => mockTheme) };
 });
 
+const mockUseABTest = jest.fn();
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: (...args: unknown[]) => mockUseABTest(...args),
+}));
+
+const mockTrackStickyFooterTapped = jest.fn();
+jest.mock('../hooks/useStickyFooterTracking', () => ({
+  useStickyFooterTracking: () => mockTrackStickyFooterTapped,
+}));
+
 const mockToken: TokenDetailsRouteParams = {
   address: '0x123',
   symbol: 'ETH',
@@ -54,6 +68,12 @@ describe('TokenDetailsStickyFooter', () => {
     jest.clearAllMocks();
     mockIsBuyable.mockReturnValue(true);
     mockIsTokenTradingOpen.mockReturnValue(true);
+    mockUseABTest.mockReturnValue({
+      variant:
+        STICKY_FOOTER_SWAP_LABEL_VARIANTS[StickyFooterSwapLabelVariant.Control],
+      variantName: StickyFooterSwapLabelVariant.Control,
+      isActive: false,
+    });
   });
 
   describe('button visibility', () => {
@@ -107,13 +127,61 @@ describe('TokenDetailsStickyFooter', () => {
     });
   });
 
+  describe('onStickyButtonsResolved callback', () => {
+    it('reports "both" when both buttons are shown', () => {
+      const onStickyButtonsResolved = jest.fn();
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+        />,
+      );
+      expect(onStickyButtonsResolved).toHaveBeenCalledWith('both');
+    });
+
+    it('reports "swap" when only swap is shown', () => {
+      mockIsBuyable.mockReturnValue(false);
+      const onStickyButtonsResolved = jest.fn();
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+        />,
+      );
+      expect(onStickyButtonsResolved).toHaveBeenCalledWith('swap');
+    });
+
+    it('reports "buy" when only buy is shown', () => {
+      const onStickyButtonsResolved = jest.fn();
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasEligibleSwapTokens={false}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+        />,
+      );
+      expect(onStickyButtonsResolved).toHaveBeenCalledWith('buy');
+    });
+
+    it('reports null when trading is not open', () => {
+      mockIsTokenTradingOpen.mockReturnValue(false);
+      const onStickyButtonsResolved = jest.fn();
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+        />,
+      );
+      expect(onStickyButtonsResolved).toHaveBeenCalledWith(null);
+    });
+  });
+
   describe('success button logic - single button', () => {
     it('applies success style to the swap button when it is the only button', () => {
       mockIsBuyable.mockReturnValue(false);
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
-      // Swap is the only button — it should always render (success style is applied internally)
       expect(getByText('Swap')).toBeTruthy();
     });
 
@@ -133,7 +201,6 @@ describe('TokenDetailsStickyFooter', () => {
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} fiatBalance="$150.00" />,
       );
-      // Both buttons present; swap has success style (balance >= 100)
       expect(getByText('Swap')).toBeTruthy();
       expect(getByText('Buy')).toBeTruthy();
     });
@@ -142,7 +209,6 @@ describe('TokenDetailsStickyFooter', () => {
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} fiatBalance="$50.00" />,
       );
-      // Both buttons present; buy has success style (balance < 100)
       expect(getByText('Swap')).toBeTruthy();
       expect(getByText('Buy')).toBeTruthy();
     });
@@ -167,9 +233,157 @@ describe('TokenDetailsStickyFooter', () => {
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} fiatBalance="$1,234.56" />,
       );
-      // Balance > 100, swap should be success
       expect(getByText('Swap')).toBeTruthy();
       expect(getByText('Buy')).toBeTruthy();
+    });
+  });
+
+  describe('A/B test variants - swap button label', () => {
+    it('control variant shows "Swap" label', () => {
+      mockUseABTest.mockReturnValue({
+        variant:
+          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
+            StickyFooterSwapLabelVariant.Control
+          ],
+        variantName: StickyFooterSwapLabelVariant.Control,
+        isActive: true,
+      });
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} />,
+      );
+      expect(getByText('Swap')).toBeTruthy();
+    });
+
+    it('convert variant shows "Convert" label on swap button', () => {
+      mockUseABTest.mockReturnValue({
+        variant:
+          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
+            StickyFooterSwapLabelVariant.Treatment
+          ],
+        variantName: StickyFooterSwapLabelVariant.Treatment,
+        isActive: true,
+      });
+      const { getByText, queryByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} />,
+      );
+      expect(getByText('Convert')).toBeTruthy();
+      expect(queryByText('Swap')).toBeNull();
+    });
+
+    it('falls back to "Swap" label when flag is not active', () => {
+      mockUseABTest.mockReturnValue({
+        variant:
+          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
+            StickyFooterSwapLabelVariant.Control
+          ],
+        variantName: StickyFooterSwapLabelVariant.Control,
+        isActive: false,
+      });
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} />,
+      );
+      expect(getByText('Swap')).toBeTruthy();
+    });
+  });
+
+  describe('Sticky Footer Button Tapped tracking', () => {
+    it('tracks swap button tap with correct action and isPrimary when secondary', () => {
+      // balance < $100 → buy is primary, swap is secondary
+      mockUseABTest.mockReturnValue({
+        variant:
+          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
+            StickyFooterSwapLabelVariant.Control
+          ],
+        variantName: StickyFooterSwapLabelVariant.Control,
+        isActive: true,
+      });
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} fiatBalance="$50.00" />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
+        action: 'swap',
+        isPrimary: false,
+        tokenAddress: '0x123',
+        chainId: '0x1',
+        balanceUsd: 50,
+      });
+    });
+
+    it('tracks buy button tap with correct action and isPrimary', () => {
+      // balance < $100 → buy is primary
+      mockUseABTest.mockReturnValue({
+        variant:
+          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
+            StickyFooterSwapLabelVariant.Control
+          ],
+        variantName: StickyFooterSwapLabelVariant.Control,
+        isActive: true,
+      });
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} fiatBalance="$50.00" />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
+        action: 'buy',
+        isPrimary: true,
+        tokenAddress: '0x123',
+        chainId: '0x1',
+        balanceUsd: 50,
+      });
+    });
+
+    it('tracks swap as primary when balance >= $100 using convert variant', () => {
+      mockUseABTest.mockReturnValue({
+        variant:
+          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
+            StickyFooterSwapLabelVariant.Treatment
+          ],
+        variantName: StickyFooterSwapLabelVariant.Treatment,
+        isActive: true,
+      });
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} fiatBalance="$150.00" />,
+      );
+
+      fireEvent.press(getByText('Convert'));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
+        action: 'swap',
+        isPrimary: true,
+        tokenAddress: '0x123',
+        chainId: '0x1',
+        balanceUsd: 150,
+      });
+    });
+
+    it('tracks single swap button as primary when it is the only button', () => {
+      mockIsBuyable.mockReturnValue(false);
+      mockUseABTest.mockReturnValue({
+        variant:
+          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
+            StickyFooterSwapLabelVariant.Control
+          ],
+        variantName: StickyFooterSwapLabelVariant.Control,
+        isActive: true,
+      });
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
+        action: 'swap',
+        isPrimary: true,
+        tokenAddress: '0x123',
+        chainId: '0x1',
+        balanceUsd: 50,
+      });
     });
   });
 });

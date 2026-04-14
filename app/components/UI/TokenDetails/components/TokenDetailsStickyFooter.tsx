@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +15,12 @@ import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  STICKY_FOOTER_SWAP_LABEL_AB_KEY,
+  STICKY_FOOTER_SWAP_LABEL_VARIANTS,
+} from './abTestConfig';
+import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import Routes from '../../../../constants/navigation/Routes';
 import type { BridgeToken } from '../../Bridge/types';
 import type { TokenDetailsRouteParams } from '../constants/constants';
@@ -52,6 +58,7 @@ interface TokenStickyFooterProps {
   onBuy: () => void;
   onSwap: () => void;
   hasEligibleSwapTokens: boolean;
+  onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -61,6 +68,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   onBuy,
   onSwap,
   hasEligibleSwapTokens,
+  onStickyButtonsResolved,
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -69,9 +77,28 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const { isBuyable } = useTokenBuyability(token);
   const { isTokenTradingOpen } = useRWAToken();
 
+  const { variant: buttonLabels } = useABTest(
+    STICKY_FOOTER_SWAP_LABEL_AB_KEY,
+    STICKY_FOOTER_SWAP_LABEL_VARIANTS,
+  );
+
+  const trackStickyFooterTapped = useStickyFooterTracking();
+
   const showSwapButton = hasEligibleSwapTokens;
   const showBuyButton = isBuyable || !hasEligibleSwapTokens;
   const showBothButtons = showSwapButton && showBuyButton;
+
+  const tradingOpen = isTokenTradingOpen(token as BridgeToken);
+  useEffect(() => {
+    if (onStickyButtonsResolved) {
+      if (!tradingOpen) {
+        onStickyButtonsResolved(null);
+        return;
+      }
+      const shown = showBothButtons ? 'both' : showSwapButton ? 'swap' : 'buy';
+      onStickyButtonsResolved(shown);
+    }
+  }, [tradingOpen, showBothButtons, showSwapButton, onStickyButtonsResolved]);
 
   const balanceUsd = useMemo(
     () => parseFiatBalance(fiatBalance),
@@ -177,7 +204,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   return (
     <>
-      {isTokenTradingOpen(token as BridgeToken) && (
+      {tradingOpen && (
         <View testID="bottomsheetfooter" style={[styles.footer, footerStyle]}>
           {showSwapButton && (
             <Button
@@ -189,11 +216,18 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               textProps={swapIsSuccess ? successTextProps : undefined}
               startIconName={IconName.SwapVertical}
               startIconProps={buttonIconProps}
-              onPress={() =>
-                handleFooterAction(onSwap, strings('asset_overview.swap'))
-              }
+              onPress={() => {
+                trackStickyFooterTapped({
+                  action: 'swap',
+                  isPrimary: swapIsSuccess,
+                  tokenAddress: token.address ?? '',
+                  chainId: token.chainId ?? '',
+                  balanceUsd: fiatBalance ? balanceUsd : undefined,
+                });
+                handleFooterAction(onSwap, strings(buttonLabels.swapLabelKey));
+              }}
             >
-              {strings('asset_overview.swap')}
+              {strings(buttonLabels.swapLabelKey)}
             </Button>
           )}
           {showBuyButton && (
@@ -204,11 +238,18 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               style={showSwapButton ? styles.subsequentButton : styles.button}
               twClassName={buyIsSuccess ? 'bg-success-default' : undefined}
               textProps={buyIsSuccess ? successTextProps : undefined}
-              startIconName={IconName.Add}
+              startIconName={IconName.Bank}
               startIconProps={buttonIconProps}
-              onPress={() =>
-                handleFooterAction(onBuy, strings('asset_overview.buy_button'))
-              }
+              onPress={() => {
+                trackStickyFooterTapped({
+                  action: 'buy',
+                  isPrimary: buyIsSuccess,
+                  tokenAddress: token.address ?? '',
+                  chainId: token.chainId ?? '',
+                  balanceUsd: fiatBalance ? balanceUsd : undefined,
+                });
+                handleFooterAction(onBuy, strings('asset_overview.buy_button'));
+              }}
             >
               {strings('asset_overview.buy_button')}
             </Button>

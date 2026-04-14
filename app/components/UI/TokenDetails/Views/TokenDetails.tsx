@@ -80,10 +80,14 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       isMarketInsightsDisplayed,
       severity,
       hasPerpsMarket,
+      balanceUsd,
+      stickyButtonsShown,
     }: {
       isMarketInsightsDisplayed: boolean;
       severity: string | undefined;
       hasPerpsMarket: boolean;
+      balanceUsd: number | undefined;
+      stickyButtonsShown: 'both' | 'buy' | 'swap' | undefined;
     }) => {
       const source = params.source ?? TokenDetailsSource.Unknown;
       const tokenTrackingKey = `${params.chainId ?? ''}:${params.address ?? ''}:${params.symbol ?? ''}:${source}`;
@@ -105,6 +109,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         token_address: params.address,
         token_name: params.name,
         has_balance: hasBalance,
+        balance_usd: balanceUsd,
+        sticky_buttons_shown: stickyButtonsShown,
         market_insights_displayed: isMarketInsightsDisplayed,
         severity,
         has_perps_market: hasPerpsMarket,
@@ -146,7 +152,14 @@ const TokenDetails: React.FC<{
     isDisplayed: boolean;
     severity: string | undefined;
   }) => void;
-}> = ({ token, onMarketInsightsDisplayResolved }) => {
+  onFiatBalanceResolved?: (balanceUsd: number | null) => void;
+  onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
+}> = ({
+  token,
+  onMarketInsightsDisplayResolved,
+  onFiatBalanceResolved,
+  onStickyButtonsResolved,
+}) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
@@ -230,6 +243,15 @@ const TokenDetails: React.FC<{
     readyForWithdrawalBalance,
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token);
+
+  useEffect(() => {
+    if (onFiatBalanceResolved) {
+      const parsed = fiatBalance
+        ? parseFloat(fiatBalance.replace(/[^0-9.]/g, ''))
+        : NaN;
+      onFiatBalanceResolved(isNaN(parsed) ? null : parsed);
+    }
+  }, [fiatBalance, onFiatBalanceResolved]);
 
   const {
     onBuy,
@@ -380,6 +402,7 @@ const TokenDetails: React.FC<{
           onBuy={onBuy}
           onSwap={handleStickySwapPress}
           hasEligibleSwapTokens={hasEligibleSwapTokens}
+          onStickyButtonsResolved={onStickyButtonsResolved}
         />
       )}
       {isInsightsDisclaimerVisible && (
@@ -402,6 +425,15 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const { hasPerpsMarket, isLoading: isPerpsMarketLoading } =
     usePerpsMarketForAsset(isPerpsEnabled ? token.symbol : null);
+
+  // undefined = not yet resolved; null = resolved with no value; number = resolved value
+  const [resolvedBalanceUsd, setResolvedBalanceUsd] = useState<
+    number | null | undefined
+  >(undefined);
+  // undefined = not yet resolved; null = footer won't render; string = resolved value
+  const [resolvedStickyButtons, setResolvedStickyButtons] = useState<
+    'both' | 'buy' | 'swap' | null | undefined
+  >(undefined);
 
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);
 
@@ -442,10 +474,19 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     if (isPerpsEnabled && isPerpsMarketLoading) {
       return;
     }
+    if (
+      resolvedBalanceUsd === undefined ||
+      resolvedStickyButtons === undefined
+    ) {
+      // Wait until both async values have settled before firing the event.
+      return;
+    }
     trackTokenDetailsOpened({
       isMarketInsightsDisplayed: pendingInsights.isDisplayed,
       severity: pendingInsights.severity,
       hasPerpsMarket: isPerpsEnabled ? hasPerpsMarket : false,
+      balanceUsd: resolvedBalanceUsd ?? undefined,
+      stickyButtonsShown: resolvedStickyButtons ?? undefined,
     });
     setPendingInsights(null);
   }, [
@@ -453,6 +494,8 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     hasPerpsMarket,
     isPerpsEnabled,
     isPerpsMarketLoading,
+    resolvedBalanceUsd,
+    resolvedStickyButtons,
     tokenKey,
     trackTokenDetailsOpened,
   ]);
@@ -461,6 +504,8 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     <TokenDetails
       token={token}
       onMarketInsightsDisplayResolved={handleMarketInsightsDisplayResolved}
+      onFiatBalanceResolved={setResolvedBalanceUsd}
+      onStickyButtonsResolved={setResolvedStickyButtons}
     />
   );
 };
