@@ -487,7 +487,7 @@ const normalizeSportsMarketType = (type: string): string => {
 };
 
 const getSportsMarketTypePriority = (type: string): number =>
-  SPORTS_MARKET_TYPE_PRIORITIES[normalizeSportsMarketType(type)] ?? 3;
+  SPORTS_MARKET_TYPE_PRIORITIES[type.toLowerCase()] ?? 3;
 
 export function buildOutcomeGroups(
   outcomes: PredictOutcome[],
@@ -515,8 +515,12 @@ export function buildOutcomeGroups(
   for (const [, groupOutcomes] of groupMap) {
     groupOutcomes.sort((a, b) => {
       const priorityDiff =
-        getSportsMarketTypePriority(a.sportsMarketType ?? '') -
-        getSportsMarketTypePriority(b.sportsMarketType ?? '');
+        getSportsMarketTypePriority(
+          normalizeSportsMarketType(a.sportsMarketType ?? ''),
+        ) -
+        getSportsMarketTypePriority(
+          normalizeSportsMarketType(b.sportsMarketType ?? ''),
+        );
       if (priorityDiff !== 0) {
         return priorityDiff;
       }
@@ -557,7 +561,8 @@ export function buildOutcomeGroups(
     const subgroupEntries = [...typeMap.entries()];
     subgroupEntries.sort(
       (a, b) =>
-        getSportsMarketTypePriority(a[0]) - getSportsMarketTypePriority(b[0]),
+        getSportsMarketTypePriority(normalizeSportsMarketType(a[0])) -
+        getSportsMarketTypePriority(normalizeSportsMarketType(b[0])),
     );
 
     return {
