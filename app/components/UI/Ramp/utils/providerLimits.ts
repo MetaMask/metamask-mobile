@@ -7,12 +7,6 @@ export interface ProviderBuyLimit {
   feeDynamicRate?: number;
 }
 
-type ProviderWithBuyLimits = Provider & {
-  limits?: {
-    fiat?: Record<string, Record<string, ProviderBuyLimit>>;
-  };
-};
-
 export function getProviderBuyLimit(
   provider: Provider | null | undefined,
   fiatCurrency: string | null | undefined,
@@ -22,7 +16,5 @@ export function getProviderBuyLimit(
     return undefined;
   }
 
-  const limits = (provider as ProviderWithBuyLimits).limits;
-
-  return limits?.fiat?.[fiatCurrency.toLowerCase()]?.[paymentMethodId];
+  return provider.limits?.fiat?.[fiatCurrency.toLowerCase()]?.[paymentMethodId];
 }
