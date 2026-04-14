@@ -8,8 +8,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -193,14 +192,13 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -775,7 +773,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -957,7 +955,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -969,8 +967,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1154,14 +1151,13 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -1949,7 +1945,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -2131,6 +2127,6 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

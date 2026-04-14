@@ -8,8 +8,7 @@ exports[`Network Selector renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1522,7 +1521,7 @@ exports[`Network Selector renders correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1534,8 +1533,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -5235,6 +5233,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

@@ -8,8 +8,7 @@ exports[`SendTransaction View renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -193,14 +192,13 @@ exports[`SendTransaction View renders correctly 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -579,7 +577,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -761,7 +759,7 @@ exports[`SendTransaction View renders correctly 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -773,8 +771,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -958,14 +955,13 @@ exports[`SendTransaction View renders correctly for custom action payment method
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -1262,7 +1258,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -1444,7 +1440,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1456,8 +1452,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1641,14 +1636,13 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -2031,7 +2025,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -2213,6 +2207,6 @@ exports[`SendTransaction View renders correctly for token 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

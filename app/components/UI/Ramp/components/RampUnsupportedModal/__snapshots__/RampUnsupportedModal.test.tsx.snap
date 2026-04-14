@@ -8,8 +8,7 @@ exports[`RampUnsupportedModal renders modal with title and description 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -569,6 +568,6 @@ exports[`RampUnsupportedModal renders modal with title and description 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

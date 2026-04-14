@@ -8,8 +8,7 @@ exports[`ManageCardListItem Component renders with React.ReactNode description a
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -400,7 +399,7 @@ exports[`ManageCardListItem Component renders with React.ReactNode description a
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -412,8 +411,7 @@ exports[`ManageCardListItem Component renders with all props and matches snapsho
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -852,7 +850,7 @@ exports[`ManageCardListItem Component renders with all props and matches snapsho
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -864,8 +862,7 @@ exports[`ManageCardListItem Component renders with custom right icon when rightI
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1303,7 +1300,7 @@ exports[`ManageCardListItem Component renders with custom right icon when rightI
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1315,8 +1312,7 @@ exports[`ManageCardListItem Component renders with required props and matches sn
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1722,7 +1718,7 @@ exports[`ManageCardListItem Component renders with required props and matches sn
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1734,8 +1730,7 @@ exports[`ManageCardListItem Component renders without right icon when rightIcon 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2141,6 +2136,6 @@ exports[`ManageCardListItem Component renders without right icon when rightIcon 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

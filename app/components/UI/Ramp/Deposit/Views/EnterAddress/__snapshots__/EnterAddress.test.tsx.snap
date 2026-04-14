@@ -8,8 +8,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -193,14 +192,13 @@ exports[`EnterAddress Component displays form validation errors when continue is
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -1367,7 +1365,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -1549,7 +1547,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1561,8 +1559,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1746,14 +1743,13 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -2848,7 +2844,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -3030,7 +3026,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3042,8 +3038,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3227,14 +3222,13 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -4341,7 +4335,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -4523,7 +4517,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -4535,8 +4529,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -4720,14 +4713,13 @@ exports[`EnterAddress Component shows text input for state when region is not US
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -5855,7 +5847,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -6037,6 +6029,6 @@ exports[`EnterAddress Component shows text input for state when region is not US
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

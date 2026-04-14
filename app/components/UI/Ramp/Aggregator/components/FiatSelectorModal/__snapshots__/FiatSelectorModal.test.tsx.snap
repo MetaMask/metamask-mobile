@@ -8,8 +8,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -410,7 +409,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -424,7 +423,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -1008,7 +1007,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1020,8 +1019,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1422,7 +1420,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -1436,7 +1434,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -2020,7 +2018,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2032,8 +2030,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2434,7 +2431,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -2448,7 +2445,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -3032,7 +3029,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3044,8 +3041,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3446,7 +3442,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -3460,7 +3456,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -4044,6 +4040,6 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

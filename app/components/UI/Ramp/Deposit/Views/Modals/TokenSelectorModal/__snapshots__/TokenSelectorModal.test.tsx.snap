@@ -8,8 +8,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -410,7 +409,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -424,7 +423,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -1025,7 +1024,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1037,8 +1036,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1439,7 +1437,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -1453,7 +1451,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -2254,7 +2252,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2266,8 +2264,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2668,7 +2665,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -2682,7 +2679,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -4378,6 +4375,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

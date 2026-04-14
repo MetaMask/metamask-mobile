@@ -8,8 +8,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,14 +333,13 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -617,7 +615,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -627,6 +625,6 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

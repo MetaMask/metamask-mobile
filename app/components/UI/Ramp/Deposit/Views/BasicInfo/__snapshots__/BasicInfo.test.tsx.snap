@@ -8,8 +8,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -193,14 +192,13 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -1263,7 +1261,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -1445,7 +1443,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1457,8 +1455,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1642,14 +1639,13 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -2713,7 +2709,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -2895,7 +2891,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2907,8 +2903,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3092,14 +3087,13 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -4163,7 +4157,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -4345,7 +4339,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -4357,8 +4351,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -4542,14 +4535,13 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -5616,7 +5608,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -5798,7 +5790,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -5810,8 +5802,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -5995,14 +5986,13 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -7129,7 +7119,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -7311,7 +7301,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -7323,8 +7313,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -7508,14 +7497,13 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -8624,7 +8612,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -8806,7 +8794,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -8818,8 +8806,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -9003,14 +8990,13 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -9952,7 +9938,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -10134,6 +10120,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

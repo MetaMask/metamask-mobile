@@ -8,8 +8,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -193,14 +192,13 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -527,7 +525,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -709,7 +707,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -721,8 +719,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -906,14 +903,13 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -1253,7 +1249,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -1435,7 +1431,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1447,8 +1443,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1632,14 +1627,13 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -1966,7 +1960,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -2148,7 +2142,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2160,8 +2154,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2345,14 +2338,13 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -2692,7 +2684,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -2874,6 +2866,6 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

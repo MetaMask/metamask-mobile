@@ -8,8 +8,7 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -410,8 +409,8 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -425,7 +424,7 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -561,7 +560,7 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -573,8 +572,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -975,8 +973,8 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -990,7 +988,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -1094,14 +1092,13 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                 </View>
                               </View>
                             </View>
-                            <RNCSafeAreaView
+                            <View
                               edges={
-                                {
-                                  "bottom": "additive",
-                                  "left": "additive",
-                                  "right": "additive",
-                                  "top": "off",
-                                }
+                                [
+                                  "right",
+                                  "bottom",
+                                  "left",
+                                ]
                               }
                               style={
                                 {
@@ -1265,7 +1262,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                   </View>
                                 </View>
                               </View>
-                            </RNCSafeAreaView>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1278,7 +1275,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1290,8 +1287,7 @@ exports[`Checkout displays sdkError when present 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1692,8 +1688,8 @@ exports[`Checkout displays sdkError when present 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -1707,7 +1703,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -1811,14 +1807,13 @@ exports[`Checkout displays sdkError when present 1`] = `
                                 </View>
                               </View>
                             </View>
-                            <RNCSafeAreaView
+                            <View
                               edges={
-                                {
-                                  "bottom": "additive",
-                                  "left": "additive",
-                                  "right": "additive",
-                                  "top": "off",
-                                }
+                                [
+                                  "right",
+                                  "bottom",
+                                  "left",
+                                ]
                               }
                               style={
                                 {
@@ -2026,7 +2021,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                   </View>
                                 </View>
                               </View>
-                            </RNCSafeAreaView>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -2039,7 +2034,7 @@ exports[`Checkout displays sdkError when present 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2051,8 +2046,7 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2453,8 +2447,8 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -2468,7 +2462,7 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -2604,7 +2598,7 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2616,8 +2610,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3018,8 +3011,8 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -3033,7 +3026,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -3137,14 +3130,13 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                 </View>
                               </View>
                             </View>
-                            <RNCSafeAreaView
+                            <View
                               edges={
-                                {
-                                  "bottom": "additive",
-                                  "left": "additive",
-                                  "right": "additive",
-                                  "top": "off",
-                                }
+                                [
+                                  "right",
+                                  "bottom",
+                                  "left",
+                                ]
                               }
                               style={
                                 {
@@ -3352,7 +3344,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                   </View>
                                 </View>
                               </View>
-                            </RNCSafeAreaView>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -3365,7 +3357,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3377,8 +3369,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3779,8 +3770,8 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -3794,7 +3785,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -3898,14 +3889,13 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                 </View>
                               </View>
                             </View>
-                            <RNCSafeAreaView
+                            <View
                               edges={
-                                {
-                                  "bottom": "additive",
-                                  "left": "additive",
-                                  "right": "additive",
-                                  "top": "off",
-                                }
+                                [
+                                  "right",
+                                  "bottom",
+                                  "left",
+                                ]
                               }
                               style={
                                 {
@@ -4113,7 +4103,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                   </View>
                                 </View>
                               </View>
-                            </RNCSafeAreaView>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -4126,7 +4116,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -4138,8 +4128,7 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -4540,8 +4529,8 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -4555,7 +4544,7 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -4691,7 +4680,7 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -4703,8 +4692,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -5105,8 +5093,8 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -5120,7 +5108,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -5224,14 +5212,13 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                 </View>
                               </View>
                             </View>
-                            <RNCSafeAreaView
+                            <View
                               edges={
-                                {
-                                  "bottom": "additive",
-                                  "left": "additive",
-                                  "right": "additive",
-                                  "top": "off",
-                                }
+                                [
+                                  "right",
+                                  "bottom",
+                                  "left",
+                                ]
                               }
                               style={
                                 {
@@ -5439,7 +5426,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                   </View>
                                 </View>
                               </View>
-                            </RNCSafeAreaView>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -5452,7 +5439,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -5464,8 +5451,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -5866,8 +5852,8 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -5881,7 +5867,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -5985,14 +5971,13 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                 </View>
                               </View>
                             </View>
-                            <RNCSafeAreaView
+                            <View
                               edges={
-                                {
-                                  "bottom": "additive",
-                                  "left": "additive",
-                                  "right": "additive",
-                                  "top": "off",
-                                }
+                                [
+                                  "right",
+                                  "bottom",
+                                  "left",
+                                ]
                               }
                               style={
                                 {
@@ -6200,7 +6185,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                   </View>
                                 </View>
                               </View>
-                            </RNCSafeAreaView>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -6213,7 +6198,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -6225,8 +6210,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -6627,8 +6611,8 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -6642,7 +6626,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -6746,14 +6730,13 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                 </View>
                               </View>
                             </View>
-                            <RNCSafeAreaView
+                            <View
                               edges={
-                                {
-                                  "bottom": "additive",
-                                  "left": "additive",
-                                  "right": "additive",
-                                  "top": "off",
-                                }
+                                [
+                                  "right",
+                                  "bottom",
+                                  "left",
+                                ]
                               }
                               style={
                                 {
@@ -6961,7 +6944,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                   </View>
                                 </View>
                               </View>
-                            </RNCSafeAreaView>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -6974,6 +6957,6 @@ exports[`Checkout sets error when handling url navigation state change and selec
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

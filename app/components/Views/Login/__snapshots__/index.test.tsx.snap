@@ -1,16 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Login renders matching snapshot 1`] = `
-<RCTSafeAreaView
+<View
   style={
-    [
-      {
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
-      },
-      false,
-    ]
+    {
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
+    }
   }
 >
   <View
@@ -438,20 +435,17 @@ exports[`Login renders matching snapshot 1`] = `
       testID="fox-animation-mock"
     />
   </TouchableOpacity>
-</RCTSafeAreaView>
+</View>
 `;
 
 exports[`Login renders matching snapshot when password input is focused 1`] = `
-<RCTSafeAreaView
+<View
   style={
-    [
-      {
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
-      },
-      false,
-    ]
+    {
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
+    }
   }
 >
   <View
@@ -876,5 +870,5 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
       testID="fox-animation-mock"
     />
   </TouchableOpacity>
-</RCTSafeAreaView>
+</View>
 `;

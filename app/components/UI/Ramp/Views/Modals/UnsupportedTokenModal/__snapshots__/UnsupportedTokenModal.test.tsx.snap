@@ -8,8 +8,7 @@ exports[`UnsupportedTokenModal renders the modal with correct title and descript
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -512,6 +511,6 @@ exports[`UnsupportedTokenModal renders the modal with correct title and descript
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
