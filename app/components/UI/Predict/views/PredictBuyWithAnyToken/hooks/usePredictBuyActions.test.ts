@@ -101,6 +101,13 @@ jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   }),
 }));
 
+const mockResetSelectedPaymentToken = jest.fn();
+jest.mock('../../../hooks/usePredictPaymentToken', () => ({
+  usePredictPaymentToken: () => ({
+    resetSelectedPaymentToken: mockResetSelectedPaymentToken,
+  }),
+}));
+
 jest.mock('../../../hooks/usePredictTrading', () => ({
   usePredictTrading: () => ({
     placeOrder: mockPlaceOrder,
@@ -681,6 +688,29 @@ describe('usePredictBuyActions', () => {
       rerender(params);
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
+    });
+
+    it('calls onClose instead of StackActions.pop on DEPOSITING when isSheetMode is true', async () => {
+      const mockOnClose = jest.fn();
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: mockOnClose,
+      };
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyActions(params),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
+      rerender(params);
+
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
     });
   });
 });

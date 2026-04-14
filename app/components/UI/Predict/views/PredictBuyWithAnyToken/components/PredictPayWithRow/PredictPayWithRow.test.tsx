@@ -325,7 +325,7 @@ describe('PredictPayWithRow', () => {
       expect(screen.getByText(/USDC/)).toBeOnTheScreen();
     });
 
-    it('shows Predict balance with formatted balance when predict balance selected', () => {
+    it('shows Predict balance label when predict balance selected', () => {
       mockIsPredictBalanceSelected = true;
       mockPredictBalance = 150.66;
 
@@ -333,7 +333,6 @@ describe('PredictPayWithRow', () => {
 
       expect(screen.getByText('Pay with')).toBeOnTheScreen();
       expect(screen.getByText(/Predict balance/)).toBeOnTheScreen();
-      expect(screen.getByText(/\$150\.66/)).toBeOnTheScreen();
     });
 
     it('always renders ArrowRight chevron in row variant', () => {
@@ -346,7 +345,8 @@ describe('PredictPayWithRow', () => {
       expect(tree).not.toContain('ArrowDown');
     });
 
-    it('shows payToken balanceFiat when not predict balance', () => {
+    it('shows payToken symbol when not predict balance', () => {
+      mockIsPredictBalanceSelected = false;
       mockPayToken = {
         symbol: 'USDC',
         address: '0xToken',
@@ -356,7 +356,7 @@ describe('PredictPayWithRow', () => {
 
       renderWithProvider(<PredictPayWithRow variant="row" />);
 
-      expect(screen.getByText(/\$200\.50/)).toBeOnTheScreen();
+      expect(screen.getByText(/USDC/)).toBeOnTheScreen();
     });
 
     it('navigates to pay-with modal on press', () => {

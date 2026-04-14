@@ -112,9 +112,10 @@ const PredictBuyWithAnyToken = (
   const handleQuickAmount = useCallback(
     (amount: number) => {
       setCurrentValue(amount);
-      setCurrentValueUSDString(amount.toString());
+      setCurrentValueUSDString(amount.toFixed(2));
+      setIsInputFocused(false);
     },
-    [setCurrentValue, setCurrentValueUSDString],
+    [setCurrentValue, setCurrentValueUSDString, setIsInputFocused],
   );
 
   const handleFeesInfoPress = useCallback(() => {

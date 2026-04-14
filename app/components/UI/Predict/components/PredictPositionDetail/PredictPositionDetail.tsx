@@ -117,14 +117,18 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         const _outcome = market?.outcomes.find(
           (o) => o.id === position.outcomeId,
         );
-        if (_outcome) {
-          openSellSheet({
-            market,
-            position,
-            outcome: _outcome,
-            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-          });
+        if (!_outcome) {
+          console.warn(
+            `[PredictPositionDetail] outcome not found for position ${position.id} (outcomeId: ${position.outcomeId})`,
+          );
+          return;
         }
+        openSellSheet({
+          market,
+          position,
+          outcome: _outcome,
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
     );

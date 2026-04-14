@@ -4,9 +4,12 @@ import PredictBuyActionButton from './PredictBuyActionButton';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 
 jest.mock('../../../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
+  strings: jest.fn((key: string, params?: Record<string, string>) => {
     if (key === 'predict.order.placing_prediction') {
       return 'Placing prediction';
+    }
+    if (key === 'predict.order.buy' && params?.outcome) {
+      return `Buy ${params.outcome}`;
     }
     return key;
   }),
@@ -221,6 +224,42 @@ describe('PredictBuyActionButton', () => {
       fireEvent.press(button);
 
       expect(mockOnPress).toHaveBeenCalled();
+    });
+  });
+
+  describe('when isSheetMode is true', () => {
+    it('displays "Buy {outcome}" label instead of outcome and price', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isSheetMode
+        />,
+      );
+
+      expect(screen.getByText('Buy Yes')).toBeOnTheScreen();
+      expect(screen.queryByText(/0\.65¢/)).toBeNull();
+    });
+
+    it('displays "Buy No" for No outcome', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="No"
+          sharePrice={0.35}
+          isSheetMode
+        />,
+      );
+
+      expect(screen.getByText('Buy No')).toBeOnTheScreen();
+      expect(screen.queryByText(/· /)).toBeNull();
     });
   });
 

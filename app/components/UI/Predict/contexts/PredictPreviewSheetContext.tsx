@@ -123,11 +123,17 @@ export const PredictPreviewSheetProvider: React.FC<
   const [sellParams, setSellParams] = useState<PredictSellPreviewParams | null>(
     null,
   );
+  const buyNonceRef = useRef(0);
+  const sellNonceRef = useRef(0);
+  const [buyNonce, setBuyNonce] = useState(0);
+  const [sellNonce, setSellNonce] = useState(0);
 
   const openBuySheet = useCallback(
     (params: PredictBuyPreviewParams) => {
       if (bottomSheetEnabled) {
         setBuyParams(params);
+        buyNonceRef.current += 1;
+        setBuyNonce(buyNonceRef.current);
       } else {
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
@@ -142,6 +148,8 @@ export const PredictPreviewSheetProvider: React.FC<
     (params: PredictSellPreviewParams) => {
       if (bottomSheetEnabled) {
         setSellParams(params);
+        sellNonceRef.current += 1;
+        setSellNonce(sellNonceRef.current);
       } else {
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
@@ -156,13 +164,13 @@ export const PredictPreviewSheetProvider: React.FC<
     if (buyParams) {
       buySheetRef.current?.onOpenBottomSheet();
     }
-  }, [buyParams]);
+  }, [buyParams, buyNonce]);
 
   useEffect(() => {
     if (sellParams) {
       sellSheetRef.current?.onOpenBottomSheet();
     }
-  }, [sellParams]);
+  }, [sellParams, sellNonce]);
 
   const BuyComponent = payWithAnyTokenEnabled
     ? PredictBuyWithAnyToken

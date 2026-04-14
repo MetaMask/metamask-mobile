@@ -169,15 +169,16 @@ const PredictSellPreview = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const onClose = contentProps.onClose;
   useEffect(() => {
     if (result?.success) {
       if (isSheetMode) {
-        contentProps.onClose?.();
+        onClose?.();
       } else {
         dispatch(StackActions.pop());
       }
     }
-  }, [dispatch, result, isSheetMode, contentProps]);
+  }, [dispatch, result, isSheetMode, onClose]);
 
   // Use preview data if available, fallback to position data on error or when preview is unavailable
   const currentValue = preview

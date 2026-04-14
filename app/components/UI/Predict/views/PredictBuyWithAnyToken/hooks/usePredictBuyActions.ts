@@ -261,10 +261,14 @@ export const usePredictBuyActions = ({
     if (currentState === ActiveOrderState.DEPOSITING) {
       if (didInitiateOrderRef.current) {
         didInitiateOrderRef.current = false;
-        navigation.dispatch(StackActions.pop());
+        if (isSheetMode && onClose) {
+          onClose();
+        } else {
+          navigation.dispatch(StackActions.pop());
+        }
       }
     }
-  }, [currentState, navigation]);
+  }, [currentState, navigation, isSheetMode, onClose]);
 
   return {
     handleConfirm,

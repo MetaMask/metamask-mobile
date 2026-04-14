@@ -214,15 +214,16 @@ const PredictBuyPreview = (
     preview?.sharePrice ?? outcomeToken?.price ?? 0,
   )}`;
 
+  const onClose = contentProps.onClose;
   useEffect(() => {
     if (result?.success) {
       if (isSheetMode) {
-        contentProps.onClose?.();
+        onClose?.();
       } else {
         dispatch(StackActions.pop());
       }
     }
-  }, [dispatch, result, isSheetMode, contentProps]);
+  }, [dispatch, result, isSheetMode, onClose]);
 
   const onPlaceBet = useCallback(async () => {
     if (!preview || isBelowMinimum) return;

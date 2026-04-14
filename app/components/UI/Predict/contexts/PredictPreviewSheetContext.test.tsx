@@ -47,9 +47,46 @@ jest.mock('../components/PredictPreviewSheet/PredictPreviewSheet', () => {
   return {
     __esModule: true,
     default: ReactMock.forwardRef(
-      (_props: { testID?: string }, _ref: unknown) => {
-        const { View: RNView } = require('react-native');
-        return <RNView testID={_props.testID ?? 'preview-sheet'} />;
+      (
+        _props: {
+          testID?: string;
+          children?: (close: () => void) => React.ReactNode;
+          renderHeader?: () => React.ReactNode;
+          onDismiss?: () => void;
+          title?: string;
+          subtitle?: string;
+          image?: string;
+          isFullscreen?: boolean;
+        },
+        _ref: unknown,
+      ) => {
+        const {
+          View: RNView,
+          Text: RNText,
+          TouchableOpacity: RNTouchableOpacity,
+        } = require('react-native');
+        const closeSheet = () => _props.onDismiss?.();
+        ReactMock.useImperativeHandle(_ref, () => ({
+          onOpenBottomSheet: jest.fn(),
+        }));
+        return (
+          <RNView testID={_props.testID ?? 'preview-sheet'}>
+            {_props.title && (
+              <RNText testID="sheet-title">{_props.title}</RNText>
+            )}
+            {_props.subtitle && (
+              <RNText testID="sheet-subtitle">{_props.subtitle}</RNText>
+            )}
+            {_props.image && (
+              <RNText testID="sheet-image">{_props.image}</RNText>
+            )}
+            {_props.renderHeader?.()}
+            {_props.children?.(closeSheet)}
+            <RNTouchableOpacity testID="dismiss-sheet" onPress={closeSheet}>
+              <RNText>Dismiss</RNText>
+            </RNTouchableOpacity>
+          </RNView>
+        );
       },
     ),
   };
@@ -59,7 +96,9 @@ jest.mock('../views/PredictBuyPreview/PredictBuyPreview', () => {
   const { View: RNView } = require('react-native');
   return {
     __esModule: true,
-    default: () => <RNView testID="buy-preview" />,
+    default: (props: Record<string, unknown>) => (
+      <RNView testID="buy-preview" {...props} />
+    ),
   };
 });
 
@@ -67,7 +106,9 @@ jest.mock('../views/PredictBuyWithAnyToken/PredictBuyWithAnyToken', () => {
   const { View: RNView } = require('react-native');
   return {
     __esModule: true,
-    default: () => <RNView testID="buy-with-any-token" />,
+    default: (props: Record<string, unknown>) => (
+      <RNView testID="buy-with-any-token" {...props} />
+    ),
   };
 });
 
@@ -75,7 +116,9 @@ jest.mock('../views/PredictSellPreview/PredictSellPreview', () => {
   const { View: RNView } = require('react-native');
   return {
     __esModule: true,
-    default: () => <RNView testID="sell-preview" />,
+    default: (props: Record<string, unknown>) => (
+      <RNView testID="sell-preview" {...props} />
+    ),
   };
 });
 
@@ -223,5 +266,132 @@ describe('PredictPreviewSheetContext', () => {
     );
 
     consoleError.mockRestore();
+  });
+
+  it('renders PredictBuyWithAnyToken when payWithAnyToken flag is ON', () => {
+    mockPayWithAnyTokenEnabled = true;
+
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+
+    expect(screen.getByTestId('buy-with-any-token')).toBeOnTheScreen();
+  });
+
+  it('renders PredictBuyPreview when payWithAnyToken flag is OFF', () => {
+    mockPayWithAnyTokenEnabled = false;
+
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+
+    expect(screen.getByTestId('buy-preview')).toBeOnTheScreen();
+  });
+
+  it('clears buy params on dismiss', () => {
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+    expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId('dismiss-sheet'));
+    expect(screen.queryByTestId('predict-buy-preview-sheet')).toBeNull();
+  });
+
+  it('clears sell params on dismiss', () => {
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-sell'));
+    expect(screen.getByTestId('predict-sell-preview-sheet')).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId('dismiss-sheet'));
+    expect(screen.queryByTestId('predict-sell-preview-sheet')).toBeNull();
+  });
+
+  it('passes title and subtitle to buy sheet', () => {
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+
+    expect(screen.getByTestId('sheet-title')).toBeOnTheScreen();
+    expect(screen.getByTestId('sheet-subtitle')).toBeOnTheScreen();
+  });
+
+  it('passes image to buy sheet when outcome has image', () => {
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+
+    expect(screen.getByTestId('sheet-image')).toBeOnTheScreen();
+  });
+
+  it('renders SellSheetHeader with position info for sell sheet', () => {
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-sell'));
+
+    expect(screen.getByText('Position')).toBeOnTheScreen();
+  });
+
+  it('reopens buy sheet with same params via nonce increment', () => {
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+    expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId('dismiss-sheet'));
+    expect(screen.queryByTestId('predict-buy-preview-sheet')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+    expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
+  });
+
+  it('reopens sell sheet with same params via nonce increment', () => {
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-sell'));
+    expect(screen.getByTestId('predict-sell-preview-sheet')).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId('dismiss-sheet'));
+    expect(screen.queryByTestId('predict-sell-preview-sheet')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('open-sell'));
+    expect(screen.getByTestId('predict-sell-preview-sheet')).toBeOnTheScreen();
   });
 });

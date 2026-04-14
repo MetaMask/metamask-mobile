@@ -13,6 +13,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 
 interface PredictBuyBottomContentProps {
   isInputFocused: boolean;
+
   hideBorder?: boolean;
   children: React.ReactNode;
 }
@@ -35,18 +36,18 @@ const PredictBuyBottomContent = ({
     >
       <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
         <Box twClassName="w-full">{children}</Box>
-        <Box twClassName="text-center items-center flex-row gap-1 justify-center px-1">
+        <Box twClassName="text-center items-center flex-row gap-1 justify-center">
           <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-            {strings('predict.consent_sheet.disclaimer')}{' '}
-            <Text
-              variant={TextVariant.BodyXs}
-              style={tw.style('text-info-default')}
-              onPress={() => {
-                Linking.openURL('https://polymarket.com/tos');
-              }}
-            >
-              {strings('predict.consent_sheet.learn_more')}
-            </Text>
+            {strings('predict.consent_sheet.disclaimer')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyXs}
+            style={tw.style('text-info-default')}
+            onPress={() => {
+              Linking.openURL('https://polymarket.com/tos');
+            }}
+          >
+            {strings('predict.consent_sheet.learn_more')}
           </Text>
         </Box>
       </Box>

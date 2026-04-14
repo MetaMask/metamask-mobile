@@ -20,10 +20,18 @@ jest.mock('@react-navigation/native', () => ({
 const TestComponent = ({
   shouldOpen = false,
   title = 'Sheet Title',
+  subtitle,
+  image,
+  isFullscreen,
+  renderHeader,
   onDismiss,
 }: {
   shouldOpen?: boolean;
   title?: string;
+  subtitle?: string;
+  image?: string;
+  isFullscreen?: boolean;
+  renderHeader?: () => React.ReactNode;
   onDismiss?: () => void;
 }) => {
   const ref = useRef<PredictPreviewSheetRef>(null);
@@ -44,6 +52,10 @@ const TestComponent = ({
       <PredictPreviewSheet
         ref={ref}
         title={title}
+        subtitle={subtitle}
+        image={image}
+        isFullscreen={isFullscreen}
+        renderHeader={renderHeader}
         onDismiss={onDismiss}
         testID="preview-sheet"
       >
@@ -87,5 +99,67 @@ describe('PredictPreviewSheet', () => {
 
   it('renders without crashing when onDismiss is not provided', () => {
     expect(() => render(<TestComponent shouldOpen />)).not.toThrow();
+  });
+
+  it('renders subtitle when provided', async () => {
+    render(<TestComponent shouldOpen subtitle="Odds 51¢" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Odds 51¢')).toBeOnTheScreen();
+    });
+  });
+
+  it('hides subtitle when not provided', async () => {
+    render(<TestComponent shouldOpen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sheet-child')).toBeOnTheScreen();
+    });
+    expect(screen.queryByText('Odds')).toBeNull();
+  });
+
+  it('renders image when provided', async () => {
+    render(<TestComponent shouldOpen image="https://img.example.com/a.png" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sheet-child')).toBeOnTheScreen();
+    });
+  });
+
+  it('hides image when not provided', async () => {
+    render(<TestComponent shouldOpen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sheet-child')).toBeOnTheScreen();
+    });
+  });
+
+  it('renders custom header via renderHeader prop', async () => {
+    const customHeader = () => (
+      <Text testID="custom-header">Custom Header</Text>
+    );
+
+    render(<TestComponent shouldOpen renderHeader={customHeader} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('custom-header')).toBeOnTheScreen();
+    });
+    expect(screen.getByText('Custom Header')).toBeOnTheScreen();
+  });
+
+  it('renders default header when renderHeader is not provided', async () => {
+    render(<TestComponent shouldOpen title="Default Title" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Default Title')).toBeOnTheScreen();
+    });
+  });
+
+  it('accepts isFullscreen prop', async () => {
+    render(<TestComponent shouldOpen isFullscreen={false} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sheet-child')).toBeOnTheScreen();
+    });
   });
 });
