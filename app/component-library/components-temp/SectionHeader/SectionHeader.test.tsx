@@ -74,7 +74,7 @@ describe('SectionHeader', () => {
       ).toBeOnTheScreen();
     });
 
-    it('sets the accessibilityLabel to the string title when pressable', () => {
+    it('sets accessible to false when pressable to expose children in iOS accessibility tree', () => {
       const { UNSAFE_getByProps } = render(
         <SectionHeader title="Tokens" onPress={jest.fn()} />,
       );
@@ -82,7 +82,7 @@ describe('SectionHeader', () => {
       expect(
         UNSAFE_getByProps({
           accessibilityRole: 'button',
-          accessibilityLabel: 'Tokens',
+          accessible: false,
         }),
       ).toBeOnTheScreen();
     });

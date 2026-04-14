@@ -93,7 +93,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         testID={testID}
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={typeof title === 'string' ? title : undefined}
+        accessible={false}
         style={containerStyle}
       >
         {children}
