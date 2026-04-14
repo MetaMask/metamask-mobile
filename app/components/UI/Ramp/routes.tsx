@@ -126,6 +126,10 @@ const TokenListModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.PROCESSING_INFO}
       component={ProcessingInfoModal}
+      options={{
+        ...clearStackNavigatorOptions,
+        presentation: 'transparentModal',
+      }}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.SSN_INFO}
