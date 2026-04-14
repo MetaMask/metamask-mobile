@@ -62,13 +62,15 @@ describe('PredictSportLineSelector', () => {
     });
   });
 
-  it('renders selected line with bold styling', () => {
-    const { getByTestId } = render(
+  it('applies different color to selected vs unselected lines', () => {
+    const { getByText } = render(
       <PredictSportLineSelector {...defaultProps} />,
     );
 
-    expect(getByTestId(lineId(5))).toBeOnTheScreen();
-    expect(getByTestId(lineId(4))).toBeOnTheScreen();
+    const selectedStyle = getByText('5').props.style;
+    const unselectedStyle = getByText('4').props.style;
+
+    expect(selectedStyle).not.toEqual(unselectedStyle);
   });
 
   it('calls onSelectLine with correct value when a line is tapped', () => {
