@@ -87,6 +87,7 @@ import {
   SECONDARY_BALANCE_BUTTON_TEST_ID,
   SECONDARY_BALANCE_TEST_ID,
 } from '../../../AssetElement/index.constants';
+import { isE2E, isQa, isRc } from '../../../../../util/test/utils';
 import {
   Box,
   BoxFlexDirection,
@@ -542,6 +543,10 @@ export const TokenListItem = React.memo(
     const hideFiatForScamWarning = showScamWarningIcon;
     const fiatBalance = asset.balanceFiat || '—';
     const tokenBalance = `${asset.balance} ${asset.symbol}`;
+    const assetTestId = getAssetTestId(asset.symbol);
+    const semanticAssetLabel = `${asset.name || asset.symbol}, ${fiatBalance}, ${tokenBalance}`;
+    const isIOSAutomationMode =
+      Platform.OS === 'ios' && (isE2E || isQa || isRc);
 
     const isFiatBalanceLoading =
       fiatBalance === TOKEN_BALANCE_LOADING ||
@@ -571,10 +576,17 @@ export const TokenListItem = React.memo(
         accessible={Platform.OS === 'ios'}
         accessibilityLabel={
           Platform.OS === 'ios'
-            ? `${asset.name || asset.symbol}, ${fiatBalance}, ${tokenBalance}`
+            ? isIOSAutomationMode
+              ? assetTestId
+              : semanticAssetLabel
             : undefined
         }
-        {...generateTestId(Platform, getAssetTestId(asset.symbol))}
+        accessibilityHint={
+          Platform.OS === 'ios' && isIOSAutomationMode
+            ? semanticAssetLabel
+            : undefined
+        }
+        {...generateTestId(Platform, assetTestId)}
       >
         {/* Column: 1 - Token logo */}
         <BadgeWrapper

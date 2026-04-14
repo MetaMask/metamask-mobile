@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import {
@@ -16,6 +16,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // Internal dependencies.
 import { SectionHeaderProps } from './SectionHeader.types';
+import { isE2E, isQa, isRc } from '../../../util/test/utils';
 
 /**
  * SectionHeader — homepage section header with optional press-to-navigate.
@@ -51,6 +52,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
+  const isIOSAutomationMode = Platform.OS === 'ios' && (isE2E || isQa || isRc);
 
   // Default horizontal padding + row layout; apply style to this same container so callers can override padding (e.g. paddingHorizontal: 0)
   const containerTwClassName = twClassName
@@ -88,12 +90,19 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   );
 
   if (onPress) {
+    const semanticLabel = typeof title === 'string' ? title : undefined;
+    const automationLabel =
+      isIOSAutomationMode && testID ? testID : semanticLabel;
+    const automationHint =
+      isIOSAutomationMode && testID ? semanticLabel : undefined;
+
     return (
       <TouchableOpacity
         testID={testID}
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={typeof title === 'string' ? title : undefined}
+        accessibilityLabel={automationLabel}
+        accessibilityHint={automationHint}
         style={containerStyle}
       >
         {children}
