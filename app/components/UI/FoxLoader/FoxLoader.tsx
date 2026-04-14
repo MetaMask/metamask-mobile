@@ -154,10 +154,7 @@ const FoxLoader = ({
     >
       <View
         testID={FoxLoaderSelectorsIDs.ANIMATION_WRAPPER}
-        style={[
-          styles.animationWrapper,
-          Platform.OS === 'android' && styles.animationWrapperAndroid,
-        ]}
+        style={[styles.animationWrapper]}
       >
         <Animated.Image
           testID={FoxLoaderSelectorsIDs.STATIC_FOX}
