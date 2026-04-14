@@ -87,9 +87,9 @@ const TraderProfileView = () => {
     isFollowing,
     toggleFollow,
     refresh,
-  } = useTraderProfile(traderId);
+  } = useTraderProfile(traderId, { refetchInterval: 30_000 });
   const { openPositions, closedPositions, isLoadingOpen, isLoadingClosed } =
-    useTraderPositions(traderId);
+    useTraderPositions(traderId, { refetchInterval: 30_000 });
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Duration } from 'luxon';
 import {
   Box,
   Text,
@@ -20,9 +21,25 @@ export interface StatsRowProps {
 }
 
 function formatHoldTime(minutes: number): string {
-  if (minutes < 60) return `${Math.round(minutes)}m`;
-  if (minutes < 1440) return `${(minutes / 60).toFixed(1)} hrs`;
-  return `${(minutes / 1440).toFixed(1)} days`;
+  const duration = Duration.fromObject({ minutes }).shiftTo(
+    'days',
+    'hours',
+    'minutes',
+  );
+
+  if (duration.days >= 1) {
+    return strings('social_leaderboard.trader_profile.hold_time_days', {
+      count: parseFloat(duration.as('days').toFixed(1)),
+    });
+  }
+  if (duration.hours >= 1) {
+    return strings('social_leaderboard.trader_profile.hold_time_hours', {
+      count: parseFloat(duration.as('hours').toFixed(1)),
+    });
+  }
+  return strings('social_leaderboard.trader_profile.hold_time_minutes', {
+    count: Math.round(duration.minutes),
+  });
 }
 
 const StatsRow: React.FC<StatsRowProps> = ({ stats, avgHoldMinutes }) => {
