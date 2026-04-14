@@ -139,7 +139,7 @@ describe('useGameDetailsTabs', () => {
       expect(result.current.activeTab).toBe(0);
     });
 
-    it('resets activeTab to 0 when it exceeds tabs length', () => {
+    it('preserves activeTab when tabs change', () => {
       const { result, rerender } = renderHook(
         (props) => useGameDetailsTabs(props),
         {
@@ -156,7 +156,7 @@ describe('useGameDetailsTabs', () => {
       expect(result.current.activeTab).toBe(1);
 
       rerender({ ...defaultParams, activePositions: [] });
-      expect(result.current.activeTab).toBe(0);
+      expect(result.current.activeTab).toBe(1);
     });
   });
 

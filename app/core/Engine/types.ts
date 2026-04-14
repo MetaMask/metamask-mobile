@@ -1114,8 +1114,7 @@ export type MessengerClientInitFunctionsByMessengerClientName = {
 
 export interface InitMessengerClientsFunctionRequest {
   baseControllerMessenger: RootExtendedMessenger;
-  controllerInitFunctions: MessengerClientInitFunctionsByMessengerClientName;
-  existingControllersByName?: Partial<MessengerClientsByName>;
+  initFunctions: MessengerClientInitFunctionsByMessengerClientName;
   getGlobalChainId: () => Hex;
   getState: () => RootState;
   analyticsId: string;
@@ -1134,5 +1133,5 @@ export interface InitMessengerClientsFunctionRequest {
 export type InitMessengerClientsFunction = (
   request: InitMessengerClientsFunctionRequest,
 ) => {
-  controllersByName: MessengerClientsByName;
+  messengerClientsByName: MessengerClientsByName;
 };
