@@ -1,9 +1,5 @@
 import type { Theme } from '@metamask/design-tokens';
-import { StyleSheet, TextStyle } from 'react-native';
-import {
-  getFontFamily,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+import { StyleSheet } from 'react-native';
 
 const styleSheet = (params: {
   theme: Theme;
@@ -11,7 +7,6 @@ const styleSheet = (params: {
 }) => {
   const { theme } = params;
   const { chartHeight } = params.vars;
-  const { typography } = theme;
   return StyleSheet.create({
     chart: {
       paddingRight: 0,

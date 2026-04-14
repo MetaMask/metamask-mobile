@@ -258,9 +258,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   // A/B test hook for layout selection (must be called before usePerpsActions to pass ab_tests)
   const { useNewLayout, isTestActive, variantName } = useTokenDetailsABTest();
-  const isTokenOverviewAdvancedChartEnabled = useSelector(
-    selectTokenOverviewAdvancedChartEnabled,
-  );
+
   const {
     hasPerpsMarket,
     marketData,
