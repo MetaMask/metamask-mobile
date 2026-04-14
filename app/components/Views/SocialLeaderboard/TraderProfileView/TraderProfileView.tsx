@@ -26,6 +26,7 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import { useTraderProfile, useTraderPositions } from './hooks';
 import type { Position } from '@metamask/social-controllers';
@@ -105,7 +106,7 @@ const TraderProfileView = () => {
 
   const handlePositionPress = useCallback(
     (position: Position) => {
-      navigation.navigate('TraderPositionView', {
+      navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
         traderId,
         traderName,
         tokenSymbol: position.tokenSymbol,
