@@ -7532,6 +7532,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask-previews/chomp-api-service@npm:0.0.0-preview-08b3d87":
+  version: 0.0.0-preview-08b3d87
+  resolution: "@metamask-previews/chomp-api-service@npm:0.0.0-preview-08b3d87"
+  dependencies:
+    "@metamask/base-data-service": "npm:^0.1.1"
+    "@metamask/controller-utils": "npm:^11.20.0"
+    "@metamask/messenger": "npm:^1.1.1"
+    "@metamask/profile-sync-controller": "npm:^28.0.2"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/utils": "npm:^11.9.0"
+    "@tanstack/query-core": "npm:^4.43.0"
+  checksum: 10/9c214cd09704ba9b7b959b8cb1f3c2d19a34899e3e73bcdcb031e9bd6a1fe3fc6baffbb141dff5dece7372a0b4f0442b86b91fd9e98d0610fa1a3939f85f95e2
+  languageName: node
+  linkType: hard
+
 "@metamask/7715-permission-types@npm:^0.5.0":
   version: 0.5.0
   resolution: "@metamask/7715-permission-types@npm:0.5.0"
@@ -35556,6 +35571,7 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
+    "@metamask-previews/chomp-api-service": "npm:0.0.0-preview-08b3d87"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.0"
     "@metamask/account-tree-controller": "npm:^7.0.0"

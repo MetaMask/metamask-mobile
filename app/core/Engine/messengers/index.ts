@@ -155,6 +155,7 @@ import { getSocialControllerMessenger } from './social-controller-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
+import { getChompApiServiceMessenger } from './chomp-api-service-messenger';
 
 /**
  * The messenger factories for the messenger clients that have been modularized.
@@ -488,6 +489,10 @@ export const MESSENGER_FACTORIES = {
   },
   ComplianceController: {
     getMessenger: getComplianceControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ChompApiService: {
+    getMessenger: getChompApiServiceMessenger,
     getInitMessenger: noop,
   },
 } as const;
