@@ -7575,7 +7575,9 @@
       "loading": "Loading available tokens...",
       "load_error": "Unable to load tokens. Please try again.",
       "retry": "Try again",
-      "on_linea": "on Linea"
+      "on_linea": "on Linea",
+      "account_label": "Account",
+      "token_label": "Token"
     },
     "cashback_screen": {
       "title": "Cashback",
@@ -8018,6 +8020,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "mUSD bonus calculator",
       "description": "See how much you could earn by converting your stablecoins to mUSD.",
       "amount_label": "Amount converted",
@@ -8026,6 +8029,7 @@
       "daily_bonus": "Daily claimable bonus",
       "annualized_bonus": "Annualized bonus",
       "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "disclaimer_brief": "The bonus is an estimate and may change.",
       "buy_button": "Buy mUSD",
       "swap_button": "Swap to mUSD"
     },
@@ -8065,7 +8069,7 @@
       "starts_date": "Starts {{date}}",
       "ends_date": "Ends {{date}}",
       "ended_date": "Ended {{date}}",
-      "pill_up_next": "Up next",
+      "pill_up_next": "Coming soon",
       "pill_active": "Live",
       "pill_complete": "Complete",
       "enter_now": "Enter now",
