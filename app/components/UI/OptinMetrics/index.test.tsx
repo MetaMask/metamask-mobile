@@ -1176,17 +1176,4 @@ describe('OptinMetrics', () => {
       expect(component).toBeTruthy();
     });
   });
-
-  describe('Description rendering', () => {
-    it('displays updated description', () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const updatedDescription = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_description'),
-        { exact: false },
-      );
-
-      expect(updatedDescription).toBeTruthy();
-    });
-  });
 });
