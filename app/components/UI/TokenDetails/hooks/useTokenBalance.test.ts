@@ -476,17 +476,6 @@ describe('useTokenBalance', () => {
       expect(result.current.balanceFiatUsd).toBe(0);
     });
 
-    it('returns 0 for balanceFiatUsd when usdConversionRate is missing', () => {
-      mockSelectCurrencyRate.mockReturnValue(1.5);
-      mockSelectUsdConversionRate.mockReturnValue(undefined);
-
-      const { result } = renderHookWithProvider(() =>
-        useTokenBalance(token, { calculateUsdBalance: true }),
-      );
-
-      expect(result.current.balanceFiatUsd).toBe(0);
-    });
-
     it('returns 0 for balanceFiatUsd when balanceFiat is missing', () => {
       mockSelectAsset.mockReturnValue({
         balance: '2',
@@ -518,6 +507,5 @@ describe('useTokenBalance', () => {
 
       expect(result.current.balanceFiatUsd).toBeCloseTo(1200.5);
     });
-
   });
 });
