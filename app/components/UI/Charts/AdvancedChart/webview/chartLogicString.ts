@@ -1133,20 +1133,10 @@ function hideCustomSeriesLastValueLabelDom() {
 }
 
 /**
- * Updates \`#custom-series-last-value-label\`: **close price of the rightmost OHLCV bar whose time
- * still lies inside the chart’s visible bars range**, positioned on the price scale like the
- * last-close pill. Shown only when:
- * - \`getLineChrome().useCustomPriceLabels\`, and
- * - chart is ready with data, and
- * - chart type is candle or line, and
- * - the **series tail** (latest bar) is **not** in the visible time window (e.g. user panned left),
- * - and we successfully resolve a visible-edge bar and a Y coordinate.
- *
- * When the outline’s chart Y would overlap the filled last-close pill, nudges the outline
- * **up or down** (smaller vs larger Y) so the higher price stays above the lower on the pane.
- *
- * Candlestick: outline border + text use theme success (close >= open) or error (down bar).
- * Line chart: success color only (matches single-series stroke).
+ * Outline pill: close of the rightmost visible OHLCV bar. Shown only when the series tail is
+ * scrolled off the right (\`coordinateToTime\` at right inset), subject to
+ * \`isSeriesLastCoveredByVisibleRangeRightBound\` (padding / first load) and
+ * \`trailingVisibleBarMatchesSeriesLast\` when the inset probe is unavailable.
  */
 function updateVisibleEdgeOutlinePriceLabel() {
   var elOut = document.getElementById('custom-series-last-value-label');
@@ -1171,11 +1161,32 @@ function updateVisibleEdgeOutlinePriceLabel() {
   }
   var chart = w.chartWidget.activeChart();
   var tailBar = w.ohlcvData[w.ohlcvData.length - 1];
-  if (isSeriesTailBarTimeVisibleOnChart(chart, tailBar.time)) {
+  var tailSec = normalizeChartUnixSec(tailBar.time);
+  var tailOffRight =
+    tailSec !== null
+      ? isSeriesLastBarOffRightOfVisiblePlot(chart, tailSec)
+      : null;
+  var trailingMatch =
+    tailOffRight === null && tailSec !== null
+      ? trailingVisibleBarMatchesSeriesLast(chart, tailSec)
+      : false;
+  if (tailOffRight === false) {
     hideCustomSeriesLastValueLabelDom();
     return;
   }
-  var edgeBar = getRightmostOhlcvBarInVisibleTimeRange(chart, w.ohlcvData);
+  if (tailOffRight === null && trailingMatch) {
+    hideCustomSeriesLastValueLabelDom();
+    return;
+  }
+  if (
+    tailOffRight === true &&
+    tailSec !== null &&
+    isSeriesLastCoveredByVisibleRangeRightBound(chart, tailSec)
+  ) {
+    hideCustomSeriesLastValueLabelDom();
+    return;
+  }
+  var edgeBar = getVisibleEdgeOutlineBar(chart, w.ohlcvData);
   if (!edgeBar) {
     hideCustomSeriesLastValueLabelDom();
     return;
@@ -1287,10 +1298,18 @@ function getPriceYForLastCloseOverlay(chart, price) {
     }
     var lo = Math.min(range.from, range.to);
     var hi = Math.max(range.from, range.to);
-    if (p < lo || p > hi) return null;
     var h = pane.getHeight();
     if (!h || h <= 0) return null;
-    return ((hi - p) / (hi - lo)) * h;
+    /* Clamp so the pill stays at the plot top/bottom when close is outside auto-scale (pan/zoom). */
+    var pClamped = Math.min(hi, Math.max(lo, p));
+    if (typeof scale.priceToCoordinate === 'function') {
+      y = scale.priceToCoordinate(pClamped);
+      if (y !== null && y !== undefined && !isNaN(y)) return y;
+    } else if (typeof scale.priceToPixels === 'function') {
+      y = scale.priceToPixels(pClamped);
+      if (y !== null && y !== undefined && !isNaN(y)) return y;
+    }
+    return ((hi - pClamped) / (hi - lo)) * h;
   } catch (e) {
     return null;
   }
@@ -2531,58 +2550,129 @@ function trailingVisibleBarMatchesSeriesLast(chart, lastBarTimeSec) {
 }
 
 /**
- * Reads TradingView’s current visible bars range and returns normalized **Unix seconds** bounds
- * \`{ lo, hi }\` (always \`lo <= hi\`). Used by both “is tail visible?” and “which bars intersect?”.
+ * True when the visible time window’s **right** bound still reaches the series last bar (last bar
+ * time ≤ right bound). Then the newest candle is still in the chart’s visible range, even if
+ * {@link isSeriesLastBarOffRightOfVisiblePlot} is true because \`coordinateToTime\` at the right inset
+ * samples empty padding to the right of the last bar (first load / default anchoring).
  *
  * @param {object} chart - \`widget.activeChart()\`
- * @returns {{ lo: number, hi: number } | null} null if range unavailable or timestamps invalid
+ * @param {number} lastBarTimeSec - unix seconds for the last OHLCV bar
+ * @returns {boolean}
  */
-function getVisibleTimeRangeSecFromChart(chart) {
+function isSeriesLastCoveredByVisibleRangeRightBound(chart, lastBarTimeSec) {
+  var brToSec = null;
   try {
     var br = chart.getVisibleBarsRange();
-    if (!br || br.from === undefined || br.to === undefined) {
+    if (br && br.to !== undefined && br.to !== null) {
+      brToSec = normalizeChartUnixSec(br.to);
+    }
+  } catch (eBr) {
+    brToSec = null;
+  }
+  if (brToSec === null) {
+    var r = getVisibleTimeRangeSecFromChart(chart);
+    if (r) {
+      brToSec = r.hi;
+    }
+  }
+  if (
+    brToSec === null ||
+    lastBarTimeSec == null ||
+    !isFinite(Number(lastBarTimeSec))
+  ) {
+    return false;
+  }
+  return Number(lastBarTimeSec) <= brToSec;
+}
+
+/**
+ * True if the **last OHLCV bar’s time** is to the **right** of the time painted at the plot’s
+ * right edge—i.e. the series end is scrolled off-screen to the right (outline pill should show).
+ * False if the time at the right edge is at or past the last bar (end is in view). Null if unknown.
+ *
+ * Uses {@link ITimeScaleApi.coordinateToTime} at the right inset so we don’t rely on
+ * \`getVisibleBarsRange().to\`, which can still “match” the last bar’s timestamp while the oldest bar
+ * is visible on the left and the newest is not drawn at the right edge.
+ *
+ * @param {object} chart
+ * @param {number} lastBarTimeSec — unix **seconds** (same as \`normalizeChartUnixSec\` of tail)
+ * @returns {boolean | null}
+ */
+function isSeriesLastBarOffRightOfVisiblePlot(chart, lastBarTimeSec) {
+  if (!chart || lastBarTimeSec == null || !isFinite(Number(lastBarTimeSec))) {
+    return null;
+  }
+  try {
+    var ts = chart.getTimeScale();
+    if (!ts || typeof ts.coordinateToTime !== 'function' || typeof ts.width !== 'function') {
       return null;
     }
-    var fromSec = normalizeChartUnixSec(br.from);
-    var toSec = normalizeChartUnixSec(br.to);
-    if (fromSec === null || toSec === null) {
+    var plotW = ts.width();
+    if (!(plotW > LINE_END_ICON_TIME_INSET_PX + 4)) {
       return null;
     }
-    return {
-      lo: Math.min(fromSec, toSec),
-      hi: Math.max(fromSec, toSec),
-    };
+    var x = Math.max(0, Math.floor(plotW - LINE_END_ICON_TIME_INSET_PX - 1));
+    var rawT = ts.coordinateToTime(x);
+    if (rawT == null || rawT === undefined) {
+      return null;
+    }
+    var tRightEdge = normalizeChartUnixSec(rawT);
+    if (tRightEdge === null) {
+      return null;
+    }
+    var barDur = getApproxBarDurationSec();
+    return lastBarTimeSec > tRightEdge + barDur;
   } catch (e) {
     return null;
   }
 }
 
 /**
- * True if the **dataset’s last bar** (by time) lies inside—or immediately adjacent to—the visible
- * bars range (using \`getApproxBarDurationSec\` slack). When false, the user has panned/zoomed so the
- * “current” candle/line endpoint is no longer on-screen (typical: panned left, tail off the right).
+ * Reads TradingView’s visible time window as **Unix seconds** \`{ lo, hi }\` (\`lo <= hi\`).
+ * Prefer \`getVisibleBarsRange()\`; if it is null mid-scroll, fall back to \`getVisibleRange()\`.
  *
- * Returns **true** if we cannot read the range (fail-safe: do not show the outline pill).
- *
- * @param {object} chart
- * @param {number} lastBarTimeMs - \`ohlcvData\` tail \`.time\` (milliseconds)
+ * @param {object} chart - \`widget.activeChart()\`
+ * @returns {{ lo: number, hi: number } | null} null if range unavailable or timestamps invalid
  */
-function isSeriesTailBarTimeVisibleOnChart(chart, lastBarTimeMs) {
-  var range = getVisibleTimeRangeSecFromChart(chart);
-  if (!range) {
-    return true;
+function getVisibleTimeRangeSecFromChart(chart) {
+  var fromSec;
+  var toSec;
+  try {
+    var br = chart.getVisibleBarsRange();
+    if (br && br.from !== undefined && br.to !== undefined) {
+      fromSec = normalizeChartUnixSec(br.from);
+      toSec = normalizeChartUnixSec(br.to);
+      if (fromSec !== null && toSec !== null) {
+        return {
+          lo: Math.min(fromSec, toSec),
+          hi: Math.max(fromSec, toSec),
+        };
+      }
+    }
+  } catch (eBr) {
+    /* fall through — bars range often null mid-gesture; try visible time range */
   }
-  var lastSec = normalizeChartUnixSec(lastBarTimeMs);
-  if (lastSec === null) {
-    return true;
+  try {
+    var vr = chart.getVisibleRange && chart.getVisibleRange();
+    if (vr && vr.from !== undefined && vr.to !== undefined) {
+      fromSec = normalizeChartUnixSec(vr.from);
+      toSec = normalizeChartUnixSec(vr.to);
+      if (fromSec !== null && toSec !== null) {
+        return {
+          lo: Math.min(fromSec, toSec),
+          hi: Math.max(fromSec, toSec),
+        };
+      }
+    }
+  } catch (eVr) {
+    return null;
   }
-  var slack = getApproxBarDurationSec() * 2;
-  return lastSec >= range.lo - slack && lastSec <= range.hi + slack;
+  return null;
 }
 
 /**
  * Among bars in \`data\`, returns the one with the **maximum \`time\`** that still falls inside the
- * visible range (milliseconds, with the same slack as \`isSeriesTailBarTimeVisibleOnChart\`). This is
+ * visible range (milliseconds, slack from \`getApproxBarDurationSec\`). This is
  * the **rightmost historical bar still drawn** in the viewport—the “visible edge” for the outline
  * pill’s close price.
  *
@@ -2598,6 +2688,42 @@ function getRightmostOhlcvBarInVisibleTimeRange(chart, data) {
   var slackSec = getApproxBarDurationSec() * 2;
   var loMs = (range.lo - slackSec) * 1000;
   var hiMs = (range.hi + slackSec) * 1000;
+  var best = null;
+  var i;
+  for (i = 0; i < data.length; i++) {
+    var b = data[i];
+    var t = b.time;
+    if (t >= loMs && t <= hiMs) {
+      if (!best || t > best.time) {
+        best = b;
+      }
+    }
+  }
+  return best;
+}
+
+/**
+ * Bar for the outline pill’s price: same as {@link getRightmostOhlcvBarInVisibleTimeRange}, then
+ * if that is null (gaps at scroll limits), retry with looser slack so the pill does not vanish
+ * when the tail is still off-screen.
+ *
+ * @param {object} chart
+ * @param {Array<{ time: number, close: number }>} data - \`window.ohlcvData\`
+ * @returns {object | null}
+ */
+function getVisibleEdgeOutlineBar(chart, data) {
+  var primary = getRightmostOhlcvBarInVisibleTimeRange(chart, data);
+  if (primary) {
+    return primary;
+  }
+  var range = getVisibleTimeRangeSecFromChart(chart);
+  if (!range || !data || !data.length) {
+    return null;
+  }
+  var barDur = getApproxBarDurationSec();
+  var looseSlackSec = barDur * 6;
+  var loMs = (range.lo - looseSlackSec) * 1000;
+  var hiMs = (range.hi + looseSlackSec) * 1000;
   var best = null;
   var i;
   for (i = 0; i < data.length; i++) {
