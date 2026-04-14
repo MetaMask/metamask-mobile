@@ -440,6 +440,7 @@ function handleSetOHLCVData(payload) {
     var sub = chart.onDataLoaded();
     sub.subscribe(null, function onLoaded() {
       sub.unsubscribe(null, onLoaded);
+      // Discard stale callback if user switched timeframes before load completed
       if (capturedGeneration !== window.ohlcvGeneration) {
         return;
       }
@@ -448,9 +449,12 @@ function handleSetOHLCVData(payload) {
       var toSec = lastBar
         ? Math.ceil(lastBar.time / 1000)
         : Math.ceil(Date.now() / 1000);
+      // Pad `to` forward by 2 bar durations so the end dot clears the price axis.
+      // 1 bar was not enough for the 16px dot marker to fully clear the right edge.
+      var barPadSec = getApproxBarDurationSec() * 2;
       try {
         chart.setVisibleRange(
-          { from: fromSec, to: toSec },
+          { from: fromSec, to: toSec + barPadSec },
           { percentRightMargin: 0 },
         );
       } catch (e) {
@@ -750,7 +754,6 @@ function scheduleLineChartLayoutReflow() {
     if (!window.chartWidget || window.currentChartType !== 2) return;
     try {
       syncMainSeriesToRightScale();
-      syncTimeScaleRightMargin(true);
     } catch (e) {}
   }
   try {
@@ -796,7 +799,6 @@ function applyChartScaleLayout(type) {
 
   removeLineChartMarkupStyle();
   syncMainSeriesToRightScale();
-  syncTimeScaleRightMargin(isLineChart);
   if (isLineChart) {
     scheduleLineChartLayoutReflow();
   }
@@ -1415,29 +1417,6 @@ function subscribeLastCloseLabelUpdates() {
           scheduleLineEndDotAfterVisibleRangeChange();
         }
       });
-  } catch (e) {}
-}
-
-/**
- * Small right gap so the end dot/line isn't flush/clipped against the pane edge or Y-axis.
- * When visibleFromMs is set (fixed timeframe mode), use a larger offset to prevent clipping.
- * When visibleFromMs is null (free-scrolling mode), use minimal offset.
- * https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.ITimeScaleApi/
- */
-var CHART_RIGHT_OFFSET_BARS_FIXED_TIMEFRAME = 3;
-var CHART_RIGHT_OFFSET_BARS_DEFAULT = 0;
-
-function syncTimeScaleRightMargin(isLineChart) {
-  if (!window.chartWidget) return;
-  try {
-    var ts = window.chartWidget.activeChart().getTimeScale();
-    ts.usePercentageRightOffset().setValue(false);
-    var offset =
-      window.visibleFromMs != null
-        ? CHART_RIGHT_OFFSET_BARS_FIXED_TIMEFRAME
-        : CHART_RIGHT_OFFSET_BARS_DEFAULT;
-    ts.defaultRightOffset().setValue(offset);
-    ts.setRightOffset(offset);
   } catch (e) {}
 }
 
@@ -3311,12 +3290,15 @@ function initChart() {
     var visibleToSec = Math.ceil(
       (window.visibleToMs != null ? window.visibleToMs : Date.now()) / 1000,
     );
+    // Pad `to` by 2 bar durations so the end dot clears the price axis.
+    // 1 bar was not enough for the 16px dot marker to fully clear the right edge.
+    var initBarPadSec = getApproxBarDurationSec() * 2;
     var tfOption =
       window.visibleFromMs != null
         ? {
             type: 'time-range',
             from: Math.floor(window.visibleFromMs / 1000),
-            to: visibleToSec,
+            to: visibleToSec + initBarPadSec,
           }
         : undefined;
 
