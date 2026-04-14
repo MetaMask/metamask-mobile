@@ -146,13 +146,17 @@ export const MM_DEPRECATED_NETWORKS =
 export const MM_APP_STORE_LINK =
   'itms-apps://apps.apple.com/app/metamask-blockchain-wallet/id1438144202';
 
-export const MM_PLAY_STORE_LINK = 'market://details?id=io.metamask';
+// Canonical base values — imported by AppConstants.ts to avoid duplication
+export const MM_UNIVERSAL_LINK_HOST = 'metamask.app.link';
+export const MM_ANDROID_BUNDLE_ID = 'io.metamask';
+
+export const MM_PLAY_STORE_LINK = `market://details?id=${MM_ANDROID_BUNDLE_ID}`;
 
 // SDK
-export const MM_SDK_DEEPLINK = 'https://metamask.app.link/connect?';
+export const MM_SDK_DEEPLINK = `https://${MM_UNIVERSAL_LINK_HOST}/connect?`;
 
 // WalletConnect
-export const MM_WALLETCONNECT_DEEPLINK = 'https://metamask.app.link/wc?';
+export const MM_WALLETCONNECT_DEEPLINK = `https://${MM_UNIVERSAL_LINK_HOST}/wc?`;
 
 export const FALSE_POSITIVE_REPORT_BASE_URL =
   'https://blockaid-false-positive-portal.metamask.io';
