@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import { act, screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TopTradersView from './TopTradersView';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
@@ -52,7 +52,6 @@ const fixtureTraders: TopTrader[] = [
 const mockUseTopTraders: UseTopTradersResult = {
   traders: fixtureTraders,
   isLoading: false,
-  isRefreshing: false,
   error: null,
   refresh: mockRefresh as () => Promise<void>,
   toggleFollow: mockToggleFollow,
@@ -133,15 +132,17 @@ describe('TopTradersView', () => {
 
   it('renders a RefreshControl on the trader list scroll view', () => {
     renderWithProvider(<TopTradersView />);
-    const list = screen.getByTestId('top-traders-view-list');
+    const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
     expect(list.props.refreshControl).toBeDefined();
   });
 
   it('calls refresh when the scroll view is pulled down', async () => {
     mockRefresh.mockResolvedValue(undefined);
     renderWithProvider(<TopTradersView />);
-    const list = screen.getByTestId('top-traders-view-list');
-    await list.props.refreshControl.props.onRefresh();
+    const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+    await act(async () => {
+      await list.props.refreshControl.props.onRefresh();
+    });
     expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 

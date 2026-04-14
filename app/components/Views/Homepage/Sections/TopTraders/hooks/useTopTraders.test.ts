@@ -47,7 +47,6 @@ const makeQueryResult = (
   ({
     data: undefined,
     isLoading: false,
-    isFetching: false,
     error: null,
     refetch: mockRefetch,
     ...overrides,
@@ -113,32 +112,6 @@ describe('useTopTraders', () => {
       );
       const { result } = renderHook(() => useTopTraders());
       expect(result.current.traders[0].avatarUri).toBeUndefined();
-    });
-  });
-
-  describe('isRefreshing', () => {
-    it('is true when isFetching is true and isLoading is false (background refetch)', () => {
-      mockUseQuery.mockReturnValue(
-        makeQueryResult({ isFetching: true, isLoading: false }),
-      );
-      const { result } = renderHook(() => useTopTraders());
-      expect(result.current.isRefreshing).toBe(true);
-    });
-
-    it('is false when both isFetching and isLoading are true (initial load)', () => {
-      mockUseQuery.mockReturnValue(
-        makeQueryResult({ isFetching: true, isLoading: true }),
-      );
-      const { result } = renderHook(() => useTopTraders());
-      expect(result.current.isRefreshing).toBe(false);
-    });
-
-    it('is false when isFetching is false (idle)', () => {
-      mockUseQuery.mockReturnValue(
-        makeQueryResult({ isFetching: false, isLoading: false }),
-      );
-      const { result } = renderHook(() => useTopTraders());
-      expect(result.current.isRefreshing).toBe(false);
     });
   });
 

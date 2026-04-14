@@ -162,7 +162,7 @@ const TopTradersView = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('pb-6')}
-        testID="top-traders-view-list"
+        testID={TopTradersViewSelectorsIDs.TRADER_LIST}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
