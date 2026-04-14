@@ -96,12 +96,7 @@ function ProcessingInfoModal() {
   ]);
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={navigation.goBack}
-      isInteractable={false}
-      testID={PROCESSING_INFO_MODAL_TEST_IDS.MODAL}
-    >
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderCompactStandard
         onClose={handleClose}
         closeButtonProps={{
