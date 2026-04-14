@@ -1133,6 +1133,29 @@ function hideCustomSeriesLastValueLabelDom() {
 }
 
 /**
+ * True when the outline pill should not show based on tail vs viewport (inset probe + fallbacks).
+ */
+function shouldHideVisibleEdgeOutlinePill(chart, tailSec) {
+  var offRight =
+    tailSec !== null ? isSeriesLastBarOffRightOfVisiblePlot(chart, tailSec) : null;
+  var trailing =
+    offRight === null && tailSec !== null
+      ? trailingVisibleBarMatchesSeriesLast(chart, tailSec)
+      : false;
+  if (offRight === false) {
+    return true;
+  }
+  if (offRight === null && trailing) {
+    return true;
+  }
+  return (
+    offRight === true &&
+    tailSec !== null &&
+    isSeriesLastCoveredByVisibleRangeRightBound(chart, tailSec)
+  );
+}
+
+/**
  * Outline pill: close of the rightmost visible OHLCV bar. Shown only when the series tail is
  * scrolled off the right (\`coordinateToTime\` at right inset), subject to
  * \`isSeriesLastCoveredByVisibleRangeRightBound\` (padding / first load) and
@@ -1162,27 +1185,7 @@ function updateVisibleEdgeOutlinePriceLabel() {
   var chart = w.chartWidget.activeChart();
   var tailBar = w.ohlcvData[w.ohlcvData.length - 1];
   var tailSec = normalizeChartUnixSec(tailBar.time);
-  var tailOffRight =
-    tailSec !== null
-      ? isSeriesLastBarOffRightOfVisiblePlot(chart, tailSec)
-      : null;
-  var trailingMatch =
-    tailOffRight === null && tailSec !== null
-      ? trailingVisibleBarMatchesSeriesLast(chart, tailSec)
-      : false;
-  if (tailOffRight === false) {
-    hideCustomSeriesLastValueLabelDom();
-    return;
-  }
-  if (tailOffRight === null && trailingMatch) {
-    hideCustomSeriesLastValueLabelDom();
-    return;
-  }
-  if (
-    tailOffRight === true &&
-    tailSec !== null &&
-    isSeriesLastCoveredByVisibleRangeRightBound(chart, tailSec)
-  ) {
+  if (shouldHideVisibleEdgeOutlinePill(chart, tailSec)) {
     hideCustomSeriesLastValueLabelDom();
     return;
   }
@@ -1199,12 +1202,11 @@ function updateVisibleEdgeOutlinePriceLabel() {
     elOut.style.color = '';
     return;
   }
-  var lastBarClose = w.ohlcvData[w.ohlcvData.length - 1];
   var resolvedLast = resolveLineEndOverlayPoint(chart);
   var lastClosePrice =
     resolvedLast && isFinite(resolvedLast.price)
       ? resolvedLast.price
-      : lastBarClose.close;
+      : tailBar.close;
   var yLastClose = getPriceYForLastCloseOverlay(chart, lastClosePrice);
 
   var theme = (w.CONFIG && w.CONFIG.theme) || {};
@@ -1269,6 +1271,21 @@ function updateVisibleEdgeOutlinePriceLabel() {
 }
 
 /**
+ * Tries main price scale APIs; returns pixel Y or \`null\`.
+ */
+function priceScalePriceToY(scale, p) {
+  if (typeof scale.priceToCoordinate === 'function') {
+    var y = scale.priceToCoordinate(p);
+    if (y !== null && y !== undefined && !isNaN(y)) return y;
+  }
+  if (typeof scale.priceToPixels === 'function') {
+    y = scale.priceToPixels(p);
+    if (y !== null && y !== undefined && !isNaN(y)) return y;
+  }
+  return null;
+}
+
+/**
  * Y pixel for a price (same space as crosshair \`offsetY\`). Uses
  * \`priceToCoordinate\` / \`priceToPixels\` when present; else visible range → pane height.
  */
@@ -1284,13 +1301,8 @@ function getPriceYForLastCloseOverlay(chart, price) {
     var scale = pane.getMainSourcePriceScale();
     if (!scale) return null;
 
-    var y;
-    if (typeof scale.priceToCoordinate === 'function') {
-      y = scale.priceToCoordinate(p);
-    } else if (typeof scale.priceToPixels === 'function') {
-      y = scale.priceToPixels(p);
-    }
-    if (y !== null && y !== undefined && !isNaN(y)) return y;
+    var y = priceScalePriceToY(scale, p);
+    if (y !== null) return y;
 
     var range = scale.getVisiblePriceRange();
     if (!range || range.from === undefined || range.to === undefined) {
@@ -1300,15 +1312,9 @@ function getPriceYForLastCloseOverlay(chart, price) {
     var hi = Math.max(range.from, range.to);
     var h = pane.getHeight();
     if (!h || h <= 0) return null;
-    /* Clamp so the pill stays at the plot top/bottom when close is outside auto-scale (pan/zoom). */
     var pClamped = Math.min(hi, Math.max(lo, p));
-    if (typeof scale.priceToCoordinate === 'function') {
-      y = scale.priceToCoordinate(pClamped);
-      if (y !== null && y !== undefined && !isNaN(y)) return y;
-    } else if (typeof scale.priceToPixels === 'function') {
-      y = scale.priceToPixels(pClamped);
-      if (y !== null && y !== undefined && !isNaN(y)) return y;
-    }
+    y = priceScalePriceToY(scale, pClamped);
+    if (y !== null) return y;
     return ((hi - pClamped) / (hi - lo)) * h;
   } catch (e) {
     return null;
@@ -2604,7 +2610,11 @@ function isSeriesLastBarOffRightOfVisiblePlot(chart, lastBarTimeSec) {
   }
   try {
     var ts = chart.getTimeScale();
-    if (!ts || typeof ts.coordinateToTime !== 'function' || typeof ts.width !== 'function') {
+    if (
+      !ts ||
+      typeof ts.coordinateToTime !== 'function' ||
+      typeof ts.width !== 'function'
+    ) {
       return null;
     }
     var plotW = ts.width();
