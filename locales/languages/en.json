@@ -8062,6 +8062,14 @@
       "time_left": "{{time}} left",
       "expired": "Expired"
     },
+    "benefits": {
+      "title": "Benefits",
+      "list_header":  "Available",
+      "title_claim": "Claim Benefit",
+      "action": "Claim",
+      "empty-list":  "You don’t have any benefits right now.",
+      "powered_by": "Powered by"
+    },
     "end_of_season_rewards": {
       "confirm_label_default": "Confirm",
       "confirm_label_access": "Access",
