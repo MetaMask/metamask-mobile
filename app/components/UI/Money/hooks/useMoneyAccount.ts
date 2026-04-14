@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { ethers } from 'ethers';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
@@ -8,52 +7,41 @@ import {
   addTransaction,
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
-import { selectDefaultEndpointByChainId } from '../../../../selectors/networkController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdraw,
 } from '../utils/moneyAccountTransactions';
-import { RootState } from '../../../../reducers';
+import { getProviderByChainId } from '../../../../util/notifications/methods/common';
+import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 
+const LOG_TAG = '[Money Account]';
+
 function useMoneyAccountContext() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
-  const endpoint = useSelector((state: RootState) =>
-    vaultConfig.chainId
-      ? selectDefaultEndpointByChainId(state, vaultConfig.chainId as Hex)
-      : undefined,
-  );
-
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
 
-  const getProvider = useCallback(():
-    | ethers.providers.Web3Provider
-    | undefined => {
-    if (!endpoint?.networkClientId) {
-      return undefined;
-    }
-    const externalProvider =
-      Engine.context.NetworkController.getNetworkClientById(
-        endpoint.networkClientId,
-      ).provider;
-    return new ethers.providers.Web3Provider(externalProvider);
-  }, [endpoint]);
-
-  return { primaryMoneyAccount, vaultConfig, endpoint, getProvider };
+  return { primaryMoneyAccount, vaultConfig };
 }
 
 export function useMoneyAccountDeposit() {
-  const { primaryMoneyAccount, vaultConfig, endpoint, getProvider } =
-    useMoneyAccountContext();
+  const { primaryMoneyAccount, vaultConfig } = useMoneyAccountContext();
   const { navigateToConfirmation } = useConfirmNavigation();
 
   const initiateDeposit = useCallback(
     async (amount: bigint) => {
+      if (!vaultConfig || !primaryMoneyAccount?.address) {
+        Logger.error(
+          new Error(`${LOG_TAG} Missing vault config or money account address`),
+        );
+        return;
+      }
+
       const {
         chainId,
         boringVault,
@@ -62,26 +50,23 @@ export function useMoneyAccountDeposit() {
         lensAddress,
       } = vaultConfig;
 
-      if (
-        !primaryMoneyAccount?.address ||
-        !chainId ||
-        !boringVault ||
-        !tellerAddress ||
-        !accountantAddress ||
-        !lensAddress ||
-        !endpoint?.networkClientId
-      ) {
+      const chainIdHex = chainId as Hex;
+      const provider = getProviderByChainId(chainIdHex);
+      if (!provider) {
+        Logger.error(
+          new Error(`${LOG_TAG} No provider available for chain ${chainId}`),
+        );
         return;
       }
 
-      const provider = getProvider();
-      if (!provider) {
-        return;
-      }
+      const networkClientId =
+        Engine.context.NetworkController.findNetworkClientIdByChainId(
+          chainIdHex,
+        );
 
       const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
         amount,
-        chainId: chainId as Hex,
+        chainId: chainIdHex,
         boringVault,
         tellerAddress,
         accountantAddress,
@@ -89,90 +74,95 @@ export function useMoneyAccountDeposit() {
         provider,
       });
 
+      // Navigate early for better UX; recover on failure below.
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
         stack: Routes.MONEY.ROOT,
       });
 
-      /*
-       * We are only setting the transaction we want to do from the money account. MM pay takes care of selecting users account and moving the funds to the money account.
-       * Because of that we need from to be set to the money account and networkClientId needs to be set to the network the money account is on.
-       */
-      await addTransactionBatch({
-        from: primaryMoneyAccount.address as Hex,
-        networkClientId: endpoint.networkClientId,
-        origin: ORIGIN_METAMASK,
-        disableHook: true,
-        disableSequential: true,
-        transactions: [approveTx, depositTx],
-      });
+      try {
+        // We only set the transaction from the money account perspective.
+        // MM Pay selects the user's account and moves funds to the money account,
+        // so `from` must be the money account and `networkClientId` its chain.
+        await addTransactionBatch({
+          from: primaryMoneyAccount.address as Hex,
+          networkClientId,
+          origin: ORIGIN_METAMASK,
+          disableHook: true,
+          disableSequential: true,
+          transactions: [approveTx, depositTx],
+        });
+      } catch (error) {
+        Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
+      }
     },
-    [
-      navigateToConfirmation,
-      primaryMoneyAccount,
-      vaultConfig,
-      endpoint,
-      getProvider,
-    ],
+    [navigateToConfirmation, primaryMoneyAccount, vaultConfig],
   );
 
   return { initiateDeposit };
 }
 
 export function useMoneyAccountWithdrawal() {
-  const { primaryMoneyAccount, vaultConfig, endpoint, getProvider } =
-    useMoneyAccountContext();
+  const { primaryMoneyAccount, vaultConfig } = useMoneyAccountContext();
   const { navigateToConfirmation } = useConfirmNavigation();
 
   const initiateWithdrawal = useCallback(
     async (amount: bigint) => {
+      if (!vaultConfig || !primaryMoneyAccount?.address) {
+        Logger.error(
+          new Error(`${LOG_TAG} Missing vault config or money account address`),
+        );
+        return;
+      }
+
       const { chainId, tellerAddress, accountantAddress } = vaultConfig;
 
-      if (
-        !primaryMoneyAccount?.address ||
-        !chainId ||
-        !tellerAddress ||
-        !accountantAddress ||
-        !endpoint?.networkClientId
-      ) {
+      const chainIdHex = chainId as Hex;
+      const provider = getProviderByChainId(chainIdHex);
+      if (!provider) {
+        Logger.error(
+          new Error(`${LOG_TAG} No provider available for chain ${chainId}`),
+        );
         return;
       }
 
-      const provider = getProvider();
-      if (!provider) {
-        return;
-      }
+      const networkClientId =
+        Engine.context.NetworkController.findNetworkClientIdByChainId(
+          chainIdHex,
+        );
 
       const { params, options } = await buildMoneyAccountWithdraw({
         amount,
-        chainId: chainId as Hex,
+        chainId: chainIdHex,
         tellerAddress,
         accountantAddress,
         toAddress: primaryMoneyAccount.address as Hex,
         provider,
       });
 
+      // Navigate early for better UX; recover on failure below.
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
         stack: Routes.MONEY.ROOT,
       });
 
-      await addTransaction(
-        { from: primaryMoneyAccount.address as Hex, ...params },
-        {
-          ...options,
-          networkClientId: endpoint.networkClientId,
-          deviceConfirmedOn: WalletDevice.MM_MOBILE,
-        },
-      );
+      try {
+        await addTransaction(
+          { from: primaryMoneyAccount.address as Hex, ...params },
+          {
+            ...options,
+            networkClientId,
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          },
+        );
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          `${LOG_TAG} Withdrawal transaction failed`,
+        );
+      }
     },
-    [
-      navigateToConfirmation,
-      primaryMoneyAccount,
-      vaultConfig,
-      endpoint,
-      getProvider,
-    ],
+    [navigateToConfirmation, primaryMoneyAccount, vaultConfig],
   );
 
   return { initiateWithdrawal };

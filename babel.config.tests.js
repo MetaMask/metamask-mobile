@@ -43,6 +43,8 @@ const newOverrides = [
       'app/components/UI/Ramp/hooks/useRampTokens.test.ts',
       'app/components/Views/confirmations/hooks/pay/useTransactionPayWithdraw.ts',
       'app/components/Views/confirmations/hooks/pay/useTransactionPayWithdraw.test.ts',
+      'app/selectors/featureFlagController/moneyAccount/index.ts',
+      'app/selectors/featureFlagController/moneyAccount/index.test.ts',
       'app/selectors/featureFlagController/legacyIosGoogleConfig/index.ts',
       'app/selectors/featureFlagController/legacyIosGoogleConfig/index.test.ts',
       'app/selectors/featureFlagController/googleLoginIosUnsupportedBlocking/index.ts',

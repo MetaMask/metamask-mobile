@@ -18,6 +18,19 @@ const ACCOUNTANT_ABI = ['function getRate() view returns (uint256 rate)'];
 
 const ERC20_ABI = ['function approve(address spender, uint256 amount)'];
 
+// -- Shared constants ------------------------------------------------------
+
+const SLIPPAGE_NUMERATOR = BigInt(998);
+const SLIPPAGE_DENOMINATOR = BigInt(1000);
+
+/**
+ * Applies a 0.2% slippage tolerance to a bigint value.
+ * If this sanity-check causes a revert, no funds are lost — retry with a fresh quote.
+ */
+export function applySlippage(value: bigint): bigint {
+  return (value * SLIPPAGE_NUMERATOR) / SLIPPAGE_DENOMINATOR;
+}
+
 // -- Shared types ----------------------------------------------------------
 
 export interface MoneyAccountTxParams {
@@ -56,14 +69,6 @@ async function getExpectedDepositShares({
   return BigInt(shares.toString());
 }
 
-/**
- * Applies a 0.1% slippage tolerance to the expected deposit shares.
- * If this sanity-check causes a revert, no funds are lost — retry with a fresh quote.
- */
-function calculateMinimumMint(expectedShares: bigint): bigint {
-  return (expectedShares * BigInt(999)) / BigInt(1000);
-}
-
 function buildApproveData(boringVault: string, amount: bigint): Hex {
   const iface = new ethers.utils.Interface(ERC20_ABI);
   return iface.encodeFunctionData('approve', [
@@ -95,7 +100,7 @@ export interface MoneyAccountDepositBatchResult {
  * Builds the approve + deposit transaction pair for a Money Account deposit.
  *
  * 1. Calls `previewDeposit` on the lens contract to get expected vault shares.
- * 2. Applies a 0.1% slippage tolerance to derive `minimumMint`.
+ * 2. Applies a 0.2% slippage tolerance to derive `minimumMint`.
  * 3. Encodes ERC-20 `approve(boringVault, amount)` on the mUSD token.
  * 4. Encodes `deposit(mUSD, amount, minimumMint, 0x0)` on the teller contract.
  */
@@ -133,7 +138,7 @@ export async function buildMoneyAccountDepositBatch({
     provider,
   });
 
-  const minimumMint = calculateMinimumMint(expectedShares);
+  const minimumMint = applySlippage(expectedShares);
   const approveData = buildApproveData(boringVault, amount);
   const depositData = buildDepositData(musdAddress, amount, minimumMint);
 
@@ -185,14 +190,6 @@ export function getSharesForWithdrawal(amount: bigint, rate: bigint): bigint {
   return (amount * SHARE_DECIMALS_SCALAR) / rate;
 }
 
-/**
- * Applies a 0.1% slippage tolerance to the asset amount.
- * If this sanity-check causes a revert, no funds are lost — retry with a fresh quote.
- */
-function calculateMinimumAssets(amount: bigint): bigint {
-  return (amount * BigInt(999)) / BigInt(1000);
-}
-
 function buildWithdrawData(
   musdAddress: string,
   shareAmount: bigint,
@@ -222,7 +219,7 @@ export interface MoneyAccountWithdrawResult {
  *
  * 1. Calls `getRate` on the accountant contract to get the current vault rate.
  * 2. Converts the asset amount to vault shares.
- * 3. Applies a 0.1% slippage tolerance to derive `minimumAssets`.
+ * 3. Applies a 0.2% slippage tolerance to derive `minimumAssets`.
  * 4. Encodes `withdraw(mUSD, shareAmount, minimumAssets, to)` on the teller contract.
  */
 export async function buildMoneyAccountWithdraw({
@@ -247,7 +244,7 @@ export async function buildMoneyAccountWithdraw({
 
   const rate = await getVaultRate({ accountantAddress, provider });
   const shareAmount = getSharesForWithdrawal(amount, rate);
-  const minimumAssets = calculateMinimumAssets(amount);
+  const minimumAssets = applySlippage(amount);
   const withdrawData = buildWithdrawData(
     musdAddress,
     shareAmount,
