@@ -65,7 +65,11 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   const children = (
     <>
       {typeof title === 'string' ? (
-        <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+        <Text
+          variant={TextVariant.HeadingMd}
+          color={TextColor.TextDefault}
+          accessible={false}
+        >
           {title}
         </Text>
       ) : (
@@ -80,6 +84,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
           size={IconSize.Md}
           color={endIconColor}
           style={tw.style('ml-1')}
+          accessible={false}
         />
       )}
 
