@@ -86,6 +86,8 @@ _secrets: &secrets # Infrastructure
   QUICKNODE_OPTIMISM_URL: 'QUICKNODE_OPTIMISM_URL'
   QUICKNODE_POLYGON_URL: 'QUICKNODE_POLYGON_URL'
   QUICKNODE_HYPEREVM_URL: 'QUICKNODE_HYPEREVM_URL'
+  QUICKNODE_BSC_URL: 'QUICKNODE_BSC_URL'
+  QUICKNODE_SEI_URL: 'QUICKNODE_SEI_URL'
   # OAuth
   IOS_GOOGLE_CLIENT_ID: 'IOS_GOOGLE_CLIENT_ID'
   IOS_GOOGLE_REDIRECT_URI: 'IOS_GOOGLE_REDIRECT_URI'
@@ -100,6 +102,7 @@ _secrets: &secrets # Infrastructure
   MM_BRAZE_SDK_ENDPOINT: 'MM_BRAZE_SDK_ENDPOINT'
   # Expo
   EXPO_PROJECT_ID: 'EXPO_PROJECT_ID'
+  EXPO_TOKEN: 'EXPO_TOKEN'
 
 # Signing config (AWS Secrets Manager) - omit for dev/simulator builds
 # android_keystore_path: filename in android/keystores/ (build.gradle expects fixed paths)
