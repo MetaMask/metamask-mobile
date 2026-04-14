@@ -210,7 +210,7 @@ function useAddTransactionBatch() {
       navigateToConfirmation({
         headerShown,
         loader,
-        stack: Routes.MONEY.ROOT,
+        stack: Routes.PREDICT.ROOT,
       });
 
       addTransactionBatch({
