@@ -32,6 +32,7 @@ import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { BasicInfoFormData } from './BasicInfo';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { ENTER_ADDRESS_TEST_IDS } from './EnterAddress.testIds';
+import StateSelector from './StateSelector';
 
 export interface AddressFormData {
   addressLine1: string;
@@ -69,12 +70,28 @@ const V2EnterAddress = (): JSX.Element => {
   const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
 
-  const stateName = userRegion?.state?.name || '';
+  const deriveUsStateCode = (): string => {
+    const stateId = userRegion?.state?.stateId;
+    if (stateId) {
+      return stateId.toUpperCase().replace(/^US-/, '');
+    }
+    const id = userRegion?.state?.id;
+    if (id) {
+      const match = id.match(/us-([a-z]{2})$/i);
+      if (match) return match[1].toUpperCase();
+    }
+    return '';
+  };
+
+  const initialStateValue =
+    regionIsoCode === 'US'
+      ? deriveUsStateCode()
+      : userRegion?.state?.name || '';
 
   const initialFormData: AddressFormData = {
     addressLine1: previousFormData?.addressLine1 || '',
     addressLine2: previousFormData?.addressLine2 || '',
-    state: previousFormData?.state || stateName,
+    state: previousFormData?.state || initialStateValue,
     city: previousFormData?.city || '',
     postCode: previousFormData?.postCode || '',
     countryCode: previousFormData?.countryCode || regionIsoCode,
@@ -285,7 +302,9 @@ const V2EnterAddress = (): JSX.Element => {
                 value={formData.city}
                 onChangeText={handleFieldChange(
                   'city',
-                  focusNextField(stateInputRef),
+                  focusNextField(
+                    regionIsoCode === 'US' ? postCodeInputRef : stateInputRef,
+                  ),
                 )}
                 error={errors.city}
                 returnKeyType="next"
@@ -294,26 +313,40 @@ const V2EnterAddress = (): JSX.Element => {
                 ref={cityInputRef}
                 textContentType="addressCity"
                 autoCapitalize="words"
-                onSubmitEditing={focusNextField(stateInputRef)}
+                onSubmitEditing={focusNextField(
+                  regionIsoCode === 'US' ? postCodeInputRef : stateInputRef,
+                )}
               />
 
-              <DepositTextField
-                label={strings('deposit.enter_address.state')}
-                placeholder={strings('deposit.enter_address.state')}
-                value={formData.state}
-                onChangeText={handleFieldChange(
-                  'state',
-                  focusNextField(postCodeInputRef),
-                )}
-                error={errors.state}
-                returnKeyType="next"
-                testID={ENTER_ADDRESS_TEST_IDS.STATE_INPUT}
-                containerStyle={styles.nameInputContainer}
-                ref={stateInputRef}
-                textContentType="addressState"
-                autoCapitalize="words"
-                onSubmitEditing={focusNextField(postCodeInputRef)}
-              />
+              {regionIsoCode === 'US' ? (
+                <StateSelector
+                  label={strings('deposit.enter_address.state')}
+                  selectedValue={formData.state}
+                  onValueChange={handleFormDataChange('state')}
+                  error={errors.state}
+                  containerStyle={styles.nameInputContainer}
+                  defaultValue={strings('deposit.enter_address.select_state')}
+                  testID={ENTER_ADDRESS_TEST_IDS.STATE_INPUT}
+                />
+              ) : (
+                <DepositTextField
+                  label={strings('deposit.enter_address.state')}
+                  placeholder={strings('deposit.enter_address.state')}
+                  value={formData.state}
+                  onChangeText={handleFieldChange(
+                    'state',
+                    focusNextField(postCodeInputRef),
+                  )}
+                  error={errors.state}
+                  returnKeyType="next"
+                  testID={ENTER_ADDRESS_TEST_IDS.STATE_INPUT}
+                  containerStyle={styles.nameInputContainer}
+                  ref={stateInputRef}
+                  textContentType="addressState"
+                  autoCapitalize="words"
+                  onSubmitEditing={focusNextField(postCodeInputRef)}
+                />
+              )}
             </View>
 
             <View style={styles.nameInputRow}>

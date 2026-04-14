@@ -48,6 +48,8 @@ const Routes = {
       ERROR_DETAILS: 'RampErrorDetailsModal',
       PROCESSING_INFO: 'RampProcessingInfoModal',
       SSN_INFO: 'RampSsnInfoModal',
+      STATE_SELECTOR: 'RampStateSelectorModal',
+      UNSUPPORTED_STATE: 'RampUnsupportedStateModal',
     },
   },
   DEPOSIT: {
