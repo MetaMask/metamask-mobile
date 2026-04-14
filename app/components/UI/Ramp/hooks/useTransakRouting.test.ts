@@ -519,6 +519,7 @@ describe('useTransakRouting', () => {
             expect.objectContaining({
               name: 'RampAdditionalVerification',
               params: expect.objectContaining({
+                quote: mockQuote,
                 kycUrl: 'https://kyc.example.com',
                 workFlowRunId: 'wf-123',
                 amount: 25,
@@ -567,6 +568,7 @@ describe('useTransakRouting', () => {
             expect.objectContaining({
               name: 'RampAdditionalVerification',
               params: expect.objectContaining({
+                quote: mockQuote,
                 kycUrl: 'https://kyc.example.com',
                 workFlowRunId: 'wf-123',
                 amount: undefined,
