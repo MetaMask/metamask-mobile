@@ -2,12 +2,14 @@ import React, { useCallback } from 'react';
 import { View, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../hooks/useStyles';
-import { Label } from '@metamask/design-system-react-native';
-import Text from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+import {
+  Label,
+  Text,
+  Icon,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+  IconColor,
+} from '@metamask/design-system-react-native';
 import { createStateSelectorModalNavigationDetails } from '../Modals/StateSelectorModal';
 import { US_STATES } from '../../Deposit/constants';
 import { createStateSelectorStyles } from '../../Deposit/components/StateSelector/StateSelector.styles';
@@ -33,7 +35,7 @@ const StateSelector: React.FC<StateSelectorProps> = ({
   testID,
 }) => {
   const navigation = useNavigation();
-  const { styles, theme } = useStyles(createStateSelectorStyles, {});
+  const { styles } = useStyles(createStateSelectorStyles, {});
 
   const selectedStateName = US_STATES.find(
     (state) => state.code === selectedValue,
@@ -73,7 +75,7 @@ const StateSelector: React.FC<StateSelectorProps> = ({
           <Icon
             name={IconName.ArrowDown}
             size={IconSize.Sm}
-            color={theme.colors.icon.alternative}
+            color={IconColor.IconAlternative}
             style={styles.icon}
           />
         </TouchableOpacity>

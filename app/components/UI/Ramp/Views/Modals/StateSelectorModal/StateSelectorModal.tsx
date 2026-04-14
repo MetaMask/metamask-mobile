@@ -3,14 +3,15 @@ import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 import { useNavigation } from '@react-navigation/native';
-
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
+  FontWeight,
+  BottomSheet,
   BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+} from '@metamask/design-system-react-native';
+
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
@@ -118,7 +119,11 @@ function StateSelectorModal() {
       >
         <ListItemColumn widthType={WidthType.Fill}>
           <View style={styles.state}>
-            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.BodyLg}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+            >
               {state.name}
             </Text>
           </View>
@@ -131,7 +136,7 @@ function StateSelectorModal() {
   const renderEmptyList = useCallback(
     () => (
       <View style={styles.emptyList}>
-        <Text variant={TextVariant.BodyLGMedium}>
+        <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
           {strings('deposit.state_modal.no_state_results', {
             searchString,
           })}
@@ -155,7 +160,7 @@ function StateSelectorModal() {
   }, [scrollToTop]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderCompactStandard
         title={strings('deposit.state_modal.select_a_state')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}

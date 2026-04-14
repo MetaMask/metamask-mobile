@@ -2,21 +2,19 @@ import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+  BottomSheet,
   BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+  BottomSheetHeader,
+} from '@metamask/design-system-react-native';
 
-import styleSheet from '../../../Deposit/Views/Modals/UnsupportedStateModal/UnsupportedStateModal.styles';
+import styleSheet from './UnsupportedStateModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
@@ -79,45 +77,55 @@ function UnsupportedStateModal() {
   }, [closeBottomSheetAndNavigate, navigation]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      isInteractable={false}
+    >
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('deposit.unsupported_state_modal.title')}
         </Text>
       </BottomSheetHeader>
 
       <View style={styles.content}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
           {strings('deposit.unsupported_state_modal.location_prefix')}
         </Text>
         <View style={styles.stateContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {userRegion?.country?.flag}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {stateName || userRegion?.country?.name}
           </Text>
         </View>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('deposit.unsupported_state_modal.description')}{' '}
         </Text>
       </View>
 
       <View style={styles.footer}>
-        <Button
-          size={ButtonSize.Lg}
-          onPress={handleSelectDifferentState}
-          label={strings('deposit.unsupported_state_modal.change_state')}
-          variant={ButtonVariants.Link}
-          width={ButtonWidthTypes.Full}
-        />
-        <Button
-          size={ButtonSize.Lg}
-          onPress={handleClose}
-          label={strings('deposit.unsupported_state_modal.try_another_option')}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-        />
+        <View style={styles.buttonWrapper}>
+          <Button
+            size={ButtonBaseSize.Lg}
+            onPress={handleSelectDifferentState}
+            variant={ButtonVariant.Tertiary}
+            isFullWidth
+          >
+            {strings('deposit.unsupported_state_modal.change_state')}
+          </Button>
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            size={ButtonBaseSize.Lg}
+            onPress={handleClose}
+            variant={ButtonVariant.Primary}
+            isFullWidth
+          >
+            {strings('deposit.unsupported_state_modal.try_another_option')}
+          </Button>
+        </View>
       </View>
     </BottomSheet>
   );
