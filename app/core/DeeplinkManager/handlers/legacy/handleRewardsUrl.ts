@@ -97,6 +97,8 @@ export const handleRewardsUrl = async ({
           campaign: urlParams.campaign,
         }),
       );
+    } else {
+      ReduxService.store.dispatch(setPendingDeeplink(null));
     }
     NavigationService.navigation.navigate(Routes.REWARDS_VIEW);
   } catch (error) {

@@ -107,7 +107,7 @@ const OndoCampaignDetailsView: React.FC = () => {
   const effectiveCampaignId = routeCampaignId ?? campaign?.id ?? '';
 
   const { pendingPicker, setPendingPicker, sheetRef, handleGroupSelect } =
-    useOndoAccountPicker(effectiveCampaignId);
+    useOndoAccountPicker(effectiveCampaignId || undefined);
 
   const [portfolioNotEligibleAction, setPortfolioNotEligibleAction] = useState<
     (() => void) | null
