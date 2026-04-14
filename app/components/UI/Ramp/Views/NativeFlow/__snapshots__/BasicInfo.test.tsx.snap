@@ -740,7 +740,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                   >
                     <TextInput
                       editable={false}
-                      placeholder="2000-01-01"
+                      placeholder="01/01/2000"
                       placeholderTextColor="#babbbe"
                       pointerEvents="none"
                       style={
@@ -1731,7 +1731,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                   >
                     <TextInput
                       editable={false}
-                      placeholder="2000-01-01"
+                      placeholder="01/01/2000"
                       placeholderTextColor="#babbbe"
                       pointerEvents="none"
                       style={
@@ -2879,7 +2879,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                   >
                     <TextInput
                       editable={false}
-                      placeholder="2000-01-01"
+                      placeholder="01/01/2000"
                       placeholderTextColor="#babbbe"
                       pointerEvents="none"
                       style={
