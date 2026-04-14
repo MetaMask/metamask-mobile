@@ -3,6 +3,9 @@ import { LocalNode, LocalNodeType } from '../../framework/types';
 import { loginToApp } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
 import EarnLendingView from '../../page-objects/Earn/EarnLendingView';
+import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import StakeView from '../../page-objects/Stake/StakeView';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
@@ -69,10 +72,28 @@ describe(SmokeTrade('Lending Withdrawal from Wallet'), (): void => {
 
           await EarnLendingView.expectWithdrawalConfirmationVisible();
           await EarnLendingView.expectConfirmButtonVisible(30000);
-          await EarnLendingView.tapConfirmWithRetry(60000);
+          await EarnLendingView.tapConfirm(30000);
+          await FooterActions.tapConfirmButton();
         } finally {
           await device.enableSynchronization();
         }
+
+        await TabBarComponent.tapActivity();
+        await Assertions.expectElementToBeVisible(
+          ActivitiesView.lendingWithdrawalActivity,
+          {
+            timeout: 120000,
+            description:
+              'Lending withdrawal activity should appear after withdrawal',
+          },
+        );
+        await Assertions.expectElementToBeVisible(
+          ActivitiesView.confirmedLabel,
+          {
+            timeout: 120000,
+            description: 'Lending withdrawal should show Confirmed status',
+          },
+        );
       },
     );
   });

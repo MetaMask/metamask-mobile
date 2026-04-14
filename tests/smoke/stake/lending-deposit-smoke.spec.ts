@@ -4,6 +4,7 @@ import { loginToApp } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
 import StakeView from '../../page-objects/Stake/StakeView';
 import EarnLendingView from '../../page-objects/Earn/EarnLendingView';
+import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { SmokeTrade } from '../../tags';
@@ -40,7 +41,7 @@ describe(SmokeTrade('Lending Deposit from Wallet'), (): void => {
             type: LocalNodeType.anvil,
             options: {
               chainId: 1,
-              forkUrl: `https://mainnet.infura.io/v3/79dfd08201b1415186862245a546ec91`,
+              forkUrl: `https://mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`,
             },
           },
         ],
@@ -65,21 +66,38 @@ describe(SmokeTrade('Lending Deposit from Wallet'), (): void => {
           });
 
           await StakeView.enterAmount(DEPOSIT_AMOUNT);
-          await StakeView.tapReviewWithRetry(30000);
+          await StakeView.tapReview(15000);
 
           await EarnLendingView.expectDepositConfirmationVisible();
           await EarnLendingView.expectConfirmButtonVisible(30000);
-          await EarnLendingView.tapConfirmWithRetry(60000);
+
+          // Step 1: Approve — tap lending footer then confirm the spending cap
+          await EarnLendingView.tapConfirm(30000);
+          await FooterActions.tapConfirmButton();
+
+          // Step 2: Deposit — wait for button label to change to "Confirm"
+          await Gestures.waitAndTap(EarnLendingView.confirmButtonByLabel, {
+            timeout: 60000,
+            elemDescription: 'Deposit Confirm button on lending confirmation',
+          });
+          await FooterActions.tapConfirmButton();
         } finally {
           await device.enableSynchronization();
         }
 
         await TabBarComponent.tapActivity();
         await Assertions.expectElementToBeVisible(
-          ActivitiesView.approveActivity,
+          ActivitiesView.lendingDepositActivity,
           {
             timeout: 120000,
-            description: 'Approve activity should appear for token allowance',
+            description: 'Lending deposit activity should appear after deposit',
+          },
+        );
+        await Assertions.expectElementToBeVisible(
+          ActivitiesView.confirmedLabel,
+          {
+            timeout: 120000,
+            description: 'Lending deposit should show Confirmed status',
           },
         );
       },

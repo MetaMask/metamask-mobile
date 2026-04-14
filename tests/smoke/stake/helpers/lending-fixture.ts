@@ -1,9 +1,12 @@
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder, {
+  DEFAULT_FIXTURE_ACCOUNT,
+} from '../../../framework/fixtures/FixtureBuilder';
 import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../../seeder/anvil-manager';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
+import { keccak256, encodePacked, pad, toHex, type Hex } from 'viem';
 
 /** Lowercase USDC mainnet address — must stay lowercase so the earn selector lookup matches. */
 const USDC_MAINNET = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
@@ -17,14 +20,109 @@ export interface LendingFixtureOptions {
   usdcBalance?: number;
 }
 
-export function createLendingFixture(
+/**
+ * USDC balanceOf mapping is at storage slot 9 (FiatTokenV2_1).
+ * slot = keccak256(abi.encode(address, 9))
+ */
+const USDC_BALANCE_SLOT = 9n;
+
+async function seedUsdcBalance(
+  node: AnvilManager,
+  account: Hex,
+  amount: bigint,
+): Promise<void> {
+  const { testClient } = node.getProvider();
+  const slot = keccak256(
+    encodePacked(
+      ['bytes32', 'bytes32'],
+      [pad(account, { size: 32 }), pad(toHex(USDC_BALANCE_SLOT), { size: 32 })],
+    ),
+  );
+  await testClient.setStorageAt({
+    address: USDC_MAINNET as Hex,
+    index: slot,
+    value: pad(toHex(amount), { size: 32 }),
+  });
+}
+
+const ERC20_APPROVE_ABI = [
+  {
+    name: 'approve',
+    type: 'function',
+    inputs: [
+      { name: 'spender', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    outputs: [{ type: 'bool' }],
+  },
+] as const;
+
+const AAVE_SUPPLY_ABI = [
+  {
+    name: 'supply',
+    type: 'function',
+    inputs: [
+      { name: 'asset', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+      { name: 'onBehalfOf', type: 'address' },
+      { name: 'referralCode', type: 'uint16' },
+    ],
+    outputs: [],
+  },
+] as const;
+
+const AAVE_POOL = '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2';
+
+async function seedAethUsdcViaDeposit(
+  node: AnvilManager,
+  account: Hex,
+  amount: bigint,
+): Promise<void> {
+  const { testClient, walletClient, publicClient } = node.getProvider();
+
+  await testClient.impersonateAccount({ address: account });
+
+  const approveTx = await walletClient.writeContract({
+    account,
+    address: USDC_MAINNET as Hex,
+    abi: ERC20_APPROVE_ABI,
+    functionName: 'approve',
+    args: [AAVE_POOL as Hex, amount],
+  });
+  await publicClient.waitForTransactionReceipt({ hash: approveTx });
+
+  const supplyTx = await walletClient.writeContract({
+    account,
+    address: AAVE_POOL as Hex,
+    abi: AAVE_SUPPLY_ABI,
+    functionName: 'supply',
+    args: [USDC_MAINNET as Hex, amount, account, 0],
+  });
+  await publicClient.waitForTransactionReceipt({ hash: supplyTx });
+
+  await testClient.stopImpersonatingAccount({ address: account });
+}
+
+export async function createLendingFixture(
   node: AnvilManager,
   options: LendingFixtureOptions = {},
-): ReturnType<FixtureBuilder['build']> {
+): Promise<ReturnType<FixtureBuilder['build']>> {
   const { hasExistingPosition = false, usdcBalance = 10000 } = options;
 
   const rpcPort =
     node instanceof AnvilManager ? (node.getPort() ?? AnvilPort()) : undefined;
+
+  const usdcMinimalUnits = BigInt(usdcBalance) * 10n ** 6n;
+  await seedUsdcBalance(node, DEFAULT_FIXTURE_ACCOUNT as Hex, usdcMinimalUnits);
+
+  if (hasExistingPosition) {
+    const depositAmount = usdcMinimalUnits / 2n;
+    await seedAethUsdcViaDeposit(
+      node,
+      DEFAULT_FIXTURE_ACCOUNT as Hex,
+      depositAmount,
+    );
+  }
 
   const fixture = new FixtureBuilder()
     .withNetworkController({

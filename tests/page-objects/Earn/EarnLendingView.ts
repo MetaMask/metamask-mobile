@@ -60,37 +60,41 @@ class EarnLendingView {
     );
   }
 
+  get confirmButtonByLabel(): DetoxElement {
+    return Matchers.getElementByText(EarnLendingViewSelectorsText.CONFIRM);
+  }
+
   async tapReviewButton(timeout?: number): Promise<void> {
     await Gestures.waitAndTap(this.reviewButton, {
       timeout,
-      description: 'tap Review button on withdraw input',
+      elemDescription: 'Review button on withdraw input',
     });
   }
 
   async tapWithdraw(timeout?: number): Promise<void> {
     await Gestures.waitAndTap(this.withdrawButton, {
       timeout,
-      description: 'tap Withdraw button on lending balance',
+      elemDescription: 'Withdraw button on lending balance',
     });
   }
 
   async tapDeposit(timeout?: number): Promise<void> {
     await Gestures.waitAndTap(this.depositButton, {
       timeout,
-      description: 'tap Deposit button on lending balance',
+      elemDescription: 'Deposit button on lending balance',
     });
   }
 
   async tapConfirm(timeout?: number): Promise<void> {
     await Gestures.waitAndTap(this.confirmButton, {
       timeout,
-      description: 'tap Confirm button on lending confirmation',
+      elemDescription: 'Confirm button on lending confirmation',
     });
   }
 
   async tapCancel(): Promise<void> {
     await Gestures.waitAndTap(this.cancelButton, {
-      description: 'tap Cancel button on lending confirmation',
+      elemDescription: 'Cancel button on lending confirmation',
     });
   }
 
@@ -104,7 +108,7 @@ class EarnLendingView {
         if (!alreadyGone) {
           await Gestures.waitAndTap(this.confirmButton, {
             timeout: 5000,
-            description: 'tap Confirm button (retry loop)',
+            elemDescription: 'Confirm button (retry loop)',
           });
         }
       },

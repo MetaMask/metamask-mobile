@@ -87,26 +87,26 @@ function buildAccountsApiV2Response(usdcBalance: number) {
 }
 
 const LENDING_MARKET_USDC = {
+  id: `${AAVE_POOL_ADDRESS.toLowerCase()}-${USDC_MAINNET.toLowerCase()}`,
+  chainId: 1,
   protocol: 'aave',
+  name: 'Aave Ethereum USDC',
+  address: AAVE_POOL_ADDRESS.toLowerCase(),
+  tvlUnderlying: '1000000000000',
+  netSupplyRate: 4.5,
+  totalSupplyRate: 4.5,
   underlying: {
-    address: USDC_MAINNET,
-    symbol: 'USDC',
-    decimals: 6,
-    name: 'USD Coin',
     chainId: 1,
+    address: USDC_MAINNET.toLowerCase(),
   },
   outputToken: {
-    address: AAVE_USDC_OUTPUT_TOKEN,
-    symbol: 'aEthUSDC',
-    decimals: 6,
-    name: 'Aave Ethereum USDC',
     chainId: 1,
+    address: AAVE_USDC_OUTPUT_TOKEN.toLowerCase(),
   },
-  supplyRate: '0.045',
-  totalSupply: '1000000000000',
-  poolAddress: AAVE_POOL_ADDRESS,
+  rewards: [],
 };
 
+// Shape: LendingPosition from @metamask/stake-sdk = { id, chainId, market: LendingMarket, assets }
 function buildLendingPositionsResponse(hasPosition: boolean) {
   if (!hasPosition) {
     return { positions: [] };
@@ -114,25 +114,10 @@ function buildLendingPositionsResponse(hasPosition: boolean) {
   return {
     positions: [
       {
-        protocol: 'aave',
-        underlying: {
-          address: USDC_MAINNET,
-          symbol: 'USDC',
-          decimals: 6,
-          name: 'USD Coin',
-          chainId: 1,
-        },
-        outputToken: {
-          address: AAVE_USDC_OUTPUT_TOKEN,
-          symbol: 'aEthUSDC',
-          decimals: 6,
-          name: 'Aave Ethereum USDC',
-          chainId: 1,
-        },
-        balance: '500000000', // 500 USDC in minimal units
-        balanceFormatted: '500.0',
-        supplyRate: '0.045',
-        poolAddress: AAVE_POOL_ADDRESS,
+        id: `${LENDING_MARKET_USDC.id}-position`,
+        chainId: 1,
+        market: LENDING_MARKET_USDC,
+        assets: '500000000',
       },
     ],
   };
@@ -228,6 +213,23 @@ export async function setupLendingMocks(
   await setupMockRequest(mockServer, {
     url: /api\.merkl\.xyz\/v4\/users\/0x[a-fA-F0-9]+\/rewards\?chainId=/,
     response: [],
+    requestMethod: 'GET',
+    responseCode: 200,
+  });
+
+  // Token metadata for output token (aEthUSDC) — TokensController looks this up
+  await setupMockRequest(mockServer, {
+    url: new RegExp(
+      `token\\.api\\.cx\\.metamask\\.io\\/token\\/\\d+\\?.*address=${AAVE_USDC_OUTPUT_TOKEN.toLowerCase()}`,
+      'i',
+    ),
+    response: {
+      address: AAVE_USDC_OUTPUT_TOKEN,
+      symbol: 'aEthUSDC',
+      decimals: 6,
+      name: 'Aave Ethereum USDC',
+      iconUrl: '',
+    },
     requestMethod: 'GET',
     responseCode: 200,
   });
