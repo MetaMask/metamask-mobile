@@ -143,7 +143,7 @@ import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithN
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
 import { useNftDetection } from '../../hooks/useNftDetection';
-import { Carousel } from '../../UI/Carousel';
+import BrazeBanner from '../../UI/BrazeBanner';
 import { TokenI } from '../../UI/Tokens/types';
 import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
 
@@ -1331,7 +1331,7 @@ const Wallet = ({
           receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
         />
 
-        {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+        <BrazeBanner />
 
         {isHomepageSectionsV1Enabled ? (
           <>

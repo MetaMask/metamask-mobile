@@ -27,6 +27,7 @@ const createState = (isSignedIn: boolean) =>
 describe('useBrazeIdentity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSetBrazeUser.mockResolvedValue(undefined);
   });
 
   it('calls setBrazeUser on mount when already signed in', () => {
@@ -45,5 +46,23 @@ describe('useBrazeIdentity', () => {
 
     expect(mockClearBrazeUser).toHaveBeenCalledTimes(1);
     expect(mockSetBrazeUser).not.toHaveBeenCalled();
+  });
+
+  it('calls refreshBrazeBanners after setBrazeUser resolves when signed in', async () => {
+    renderHookWithProvider(() => useBrazeIdentity(), {
+      state: createState(true),
+    });
+
+    await Promise.resolve();
+
+    expect(mockRefreshBrazeBanners).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call refreshBrazeBanners when not signed in', () => {
+    renderHookWithProvider(() => useBrazeIdentity(), {
+      state: createState(false),
+    });
+
+    expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
   });
 });
