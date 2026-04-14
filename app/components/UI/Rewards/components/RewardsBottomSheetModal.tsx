@@ -138,7 +138,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
         iconName = IconName.Danger;
         break;
       case ModalType.Confirmation:
-        iconName = LegacyIconName.Question as unknown as IconName;
+        iconName = IconName.Confirmation;
         iconStyle = 'text-primary-default';
         break;
     }
