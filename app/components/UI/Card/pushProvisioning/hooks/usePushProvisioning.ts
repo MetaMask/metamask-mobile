@@ -19,11 +19,9 @@ import {
 } from '../types';
 import { createPushProvisioningService, ProvisioningOptions } from '../service';
 import { getCardProvider, getWalletProvider } from '../providers';
-import { isAccountEligibleForProvisioning } from '../constants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { CardActions } from '../../util/metrics';
-import { useCardSDK } from '../../sdk';
 import {
   selectIsCardAuthenticated,
   selectCardUserLocation,
@@ -66,7 +64,7 @@ export function usePushProvisioning(
   const {
     cardDetails,
     userAddress,
-    accountCreatedAt,
+    provisioningEligible,
     onSuccess,
     onError,
     onCancel,
@@ -80,8 +78,6 @@ export function usePushProvisioning(
   const statusRef = useRef<ProvisioningStatus>(status);
   statusRef.current = status;
 
-  // Get SDK and location
-  const { sdk: cardSDK, isLoading: isSDKLoading } = useCardSDK();
   const userCardLocation = useSelector(selectCardUserLocation);
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
 
@@ -103,11 +99,8 @@ export function usePushProvisioning(
 
   // Create the adapters based on user location and platform
   const cardAdapter = useMemo(
-    () =>
-      isSDKLoading || !cardSDK
-        ? null
-        : getCardProvider(userCardLocation, cardSDK),
-    [cardSDK, userCardLocation, isSDKLoading],
+    () => getCardProvider(userCardLocation),
+    [userCardLocation],
   );
 
   const walletAdapter = useMemo(() => getWalletProvider(), []);
@@ -452,17 +445,15 @@ export function usePushProvisioning(
     setError(null);
   }, []);
 
-  const isLoading = isSDKLoading || isEligibilityCheckLoading;
+  const isLoading = isEligibilityCheckLoading;
 
   // Check if card is eligible (status must be 'ACTIVE')
   const isCardEligible = cardDetails?.status === 'ACTIVE';
 
-  const isAccountEligible = isAccountEligibleForProvisioning(accountCreatedAt);
-
   const canAddToWallet =
     isPushProvisioningFeatureEnabled &&
     isAuthenticated &&
-    isAccountEligible &&
+    provisioningEligible &&
     !isLoading &&
     !!cardDetails &&
     isCardEligible &&

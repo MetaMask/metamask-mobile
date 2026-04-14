@@ -133,7 +133,11 @@ const OndoPrizePool: React.FC<OndoPrizePoolProps> = ({
         justifyContent={BoxJustifyContent.Between}
       >
         <Box>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
             {strings('rewards.ondo_campaign_prize_pool.current_label')}
           </Text>
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
@@ -144,6 +148,7 @@ const OndoPrizePool: React.FC<OndoPrizePoolProps> = ({
           <Box alignItems={BoxAlignItems.End}>
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
             >
               {strings('rewards.ondo_campaign_prize_pool.next_label')}
@@ -170,10 +175,14 @@ const OndoPrizePool: React.FC<OndoPrizePoolProps> = ({
         color={TextColor.TextAlternative}
         testID={ONDO_PRIZE_POOL_TEST_IDS.SUBTEXT}
       >
-        {strings('rewards.ondo_campaign_prize_pool.volume_subtext', {
-          current: formatCompactUsd(deposited),
-          target: formatCompactUsd(nextThreshold),
-        })}
+        {isMaxTier
+          ? strings('rewards.ondo_campaign_prize_pool.max_tier_subtext', {
+              maxThreshold: formatCompactUsd(nextThreshold),
+            })
+          : strings('rewards.ondo_campaign_prize_pool.volume_subtext', {
+              current: formatCompactUsd(deposited),
+              target: formatCompactUsd(nextThreshold),
+            })}
       </Text>
     </Box>
   );

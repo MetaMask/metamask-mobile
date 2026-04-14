@@ -54,6 +54,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_prize_pool.next_label': 'Next',
       'rewards.ondo_campaign_prize_pool.volume_subtext':
         '{{current}} of {{target}} volume',
+      'rewards.ondo_campaign_prize_pool.max_tier_subtext':
+        '{{maxThreshold}}+ TVL — all milestones reached',
     };
     let result = t[key] ?? key;
     if (params) {
@@ -130,7 +132,9 @@ describe('OndoPrizePool', () => {
 
     expect(getByText('$100,000.00')).toBeDefined();
     expect(queryByText('Next')).toBeNull();
-    expect(getByTestId(ONDO_PRIZE_POOL_TEST_IDS.SUBTEXT)).toBeDefined();
+
+    const subtext = getByTestId(ONDO_PRIZE_POOL_TEST_IDS.SUBTEXT);
+    expect(subtext.props.children).toBe('$6M+ TVL — all milestones reached');
 
     const progressBar = getByTestId(ONDO_PRIZE_POOL_TEST_IDS.PROGRESS_BAR);
     const innerBar = progressBar.props.children;
