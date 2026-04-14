@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 // Fox size matched to the native splash asset across all tested devices:
-const FOX_SIZE = 142;
+export const FOX_SIZE = 142;
 // Static fox PNG size — matches the fox asset's natural dimensions
 const STATIC_FOX_SIZE = 98;
 // Vertical correction derived from the Rive artboard (256x256).
@@ -21,9 +21,13 @@ const STATIC_FOX_VERTICAL_OFFSET = 2;
  * @param params Style sheet params.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { screenH: number; screenW: number };
+}) => {
+  const { theme, vars } = params;
   const { colors } = theme;
+  const { screenH, screenW } = vars;
 
   return StyleSheet.create({
     container: {
@@ -51,6 +55,15 @@ const styleSheet = (params: { theme: Theme }) => {
       // at 50%: measured center y≈120.5/256 vs 128/256 geometric center).
       top: (FOX_SIZE - STATIC_FOX_SIZE) / 2 - STATIC_FOX_VERTICAL_OFFSET,
       left: (FOX_SIZE - STATIC_FOX_SIZE) / 2,
+    },
+    // On Android: position the fox at the exact center of the physical screen,
+    // mirroring android:gravity="center" in app_background.xml.
+    // Bypasses SafeAreaView's inset-padding centering, which shifts the fox
+    // in opposite directions for gesture vs 3-button navigation.
+    animationWrapperAndroid: {
+      position: 'absolute',
+      top: Math.round((screenH - FOX_SIZE) / 2),
+      left: Math.round((screenW - FOX_SIZE) / 2),
     },
   });
 };

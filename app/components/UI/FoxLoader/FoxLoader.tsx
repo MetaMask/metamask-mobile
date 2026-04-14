@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Animated, Platform } from 'react-native';
+import { View, Animated, Platform, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Rive, {
   Fit,
   Alignment,
@@ -18,7 +19,6 @@ import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 const splashRiveFile = require('../../../animations/splash_screen.riv');
 
 const SPLASH_STATE_MACHINE = 'Splash_animation';
-const STYLE_PARAMS = {};
 const SPLASH_IDLE_STATE = 'Blink and look around (Shorter)';
 // Maximum time to wait for the animation to complete before forcing the app to show.
 // Guards against silent failures: corrupted .riv file, stuck state machine, unsupported renderer.
@@ -52,7 +52,10 @@ const FoxLoader = ({
   appServicesReady = false,
   onAnimationComplete = () => undefined,
 }: FoxLoaderProps) => {
-  const { styles } = useStyles(styleSheet, STYLE_PARAMS);
+  const screenDims = Dimensions.get('screen');
+  const screenH = screenDims.height;
+  const screenW = screenDims.width;
+  const { styles } = useStyles(styleSheet, { screenH, screenW });
   const riveRef = useRef<RiveRef>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isIdle, setIsIdle] = useState(false);
@@ -145,10 +148,16 @@ const FoxLoader = ({
   }, [appServicesReady, isIdle, stopAnimation]);
 
   return (
-    <View testID={FoxLoaderSelectorsIDs.CONTAINER} style={styles.container}>
+    <SafeAreaView
+      testID={FoxLoaderSelectorsIDs.CONTAINER}
+      style={styles.container}
+    >
       <View
         testID={FoxLoaderSelectorsIDs.ANIMATION_WRAPPER}
-        style={styles.animationWrapper}
+        style={[
+          styles.animationWrapper,
+          Platform.OS === 'android' && styles.animationWrapperAndroid,
+        ]}
       >
         <Animated.Image
           testID={FoxLoaderSelectorsIDs.STATIC_FOX}
@@ -210,7 +219,7 @@ const FoxLoader = ({
           />
         </Animated.View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

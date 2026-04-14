@@ -15,12 +15,19 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" fixedFrame="YES" image="fox-splash-screen" translatesAutoresizingMaskIntoConstraints="NO" id="Rmq-1b-Way">
-                                <rect key="frame" x="112" y="277" width="150" height="112"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="fox-splash-screen" translatesAutoresizingMaskIntoConstraints="NO" id="Rmq-1b-Way">
+                                <rect key="frame" x="112.5" y="277.5" width="150" height="112"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="150" id="fox-width-constraint"/>
+                                    <constraint firstAttribute="height" constant="112" id="fox-height-constraint"/>
+                                </constraints>
                             </imageView>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="Rmq-1b-Way" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="fox-center-x-constraint"/>
+                            <constraint firstItem="Rmq-1b-Way" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="fox-center-y-constraint"/>
+                        </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
