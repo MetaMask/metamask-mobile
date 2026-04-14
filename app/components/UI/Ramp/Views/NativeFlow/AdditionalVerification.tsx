@@ -15,9 +15,11 @@ import { useNavigation } from '@react-navigation/native';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import additionalVerificationImage from '../../Deposit/assets/additional-verification.png';
 import { strings } from '../../../../../../locales/i18n';
+import { type TransakBuyQuote } from '@metamask/ramps-controller';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useParams } from '../../../../../util/navigation/navUtils';
 interface V2AdditionalVerificationParams {
+  quote: TransakBuyQuote;
   kycUrl: string;
   workFlowRunId: string;
   /** From BuildQuote route; keeps stack amount in sync when opening KYC webview. */
@@ -27,6 +29,7 @@ interface V2AdditionalVerificationParams {
 const V2AdditionalVerification = () => {
   const navigation = useNavigation();
   const {
+    quote,
     kycUrl,
     workFlowRunId,
     amount: userEnteredAmount,
@@ -49,8 +52,13 @@ const V2AdditionalVerification = () => {
   }, [navigation, theme]);
 
   const handleContinuePress = useCallback(() => {
-    navigateToKycWebview({ kycUrl, workFlowRunId, amount: userEnteredAmount });
-  }, [navigateToKycWebview, kycUrl, workFlowRunId, userEnteredAmount]);
+    navigateToKycWebview({
+      quote,
+      kycUrl,
+      workFlowRunId,
+      amount: userEnteredAmount,
+    });
+  }, [navigateToKycWebview, quote, kycUrl, workFlowRunId, userEnteredAmount]);
 
   return (
     <ScreenLayout>

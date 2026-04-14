@@ -30,7 +30,7 @@ const Routes = {
     BANK_DETAILS: 'RampBankDetails',
     BANK_DETAILS_STANDALONE: 'RampBankDetailsStandalone',
     ADDITIONAL_VERIFICATION: 'RampAdditionalVerification',
-    KYC_CHECKOUT: 'RampKycCheckout',
+    KYC_WEBVIEW: 'RampKycWebview',
     ENTER_ADDRESS: 'RampEnterAddress',
     MODALS: {
       ID: 'RampModals',

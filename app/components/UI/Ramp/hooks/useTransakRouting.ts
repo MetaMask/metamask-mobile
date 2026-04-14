@@ -14,8 +14,7 @@ import { generateThemeParameters } from '../Deposit/utils';
 import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
 import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
 import { createCheckoutNavDetails } from '../Views/Checkout';
-import { createKycCheckoutNavDetails } from '../Views/NativeFlow/KycCheckout';
-import { registerCheckoutCallback } from '../utils/checkoutCallbackRegistry';
+import { createKycWebviewNavDetails } from '../Views/NativeFlow/KycWebview';
 import useAnalytics from './useAnalytics';
 import { showV2OrderToast } from '../utils/v2OrderToast';
 import Logger from '../../../../util/Logger';
@@ -38,6 +37,7 @@ interface RampStackParamList {
   RampBankDetails: { orderId: string; shouldUpdate?: boolean };
   RampOrderProcessing: { orderId: string };
   RampAdditionalVerification: {
+    quote: TransakBuyQuote;
     kycUrl: string;
     workFlowRunId: string;
     /** User-entered fiat from BuildQuote; used when resetting stack so amount screen keeps the typed value. */
@@ -241,10 +241,12 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
   const navigateToAdditionalVerificationCallback = useCallback(
     ({
+      quote,
       kycUrl,
       workFlowRunId,
       amount,
     }: {
+      quote: TransakBuyQuote;
       kycUrl: string;
       workFlowRunId: string;
       amount?: number;
@@ -258,7 +260,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
           },
           {
             name: Routes.RAMP.ADDITIONAL_VERIFICATION,
-            params: { kycUrl, workFlowRunId, amount },
+            params: { quote, kycUrl, workFlowRunId, amount },
           },
         ],
       });
@@ -392,18 +394,22 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
   const navigateToKycWebviewCallback = useCallback(
     ({
+      quote,
       kycUrl,
       workFlowRunId,
       amount,
     }: {
+      quote: TransakBuyQuote;
       kycUrl: string;
       workFlowRunId: string;
       amount?: number;
     }) => {
-      const [routeName, routeParams] = createKycCheckoutNavDetails({
+      const [routeName, routeParams] = createKycWebviewNavDetails({
         url: kycUrl,
         providerName: 'Transak',
         workFlowRunId,
+        quote,
+        amount,
       });
       navigation.reset({
         index: 2,
@@ -571,6 +577,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
               });
 
               navigateToAdditionalVerificationCallback({
+                quote,
                 kycUrl: metadata.kycUrl,
                 workFlowRunId: metadata.workFlowRunId,
                 amount,

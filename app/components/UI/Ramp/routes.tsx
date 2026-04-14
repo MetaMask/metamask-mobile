@@ -15,7 +15,7 @@ import V2BankDetails from './Views/NativeFlow/BankDetails';
 import V2OrderProcessing from './Views/NativeFlow/OrderProcessing';
 import V2KycProcessing from './Views/NativeFlow/KycProcessing';
 import V2AdditionalVerification from './Views/NativeFlow/AdditionalVerification';
-import V2KycCheckout from './Views/NativeFlow/KycCheckout';
+import V2KycWebview from './Views/NativeFlow/KycWebview';
 import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
 import SettingsModal from './Views/Modals/SettingsModal';
 import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
@@ -76,8 +76,8 @@ const MainRoutes = () => (
       }}
     />
     <Stack.Screen
-      name={Routes.RAMP.KYC_CHECKOUT}
-      component={V2KycCheckout}
+      name={Routes.RAMP.KYC_WEBVIEW}
+      component={V2KycWebview}
       options={{
         headerShown: false,
         cardStyle: { backgroundColor: 'transparent' },
