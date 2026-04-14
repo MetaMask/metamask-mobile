@@ -71,20 +71,7 @@ describe('displayOrder', () => {
     it('converts a legacy FiatOrder to a DisplayOrder', () => {
       const fiatOrder = createMockFiatOrder();
       const result = fiatOrderToDisplayOrder(fiatOrder);
-      expect(result).toEqual({
-        account: '0xabc',
-        createdAt: 1000,
-        cryptoAmount: '...',
-        cryptoCurrencySymbol: 'ETH',
-        fiatAmount: '100',
-        fiatCurrencyCode: 'USD',
-        id: 'legacy-1',
-        network: '1',
-        orderType: 'BUY',
-        providerName: 'MockProvider_AGGREGATOR',
-        source: 'legacy',
-        status: 'COMPLETED',
-      });
+      expect(result).toMatchSnapshot();
     });
 
     it('uses placeholder when cryptoAmount is undefined or zero', () => {
@@ -104,20 +91,7 @@ describe('displayOrder', () => {
     it('converts a V2 RampsOrder to a DisplayOrder', () => {
       const order = createMockRampsOrder();
       const result = rampsOrderToDisplayOrder(order);
-      expect(result).toEqual({
-        account: '0x123',
-        createdAt: 2000,
-        cryptoAmount: '0.5',
-        cryptoCurrencySymbol: 'ETH',
-        fiatAmount: 100,
-        fiatCurrencyCode: 'USD',
-        id: 'v2-1',
-        network: 'eip155:1',
-        orderType: 'BUY',
-        providerName: 'TestProvider',
-        source: 'v2',
-        status: 'COMPLETED',
-      });
+      expect(result).toMatchSnapshot();
     });
 
     it('maps all RampsOrderStatus values to display strings', () => {

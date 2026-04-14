@@ -1,0 +1,63 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BadgeWrapper should render BadgeWrapper correctly 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    {
+      "alignSelf": "flex-start",
+      "position": "relative",
+    }
+  }
+  testID="badge-wrapper-badge"
+>
+  <View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 12,
+          "height": 24,
+          "justifyContent": "center",
+          "width": 24,
+        }
+      }
+    >
+      <Text
+        variant="sBodySM"
+      >
+        C
+      </Text>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "aspectRatio": 1,
+        "height": 0,
+        "justifyContent": "center",
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "transform": [
+          {
+            "translateX": 0,
+          },
+          {
+            "translateY": -0,
+          },
+        ],
+      }
+    }
+  >
+    <Badge
+      imageSource={1}
+      isScaled={true}
+      name="Ethereum"
+      variant="network"
+    />
+  </View>
+</View>
+`;

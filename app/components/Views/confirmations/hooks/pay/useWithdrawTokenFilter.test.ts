@@ -134,7 +134,7 @@ describe('useWithdrawTokenFilter', () => {
     expect(result.current(input)).toBe(input);
   });
 
-  it('returns walletTokens from useSendTokens for withdraw with allowlist', () => {
+  it('returns allTokens from useSendTokens for withdraw with allowlist', () => {
     const { result } = runHook({
       type: TransactionType.predictWithdraw,
       postQuoteFlags: {
@@ -147,20 +147,20 @@ describe('useWithdrawTokenFilter', () => {
 
     const returned = result.current([]);
 
-    expect(returned).toEqual(ALL_TOKENS_MOCK);
+    expect(returned).toBe(ALL_TOKENS_MOCK);
   });
 
-  it('calls useSendTokens without enrichment for non-withdraw transactions', () => {
+  it('calls useSendTokens without full catalog options for non-withdraw transactions', () => {
     runHook({ type: TransactionType.simpleSend });
 
     expect(mockUseSendTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
+      includeAllTokens: false,
       tokenFilter: undefined,
-      enrichTokenRequests: [],
     });
   });
 
-  it('calls useSendTokens without enrichment when withdraw allowlist is missing', () => {
+  it('calls useSendTokens without full catalog options when withdraw allowlist is missing', () => {
     runHook({
       type: TransactionType.predictWithdraw,
       postQuoteFlags: {
@@ -170,12 +170,12 @@ describe('useWithdrawTokenFilter', () => {
 
     expect(mockUseSendTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
+      includeAllTokens: false,
       tokenFilter: undefined,
-      enrichTokenRequests: [],
     });
   });
 
-  it('calls useSendTokens with includeNoBalance, tokenFilter, and enrichTokenRequests when withdraw allowlist is present', () => {
+  it('calls useSendTokens with full catalog options and tokenFilter when withdraw allowlist is present', () => {
     runHook({
       type: TransactionType.predictWithdraw,
       postQuoteFlags: {
@@ -185,10 +185,8 @@ describe('useWithdrawTokenFilter', () => {
 
     expect(mockUseSendTokens).toHaveBeenCalledWith({
       includeNoBalance: true,
+      includeAllTokens: true,
       tokenFilter: expect.any(Function),
-      enrichTokenRequests: expect.arrayContaining([
-        expect.objectContaining({ address: '0xaaa', chainId: '0x1' }),
-      ]),
     });
   });
 
@@ -261,24 +259,5 @@ describe('useWithdrawTokenFilter', () => {
     expect(filter).toBeDefined();
     expect(filter?.('0x89', nativeAddress)).toBe(true);
     expect(filter?.('0x89', '0xrandom')).toBe(false);
-  });
-
-  it('does not pass native addresses in enrichTokenRequests', () => {
-    runHook({
-      type: TransactionType.predictWithdraw,
-      postQuoteFlags: {
-        default: {
-          enabled: true,
-          tokens: {
-            '0x1': ['0x0000000000000000000000000000000000000000', '0xaaa'],
-          },
-        },
-      },
-    });
-
-    const args = mockUseSendTokens.mock.calls[0]?.[0] ?? {};
-    const requests = args.enrichTokenRequests ?? [];
-    expect(requests).toHaveLength(1);
-    expect(requests[0].address).toBe('0xaaa');
   });
 });

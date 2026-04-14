@@ -233,12 +233,12 @@ const testOrders: DeepPartial<FiatOrder>[] = [
 ];
 
 describe('OrderListItem', () => {
-  it('renders each order without crashing', () => {
+  it('should render correctly', () => {
     testOrders.forEach((order) => {
-      const { unmount } = renderWithProvider(
+      const rendered = renderWithProvider(
         <OrderListItem order={order as FiatOrder} />,
       );
-      unmount();
+      expect(rendered.toJSON()).toMatchSnapshot();
     });
   });
 });

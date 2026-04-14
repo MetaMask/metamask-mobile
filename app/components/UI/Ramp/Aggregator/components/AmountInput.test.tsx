@@ -24,7 +24,7 @@ describe('AmountInput', () => {
     renderWithProvider(<AmountInput {...mockProps} />, {
       state: defaultState,
     });
-    expect(screen.getByText('$100.50')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with currency selector', () => {
@@ -35,7 +35,7 @@ describe('AmountInput', () => {
         state: defaultState,
       },
     );
-    expect(screen.getByText('USD')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('calls onPress when pressed', () => {
@@ -63,7 +63,7 @@ describe('AmountInput', () => {
     renderWithProvider(<AmountInput {...mockProps} loading />, {
       state: defaultState,
     });
-    expect(screen.queryByText('$100.50')).not.toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders loading state correctly with currency selector', () => {
@@ -78,7 +78,7 @@ describe('AmountInput', () => {
         state: defaultState,
       },
     );
-    expect(screen.queryByText('USD')).not.toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('shows live cursor when input is highlighted', () => {

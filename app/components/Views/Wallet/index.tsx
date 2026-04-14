@@ -37,7 +37,6 @@ import {
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
 } from '../../../actions/legalNotices';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSessionId';
 import { baseStyles } from '../../../styles/common';
 import {
   PERPS_GTM_MODAL_SHOWN,
@@ -130,11 +129,13 @@ import ErrorBoundary from '../ErrorBoundary';
 import { Token } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import {
+  selectHomepageRedesignV1Enabled,
+  selectHomepageSectionsV1Enabled,
+} from '../../../selectors/featureFlagController/homepage';
 import Homepage from '../Homepage';
 import { SectionRefreshHandle } from '../Homepage/types';
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
-import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -186,6 +187,7 @@ import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
+import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
@@ -325,6 +327,9 @@ const WalletTokensTabView = forwardRef<
   WalletTokensTabViewProps
 >((props, ref) => {
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
   // With BIP-44 multichain accounts, perps is enabled for both EVM and non-EVM networks
   const isPerpsEnabled = isPerpsFlagEnabled;
   const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
@@ -470,6 +475,17 @@ const WalletTokensTabView = forwardRef<
   }
   const isPredictTabVisible = currentTabIndex === predictTabIndex;
 
+  // Background preload perps market data when feature is enabled
+  useEffect(() => {
+    const controller = Engine.context.PerpsController;
+    if (isPerpsEnabled) {
+      controller.startMarketDataPreload();
+    } else {
+      controller.stopMarketDataPreload();
+    }
+    return () => controller.stopMarketDataPreload();
+  }, [isPerpsEnabled]);
+
   // Handle deep link effects
   useHomeDeepLinkEffects({
     navigation,
@@ -565,7 +581,9 @@ const WalletTokensTabView = forwardRef<
         key={tabsKey}
         ref={tabsListRef}
         onChangeTab={handleTabChange}
-        tabsListContentTwClassName={'!flex-initial'}
+        tabsListContentTwClassName={
+          isHomepageRedesignV1Enabled ? '!flex-initial' : ''
+        }
       >
         {tabsToRender}
       </TabsList>
@@ -609,8 +627,6 @@ const Wallet = ({
   const scrollSubscribersRef = useRef<Set<() => void>>(new Set());
   // Tracks which sections have been viewed this visit (reset on each focus).
   const viewedSectionsRef = useRef<Set<string>>(new Set());
-  // Max section index reached this visit (reset on each focus).
-  const maxDepthThisVisitRef = useRef<number>(-1);
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
@@ -1017,6 +1033,10 @@ const Wallet = ({
     accountBalanceByChainId?.balance,
   ]);
 
+  const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
   const isHomepageSectionsV1Enabled = useSelector(
     selectHomepageSectionsV1Enabled,
   );
@@ -1024,6 +1044,10 @@ const Wallet = ({
   const isFocused = useIsFocused();
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
+
+  // Enable parent scroll when homepage redesign or sections feature flags are enabled
+  const shouldEnableParentScroll =
+    isHomepageRedesignV1Enabled || isHomepageSectionsV1Enabled;
 
   // Notifies scroll subscribers directly (no React state update = no re-renders).
   const handleHomepageScroll = useCallback(() => {
@@ -1199,8 +1223,11 @@ const Wallet = ({
     assetsDefiPositionsEnabled;
 
   const scrollViewContentStyle = useMemo(
-    () => [styles.wrapper, { flex: undefined, flexGrow: 0 }],
-    [styles.wrapper],
+    () => [
+      styles.wrapper,
+      shouldEnableParentScroll && { flex: undefined, flexGrow: 0 },
+    ],
+    [styles.wrapper, shouldEnableParentScroll],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1237,41 +1264,25 @@ const Wallet = ({
     return () => scrollSubscribersRef.current.delete(cb);
   }, []);
 
-  // Reset viewed sections and visit depth synchronously on focus, before the
-  // new visitId propagates to child effects that re-add sections. A useEffect
-  // on [visitId] runs after children's effects (React runs children before
-  // parents), so sections would add themselves then the parent would clear
-  // them — causing total_sections_viewed to always be 0 on the second+ visit.
+  // Reset viewed sections synchronously on focus, before the new visitId
+  // propagates to child effects that re-add sections. A useEffect on [visitId]
+  // runs after children's effects (React runs children before parents), so
+  // sections would add themselves then the parent would clear them — causing
+  // total_sections_viewed to always be 0 on the second+ visit.
   useFocusEffect(
     useCallback(() => {
       viewedSectionsRef.current.clear();
-      maxDepthThisVisitRef.current = -1;
     }, []),
   );
 
-  const notifySectionViewed = useCallback(
-    (
-      sectionName: HomeSectionName,
-      sectionIndex: number,
-      recordDepth: boolean,
-    ) => {
-      viewedSectionsRef.current.add(sectionName);
-      // Only update depth for sections that required the user to scroll to them.
-      // Non-rendered sections (sectionRef === null) pass recordDepth=false so they
-      // are counted in total_sections_viewed without inflating depth metrics.
-      if (recordDepth && sectionIndex > maxDepthThisVisitRef.current) {
-        maxDepthThisVisitRef.current = sectionIndex;
-      }
-    },
-    [],
-  );
+  const notifySectionViewed = useCallback((sectionName: string) => {
+    viewedSectionsRef.current.add(sectionName);
+  }, []);
 
   const getViewedSectionCount = useCallback(
     () => viewedSectionsRef.current.size,
     [],
   );
-
-  const getVisitMaxDepth = useCallback(() => maxDepthThisVisitRef.current, []);
 
   const homepageScrollContextValue = useMemo(
     () => ({
@@ -1282,8 +1293,6 @@ const Wallet = ({
       visitId,
       notifySectionViewed,
       getViewedSectionCount,
-      getVisitMaxDepth,
-      appSessionId: HOMEPAGE_APP_SESSION_ID,
     }),
     [
       subscribeToScroll,
@@ -1293,7 +1302,6 @@ const Wallet = ({
       visitId,
       notifySectionViewed,
       getViewedSectionCount,
-      getVisitMaxDepth,
     ],
   );
 
@@ -1389,10 +1397,12 @@ const Wallet = ({
                       >
                         <AddressCopy hitSlop={touchAreaSlop} />
                       </View>
-                      <CardButton
-                        onPress={handleCardPress}
-                        touchAreaSlop={touchAreaSlop}
-                      />
+                      {shouldDisplayCardButton && (
+                        <CardButton
+                          onPress={handleCardPress}
+                          touchAreaSlop={touchAreaSlop}
+                        />
+                      )}
                       {isNotificationsFeatureEnabled() ? (
                         <BadgeWrapper
                           position={BadgeWrapperPosition.TopRight}
@@ -1464,7 +1474,7 @@ const Wallet = ({
               >
                 <ConditionalScrollView
                   ref={scrollViewRef}
-                  isScrollEnabled
+                  isScrollEnabled={shouldEnableParentScroll}
                   scrollViewProps={{
                     testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
                     contentContainerStyle: scrollViewContentStyle,
@@ -1473,14 +1483,14 @@ const Wallet = ({
                       ? handleHomepageScroll
                       : undefined,
                     scrollEventThrottle: 16,
-                    refreshControl: (
+                    refreshControl: shouldEnableParentScroll ? (
                       <RefreshControl
                         colors={[colors.primary.default]}
                         tintColor={colors.icon.default}
                         refreshing={refreshing}
                         onRefresh={handleRefresh}
                       />
-                    ),
+                    ) : undefined,
                   }}
                 >
                   {content}

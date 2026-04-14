@@ -51,14 +51,9 @@ describe('UnsupportedTokenModal', () => {
   });
 
   it('renders the modal with correct title and description', () => {
-    const { getByText } = render(UnsupportedTokenModal);
+    const { toJSON } = render(UnsupportedTokenModal);
 
-    expect(getByText('Not available')).toBeOnTheScreen();
-    expect(
-      getByText(
-        'This token may not be available in your region or supported by any local payment providers',
-      ),
-    ).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('closes the modal when the close button is pressed', () => {

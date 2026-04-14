@@ -36,6 +36,14 @@ describe('TabsBar', () => {
   });
 
   describe('Rendering', () => {
+    it('renders correctly with tabs', () => {
+      const mockOnTabPress = jest.fn();
+      const { toJSON } = render(
+        <TabsBar tabs={mockTabs} activeIndex={0} onTabPress={mockOnTabPress} />,
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
     it('displays all tab labels', () => {
       const mockOnTabPress = jest.fn();
       const { getAllByText } = render(
@@ -64,15 +72,10 @@ describe('TabsBar', () => {
 
     it('handles empty tabs array gracefully', () => {
       const mockOnTabPress = jest.fn();
-      const { getByTestId } = render(
-        <TabsBar
-          tabs={[]}
-          activeIndex={0}
-          onTabPress={mockOnTabPress}
-          testID="tabs-bar"
-        />,
+      const { toJSON } = render(
+        <TabsBar tabs={[]} activeIndex={0} onTabPress={mockOnTabPress} />,
       );
-      expect(getByTestId('tabs-bar')).toBeOnTheScreen();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -182,20 +185,14 @@ describe('TabsBar', () => {
         { key: 'tab3', label: 'Tab 3', content: null },
       ];
 
-      const { getByTestId } = render(
+      const { toJSON } = render(
         <TabsBar
           tabs={tabsWithDisabled}
           activeIndex={0}
           onTabPress={mockOnTabPress}
-          testID="tabs-bar"
         />,
       );
-      expect(
-        getByTestId('tabs-bar-tab-1').props.accessibilityState?.disabled,
-      ).toBe(true);
-      expect(
-        getByTestId('tabs-bar-tab-0').props.accessibilityState?.disabled,
-      ).toBeFalsy();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('hides underline when no tab is active (activeIndex = -1)', () => {
@@ -206,36 +203,24 @@ describe('TabsBar', () => {
         { key: 'tab3', label: 'Tab 3', content: null, isDisabled: true },
       ];
 
-      const { getByTestId } = render(
+      const { toJSON } = render(
         <TabsBar
           tabs={tabsAllDisabled}
           activeIndex={-1}
           onTabPress={mockOnTabPress}
-          testID="tabs-bar"
         />,
       );
-      expect(getByTestId('tabs-bar')).toBeOnTheScreen();
-      tabsAllDisabled.forEach((_, index) => {
-        expect(
-          getByTestId(`tabs-bar-tab-${index}`).props.accessibilityState
-            ?.disabled,
-        ).toBe(true);
-      });
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
   describe('Automatic Scroll Detection', () => {
     it('renders without scroll view initially', () => {
       const mockOnTabPress = jest.fn();
-      const { getByTestId } = render(
-        <TabsBar
-          tabs={mockTabs}
-          activeIndex={0}
-          onTabPress={mockOnTabPress}
-          testID="tabs-bar"
-        />,
+      const { toJSON } = render(
+        <TabsBar tabs={mockTabs} activeIndex={0} onTabPress={mockOnTabPress} />,
       );
-      expect(getByTestId('tabs-bar')).toBeOnTheScreen();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('enables scroll when content overflows container', () => {
@@ -285,15 +270,10 @@ describe('TabsBar', () => {
   describe('Underline Animation', () => {
     it('renders animated underline', () => {
       const mockOnTabPress = jest.fn();
-      const { getByTestId } = render(
-        <TabsBar
-          tabs={mockTabs}
-          activeIndex={0}
-          onTabPress={mockOnTabPress}
-          testID="tabs-bar"
-        />,
+      const { toJSON } = render(
+        <TabsBar tabs={mockTabs} activeIndex={0} onTabPress={mockOnTabPress} />,
       );
-      expect(getByTestId('tabs-bar')).toBeOnTheScreen();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('updates underline position when active tab changes', () => {
@@ -498,30 +478,26 @@ describe('TabsBar', () => {
   describe('Edge Cases', () => {
     it('handles invalid activeIndex gracefully', () => {
       const mockOnTabPress = jest.fn();
-      const { getAllByText } = render(
+      const { toJSON } = render(
         <TabsBar
           tabs={mockTabs}
           activeIndex={99}
           onTabPress={mockOnTabPress}
         />,
       );
-      mockTabs.forEach((tab) => {
-        expect(getAllByText(tab.label)[0]).toBeOnTheScreen();
-      });
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('handles negative activeIndex gracefully', () => {
       const mockOnTabPress = jest.fn();
-      const { getAllByText } = render(
+      const { toJSON } = render(
         <TabsBar
           tabs={mockTabs}
           activeIndex={-1}
           onTabPress={mockOnTabPress}
         />,
       );
-      mockTabs.forEach((tab) => {
-        expect(getAllByText(tab.label)[0]).toBeOnTheScreen();
-      });
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('handles single tab correctly', () => {

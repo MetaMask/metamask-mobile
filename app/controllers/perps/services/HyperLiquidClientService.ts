@@ -7,6 +7,7 @@ import {
   WebSocketTransport,
 } from '@nktkas/hyperliquid';
 
+import { getPerpsConnectionAttemptContext } from '../../../util/perpsConnectionAttemptContext';
 import { CandlePeriod, calculateCandleCount } from '../constants/chartConfig';
 import { HYPERLIQUID_TRANSPORT_CONFIG } from '../constants/hyperLiquidConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
@@ -19,7 +20,6 @@ import type {
 import type { HyperLiquidNetwork } from '../types/config';
 import type { CandleData } from '../types/perps-types';
 import { ensureError } from '../utils/errorUtils';
-import { getPerpsConnectionAttemptContext } from '../utils/perpsConnectionAttemptContext';
 
 /**
  * Maximum number of reconnection attempts before giving up.

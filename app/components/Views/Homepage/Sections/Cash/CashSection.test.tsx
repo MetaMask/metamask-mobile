@@ -103,7 +103,7 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(queryByText('Money')).toBeNull();
+    expect(queryByText('Cash')).toBeNull();
   });
 
   it('returns null when geo is ineligible', () => {
@@ -113,15 +113,15 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(queryByText('Money')).toBeNull();
+    expect(queryByText('Cash')).toBeNull();
   });
 
-  it('renders Money title when enabled', () => {
+  it('renders Cash title when enabled', () => {
     renderWithProvider(
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(screen.getByText('Money')).toBeOnTheScreen();
+    expect(screen.getByText('Cash')).toBeOnTheScreen();
   });
 
   it('navigates to CASH_TOKENS_FULL_VIEW when Money home screen flag is disabled', () => {
@@ -133,7 +133,7 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    fireEvent.press(screen.getByText('Money'));
+    fireEvent.press(screen.getByText('Cash'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WALLET.CASH_TOKENS_FULL_VIEW,
@@ -149,7 +149,7 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    fireEvent.press(screen.getByText('Money'));
+    fireEvent.press(screen.getByText('Cash'));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT);
   });

@@ -1,16 +1,16 @@
 import { useMemo } from 'react';
 import { AssetType } from '../../types/token';
-import { useAccountTokens, EnrichTokenRequest } from './useAccountTokens';
+import { useAccountTokens } from './useAccountTokens';
 import { useSendType } from './useSendType';
 
 export function useSendTokens({
   includeNoBalance = false,
+  includeAllTokens = false,
   tokenFilter,
-  enrichTokenRequests,
 }: {
   includeNoBalance?: boolean;
+  includeAllTokens?: boolean;
   tokenFilter?: (chainId: string, address: string) => boolean;
-  enrichTokenRequests?: EnrichTokenRequest[];
 } = {}): AssetType[] {
   const {
     isPredefinedTron,
@@ -20,8 +20,8 @@ export function useSendTokens({
   } = useSendType();
   const allTokens = useAccountTokens({
     includeNoBalance,
+    includeAllTokens,
     tokenFilter,
-    enrichTokenRequests,
   });
 
   return useMemo(() => {

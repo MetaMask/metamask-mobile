@@ -1,7 +1,7 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getAddressBookControllerMessenger } from '../messengers/address-book-controller-messenger';
-import { MessengerClientInitRequest } from '../types';
+import { ControllerInitRequest } from '../types';
 import { addressBookControllerInit } from './address-book-controller-init';
 import {
   AddressBookController,
@@ -12,14 +12,14 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/address-book-controller');
 
 function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<AddressBookControllerMessenger>
+  ControllerInitRequest<AddressBookControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getAddressBookControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };

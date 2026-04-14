@@ -1,22 +1,22 @@
 import {
   ControllerMessenger,
   RootExtendedMessenger,
-  MessengerClientInitFunction,
-  MessengerClient,
-  MessengerClientName,
-  MessengerClientInitRequest,
+  ControllerInitFunction,
+  Controller,
+  ControllerName,
+  ControllerInitRequest,
 } from '../types';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
 
 /**
- * Build a mock for the MessengerClientInitRequest.
+ * Build a mock for the ControllerInitRequest.
  *
- * @returns A mocked MessengerClientInitRequest.
+ * @returns A mocked ControllerInitRequest.
  */
-export function buildMessengerClientInitRequestMock(
+export function buildControllerInitRequestMock(
   controllerMessenger: RootExtendedMessenger,
-): jest.Mocked<MessengerClientInitRequest<ControllerMessenger>> {
+): jest.Mocked<ControllerInitRequest<ControllerMessenger>> {
   return {
     codefiTokenApiV2: jest.fn() as unknown as CodefiTokenPricesServiceV2,
     controllerMessenger: controllerMessenger as unknown as ControllerMessenger,
@@ -38,15 +38,15 @@ export function buildMessengerClientInitRequestMock(
  * @template M - The messenger type
  * @returns A mock controller init function
  */
-export function createMockMessengerClientInitFunction<
-  T extends MessengerClient,
+export function createMockControllerInitFunction<
+  T extends Controller,
   M extends ControllerMessenger,
->(requiredController?: string): MessengerClientInitFunction<T, M> {
+>(requiredController?: string): ControllerInitFunction<T, M> {
   return (request) => {
     const { getController } = request;
 
     if (requiredController) {
-      getController(requiredController as unknown as MessengerClientName);
+      getController(requiredController as unknown as ControllerName);
     }
 
     return {

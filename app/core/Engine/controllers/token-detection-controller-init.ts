@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   TokenDetectionController,
   type TokenDetectionControllerMessenger,
@@ -19,7 +19,7 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const tokenDetectionControllerInit: MessengerClientInitFunction<
+export const tokenDetectionControllerInit: ControllerInitFunction<
   TokenDetectionController,
   TokenDetectionControllerMessenger,
   TokenDetectionControllerInitMessenger

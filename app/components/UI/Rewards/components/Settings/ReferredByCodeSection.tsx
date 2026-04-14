@@ -49,7 +49,7 @@ const ReferredByCodeSection: React.FC = () => {
     applyReferralCodeSuccess,
   } = useApplyReferralCode();
 
-  const { fetchReferralDetails } = useReferralDetails({ fetchOnMount: false });
+  const { fetchReferralDetails } = useReferralDetails();
 
   const hasReferredByCode = Boolean(referredByCode);
 

@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { CaipChainId, CaipAssetType } from '@metamask/utils';
-import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { TokenRwaData } from '@metamask/assets-controllers';
 import Engine from '../../../../core/Engine';
-import { getBaseSemVerVersion } from '../../../../util/version';
 
 export interface PopularToken {
   assetId: CaipAssetType;
@@ -159,11 +157,7 @@ export const usePopularTokens = ({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              ...getClientHeaders({
-                clientId: BridgeClientId.MOBILE,
-                clientVersion: getBaseSemVerVersion(),
-                jwt: bearerToken ?? '',
-              }),
+              Authorization: `Bearer ${bearerToken ?? ''}`,
             },
             body: JSON.stringify({
               chainIds,

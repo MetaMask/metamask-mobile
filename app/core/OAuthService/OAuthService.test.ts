@@ -97,8 +97,6 @@ jest.mock('../../util/environment', () => ({
   getE2EByoaAuthSecret: () => mockGetE2EByoaAuthSecret(),
 }));
 
-import { analytics } from '../../util/analytics/analytics';
-import { AccountType } from '../../constants/onboarding';
 import OAuthLoginService from './OAuthService';
 const defaultLoginHandlerResponse = () => ({
   idToken: MOCK_JWT_TOKEN,
@@ -384,50 +382,6 @@ describe('OAuth login service', () => {
     expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
     expect(mockGetAuthTokens).toHaveBeenCalledTimes(0);
     expect(mockAuthenticate).toHaveBeenCalledTimes(0);
-  });
-
-  it('SOCIAL_LOGIN_FAILED uses new-user account_type when not rehydrating', async () => {
-    const loginHandler = mockCreateLoginHandler();
-    mockLoginHandlerResponse.mockImplementation(() => {
-      throw new OAuthError('Login error', OAuthErrorType.LoginError);
-    });
-
-    await expect(
-      OAuthLoginService.handleOAuthLogin(loginHandler, false),
-    ).rejects.toMatchObject({ code: OAuthErrorType.LoginError });
-
-    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
-    expect(analytics.trackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: 'Social Login Failed',
-        properties: expect.objectContaining({
-          account_type: AccountType.MetamaskGoogle,
-          is_rehydration: 'false',
-        }),
-      }),
-    );
-  });
-
-  it('SOCIAL_LOGIN_FAILED uses existing-user account_type when rehydrating', async () => {
-    const loginHandler = mockCreateLoginHandler();
-    mockLoginHandlerResponse.mockImplementation(() => {
-      throw new OAuthError('Login error', OAuthErrorType.LoginError);
-    });
-
-    await expect(
-      OAuthLoginService.handleOAuthLogin(loginHandler, true),
-    ).rejects.toMatchObject({ code: OAuthErrorType.LoginError });
-
-    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
-    expect(analytics.trackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: 'Social Login Failed',
-        properties: expect.objectContaining({
-          account_type: AccountType.ImportedGoogle,
-          is_rehydration: 'true',
-        }),
-      }),
-    );
   });
 
   // use for loop to test undefine and null cases

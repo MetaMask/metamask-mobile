@@ -12,13 +12,8 @@ import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEa
 import { MoneyMetaMaskCardTestIds } from '../../components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
 import { MoneyWhyMetaMaskMoneyTestIds } from '../../components/MoneyWhyMetaMaskMoney/MoneyWhyMetaMaskMoney.testIds';
 import { MoneyFooterTestIds } from '../../components/MoneyFooter/MoneyFooter.testIds';
-import { MoneyActivityListTestIds } from '../../components/MoneyActivityList/MoneyActivityList.testIds';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 
 const mockGoBack = jest.fn();
-const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -26,7 +21,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       goBack: mockGoBack,
-      navigate: mockNavigate,
+      navigate: jest.fn(),
     }),
   };
 });
@@ -46,14 +41,6 @@ jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
   useMusdConversionTokens: () => ({ tokens: mockConversionTokens }),
 }));
 
-jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
-  useMoneyAccountTransactions: jest.fn(),
-}));
-
-const mockUseMoneyAccountTransactions = jest.mocked(
-  useMoneyAccountTransactions,
-);
-
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
   () => 'AssetLogo',
@@ -71,18 +58,6 @@ jest.mock('../../../../../component-library/components/Badges/Badge', () => ({
   default: 'Badge',
   BadgeVariant: { Network: 'Network' },
 }));
-
-jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ tx }: { tx: { id: string } }) => (
-      <View testID={`money-activity-item-${tx.id}`}>
-        <Text>{tx.id}</Text>
-      </View>
-    ),
-  };
-});
 jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
   NetworkBadgeSource: jest.fn(() => null),
 }));
@@ -90,13 +65,6 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 describe('MoneyHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMoneyAccountTransactions.mockReturnValue({
-      allTransactions: MOCK_MONEY_TRANSACTIONS,
-      deposits: [],
-      transfers: [],
-      submittedTransactions: [],
-      moneyAddress: '0x0000000000000000000000000000000000000001',
-    });
   });
 
   it('renders the main container', () => {
@@ -177,13 +145,5 @@ describe('MoneyHomeView', () => {
     fireEvent.press(getByTestId(MoneyHeaderTestIds.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('navigates to the Money activity screen when View all is pressed', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-    fireEvent.press(getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ACTIVITY);
   });
 });

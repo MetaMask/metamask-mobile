@@ -26,7 +26,7 @@ const MoneyHeader = ({ onBackPress, onMenuPress }: MoneyHeaderProps) => (
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="px-2 pt-2 pb-5"
+    twClassName="px-1 pt-2 pb-5"
     testID={MoneyHeaderTestIds.CONTAINER}
   >
     <ButtonIcon

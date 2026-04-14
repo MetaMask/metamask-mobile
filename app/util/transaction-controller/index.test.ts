@@ -11,14 +11,6 @@ import * as TransactionControllerUtils from './index';
 import Engine from '../../core/Engine';
 import { store } from '../../store';
 import { RootState } from '../../reducers';
-import { Hex } from '@metamask/utils';
-import { checkIsValidTempoTransaction } from '../tempo/tempo-tx-utils';
-import { accountSupports7702 } from '../transactions/account-supports-7702';
-
-jest.mock('../tempo/tempo-tx-utils', () => ({
-  ...jest.requireActual('../tempo/tempo-tx-utils'),
-  checkIsValidTempoTransaction: jest.fn(),
-}));
 
 const {
   addTransaction,
@@ -26,7 +18,6 @@ const {
   getNetworkNonce,
   estimateGasFee,
   getPreviousGasFromController,
-  getChainIdFromNetworkClientId,
   ...proxyMethods
 } = TransactionControllerUtils;
 
@@ -36,10 +27,6 @@ jest.mock('../../store', () => ({
       settings: { basicFunctionalityEnabled: true },
     })),
   },
-}));
-
-jest.mock('../transactions/account-supports-7702', () => ({
-  accountSupports7702: jest.fn().mockResolvedValue(true),
 }));
 
 const ID_MOCK = 'testId';
@@ -90,55 +77,6 @@ const TRANSACTION_OPTIONS_MOCK = {
   origin: 'origin',
 };
 
-const TEMPO_VALID_CHAIN_ID = '0xa5bf' as Hex;
-const BATCHID_MOCK = '0xmockBatchId' as Hex;
-const FROM_FIELD_MOCK = '0x1';
-
-const TEMPO_VALID_CALLS_FIELD_MOCK = [
-  {
-    data: '0xa9059cbb0000000000000000000000002367e6eca6e1fcc2d112133c896e3bddad375aff000000000000000000000000000000000000000000000000002386f26fc10000',
-    to: '0x86fA047df5b69df0CBD6dF566F1468756dCF339D',
-    value: '0x',
-  },
-  {
-    data: '0xa9059cbb0000000000000000000000001e3abc74428056924ceee2f45f060879c3f063ed000000000000000000000000000000000000000000000000002386f26fc10000',
-    to: '0x86fA047df5b69df0CBD6dF566F1468756dCF339D',
-    value: '0x',
-  },
-];
-
-const TEMPO_EXPECTED_TRANSACTIONS_FOR_VALID_CALLS_FIELD = [
-  {
-    params: {
-      data: '0xa9059cbb0000000000000000000000002367e6eca6e1fcc2d112133c896e3bddad375aff000000000000000000000000000000000000000000000000002386f26fc10000',
-      to: '0x86fA047df5b69df0CBD6dF566F1468756dCF339D',
-      value: '0x0',
-    },
-  },
-  {
-    params: {
-      data: '0xa9059cbb0000000000000000000000001e3abc74428056924ceee2f45f060879c3f063ed000000000000000000000000000000000000000000000000002386f26fc10000',
-      to: '0x86fA047df5b69df0CBD6dF566F1468756dCF339D',
-      value: '0x0',
-    },
-  },
-];
-
-const TEMPO_FEE_TOKEN_MOCK = '0xtempoFeeToken';
-
-const TEMPO_TRANSACTION_PARAMS_MOCK = {
-  type: '0x76' as const,
-  from: FROM_FIELD_MOCK,
-  feeToken: TEMPO_FEE_TOKEN_MOCK,
-  calls: TEMPO_VALID_CALLS_FIELD_MOCK,
-};
-
-const BATCH_TRANSACTION_META_MOCK: TransactionMeta = {
-  id: 'batchTestId',
-  hash: 'batchTestHash',
-  batchId: BATCHID_MOCK,
-} as TransactionMeta;
-
 jest.mock('../../core/Engine', () => ({
   context: {
     TransactionController: {
@@ -166,28 +104,10 @@ jest.mock('../../core/Engine', () => ({
       updateRequiredTransactionIds: jest.fn(),
       isAtomicBatchSupported: jest.fn(),
     },
-    NetworkController: {
-      getNetworkConfigurationByNetworkClientId: jest.fn(),
-    },
   },
 }));
 
 describe('Transaction Controller Util', () => {
-  beforeEach(() => {
-    jest
-      .mocked(
-        Engine.context.NetworkController
-          .getNetworkConfigurationByNetworkClientId,
-      )
-      .mockReturnValue({
-        chainId: '0x1',
-        blockExplorerUrls: [],
-        defaultRpcEndpointIndex: 0,
-        name: 'Ethereum Mainnet',
-        nativeCurrency: 'ETH',
-        rpcEndpoints: [],
-      });
-  });
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -205,136 +125,6 @@ describe('Transaction Controller Util', () => {
         EIP_1559_TRANSACTION_PARAMS_MOCK,
         TRANSACTION_OPTIONS_MOCK,
       );
-    });
-  });
-
-  describe('addTransaction when transacton is from Tempo chain', () => {
-    beforeEach(() => {
-      (accountSupports7702 as jest.Mock).mockResolvedValue(true);
-      jest
-        .mocked(
-          Engine.context.NetworkController
-            .getNetworkConfigurationByNetworkClientId,
-        )
-        .mockReturnValue({
-          chainId: TEMPO_VALID_CHAIN_ID,
-          blockExplorerUrls: [],
-          defaultRpcEndpointIndex: 0,
-          name: 'Tempo Testnet',
-          nativeCurrency: 'USD',
-          rpcEndpoints: [],
-        });
-    });
-
-    afterEach(() => {
-      (accountSupports7702 as jest.Mock).mockReset();
-      jest
-        .mocked(
-          Engine.context.NetworkController
-            .getNetworkConfigurationByNetworkClientId,
-        )
-        .mockReset();
-      (
-        Engine.context.TransactionController.addTransactionBatch as jest.Mock
-      ).mockReset();
-      (
-        Engine.context.TransactionController.getTransactions as jest.Mock
-      ).mockReset();
-    });
-
-    it('calls regular addTransaction with extra params when transaction is NOT type 0x76', async () => {
-      jest
-        .mocked(Engine.context.TransactionController.addTransactionBatch)
-        .mockReturnValueOnce(
-          Promise.resolve({
-            batchId: BATCHID_MOCK,
-          }),
-        );
-      jest
-        .mocked(Engine.context.TransactionController.getTransactions)
-        .mockReturnValueOnce([BATCH_TRANSACTION_META_MOCK]);
-
-      await addTransaction(
-        EIP_1559_TRANSACTION_PARAMS_MOCK,
-        TRANSACTION_OPTIONS_MOCK,
-      );
-      expect(
-        Engine.context.TransactionController.addTransaction,
-      ).toHaveBeenCalledWith(EIP_1559_TRANSACTION_PARAMS_MOCK, {
-        ...TRANSACTION_OPTIONS_MOCK,
-        excludeNativeTokenForFee: true,
-        gasFeeToken: '0x20c0000000000000000000000000000000000000',
-      });
-      expect(
-        Engine.context.TransactionController.addTransactionBatch,
-      ).not.toHaveBeenCalled();
-    });
-
-    it('calls addTransactionBatch when transaction is type 0x76', async () => {
-      jest
-        .mocked(Engine.context.TransactionController.addTransactionBatch)
-        .mockReturnValueOnce(
-          Promise.resolve({
-            batchId: BATCHID_MOCK,
-          }),
-        );
-      jest
-        .mocked(Engine.context.TransactionController.getTransactions)
-        .mockReturnValueOnce([BATCH_TRANSACTION_META_MOCK]);
-
-      const result = await addTransaction(
-        TEMPO_TRANSACTION_PARAMS_MOCK,
-        TRANSACTION_OPTIONS_MOCK,
-      );
-      expect(
-        Engine.context.TransactionController.addTransactionBatch,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.TransactionController.addTransactionBatch,
-      ).toHaveBeenCalledWith(
-        expect.objectContaining({
-          networkClientId: TRANSACTION_OPTIONS_MOCK.networkClientId,
-          origin: TRANSACTION_OPTIONS_MOCK.origin,
-          from: FROM_FIELD_MOCK,
-          gasFeeToken: TEMPO_FEE_TOKEN_MOCK,
-          excludeNativeTokenForFee: true,
-          transactions: TEMPO_EXPECTED_TRANSACTIONS_FOR_VALID_CALLS_FIELD,
-        }),
-      );
-      expect(result).toEqual({
-        result: Promise.resolve(BATCH_TRANSACTION_META_MOCK.hash),
-        transactionMeta: BATCH_TRANSACTION_META_MOCK,
-      });
-    });
-
-    it('does not call addTransactionBatch if type 0x76 and addTransactionBatch throws', async () => {
-      (
-        Engine.context.TransactionController.addTransactionBatch as jest.Mock
-      ).mockImplementationOnce(() => {
-        throw new Error('Tempo Transaction: Mock error');
-      });
-      await expect(
-        addTransaction(TEMPO_TRANSACTION_PARAMS_MOCK, TRANSACTION_OPTIONS_MOCK),
-      ).rejects.toThrow('Tempo Transaction: Mock error');
-      expect(
-        Engine.context.TransactionController.addTransactionBatch,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.TransactionController.getTransactions,
-      ).not.toHaveBeenCalled();
-    });
-
-    it('does not call addTransactionBatch if accountSupports7702 resolves to false', async () => {
-      (accountSupports7702 as jest.Mock).mockResolvedValueOnce(false);
-      await expect(
-        addTransaction(TEMPO_TRANSACTION_PARAMS_MOCK, TRANSACTION_OPTIONS_MOCK),
-      ).rejects.toThrow(`Wallet not supported for Tempo Transactions.`);
-      expect(
-        Engine.context.TransactionController.addTransactionBatch,
-      ).not.toHaveBeenCalled();
-      expect(
-        Engine.context.TransactionController.getTransactions,
-      ).not.toHaveBeenCalled();
     });
   });
 

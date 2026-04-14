@@ -190,37 +190,32 @@ describe('TokenSelection Component', () => {
     jest.clearAllMocks();
   });
 
-  it('renders token list for legacy flow', () => {
+  it('renders correctly and matches snapshot (legacy)', () => {
     mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
+    const { toJSON } = renderWithProvider(TokenSelection);
 
-    expect(
-      getByPlaceholderText('Search token by name or address'),
-    ).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders token list for V2 flow', () => {
+  it('renders correctly and matches snapshot (V2 enabled)', () => {
     mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
+    const { toJSON } = renderWithProvider(TokenSelection);
 
-    expect(
-      getByPlaceholderText('Search token by name or address'),
-    ).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays empty state when no tokens match search', async () => {
     (useSearchTokenResults as jest.Mock).mockReturnValue([]);
-    const { getByPlaceholderText, getByText } =
+    const { getByPlaceholderText, getByText, toJSON } =
       renderWithProvider(TokenSelection);
 
     const searchInput = getByPlaceholderText('Search token by name or address');
     fireEvent.changeText(searchInput, 'Nonexistent Token');
 
     await waitFor(() => {
-      expect(
-        getByText('No tokens match "Nonexistent Token"'),
-      ).toBeOnTheScreen();
+      expect(getByText('No tokens match "Nonexistent Token"')).toBeTruthy();
     });
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('filters tokens by search string', async () => {

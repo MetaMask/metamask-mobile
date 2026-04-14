@@ -12,15 +12,14 @@ import { setOnboardingActiveStep } from '../../../../../actions/rewards';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 const OnboardingStep3: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   const handleNext = useCallback(async () => {

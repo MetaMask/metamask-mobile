@@ -78,11 +78,6 @@ class CardHomeView {
   }
 
   async tapAdvancedCardManagementItem(): Promise<void> {
-    await Gestures.scrollToElement(
-      this.advancedCardManagementItem,
-      Matchers.getIdentifier(CardHomeSelectors.CARD_VIEW_TITLE),
-      { elemDescription: 'Advanced Card Management Item in Card Home View' },
-    );
     await Gestures.waitAndTap(this.advancedCardManagementItem, {
       elemDescription: 'Advanced Card Management Item in Card Home View',
     });

@@ -3,10 +3,7 @@ import {
   MultichainNetworkControllerMessenger,
   MultichainNetworkControllerState,
 } from '@metamask/multichain-network-controller';
-import {
-  MessengerClientInitFunction,
-  MessengerClientInitRequest,
-} from '../../types';
+import { ControllerInitFunction, ControllerInitRequest } from '../../types';
 import { MultichainNetworkServiceInit } from './multichain-network-service-init';
 
 /**
@@ -18,8 +15,8 @@ import { MultichainNetworkServiceInit } from './multichain-network-service-init'
 export const multichainNetworkControllerInit = ({
   controllerMessenger,
   persistedState,
-}: MessengerClientInitRequest<MultichainNetworkControllerMessenger>): ReturnType<
-  MessengerClientInitFunction<
+}: ControllerInitRequest<MultichainNetworkControllerMessenger>): ReturnType<
+  ControllerInitFunction<
     MultichainNetworkController,
     MultichainNetworkControllerMessenger
   >

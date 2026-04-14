@@ -62,11 +62,9 @@ describe('ErrorDetailsModal', () => {
     });
   });
 
-  it('renders correctly with error message and close button', () => {
-    const { getByTestId, getByText } = renderWithProvider(ErrorDetailsModal);
-    expect(getByTestId('error-details-close-button')).toBeOnTheScreen();
-    expect(getByText('This is a test error message.')).toBeOnTheScreen();
-    expect(getByText('Got it')).toBeOnTheScreen();
+  it('renders correctly and matches snapshot', () => {
+    const { toJSON } = renderWithProvider(ErrorDetailsModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with a multiline error message', () => {
@@ -75,8 +73,8 @@ describe('ErrorDetailsModal', () => {
         'Error on line 1.\nError on line 2.\nAdditional context for debugging.',
     });
 
-    const { getByText } = renderWithProvider(ErrorDetailsModal);
-    expect(getByText(/Error on line 1\./u)).toBeOnTheScreen();
+    const { toJSON } = renderWithProvider(ErrorDetailsModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with an empty error message', () => {
@@ -84,20 +82,19 @@ describe('ErrorDetailsModal', () => {
       errorMessage: '',
     });
 
-    const { getByTestId } = renderWithProvider(ErrorDetailsModal);
-    expect(getByTestId('error-details-close-button')).toBeOnTheScreen();
+    const { toJSON } = renderWithProvider(ErrorDetailsModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with provider support info showing contact support button', () => {
+  it('renders with provider support info and matches snapshot', () => {
     mockUseParams.mockReturnValue({
       errorMessage: 'Provider error occurred.',
       providerName: 'Transak',
       providerSupportUrl: 'https://support.transak.com',
     });
 
-    const { getByText } = renderWithProvider(ErrorDetailsModal);
-    expect(getByText('Contact Transak support')).toBeOnTheScreen();
-    expect(getByText('Provider error occurred.')).toBeOnTheScreen();
+    const { toJSON } = renderWithProvider(ErrorDetailsModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('closes the modal when the close button is pressed', () => {
@@ -166,18 +163,17 @@ describe('ErrorDetailsModal', () => {
   it('does not render contact support button when provider info is missing', () => {
     const { queryByText } = renderWithProvider(ErrorDetailsModal);
 
-    expect(queryByText(/Contact.*support/u)).not.toBeOnTheScreen();
+    expect(queryByText(/Contact.*support/u)).toBeNull();
   });
 
-  it('renders with change provider button', () => {
+  it('renders with change provider button and matches snapshot', () => {
     mockUseParams.mockReturnValue({
       errorMessage: 'No quotes available.',
       showChangeProvider: true,
     });
 
-    const { getByText } = renderWithProvider(ErrorDetailsModal);
-    expect(getByText('Change provider')).toBeOnTheScreen();
-    expect(getByText('No quotes available.')).toBeOnTheScreen();
+    const { toJSON } = renderWithProvider(ErrorDetailsModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to provider selection when Change provider is pressed', () => {
@@ -208,6 +204,6 @@ describe('ErrorDetailsModal', () => {
     const { getByText, queryByText } = renderWithProvider(ErrorDetailsModal);
 
     expect(getByText('Change provider')).toBeOnTheScreen();
-    expect(queryByText(/Contact.*support/u)).not.toBeOnTheScreen();
+    expect(queryByText(/Contact.*support/u)).toBeNull();
   });
 });

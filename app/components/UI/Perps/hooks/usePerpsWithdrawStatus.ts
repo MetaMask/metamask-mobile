@@ -6,13 +6,8 @@ import type { RootState } from '../../../../reducers';
 import usePerpsToasts from './usePerpsToasts';
 
 /**
- * Hook to monitor withdrawal status and show appropriate toasts.
- *
- * Confirmation flow (new UI) is handled by usePerpsWithdrawToastRegistrations
- * via ControllerEventToastBridge at the App level.
- *
- * Legacy flow (this hook) watches PerpsController.lastWithdrawResult for
- * success / failure toasts after PerpsController.withdraw().
+ * Hook to monitor withdrawal status and show appropriate toasts
+ * Handles both withdrawal initiated and withdrawal complete states
  */
 export const usePerpsWithdrawStatus = () => {
   const { showToast, PerpsToastOptions } = usePerpsToasts();

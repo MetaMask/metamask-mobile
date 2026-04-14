@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,9 +11,6 @@ import { RootState } from '../../../reducers';
 import { AddressSelectorParams } from './AddressSelector.types';
 import { AccountGroupId } from '@metamask/account-api';
 import {
-  BottomSheet,
-  type BottomSheetRef,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -21,6 +21,7 @@ import { isCaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { MultichainAddressRow } from '../../../component-library/components-temp/MultichainAccounts';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ListItemSelect from '../../../component-library/components/List/ListItemSelect';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import Routes from '../../../constants/navigation/Routes';
@@ -150,7 +151,7 @@ const AddressSelector = () => {
   }, [internalAccountsSpreadByScopes, isEvmOnly, displayOnlyCaipChainIds]);
 
   return (
-    <BottomSheet ref={sheetRef} isFullscreen goBack={navigation.goBack}>
+    <BottomSheet ref={sheetRef} isFullscreen>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         {strings('address_selector.select_an_address')}
       </BottomSheetHeader>

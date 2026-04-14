@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
@@ -38,7 +38,6 @@ import PerpsWebSocketHealthToast, {
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
-import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
@@ -78,6 +77,7 @@ import SecurityBadgeBottomSheet from '../../UI/TokenDetails/components/SecurityB
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
+import CardNotification from '../../Views/CardNotification';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
 import LockScreen from '../../Views/LockScreen';
@@ -191,7 +191,7 @@ const OnboardingSuccessFlow = () => {
     >
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS}
-        component={OnboardingSuccess}
+        component={OnboardingSuccess as ScreenComponent}
         options={{
           headerShown: false,
         }}
@@ -253,7 +253,7 @@ const OnboardingNav = () => {
       />
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS}
-        component={OnboardingSuccess}
+        component={OnboardingSuccess as ScreenComponent}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -287,19 +287,18 @@ const OnboardingNav = () => {
       />
       <Stack.Screen
         name="AccountAlreadyExists"
-        component={AccountStatus}
+        component={AccountStatus as ScreenComponent}
         initialParams={{ type: 'found' }}
         options={{ headerShown: false }}
       />
       <Stack.Screen
         name="AccountNotFound"
-        component={AccountStatus}
+        component={AccountStatus as ScreenComponent}
         initialParams={{ type: 'not_exist' }}
         options={{ headerShown: false }}
       />
-      {/* OAuth rehydration inside onboarding stack (distinct route name from AppFlow). */}
       <Stack.Screen
-        name={Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE}
+        name="Rehydrate"
         component={OAuthRehydration}
         options={{ headerShown: false }}
       />
@@ -438,7 +437,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ONBOARDING_SHEET}
-      component={OnboardingSheet}
+      component={OnboardingSheet as ScreenComponent}
     />
     <Stack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
@@ -479,7 +478,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ADD_ACCOUNT}
-      component={AddNewAccountBottomSheet}
+      component={AddNewAccountBottomSheet as ScreenComponent}
     />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
@@ -488,7 +487,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
-      component={SDKSessionModal}
+      component={SDKSessionModal as ScreenComponent}
     />
     <Stack.Screen
       name={Routes.SHEET.EXPERIENCE_ENHANCER}
@@ -500,7 +499,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_DISCONNECT}
-      component={SDKDisconnectModal}
+      component={SDKDisconnectModal as ScreenComponent}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}
@@ -638,6 +637,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       initialParams={{ ...props.route.params }}
     />
     <Stack.Screen
+      name={Routes.CARD.NOTIFICATION}
+      component={CardNotification}
+    />
+    <Stack.Screen
       name={Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS}
       component={MultichainTransactionDetailsSheet}
     />
@@ -676,7 +679,6 @@ const ImportSRPView = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
-      presentation: 'transparentModal',
     }}
   >
     <Stack.Screen
@@ -692,6 +694,7 @@ const ImportSRPView = () => (
       name={Routes.SHEET.SEEDPHRASE_MODAL}
       component={SeedphraseModal}
       options={{
+        presentation: 'modal',
         cardStyle: { backgroundColor: 'transparent' },
         cardStyleInterpolator: () => ({
           overlayStyle: {
@@ -961,11 +964,7 @@ const AppFlow = () => {
           cardStyle: { backgroundColor: colors.background.default },
         }}
       />
-      {/* Same screen as ONBOARDING_OAUTH_REHYDRATE but registered on root AppFlow for post-login unlock. */}
-      <Stack.Screen
-        name={Routes.ONBOARDING.REHYDRATE}
-        component={OAuthRehydration}
-      />
+      <Stack.Screen name="Rehydrate" component={OAuthRehydration} />
       <Stack.Screen
         name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
         component={MaxBrowserTabsModal}
@@ -1036,7 +1035,7 @@ const AppFlow = () => {
       />
       <Stack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-        component={RevealPrivateCredential}
+        component={RevealPrivateCredential as ScreenComponent}
         options={{
           headerShown: false,
           animationEnabled: true,
@@ -1163,11 +1162,6 @@ const App: React.FC = () => {
 
   useOTAUpdates();
   const predictRegistrations = usePredictToastRegistrations();
-  const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
-  const toastRegistrations = useMemo(
-    () => [...predictRegistrations, ...perpsWithdrawRegistrations],
-    [predictRegistrations, perpsWithdrawRegistrations],
-  );
 
   if (isFirstRender.current) {
     trace({
@@ -1247,7 +1241,7 @@ const App: React.FC = () => {
         <Toast ref={toastRef} />
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
-        <ControllerEventToastBridge registrations={toastRegistrations} />
+        <ControllerEventToastBridge registrations={predictRegistrations} />
         <ProfilerManager />
       </WebSocketHealthToastProvider>
     </AccessRestrictedProvider>

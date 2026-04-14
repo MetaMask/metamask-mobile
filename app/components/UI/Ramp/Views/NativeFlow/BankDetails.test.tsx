@@ -272,22 +272,27 @@ describe('V2BankDetails', () => {
     mockRefreshOrder.mockResolvedValue(undefined);
   });
 
+  it('matches snapshot when order is null (loading)', () => {
+    const { toJSON } = renderWithTheme(<V2BankDetails />);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('renders loader when order is not available', () => {
     const { getByTestId } = renderWithTheme(<V2BankDetails />);
     expect(getByTestId('loader')).toBeOnTheScreen();
   });
 
-  it('renders bank details title after order data loads from refresh', async () => {
+  it('matches snapshot with order data and depositOrder from refresh', async () => {
     mockGetOrderById.mockReturnValue(createMockV2Order());
     mockGetOrder.mockResolvedValue(createMockDepositOrder());
 
-    const { getByText } = renderWithTheme(<V2BankDetails />);
+    const { toJSON } = renderWithTheme(<V2BankDetails />);
 
     await waitFor(() => {
       expect(mockGetOrder).toHaveBeenCalled();
     });
 
-    expect(getByText('deposit.bank_details.main_title')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders bank detail rows when order has payment details', async () => {
@@ -402,7 +407,7 @@ describe('V2BankDetails', () => {
       ).toBeOnTheScreen();
     });
 
-    expect(queryByText('Test Bank')).not.toBeOnTheScreen();
+    expect(queryByText('Test Bank')).toBeNull();
 
     fireEvent.press(getByText('deposit.bank_details.show_bank_info'));
 
@@ -542,10 +547,13 @@ describe('V2BankDetails', () => {
       createMockDepositOrder({ paymentDetails: sepaPaymentDetails }),
     );
 
-    const { getByText } = renderWithTheme(<V2BankDetails />);
+    const { toJSON } = renderWithTheme(<V2BankDetails />);
 
-    expect(getByText('deposit.bank_details.iban')).toBeOnTheScreen();
-    expect(getByText('deposit.bank_details.bic')).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(mockGetOrder).toHaveBeenCalled();
+    });
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('shows confirm payment error when confirmPayment fails with non-401', async () => {
@@ -592,7 +600,7 @@ describe('V2BankDetails', () => {
     });
   });
 
-  it('disables main action button while confirm payment is loading', async () => {
+  it('matches snapshot with both buttons disabled while confirm payment loads', async () => {
     let resolveConfirm!: () => void;
     mockConfirmPayment.mockReturnValue(
       new Promise<void>((resolve) => {
@@ -602,7 +610,7 @@ describe('V2BankDetails', () => {
     mockGetOrderById.mockReturnValue(createMockV2Order());
     mockGetOrder.mockResolvedValue(createMockDepositOrder());
 
-    const { getByTestId } = renderWithTheme(<V2BankDetails />);
+    const { toJSON, getByTestId } = renderWithTheme(<V2BankDetails />);
 
     await waitFor(() => {
       expect(mockGetOrder).toHaveBeenCalled();
@@ -613,14 +621,14 @@ describe('V2BankDetails', () => {
       await Promise.resolve();
     });
 
-    expect(getByTestId('main-action-button')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
 
     await act(async () => {
       resolveConfirm();
     });
   });
 
-  it('disables cancel button while cancel order is loading', async () => {
+  it('matches snapshot with both buttons disabled while cancel order loads', async () => {
     let resolveCancel!: () => void;
     mockCancelOrder.mockReturnValue(
       new Promise<void>((resolve) => {
@@ -630,7 +638,7 @@ describe('V2BankDetails', () => {
     mockGetOrderById.mockReturnValue(createMockV2Order());
     mockGetOrder.mockResolvedValue(createMockDepositOrder());
 
-    const { getByText } = renderWithTheme(<V2BankDetails />);
+    const { toJSON, getByText } = renderWithTheme(<V2BankDetails />);
 
     await waitFor(() => {
       expect(mockGetOrder).toHaveBeenCalled();
@@ -643,9 +651,7 @@ describe('V2BankDetails', () => {
       await Promise.resolve();
     });
 
-    expect(
-      getByText('deposit.order_processing.cancel_order_button'),
-    ).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
 
     await act(async () => {
       resolveCancel();
@@ -663,16 +669,16 @@ describe('V2BankDetails', () => {
       const { queryByTestId, getByText } = renderWithTheme(<V2BankDetails />);
 
       expect(mockGetOrder).not.toHaveBeenCalled();
-      expect(queryByTestId('loader')).not.toBeOnTheScreen();
+      expect(queryByTestId('loader')).toBeNull();
       expect(getByText('deposit.bank_details.main_title')).toBeOnTheScreen();
     });
 
-    it('renders bank details from controller order without fetching', () => {
+    it('matches snapshot showing bank details from controller order', () => {
       mockGetOrderById.mockReturnValue(createMockV2Order());
 
-      const { getByText } = renderWithTheme(<V2BankDetails />);
+      const { toJSON } = renderWithTheme(<V2BankDetails />);
 
-      expect(getByText('deposit.bank_details.main_title')).toBeOnTheScreen();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('confirms payment using paymentMethod from controller order', async () => {

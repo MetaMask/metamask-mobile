@@ -112,13 +112,13 @@ describe('LimitOptionItem', () => {
     it('does not render input field when showInput is false', () => {
       render({ showInput: false, isSelected: true, testID: 'limit-option' });
 
-      expect(screen.queryByTestId('limit-option-input')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('limit-option-input')).toBeNull();
     });
 
     it('does not render input field when isSelected is false', () => {
       render({ showInput: true, isSelected: false, testID: 'limit-option' });
 
-      expect(screen.queryByTestId('limit-option-input')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('limit-option-input')).toBeNull();
     });
 
     it('renders input field when showInput is true and isSelected is true', () => {

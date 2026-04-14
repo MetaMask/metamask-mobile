@@ -82,20 +82,26 @@ describe('V2OrderProcessing', () => {
     mockOrder = null;
   });
 
+  it('matches snapshot when order is null (loading)', () => {
+    mockOrder = null;
+    const { toJSON } = renderWithTheme(<V2OrderProcessing />);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('renders loader when order is not available', () => {
     mockOrder = null;
     const { getByTestId } = renderWithTheme(<V2OrderProcessing />);
     expect(getByTestId('loader')).toBeOnTheScreen();
   });
 
-  it('renders main action button when order is pending', () => {
+  it('matches snapshot when order is pending', () => {
     mockOrder = {
       id: 'test-order-id',
       state: FIAT_ORDER_STATES.PENDING,
       data: {},
     };
-    const { getByTestId } = renderWithTheme(<V2OrderProcessing />);
-    expect(getByTestId('main-action-button')).toBeOnTheScreen();
+    const { toJSON } = renderWithTheme(<V2OrderProcessing />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates home when main button is pressed for pending order', () => {

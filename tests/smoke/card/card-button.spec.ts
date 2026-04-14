@@ -35,7 +35,6 @@ describe(SmokeCard('Card NavBar Button'), () => {
             ],
             '0xe708',
           )
-          .withCardController()
           .build(),
         restartDevice: true,
         testSpecificMock,

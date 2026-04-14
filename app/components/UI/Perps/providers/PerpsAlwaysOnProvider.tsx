@@ -5,7 +5,6 @@ import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 import { selectPerpsEnabledFlag } from '../index';
-import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { ensureError } from '../../../../util/errorUtils';
 
@@ -32,16 +31,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
   useEffect(() => {
-    const controller = Engine.context.PerpsController;
-
-    if (!isPerpsEnabled) {
-      controller?.stopMarketDataPreload?.();
-      return;
-    }
-
-    // Keep the legacy preload lifecycle attached to the always-on provider so
-    // it runs in both wallet tab and homepage-sections flows.
-    controller?.startMarketDataPreload?.();
+    if (!isPerpsEnabled) return;
 
     let isActive = true;
     let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
@@ -112,7 +102,6 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       if (reconnectTimer) {
         clearTimeout(reconnectTimer);
       }
-      controller?.stopMarketDataPreload?.();
       PerpsConnectionManager.disconnect();
     };
   }, [isPerpsEnabled]);

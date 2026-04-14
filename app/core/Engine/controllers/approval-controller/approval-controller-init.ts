@@ -7,9 +7,9 @@ import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';
 
 import Logger from '../../../../util/Logger';
 import { ApprovalTypes } from '../../../RPCMethods/RPCMethodMiddleware';
-import type { MessengerClientInitFunction } from '../../types';
+import type { ControllerInitFunction } from '../../types';
 
-export const ApprovalControllerInit: MessengerClientInitFunction<
+export const ApprovalControllerInit: ControllerInitFunction<
   ApprovalController,
   ApprovalControllerMessenger
 > = (request) => {

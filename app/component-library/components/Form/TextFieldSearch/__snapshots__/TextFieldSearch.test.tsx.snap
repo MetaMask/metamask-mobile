@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TextFieldSearch renders default settings correctly 1`] = `
+<ForwardRef
+  endAccessory={false}
+  startAccessory={
+    <Icon
+      color="Alternative"
+      name="Search"
+      size="20"
+    />
+  }
+  style={
+    [
+      undefined,
+      {
+        "borderRadius": 24,
+      },
+    ]
+  }
+  testID="textfieldsearch"
+/>
+`;

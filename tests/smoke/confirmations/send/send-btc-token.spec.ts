@@ -6,8 +6,7 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../../flows/wallet.flow';
 import Assertions from '../../../framework/Assertions';
-import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import NetworkListModal from '../../../page-objects/Network/NetworkListModal';
 
 const TOKEN = 'Bitcoin';
 
@@ -17,24 +16,10 @@ describe(SmokeConfirmations('Send Bitcoin'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            {
-              homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
-              homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
-              tokenDetailsV2AbTest: {
-                value: { variant: 'control', minimumVersion: '0.0.0' },
-              },
-            },
-            1000,
-          );
-        },
       },
       async () => {
         await loginToApp();
-        // Making the assertion before disabling synchronization so that flags
-        // are properly fetched and this mocked flag is set
+        await device.disableSynchronization();
         await Assertions.expectElementToNotBeVisible(
           WalletView.balanceEmptyStateContainer,
           {
@@ -42,8 +27,9 @@ describe(SmokeConfirmations('Send Bitcoin'), () => {
             timeout: 30000,
           },
         );
-        await device.disableSynchronization();
-        await WalletView.tapOnToken(TOKEN, 0);
+        await WalletView.tapTokenNetworkFilter();
+        await NetworkListModal.changeNetworkTo(TOKEN);
+        await WalletView.tapOnToken(TOKEN, 1);
         await TokenOverview.tapSendButton();
         await SendView.enterZeroAmount();
         await SendView.checkInsufficientFundsError();

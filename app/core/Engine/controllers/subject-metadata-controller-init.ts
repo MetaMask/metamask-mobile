@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   SubjectMetadataController,
   type SubjectMetadataControllerMessenger,
@@ -12,7 +12,7 @@ import {
  * @param request.persistedState - The persisted state of the extension.
  * @returns The initialized controller.
  */
-export const subjectMetadataControllerInit: MessengerClientInitFunction<
+export const subjectMetadataControllerInit: ControllerInitFunction<
   SubjectMetadataController,
   SubjectMetadataControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

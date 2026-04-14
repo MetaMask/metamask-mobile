@@ -15,6 +15,7 @@ import { LINEA_CAIP_CHAIN_ID } from '../util/buildTokenList';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import Logger from '../../../../util/Logger';
+import { cardQueries } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
@@ -31,17 +32,9 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
-const mockFetchCardHomeData = jest.fn().mockResolvedValue(undefined);
-jest.mock('../../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      CardController: {
-        fetchCardHomeData: (...args: unknown[]) =>
-          mockFetchCardHomeData(...args),
-      },
-    },
-  },
+const mockInvalidateQueries = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: jest.fn(),
 }));
 
 // Create the mock class inside the factory to avoid hoisting issues
@@ -190,7 +183,14 @@ describe('useSpendingLimit', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    mockFetchCardHomeData.mockResolvedValue(undefined);
+    mockInvalidateQueries.mockResolvedValue(undefined);
+    (
+      jest.requireMock('@tanstack/react-query') as {
+        useQueryClient: jest.Mock;
+      }
+    ).useQueryClient.mockReturnValue({
+      invalidateQueries: mockInvalidateQueries,
+    });
 
     // Setup navigation mock
     mockNavigation = {
@@ -712,7 +712,7 @@ describe('useSpendingLimit', () => {
       });
     });
 
-    it('refreshes card home data after successful submission', async () => {
+    it('clears cache after successful submission', async () => {
       const initialToken = createMockToken();
       const { result } = renderHook(() =>
         useSpendingLimit(createDefaultParams({ initialToken })),
@@ -724,7 +724,9 @@ describe('useSpendingLimit', () => {
         await submitPromise;
       });
 
-      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: cardQueries.dashboard.keys.externalWalletDetails(),
+      });
     });
 
     it('shows success toast for non-onboarding flow', async () => {

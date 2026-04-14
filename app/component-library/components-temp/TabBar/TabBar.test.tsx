@@ -69,7 +69,7 @@ describe('TabBar', () => {
     const tabs = ['Tab 1', 'Tab 2'];
 
     // Act
-    const { getByText } = render(
+    const { toJSON } = render(
       <ScrollableTabView
         renderTabBar={(props: typeof TabBarProps) => <TabBar {...props} />}
         initialPage={0}
@@ -83,8 +83,7 @@ describe('TabBar', () => {
     );
 
     // Assert
-    expect(getByText('Tab 1')).toBeOnTheScreen();
-    expect(getByText('Tab 2')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with custom style using ScrollableTabView', () => {
@@ -93,7 +92,7 @@ describe('TabBar', () => {
     const customStyle = { backgroundColor: 'red' };
 
     // Act
-    const { getByText } = render(
+    const { toJSON } = render(
       <ScrollableTabView
         renderTabBar={(props: typeof TabBarProps) => (
           <TabBar {...props} style={customStyle} />
@@ -108,9 +107,8 @@ describe('TabBar', () => {
       </ScrollableTabView>,
     );
 
-    // Assert — tab labels are visible regardless of custom style
-    expect(getByText('Tab 1')).toBeOnTheScreen();
-    expect(getByText('Tab 2')).toBeOnTheScreen();
+    // Assert
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays tab labels when used with ScrollableTabView', () => {
@@ -224,7 +222,7 @@ describe('TabBar', () => {
     };
 
     // Act
-    const { getByText } = render(
+    const { toJSON } = render(
       <ScrollableTabView
         renderTabBar={(props: typeof TabBarProps) => (
           <TabBar {...props} {...additionalProps} />
@@ -239,9 +237,8 @@ describe('TabBar', () => {
       </ScrollableTabView>,
     );
 
-    // Assert — tab labels are rendered with additional props applied
-    expect(getByText('Tab 1')).toBeOnTheScreen();
-    expect(getByText('Tab 2')).toBeOnTheScreen();
+    // Assert
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with initial page set to second tab using ScrollableTabView', () => {

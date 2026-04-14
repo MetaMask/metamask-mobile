@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { RefreshControl, View } from 'react-native';
 import type { TabRefreshHandle } from '../../../../Views/Wallet/types';
+import { useSelector } from 'react-redux';
 import {
   PredictHomePositions,
   PredictHomePositionsHandle,
@@ -16,6 +17,7 @@ import {
 import PredictAddFundsSheet from '../../components/PredictAddFundsSheet/PredictAddFundsSheet';
 import PredictOffline from '../../components/PredictOffline';
 import { PredictTabViewSelectorsIDs } from '../../Predict.testIds';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
@@ -31,6 +33,10 @@ const PredictTabView = forwardRef<TabRefreshHandle, PredictTabViewProps>(
     const [error, setError] = useState<string | null>(null);
 
     const homePositionsRef = useRef<PredictHomePositionsHandle>(null);
+
+    const isHomepageRedesignV1Enabled = useSelector(
+      selectHomepageRedesignV1Enabled,
+    );
 
     usePredictMeasurement({
       traceName: TraceName.PredictTabView,
@@ -72,15 +78,22 @@ const PredictTabView = forwardRef<TabRefreshHandle, PredictTabViewProps>(
 
     return (
       <View
-        style={tw.style('bg-default')}
-        testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}
+        style={tw.style(
+          isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default',
+        )}
+        testID={
+          isHomepageRedesignV1Enabled
+            ? PredictTabViewSelectorsIDs.SCROLL_VIEW
+            : undefined
+        }
       >
         {error ? (
           <PredictOffline onRetry={handleRefresh} />
         ) : (
           <ConditionalScrollView
-            isScrollEnabled={false}
+            isScrollEnabled={!isHomepageRedesignV1Enabled}
             scrollViewProps={{
+              testID: PredictTabViewSelectorsIDs.SCROLL_VIEW,
               refreshControl: (
                 <RefreshControl
                   refreshing={isRefreshing}

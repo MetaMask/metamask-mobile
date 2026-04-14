@@ -9,7 +9,7 @@ import { SAMPLE_SELECTOPTION_PROPS } from './SelectOption.constants';
 describe('SelectOption', () => {
   it('should render snapshot correctly', () => {
     const wrapper = render(<SelectOption {...SAMPLE_SELECTOPTION_PROPS} />);
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should not render the selected view if isSelected is false', () => {

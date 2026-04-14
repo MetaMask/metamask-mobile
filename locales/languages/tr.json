@@ -240,6 +240,7 @@
     "import_wallet_button": "Cüzdanı senkronize et veya içe aktar",
     "new_to_crypto": "Kriptoda yeni misiniz?",
     "start_exploring_now": "Yeni bir cüzdan oluştur",
+    "unlock": "Kilidini Aç",
     "new_to_metamask": "MetaMask'te yeni misiniz?",
     "already_have_wallet": "Zaten bir cüzdanınız var mı?",
     "optin_back_title": "Dikkat!",
@@ -1057,7 +1058,7 @@
       "edit_button": "Düzenle"
     },
     "stop_loss_prompt": {
-      "near_liquidation_title": "Likidasyona yalnızca {{distance}}% uzaktasınız",
+      "near_liquidation_title": "Likidasyona yalnızca %{{distance}} uzaktasınız",
       "near_liquidation_subtitle": "Pozisyonunuzun riskini azaltmak için marj ekleyin",
       "add_margin_button": "Ekle",
       "protect_losses_title": "Daha fazla zarara karşı korunun",
@@ -1300,7 +1301,7 @@
         "current_price": "Mevcut fiyat",
         "liquidation_price": "Likidasyon fiyatı",
         "liquidation_distance": "Likidasyon mesafesi",
-        "liquidation_warning": "Fiyat {{percentage}}% {{direction}} yaşarsa pozisyonunuz likidasyona uğrar",
+        "liquidation_warning": "Fiyat %{{percentage}} {{direction}} yaşarsa pozisyonunuz likidasyona uğrar",
         "drops": "düşüş",
         "rises": "yükseliş",
         "set_leverage": "{{leverage}} kaldıraç ayarla"
@@ -1730,7 +1731,7 @@
         "provider_fee": "Sağlayıcı ücreti",
         "bridge_fee": "Köprü ücreti",
         "total": "Toplam ücretler",
-        "discount_message": "MetaMask Ödülleri ile {{percentage}}% tasarruf ediyorsunuz."
+        "discount_message": "MetaMask Ödülleri ile %{{percentage}} tasarruf ediyorsunuz."
       },
       "closing_fees": {
         "title": "Kapatma ücretleri",
@@ -2359,7 +2360,7 @@
       "slippage": "Kayma",
       "price_details": "Fiyat bilgileri",
       "prediction_order": "Tahmin emri",
-      "prediction_order_description": "Her biri {{price}} fiyatta ~{{count}} sözleşme. Son tutar, emir defteri kullanılabilirliğe göre değişiklik gösterebilir ({{slippage}}% orana kadar).",
+      "prediction_order_description": "Her biri {{price}} fiyatta ~{{count}} sözleşme. Son tutar, emir defteri kullanılabilirliğe göre değişiklik gösterebilir (%{{slippage}} orana kadar).",
       "metamask_fee_description": "Bu tahmin işlemine yönelik hizmet ücreti",
       "exchange_fee": "Borsa ücreti",
       "exchange_fee_description": "Borsaya veya piyasaya ödenen ücret",
@@ -4810,9 +4811,11 @@
     "body_for_seedphrase": "Değer cüzdanınıza eklendiğine göre bir şifre belirleyerek ve Gizli Kurtarma İfadenizi (gereklidir) kaydederek cüzdanınızı koruyun.",
     "button": "Cüzdanı koru"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "İşlem güncellemesi başarısız oldu",
-    "already_confirmed": "Bu işlem zaten onaylandı ve değiştirilemez."
+    "text": "Tekrar denemek ister misiniz?",
+    "cancel_button": "İptal",
+    "retry_button": "Tekrar Dene"
   },
   "payment_request": {
     "title": "Talep",
@@ -5393,8 +5396,8 @@
     "included": "dahil",
     "max_gas_fee": "Maks. gaz ücreti",
     "edit": "Düzenle",
-    "quotes_include_fee": "Tekliflere {{fee}}% MetaMask ücreti dahildir",
-    "quotes_include_gas_and_metamask_fee": "Teklife gaz ve {{fee}}% MetaMask ücreti dahildir",
+    "quotes_include_fee": "%{{fee}} MetaMask ücreti tekliflere dahildir",
+    "quotes_include_gas_and_metamask_fee": "Gaz ve %{{fee}} MetaMask ücreti teklife dahildir",
     "tap_to_swap": "Takas işlemi gerçekleştirmek için dokunun",
     "swipe_to_swap": "Swap gerçekleştirmek için kaydır",
     "swipe_to": "Swap gerçekleştirmek için",
@@ -5997,16 +6000,16 @@
   },
   "earn": {
     "claimable_bonus_tooltip": "mUSD tuttuğunuz için kazandığınız yıllıklandırılmış bonus. Bonusunuzu Linea üzerinde günlük olarak alabilirsiniz.",
-    "earn_a_percentage_bonus": "{{percentage}}% bonus kazanın",
-    "percentage_bonus": "{{percentage}}% bonus",
+    "earn_a_percentage_bonus": "%{{percentage}} bonus kazanın",
+    "percentage_bonus": "%{{percentage}} bonus",
     "claimable_bonus": "Alınabilir bonus",
     "claim_bonus": "Bonusu al",
     "claim_bonus_with_fiat": "Claim {{amount}}",
     "claim_bonus_subtitle": "Bonus, {{networkName}} üzerinde ödenecektir.",
-    "percentage_bonus_on_linea": "Linea üzerinde {{percentage}}% bonus",
+    "percentage_bonus_on_linea": "Linea üzerinde %{{percentage}} bonus",
     "claim": "Al",
     "sounds_good": "Kulağa hoş geliyor",
-    "claimable_bonus_tooltip_with_percentage": "mUSD tuttuğunuz için kazandığınız {{percentage}}% yıllıklandırılmış bonus. Bonusunuzu Linea üzerinde günlük olarak alabilirsiniz.",
+    "claimable_bonus_tooltip_with_percentage": "mUSD tuttuğunuz için kazandığınız %{{percentage}} yıllıklandırılmış bonus. Bonusunuzu Linea üzerinde günlük olarak alabilirsiniz.",
     "empty_state_cta": {
       "heading": "{{tokenSymbol}} borç verin ve kazanın",
       "body": "{{protocol}} ile {{tokenSymbol}} token'ınızı borç verin ve",
@@ -6092,14 +6095,14 @@
     "musd_conversion": {
       "ok": "Tamam",
       "continue": "Devam et",
-      "convert_and_get_percentage_bonus": "Dönüştür ve {{percentage}}% al",
+      "convert_and_get_percentage_bonus": "Dönüştür ve %{{percentage}} al",
       "your_musd": "mUSD bakiyeniz",
       "balance_breakdown_title": "Ağa göre mUSD bakiyeleriniz",
       "balance_amount": "{{amount}} mUSD",
       "balance_amount_with_symbol": "{{amount}} {{symbol}}",
       "balance_fiat_unavailable": "—",
       "convert_to_musd": "mUSD'ye dönüştür",
-      "get_a_percentage_musd_bonus": "{{percentage}}% mUSD bonus al",
+      "get_a_percentage_musd_bonus": "%{{percentage}} mUSD bonus al",
       "convert": "Dönüştür",
       "fetching_quote": "Teklif alınıyor...",
       "you_convert": "Dönüştürdüğünüz tutar",
@@ -6115,16 +6118,16 @@
         "failed": "mUSD dönüştürme işlemi başarısız oldu"
       },
       "education": {
-        "heading": "STABİL KRİPTO PARALARDA\n{{percentage}}% AL",
-        "description": "Stabil kripto paralarınızı mUSD'ye dönüştürün ve günlük olarak alabileceğiniz {{percentage}}% oranına varan yıllıklandırılmış bonus kazanın.",
+        "heading": "STABİL KRİPTO PARALARDA\n%{{percentage}} AL",
+        "description": "Stabil kripto paralarınızı mUSD'ye dönüştürün ve günlük olarak alabileceğiniz %{{percentage}} oranına varan yıllıklandırılmış bonus kazanın.",
         "terms_apply": "Şartlar uygulanır.",
         "primary_button": "Başlarken",
         "secondary_button": "Şimdi değil"
       },
       "buy_musd": "mUSD al",
       "get_musd": "mUSD kazan",
-      "bonus_title": "Stabil kripto paranızda {{percentage}}% bonus kazanın",
-      "bonus_description": "Stabil kripto paranızı mUSD'ye dönüştürün ve {{percentage}}% oranında yıllıklandırılmış bonus alın.",
+      "bonus_title": "Stabil kripto paranızda %{{percentage}} bonus kazanın",
+      "bonus_description": "Stabil kripto paranızı mUSD'ye dönüştürün ve %{{percentage}} oranında yıllıklandırılmış bonus alın.",
       "powered_by_relay": "Destekleyen Relay",
       "max": "Maksimum",
       "quick_convert_button": "Dönüştür",
@@ -6132,14 +6135,14 @@
       "tooltip_title": "mUSD ile getiri elde et",
       "tooltip_content": "USDC, USDT veya DAI'nizi MetaMask'in dolar destekli stabil kripto parası olan mUSD'ye dönüştürün. Tuttuğunuz her dolar için {{apy}} getiri elde edin.",
       "quick_convert": {
-        "title": "Dönüştür ve {{percentage}}% al",
-        "subtitle": "Stabil kripto paralarınızı mUSD'ye dönüştürün ve günlük olarak alabileceğiniz {{percentage}}% oranına varan yıllıklandırılmış bonus alın.",
+        "title": "Dönüştür ve %{{percentage}} al",
+        "subtitle": "Stabil kripto paralarınızı mUSD'ye dönüştürün ve günlük olarak alabileceğiniz %{{percentage}} oranına varan yıllıklandırılmış bonus alın.",
         "inline_failed_message": "Dönüştürme işlemi başarısız oldu. Tekrar deneyin.",
         "confirmation": {
           "title": "Maksimumu dönüştür"
         }
       },
-      "percentage_bonus": "{{percentage}}% bonus",
+      "percentage_bonus": "%{{percentage}} bonus",
       "rate": "Oran"
     },
     "bonus_claim": {
@@ -6162,7 +6165,7 @@
   },
   "money": {
     "title": "Para",
-    "apy_label": "{{percentage}}% Yıllık Bileşik Getiri",
+    "apy_label": "%{{percentage}} Yıllık Bileşik Getiri",
     "action": {
       "add": "Ekle",
       "transfer": "Transfer Et",
@@ -6194,7 +6197,7 @@
       "subtitle": "Paranızı dilediğiniz yerde harcayın.",
       "virtual_card": "Sanal kart",
       "metal_card": "Metal kart",
-      "cashback": "{{percentage}}% para iadesi",
+      "cashback": "%{{percentage}} para iadesi",
       "get_now": "Hemen alın"
     },
     "why_metamask_money": {
@@ -6357,7 +6360,7 @@
     "you_could_earn_up_to": "Yılda",
     "per_year_on_your_tokens": "kazanabilirsiniz",
     "deposit": "Para Yatır",
-    "gas_cost_impact_warning": "Uyarı: İşlemin gaz maliyeti yatırdığınız paranın {{percentOverDeposit}}% fazlası olacaktır.",
+    "gas_cost_impact_warning": "Uyarı: İşlemin gaz maliyeti yatırdığınız paranın %{{percentOverDeposit}} fazlası olacaktır.",
     "earnings_history_title": "{{ticker}} kazançları",
     "apr": "APR",
     "interactive_chart": {
@@ -6636,6 +6639,7 @@
     "nested_transaction_heading": "{{index}} işlemi",
     "transaction": "İşlem",
     "available_balance": "Kullanılabilir bakiye: ",
+    "available_perps_balance": "Kullanılabilir Perps bakiyesi: ",
     "edit_amount_done": "Devam et",
     "deposit_edit_amount_done": "Fon ekle",
     "deposit_edit_amount_predict_withdraw": "Çek",
@@ -6716,7 +6720,7 @@
     "title": "Köprü",
     "submitting_transaction": "Gönderiliyor",
     "fetching_quote": "Teklif alınıyor",
-    "fee_disclaimer": "{{feePercentage}}% MetaMask ücreti dahildir.",
+    "fee_disclaimer": "%{{feePercentage}} MetaMask ücreti dahildir.",
     "no_mm_fee": "MM ücreti yok",
     "no_mm_fee_disclaimer": "{{destTokenSymbol}} takasında MetaMask ücreti yok.",
     "hardware_wallet_not_supported": "Donanım cüzdanları henüz desteklenmiyor. Devam etmek için sıcak cüzdan kullanın.",
@@ -6751,8 +6755,8 @@
     "confirm": "Onayla",
     "exceeding_upper_slippage_warning": "Yüksek kayma; bu durum istenmeyen bir takas ile sonuçlanabilir",
     "exceeding_lower_slippage_warning": "Düşük kayma; bu durum istenmeyen bir takas ile sonuçlanabilir",
-    "exceeding_lower_slippage_error": "{{value}}% değerin üzerinde olan bir değer girin",
-    "exceeding_upper_slippage_error": "{{value}}% değerin üzerinde olan bir değer giremezsiniz",
+    "exceeding_lower_slippage_error": "%{{value}} değerin üzerinde olan bir değer girin",
+    "exceeding_upper_slippage_error": "%{{value}} değerin üzerinde olan bir değer giremezsiniz",
     "custom": "Özel",
     "invalid_recipient_address": "Geçersiz adres",
     "select_quote": "Teklif Seç",

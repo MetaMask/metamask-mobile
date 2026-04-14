@@ -1,4 +1,3 @@
-import { ethers } from 'ethers';
 import Logger from '../../../../../util/Logger';
 import {
   CardExternalWalletDetail,
@@ -16,18 +15,13 @@ import {
   CardStatus,
   type CardNetwork,
 } from '../../../../../components/UI/Card/types';
-import type {
-  CardFeatureFlag,
-  SupportedToken,
-} from '../../../../../selectors/featureFlagController/card';
 import {
   ARBITRARY_ALLOWANCE,
-  BALANCE_SCANNER_ABI,
   BAANX_MAX_LIMIT,
   SUPPORTED_ASSET_NETWORKS,
+  caipChainIdToNetwork,
   cardNetworkInfos,
 } from '../../../../../components/UI/Card/constants';
-import { isAccountEligibleForProvisioning } from '../../../../../components/UI/Card/pushProvisioning/constants';
 import {
   generatePKCEPair,
   generateState,
@@ -60,10 +54,6 @@ import {
   FundingAssetStatus,
   CardProviderError,
   CardProviderErrorCode,
-  CashbackWalletResponse,
-  CashbackWithdrawEstimationResponse,
-  CashbackWithdrawParams,
-  CashbackWithdrawResponse,
   emptyCardHomeData,
 } from '../provider-types';
 
@@ -226,36 +216,12 @@ export class BaanxProvider implements ICardProvider {
       ],
       kycProvider: 'veriff',
     },
-    supportsPinView: true,
-    supportsCashback: true,
   };
 
-  /**
-   * Applies Baanx-specific location overrides:
-   * - US users always get PIN view (regardless of base flag).
-   * - US users do not have cashback (only available outside the US).
-   */
-  resolveCapabilities(location: string): CardProviderCapabilities {
-    const isUS = location === 'us';
-    return {
-      ...this.capabilities,
-      supportsPinView: isUS || this.capabilities.supportsPinView,
-      supportsCashback: !isUS && this.capabilities.supportsCashback,
-    };
-  }
-
   private readonly service: BaanxService;
-  private readonly cardFeatureFlag: CardFeatureFlag | null;
 
-  constructor({
-    service,
-    cardFeatureFlag,
-  }: {
-    service: BaanxService;
-    cardFeatureFlag?: CardFeatureFlag;
-  }) {
+  constructor({ service }: { service: BaanxService }) {
     this.service = service;
-    this.cardFeatureFlag = cardFeatureFlag ?? null;
   }
 
   // -- Auth --
@@ -418,21 +384,7 @@ export class BaanxProvider implements ICardProvider {
       const alerts = this.buildAlerts(primaryAsset, card, account);
       const actions = this.buildActions(primaryAsset, card, account);
 
-      const supportedTokens = this.buildSupportedTokens(
-        assets,
-        delegationSettings,
-      );
-
-      return {
-        primaryAsset,
-        assets,
-        supportedTokens,
-        card,
-        account,
-        alerts,
-        actions,
-        delegationSettings,
-      };
+      return { primaryAsset, assets, card, account, alerts, actions };
     } catch (error) {
       Logger.error(error as Error, getErrorContext('getCardHomeData'));
       return emptyCardHomeData();
@@ -468,26 +420,16 @@ export class BaanxProvider implements ICardProvider {
     await this.service.post('/v1/card/unfreeze', {}, tokens);
   }
 
-  async getCardDetailsView(
+  async getCardSecureView(
     tokens: CardAuthTokens,
     params: CardSecureViewParams,
   ): Promise<CardSecureView> {
-    const response = await this.service.post<{
-      imageUrl: string;
-      token: string;
-    }>('/v1/card/details/token', { customCss: params.customCss }, tokens);
-    return { url: response.imageUrl, token: response.token };
-  }
-
-  async getCardPinView(
-    tokens: CardAuthTokens,
-    params: CardSecureViewParams,
-  ): Promise<CardSecureView> {
-    const response = await this.service.post<{
-      imageUrl: string;
-      token: string;
-    }>('/v1/card/pin/token', { customCss: params.customCss }, tokens);
-    return { url: response.imageUrl, token: response.token };
+    const response = await this.service.post<{ url: string; token: string }>(
+      '/v1/card/details/token',
+      { customCss: params.customCss },
+      tokens,
+    );
+    return { url: response.url, token: response.token };
   }
 
   // -- Asset Management --
@@ -497,28 +439,20 @@ export class BaanxProvider implements ICardProvider {
     allAssets: CardFundingAsset[],
     tokens: CardAuthTokens,
   ): Promise<void> {
-    const assetsWithIds = allAssets.filter((a) => a.externalId);
-    if (assetsWithIds.length === 0) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'No wallet IDs available for priority update',
-      );
-    }
-
-    const sorted = [...assetsWithIds].sort((a, b) => a.priority - b.priority);
-
     let nextPriority = 2;
-    const wallets = sorted.map((a) => ({
-      id: a.externalId as number,
+    const priorities = allAssets.map((a) => ({
+      address: a.address,
+      currency: a.symbol,
+      network: caipChainIdToNetwork[a.chainId] ?? 'unknown',
       priority:
-        a.walletAddress === asset.walletAddress &&
-        a.symbol.toLowerCase() === asset.symbol.toLowerCase() &&
-        a.chainId === asset.chainId
+        a.symbol === asset.symbol &&
+        a.chainId === asset.chainId &&
+        a.address === asset.address
           ? 1
           : nextPriority++,
     }));
 
-    await this.service.put('/v1/wallet/external/priority', { wallets }, tokens);
+    await this.service.put('/v1/wallet/external/priority', priorities, tokens);
   }
 
   async getFundingConfig(tokens: CardAuthTokens): Promise<CardFundingConfig> {
@@ -618,349 +552,13 @@ export class BaanxProvider implements ICardProvider {
     }
   }
 
-  // -- Push Provisioning --
-
-  async createGoogleWalletProvisioningRequest(
-    tokens: CardAuthTokens,
-  ): Promise<{ opaquePaymentCard: string }> {
-    const response = await this.service.post<{
-      success: boolean;
-      data?: { opaquePaymentCard?: string };
-    }>('/v1/card/wallet/provision/google', {}, tokens);
-
-    if (!response.data?.opaquePaymentCard) {
-      throw new CardProviderError(
-        CardProviderErrorCode.ServerError,
-        'Google Wallet provisioning response missing opaquePaymentCard',
-      );
-    }
-    return { opaquePaymentCard: response.data.opaquePaymentCard };
-  }
-
-  async createApplePayProvisioningRequest(
-    params: {
-      leafCertificate: string;
-      intermediateCertificate: string;
-      nonce: string;
-      nonceSignature: string;
-    },
-    tokens: CardAuthTokens,
-  ): Promise<{
-    encryptedPassData: string;
-    activationData: string;
-    ephemeralPublicKey: string;
-  }> {
-    const response = await this.service.post<{
-      success?: boolean;
-      data?: {
-        encryptedPassData?: string;
-        activationData?: string;
-        ephemeralPublicKey?: string;
-      };
-      encryptedPassData?: string;
-      activationData?: string;
-      ephemeralPublicKey?: string;
-    }>('/v1/card/wallet/provision/apple', params, tokens);
-
-    const data = response.data || response;
-    if (
-      !data.encryptedPassData ||
-      !data.activationData ||
-      !data.ephemeralPublicKey
-    ) {
-      throw new CardProviderError(
-        CardProviderErrorCode.ServerError,
-        'Apple Pay provisioning response missing required fields',
-      );
-    }
-
-    return {
-      encryptedPassData: data.encryptedPassData,
-      activationData: data.activationData,
-      ephemeralPublicKey: data.ephemeralPublicKey,
-    };
-  }
-
-  // -- Cashback --
-
-  async getCashbackWallet(
-    tokens: CardAuthTokens,
-  ): Promise<CashbackWalletResponse> {
-    return this.service.get<CashbackWalletResponse>(
-      '/v1/wallet/reward',
-      tokens,
-    );
-  }
-
-  async getCashbackWithdrawEstimation(
-    tokens: CardAuthTokens,
-  ): Promise<CashbackWithdrawEstimationResponse> {
-    return this.service.get<CashbackWithdrawEstimationResponse>(
-      '/v1/wallet/reward/withdraw-estimation',
-      tokens,
-    );
-  }
-
-  async withdrawCashback(
-    params: CashbackWithdrawParams,
-    tokens: CardAuthTokens,
-  ): Promise<CashbackWithdrawResponse> {
-    return this.service.post<CashbackWithdrawResponse>(
-      '/v1/wallet/reward/withdraw',
-      params,
-      tokens,
-    );
-  }
-
   // -- On-Chain (unauthenticated) --
 
-  async getOnChainAssets(address: string): Promise<CardHomeData> {
-    const fallback: CardHomeData = {
+  async getOnChainAssets(_address: string): Promise<CardHomeData> {
+    return {
       ...emptyCardHomeData(),
-      actions: [{ type: 'add_funds', enabled: true }, { type: 'change_asset' }],
+      actions: [{ type: 'add_funds', enabled: true }],
     };
-
-    try {
-      const lineaChainId = 'eip155:59144';
-      const lineaChain = this.cardFeatureFlag?.chains?.[lineaChainId];
-      if (!lineaChain?.tokens?.length) return fallback;
-
-      const supportedTokens = lineaChain.tokens.filter(
-        (t): t is SupportedToken & { address: string } =>
-          !!t && typeof t.address === 'string' && t.enabled !== false,
-      );
-      if (supportedTokens.length === 0) return fallback;
-
-      const foxConnect = lineaChain.foxConnectAddresses;
-      const scannerAddress = lineaChain.balanceScannerAddress;
-      if (!foxConnect?.global || !foxConnect?.us || !scannerAddress) {
-        return fallback;
-      }
-
-      const rawAllowances = await this.#fetchOnChainAllowances(
-        address,
-        supportedTokens,
-        foxConnect as { global: string; us: string },
-        scannerAddress,
-      );
-
-      const assets = this.#mapOnChainAllowancesToAssets(
-        rawAllowances,
-        supportedTokens,
-        lineaChainId,
-        address,
-      );
-
-      const primaryAsset = await this.#pickOnChainPrimaryAsset(
-        address,
-        assets,
-        foxConnect as { global: string; us: string },
-      );
-
-      return {
-        primaryAsset,
-        assets,
-        supportedTokens: assets,
-        card: null,
-        account: null,
-        alerts: [],
-        actions: [
-          { type: 'add_funds', enabled: true },
-          { type: 'change_asset' },
-        ],
-        delegationSettings: null,
-      };
-    } catch (error) {
-      Logger.error(error as Error, getErrorContext('getOnChainAssets'));
-      return fallback;
-    }
-  }
-
-  // -- On-Chain private helpers --
-
-  async #fetchOnChainAllowances(
-    owner: string,
-    tokens: (SupportedToken & { address: string })[],
-    foxConnect: { global: string; us: string },
-    scannerAddress: string,
-  ): Promise<
-    {
-      address: string;
-      globalAllowance: ethers.BigNumber;
-      usAllowance: ethers.BigNumber;
-    }[]
-  > {
-    const rpcUrl = cardNetworkInfos.linea?.rpcUrl;
-    if (!rpcUrl) throw new Error('Linea RPC URL not configured');
-
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-    const scanner = new ethers.Contract(
-      scannerAddress,
-      BALANCE_SCANNER_ABI,
-      provider,
-    );
-
-    const tokenAddresses = tokens
-      .map((t) => t.address)
-      .filter((addr): addr is string => ethers.utils.isAddress(addr));
-
-    if (tokenAddresses.length === 0) return [];
-
-    const spenders: string[][] = tokenAddresses.map(() => [
-      foxConnect.global,
-      foxConnect.us,
-    ]);
-
-    const results: [boolean, string][][] =
-      await scanner.spendersAllowancesForTokens(
-        owner,
-        tokenAddresses,
-        spenders,
-      );
-
-    return tokenAddresses.map((addr, i) => {
-      const [globalTuple, usTuple] = results[i];
-      return {
-        address: addr,
-        globalAllowance: ethers.BigNumber.from(globalTuple[1]),
-        usAllowance: ethers.BigNumber.from(usTuple[1]),
-      };
-    });
-  }
-
-  #mapOnChainAllowancesToAssets(
-    rawAllowances: {
-      address: string;
-      globalAllowance: ethers.BigNumber;
-      usAllowance: ethers.BigNumber;
-    }[],
-    supportedTokens: (SupportedToken & { address: string })[],
-    chainId: string,
-    ownerAddress: string,
-  ): CardFundingAsset[] {
-    return rawAllowances
-      .map((raw) => {
-        const tokenInfo = supportedTokens.find(
-          (t) => t.address?.toLowerCase() === raw.address.toLowerCase(),
-        );
-        if (!tokenInfo) return null;
-
-        const allowance = raw.usAllowance.isZero()
-          ? raw.globalAllowance
-          : raw.usAllowance;
-        const allowanceFloat = parseFloat(
-          ethers.utils.formatUnits(allowance, tokenInfo.decimals ?? 6),
-        );
-
-        return {
-          symbol: tokenInfo.symbol ?? '',
-          name: tokenInfo.name ?? '',
-          address: raw.address,
-          walletAddress: ownerAddress,
-          decimals: tokenInfo.decimals ?? 0,
-          chainId,
-          balance: '0',
-          allowance: allowance.toString(),
-          priority: 0,
-          status: mapAllowanceToFundingStatus(allowanceFloat),
-        } as CardFundingAsset;
-      })
-      .filter((a): a is CardFundingAsset => a !== null && a.symbol !== '');
-  }
-
-  /**
-   * Picks the primary asset for unauthenticated users.
-   * For 0 non-zero allowances: returns the first supported token.
-   * For 1 non-zero: returns that token.
-   * For 2+: reads Approval event logs to find the most recently approved token.
-   */
-  async #pickOnChainPrimaryAsset(
-    owner: string,
-    assets: CardFundingAsset[],
-    foxConnect: { global: string; us: string },
-  ): Promise<CardFundingAsset | null> {
-    if (assets.length === 0) return null;
-
-    const nonZero = assets.filter(
-      (a) => a.status !== FundingAssetStatus.Inactive,
-    );
-
-    if (nonZero.length === 0) return assets[0];
-    if (nonZero.length === 1) return nonZero[0];
-
-    try {
-      const priorityAddress = await this.#findLastApprovedToken(
-        owner,
-        nonZero.map((a) => a.address),
-        foxConnect,
-      );
-      if (priorityAddress) {
-        const match = nonZero.find(
-          (a) => a.address.toLowerCase() === priorityAddress.toLowerCase(),
-        );
-        if (match) return match;
-      }
-    } catch (error) {
-      Logger.error(error as Error, getErrorContext('pickOnChainPrimaryAsset'));
-    }
-
-    return nonZero[0];
-  }
-
-  /**
-   * Reads Approval event logs from Linea to find which token was most recently
-   * approved for the FoxConnect spender contracts.
-   */
-  async #findLastApprovedToken(
-    owner: string,
-    tokenAddresses: string[],
-    foxConnect: { global: string; us: string },
-  ): Promise<string | null> {
-    const rpcUrl = cardNetworkInfos.linea?.rpcUrl;
-    if (!rpcUrl) return null;
-
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-    const iface = new ethers.utils.Interface([
-      'event Approval(address indexed owner, address indexed spender, uint256 value)',
-    ]);
-
-    const approvalTopic = iface.getEventTopic('Approval');
-    const ownerTopic = ethers.utils.hexZeroPad(owner.toLowerCase(), 32);
-    const spenderTopics = [foxConnect.global, foxConnect.us].map((s) =>
-      ethers.utils.hexZeroPad(s.toLowerCase(), 32),
-    );
-
-    const SPENDERS_DEPLOYED_BLOCK = 2715910;
-
-    const logsPerToken = await Promise.all(
-      tokenAddresses.map((tokenAddress) =>
-        provider
-          .getLogs({
-            address: tokenAddress,
-            fromBlock: SPENDERS_DEPLOYED_BLOCK,
-            toBlock: 'latest',
-            topics: [approvalTopic, ownerTopic, spenderTopics],
-          })
-          .then((logs) => logs.map((log) => ({ ...log, tokenAddress }))),
-      ),
-    );
-
-    const allLogs = logsPerToken.flat();
-    allLogs.sort((a, b) =>
-      a.blockNumber === b.blockNumber
-        ? a.logIndex - b.logIndex
-        : a.blockNumber - b.blockNumber,
-    );
-
-    for (let i = allLogs.length - 1; i >= 0; i--) {
-      const { args } = iface.parseLog(allLogs[i]);
-      const value = args.value as ethers.BigNumber;
-      if (!value.isZero()) {
-        return allLogs[i].tokenAddress;
-      }
-    }
-
-    return null;
   }
 
   // ---- Private helpers ----
@@ -1073,28 +671,15 @@ export class BaanxProvider implements ICardProvider {
     return { done: true, tokenSet };
   }
 
-  /**
-   * Fetches wallet details from the API, enriches them with token metadata
-   * from the feature flag, and merges priority ordering.
-   *
-   * The API returns flat objects (`CardWalletExternalResponse`) without token
-   * details or CAIP chain IDs. This method resolves the token info by matching
-   * `currency` against the feature-flag supported tokens for each network.
-   */
   private async fetchWalletDetails(
     tokens: CardAuthTokens,
   ): Promise<CardExternalWalletDetail[]> {
     try {
-      const [rawWallets, priorities] = await Promise.all([
-        this.service.get<
-          {
-            address: string;
-            currency: string;
-            balance: string;
-            allowance: string;
-            network: string;
-          }[]
-        >('/v1/wallet/external', tokens),
+      const [wallets, priorities] = await Promise.all([
+        this.service.get<CardExternalWalletDetail[]>(
+          '/v1/wallet/external',
+          tokens,
+        ),
         this.service
           .get<
             CardWalletExternalPriorityResponse[]
@@ -1102,54 +687,27 @@ export class BaanxProvider implements ICardProvider {
           .catch(() => [] as CardWalletExternalPriorityResponse[]),
       ]);
 
-      if (!rawWallets?.length) return [];
+      if (!wallets?.length) return [];
 
       const maxPriority = priorities.reduce(
         (max, p) => Math.max(max, p.priority),
         0,
       );
 
-      const enriched: CardExternalWalletDetail[] = [];
-
-      for (const wallet of rawWallets) {
-        const networkKey = wallet.network?.toLowerCase() as CardNetwork;
-        const networkInfo = cardNetworkInfos[networkKey];
-        if (!networkInfo) continue;
-
-        const caipChainId = networkInfo.caipChainId;
-        const chainTokens =
-          this.cardFeatureFlag?.chains?.[caipChainId]?.tokens ?? [];
-        const matchingToken = chainTokens.find(
-          (t) => t?.symbol?.toLowerCase() === wallet.currency?.toLowerCase(),
-        );
-
-        const priorityMatch = priorities.find(
+      const withPriority = wallets.map((wallet) => {
+        const match = priorities.find(
           (p) =>
-            p.address?.toLowerCase() === wallet.address?.toLowerCase() &&
-            p.currency?.toLowerCase() === wallet.currency?.toLowerCase() &&
+            p.address?.toLowerCase() === wallet.walletAddress?.toLowerCase() &&
+            p.currency === wallet.currency &&
             p.network?.toLowerCase() === wallet.network?.toLowerCase(),
         );
+        return {
+          ...wallet,
+          priority: match?.priority ?? maxPriority + 1,
+        };
+      });
 
-        enriched.push({
-          id: priorityMatch?.id ?? 0,
-          walletAddress: wallet.address,
-          currency: wallet.currency,
-          balance: wallet.balance,
-          allowance: wallet.allowance,
-          priority: priorityMatch?.priority ?? maxPriority + 1,
-          tokenDetails: {
-            address: matchingToken?.address ?? null,
-            decimals: matchingToken?.decimals ?? null,
-            symbol:
-              matchingToken?.symbol ?? wallet.currency?.toUpperCase() ?? null,
-            name: matchingToken?.name ?? null,
-          },
-          caipChainId,
-          network: networkKey,
-        });
-      }
-
-      return enriched.sort((a, b) => a.priority - b.priority);
+      return withPriority.sort((a, b) => a.priority - b.priority);
     } catch (error) {
       Logger.error(error as Error, getErrorContext('fetchWalletDetails'));
       return [];
@@ -1166,19 +724,16 @@ export class BaanxProvider implements ICardProvider {
         const availableBalance = Math.min(balanceFloat, allowanceFloat);
 
         return {
-          symbol:
-            detail.tokenDetails?.symbol ?? detail.currency?.toUpperCase() ?? '',
-          name: detail.tokenDetails?.name ?? '',
-          address: detail.tokenDetails?.address ?? '',
-          walletAddress: detail.walletAddress ?? '',
-          decimals: detail.tokenDetails?.decimals ?? 0,
+          symbol: detail.tokenDetails.symbol ?? '',
+          name: detail.tokenDetails.name ?? '',
+          address: detail.tokenDetails.address ?? '',
+          decimals: detail.tokenDetails.decimals ?? 0,
           chainId: detail.caipChainId,
           balance: availableBalance.toString(),
           allowance: detail.allowance ?? '0',
           priority: detail.priority ?? 0,
           status: mapAllowanceToFundingStatus(allowanceFloat),
           stagingTokenAddress: detail.stagingTokenAddress ?? undefined,
-          externalId: detail.id || undefined,
         };
       })
       .filter((a) => a.symbol !== '');
@@ -1221,10 +776,7 @@ export class BaanxProvider implements ICardProvider {
   ): CardAccountStatus {
     return {
       verificationStatus: user.verificationState ?? null,
-      provisioningEligible:
-        !!card &&
-        card.status === CardStatus.ACTIVE &&
-        isAccountEligibleForProvisioning(user.createdAt),
+      provisioningEligible: !!card && card.status === CardStatus.ACTIVE,
       holderName: user.firstName
         ? `${user.firstName} ${user.lastName ?? ''}`.trim()
         : null,
@@ -1248,15 +800,8 @@ export class BaanxProvider implements ICardProvider {
   ): CardAlert[] {
     const alerts: CardAlert[] = [];
 
-    if (
-      account?.verificationStatus === 'PENDING' ||
-      account?.verificationStatus === 'UNVERIFIED'
-    ) {
+    if (account?.verificationStatus === 'PENDING') {
       alerts.push({ type: 'kyc_pending', dismissable: false });
-    }
-
-    if (account?.verificationStatus === 'VERIFIED' && !card && asset !== null) {
-      alerts.push({ type: 'card_provisioning', dismissable: false });
     }
 
     if (card && card.status === CardStatus.FROZEN) {
@@ -1279,16 +824,11 @@ export class BaanxProvider implements ICardProvider {
     card: CardDetails | null,
     account: CardAccountStatus | null,
   ): CardAction[] {
-    if (!card) {
-      if (account?.verificationStatus === 'VERIFIED' && !asset) {
-        return [{ type: 'enable_card' }];
-      }
-      return [];
-    }
+    if (!card) return [];
 
     if (
       account?.verificationStatus === 'VERIFIED' &&
-      (!asset || asset.status === FundingAssetStatus.Inactive)
+      asset?.status === FundingAssetStatus.Inactive
     ) {
       return [{ type: 'enable_card' }];
     }
@@ -1298,94 +838,6 @@ export class BaanxProvider implements ICardProvider {
     }
 
     return [];
-  }
-
-  /**
-   * Merges user's delegated assets with all tokens from delegation settings.
-   * Tokens already in `assets` (matched by token contract address + chainId) are kept.
-   * Additional tokens from settings are added as inactive with zero balance.
-   */
-  private buildSupportedTokens(
-    assets: CardFundingAsset[],
-    delegationSettings: DelegationSettingsResponse | null,
-  ): CardFundingAsset[] {
-    const result = [...assets];
-
-    if (!delegationSettings?.networks) return result;
-
-    for (const network of delegationSettings.networks) {
-      const networkName = network.network?.toLowerCase() as string;
-      if (
-        !networkName ||
-        !SUPPORTED_ASSET_NETWORKS.includes(networkName as never)
-      ) {
-        continue;
-      }
-
-      const info =
-        cardNetworkInfos[networkName as keyof typeof cardNetworkInfos];
-      const chainId = info?.caipChainId ?? `eip155:${network.chainId}`;
-      const isNonProduction = network.environment !== 'production';
-
-      // Enrich existing assets with delegationContract from their matching network
-      for (const existing of result) {
-        if (existing.chainId === chainId && !existing.delegationContract) {
-          existing.delegationContract = network.delegationContract;
-        }
-      }
-
-      for (const tokenConfig of Object.values(network.tokens ?? {})) {
-        if (!tokenConfig.address) continue;
-
-        const alreadyExists = result.some(
-          (a) =>
-            a.address?.toLowerCase() === tokenConfig.address.toLowerCase() &&
-            a.chainId === chainId,
-        );
-        if (alreadyExists) continue;
-
-        const chainTokens =
-          this.cardFeatureFlag?.chains?.[chainId]?.tokens ?? [];
-        const sdkToken = chainTokens.find(
-          (t) => t?.symbol?.toLowerCase() === tokenConfig.symbol?.toLowerCase(),
-        );
-
-        result.push({
-          symbol: sdkToken?.symbol ?? tokenConfig.symbol,
-          name: sdkToken?.name ?? tokenConfig.symbol,
-          address:
-            isNonProduction && sdkToken?.address
-              ? sdkToken.address
-              : tokenConfig.address,
-          walletAddress: '',
-          decimals: tokenConfig.decimals,
-          chainId,
-          balance: '0',
-          allowance: '0',
-          priority: Number.MAX_SAFE_INTEGER,
-          status: FundingAssetStatus.Inactive,
-          stagingTokenAddress: isNonProduction
-            ? tokenConfig.address
-            : undefined,
-          delegationContract: network.delegationContract,
-        });
-      }
-    }
-
-    return result.sort((a, b) => {
-      const aHasPriority = a.priority > 0;
-      const bHasPriority = b.priority > 0;
-      if (aHasPriority && bHasPriority) return a.priority - b.priority;
-      if (aHasPriority) return -1;
-      if (bHasPriority) return 1;
-
-      const statusOrder = {
-        [FundingAssetStatus.Active]: 0,
-        [FundingAssetStatus.Limited]: 1,
-        [FundingAssetStatus.Inactive]: 2,
-      };
-      return (statusOrder[a.status] ?? 2) - (statusOrder[b.status] ?? 2);
-    });
   }
 
   private buildFundingOptions(
@@ -1422,7 +874,6 @@ export class BaanxProvider implements ICardProvider {
             symbol,
             name: symbol,
             address: tokenConfig.address,
-            walletAddress: '',
             decimals: tokenConfig.decimals,
             chainId,
             balance: '0',

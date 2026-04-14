@@ -8,16 +8,13 @@ Trading UX must feel instant. Users expect sub-second rendering of positions, or
 
 ## How It Works Today
 
-Four tiers, from freshest to stalest:
+Three tiers, from freshest to stalest:
 
-| Tier             | What                              | Lifetime        | Examples                                                  |
-| ---------------- | --------------------------------- | --------------- | --------------------------------------------------------- |
-| Real-time        | WebSocket via StreamManager       | While connected | Prices, positions, fills, orders, account balance         |
-| Session          | Provider + TradingReadinessCache  | App lifetime    | DEX discovery, signing state, spot metadata, fee rates    |
-| Disk             | MMKV via StreamManager/Controller | Across restarts | Market list, positions/orders for cold-start hydration    |
-| Preload (legacy) | REST via Controller               | 5-min refresh   | Market list for home screen, positions before WS connects |
-
-The Disk tier was added to eliminate the 1-2s loading skeleton on cold start. `PerpsController` persists preload snapshots to MMKV immediately after successful REST preloads, and `PerpsStreamManager` refreshes those snapshots from live channel data once WS is warm. On next launch, the controller hydrates in-memory caches from MMKV before React hooks read them, so the UI renders last-known structural data instantly. Volatile price fields are stripped and show `$---` until WS delivers fresh values.
+| Tier             | What                             | Lifetime        | Examples                                                  |
+| ---------------- | -------------------------------- | --------------- | --------------------------------------------------------- |
+| Real-time        | WebSocket via StreamManager      | While connected | Prices, positions, fills, orders, account balance         |
+| Session          | Provider + TradingReadinessCache | App lifetime    | DEX discovery, signing state, spot metadata, fee rates    |
+| Preload (legacy) | REST via Controller              | 5-min refresh   | Market list for home screen, positions before WS connects |
 
 The Preload tier exists because WS wasn't always-on historically. With `PerpsAlwaysOnProvider`, it's partially redundant — WS data arrives within 1-2 seconds of app launch, making the 5-min REST cycle a safety net rather than a primary data source.
 
@@ -25,13 +22,13 @@ The Preload tier exists because WS wasn't always-on historically. With `PerpsAlw
 
 What happens when the app launches:
 
-1. **App launches** — `PerpsController` hydrates MMKV disk cache into `cachedMarketDataByProvider` during construction, then `startMarketDataPreload()` fires from `PerpsAlwaysOnProvider`
-2. **UI hooks mount** — `getPreloadedData()` reads controller cache (now populated from disk) — instant render with structural data, prices show `$---`
-3. **PerpsAlwaysOnProvider mounts** — WS connects — stream channels prewarm via `preloadSubscriptions()`
-4. **WS data arrives** — overrides disk-hydrated data with live prices, positions, orders
-5. **Controller + StreamManager persist to disk** — preload writes seed MMKV immediately, then live channel snapshots refresh MMKV on the normal throttled cadence
+1. **App launches** — Controller preload fires REST fetch — `cachedMarketDataByProvider` populated
+2. **PerpsAlwaysOnProvider mounts** — WS connects — stream channels prewarm via `preloadSubscriptions()`
+3. **UI hooks mount** — read from stream channel cache (populated by WS prewarm) — instant render
+4. **If stream cache empty** — fall back to controller's REST preload cache via `getPreloadedData()` — still instant render
+5. **WS data arrives** — overrides everything with live data
 
-The key coupling point: `MarketDataChannel.getCachedData()` falls back to the controller's REST cache. With disk hydration, this fallback returns MMKV-hydrated data instantly on cold start — no loading skeleton.
+The key coupling point: `MarketDataStreamChannel.getCachedData()` falls back to the controller's REST cache. This fallback is what makes the preload layer still useful — it fills the gap between app launch and first WS message.
 
 ## Per-Layer Details
 
@@ -85,23 +82,6 @@ All 9 channels support `pause()`/`resume()` — pausing blocks emission to React
 
 This is the most important "survives everything" cache. Providers are recreated on account/network changes, which resets all instance-level caches. TradingReadinessCache persists as a global singleton specifically to remember that a hardware wallet user already approved DEX abstraction — without it, every reconnect would trigger another QR code scan.
 
-### Disk Layer: MMKV Cold-Start Cache
-
-MMKV snapshots are written by both `PerpsController` preload and `PerpsStreamManager` live channels, then hydrated into controller state by `PerpsController.#hydrateCacheFromDiskSync()` on startup.
-
-| MMKV key                     | What it stores                                                       | Written by                                                                                           | Read by                                       |
-| ---------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `PERPS_DISK_CACHE_MARKETS`   | One market snapshot entry or `{ entries: [...] }` for multi-provider | `PerpsController.#persistMarketSnapshotsToDisk()` and `PerpsStreamManager.persistMarketDataToDisk()` | `PerpsController.#hydrateCacheFromDiskSync()` |
-| `PERPS_DISK_CACHE_USER_DATA` | One user snapshot entry or `{ entries: [...] }` for multi-provider   | `PerpsController.#persistUserSnapshotsToDisk()` and `PerpsStreamManager.persistUserDataToDisk()`     | `PerpsController.#hydrateCacheFromDiskSync()` |
-
-**Write behavior**: StreamManager writes are throttled to once per 30 seconds (`PERPS_DISK_CACHE_THROTTLE_MS`). Controller writes happen after each successful preload refresh and are naturally bounded by the preload cadence / `#preloadGuardMs`. All disk writes are best-effort and must never block rendering.
-
-**Read path**: `#hydrateCacheFromDiskSync()` runs during `PerpsController` construction so the in-memory caches are populated before React hooks read them. `startMarketDataPreload()` then performs the first REST refresh. Market data prices are stripped to `$---` / `--` / `--%` placeholders since disk data may be hours old. User data is only hydrated if the stored address matches the current account.
-
-**`skipTTL` option**: `getCachedMarketDataForActiveProvider({ skipTTL: true })` and `getCachedUserDataForActiveProvider({ skipTTL: true })` bypass the normal TTL checks. Used by `getPreloadedData()` so disk-hydrated structural data renders regardless of age — the UI shows stale-but-present data instead of a loading skeleton.
-
-**Invalidation**: See [Cache Clearing Matrix](#cache-clearing-matrix).
-
 ### Preload Layer: PerpsController (Legacy — candidate for removal)
 
 | Cache                        | What it stores                   | Key format           | Cleared on disconnect? |
@@ -118,30 +98,39 @@ MMKV snapshots are written by both `PerpsController` preload and `PerpsStreamMan
 | Market data read TTL | 300 s (5 min) | Stale cutoff for consumer reads                          |
 | User data read TTL   | 60 s          | Stale cutoff for consumer reads                          |
 
-**Why this is legacy**: `startMarketDataPreload()` is now started from `PerpsAlwaysOnProvider` at the wallet root, so it runs regardless of whether the wallet is rendering the classic tabs flow or the homepage-sections flow. The user data preload already has a WS-connected guard that skips it when WS is streaming (mostly dormant). The market data preload still runs every 5 min via REST even when WS is streaming — redundant but harmless. Network switches don't clear these caches — different networks use different keys (`hyperliquid:mainnet` vs `hyperliquid:testnet`).
+**Why this is legacy**: `startMarketDataPreload()` is called from `Wallet/index.tsx` and runs independently of `PerpsAlwaysOnProvider`. The user data preload already has a WS-connected guard that skips it when WS is streaming (mostly dormant). The market data preload still runs every 5 min via REST even when WS is streaming — redundant but harmless. Network switches don't clear these caches — different networks use different keys (`hyperliquid:mainnet` vs `hyperliquid:testnet`).
 
 ## Cache Clearing Matrix
 
-| Trigger                               | Provider caches                                                                                                        | Controller preload                                                            | Stream channels                              | Disk cache (MMKV)                             | TradingReadinessCache |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------- | --------------------------------------------- | --------------------- |
-| `disconnect()` (grace period expires) | Meta, spot, fees, perpDexsCache cleared. DEX discovery (`#cachedValidatedDexs`, `#cachedAllPerpDexs`) **NOT** cleared. | Preserved                                                                     | All 9 cleared                                | Preserved                                     | Preserved             |
-| Account switch                        | Provider recreated (all instance caches reset)                                                                         | `cachedUserDataByProvider` cleared if address changed. Market data preserved. | All 9 cleared immediately (before reconnect) | User data key deleted. Market data preserved. | Preserved             |
-| Network/provider switch               | Provider recreated                                                                                                     | Scoped by `providerId:network` key                                            | All 9 cleared immediately                    | Both keys deleted                             | Preserved             |
-| App → background                      | Nothing (20s grace period)                                                                                             | Nothing                                                                       | Nothing (WS stays alive)                     | Preserved                                     | Preserved             |
-| App → foreground                      | `performActualDisconnection()` runs full clear, then fresh connect                                                     | Nothing                                                                       | All 9 cleared, then re-prewarmed             | Preserved (stale data OK, WS overlays)        | Preserved             |
-| User retry (force)                    | Provider recreated                                                                                                     | Nothing                                                                       | All 9 cleared                                | Preserved                                     | Preserved             |
+| Trigger                               | Provider caches                                                                                                        | Controller preload                                                            | Stream channels                              | TradingReadinessCache |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------- | --------------------- |
+| `disconnect()` (grace period expires) | Meta, spot, fees, perpDexsCache cleared. DEX discovery (`#cachedValidatedDexs`, `#cachedAllPerpDexs`) **NOT** cleared. | Preserved                                                                     | All 9 cleared                                | Preserved             |
+| Account switch                        | Provider recreated (all instance caches reset)                                                                         | `cachedUserDataByProvider` cleared if address changed. Market data preserved. | All 9 cleared immediately (before reconnect) | Preserved             |
+| Network switch                        | Provider recreated                                                                                                     | Not cleared (different key avoids collision)                                  | All 9 cleared immediately                    | Preserved             |
+| Provider switch                       | Provider recreated                                                                                                     | Scoped by `providerId:network` key                                            | All 9 cleared immediately                    | Preserved             |
+| App → background                      | Nothing (20s grace period)                                                                                             | Nothing                                                                       | Nothing (WS stays alive)                     | Preserved             |
+| App → foreground                      | `performActualDisconnection()` runs full clear, then fresh connect                                                     | Nothing                                                                       | All 9 cleared, then re-prewarmed             | Preserved             |
+| User retry (force)                    | Provider recreated                                                                                                     | Nothing                                                                       | All 9 cleared                                | Preserved             |
 
 **Double-clear on account/network switch**: Stream channels are cleared twice — once immediately in the Redux store subscriber (prevents stale data flash), and again inside `performReconnection()` (ensures clean state for new subscriptions).
 
 ## Simplification Roadmap
 
-### 1. Disk-backed cold-start cache — IMPLEMENTED
+### 1. Disk-backed cold-start cache (new capability)
 
-`PerpsController` and `PerpsStreamManager` both persist MMKV snapshots, and `PerpsController.#hydrateCacheFromDiskSync()` hydrates them on startup. This eliminates the cold-start loading skeleton: the last-known market list renders immediately with `$---` placeholder prices until fresh values arrive.
+**Problem**: On cold start, there's a gap between app launch and first WS data. Currently filled by REST preload.
 
-**Latest validation**: iOS simulator `mm-3` measured `3908ms` for the first clean-cache PerpsHome load, `0ms` for same-session reopen, and after `yarn a:reload` the controller hydrated `286` markets in `9ms` with the first post-reload PerpsHome market data at `0ms`.
+**Proposal**: Write stream channel snapshots to MMKV after first WS data arrives. Read from MMKV on next cold start.
 
-See [Disk Layer](#disk-layer-mmkv-cold-start-cache) above for full details.
+**Implementation**:
+
+- Two MMKV keys: `PERPS_CACHE_MARKETS`, `PERPS_CACHE_USER_DATA`
+- Write via `StorageWrapper.setItem()` — fire-and-forget, MMKV writes are synchronous under the hood
+- Read in controller constructor or stream channel `getCachedData()` fallback
+- Invalidate on account switch
+- `StorageWrapper` is already used in 91+ files — it's the standard persistence layer
+
+**Result**: Instant display of last-known data on cold start. Prices stale by seconds/minutes, positions accurate until next trade. Live WS data overlays within 1-2 seconds.
 
 ### 2. Remove REST preload timer (simplification)
 

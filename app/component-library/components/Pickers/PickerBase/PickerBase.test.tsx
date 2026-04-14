@@ -14,7 +14,7 @@ describe('PickerBase', () => {
         <Text>Test Content</Text>
       </PickerBase>,
     );
-    expect(toJSON()).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should call onPress when pressed', () => {

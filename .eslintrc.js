@@ -260,10 +260,7 @@ module.exports = {
     //
     // See docs/perps/perps-core-sync.md for the full sync workflow.
     {
-      files: [
-        'app/controllers/perps/**/*.{ts,tsx}',
-        'app/**/*-method-action-types*.ts',
-      ],
+      files: ['app/controllers/perps/**/*.{ts,tsx}'],
       excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],
       rules: {
         // === Existing rule ===
@@ -286,22 +283,6 @@ module.exports = {
             selector: "PropertyDefinition[accessibility='private']",
             message:
               'Use ES private class fields (#field) instead of TypeScript private keyword.',
-          },
-          // Mirror @metamask/eslint-config base rule — prevents `'x' in obj`
-          // type-guards that would land in core as new `no-restricted-syntax`
-          // suppressions. Use `hasProperty()` from `@metamask/utils` instead.
-          {
-            selector: "BinaryExpression[operator='in']",
-            message:
-              'The "in" operator is not allowed. Use `hasProperty()` from `@metamask/utils` instead.',
-          },
-          {
-            selector: 'WithStatement',
-            message: 'With statements are not allowed',
-          },
-          {
-            selector: 'SequenceExpression',
-            message: 'Sequence expressions are not allowed',
           },
         ],
         'id-denylist': [

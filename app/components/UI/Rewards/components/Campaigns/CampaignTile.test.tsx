@@ -9,6 +9,7 @@ import {
 import {
   getCampaignStatusInfo,
   isCampaignTypeSupported,
+  isOptinAllowed,
 } from './CampaignTile.utils';
 import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
 import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
@@ -57,6 +58,7 @@ jest.mock('./CampaignTile.utils', () => ({
     dateLabelIcon: 'Clock',
   }),
   isCampaignTypeSupported: jest.fn().mockReturnValue(true),
+  isOptinAllowed: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../../../../../reducers/rewards/selectors', () => ({
@@ -121,6 +123,7 @@ describe('CampaignTile', () => {
       dateLabelIcon: 'Clock',
     });
     (isCampaignTypeSupported as jest.Mock).mockReturnValue(true);
+    (isOptinAllowed as jest.Mock).mockReturnValue(true);
     setupParticipantCount(null);
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: null,
@@ -190,6 +193,16 @@ describe('CampaignTile', () => {
         '•Enter now',
       );
       expect(queryByTestId('campaign-tile-participant-count')).toBeNull();
+    });
+
+    it('does not render enter-now when isOptinAllowed returns false (entries closed)', () => {
+      (isOptinAllowed as jest.Mock).mockReturnValue(false);
+      setupParticipantCount(null);
+      const campaign = createTestCampaign();
+
+      const { queryByTestId } = render(<CampaignTile campaign={campaign} />);
+
+      expect(queryByTestId('campaign-tile-enter-now')).toBeNull();
     });
 
     it('does not render enter-now when status is upcoming', () => {

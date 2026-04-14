@@ -3519,9 +3519,6 @@ app:
       MM_PERPS_HIP3_BLOCKLIST_MARKETS: ""
     - opts:
         is_expand: false
-      MM_CHARTING_LIBRARY_URL: 'https://charting-assets.static.metamask.io/tradingview/advanced-charts/v30.1.0/'
-    - opts:
-        is_expand: false
       MM_MUSD_CONVERSION_FLOW_ENABLED: false
     - opts:
         is_expand: false
@@ -3555,16 +3552,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.74.0
+      VERSION_NAME: 7.73.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 4138
+      VERSION_NUMBER: 4483
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.74.0
+      FLASK_VERSION_NAME: 7.73.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 4138
+      FLASK_VERSION_NUMBER: 4483
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

@@ -3,6 +3,10 @@ import React from 'react';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import Checkout from './Checkout';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import {
+  registerCheckoutCallback,
+  removeCheckoutCallback,
+} from '../../utils/checkoutCallbackRegistry';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
 
@@ -337,14 +341,15 @@ describe('Checkout', () => {
     });
   });
 
-  describe('onNavigationStateChange with URL deduplication', () => {
-    it('invokes param callback when WebView navigates to new URL', async () => {
+  describe('checkout callback registry (297-302)', () => {
+    it('invokes registered callback when callbackKey is set and WebView navigates to new URL', async () => {
       const mockCallback = jest.fn();
+      const callbackKey = registerCheckoutCallback(mockCallback);
 
       mockUseParams.mockReturnValue({
         url: 'https://provider.example.com',
         providerName: 'Test',
-        onNavigationStateChange: mockCallback,
+        callbackKey,
       });
 
       const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
@@ -358,15 +363,18 @@ describe('Checkout', () => {
           url: 'https://custom-dedup-url.example.com',
         }),
       );
+
+      removeCheckoutCallback(callbackKey);
     });
 
     it('does not invoke callback on second navigation to same URL (dedup)', async () => {
       const mockCallback = jest.fn();
+      const callbackKey = registerCheckoutCallback(mockCallback);
 
       mockUseParams.mockReturnValue({
         url: 'https://provider.example.com',
         providerName: 'Test',
-        onNavigationStateChange: mockCallback,
+        callbackKey,
       });
 
       const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
@@ -377,6 +385,8 @@ describe('Checkout', () => {
       });
 
       expect(mockCallback).toHaveBeenCalledTimes(1);
+
+      removeCheckoutCallback(callbackKey);
     });
   });
 

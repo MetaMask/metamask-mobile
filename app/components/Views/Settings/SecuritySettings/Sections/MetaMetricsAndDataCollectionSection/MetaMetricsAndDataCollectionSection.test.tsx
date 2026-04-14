@@ -200,14 +200,12 @@ describe('MetaMetricsAndDataCollectionSection', () => {
   });
 
   it('render matches snapshot', () => {
-    const { getByText } = renderScreen(
+    const { toJSON } = renderScreen(
       MetaMetricsAndDataCollectionSection,
       { name: 'MetaMetricsAndDataCollectionSection' },
       { state: initialStateMarketingFalse },
     );
-    expect(
-      getByText(strings('app_settings.metametrics_title')),
-    ).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('MetaMetrics section', () => {
@@ -867,7 +865,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             // if MetaMetrics is initially disabled, addTraitsToUser is called twice and this is 2nd call
             !metaMetricsInitiallyEnabled ? 2 : 1,
             {
-              has_marketing_consent: true,
+              has_marketing_consent: 'ON',
             },
           );
           expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
@@ -926,7 +924,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockAlert).not.toHaveBeenCalled();
           expect(mockAnalytics.identify).toHaveBeenCalledTimes(1);
           expect(mockAnalytics.identify).toHaveBeenCalledWith({
-            has_marketing_consent: false,
+            has_marketing_consent: 'OFF',
           });
           expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
           expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(

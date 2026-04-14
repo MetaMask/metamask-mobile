@@ -2,7 +2,7 @@ import {
   AccountActivityService,
   AccountActivityServiceMessenger,
 } from '@metamask/core-backend';
-import { MessengerClientInitFunction } from '../../types';
+import { ControllerInitFunction } from '../../types';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 
@@ -13,7 +13,7 @@ import Logger from '../../../../util/Logger';
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized service.
  */
-export const accountActivityServiceInit: MessengerClientInitFunction<
+export const accountActivityServiceInit: ControllerInitFunction<
   AccountActivityService,
   AccountActivityServiceMessenger
 > = ({ controllerMessenger }) => {

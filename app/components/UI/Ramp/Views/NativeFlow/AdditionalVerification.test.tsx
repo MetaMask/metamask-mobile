@@ -60,6 +60,11 @@ describe('V2AdditionalVerification', () => {
     jest.clearAllMocks();
   });
 
+  it('matches snapshot', () => {
+    const { toJSON } = renderWithTheme(<V2AdditionalVerification />);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('calls navigateToKycWebview when continue button is pressed', () => {
     const { getByText } = renderWithTheme(<V2AdditionalVerification />);
 

@@ -73,9 +73,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock selectors
-jest.mock('../../../../../selectors/cardController', () => ({
-  selectIsCardAuthenticated: 'selectIsCardAuthenticated',
-  selectCardUserLocation: 'selectCardUserLocation',
+jest.mock('../../../../../core/redux/slices/card', () => ({
+  selectIsAuthenticatedCard: 'selectIsAuthenticatedCard',
+  selectUserCardLocation: 'selectUserCardLocation',
 }));
 
 // Mock feature flag selectors
@@ -106,7 +106,7 @@ describe('usePushProvisioning', () => {
 
   const defaultOptions = {
     cardDetails: mockCardDetails,
-    provisioningEligible: true,
+    accountCreatedAt: '2026-02-01T00:00:00.000Z',
     onSuccess: jest.fn(),
     onError: jest.fn(),
     onCancel: jest.fn(),
@@ -116,8 +116,8 @@ describe('usePushProvisioning', () => {
     jest.clearAllMocks();
     // Default selector returns
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === 'selectIsCardAuthenticated') return true;
-      if (selector === 'selectCardUserLocation') return 'us';
+      if (selector === 'selectIsAuthenticatedCard') return true;
+      if (selector === 'selectUserCardLocation') return 'us';
       // Feature flags enabled by default for tests
       if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
         return true;
@@ -215,8 +215,8 @@ describe('usePushProvisioning', () => {
 
     it('returns false when not authenticated', async () => {
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === 'selectIsCardAuthenticated') return false;
-        if (selector === 'selectCardUserLocation') return 'us';
+        if (selector === 'selectIsAuthenticatedCard') return false;
+        if (selector === 'selectUserCardLocation') return 'us';
         if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
           return true;
         if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
@@ -286,11 +286,27 @@ describe('usePushProvisioning', () => {
       unmount();
     });
 
-    it('returns false when provisioningEligible is false', async () => {
+    it('returns false when account was created before November 10, 2025', async () => {
       const { result, unmount } = renderHook(() =>
         usePushProvisioning({
           ...defaultOptions,
-          provisioningEligible: false,
+          accountCreatedAt: '2025-11-09T23:59:59.999Z',
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.canAddToWallet).toBe(false);
+      unmount();
+    });
+
+    it('returns false when accountCreatedAt is null', async () => {
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning({
+          ...defaultOptions,
+          accountCreatedAt: null,
         }),
       );
 
@@ -337,8 +353,8 @@ describe('usePushProvisioning', () => {
       Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === 'selectIsCardAuthenticated') return true;
-        if (selector === 'selectCardUserLocation') return 'us';
+        if (selector === 'selectIsAuthenticatedCard') return true;
+        if (selector === 'selectUserCardLocation') return 'us';
         if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
           return false;
         if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
@@ -371,8 +387,8 @@ describe('usePushProvisioning', () => {
       });
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === 'selectIsCardAuthenticated') return true;
-        if (selector === 'selectCardUserLocation') return 'us';
+        if (selector === 'selectIsAuthenticatedCard') return true;
+        if (selector === 'selectUserCardLocation') return 'us';
         if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
           return true;
         if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
@@ -402,8 +418,8 @@ describe('usePushProvisioning', () => {
       Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === 'selectIsCardAuthenticated') return true;
-        if (selector === 'selectCardUserLocation') return 'us';
+        if (selector === 'selectIsAuthenticatedCard') return true;
+        if (selector === 'selectUserCardLocation') return 'us';
         if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
           return true;
         if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
@@ -436,8 +452,8 @@ describe('usePushProvisioning', () => {
       });
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === 'selectIsCardAuthenticated') return true;
-        if (selector === 'selectCardUserLocation') return 'us';
+        if (selector === 'selectIsAuthenticatedCard') return true;
+        if (selector === 'selectUserCardLocation') return 'us';
         if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
           return false;
         if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
@@ -468,8 +484,8 @@ describe('usePushProvisioning', () => {
 
       // iOS flag disabled, Android flag enabled - should be false on iOS
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === 'selectIsCardAuthenticated') return true;
-        if (selector === 'selectCardUserLocation') return 'us';
+        if (selector === 'selectIsAuthenticatedCard') return true;
+        if (selector === 'selectUserCardLocation') return 'us';
         if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
           return false;
         if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
@@ -503,8 +519,8 @@ describe('usePushProvisioning', () => {
 
       // iOS flag enabled, Android flag disabled - should be false on Android
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === 'selectIsCardAuthenticated') return true;
-        if (selector === 'selectCardUserLocation') return 'us';
+        if (selector === 'selectIsAuthenticatedCard') return true;
+        if (selector === 'selectUserCardLocation') return 'us';
         if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
           return true;
         if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')

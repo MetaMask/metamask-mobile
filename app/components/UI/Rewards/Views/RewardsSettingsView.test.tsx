@@ -72,17 +72,20 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
   },
 }));
 
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import {
-  createMockUseAnalyticsHook,
-  createMockEventBuilder,
-} from '../../../../util/test/analyticsMock';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
+const mockCreateEventBuilder = jest.fn(() => ({
+  build: jest.fn(() => ({})),
+}));
 
-jest.mock('../../../hooks/useAnalytics/useAnalytics');
+jest.mock('../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+  MetaMetricsEvents: {
+    REWARDS_SETTINGS_VIEWED: 'REWARDS_SETTINGS_VIEWED',
+  },
+}));
 
 // Mock selectors
 jest.mock('../../../../selectors/rewards', () => ({}));
@@ -174,12 +177,6 @@ describe('RewardsSettingsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     store = createMockStore();
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-      }),
-    );
 
     // Set default mock return values
     mockUseRoute.mockReturnValue({
@@ -280,7 +277,7 @@ describe('RewardsSettingsView', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_SETTINGS_VIEWED,
+        'REWARDS_SETTINGS_VIEWED',
       );
     });
   });

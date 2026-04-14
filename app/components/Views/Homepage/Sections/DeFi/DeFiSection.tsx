@@ -25,7 +25,6 @@ import Engine from '../../../../../core/Engine';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
-import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 
 const MAX_POSITIONS_DISPLAYED = 5;
 
@@ -110,15 +109,6 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
       totalSectionsLoaded,
       isEmpty: isEmpty || hasError || !isDeFiEnabled,
       itemCount: isEmpty ? 0 : positions.length,
-    });
-
-    useSectionPerformance({
-      sectionId: HomeSectionNames.DEFI,
-      // Align with other sections: loading finished without error = ready (empty is success + content_state empty).
-      contentReady: !isLoading && !hasError,
-      isEmpty: isEmpty || hasError,
-      isLoading,
-      enabled: isDeFiEnabled,
     });
 
     // Don't render if DeFi is disabled

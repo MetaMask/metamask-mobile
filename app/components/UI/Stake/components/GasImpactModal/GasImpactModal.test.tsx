@@ -8,8 +8,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { flushPromises } from '../../../../../util/test/utils';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { GasImpactModalRouteParams } from './GasImpactModal.types';
@@ -61,7 +59,26 @@ jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useAnalytics/useAnalytics');
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn().mockReturnValue({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    }),
+  }),
+  MetaMetricsEvents: {
+    STAKE_TRANSACTION_APPROVED: 'STAKE_TRANSACTION_APPROVED',
+    STAKE_TRANSACTION_REJECTED: 'STAKE_TRANSACTION_REJECTED',
+    STAKE_TRANSACTION_CONFIRMED: 'STAKE_TRANSACTION_CONFIRMED',
+    STAKE_TRANSACTION_FAILED: 'STAKE_TRANSACTION_FAILED',
+    STAKE_TRANSACTION_SUBMITTED: 'STAKE_TRANSACTION_SUBMITTED',
+    STAKE_GAS_COST_IMPACT_CANCEL_CLICKED:
+      'STAKE_GAS_COST_IMPACT_CANCEL_CLICKED',
+    STAKE_GAS_COST_IMPACT_PROCEEDED_CLICKED:
+      'STAKE_GAS_COST_IMPACT_PROCEEDED_CLICKED',
+  },
+}));
 
 const initialMetrics: Metrics = {
   frame: { x: 0, y: 0, width: 320, height: 640 },
@@ -86,8 +103,6 @@ describe('GasImpactModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
 
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),

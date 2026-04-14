@@ -29,15 +29,6 @@ abstract class StreamChannel<T> {
   protected subscribers = new Map<string, StreamSubscription<T>>();
   protected wsSubscriptions = new Map<string, () => void>();
   protected isPaused = false;
-  readonly #onDataPersist?: () => void;
-
-  constructor(onDataPersist?: () => void) {
-    this.#onDataPersist = onDataPersist;
-  }
-
-  protected triggerPersist(): void {
-    this.#onDataPersist?.();
-  }
 
   protected notifySubscribers(cacheKey: string, updates: T) {
     if (this.isPaused) {
@@ -126,8 +117,8 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
    * Injected to avoid circular dependency:
    * CandleStreamChannel → PerpsConnectionManager → PerpsStreamManager → CandleStreamChannel
    */
-  constructor(getIsInitialized: () => boolean, onDataPersist?: () => void) {
-    super(onDataPersist);
+  constructor(getIsInitialized: () => boolean) {
+    super();
     this.getIsInitialized = getIsInitialized;
   }
 

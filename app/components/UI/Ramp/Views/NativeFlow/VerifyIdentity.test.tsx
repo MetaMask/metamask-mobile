@@ -64,6 +64,11 @@ describe('V2VerifyIdentity', () => {
     jest.clearAllMocks();
   });
 
+  it('matches snapshot', () => {
+    const { toJSON } = renderWithTheme(<V2VerifyIdentity />);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('navigates to enter email when submit button is pressed', async () => {
     const { getByText } = renderWithTheme(<V2VerifyIdentity />);
 

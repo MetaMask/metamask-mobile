@@ -23,7 +23,6 @@ import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
-import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
@@ -213,7 +212,7 @@ function BuildQuote() {
       return false;
     }
 
-    if (!providerSupportsAsset(selectedProvider, effectiveAssetId)) {
+    if (!selectedProvider.supportedCryptoCurrencies?.[effectiveAssetId]) {
       return true;
     }
 
@@ -273,8 +272,8 @@ function BuildQuote() {
     ) {
       return;
     }
-    const supportingProvider = providers.find((p) =>
-      providerSupportsAsset(p, effectiveAssetId),
+    const supportingProvider = providers.find(
+      (p) => p.supportedCryptoCurrencies?.[effectiveAssetId] === true,
     );
     if (supportingProvider) {
       setSelectedProvider(supportingProvider, { autoSelected: true });
@@ -301,7 +300,7 @@ function BuildQuote() {
       const supportingProvider = providers.find(
         (p) =>
           p.id !== selectedProvider?.id &&
-          providerSupportsAsset(p, effectiveAssetId),
+          p.supportedCryptoCurrencies?.[effectiveAssetId] === true,
       );
       if (supportingProvider) {
         setSelectedProvider(supportingProvider, { autoSelected: true });
@@ -432,6 +431,7 @@ function BuildQuote() {
             redirectUrl: getRampCallbackBaseUrl(),
             paymentMethods: [selectedPaymentMethod.id],
             providers: [selectedProvider.id],
+            forceRefresh: true,
           }
         : null,
     [
@@ -493,19 +493,10 @@ function BuildQuote() {
   ]);
 
   const selectedQuote = useMemo(() => {
-    if (
-      !quotesResponse?.success ||
-      !selectedProvider ||
-      !selectedPaymentMethod
-    ) {
+    if (!quotesResponse?.success || !selectedProvider || !selectedPaymentMethod)
       return null;
-    }
-    const targetProvider = normalizeProviderCode(selectedProvider.id);
-    return (
-      quotesResponse.success.find(
-        (quote) => normalizeProviderCode(quote.provider) === targetProvider,
-      ) ?? null
-    );
+    const [quote] = quotesResponse.success;
+    return quote?.provider === selectedProvider.id ? quote : null;
   }, [quotesResponse, selectedProvider, selectedPaymentMethod]);
 
   const networkInfo = useMemo(() => {
@@ -932,7 +923,6 @@ function BuildQuote() {
                     selectedPaymentMethod?.name ||
                     strings('fiat_on_ramp.select_payment_method')
                   }
-                  paymentMethod={selectedPaymentMethod}
                   isLoading={paymentMethodsLoading}
                   onPress={
                     isTokenUnavailable ? undefined : handlePaymentPillPress

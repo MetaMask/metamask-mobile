@@ -1,6 +1,5 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import type { Json } from '@metamask/utils';
 import CampaignHowItWorks, {
   CAMPAIGN_HOW_IT_WORKS_TEST_IDS,
 } from './CampaignHowItWorks';
@@ -12,6 +11,8 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { View } = jest.requireActual('react-native');
   return {
     ...actual,
+    // Icon maps its name prop to an SVG component via enum lookup; mock it to
+    // avoid "type is invalid" errors when getIconName returns a plain string.
     Icon: ({ testID }: { testID?: string }) =>
       ReactActual.createElement(View, { testID }),
   };
@@ -34,22 +35,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: jest.fn() }),
-}));
-
-const makeRichText = (text: string): Json => ({
-  nodeType: 'document',
-  data: {},
-  content: [
-    {
-      nodeType: 'paragraph',
-      data: {},
-      content: [{ nodeType: 'text', value: text, marks: [], data: {} }],
-    },
-  ],
-});
-
 const createHowItWorks = (
   overrides: Partial<OndoCampaignHowItWorks> = {},
 ): OndoCampaignHowItWorks => ({
@@ -59,7 +44,7 @@ const createHowItWorks = (
     {
       iconName: 'star',
       title: 'Step 1',
-      description: makeRichText('Do step 1'),
+      description: 'Do step 1',
     },
   ],
   ...overrides,
@@ -94,31 +79,11 @@ describe('CampaignHowItWorks', () => {
     ).toHaveTextContent('Do step 1');
   });
 
-  it('does not render description when it is null', () => {
-    const howItWorks = createHowItWorks({
-      steps: [{ iconName: 'star', title: 'Step 1', description: null }],
-    });
-    const { queryByTestId } = render(
-      <CampaignHowItWorks howItWorks={howItWorks} />,
-    );
-    expect(
-      queryByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_DESCRIPTION}-0`),
-    ).toBeNull();
-  });
-
   it('renders multiple steps', () => {
     const howItWorks = createHowItWorks({
       steps: [
-        {
-          iconName: 'star',
-          title: 'Step A',
-          description: makeRichText('Desc A'),
-        },
-        {
-          iconName: 'circle',
-          title: 'Step B',
-          description: makeRichText('Desc B'),
-        },
+        { iconName: 'star', title: 'Step A', description: 'Desc A' },
+        { iconName: 'circle', title: 'Step B', description: 'Desc B' },
       ],
     });
     const { getByTestId } = render(

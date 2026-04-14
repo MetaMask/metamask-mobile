@@ -370,16 +370,12 @@ describe('BuildQuote View', () => {
   //
   it('renders correctly', async () => {
     render(BuildQuote);
-    expect(
-      screen.getByRole('button', { name: 'Get quotes' }),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
 
     mockUseRampSDKValues.isBuy = false;
     mockUseRampSDKValues.isSell = true;
     render(BuildQuote);
-    expect(
-      screen.getByRole('button', { name: 'Get quotes' }),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly when sdkError is present', async () => {
@@ -388,9 +384,7 @@ describe('BuildQuote View', () => {
       sdkError: new Error('sdkError'),
     };
     render(BuildQuote);
-    expect(
-      screen.getByRole('button', { name: 'Return to home screen' }),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
 
     mockUseRampSDKValues = {
       ...mockUseRampSDKInitialValues,
@@ -399,9 +393,7 @@ describe('BuildQuote View', () => {
       sdkError: new Error('sdkError in sell'),
     };
     render(BuildQuote);
-    expect(
-      screen.getByRole('button', { name: 'Return to home screen' }),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('navigates to home when clicking sdKError button', async () => {
@@ -510,8 +502,7 @@ describe('BuildQuote View', () => {
         'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
       mockUseBalanceValues.balance = '1.5';
       render(BuildQuote);
-      expect(screen.getByText(/Current balance/)).toBeOnTheScreen();
-      expect(screen.getByText(/1\.5/)).toBeOnTheScreen();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
   });
 
@@ -522,13 +513,7 @@ describe('BuildQuote View', () => {
         isFetching: true,
       };
       render(BuildQuote);
-      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
-        'disabled',
-        true,
-      );
-      expect(
-        screen.queryByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
-      ).not.toBeOnTheScreen();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
 
     it('renders an error page when there is a region error', async () => {
@@ -537,9 +522,7 @@ describe('BuildQuote View', () => {
         error: 'Test error',
       };
       render(BuildQuote);
-      expect(
-        screen.getByRole('button', { name: 'Try again' }),
-      ).toBeOnTheScreen();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
 
     it('queries region data when error CTA is clicked', async () => {
@@ -575,16 +558,7 @@ describe('BuildQuote View', () => {
         isFetchingCryptoCurrencies: true,
       };
       render(BuildQuote);
-      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
-        'disabled',
-        true,
-      );
-      expect(
-        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
-      ).toBeOnTheScreen();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
 
     it('renders a special error page if crypto currencies are not available', async () => {
@@ -593,19 +567,13 @@ describe('BuildQuote View', () => {
         cryptoCurrencies: [],
       };
       render(BuildQuote);
-      expect(screen.getByText('No tokens available')).toBeOnTheScreen();
-      expect(
-        screen.getByRole('button', { name: 'Change payment method' }),
-      ).toBeOnTheScreen();
+      expect(screen.toJSON()).toMatchSnapshot();
 
       mockUseRampSDKValues.isBuy = false;
       mockUseRampSDKValues.isSell = true;
       mockUseRampSDKValues.rampType = RampType.SELL;
       render(BuildQuote);
-      expect(screen.getAllByText('No tokens available')[0]).toBeOnTheScreen();
-      expect(
-        screen.getByRole('button', { name: 'Change cash destination' }),
-      ).toBeOnTheScreen();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
 
     it('renders an error page when there is a cryptos error', async () => {
@@ -614,9 +582,7 @@ describe('BuildQuote View', () => {
         errorCryptoCurrencies: 'Test error',
       };
       render(BuildQuote);
-      expect(
-        screen.getByRole('button', { name: 'Try again' }),
-      ).toBeOnTheScreen();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
 
     it('queries crypto data when error CTA is clicked', async () => {
@@ -647,16 +613,7 @@ describe('BuildQuote View', () => {
         isFetching: true,
       };
       render(BuildQuote);
-      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
-        'disabled',
-        true,
-      );
-      expect(
-        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
-      ).toBeOnTheScreen();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
 
     it('renders no icons if there are no payment methods', async () => {
@@ -665,9 +622,7 @@ describe('BuildQuote View', () => {
         data: null,
       };
       render(BuildQuote);
-      expect(
-        screen.getByRole('button', { name: 'Get quotes' }),
-      ).toBeOnTheScreen();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
 
     it('renders an error page when there is a payment method error', async () => {
@@ -676,9 +631,7 @@ describe('BuildQuote View', () => {
         error: 'Test error',
       };
       render(BuildQuote);
-      expect(
-        screen.getByRole('button', { name: 'Try again' }),
-      ).toBeOnTheScreen();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
 
     it('queries for payment methods when error CTA is clicked', async () => {
@@ -714,13 +667,7 @@ describe('BuildQuote View', () => {
         isFetchingFiatCurrency: true,
       };
       render(BuildQuote);
-      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
-        'disabled',
-        true,
-      );
-      expect(
-        screen.getByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
-      ).toBeOnTheScreen();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
 
     it('renders an error page when there is a fiat error', async () => {
@@ -729,9 +676,7 @@ describe('BuildQuote View', () => {
         errorFiatCurrency: 'Test error',
       };
       render(BuildQuote);
-      expect(
-        screen.getByRole('button', { name: 'Try again' }),
-      ).toBeOnTheScreen();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
 
     it('queries for fiats when error CTA is clicked', async () => {

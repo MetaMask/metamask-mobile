@@ -211,7 +211,12 @@ describe('AssetSelectionBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseSelector.mockReturnValue(undefined);
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector.toString().includes('selectUserCardLocation')) {
+        return 'international';
+      }
+      return undefined;
+    });
 
     (useAssetBalances as jest.Mock).mockReturnValue(new Map());
 
@@ -278,7 +283,7 @@ describe('AssetSelectionBottomSheet', () => {
       });
 
       expect(UNSAFE_getByType('ActivityIndicator' as never)).toBeTruthy();
-      expect(queryByText('No tokens available')).not.toBeOnTheScreen();
+      expect(queryByText('No tokens available')).toBeNull();
     });
 
     it('displays no tokens message when no tokens available', () => {
@@ -379,7 +384,12 @@ describe('AssetSelectionBottomSheet', () => {
 
   describe('token sorting', () => {
     it('sorts tokens by priority', () => {
-      mockUseSelector.mockReturnValue(undefined);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectUserCardLocation')) {
+          return 'international';
+        }
+        return undefined;
+      });
       const token1 = createMockToken({
         symbol: 'USDC',
         priority: 2,
@@ -1075,7 +1085,7 @@ describe('AssetSelectionBottomSheet', () => {
         delegationSettings,
       });
 
-      expect(queryByText(/0x/)).not.toBeOnTheScreen();
+      expect(queryByText(/0x/)).toBeNull();
     });
   });
 

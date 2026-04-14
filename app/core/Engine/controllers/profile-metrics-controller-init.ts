@@ -3,7 +3,7 @@ import {
   ProfileMetricsControllerMessenger,
 } from '@metamask/profile-metrics-controller';
 import { analyticsControllerSelectors } from '@metamask/analytics-controller';
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import { ProfileMetricsControllerInitMessenger } from '../messengers/profile-metrics-controller-messenger';
 
 /**
@@ -16,7 +16,7 @@ import { ProfileMetricsControllerInitMessenger } from '../messengers/profile-met
  * @param request.getController - A function to get other initialized controllers.
  * @returns The initialized controller.
  */
-export const profileMetricsControllerInit: MessengerClientInitFunction<
+export const profileMetricsControllerInit: ControllerInitFunction<
   ProfileMetricsController,
   ProfileMetricsControllerMessenger,
   ProfileMetricsControllerInitMessenger

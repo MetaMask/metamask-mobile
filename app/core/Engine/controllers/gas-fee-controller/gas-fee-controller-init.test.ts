@@ -9,8 +9,8 @@ import { addHexPrefix } from '../../../../util/number';
 import { isMainnetByChainId } from '../../../../util/networks';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import AppConstants from '../../../AppConstants';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
-import { MessengerClientInitRequest } from '../../types';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { ControllerInitRequest } from '../../types';
 import { GasFeeControllerInit } from './gas-fee-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -42,12 +42,12 @@ function buildControllerMock(
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
-): jest.Mocked<MessengerClientInitRequest<GasFeeMessenger>> {
+): jest.Mocked<ControllerInitRequest<GasFeeMessenger>> {
   const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
+    ...buildControllerInitRequestMock(baseControllerMessenger),
     controllerMessenger: baseControllerMessenger as unknown as GasFeeMessenger,
     getGlobalChainId: jest.fn().mockReturnValue('0x1'),
     ...initRequestProperties,

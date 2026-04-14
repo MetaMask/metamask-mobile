@@ -125,13 +125,13 @@ describe('OrderDetails', () => {
     mockUseParams.mockReturnValue({ orderId: 'ord-123' });
   });
 
-  it('displays order content when order exists', async () => {
+  it('matches snapshot when order exists', async () => {
     mockRefreshOrder.mockResolvedValue(undefined);
-    const { getByTestId } = render();
+    const { toJSON } = render();
     await waitFor(() => {
       expect(mockGetOrderById).toHaveBeenCalledWith('ord-123');
     });
-    expect(getByTestId('order-content')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays order content when order is loaded', async () => {
@@ -146,8 +146,8 @@ describe('OrderDetails', () => {
 
   it('renders empty ScreenLayout when order is not found', () => {
     mockGetOrderById.mockReturnValue(undefined);
-    const { queryByTestId } = render();
-    expect(queryByTestId('order-content')).not.toBeOnTheScreen();
+    const { toJSON } = render();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('shows loading state when order is pending and refreshing', () => {

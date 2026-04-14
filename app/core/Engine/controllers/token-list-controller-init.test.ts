@@ -1,11 +1,11 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getTokenListControllerMessenger,
   getTokenListControllerInitMessenger,
   TokenListControllerInitMessenger,
 } from '../messengers/token-list-controller-messenger';
-import { MessengerClientInitRequest } from '../types';
+import { ControllerInitRequest } from '../types';
 import { tokenListControllerInit } from './token-list-controller-init';
 import {
   TokenListController,
@@ -27,7 +27,7 @@ jest.mock('@metamask/assets-controllers', () => {
 });
 
 function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<
+  ControllerInitRequest<
     TokenListControllerMessenger,
     TokenListControllerInitMessenger
   >
@@ -37,7 +37,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getTokenListControllerMessenger(baseMessenger),
     initMessenger: getTokenListControllerInitMessenger(baseMessenger),
   };

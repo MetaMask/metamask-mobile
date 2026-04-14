@@ -76,6 +76,11 @@ describe('V2EnterEmail', () => {
     jest.clearAllMocks();
   });
 
+  it('matches snapshot', () => {
+    const { toJSON } = renderWithTheme(<V2EnterEmail />);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('renders the email input and submit button', () => {
     const { getByPlaceholderText } = renderWithTheme(<V2EnterEmail />);
     expect(

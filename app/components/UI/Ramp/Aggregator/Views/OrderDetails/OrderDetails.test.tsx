@@ -184,7 +184,7 @@ describe('OrderDetails', () => {
       orderId: 'invalid-id',
     };
     render(OrderDetails);
-    expect(screen.getByText('Order details')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders header with back navigation capability on empty order state', async () => {
@@ -217,7 +217,7 @@ describe('OrderDetails', () => {
 
   it('renders a pending order', async () => {
     render(OrderDetails);
-    expect(screen.getByText('Order details')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders a completed order', async () => {
@@ -230,9 +230,7 @@ describe('OrderDetails', () => {
       },
     };
     render(OrderDetails, [completedOrder]);
-    expect(
-      screen.getByText('Your ETH is now available in your account'),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders a cancelled order', async () => {
@@ -246,11 +244,7 @@ describe('OrderDetails', () => {
       },
     };
     render(OrderDetails, [cancelledOrder]);
-    expect(
-      screen.getByText(
-        'Something went wrong, and Test Provider was unable to complete your order. Please try again or with another provider.',
-      ),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders a failed order', async () => {
@@ -264,11 +258,7 @@ describe('OrderDetails', () => {
       },
     };
     render(OrderDetails, [failedOrder]);
-    expect(
-      screen.getByText(
-        'Something went wrong, and Test Provider was unable to complete your order. Please try again or with another provider.',
-      ),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('sends analytics events when an order is loaded', () => {
@@ -361,7 +351,7 @@ describe('OrderDetails', () => {
       state: FIAT_ORDER_STATES.CREATED,
     };
     await waitFor(() => render(OrderDetails, [createdOrder]));
-    expect(screen.getByText('Order details')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders transacted orders that do not have timeDescriptionPending', async () => {
@@ -372,7 +362,7 @@ describe('OrderDetails', () => {
       sellTxHash: '0x123',
     };
     await waitFor(() => render(OrderDetails, [createdOrder]));
-    expect(screen.getByText('Order details')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders transacted orders that have timeDescriptionPending', async () => {
@@ -387,7 +377,7 @@ describe('OrderDetails', () => {
       },
     };
     await waitFor(() => render(OrderDetails, [createdOrder]));
-    expect(screen.getByText('test-time-description')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('polls transacted orders', async () => {
@@ -426,11 +416,7 @@ describe('OrderDetails', () => {
       },
     };
     await waitFor(() => render(OrderDetails, [createdOrder]));
-    expect(
-      screen.getByText(
-        "To continue your order, you'll need to select the button at the bottom of this page.",
-      ),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('polls for a created order on load and dispatches an action to update', async () => {
@@ -467,7 +453,7 @@ describe('OrderDetails', () => {
       throw new Error('An error occurred');
     });
     await waitFor(() => render(OrderDetails, [createdOrder]));
-    expect(screen.getByRole('button', { name: 'Try again' })).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
 
     await act(async () => {
       fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
@@ -516,7 +502,7 @@ describe('OrderDetails', () => {
       },
     };
     render(OrderDetails, [testOrder as FiatOrder]);
-    expect(screen.getByText('Contact support')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('tracks external link clicks', () => {

@@ -33,7 +33,7 @@ describe('useCardPinToken', () => {
 
   const mockTokenResponse = {
     token: 'pin-token-123',
-    url: 'https://cards.baanx.com/details-image?token=pin-token-123',
+    imageUrl: 'https://cards.baanx.com/details-image?token=pin-token-123',
   };
 
   beforeEach(() => {
@@ -82,8 +82,10 @@ describe('useCardPinToken', () => {
         await result.current.generatePinToken();
       });
 
-      // generatePinToken calls mutateAsync() with no args; customCss is captured in the mutation closure
-      expect(mockMutateAsync).toHaveBeenCalledWith();
+      expect(mockMutateAsync).toHaveBeenCalledWith({
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        customCss: { backgroundColor: '#FFF', textColor: '#000' },
+      });
     });
 
     it('returns the mutation response', async () => {
@@ -143,7 +145,7 @@ describe('useCardPinToken', () => {
 
       const { result } = renderHook(() => useCardPinToken());
 
-      expect(result.current.imageUrl).toBe(mockTokenResponse.url);
+      expect(result.current.imageUrl).toBe(mockTokenResponse.imageUrl);
     });
 
     it('returns null when no data', () => {

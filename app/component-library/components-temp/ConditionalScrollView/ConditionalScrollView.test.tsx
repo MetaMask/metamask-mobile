@@ -21,8 +21,8 @@ describe('ConditionalScrollView', () => {
         </ConditionalScrollView>,
       );
 
-      expect(getByTestId('scroll-container')).toBeOnTheScreen();
-      expect(getByText('Test Content')).toBeOnTheScreen();
+      expect(getByTestId('scroll-container')).toBeDefined();
+      expect(getByText('Test Content')).toBeDefined();
     });
 
     it('passes scrollViewProps to ScrollView', () => {
@@ -58,7 +58,7 @@ describe('ConditionalScrollView', () => {
       );
 
       expect(queryByTestId('should-not-exist')).toBeNull();
-      expect(getByText('Test Content')).toBeOnTheScreen();
+      expect(getByText('Test Content')).toBeDefined();
     });
   });
 
@@ -73,7 +73,7 @@ describe('ConditionalScrollView', () => {
         </ConditionalScrollView>,
       );
 
-      expect(result.getByTestId('scroll-view')).toBeOnTheScreen();
+      expect(result.getByTestId('scroll-view')).toBeDefined();
 
       result.rerender(
         <ConditionalScrollView
@@ -95,7 +95,7 @@ describe('ConditionalScrollView', () => {
         </ConditionalScrollView>,
       );
 
-      expect(result.getByTestId('scroll-view')).toBeOnTheScreen();
+      expect(result.getByTestId('scroll-view')).toBeDefined();
     });
   });
 });

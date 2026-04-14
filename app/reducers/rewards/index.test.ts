@@ -24,9 +24,6 @@ import rewardsReducer, {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
-  setBenefits,
-  setBenefitsError,
-  setBenefitsLoading,
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
@@ -37,10 +34,6 @@ import rewardsReducer, {
   setOndoCampaignLeaderboardSelectedTier,
   setOndoCampaignLeaderboardPosition,
   setOndoCampaignPortfolioPosition,
-  setOndoCampaignActivity,
-  setOndoCampaignDeposits,
-  setOndoCampaignDepositsLoading,
-  setOndoCampaignDepositsError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -64,7 +57,6 @@ import {
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
   OndoGmPortfolioDto,
-  OndoGmActivityEntryDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 import { brandColor } from '@metamask/design-tokens';
@@ -190,6 +182,7 @@ describe('rewardsReducer', () => {
       expect(state.currentTier?.id).toBe('tier-bronze');
       expect(state.nextTier?.id).toBe('tier-silver');
       expect(state.nextTierPointsNeeded).toBe(1000);
+      expect(state.seasonShouldInstallNewVersion).toBe(null);
     });
 
     it('should set fields to null when season status is null', () => {
@@ -214,6 +207,7 @@ describe('rewardsReducer', () => {
         ],
         balanceTotal: 1000,
         balanceRefereePortion: 200,
+        seasonShouldInstallNewVersion: '1.0.0',
         currentTier: {
           id: 'tier-gold',
           name: 'Gold',
@@ -243,6 +237,7 @@ describe('rewardsReducer', () => {
       expect(state.currentTier).toBe(null);
       expect(state.nextTier).toBe(null);
       expect(state.nextTierPointsNeeded).toBe(null);
+      expect(state.seasonShouldInstallNewVersion).toBe(null);
     });
 
     it('should handle season status with invalid balance types', () => {
@@ -478,6 +473,96 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(stateWithWaysToEarn, action);
 
       expect(state.seasonWaysToEarn).toEqual([]);
+    });
+
+    it('should set seasonShouldInstallNewVersion when provided', () => {
+      // Arrange
+      const mockSeasonStatus = {
+        season: {
+          id: 'season-with-version',
+          name: 'Season With Version',
+          startDate: new Date('2024-01-01').getTime(),
+          endDate: new Date('2024-12-31').getTime(),
+          tiers: [],
+          shouldInstallNewVersion: '2.0.0',
+        },
+        balance: {
+          total: 100,
+        },
+        tier: {
+          currentTier: null,
+          nextTier: null,
+          nextTierPointsNeeded: null,
+        },
+      } as unknown as SeasonStatusState;
+      const action = setSeasonStatus(mockSeasonStatus);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.seasonShouldInstallNewVersion).toBe('2.0.0');
+    });
+
+    it('should set seasonShouldInstallNewVersion to null when not provided', () => {
+      // Arrange
+      const mockSeasonStatus = {
+        season: {
+          id: 'season-without-version',
+          name: 'Season Without Version',
+          startDate: new Date('2024-01-01').getTime(),
+          endDate: new Date('2024-12-31').getTime(),
+          tiers: [],
+        },
+        balance: {
+          total: 100,
+        },
+        tier: {
+          currentTier: null,
+          nextTier: null,
+          nextTierPointsNeeded: null,
+        },
+      } as unknown as SeasonStatusState;
+      const action = setSeasonStatus(mockSeasonStatus);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.seasonShouldInstallNewVersion).toBe(null);
+    });
+
+    it('should set seasonShouldInstallNewVersion to null when undefined', () => {
+      // Arrange
+      const stateWithVersion = {
+        ...initialState,
+        seasonShouldInstallNewVersion: '1.0.0',
+      };
+      const mockSeasonStatus = {
+        season: {
+          id: 'season-undefined-version',
+          name: 'Season Undefined Version',
+          startDate: new Date('2024-01-01').getTime(),
+          endDate: new Date('2024-12-31').getTime(),
+          tiers: [],
+          shouldInstallNewVersion: undefined,
+        },
+        balance: {
+          total: 100,
+        },
+        tier: {
+          currentTier: null,
+          nextTier: null,
+          nextTierPointsNeeded: null,
+        },
+      } as unknown as SeasonStatusState;
+      const action = setSeasonStatus(mockSeasonStatus);
+
+      // Act
+      const state = rewardsReducer(stateWithVersion, action);
+
+      // Assert
+      expect(state.seasonShouldInstallNewVersion).toBe(null);
     });
   });
 
@@ -1417,6 +1502,7 @@ describe('rewardsReducer', () => {
               icon: 'Speedometer',
             },
           ],
+          seasonShouldInstallNewVersion: null,
         };
         const action = setCandidateSubscriptionId('new-subscription-id');
 
@@ -2014,6 +2100,7 @@ describe('rewardsReducer', () => {
         ],
         seasonActivityTypes: [],
         seasonWaysToEarn: [],
+        seasonShouldInstallNewVersion: null,
         onboardingActiveStep: OnboardingStep.STEP_1,
         onboardingReferralCode: 'REF123',
         candidateSubscriptionId: 'some-id',
@@ -2056,9 +2143,6 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
-        benefits: [],
-        benefitsLoading: false,
-        benefitsError: false,
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -2070,10 +2154,6 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardSelectedTier: null,
         ondoCampaignLeaderboardPositions: {},
         ondoCampaignPortfolio: {},
-        ondoCampaignActivity: {},
-        ondoCampaignDeposits: null,
-        ondoCampaignDepositsLoading: false,
-        ondoCampaignDepositsError: false,
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
@@ -2133,6 +2213,7 @@ describe('rewardsReducer', () => {
         ],
         seasonActivityTypes: [],
         seasonWaysToEarn: [],
+        seasonShouldInstallNewVersion: null,
         onboardingActiveStep: OnboardingStep.STEP_2,
         onboardingReferralCode: 'PERSISTED_REF',
         candidateSubscriptionId: 'some-id',
@@ -2176,9 +2257,6 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
-        benefits: [],
-        benefitsLoading: false,
-        benefitsError: false,
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -2190,10 +2268,6 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardSelectedTier: null,
         ondoCampaignLeaderboardPositions: {},
         ondoCampaignPortfolio: {},
-        ondoCampaignActivity: {},
-        ondoCampaignDeposits: null,
-        ondoCampaignDepositsLoading: false,
-        ondoCampaignDepositsError: false,
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
@@ -2515,9 +2589,6 @@ describe('rewardsReducer', () => {
         currentUsdValue: 12500.5,
         totalUsdDeposited: 10000,
         netDeposit: 8500,
-        qualifiedDays: 10,
-        qualified: true,
-        neighbors: [],
         computedAt: '2024-03-20T12:00:00.000Z',
       };
       const persistedRewardsState: RewardsState = {
@@ -2558,10 +2629,9 @@ describe('rewardsReducer', () => {
         positions: [],
         summary: {
           totalCurrentValue: '1',
-          totalBookValue: '1',
+          totalCostBasis: '1',
           totalUsdDeposited: '1',
           netDeposit: '1',
-          totalCashedOut: '0',
           portfolioPnl: '0',
           portfolioPnlPercent: '0',
         },
@@ -2598,54 +2668,6 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(initialState, rehydrateAction);
 
       expect(state.ondoCampaignPortfolio).toEqual({});
-    });
-
-    it('should restore ondoCampaignActivity from persisted state', () => {
-      const mockEntries = [
-        {
-          type: 'DEPOSIT',
-          srcToken: {
-            tokenAsset: 'eip155:59144/erc20:0xabc',
-            tokenSymbol: 'USDC',
-            tokenName: 'USD Coin',
-          },
-          destToken: null,
-          destAddress: null,
-          usdAmount: '5000.000000',
-          timestamp: '2026-03-28T14:30:00.000Z',
-        },
-      ];
-      const persistedRewardsState = {
-        ...initialState,
-        ondoCampaignActivity: {
-          'sub-1:campaign-1': mockEntries,
-        },
-      } as unknown as RewardsState;
-      const rehydrateAction = {
-        type: 'persist/REHYDRATE',
-        payload: { rewards: persistedRewardsState },
-      };
-
-      const state = rewardsReducer(initialState, rehydrateAction);
-
-      expect(state.ondoCampaignActivity).toEqual({
-        'sub-1:campaign-1': mockEntries,
-      });
-    });
-
-    it('should default ondoCampaignActivity to {} when absent from persisted state (upgrade path)', () => {
-      const persistedRewardsStateWithoutField = {
-        ...initialState,
-        ondoCampaignActivity: undefined,
-      } as unknown as RewardsState;
-      const rehydrateAction = {
-        type: 'persist/REHYDRATE',
-        payload: { rewards: persistedRewardsStateWithoutField },
-      };
-
-      const state = rewardsReducer(initialState, rehydrateAction);
-
-      expect(state.ondoCampaignActivity).toEqual({});
     });
   });
 
@@ -4552,125 +4574,6 @@ describe('persist/REHYDRATE with bulk link state', () => {
   });
 });
 
-describe('setBenefits', () => {
-  const mockBenefitsPayload = {
-    limit: 10,
-    lastFetched: 1767225600000,
-    benefits: [
-      {
-        id: 101,
-        longTitle: 'Premium Access',
-        shortDescription: 'Get premium perks',
-        longDescription: 'Unlock premium partner benefits.',
-        thumbnail: 'https://example.com/benefits/premium.png',
-        validFrom: '2026-01-01T00:00:00.000Z',
-        validTo: '2026-12-31T00:00:00.000Z',
-        actionDate: '2026-06-01T00:00:00.000Z',
-        url: 'https://example.com/claim',
-        chain: 'ethereum',
-        type: {
-          id: 1,
-          name: 'Partner',
-        },
-      },
-    ],
-  };
-
-  it('sets benefits from payload', () => {
-    const action = setBenefits(mockBenefitsPayload);
-
-    const state = rewardsReducer(initialState, action);
-
-    expect(state.benefits).toEqual(mockBenefitsPayload.benefits);
-  });
-
-  it('replaces existing benefits with new payload benefits', () => {
-    const stateWithBenefits: RewardsState = {
-      ...initialState,
-      benefits: mockBenefitsPayload.benefits,
-    };
-    const nextBenefitsPayload = {
-      limit: 20,
-      lastFetched: 1769904000000,
-      benefits: [
-        {
-          ...mockBenefitsPayload.benefits[0],
-          id: 202,
-          longTitle: 'Travel Perk',
-        },
-      ],
-    };
-    const action = setBenefits(nextBenefitsPayload);
-
-    const state = rewardsReducer(stateWithBenefits, action);
-
-    expect(state.benefits).toEqual(nextBenefitsPayload.benefits);
-  });
-
-  it('updates benefits and preserves unrelated fields', () => {
-    const stateWithOtherFlags: RewardsState = {
-      ...initialState,
-      benefitsLoading: true,
-      benefitsError: true,
-      campaignsLoading: true,
-      activeTab: 'campaigns',
-    };
-    const action = setBenefits(mockBenefitsPayload);
-
-    const state = rewardsReducer(stateWithOtherFlags, action);
-
-    expect(state.benefits).toEqual(mockBenefitsPayload.benefits);
-    expect(state.benefitsLoading).toBe(true);
-    expect(state.benefitsError).toBe(true);
-    expect(state.campaignsLoading).toBe(true);
-    expect(state.activeTab).toBe('campaigns');
-  });
-});
-
-describe('setBenefitsLoading', () => {
-  it('sets benefitsLoading to true', () => {
-    const action = setBenefitsLoading(true);
-
-    const state = rewardsReducer(initialState, action);
-
-    expect(state.benefitsLoading).toBe(true);
-  });
-
-  it('sets benefitsLoading to false', () => {
-    const stateWithLoading: RewardsState = {
-      ...initialState,
-      benefitsLoading: true,
-    };
-    const action = setBenefitsLoading(false);
-
-    const state = rewardsReducer(stateWithLoading, action);
-
-    expect(state.benefitsLoading).toBe(false);
-  });
-});
-
-describe('setBenefitsError', () => {
-  it('sets benefitsError to true', () => {
-    const action = setBenefitsError(true);
-
-    const state = rewardsReducer(initialState, action);
-
-    expect(state.benefitsError).toBe(true);
-  });
-
-  it('sets benefitsError to false', () => {
-    const stateWithError: RewardsState = {
-      ...initialState,
-      benefitsError: true,
-    };
-    const action = setBenefitsError(false);
-
-    const state = rewardsReducer(stateWithError, action);
-
-    expect(state.benefitsError).toBe(false);
-  });
-});
-
 const mockCampaign: CampaignDto = {
   id: 'campaign-1',
   type: 'ONDO_HOLDING' as CampaignType,
@@ -5042,172 +4945,34 @@ const mockLeaderboard: CampaignLeaderboardDto = {
   tiers: {
     STARTER: {
       entries: [
-        {
-          rank: 1,
-          referralCode: 'TOP001',
-          rateOfReturn: 0.325,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 2,
-          referralCode: 'TOP002',
-          rateOfReturn: 0.284,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 3,
-          referralCode: 'TOP003',
-          rateOfReturn: 0.261,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 4,
-          referralCode: 'TOP004',
-          rateOfReturn: 0.238,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 5,
-          referralCode: 'TOP005',
-          rateOfReturn: 0.217,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 6,
-          referralCode: 'TOP006',
-          rateOfReturn: 0.198,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 7,
-          referralCode: 'TOP007',
-          rateOfReturn: 0.182,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 8,
-          referralCode: 'TOP008',
-          rateOfReturn: 0.167,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 9,
-          referralCode: 'TOP009',
-          rateOfReturn: 0.154,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 10,
-          referralCode: 'TOP010',
-          rateOfReturn: 0.141,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 11,
-          referralCode: 'TOP011',
-          rateOfReturn: 0.129,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 12,
-          referralCode: 'TOP012',
-          rateOfReturn: 0.118,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 13,
-          referralCode: 'TOP013',
-          rateOfReturn: 0.108,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 14,
-          referralCode: 'TOP014',
-          rateOfReturn: 0.099,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 15,
-          referralCode: 'TOP015',
-          rateOfReturn: 0.091,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 16,
-          referralCode: 'TOP016',
-          rateOfReturn: 0.083,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 17,
-          referralCode: 'TOP017',
-          rateOfReturn: 0.076,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 18,
-          referralCode: 'TOP018',
-          rateOfReturn: 0.069,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 19,
-          referralCode: 'MY_CODE',
-          rateOfReturn: 0.063,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 20,
-          referralCode: 'TOP020',
-          rateOfReturn: 0.057,
-          qualifiedDays: 10,
-          qualified: true,
-        },
+        { rank: 1, referralCode: 'TOP001', rateOfReturn: 0.325 },
+        { rank: 2, referralCode: 'TOP002', rateOfReturn: 0.284 },
+        { rank: 3, referralCode: 'TOP003', rateOfReturn: 0.261 },
+        { rank: 4, referralCode: 'TOP004', rateOfReturn: 0.238 },
+        { rank: 5, referralCode: 'TOP005', rateOfReturn: 0.217 },
+        { rank: 6, referralCode: 'TOP006', rateOfReturn: 0.198 },
+        { rank: 7, referralCode: 'TOP007', rateOfReturn: 0.182 },
+        { rank: 8, referralCode: 'TOP008', rateOfReturn: 0.167 },
+        { rank: 9, referralCode: 'TOP009', rateOfReturn: 0.154 },
+        { rank: 10, referralCode: 'TOP010', rateOfReturn: 0.141 },
+        { rank: 11, referralCode: 'TOP011', rateOfReturn: 0.129 },
+        { rank: 12, referralCode: 'TOP012', rateOfReturn: 0.118 },
+        { rank: 13, referralCode: 'TOP013', rateOfReturn: 0.108 },
+        { rank: 14, referralCode: 'TOP014', rateOfReturn: 0.099 },
+        { rank: 15, referralCode: 'TOP015', rateOfReturn: 0.091 },
+        { rank: 16, referralCode: 'TOP016', rateOfReturn: 0.083 },
+        { rank: 17, referralCode: 'TOP017', rateOfReturn: 0.076 },
+        { rank: 18, referralCode: 'TOP018', rateOfReturn: 0.069 },
+        { rank: 19, referralCode: 'MY_CODE', rateOfReturn: 0.063 },
+        { rank: 20, referralCode: 'TOP020', rateOfReturn: 0.057 },
       ],
       totalParticipants: 150,
     },
     MID: {
       entries: [
-        {
-          rank: 1,
-          referralCode: 'MID001',
-          rateOfReturn: 0.412,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 2,
-          referralCode: 'MID002',
-          rateOfReturn: 0.368,
-          qualifiedDays: 10,
-          qualified: true,
-        },
-        {
-          rank: 3,
-          referralCode: 'MID003',
-          rateOfReturn: 0.341,
-          qualifiedDays: 10,
-          qualified: true,
-        },
+        { rank: 1, referralCode: 'MID001', rateOfReturn: 0.412 },
+        { rank: 2, referralCode: 'MID002', rateOfReturn: 0.368 },
+        { rank: 3, referralCode: 'MID003', rateOfReturn: 0.341 },
       ],
       totalParticipants: 75,
     },
@@ -5222,9 +4987,6 @@ const mockPosition: CampaignLeaderboardPositionDto = {
   currentUsdValue: 5063,
   totalUsdDeposited: 5000,
   netDeposit: 4800,
-  qualifiedDays: 10,
-  qualified: true,
-  neighbors: [],
   computedAt: '2024-03-20T12:00:00.000Z',
 };
 
@@ -5232,10 +4994,9 @@ const mockPortfolio: OndoGmPortfolioDto = {
   positions: [],
   summary: {
     totalCurrentValue: '5063',
-    totalBookValue: '5000',
+    totalCostBasis: '5000',
     totalUsdDeposited: '5000',
     netDeposit: '4800',
-    totalCashedOut: '0',
     portfolioPnl: '63',
     portfolioPnlPercent: '0.0126',
   },
@@ -5481,122 +5242,5 @@ describe('setOndoCampaignPortfolioPosition', () => {
     const state = rewardsReducer(stateWithPortfolio, action);
 
     expect(state.ondoCampaignPortfolio['sub-1:campaign-1']).toBeUndefined();
-  });
-});
-
-describe('setOndoCampaignActivity', () => {
-  it('should set activity entries for a campaign', () => {
-    const mockEntries: OndoGmActivityEntryDto[] = [
-      {
-        type: 'DEPOSIT',
-        srcToken: {
-          tokenAsset: 'eip155:59144/erc20:0xabc',
-          tokenSymbol: 'USDC',
-          tokenName: 'USD Coin',
-        },
-        destToken: null,
-        destAddress: null,
-        usdAmount: '5000.000000',
-        timestamp: '2026-03-28T14:30:00.000Z',
-      },
-    ];
-    const action = setOndoCampaignActivity({
-      subscriptionId: 'sub-1',
-      campaignId: 'campaign-1',
-      entries: mockEntries,
-    });
-
-    const state = rewardsReducer(initialState, action);
-
-    expect(state.ondoCampaignActivity['sub-1:campaign-1']).toEqual(mockEntries);
-  });
-
-  it('should set null when null entries provided', () => {
-    const action = setOndoCampaignActivity({
-      subscriptionId: 'sub-1',
-      campaignId: 'campaign-1',
-      entries: null,
-    });
-
-    const state = rewardsReducer(initialState, action);
-
-    expect(state.ondoCampaignActivity['sub-1:campaign-1']).toBeNull();
-  });
-});
-
-describe('ondoCampaignDeposits', () => {
-  it('setOndoCampaignDeposits sets data and clears error', () => {
-    const deposits = { totalUsdDeposited: '1250000.000000' };
-    const prevState = {
-      ...initialState,
-      ondoCampaignDepositsError: true,
-    };
-
-    const state = rewardsReducer(prevState, setOndoCampaignDeposits(deposits));
-
-    expect(state.ondoCampaignDeposits).toEqual(deposits);
-    expect(state.ondoCampaignDepositsError).toBe(false);
-  });
-
-  it('setOndoCampaignDepositsLoading(true) sets loading when no data', () => {
-    const state = rewardsReducer(
-      initialState,
-      setOndoCampaignDepositsLoading(true),
-    );
-
-    expect(state.ondoCampaignDepositsLoading).toBe(true);
-  });
-
-  it('setOndoCampaignDepositsLoading(true) skips when data already exists', () => {
-    const prevState = {
-      ...initialState,
-      ondoCampaignDeposits: { totalUsdDeposited: '500000' },
-      ondoCampaignDepositsLoading: false,
-    };
-
-    const state = rewardsReducer(
-      prevState as RewardsState,
-      setOndoCampaignDepositsLoading(true),
-    );
-
-    expect(state.ondoCampaignDepositsLoading).toBe(false);
-  });
-
-  it('setOndoCampaignDepositsLoading(false) clears loading', () => {
-    const prevState = { ...initialState, ondoCampaignDepositsLoading: true };
-
-    const state = rewardsReducer(
-      prevState,
-      setOndoCampaignDepositsLoading(false),
-    );
-
-    expect(state.ondoCampaignDepositsLoading).toBe(false);
-  });
-
-  it('setOndoCampaignDepositsError(true) sets error', () => {
-    const state = rewardsReducer(
-      initialState,
-      setOndoCampaignDepositsError(true),
-    );
-
-    expect(state.ondoCampaignDepositsError).toBe(true);
-  });
-
-  it('resetRewardsState resets deposits to null', () => {
-    const prevState = {
-      ...initialState,
-      ondoCampaignDeposits: { totalUsdDeposited: '500000' },
-      ondoCampaignDepositsLoading: true,
-      ondoCampaignDepositsError: true,
-    };
-
-    const state = rewardsReducer(
-      prevState as RewardsState,
-      resetRewardsState(),
-    );
-
-    expect(state.ondoCampaignDeposits).toBeNull();
-    expect(state.ondoCampaignDepositsLoading).toBe(false);
-    expect(state.ondoCampaignDepositsError).toBe(false);
   });
 });

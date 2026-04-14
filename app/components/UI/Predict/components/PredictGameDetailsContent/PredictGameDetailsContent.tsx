@@ -20,15 +20,12 @@ import {
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
-import { usePredictPositions } from '../../hooks/usePredictPositions';
 import PredictGameChart from '../PredictGameChart';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
 import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutSheet';
+import PredictPicks from '../PredictPicks/PredictPicks';
 import PredictShareButton from '../PredictShareButton/PredictShareButton';
 import PredictSportScoreboard from '../PredictSportScoreboard';
-import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
-import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
-import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
@@ -60,35 +57,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
   const game = market.game;
-
-  const { data: activePositions = [] } = usePredictPositions({
-    marketId: market.id,
-    claimable: false,
-  });
-  const { data: claimablePositions = [] } = usePredictPositions({
-    marketId: market.id,
-    claimable: true,
-  });
-
-  const {
-    enabled: tabsEnabled,
-    showTabBar,
-    tabs,
-    activeTab,
-    handleTabPress,
-  } = useGameDetailsTabs({
-    activePositions,
-    claimablePositions,
-    league: game?.league,
-  });
-
-  // Index of the tab bar in the ScrollView children:
-  // [0] Scoreboard, [1] Chart, [2] TabBar (when visible)
-  const TAB_BAR_CHILD_INDEX = 2;
-  const stickyHeaderIndices = useMemo(
-    () => (showTabBar ? [TAB_BAR_CHILD_INDEX] : undefined),
-    [showTabBar],
-  );
 
   if (!outcome || !game) {
     return null;
@@ -137,7 +105,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
       <ScrollView
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-4')}
-        stickyHeaderIndices={stickyHeaderIndices}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -161,24 +128,12 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           />
         </Box>
 
-        {showTabBar && (
-          <PredictMarketDetailsTabBar
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabPress={handleTabPress}
-            tabTwStyle="flex-1"
+        <Box twClassName="px-4 py-2">
+          <PredictPicks
+            market={market}
+            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_PICK}
           />
-        )}
-
-        <PredictGameDetailsTabsContent
-          market={market}
-          activeTab={activeTab}
-          tabs={tabs}
-          enabled={tabsEnabled}
-          showTabBar={showTabBar}
-          activePositions={activePositions}
-          claimablePositions={claimablePositions}
-        />
+        </Box>
       </ScrollView>
 
       <PredictGameDetailsFooter

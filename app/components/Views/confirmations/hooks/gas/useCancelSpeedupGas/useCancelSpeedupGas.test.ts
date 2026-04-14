@@ -1,6 +1,5 @@
 import {
   GasFeeEstimateLevel,
-  TransactionStatus,
   UserFeeLevel,
   type FeeMarketEIP1559Values,
   type GasPriceValue,
@@ -129,7 +128,6 @@ describe('useCancelSpeedupGas', () => {
     expect(result.current.networkFeeFiat).toBeNull();
     expect(result.current.nativeTokenSymbol).toBe('ETH');
     expect(result.current.isInitialGasReady).toBe(false);
-    expect(result.current.isTransactionModifiable).toBe(false);
   });
 
   it('returns empty result when tx has no txParams', () => {
@@ -348,44 +346,6 @@ describe('useCancelSpeedupGas', () => {
       buildStateWithTransaction(txWithPreviousGas),
     );
     expect(result.current.isInitialGasReady).toBe(true);
-  });
-
-  describe('isTransactionModifiable', () => {
-    it('returns false when txId is null (no tx)', () => {
-      const { result } = renderHookWithProvider(
-        () => useCancelSpeedupGas({ txId: null }),
-        providerState,
-      );
-      expect(result.current.isTransactionModifiable).toBe(false);
-    });
-
-    it.each([TransactionStatus.unapproved, TransactionStatus.submitted])(
-      'returns true when tx status is %s',
-      (status) => {
-        const tx = { ...mockTxEip1559, status } as unknown as TransactionMeta;
-        const { result } = renderHookWithProvider(
-          () => useCancelSpeedupGas({ txId: 'tx-1' }),
-          buildStateWithTransaction(tx),
-        );
-        expect(result.current.isTransactionModifiable).toBe(true);
-      },
-    );
-
-    it.each([
-      TransactionStatus.confirmed,
-      TransactionStatus.failed,
-      TransactionStatus.dropped,
-      TransactionStatus.rejected,
-      TransactionStatus.approved,
-      TransactionStatus.signed,
-    ])('returns false when tx status is %s', (status) => {
-      const tx = { ...mockTxEip1559, status } as unknown as TransactionMeta;
-      const { result } = renderHookWithProvider(
-        () => useCancelSpeedupGas({ txId: 'tx-1' }),
-        buildStateWithTransaction(tx),
-      );
-      expect(result.current.isTransactionModifiable).toBe(false);
-    });
   });
 });
 

@@ -41,7 +41,6 @@ import type { AccountConnectParams } from '../../components/Views/AccountConnect
 import type { ShowTokenIdSheetParams } from '../../components/Views/ShowTokenIdSheet/ShowTokenIdSheet.types';
 import type { ShowIpfsGatewaySheetParams } from '../../components/Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet.types';
 import type { SuccessErrorSheetParams } from '../../components/Views/SuccessErrorSheet/interface';
-import type { OnboardingSheetParams } from '../../components/Views/OnboardingSheet';
 
 // Modal params
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
@@ -149,10 +148,6 @@ import type {
   AddAccountParams,
   AmbiguousAddressParams,
 } from '../../components/Views/AccountActions/AccountActions.types';
-import type {
-  OnboardingOAuthRehydrateParams,
-  RehydrateParams,
-} from '../../components/Views/OAuthRehydration/OAuthRehydration.types';
 
 // Multichain accounts params
 import type {
@@ -200,9 +195,6 @@ import type {
   FoxLoaderParams,
   SnapSettingsParams,
 } from '../../components/Views/Modals/Modals.types';
-
-// Rewards params
-import { BenefitFullViewRouteParams } from '../../components/UI/Rewards/Views/BenefitFullView.types.ts';
 
 // Webview params
 import type {
@@ -338,8 +330,6 @@ export interface RootStackParamList extends ParamListBase {
   RewardsOnboarding2: undefined;
   RewardsOnboarding3: undefined;
   RewardsOnboarding4: undefined;
-  BenefitFullView: BenefitFullViewRouteParams;
-  BenefitsFullView: undefined;
 
   // Modal routes
   DeleteWalletModal: undefined;
@@ -391,9 +381,14 @@ export interface RootStackParamList extends ParamListBase {
   ChoosePassword: ChoosePasswordRouteParams | undefined;
   OptinMetrics: OptinMetricsRouteParams | undefined;
   SocialLoginSuccessExistingUser: undefined;
-  /** OAuth unlock screen nested in OnboardingNav (see Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE). */
-  OnboardingOAuthRehydrate: OnboardingOAuthRehydrateParams | undefined;
-  Rehydrate: RehydrateParams | undefined;
+  Rehydrate:
+    | {
+        previous_screen?: string;
+        oauthLoginSuccess?: boolean;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onboardingTraceCtx?: any;
+      }
+    | undefined;
 
   // Send flow routes
   SendTo: SendFlowParams | undefined;
@@ -445,7 +440,7 @@ export interface RootStackParamList extends ParamListBase {
   NetworkManager: undefined;
   ChangeInSimulationModal: undefined;
   SelectSRP: SelectSRPParams | undefined;
-  OnboardingSheet: OnboardingSheetParams | undefined;
+  OnboardingSheet: undefined;
   SeedphraseModal: SeedphraseModalParams | undefined;
   SkipAccountSecurityModal: undefined;
   SuccessErrorSheet: SuccessErrorSheetParams | undefined;
@@ -482,7 +477,6 @@ export interface RootStackParamList extends ParamListBase {
   NftFullView: undefined;
   TokensFullView: undefined;
   CashTokensFullView: undefined;
-  MoneyScreens: undefined;
   TrendingTokensFullView: undefined;
   RWATokensFullView: undefined;
 
@@ -552,10 +546,6 @@ export interface RootStackParamList extends ParamListBase {
   PredictUnavailable: undefined;
   PredictAddFundsSheet: undefined;
   PredictGTMModal: undefined;
-
-  // Social Leaderboard routes
-  TopTradersView: undefined;
-  TraderProfileView: { traderId: string; traderName: string };
 
   // Misc routes
   LockScreen: undefined;
@@ -635,7 +625,8 @@ export interface RootStackParamList extends ParamListBase {
   CardMainRoutes: undefined;
   CardHome: undefined;
   CardWelcome: undefined;
-  CardAuthentication: { showAuthPrompt?: boolean } | undefined;
+  CardAuthentication: undefined;
+  CardNotification: undefined;
   CardSpendingLimit: undefined;
   CardChangeAsset: undefined;
   VerifyingRegistration: undefined;

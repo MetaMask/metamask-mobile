@@ -35,7 +35,6 @@ describe(SmokeCard('CardHome - Manage Card'), () => {
             ],
             '0xe708',
           )
-          .withCardController()
           .build(),
         restartDevice: true,
         testSpecificMock,

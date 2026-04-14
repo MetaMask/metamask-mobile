@@ -31,7 +31,6 @@ import PaymentSelectionAlert from '../PaymentSelectionModal/PaymentSelectionAler
 import PaymentMethodIcon from '../../../Aggregator/components/PaymentMethodIcon';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useTheme } from '../../../../../../util/theme';
-import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
 
 const SKELETON_ROW_COUNT = 5;
 const SKELETON_NAME_WIDTH = 120;
@@ -186,7 +185,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           if (!assetId) {
             return [[...sup, item], unsup];
           }
-          return providerSupportsAsset(provider, assetId)
+          return provider.supportedCryptoCurrencies?.[assetId] === true
             ? [[...sup, item], unsup]
             : [sup, [...unsup, item]];
         },

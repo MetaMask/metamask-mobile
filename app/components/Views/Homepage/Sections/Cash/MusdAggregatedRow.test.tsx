@@ -2,21 +2,22 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MusdAggregatedRow from './MusdAggregatedRow';
-import Routes from '../../../../../constants/navigation/Routes';
-
-const mockNavigate = jest.fn();
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
-}));
+import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
+import NavigationService from '../../../../../core/NavigationService';
 
 const mockClaimRewards = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn(),
+}));
+jest.mock('../../../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    navigation: {
+      navigate: jest.fn(),
+    },
+  },
 }));
 
 const mockUseMusdBalance = jest.fn(() => ({
@@ -55,12 +56,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
-}));
-
-const mockSelectMoneyHomeScreenEnabledFlag = jest.fn().mockReturnValue(false);
-jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
-  selectMoneyHomeScreenEnabledFlag: (state: unknown) =>
-    mockSelectMoneyHomeScreenEnabledFlag(state),
 }));
 
 describe('MusdAggregatedRow', () => {
@@ -106,6 +101,20 @@ describe('MusdAggregatedRow', () => {
     expect(screen.getByTestId('cash-section-musd-row')).toBeOnTheScreen();
   });
 
+  it('navigates to Asset with mobile_token_list_page source when row is pressed', () => {
+    renderWithProvider(<MusdAggregatedRow />);
+
+    fireEvent.press(screen.getByTestId('cash-section-musd-row'));
+
+    const mockNavigate = jest.mocked(NavigationService.navigation.navigate);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Asset',
+      expect.objectContaining({
+        source: TokenDetailsSource.HomeSection,
+      }),
+    );
+  });
+
   it('shows Spinner when isClaiming is true', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: '10',
@@ -137,26 +146,36 @@ describe('MusdAggregatedRow', () => {
   });
 
   describe('handleTokenRowPress', () => {
-    it('navigates to Cash tokens full view when Money Home is disabled', () => {
-      mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
+    it('navigates to mUSD mainnet Asset details with mobile_token_list_page source when user has mUSD on a chain', () => {
+      mockUseMusdBalance.mockReturnValueOnce({
+        tokenBalanceAggregated: '1800.5',
+        fiatBalanceAggregatedFormatted: '$1,800.50',
+        hasMusdBalanceOnAnyChain: true,
+      });
 
       renderWithProvider(<MusdAggregatedRow />);
 
       fireEvent.press(screen.getByTestId('cash-section-musd-row'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        'Asset',
+        expect.objectContaining({
+          source: TokenDetailsSource.HomeSection,
+        }),
       );
     });
 
-    it('navigates to Money Home when Money Home is enabled', () => {
-      mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
-
+    it('navigates to mUSD mainnet Asset details when user has no mUSD balance on any chain', () => {
       renderWithProvider(<MusdAggregatedRow />);
 
       fireEvent.press(screen.getByTestId('cash-section-musd-row'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT);
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        'Asset',
+        expect.objectContaining({
+          source: TokenDetailsSource.HomeSection,
+        }),
+      );
     });
   });
 

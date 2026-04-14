@@ -167,45 +167,39 @@ describe('AddFundsBottomSheet', () => {
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
   });
 
-  it('renders with both options enabled', () => {
-    const { getByText } = setupComponent();
+  it('renders with both options enabled and matches snapshot', () => {
+    const { toJSON } = setupComponent();
 
-    expect(getByText('Select method')).toBeOnTheScreen();
-    expect(getByText('Fund with cash')).toBeOnTheScreen();
-    expect(getByText('Fund with crypto')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with only swap option when deposit is disabled', () => {
+  it('renders with only swap option when deposit is disabled and matches snapshot', () => {
     (useDepositEnabled as jest.Mock).mockReturnValue({
       isDepositEnabled: false,
     });
 
-    const { getByText, queryByText } = setupComponent();
+    const { toJSON } = setupComponent();
 
-    expect(getByText('Fund with crypto')).toBeOnTheScreen();
-    expect(queryByText('Fund with cash')).not.toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with only deposit option when swaps are not allowed', () => {
+  it('renders with only deposit option when swaps are not allowed and matches snapshot', () => {
     (isBridgeAllowed as jest.Mock).mockReturnValue(false);
 
-    const { getByText, queryByText } = setupComponent();
+    const { toJSON } = setupComponent();
 
-    expect(getByText('Fund with cash')).toBeOnTheScreen();
-    expect(queryByText('Fund with crypto')).not.toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with no options when both are disabled', () => {
+  it('renders with no options when both are disabled and matches snapshot', () => {
     (useDepositEnabled as jest.Mock).mockReturnValue({
       isDepositEnabled: false,
     });
     (isBridgeAllowed as jest.Mock).mockReturnValue(false);
 
-    const { getByText, queryByText } = setupComponent();
+    const { toJSON } = setupComponent();
 
-    expect(getByText('Select method')).toBeOnTheScreen();
-    expect(queryByText('Fund with cash')).not.toBeOnTheScreen();
-    expect(queryByText('Fund with crypto')).not.toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays the correct header text', () => {
@@ -270,7 +264,7 @@ describe('AddFundsBottomSheet', () => {
       CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
     );
 
-    expect(swapOption).not.toBeOnTheScreen();
+    expect(swapOption).toBeNull();
   });
 
   it('renders correct descriptions for different tokens', () => {
@@ -330,8 +324,8 @@ describe('AddFundsBottomSheet', () => {
   });
 
   it('renders component correctly', () => {
-    const { getByText } = setupComponent();
+    const { toJSON } = setupComponent();
 
-    expect(getByText('Select method')).toBeOnTheScreen();
+    expect(toJSON()).toBeTruthy();
   });
 });

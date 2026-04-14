@@ -58,14 +58,9 @@ let mockSelectedToken: unknown = {
   symbol: 'USDC',
 };
 
-jest.mock('../../../hooks/useRampsProviders', () => ({
-  useRampsProviders: () => ({
+jest.mock('../../../hooks/useRampsController', () => ({
+  useRampsController: () => ({
     selectedProvider: mockSelectedProvider,
-  }),
-}));
-
-jest.mock('../../../hooks/useRampsTokens', () => ({
-  useRampsTokens: () => ({
     selectedToken: mockSelectedToken,
   }),
 }));
@@ -132,11 +127,10 @@ describe('TokenNotAvailableModal', () => {
     };
   });
 
-  it('renders modal with Change token and Change provider buttons', () => {
-    const { getByText } = render(TokenNotAvailableModal);
+  it('matches snapshot', () => {
+    const { toJSON } = render(TokenNotAvailableModal);
 
-    expect(getByText('Change token')).toBeOnTheScreen();
-    expect(getByText('Change provider')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to token selection when Change token is pressed', () => {
@@ -192,14 +186,13 @@ describe('TokenNotAvailableModal', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('renders modal when provider and token are null', () => {
+  it('matches snapshot with missing provider and token names', () => {
     mockSelectedProvider = null;
     mockSelectedToken = null;
 
-    const { getByText } = render(TokenNotAvailableModal);
+    const { toJSON } = render(TokenNotAvailableModal);
 
-    expect(getByText('Change token')).toBeOnTheScreen();
-    expect(getByText('Change provider')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('fires RAMPS_SCREEN_VIEWED analytics event on mount', () => {

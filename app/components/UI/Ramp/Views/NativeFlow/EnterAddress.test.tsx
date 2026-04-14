@@ -140,6 +140,11 @@ describe('V2EnterAddress', () => {
     };
   });
 
+  it('matches snapshot', () => {
+    const { toJSON } = renderWithTheme(<V2EnterAddress />);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('renders the address form fields', () => {
     const { getByTestId } = renderWithTheme(<V2EnterAddress />);
 
@@ -235,7 +240,7 @@ describe('V2EnterAddress', () => {
     });
   });
 
-  it('renders address form fields for non-US region', () => {
+  it('matches snapshot for non-US region', () => {
     mockUserRegion = {
       country: {
         isoCode: 'GB',
@@ -247,10 +252,8 @@ describe('V2EnterAddress', () => {
       regionCode: 'gb',
     };
 
-    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
-    expect(getByTestId('address-line-1-input')).toBeOnTheScreen();
-    expect(getByTestId('city-input')).toBeOnTheScreen();
-    expect(getByTestId('country-input')).toBeOnTheScreen();
+    const { toJSON } = renderWithTheme(<V2EnterAddress />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('shows country flag in country input', () => {

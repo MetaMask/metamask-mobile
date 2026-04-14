@@ -223,6 +223,9 @@ jest.mock(
   '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions',
   () => () => <MockView testID="mock-mc-actions" />,
 );
+jest.mock('../../Views/CardNotification', () => () => (
+  <MockView testID="mock-card-notification" />
+));
 jest.mock('../../Views/ReturnToAppNotification', () => () => (
   <MockView testID="mock-return-notif" />
 ));
@@ -1039,6 +1042,10 @@ describe('App', () => {
       expect(Routes.SDK.RETURN_TO_DAPP_NOTIFICATION).toBeDefined();
     });
 
+    it('has card notification route defined', () => {
+      expect(Routes.CARD.NOTIFICATION).toBeDefined();
+    });
+
     it('has multichain transaction details route defined', () => {
       expect(Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS).toBeDefined();
     });
@@ -1360,6 +1367,12 @@ describe('App', () => {
 
     it('has delete wallet route defined', () => {
       expect(Routes.MODAL.DELETE_WALLET).toBeDefined();
+    });
+  });
+
+  describe('Card screens', () => {
+    it('has card notification route defined', () => {
+      expect(Routes.CARD.NOTIFICATION).toBeDefined();
     });
   });
 

@@ -3,7 +3,7 @@ import {
   type AccountsControllerMessenger,
   type AccountsControllerState,
 } from '@metamask/accounts-controller';
-import type { MessengerClientInitFunction } from '../../types';
+import type { ControllerInitFunction } from '../../types';
 import { logAccountsControllerCreation } from './utils';
 import { defaultAccountsControllerState } from './constants';
 
@@ -16,7 +16,7 @@ export * from './constants';
  * @param request - The request object.
  * @returns The AccountsController.
  */
-export const accountsControllerInit: MessengerClientInitFunction<
+export const accountsControllerInit: ControllerInitFunction<
   AccountsController,
   AccountsControllerMessenger
 > = (request) => {

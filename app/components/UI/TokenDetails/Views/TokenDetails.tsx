@@ -40,6 +40,7 @@ import {
 } from '../../Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import AppConstants from '../../../../core/AppConstants';
+import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import Transactions from '../../Transactions';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
@@ -214,10 +215,10 @@ const TokenDetails: React.FC<{
     comparePrice,
     prices,
     isLoading,
-    currentCurrency,
     timePeriod,
     setTimePeriod,
     chartNavigationButtons,
+    currentCurrency,
   } = useTokenPrice({ token });
 
   const {
@@ -225,6 +226,7 @@ const TokenDetails: React.FC<{
     fiatBalance,
     tokenFormattedBalance,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    isTronNative,
     stakedTrxAsset,
     inLockPeriodBalance,
     readyForWithdrawalBalance,
@@ -267,7 +269,15 @@ const TokenDetails: React.FC<{
     submittedTxs.length > 0 ||
     confirmedTxs.length > 0;
 
-  const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
+  const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
+    asset: {
+      isETH: token.isETH ?? false,
+      isNative: token.isNative ?? false,
+      address: token.address ?? '',
+      chainId: token.chainId ?? '',
+    },
+  });
+  const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
   const rampNetworks = useSelector(getRampNetworks);
 
@@ -307,6 +317,7 @@ const TokenDetails: React.FC<{
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        isTronNative={isTronNative}
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
         readyForWithdrawalBalance={readyForWithdrawalBalance}

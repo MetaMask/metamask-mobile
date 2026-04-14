@@ -111,8 +111,16 @@ class WalletView {
   get accountIcon(): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(WalletViewSelectorsIDs.ACCOUNT_ICON),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.ACCOUNT_ICON,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByCatchAll(
+            WalletViewSelectorsIDs.ACCOUNT_ICON,
+          ),
+      },
     });
   }
 

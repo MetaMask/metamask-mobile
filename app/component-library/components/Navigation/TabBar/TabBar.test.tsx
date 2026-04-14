@@ -121,7 +121,7 @@ describe('TabBar', () => {
       />,
       { state: mockInitialState },
     );
-    expect(toJSON()).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to the correct screen when a tab is pressed', () => {

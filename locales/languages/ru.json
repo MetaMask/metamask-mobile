@@ -240,6 +240,7 @@
     "import_wallet_button": "Синхронизировать или импортировать кошелек",
     "new_to_crypto": "Новичок в криптоактивах?",
     "start_exploring_now": "Создайте новый кошелек",
+    "unlock": "Разблокировать",
     "new_to_metamask": "Новичок в MetaMask?",
     "already_have_wallet": "Уже есть кошелек?",
     "optin_back_title": "Внимание!",
@@ -4810,9 +4811,11 @@
     "body_for_seedphrase": "Теперь, когда эта сумма добавлена в ваш кошелек, защитите свой кошелек, установив пароль и сохранив секретную фразу для восстановления (обязательно).",
     "button": "Защитить кошелек"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "Не удалось обновить транзакцию",
-    "already_confirmed": "Эта транзакция уже подтверждена и не может быть изменена."
+    "text": "Хотите повторить попытку?",
+    "cancel_button": "Отмена",
+    "retry_button": "Повтор"
   },
   "payment_request": {
     "title": "Запрос",
@@ -6636,6 +6639,7 @@
     "nested_transaction_heading": "Транзакция {{index}}",
     "transaction": "Защита",
     "available_balance": "Доступный баланс: ",
+    "available_perps_balance": "Доступный баланс перпов: ",
     "edit_amount_done": "Продолжить",
     "deposit_edit_amount_done": "Внести средства",
     "deposit_edit_amount_predict_withdraw": "Вывести средства",

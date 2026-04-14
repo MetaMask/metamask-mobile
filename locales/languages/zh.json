@@ -240,6 +240,7 @@
     "import_wallet_button": "同步或导入钱包",
     "new_to_crypto": "新接触加密币？",
     "start_exploring_now": "创建新钱包",
+    "unlock": "登录",
     "new_to_metamask": "MetaMask 的新用户？",
     "already_have_wallet": "已有钱包？",
     "optin_back_title": "注意！",
@@ -4810,9 +4811,11 @@
     "body_for_seedphrase": "现在价值已经添加到您的钱包中，请设置密码和保存助记词，保护您的钱包（必要）。",
     "button": "保护钱包"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "交易更新失败",
-    "already_confirmed": "此交易已确认，无法修改。"
+    "text": "您想再试一次吗？",
+    "cancel_button": "取消",
+    "retry_button": "重试"
   },
   "payment_request": {
     "title": "请求",
@@ -6636,6 +6639,7 @@
     "nested_transaction_heading": "交易 {{index}}",
     "transaction": "交易",
     "available_balance": "可用余额: ",
+    "available_perps_balance": "可用永续合约余额： ",
     "edit_amount_done": "继续",
     "deposit_edit_amount_done": "充值",
     "deposit_edit_amount_predict_withdraw": "提取",

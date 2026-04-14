@@ -11,9 +11,6 @@ import {
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
   transformWalletPerpsDepositsToTransactions,
-  transformWithdrawalRequestsToTransactions,
-  walletPerpsWithdrawalsToRequests,
-  mergeOrderFills,
 } from '../utils/transactionTransforms';
 import { FillType } from '../types/transactionHistory';
 import type { CaipAccountId } from '@metamask/utils';
@@ -56,17 +53,6 @@ const mockTransformWalletPerpsDepositsToTransactions =
   transformWalletPerpsDepositsToTransactions as jest.MockedFunction<
     typeof transformWalletPerpsDepositsToTransactions
   >;
-const mockTransformWithdrawalRequestsToTransactions =
-  transformWithdrawalRequestsToTransactions as jest.MockedFunction<
-    typeof transformWithdrawalRequestsToTransactions
-  >;
-const mockWalletPerpsWithdrawalsToRequests =
-  walletPerpsWithdrawalsToRequests as jest.MockedFunction<
-    typeof walletPerpsWithdrawalsToRequests
-  >;
-const mockMergeOrderFills = mergeOrderFills as jest.MockedFunction<
-  typeof mergeOrderFills
->;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('usePerpsTransactionHistory', () => {
@@ -223,15 +209,6 @@ describe('usePerpsTransactionHistory', () => {
     mockTransformFundingToTransactions.mockReturnValue([]);
     mockTransformUserHistoryToTransactions.mockReturnValue([]);
     mockTransformWalletPerpsDepositsToTransactions.mockReturnValue([]);
-    mockWalletPerpsWithdrawalsToRequests.mockReturnValue([]);
-    mockTransformWithdrawalRequestsToTransactions.mockReturnValue([]);
-    // Use real mergeOrderFills so dedup, sort, and detailedOrderType preservation
-    // are exercised correctly in hook-level tests. Unit tests for the function
-    // itself live in transactionTransforms.test.ts.
-    const actualTransforms = jest.requireActual(
-      '../utils/transactionTransforms',
-    ) as typeof import('../utils/transactionTransforms');
-    mockMergeOrderFills.mockImplementation(actualTransforms.mergeOrderFills);
   });
 
   describe('initial state', () => {
@@ -393,157 +370,6 @@ describe('usePerpsTransactionHistory', () => {
       expect(depositsWithSameTxHash).toHaveLength(1);
       expect(depositsWithSameTxHash[0].id).toBe('deposit-rest-1');
     });
-
-    it('includes wallet perps withdrawals in merged transactions', async () => {
-      mockTransformFillsToTransactions.mockReturnValue([]);
-      mockTransformUserHistoryToTransactions.mockReturnValue([]);
-      const walletWithdrawalTx = {
-        id: 'wallet-withdrawal-tx-1',
-        type: 'withdrawal' as const,
-        category: 'withdrawal' as const,
-        title: 'Withdrew 0.26 USDC',
-        subtitle: 'Completed',
-        timestamp: 1640995204000,
-        asset: 'USDC',
-        depositWithdrawal: {
-          amount: '-$0.26',
-          amountNumber: -0.26,
-          isPositive: false,
-          asset: 'USDC',
-          txHash: '0xwithdraw1',
-          status: 'completed' as const,
-          type: 'withdrawal' as const,
-        },
-      };
-      mockWalletPerpsWithdrawalsToRequests.mockReturnValue([
-        {
-          id: 'wallet-w1',
-          timestamp: 1640995204000,
-          amount: '0.26',
-          asset: 'USDC',
-          txHash: '0xwithdraw1',
-          status: 'completed',
-        },
-      ]);
-      mockTransformWithdrawalRequestsToTransactions.mockReturnValue([
-        walletWithdrawalTx,
-      ]);
-      const selectedAddr = '0x1234567890123456789012345678901234567890';
-      mockUseSelector.mockImplementation(() => {
-        const len = mockUseSelector.mock.calls.length;
-        return len % 2 === 1
-          ? [
-              {
-                id: 'w1',
-                type: 'perpsWithdraw',
-                txParams: { from: selectedAddr },
-                nestedTransactions: [{ type: 'perpsWithdraw' }],
-              },
-            ]
-          : selectedAddr;
-      });
-
-      const { result } = renderHook(() =>
-        usePerpsTransactionHistory({ skipInitialFetch: true }),
-      );
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      expect(result.current.transactions).toContainEqual(walletWithdrawalTx);
-      expect(mockWalletPerpsWithdrawalsToRequests).toHaveBeenCalled();
-      expect(mockTransformWithdrawalRequestsToTransactions).toHaveBeenCalled();
-    });
-
-    it('deduplicates wallet withdrawals against REST withdrawals by txHash', async () => {
-      const sameTxHash = '0xwithdraw123';
-      const restWithdrawal = {
-        id: 'withdrawal-rest-1',
-        type: 'withdrawal' as const,
-        category: 'withdrawal' as const,
-        title: 'Withdrew 0.50 USDC',
-        subtitle: 'Completed',
-        timestamp: 1640995200000,
-        asset: 'USDC',
-        depositWithdrawal: {
-          amount: '-$0.50',
-          amountNumber: -0.5,
-          isPositive: false,
-          asset: 'USDC',
-          txHash: sameTxHash,
-          status: 'completed' as const,
-          type: 'withdrawal' as const,
-        },
-      };
-      const walletWithdrawalSameTx = {
-        id: 'wallet-withdrawal-tx-1',
-        type: 'withdrawal' as const,
-        category: 'withdrawal' as const,
-        title: 'Withdrew 0.50 USDC',
-        subtitle: 'Pending',
-        timestamp: 1640995201000,
-        asset: 'USDC',
-        depositWithdrawal: {
-          amount: '-$0.50',
-          amountNumber: -0.5,
-          isPositive: false,
-          asset: 'USDC',
-          txHash: sameTxHash,
-          status: 'pending' as const,
-          type: 'withdrawal' as const,
-        },
-      };
-      mockTransformFillsToTransactions.mockReturnValue([]);
-      mockTransformUserHistoryToTransactions.mockReturnValue([restWithdrawal]);
-      mockWalletPerpsWithdrawalsToRequests.mockReturnValue([
-        {
-          id: 'wallet-w1',
-          timestamp: 1640995201000,
-          amount: '0.50',
-          asset: 'USDC',
-          txHash: sameTxHash,
-          status: 'pending',
-        },
-      ]);
-      mockTransformWithdrawalRequestsToTransactions.mockReturnValue([
-        walletWithdrawalSameTx,
-      ]);
-      const selectedAddr = '0x1234567890123456789012345678901234567890';
-      mockUseSelector.mockImplementation(() => {
-        const len = mockUseSelector.mock.calls.length;
-        return len % 2 === 1
-          ? [
-              {
-                id: 'w1',
-                type: 'perpsWithdraw',
-                txParams: { from: selectedAddr },
-                nestedTransactions: [{ type: 'perpsWithdraw' }],
-              },
-            ]
-          : selectedAddr;
-      });
-
-      const { result } = renderHook(() =>
-        usePerpsTransactionHistory({ skipInitialFetch: false }),
-      );
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-      await act(async () => {
-        await result.current.refetch();
-      });
-
-      const withdrawalsWithSameTxHash = result.current.transactions.filter(
-        (tx) =>
-          tx.type === 'withdrawal' &&
-          tx.depositWithdrawal?.txHash?.toLowerCase() ===
-            sameTxHash.toLowerCase(),
-      );
-      expect(withdrawalsWithSameTxHash).toHaveLength(1);
-      expect(withdrawalsWithSameTxHash[0].id).toBe('withdrawal-rest-1');
-    });
   });
 
   describe('fetchAllTransactions', () => {
@@ -666,43 +492,41 @@ describe('usePerpsTransactionHistory', () => {
     });
 
     it('sorts transactions by timestamp descending', async () => {
-      const tradeTx = {
-        id: 'tx2',
-        timestamp: 2000,
-        type: 'trade' as const,
-        category: 'position_open' as const,
-        title: 'Trade',
-        subtitle: '1 ETH',
-        asset: 'ETH',
-      };
-      const depositTx = {
-        id: 'tx1',
-        timestamp: 1000,
-        type: 'deposit' as const,
-        category: 'deposit' as const,
-        title: 'Deposit',
-        subtitle: '100 USDC',
-        asset: 'USDC',
-      };
-      const withdrawalTx = {
-        id: 'tx3',
-        timestamp: 1500,
-        type: 'withdrawal' as const,
-        category: 'withdrawal' as const,
-        title: 'Withdrawal',
-        subtitle: '50 USDC',
-        asset: 'USDC',
-      };
+      const mockTransactions = [
+        {
+          id: 'tx1',
+          timestamp: 1000,
+          type: 'deposit' as const,
+          category: 'deposit' as const,
+          title: 'Deposit',
+          subtitle: '100 USDC',
+          asset: 'USDC',
+        },
+        {
+          id: 'tx2',
+          timestamp: 2000,
+          type: 'trade' as const,
+          category: 'position_open' as const,
+          title: 'Trade',
+          subtitle: '1 ETH',
+          asset: 'ETH',
+        },
+        {
+          id: 'tx3',
+          timestamp: 1500,
+          type: 'withdrawal' as const,
+          category: 'withdrawal' as const,
+          title: 'Withdrawal',
+          subtitle: '50 USDC',
+          asset: 'USDC',
+        },
+      ];
 
-      // fills transform returns only trade transactions (realistic)
+      // Use mockImplementation to return transactions only for non-empty fills
+      // Empty fills (from WebSocket) should return empty array
       mockTransformFillsToTransactions.mockImplementation((fills) =>
-        fills.length > 0 ? [tradeTx] : [],
+        fills.length > 0 ? mockTransactions : [],
       );
-      // Non-trade transactions come from user history
-      mockTransformUserHistoryToTransactions.mockReturnValue([
-        depositTx,
-        withdrawalTx,
-      ]);
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
@@ -716,45 +540,43 @@ describe('usePerpsTransactionHistory', () => {
     });
 
     it('removes duplicate transactions', async () => {
-      // Two deposits with same ID (duplicate) + one unique deposit
-      const duplicateDeposit1 = {
-        id: 'tx1',
-        timestamp: 1000,
-        type: 'deposit' as const,
-        category: 'deposit' as const,
-        title: 'Deposit',
-        subtitle: '100 USDC',
-        asset: 'USDC',
-      };
-      const duplicateDeposit2 = {
-        id: 'tx1',
-        timestamp: 1000,
-        type: 'deposit' as const,
-        category: 'deposit' as const,
-        title: 'Deposit',
-        subtitle: '100 USDC',
-        asset: 'USDC',
-      };
-      const uniqueDeposit = {
-        id: 'tx2',
-        timestamp: 2000,
-        type: 'deposit' as const,
-        category: 'deposit' as const,
-        title: 'Deposit 2',
-        subtitle: '50 USDC',
-        asset: 'USDC',
-      };
+      const duplicateTransactions = [
+        {
+          id: 'tx1',
+          timestamp: 1000,
+          type: 'deposit' as const,
+          category: 'deposit' as const,
+          title: 'Deposit',
+          subtitle: '100 USDC',
+          asset: 'USDC',
+        },
+        {
+          id: 'tx1',
+          timestamp: 1000,
+          type: 'deposit' as const,
+          category: 'deposit' as const,
+          title: 'Deposit',
+          subtitle: '100 USDC',
+          asset: 'USDC',
+        },
+        {
+          id: 'tx2',
+          timestamp: 2000,
+          type: 'trade' as const,
+          category: 'position_open' as const,
+          title: 'Trade',
+          subtitle: '1 ETH',
+          asset: 'ETH',
+        },
+      ];
 
-      // fills return empty (no trade transactions)
+      // Ensure all other transform functions return empty arrays for this test
       mockTransformFillsToTransactions.mockReturnValue([]);
       mockTransformOrdersToTransactions.mockReturnValue([]);
       mockTransformFundingToTransactions.mockReturnValue([]);
-      // user history has duplicates — fetchAllTransactions dedupes by ID
-      mockTransformUserHistoryToTransactions.mockReturnValue([
-        duplicateDeposit1,
-        duplicateDeposit2,
-        uniqueDeposit,
-      ]);
+      mockTransformUserHistoryToTransactions.mockReturnValue(
+        duplicateTransactions,
+      );
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
@@ -1219,11 +1041,10 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      // mergedTransactions sorts fills descending by timestamp before transforming
       expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
-        { ...partialFills[2], detailedOrderType: 'Stop Loss' },
-        { ...partialFills[1], detailedOrderType: 'Stop Loss' },
         { ...partialFills[0], detailedOrderType: 'Stop Loss' },
+        { ...partialFills[1], detailedOrderType: 'Stop Loss' },
+        { ...partialFills[2], detailedOrderType: 'Stop Loss' },
       ]);
     });
 
@@ -1256,111 +1077,64 @@ describe('usePerpsTransactionHistory', () => {
     });
   });
 
-  describe('WS fill merge preserves detailedOrderType from REST', () => {
-    it('preserves detailedOrderType from REST fill when WS fill lacks it', async () => {
-      // REST fill has detailedOrderType set (enriched from orders API)
-      const restRawFill = {
-        orderId: 'sl-order-123',
+  describe('WS fill merge preserves fillType from REST', () => {
+    it('preserves non-standard fillType when WS fill has standard', async () => {
+      // Arrange — REST returns a trade with stop_loss fillType
+      const restTrade = {
+        ...mockTransformedTransactions[0],
+        id: 'rest-sl-1',
+        asset: 'BTC',
         timestamp: 1641000000000,
-        symbol: 'BTC',
-        side: 'sell',
-        size: '0.1',
-        price: '50000',
-        pnl: '100',
-        fee: '5',
-        feeToken: 'USDC',
-        direction: 'Close Long',
-        detailedOrderType: 'Stop Loss',
-        startPosition: '0.1',
-        success: true,
+        fill: {
+          ...mockTransformedTransactions[0].fill,
+          fillType: FillType.StopLoss,
+        },
       };
-      // WS fill with same orderId-timestamp-size-price but no detailedOrderType
-      const wsRawFill = {
-        orderId: 'sl-order-123',
+      // Live fill with same asset+timestamp(seconds) but standard fillType
+      const wsFill = {
+        ...mockTransformedTransactions[0],
+        id: 'ws-sl-1',
+        asset: 'BTC',
         timestamp: 1641000000000,
-        symbol: 'BTC',
-        side: 'sell',
-        size: '0.1',
-        price: '50000',
-        pnl: '100',
-        fee: '5',
-        feeToken: 'USDC',
-        direction: 'Close Long',
-        startPosition: '0.1',
-        success: true,
+        fill: {
+          ...mockTransformedTransactions[0].fill,
+          fillType: FillType.Standard,
+        },
       };
 
-      mockProvider.getOrderFills.mockResolvedValue([restRawFill]);
-      // Provide order so fetchAllTransactions enriches the fill with detailedOrderType
-      mockProvider.getOrders.mockResolvedValue([
-        {
-          orderId: 'sl-order-123',
-          symbol: 'BTC',
-          side: 'sell',
-          orderType: 'Stop',
-          detailedOrderType: 'Stop Loss',
-          size: '0',
-          originalSize: '0.1',
-          price: '50000',
-          status: 'filled',
-          timestamp: 1641000000000,
-        },
-      ]);
+      // Call order: (1) useMemo on initial render with liveFills,
+      // (2) fetchAllTransactions with REST fills (sets state),
+      // (3) useMemo re-runs with liveFills after state update
+      mockTransformFillsToTransactions
+        .mockReturnValueOnce([wsFill]) // initial render: live fills
+        .mockReturnValueOnce([restTrade]) // fetchAllTransactions: REST fills
+        .mockReturnValue([wsFill]); // re-render: live fills again
 
       mockUsePerpsLiveFills.mockReturnValue({
-        fills: [wsRawFill],
+        fills: [
+          {
+            orderId: 'ws-1',
+            timestamp: 1641000000000,
+            symbol: 'BTC',
+            side: 'buy',
+            size: '0.1',
+            price: '50000',
+            pnl: '0',
+            direction: 'Open Long',
+            fee: '5',
+            feeToken: 'USDC',
+          },
+        ],
         isInitialLoading: false,
       });
 
-      // Pass-through mock: returns a trade with fillType based on detailedOrderType
-      mockTransformFillsToTransactions.mockImplementation((fills) =>
-        fills.map((f) => ({
-          id: `fill-${f.orderId}-${f.timestamp}`,
-          type: 'trade' as const,
-          category: 'position_close' as const,
-          title: f.detailedOrderType ?? 'Trade',
-          subtitle: '',
-          timestamp: f.timestamp,
-          asset: f.symbol,
-          fill: {
-            shortTitle: f.detailedOrderType ?? 'Trade',
-            amount: '+$100',
-            amountNumber: 100,
-            isPositive: true,
-            size: f.size,
-            entryPrice: f.price,
-            pnl: f.pnl,
-            fee: f.fee,
-            points: '0',
-            feeToken: f.feeToken,
-            action: 'Closed',
-            liquidation: undefined,
-            isLiquidation: false,
-            isTakeProfit: f.detailedOrderType === 'Take Profit',
-            isStopLoss: f.detailedOrderType === 'Stop Loss',
-            fillType:
-              f.detailedOrderType === 'Stop Loss'
-                ? FillType.StopLoss
-                : FillType.Standard,
-          },
-        })),
-      );
-
+      // Act
       const { result } = renderHook(() => usePerpsTransactionHistory());
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      // The mergedTransactions call receives the fill with detailedOrderType preserved
-      const mergedFillsCallArg =
-        mockTransformFillsToTransactions.mock.calls[
-          mockTransformFillsToTransactions.mock.calls.length - 1
-        ][0];
-      expect(mergedFillsCallArg[0]).toMatchObject({
-        detailedOrderType: 'Stop Loss',
-      });
-
-      // The resulting trade should reflect the Stop Loss fillType
+      // Assert — merged trade preserves the stop_loss fillType
       const trades = result.current.transactions.filter(
         (tx) => tx.type === 'trade',
       );

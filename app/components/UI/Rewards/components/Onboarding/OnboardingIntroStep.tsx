@@ -43,8 +43,7 @@ import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { isHardwareAccount } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import Device from '../../../../../util/device';
 import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import storageWrapper from '../../../../../store/storage-wrapper';
@@ -259,7 +258,7 @@ const OnboardingIntroStep: React.FC<{
     navigation.goBack();
   }, [navigation]);
 
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const hasTrackedOnboardingStart = useRef(false);
 
   /**

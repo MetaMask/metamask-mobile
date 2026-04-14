@@ -7,6 +7,14 @@ const selectComplianceControllerState = (state: RootState) =>
   state.engine.backgroundState.ComplianceController;
 
 /**
+ * Select the full blocked wallets info object, or null if not yet fetched.
+ */
+export const selectBlockedWallets = createSelector(
+  selectComplianceControllerState,
+  (state) => state?.blockedWallets ?? null,
+);
+
+/**
  * Memoized factory: same (address) returns the same selector instance so reselect caching works.
  */
 const getSelectIsWalletBlocked = memoize((address: string) =>
@@ -18,8 +26,8 @@ const getSelectIsWalletBlocked = memoize((address: string) =>
 /**
  * Create a selector that returns whether a specific wallet address is blocked.
  *
- * Reads from the per-address `walletComplianceStatusMap` which is populated by
- * `checkWalletCompliance` calls. Selector instances are cached per address.
+ * Checks the proactively fetched blocklist first, then falls back to
+ * the per-address compliance status map. Selector instances are cached per address.
  *
  * @param address - The wallet address to check.
  * @returns A selector returning `true` if blocked, `false` otherwise.

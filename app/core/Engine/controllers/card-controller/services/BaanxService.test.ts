@@ -241,24 +241,5 @@ describe('BaanxService', () => {
         }),
       );
     });
-
-    it('uses token-embedded location (us) over currentLocation (international) when no explicit location arg', async () => {
-      mockRequest.mockResolvedValue({ data: {} });
-      const service = createService();
-      // currentLocation defaults to 'international'
-
-      // Pass a tokenSet with location:'us' but no explicit location arg
-      await service.get('/v1/test', {
-        accessToken: 'tok',
-        accessTokenExpiresAt: Date.now() + 3_600_000,
-        location: 'us',
-      });
-
-      expect(mockRequest).toHaveBeenCalledWith(
-        expect.objectContaining({
-          headers: expect.objectContaining({ 'x-us-env': 'true' }),
-        }),
-      );
-    });
   });
 });

@@ -146,24 +146,6 @@ function renameAndroid() {
     console.log(`⚠️  APK not found: ${oldApk}`);
   }
 
-  // Instrumentation / Detox test APK (assemble*AndroidTest — see scripts/build.sh)
-  const testApkDir = path.join(
-    __dirname,
-    `../android/app/build/outputs/apk/androidTest/${appFlavor}/${buildConfig}`,
-  );
-  const oldTestApk = path.join(
-    testApkDir,
-    `app-${appFlavor}-${buildConfig}-androidTest.apk`,
-  );
-  if (fs.existsSync(oldTestApk)) {
-    const newTestApk = path.join(testApkDir, `${newBaseName}-androidTest.apk`);
-    fs.copyFileSync(oldTestApk, newTestApk);
-    console.log(`✅ Renamed Android test APK: ${newTestApk}`);
-    setGithubOutput('android_test_apk_path', newTestApk);
-  } else {
-    console.log(`⚠️  Android test APK not found: ${oldTestApk}`);
-  }
-
   // Rename AAB (only for Release builds — mirrors Bitrise's run_if: IS_DEV_BUILD != true)
   if (buildConfig === 'release') {
     const oldAab = path.join(bundleDir, `app-${appFlavor}-release.aab`);
@@ -216,17 +198,11 @@ function setGithubOutput(key, value) {
 
 /**
  * Rename iOS artifacts
- *
- * Simulator-only: ios_simulator_path (zipped .app).
- * Device-only: ios_ipa_path, ios_archive_path, ios_sourcemap_path.
- * Dual (IS_SIM_BUILD + IS_DEVICE_BUILD, e.g. main-dev): all of the above.
  */
 function renameIos() {
   console.log('📦 Renaming iOS artifacts...');
 
   const isSimBuild = process.env.IS_SIM_BUILD === 'true';
-  const isDeviceBuild = process.env.IS_DEVICE_BUILD === 'true';
-  const hasDeviceArtifacts = !isSimBuild || isDeviceBuild;
 
   // Determine app name based on build type
   let appName;
@@ -245,56 +221,68 @@ function renameIos() {
       process.exit(1);
   }
 
-  const baseSuffix = `-${environment}-${buildType}-${appVersion}-${buildNumber}`;
-  const newSimBaseName = `metamask-simulator${baseSuffix}`;
-  const newDeviceBaseName = `metamask-device${baseSuffix}`;
-
-  const simProductsDir = path.join(
-    __dirname,
-    `../ios/build/Build/Products/${configuration || 'Release'}-iphonesimulator`,
-  );
-  const deviceOutputDir = path.join(__dirname, '../ios/build/output');
-
+  // Determine build paths based on simulator vs device
+  let buildDir, deviceType, binaryExtension;
   if (isSimBuild) {
-    console.log(`📝 Simulator artifact base name: ${newSimBaseName}`);
-    const oldApp = path.join(simProductsDir, `${appName}.app`);
-    if (fs.existsSync(oldApp)) {
-      const newApp = path.join(simProductsDir, `${newSimBaseName}.app`);
-      execSync(`cp -r "${oldApp}" "${newApp}"`);
-      console.log(`✅ Renamed simulator .app: ${newApp}`);
-
-      const zipPath = path.join(simProductsDir, `${newSimBaseName}.zip`);
-      execSync(
-        `ditto -c -k --sequesterRsrc --keepParent "${newApp}" "${zipPath}"`,
-      );
-      console.log(`✅ Zipped: ${zipPath}`);
-      setGithubOutput('ios_simulator_path', zipPath);
-    } else {
-      console.log(`⚠️  Simulator .app not found: ${oldApp}`);
-    }
+    buildDir = path.join(
+      __dirname,
+      `../ios/build/Build/Products/${configuration || 'Release'}-iphonesimulator`,
+    );
+    deviceType = 'simulator';
+    binaryExtension = '.app';
+  } else {
+    buildDir = path.join(__dirname, '../ios/build/output');
+    deviceType = 'device';
+    binaryExtension = '.ipa';
   }
 
-  if (hasDeviceArtifacts) {
-    console.log(`📝 Device artifact base name: ${newDeviceBaseName}`);
-    const oldIpa = path.join(deviceOutputDir, `${appName}.ipa`);
-    if (fs.existsSync(oldIpa)) {
-      const newIpa = path.join(deviceOutputDir, `${newDeviceBaseName}.ipa`);
-      fs.copyFileSync(oldIpa, newIpa);
-      console.log(`✅ Renamed IPA: ${newIpa}`);
-      setGithubOutput('ios_ipa_path', newIpa);
-    } else {
-      console.log(`⚠️  IPA not found: ${oldIpa}`);
-    }
+  // Create new base name: metamask-{deviceType}-{environment}-{buildType}-{version}-{buildNumber}
+  const newBaseName = `metamask-${deviceType}-${environment}-${buildType}-${appVersion}-${buildNumber}`;
+  console.log(`📝 Renaming artifacts to: ${newBaseName}`);
 
+  // Rename binary (.app or .ipa)
+  const oldBinary = path.join(buildDir, `${appName}${binaryExtension}`);
+  if (fs.existsSync(oldBinary)) {
+    const newBinary = path.join(buildDir, `${newBaseName}${binaryExtension}`);
+    // Use cp -r for directories (.app), regular copy for files (.ipa)
+    if (binaryExtension === '.app') {
+      execSync(`cp -r "${oldBinary}" "${newBinary}"`);
+    } else {
+      fs.copyFileSync(oldBinary, newBinary);
+    }
+    console.log(`✅ Renamed binary: ${newBinary}`);
+
+    if (isSimBuild) {
+      // Zip the .app bundle for clean single-file download (mirrors Bitrise's is_compress: true)
+      const zipPath = path.join(buildDir, `${newBaseName}.zip`);
+      execSync(
+        `ditto -c -k --sequesterRsrc --keepParent "${newBinary}" "${zipPath}"`,
+      );
+      console.log(`✅ Zipped: ${zipPath}`);
+      setGithubOutput('ios_deploy_path', zipPath);
+    } else {
+      setGithubOutput('ios_deploy_path', newBinary);
+    }
+  } else {
+    console.log(`⚠️  Binary not found: ${oldBinary}`);
+  }
+
+  // Expose sourcemap path for device builds (mirrors Bitrise's Deploy Source Map step)
+  if (!isSimBuild) {
     const sourcemapPath = path.join(__dirname, '../sourcemaps/ios/index.js.map');
     setGithubOutput('ios_sourcemap_path', sourcemapPath);
     console.log(`✅ Sourcemap path: ${sourcemapPath}`);
+  }
 
+  // Zip xcarchive into a single file (only for device builds)
+  // .xcarchive is a directory; zipping it produces a clean single-file artifact
+  // that Runway and other tools can match by extension.
+  if (!isSimBuild) {
     const oldArchive = path.join(__dirname, `../ios/build/${appName}.xcarchive`);
     if (fs.existsSync(oldArchive)) {
       const archiveZip = path.join(
         __dirname,
-        `../ios/build/${newDeviceBaseName}.xcarchive.zip`,
+        `../ios/build/${newBaseName}.xcarchive.zip`,
       );
       execSync(
         `ditto -c -k --sequesterRsrc --keepParent "${oldArchive}" "${archiveZip}"`,
@@ -309,7 +297,7 @@ function renameIos() {
   // List final artifacts
   console.log('📦 Final artifacts:');
   if (isSimBuild) {
-    const zips = findFiles(simProductsDir, '*.zip');
+    const zips = findFiles(buildDir, '*.zip');
     zips.forEach((zip) => {
       try {
         const stats = fs.statSync(zip);
@@ -319,9 +307,8 @@ function renameIos() {
         console.log(`  ${zip}`);
       }
     });
-  }
-  if (hasDeviceArtifacts) {
-    const ipas = findFiles(deviceOutputDir, '*.ipa');
+  } else {
+    const ipas = findFiles(path.join(__dirname, '../ios/build/output'), '*.ipa');
     const archives = findDirs(path.join(__dirname, '../ios/build'), '*.xcarchive');
     [...ipas, ...archives].forEach((file) => {
       try {

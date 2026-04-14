@@ -29,9 +29,6 @@ jest.mock('../../Views/AccountConnect', () => ({
 }));
 
 jest.mock('../../hooks/useOriginSource');
-jest.mock('../../hooks/useSDKV2Connection', () => ({
-  useSDKV2Connection: jest.fn(() => undefined),
-}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

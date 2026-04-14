@@ -27,16 +27,14 @@ interface MoneyWhyMetaMaskMoneyProps {
 const BenefitRow = ({ children }: { children: React.ReactNode }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Start}
-    twClassName="gap-3"
+    alignItems={BoxAlignItems.Center}
+    twClassName="gap-2"
   >
-    <Box twClassName="shrink-0 pt-1">
-      <Icon
-        name={IconName.Check}
-        size={IconSize.Sm}
-        color={IconColor.SuccessDefault}
-      />
-    </Box>
+    <Icon
+      name={IconName.Check}
+      size={IconSize.Sm}
+      color={IconColor.SuccessDefault}
+    />
     <Box twClassName="flex-1">{children}</Box>
   </Box>
 );

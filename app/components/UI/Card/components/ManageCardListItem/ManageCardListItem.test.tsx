@@ -29,17 +29,16 @@ describe('ManageCardListItem Component', () => {
     jest.clearAllMocks();
   });
 
-  it('renders with required props', () => {
-    const { getByText } = renderWithProvider(() => (
+  it('renders with required props and matches snapshot', () => {
+    const { toJSON } = renderWithProvider(() => (
       <ManageCardListItem title="Test Title" description="Test description" />
     ));
 
-    expect(getByText('Test Title')).toBeOnTheScreen();
-    expect(getByText('Test description')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with all props', () => {
-    const { getByText } = renderWithProvider(() => (
+  it('renders with all props and matches snapshot', () => {
+    const { toJSON } = renderWithProvider(() => (
       <ManageCardListItem
         title="Custom Title"
         description="Custom description"
@@ -49,25 +48,24 @@ describe('ManageCardListItem Component', () => {
       />
     ));
 
-    expect(getByText('Custom Title')).toBeOnTheScreen();
-    expect(getByText('Custom description')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with React.ReactNode description', () => {
+  it('renders with React.ReactNode description and matches snapshot', () => {
     const customDescription = (
       <React.Fragment>
         <View>Custom</View>
       </React.Fragment>
     );
 
-    const { getByText } = renderWithProvider(() => (
+    const { toJSON } = renderWithProvider(() => (
       <ManageCardListItem
         title="Title with React Node"
         description={customDescription}
       />
     ));
 
-    expect(getByText('Title with React Node')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls onPress when item is pressed', () => {
@@ -87,19 +85,18 @@ describe('ManageCardListItem Component', () => {
   });
 
   it('renders without right icon when rightIcon is not provided', () => {
-    const { getByText } = renderWithProvider(() => (
+    const { toJSON } = renderWithProvider(() => (
       <ManageCardListItem
         title="No Icon Test"
         description="Should render without any right icon"
       />
     ));
 
-    expect(getByText('No Icon Test')).toBeOnTheScreen();
-    expect(getByText('Should render without any right icon')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with custom right icon when rightIcon is provided', () => {
-    const { getByText } = renderWithProvider(() => (
+    const { toJSON } = renderWithProvider(() => (
       <ManageCardListItem
         title="Custom Icon Test"
         description="Should use Edit icon"
@@ -107,8 +104,7 @@ describe('ManageCardListItem Component', () => {
       />
     ));
 
-    expect(getByText('Custom Icon Test')).toBeOnTheScreen();
-    expect(getByText('Should use Edit icon')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('uses default testID when testID is not provided', () => {

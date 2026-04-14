@@ -1,11 +1,11 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getEarnControllerMessenger,
   EarnControllerInitMessenger,
   getEarnControllerInitMessenger,
 } from '../messengers/earn-controller-messenger';
-import { MessengerClientInitRequest } from '../types';
+import { ControllerInitRequest } from '../types';
 import { earnControllerInit } from './earn-controller-init';
 import {
   EarnController,
@@ -16,17 +16,14 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/earn-controller');
 
 function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<
-    EarnControllerMessenger,
-    EarnControllerInitMessenger
-  >
+  ControllerInitRequest<EarnControllerMessenger, EarnControllerInitMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getEarnControllerMessenger(baseMessenger),
     initMessenger: getEarnControllerInitMessenger(baseMessenger),
   };

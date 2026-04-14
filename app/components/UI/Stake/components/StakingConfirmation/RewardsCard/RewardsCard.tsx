@@ -13,7 +13,7 @@ import Card from '../../../../../../component-library/components/Cards/Card';
 import styleSheet from './RewardsCard.styles';
 import { RewardsCardProps } from './RewardsCard.types';
 import { createTooltipOpenedEvent } from '../../../utils/metaMetrics/tooltipMetaMetricsUtils';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../../../hooks/useMetrics';
 
 const RewardsCard = ({
   rewardRate,
@@ -21,7 +21,7 @@ const RewardsCard = ({
   rewardsFiat,
 }: RewardsCardProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent } = useAnalytics();
+  const { trackEvent } = useMetrics();
 
   return (
     <Card style={styles.card} disabled>

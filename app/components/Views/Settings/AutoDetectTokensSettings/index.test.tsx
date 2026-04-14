@@ -6,7 +6,6 @@ import { fireEvent } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies
 import AssetSettings from '.';
@@ -61,12 +60,10 @@ describe('AssetSettings', () => {
   };
 
   it('render matches snapshot', () => {
-    const { getByText } = renderWithProvider(<AssetSettings />, {
+    const tree = renderWithProvider(<AssetSettings />, {
       state: initialState,
     });
-    expect(
-      getByText(strings('app_settings.token_detection_title')),
-    ).toBeOnTheScreen();
+    expect(tree).toMatchSnapshot();
   });
 
   describe('Token Detection', () => {

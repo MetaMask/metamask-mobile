@@ -12,10 +12,7 @@ type CacheField =
  */
 function getMarketDataFromController(): unknown[] | null {
   const controller = Engine.context.PerpsController;
-  const result =
-    controller?.getCachedMarketDataForActiveProvider?.({ skipTTL: true }) ??
-    null;
-  return result;
+  return controller?.getCachedMarketDataForActiveProvider?.() ?? null;
 }
 
 /**
@@ -28,9 +25,7 @@ function getUserDataFromController(): {
   accountState: AccountState | null;
 } | null {
   const controller = Engine.context.PerpsController;
-  const result =
-    controller?.getCachedUserDataForActiveProvider?.({ skipTTL: true }) ?? null;
-  return result;
+  return controller?.getCachedUserDataForActiveProvider?.() ?? null;
 }
 
 /**
@@ -42,23 +37,24 @@ function getUserDataFromController(): {
  * (startMarketDataPreload), not by the hooks.
  */
 export function hasPreloadedData(cacheField: CacheField): boolean {
-  let result = false;
   if (cacheField === 'cachedMarketData') {
     const marketData = getMarketDataFromController();
-    result = marketData != null;
-  } else {
-    const userData = getUserDataFromController();
-    if (!userData) {
-      result = false;
-    } else if (cacheField === 'cachedPositions') {
-      result = true; // positions is always an array (possibly empty = valid cache)
-    } else if (cacheField === 'cachedOrders') {
-      result = true; // orders is always an array (possibly empty = valid cache)
-    } else if (cacheField === 'cachedAccountState') {
-      result = userData.accountState != null;
-    }
+    return marketData != null;
   }
-  return result;
+
+  const userData = getUserDataFromController();
+  if (!userData) return false;
+
+  if (cacheField === 'cachedPositions') {
+    return true; // positions is always an array (possibly empty = valid cache)
+  }
+  if (cacheField === 'cachedOrders') {
+    return true; // orders is always an array (possibly empty = valid cache)
+  }
+  if (cacheField === 'cachedAccountState') {
+    return userData.accountState != null;
+  }
+  return false;
 }
 
 /**
@@ -70,20 +66,21 @@ export function hasPreloadedData(cacheField: CacheField): boolean {
  * (startMarketDataPreload), not by the hooks.
  */
 export function getPreloadedData<T>(cacheField: CacheField): T | null {
-  let result: T | null = null;
   if (cacheField === 'cachedMarketData') {
-    result = (getMarketDataFromController() as T) ?? null;
-  } else {
-    const userData = getUserDataFromController();
-    if (userData) {
-      if (cacheField === 'cachedPositions') {
-        result = userData.positions as T;
-      } else if (cacheField === 'cachedOrders') {
-        result = userData.orders as T;
-      } else if (cacheField === 'cachedAccountState') {
-        result = (userData.accountState as T) ?? null;
-      }
-    }
+    return (getMarketDataFromController() as T) ?? null;
   }
-  return result;
+
+  const userData = getUserDataFromController();
+  if (!userData) return null;
+
+  if (cacheField === 'cachedPositions') {
+    return userData.positions as T;
+  }
+  if (cacheField === 'cachedOrders') {
+    return userData.orders as T;
+  }
+  if (cacheField === 'cachedAccountState') {
+    return (userData.accountState as T) ?? null;
+  }
+  return null;
 }

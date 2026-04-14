@@ -177,8 +177,8 @@ describe('RegionSelectorModal', () => {
 
     // Then only matching regions should be visible
     expect(getByText('Portugal')).toBeOnTheScreen();
-    expect(queryByText('France')).not.toBeOnTheScreen();
-    expect(queryByText('Spain')).not.toBeOnTheScreen();
+    expect(queryByText('France')).toBeNull();
+    expect(queryByText('Spain')).toBeNull();
   });
 
   it('shows empty state when search returns no results', () => {
@@ -191,8 +191,8 @@ describe('RegionSelectorModal', () => {
 
     // Then the empty state message should be displayed (appears in both FlatLists due to animation)
     expect(getAllByText('No region matches').length).toBeGreaterThan(0);
-    expect(queryByText('Portugal')).not.toBeOnTheScreen();
-    expect(queryByText('France')).not.toBeOnTheScreen();
+    expect(queryByText('Portugal')).toBeNull();
+    expect(queryByText('France')).toBeNull();
   });
 
   it('clears search when clear button is pressed', () => {
@@ -205,7 +205,7 @@ describe('RegionSelectorModal', () => {
 
     // Then only Portugal should be visible
     expect(getByText('Portugal')).toBeOnTheScreen();
-    expect(queryByText('France')).not.toBeOnTheScreen();
+    expect(queryByText('France')).toBeNull();
 
     // When the user clears the search
     fireEvent.changeText(searchInput, '');
@@ -236,8 +236,8 @@ describe('RegionSelectorModal', () => {
     const { getByPlaceholderText, queryByText } = render(RegionSelectorModal);
 
     // Then no regions should be visible
-    expect(queryByText('Portugal')).not.toBeOnTheScreen();
-    expect(queryByText('France')).not.toBeOnTheScreen();
+    expect(queryByText('Portugal')).toBeNull();
+    expect(queryByText('France')).toBeNull();
 
     // But the search field should still be present
     expect(getByPlaceholderText('Search by country')).toBeOnTheScreen();
@@ -248,8 +248,8 @@ describe('RegionSelectorModal', () => {
     const { getByPlaceholderText, queryByText } = render(RegionSelectorModal);
 
     // Then no regions should be visible
-    expect(queryByText('Portugal')).not.toBeOnTheScreen();
-    expect(queryByText('France')).not.toBeOnTheScreen();
+    expect(queryByText('Portugal')).toBeNull();
+    expect(queryByText('France')).toBeNull();
 
     // But the search field should still be present
     expect(getByPlaceholderText('Search by country')).toBeOnTheScreen();
@@ -272,7 +272,7 @@ describe('RegionSelectorModal', () => {
     // Then the country list should be visible again
     expect(getByText('United States of America')).toBeOnTheScreen();
     expect(getByText('Portugal')).toBeOnTheScreen();
-    expect(queryByText('California')).not.toBeOnTheScreen();
+    expect(queryByText('California')).toBeNull();
   });
 
   it('searches within state list when in state view', () => {
@@ -321,7 +321,7 @@ describe('RegionSelectorModal', () => {
 
     // Then California should be visible (appears in both FlatLists due to animation)
     expect(getAllByText('California').length).toBeGreaterThan(0);
-    expect(queryByText('New York')).not.toBeOnTheScreen();
+    expect(queryByText('New York')).toBeNull();
   });
 
   it('sorts states by recommended when displaying state list', () => {

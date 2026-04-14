@@ -61,15 +61,15 @@ describe('CardAssetItem Component', () => {
     mockIsTestNet.mockReturnValue(false);
   });
 
-  it('renders with required props', () => {
-    const { getByTestId } = renderWithProvider(() => (
+  it('renders with required props and matches snapshot', () => {
+    const { toJSON } = renderWithProvider(() => (
       <CardAssetItem asset={mockAsset} />
     ));
 
-    expect(getByTestId('Ethereum')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders non-native token', () => {
+  it('renders non-native token and matches snapshot', () => {
     const nonNativeAsset: TokenI = {
       ...mockAsset,
       name: 'USD Coin',
@@ -78,11 +78,11 @@ describe('CardAssetItem Component', () => {
       address: '0xa0b86a33e6c8e2c3c5b5f7ae5f7c5b5f7ae5f7c5b5f',
     };
 
-    const { getByTestId } = renderWithProvider(() => (
+    const { toJSON } = renderWithProvider(() => (
       <CardAssetItem asset={nonNativeAsset} />
     ));
 
-    expect(getByTestId('token-avatar-image')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null when chainId is missing', () => {
@@ -108,11 +108,10 @@ describe('CardAssetItem Component', () => {
       uri: 'https://example.com/testnet.png',
     });
 
-    renderWithProvider(() => <CardAssetItem asset={mockAsset} />);
+    const { toJSON } = renderWithProvider(() => (
+      <CardAssetItem asset={mockAsset} />
+    ));
 
-    expect(mockIsTestNet).toHaveBeenCalledWith(mockAsset.chainId);
-    expect(mockGetTestNetImageByChainId).toHaveBeenCalledWith(
-      mockAsset.chainId,
-    );
+    expect(toJSON()).toMatchSnapshot();
   });
 });

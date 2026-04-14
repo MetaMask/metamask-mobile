@@ -16,6 +16,7 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { strings } from '../../../../locales/i18n';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import styleSheet from './AssetOptions.styles';
+import { selectTokenList } from '../../../selectors/tokenListController';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
@@ -91,6 +92,7 @@ const AssetOptions = () => {
   const { styles } = useStyles(styleSheet);
   const navigation = useNavigation();
   const modalRef = useRef<BottomSheetRef>(null);
+  const tokenList = useSelector(selectTokenList);
   const chainId = useSelector(selectEvmChainId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
@@ -241,7 +243,7 @@ const AssetOptions = () => {
                   networkId as Hex,
                 );
               await TokensController.ignoreTokens([address], networkClientId);
-              tokenSymbol = asset.symbol || null;
+              tokenSymbol = tokenList[address.toLowerCase()]?.symbol || null;
             }
 
             NotificationManager.showSimpleNotification({
@@ -258,7 +260,9 @@ const AssetOptions = () => {
                   location: 'token_details',
                   token_standard: 'ERC20',
                   asset_type: 'token',
-                  tokens: [`${tokenSymbol} - ${address}`],
+                  tokens: [
+                    `${tokenList[address.toLowerCase()]?.symbol} - ${address}`,
+                  ],
                   chain_id: getDecimalChainId(chainId),
                 })
                 .build(),

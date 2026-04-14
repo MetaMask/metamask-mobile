@@ -306,7 +306,7 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(store.getState().security.dataCollectionForMarketing).toBe(true);
         expect(mockAnalyticsIdentify).toHaveBeenCalledWith({
-          [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
         });
         expect(mockAnalyticsTrackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -937,23 +937,6 @@ describe('OAuthRehydration', () => {
     it('does not track REHYDRATION_PASSWORD_FAILED when iOS biometric is cancelled', async () => {
       mockUnlockWallet.mockRejectedValue(
         new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
-      );
-      mockTrackOnboarding.mockClear();
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      await enterPasswordAndSubmit(getByTestId, 'password123');
-
-      expect(Logger.error).not.toHaveBeenCalled();
-      const rehydrationFailedCalls = mockTrackOnboarding.mock.calls.filter(
-        (call) =>
-          call[0]?.properties?.name ===
-          MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
-      );
-      expect(rehydrationFailedCalls).toHaveLength(0);
-    });
-
-    it('does not track REHYDRATION_PASSWORD_FAILED when Android keychain reports user cancel', async () => {
-      mockUnlockWallet.mockRejectedValue(
-        new Error('code: 10, msg: Fingerprint operation canceled by user'),
       );
       mockTrackOnboarding.mockClear();
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);

@@ -22,13 +22,8 @@ interface UseHomeSessionSummaryParams {
 const useHomeSessionSummary = ({
   totalSectionsLoaded,
 }: UseHomeSessionSummaryParams) => {
-  const {
-    visitId,
-    entryPoint,
-    getViewedSectionCount,
-    getVisitMaxDepth,
-    appSessionId,
-  } = useHomepageScrollContext();
+  const { visitId, entryPoint, getViewedSectionCount } =
+    useHomepageScrollContext();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const sessionStartRef = useRef<number>(Date.now());
@@ -39,13 +34,9 @@ const useHomeSessionSummary = ({
   }, [visitId]);
 
   // Stable refs for the blur callback to avoid stale closure issues.
-  // Values that change after mount (including async ones like homepageUserId)
-  // are synced via useEffect so the useFocusEffect callback stays stable and
-  // React Navigation never tears it down prematurely due to a dependency change.
   const visitIdRef = useRef(visitId);
   const entryPointRef = useRef(entryPoint);
   const totalSectionsLoadedRef = useRef(totalSectionsLoaded);
-  const appSessionIdRef = useRef(appSessionId);
 
   useEffect(() => {
     visitIdRef.current = visitId;
@@ -56,9 +47,6 @@ const useHomeSessionSummary = ({
   useEffect(() => {
     totalSectionsLoadedRef.current = totalSectionsLoaded;
   }, [totalSectionsLoaded]);
-  useEffect(() => {
-    appSessionIdRef.current = appSessionId;
-  }, [appSessionId]);
 
   useFocusEffect(
     useCallback(
@@ -67,7 +55,6 @@ const useHomeSessionSummary = ({
         const sessionTime = Math.round(
           (Date.now() - sessionStartRef.current) / 1000,
         );
-
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HOME_VIEWED)
             .addProperties({
@@ -77,14 +64,11 @@ const useHomeSessionSummary = ({
               total_sections_loaded: totalSectionsLoadedRef.current,
               entry_point: entryPointRef.current,
               session_time: sessionTime,
-              app_session_id: appSessionIdRef.current,
-              visit_number: visitIdRef.current,
-              max_scroll_depth_visit: getVisitMaxDepth(),
             })
             .build(),
         );
       },
-      [trackEvent, createEventBuilder, getViewedSectionCount, getVisitMaxDepth],
+      [trackEvent, createEventBuilder, getViewedSectionCount],
     ),
   );
 };

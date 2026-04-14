@@ -6,7 +6,6 @@ import { RootState } from '../../../../../reducers';
 import Engine, { EngineState } from '../../../../../core/Engine';
 import ContactForm from '.';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
-import { strings } from '../../../../../../locales/i18n';
 
 const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_ADDRESS_2 = '0xf55C0d639d99699bFd7EC54d9FAFee40E4d272C4';
@@ -133,8 +132,8 @@ describe('ContactForm', () => {
   });
 
   it('renders correctly', () => {
-    const { getByText } = renderContactForm();
-    expect(getByText(strings('address_book.name'))).toBeOnTheScreen();
+    const { toJSON } = renderContactForm();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders in add mode by default', async () => {

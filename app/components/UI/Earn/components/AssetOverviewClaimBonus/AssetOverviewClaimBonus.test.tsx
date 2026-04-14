@@ -14,12 +14,10 @@ import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
 import AppConstants from '../../../../../core/AppConstants';
 import { ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS } from './AssetOverviewClaimBonus.testIds';
 import { TokenI } from '../../../Tokens/types';
-import useTokenBalance from '../../../TokenDetails/hooks/useTokenBalance';
 
 jest.mock('../MerklRewards/hooks/useMerklBonusClaim');
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../../../../hooks/useTooltipModal');
-jest.mock('../../../TokenDetails/hooks/useTokenBalance');
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
@@ -52,7 +50,6 @@ const createMockMerklClaimData = (
   overrides: Partial<MerklClaimData> = {},
 ): MerklClaimData => ({
   claimableReward: null,
-  lifetimeBonusClaimed: null,
   hasPendingClaim: false,
   isClaiming: false,
   error: null,
@@ -88,58 +85,30 @@ describe('AssetOverviewClaimBonus', () => {
       openTooltipModal: mockOpenTooltipModal,
     });
 
-    (
-      useTokenBalance as jest.MockedFunction<typeof useTokenBalance>
-    ).mockReturnValue({
-      balance: '1000',
-      fiatBalance: '$1000',
-      tokenFormattedBalance: '1000 mUSD',
-      isTronNative: false,
-      stakedTrxAsset: undefined,
-      inLockPeriodBalance: undefined,
-      readyForWithdrawalBalance: undefined,
-    });
-
     mockUseMerklBonusClaim.mockReturnValue(
       createMockMerklClaimData({
         claimableReward: '10.01',
-        lifetimeBonusClaimed: '221.59',
         claimRewards: mockClaimRewards,
       }),
     );
   });
 
-  describe('always renders for eligible tokens', () => {
-    it('renders the section header, tag, rows, and CTA', () => {
-      const { getByTestId } = renderWithProvider(
-        <AssetOverviewClaimBonus asset={createMockAsset()} />,
-      );
-
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.SECTION_HEADER),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_ROW),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.LIFETIME_ROW),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders even when claimableReward is null', () => {
+  describe('rendering and visibility', () => {
+    it('renders nothing when claimableReward is null', () => {
       mockUseMerklBonusClaim.mockReturnValue(
         createMockMerklClaimData({ claimableReward: null }),
       );
 
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverviewClaimBonus asset={createMockAsset()} />,
+      );
+
+      expect(
+        queryByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('renders claim section when claimableReward is present', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewClaimBonus asset={createMockAsset()} />,
       );
@@ -147,155 +116,29 @@ describe('AssetOverviewClaimBonus', () => {
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER),
       ).toBeOnTheScreen();
+      expect(
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.INFO_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIMABLE_AMOUNT),
+      ).toBeOnTheScreen();
     });
-  });
 
-  describe('State A: balance > 0, claimable > 0', () => {
-    it('shows correct CTA label, annual bonus, and lifetime bonus', () => {
+    it('displays formatted claimable reward amount with dollar sign', () => {
       mockUseMerklBonusClaim.mockReturnValue(
-        createMockMerklClaimData({
-          claimableReward: '10.27',
-          lifetimeBonusClaimed: '221.59',
-          claimRewards: mockClaimRewards,
-        }),
+        createMockMerklClaimData({ claimableReward: '42.50' }),
       );
 
       const { getByTestId } = renderWithProvider(
-        <AssetOverviewClaimBonus
-          asset={createMockAsset({ balance: '1000', balanceFiat: '$1000' })}
-        />,
+        <AssetOverviewClaimBonus asset={createMockAsset()} />,
       );
 
       expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
-      ).toHaveTextContent('Claim $10.27 bonus');
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
-      ).not.toBeDisabled();
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE),
-      ).toHaveTextContent('+$30.00');
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.LIFETIME_VALUE),
-      ).toHaveTextContent('+$221.59');
-    });
-  });
-
-  describe('State B: balance > 0, claimable = 0', () => {
-    it('shows "Accruing next bonus" disabled CTA', () => {
-      (
-        useTokenBalance as jest.MockedFunction<typeof useTokenBalance>
-      ).mockReturnValue({
-        balance: '500',
-        fiatBalance: '$500',
-        tokenFormattedBalance: '500 mUSD',
-        isTronNative: false,
-        stakedTrxAsset: undefined,
-        inLockPeriodBalance: undefined,
-        readyForWithdrawalBalance: undefined,
-      });
-      mockUseMerklBonusClaim.mockReturnValue(
-        createMockMerklClaimData({
-          claimableReward: null,
-          lifetimeBonusClaimed: '100.00',
-        }),
-      );
-
-      const { getByTestId } = renderWithProvider(
-        <AssetOverviewClaimBonus
-          asset={createMockAsset({ balance: '500', balanceFiat: '$500' })}
-        />,
-      );
-
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
-      ).toHaveTextContent('Accruing next bonus');
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
-      ).toBeDisabled();
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE),
-      ).toHaveTextContent('+$15.00');
-    });
-  });
-
-  describe('State C: balance = 0, claimable > 0', () => {
-    it('shows $0.00 annual bonus and enabled claim CTA', () => {
-      (
-        useTokenBalance as jest.MockedFunction<typeof useTokenBalance>
-      ).mockReturnValue({
-        balance: '0',
-        fiatBalance: '$0',
-        tokenFormattedBalance: '0 mUSD',
-        isTronNative: false,
-        stakedTrxAsset: undefined,
-        inLockPeriodBalance: undefined,
-        readyForWithdrawalBalance: undefined,
-      });
-      mockUseMerklBonusClaim.mockReturnValue(
-        createMockMerklClaimData({
-          claimableReward: '5.50',
-          lifetimeBonusClaimed: '50.00',
-          claimRewards: mockClaimRewards,
-        }),
-      );
-
-      const { getByTestId } = renderWithProvider(
-        <AssetOverviewClaimBonus
-          asset={createMockAsset({ balance: '0', balanceFiat: '$0' })}
-        />,
-      );
-
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
-      ).toHaveTextContent('Claim $5.50 bonus');
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
-      ).not.toBeDisabled();
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE),
-      ).toHaveTextContent('+$0.00');
-    });
-  });
-
-  describe('State D: balance = 0, claimable = 0', () => {
-    it('shows "No accruing bonus" disabled CTA and $0.00 values', () => {
-      (
-        useTokenBalance as jest.MockedFunction<typeof useTokenBalance>
-      ).mockReturnValue({
-        balance: '0',
-        fiatBalance: '$0',
-        tokenFormattedBalance: '0 mUSD',
-        isTronNative: false,
-        stakedTrxAsset: undefined,
-        inLockPeriodBalance: undefined,
-        readyForWithdrawalBalance: undefined,
-      });
-      mockUseMerklBonusClaim.mockReturnValue(
-        createMockMerklClaimData({
-          claimableReward: null,
-          lifetimeBonusClaimed: '0.00',
-        }),
-      );
-
-      const { getByTestId } = renderWithProvider(
-        <AssetOverviewClaimBonus
-          asset={createMockAsset({ balance: '0', balanceFiat: '$0' })}
-        />,
-      );
-
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
-      ).toHaveTextContent('No accruing bonus');
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
-      ).toBeDisabled();
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE),
-      ).toHaveTextContent('+$0.00');
-      expect(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.LIFETIME_VALUE),
-      ).toHaveTextContent('+$0.00');
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIMABLE_AMOUNT),
+      ).toHaveTextContent('$42.50');
     });
   });
 
@@ -388,27 +231,6 @@ describe('AssetOverviewClaimBonus', () => {
 
       expect(mockClaimRewards).toHaveBeenCalledTimes(1);
     });
-
-    it('does not call claimRewards when CTA is disabled (State B)', () => {
-      mockUseMerklBonusClaim.mockReturnValue(
-        createMockMerklClaimData({
-          claimableReward: null,
-          claimRewards: mockClaimRewards,
-        }),
-      );
-
-      const { getByTestId } = renderWithProvider(
-        <AssetOverviewClaimBonus
-          asset={createMockAsset({ balance: '1000' })}
-        />,
-      );
-
-      fireEvent.press(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
-      );
-
-      expect(mockClaimRewards).not.toHaveBeenCalled();
-    });
   });
 
   describe('tooltip / info button', () => {
@@ -425,9 +247,9 @@ describe('AssetOverviewClaimBonus', () => {
 
       const [title, , footer, buttonText] = mockOpenTooltipModal.mock.calls[0];
 
-      expect(title).toBe('Your bonus');
+      expect(title).toBe('Claimable bonus');
       expect(footer).toBeUndefined();
-      expect(buttonText).toBe('Learn more');
+      expect(buttonText).toBe('Sounds good');
     });
 
     it('fires TOOLTIP_OPENED analytics on info button press', () => {
@@ -445,7 +267,7 @@ describe('AssetOverviewClaimBonus', () => {
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_OVERVIEW,
-          tooltip_name: 'your_bonus_info',
+          tooltip_name: 'claim_bonus_info',
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });

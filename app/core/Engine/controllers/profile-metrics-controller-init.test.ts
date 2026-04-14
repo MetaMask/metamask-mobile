@@ -2,11 +2,11 @@ import {
   ProfileMetricsController,
   ProfileMetricsControllerMessenger,
 } from '@metamask/profile-metrics-controller';
-import { MessengerClientInitRequest } from '../types';
+import { ControllerInitRequest } from '../types';
 import { profileMetricsControllerInit } from './profile-metrics-controller-init';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ProfileMetricsControllerInitMessenger } from '../messengers/profile-metrics-controller-messenger';
 
 jest.mock('@metamask/profile-metrics-controller');
@@ -22,7 +22,7 @@ function getInitRequestMock({
   analyticsEnabled: boolean;
   pna25Acknowledged: boolean;
 }): jest.Mocked<
-  MessengerClientInitRequest<
+  ControllerInitRequest<
     ProfileMetricsControllerMessenger,
     ProfileMetricsControllerInitMessenger
   >
@@ -54,7 +54,7 @@ function getInitRequestMock({
   } as unknown as ProfileMetricsControllerInitMessenger;
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     initMessenger: mockInitMessenger,
     analyticsId,
     getController: mockGetController,

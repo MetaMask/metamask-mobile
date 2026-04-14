@@ -19,7 +19,7 @@ import { TooltipModalRouteParams } from './ToolTipModal.types';
 import { useParams } from '../../../util/navigation/navUtils';
 
 const TooltipModal = () => {
-  const { tooltip, title, footerText, buttonText, onButtonPress } =
+  const { tooltip, title, footerText, buttonText } =
     useParams<TooltipModalRouteParams>();
 
   const tw = useTailwind();
@@ -30,9 +30,8 @@ const TooltipModal = () => {
   const onCloseModal = () => bottomSheetRef.current?.onCloseBottomSheet();
 
   const handleGotItPress = useCallback(() => {
-    onButtonPress?.();
     bottomSheetRef.current?.onCloseBottomSheet();
-  }, [onButtonPress]);
+  }, []);
 
   return (
     <BottomSheet ref={bottomSheetRef}>

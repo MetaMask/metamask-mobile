@@ -12,7 +12,7 @@ import {
   getDappUrl,
 } from '../../framework/fixtures/FixtureUtils';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
-import { Assertions, Gestures, Matchers } from '../../framework';
+import { Gestures, Matchers } from '../../framework';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -286,12 +286,6 @@ class Browser {
         elemDescription: 'Test dapp URL in favorites tab',
       });
     }
-  }
-
-  async expectUrlNotEqualTo(text: string, description?: string): Promise<void> {
-    await Assertions.expectElementToNotHaveText(this.urlInputBoxID, text, {
-      description: description ?? `URL input box text is not "${text}"`,
-    });
   }
 
   async navigateToURL(url: string): Promise<void> {

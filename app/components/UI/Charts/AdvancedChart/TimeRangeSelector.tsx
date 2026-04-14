@@ -1,119 +1,101 @@
 import React from 'react';
-import { Pressable } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Pressable, StyleSheet } from 'react-native';
 import {
   Box,
   Text,
   TextVariant,
   BoxFlexDirection,
   BoxAlignItems,
-  FontWeight,
+  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import { IconSize } from '../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../util/theme';
-import { ChartType } from './AdvancedChart.types';
+import { useStyles } from '../../../../component-library/hooks';
+import { Theme } from '../../../../util/theme/models';
 
-const CandlestickIcon = ({
-  color,
-  size,
-}: {
-  color: string;
-  size: IconSize;
-}) => (
-  <Svg width={size} height={size} viewBox="0 0 14 16" fill="none">
-    <Path d="M4 0H2V2H0V14H2V16H4V14H6V2H4V0ZM4 12H2V4H4V12Z" fill={color} />
-    <Path
-      d="M14 4H12V0H10V4H8V11H10V16H12V11H14V4ZM12 9H10V6H12V9Z"
-      fill={color}
-    />
-  </Svg>
-);
+export type TimeRange = '1H' | '1D' | '1W' | '1M' | 'YTD' | 'ALL';
 
-const LineChartIcon = ({ color, size }: { color: string; size: IconSize }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M3 16.5L9 10L13 16L21 6.5"
-      stroke={color}
-      strokeWidth={2.04}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-export type TimeRange = '1H' | '1D' | '1W' | '1M' | '1Y';
-
-/** Valid OHLCV API time period values */
-export type OHLCVTimePeriod = '1h' | '1d' | '1w' | '1m' | '1y';
+/** Valid Hyperliquid candle interval values */
+export type CandleInterval = '1m' | '15m' | '1h' | '4h' | '1d';
 
 export interface TimeRangeConfig {
-  /** API timePeriod query parameter */
-  timePeriod: OHLCVTimePeriod;
-  /** Optional interval override. When undefined, API uses its default for the timePeriod. */
-  interval?: string;
-  /** Duration of this time range in milliseconds (used to compute the initial visible viewport). */
-  durationMs: number;
+  /** Hyperliquid candle interval */
+  hlInterval: CandleInterval;
+  /** Number of candles to fetch */
+  count: number;
 }
 
-export const TIME_RANGE_CONFIGS: Record<TimeRange, TimeRangeConfig> = {
-  '1H': { timePeriod: '1h', durationMs: 60 * 60 * 1000 },
-  '1D': { timePeriod: '1d', durationMs: 24 * 60 * 60 * 1000 },
-  '1W': { timePeriod: '1w', durationMs: 7 * 24 * 60 * 60 * 1000 },
-  '1M': { timePeriod: '1m', durationMs: 30 * 24 * 60 * 60 * 1000 },
-  '1Y': { timePeriod: '1y', durationMs: 365 * 24 * 60 * 60 * 1000 },
+const ytdDays = () => {
+  const now = new Date();
+  const startOfYear = Date.UTC(now.getFullYear(), 0, 1);
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((today - startOfYear) / 86_400_000) + 1;
 };
 
-const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
+export const TIME_RANGE_CONFIGS: Record<TimeRange, TimeRangeConfig> = {
+  '1H': { hlInterval: '1m', count: 60 },
+  '1D': { hlInterval: '15m', count: 96 },
+  '1W': { hlInterval: '1h', count: 168 },
+  '1M': { hlInterval: '4h', count: 180 },
+  YTD: { hlInterval: '1d', count: Math.min(ytdDays(), 500) },
+  ALL: { hlInterval: '1d', count: 500 },
+};
 
-/** padding 4px 16px, gap spacing/1, rounded 8 — filter control spec */
-const SEGMENT_BUTTON_BASE =
-  'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-lg px-4 py-1 rounded-xl';
+const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', 'YTD', 'ALL'];
 
 interface TimeRangeSelectorProps {
   selected: TimeRange;
   onSelect: (range: TimeRange) => void;
   /** Optional subset of ranges to display. Defaults to all. */
   ranges?: TimeRange[];
-  /** Current chart type -- drives the toggle icon appearance. */
-  chartType?: ChartType;
-  /** Called when the user taps the chart type toggle icon. */
-  onChartTypeToggle?: () => void;
 }
+
+const selectorStyleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  return StyleSheet.create({
+    button: {
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    buttonSelected: {
+      backgroundColor: theme.colors.background.muted,
+    },
+    buttonPressed: {
+      opacity: 0.7,
+    },
+  });
+};
 
 const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   selected,
   onSelect,
   ranges = TIME_RANGES,
-  chartType,
-  onChartTypeToggle,
 }) => {
-  const tw = useTailwind();
-  const { colors } = useTheme();
+  const { styles } = useStyles(selectorStyleSheet, {});
 
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="w-full px-4"
+      justifyContent={BoxJustifyContent.Center}
+      gap={1}
+      twClassName="py-2 px-4"
     >
       {ranges.map((range) => {
         const isSelected = selected === range;
         return (
           <Pressable
             key={range}
-            style={({ pressed }) =>
-              tw.style(
-                SEGMENT_BUTTON_BASE,
-                isSelected && 'bg-muted',
-                pressed && 'opacity-70',
-              )
-            }
+            style={({ pressed }) => [
+              styles.button,
+              isSelected && styles.buttonSelected,
+              pressed && styles.buttonPressed,
+            ]}
             onPress={() => onSelect(range)}
           >
             <Text
-              variant={TextVariant.BodySm}
-              style={{ fontWeight: FontWeight.Medium }}
+              variant={TextVariant.BodyMd}
               twClassName={
                 isSelected ? 'text-text-default' : 'text-text-alternative'
               }
@@ -123,29 +105,6 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
           </Pressable>
         );
       })}
-      {onChartTypeToggle ? (
-        <Pressable
-          style={({ pressed }) =>
-            tw.style(SEGMENT_BUTTON_BASE, pressed && 'opacity-70')
-          }
-          onPress={onChartTypeToggle}
-          accessibilityRole="button"
-          accessibilityLabel={
-            chartType === ChartType.Candles
-              ? 'Switch to line chart'
-              : 'Switch to candlestick chart'
-          }
-        >
-          {chartType === ChartType.Candles ? (
-            <LineChartIcon color={colors.text.alternative} size={IconSize.Md} />
-          ) : (
-            <CandlestickIcon
-              color={colors.text.alternative}
-              size={IconSize.Sm}
-            />
-          )}
-        </Pressable>
-      ) : null}
     </Box>
   );
 };

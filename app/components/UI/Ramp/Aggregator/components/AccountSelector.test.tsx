@@ -76,7 +76,7 @@ describe('AccountSelector', () => {
     renderWithProvider(<AccountSelector />, {
       state: defaultState,
     });
-    expect(screen.getByTestId('ramps-account-picker')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly without account name', () => {

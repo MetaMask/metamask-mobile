@@ -36,7 +36,6 @@ export enum CardMessageBoxType {
   CloseSpendingLimit = 'close_spending_limit',
   KYCPending = 'kyc_pending',
   CardProvisioning = 'card_provisioning',
-  AuthPrompt = 'auth_prompt',
 }
 
 export type CardUserPhase =

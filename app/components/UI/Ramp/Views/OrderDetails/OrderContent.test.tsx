@@ -6,7 +6,6 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
 import Clipboard from '@react-native-clipboard/clipboard';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
 type RampsOrderWithPaymentDetails = RampsOrder & {
   paymentDetails: {
@@ -82,14 +81,12 @@ describe('OrderContent', () => {
     });
   }
 
-  it('renders completed state with order details', () => {
+  it('renders completed state correctly', () => {
     renderOrder(mockOrder);
-    expect(
-      screen.getByTestId(RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders pending order without crypto amount', () => {
+  it('renders loading state when order has no amount', () => {
     const pendingOrder: RampsOrder = {
       ...mockOrder,
       fiatAmount: 0,
@@ -97,12 +94,10 @@ describe('OrderContent', () => {
       status: RampsOrderStatus.Pending,
     };
     renderOrder(pendingOrder);
-    expect(
-      screen.getByTestId(RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('shows placeholder for token amount when cryptoAmount is 0', () => {
+  it('shows placeholder for token amount when cryptoAmount is 0 or missing', () => {
     const orderWithZeroCrypto: RampsOrder = {
       ...mockOrder,
       cryptoAmount: 0,
@@ -110,9 +105,7 @@ describe('OrderContent', () => {
       status: RampsOrderStatus.Pending,
     };
     renderOrder(orderWithZeroCrypto);
-    expect(
-      screen.getByTestId(RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('copies order ID to clipboard when order ID is tapped', () => {
@@ -163,7 +156,7 @@ describe('OrderContent', () => {
 
   it('does not render close button by default', () => {
     renderOrder(mockOrder);
-    expect(screen.queryByText('Close')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Close')).toBeNull();
   });
 
   it('renders correct status text for each order state', () => {
@@ -196,7 +189,7 @@ describe('OrderContent', () => {
   it('does not render bank details section when paymentDetails is absent', () => {
     renderOrder(mockOrder);
 
-    expect(screen.queryByText('To complete your order')).not.toBeOnTheScreen();
+    expect(screen.queryByText('To complete your order')).toBeNull();
   });
 
   it('does not render bank details section when paymentDetails has no matching fields', () => {
@@ -213,7 +206,7 @@ describe('OrderContent', () => {
 
     renderOrder(orderWithPaymentDetails);
 
-    expect(screen.queryByText('To complete your order')).not.toBeOnTheScreen();
+    expect(screen.queryByText('To complete your order')).toBeNull();
   });
 
   it('renders bank details section when paymentDetails has bank transfer fields', () => {

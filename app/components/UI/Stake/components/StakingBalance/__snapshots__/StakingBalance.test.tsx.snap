@@ -489,6 +489,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
                   "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
+                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -575,6 +576,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
                   "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
+                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -607,7 +609,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         style={
           {
             "color": "#131416",
-            "fontFamily": "Geist-SemiBold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -1379,6 +1381,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
                   "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
+                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -1465,6 +1468,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
                   "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
+                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -1497,7 +1501,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
         style={
           {
             "color": "#131416",
-            "fontFamily": "Geist-SemiBold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,

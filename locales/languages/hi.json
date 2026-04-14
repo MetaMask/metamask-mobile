@@ -240,6 +240,7 @@
     "import_wallet_button": "वॉलेट इम्पोर्ट करें या सिंक करें",
     "new_to_crypto": "क्रिप्टो आपके लिए नया है?",
     "start_exploring_now": "एक नया वॉलेट बनाएं",
+    "unlock": "अनलॉक करें",
     "new_to_metamask": "MetaMask पर नए हैं?",
     "already_have_wallet": "पहले से ही एक वॉलेट है?",
     "optin_back_title": "सतर्क रहें!",
@@ -4810,9 +4811,11 @@
     "body_for_seedphrase": "अब वो वैल्यू आपके वॉलेट में जुड़ गया है, अपने वॉलेट की सुरक्षा एक पासवर्ड सेट करके और अपने सीक्रेट रिकवरी फ्रेज को सहेज कर करें (आवश्यक)।",
     "button": "वॉलेट को सुरक्षित रखें"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "ट्रांसेक्शन अपडेट नहीं हो पाया",
-    "already_confirmed": "यह ट्रांसेक्शन पहले ही पुष्ट हो चुका है और इसे बदला नहीं जा सकता।"
+    "text": "क्या आप फिर से कोशिश करना चाहेंगे?",
+    "cancel_button": "रद्द करें",
+    "retry_button": "फिर से कोशिश करें"
   },
   "payment_request": {
     "title": "अनुरोध करें",
@@ -6636,6 +6639,7 @@
     "nested_transaction_heading": "ट्रांसेक्शन {{index}}",
     "transaction": "ट्रांसेक्शन",
     "available_balance": "उपलब्ध बैलेंस: ",
+    "available_perps_balance": "उपलब्ध पर्प्स बैलेंस: ",
     "edit_amount_done": "जारी रखें",
     "deposit_edit_amount_done": "फंड जोड़ें",
     "deposit_edit_amount_predict_withdraw": "निकालें",

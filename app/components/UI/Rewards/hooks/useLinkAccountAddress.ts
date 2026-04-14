@@ -1,12 +1,9 @@
 import { useCallback, useState } from 'react';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../core/Engine';
-import {
-  MetaMetricsEvents,
-  IMetaMetricsEvent,
-} from '../../../../core/Analytics';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { deriveAccountMetricProps } from '../utils';
+import { IMetaMetricsEvent } from '../../../../core/Analytics';
 import useRewardsToast from './useRewardsToast';
 import { strings } from '../../../../../locales/i18n';
 import { formatAddress } from '../../../../util/address';
@@ -23,7 +20,7 @@ export const useLinkAccountAddress = (
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { showToast, RewardsToastOptions } = useRewardsToast();
 
   const triggerAccountLinkingEvent = useCallback(

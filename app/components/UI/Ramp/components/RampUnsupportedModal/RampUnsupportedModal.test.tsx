@@ -3,8 +3,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import RampUnsupportedModal from './RampUnsupportedModal';
 import Routes from '../../../../../constants/navigation/Routes';
 import initialRootState from '../../../../../util/test/initial-root-state';
-import { fireEvent, screen } from '@testing-library/react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { fireEvent } from '@testing-library/react-native';
 const mockOnCloseBottomSheet = jest.fn();
 
 jest.mock(
@@ -47,18 +46,11 @@ describe('RampUnsupportedModal', () => {
   });
 
   it('renders modal with title and description', () => {
-    render(RampUnsupportedModal);
+    const component = render(RampUnsupportedModal);
 
-    expect(
-      screen.getByText(
-        strings('fiat_on_ramp_aggregator.unsupported_region_modal.title'),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(
-        strings('fiat_on_ramp_aggregator.unsupported_region_modal.description'),
-      ),
-    ).toBeOnTheScreen();
+    const result = component.toJSON();
+
+    expect(result).toMatchSnapshot();
   });
 
   it('closes the modal when the close button is pressed', () => {

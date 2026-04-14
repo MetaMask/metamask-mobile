@@ -1,214 +1,379 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useSelector } from 'react-redux';
 import { useUpdateTokenPriority } from './useUpdateTokenPriority';
-import Engine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
-import { AllowanceState, type CardTokenAllowance } from '../types';
+import { useCardSDK } from '../sdk';
+import { CardSDK } from '../sdk/CardSDK';
 import {
-  FundingAssetStatus,
-  type CardFundingAsset,
-} from '../../../../core/Engine/controllers/card-controller/provider-types';
+  AllowanceState,
+  CardTokenAllowance,
+  CardExternalWalletDetailsResponse,
+} from '../types';
+import Logger from '../../../../util/Logger';
+import { cardQueries } from '../queries';
 
-jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    CardController: {
-      updateAssetPriority: jest.fn(),
-    },
-  },
+const mockInvalidateQueries = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: jest.fn(),
 }));
-jest.mock('../../../../util/Logger', () => ({ error: jest.fn() }));
 
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUpdateAssetPriority = Engine.context.CardController
-  .updateAssetPriority as jest.Mock;
+jest.mock('../sdk', () => ({
+  useCardSDK: jest.fn(),
+}));
 
-const assetA: CardFundingAsset = {
-  address: '0xusdctoken',
-  name: 'USD Coin',
-  symbol: 'USDC',
-  decimals: 6,
-  walletAddress: '0xwallet1',
-  chainId: 'eip155:59144' as `eip155:${number}`,
-  balance: '100',
-  allowance: '100',
-  priority: 1,
-  status: FundingAssetStatus.Active,
-};
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
 
-const assetB: CardFundingAsset = {
-  address: '0xusdttoken',
-  name: 'Tether USD',
-  symbol: 'USDT',
-  decimals: 6,
-  walletAddress: '0xwallet2',
-  chainId: 'eip155:59144' as `eip155:${number}`,
-  balance: '50',
-  allowance: '50',
-  priority: 2,
-  status: FundingAssetStatus.Active,
-};
-
-const mockCardHomeData = {
-  primaryAsset: assetA,
-  assets: [assetA, assetB],
-  supportedTokens: [],
-  card: null,
-  account: null,
-  alerts: [],
-  actions: [],
-};
-
-const tokenA: CardTokenAllowance = {
-  address: '0xusdctoken',
-  caipChainId: 'eip155:59144',
-  decimals: 6,
-  symbol: 'USDC',
-  name: 'USD Coin',
-  allowanceState: AllowanceState.Enabled,
-  allowance: '100',
-  availableBalance: '100',
-  walletAddress: '0xwallet1',
-  priority: 1,
-};
+const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
 
 describe('useUpdateTokenPriority', () => {
+  let mockSDK: {
+    updateWalletPriority: jest.Mock;
+  };
+  let mockOnSuccess: jest.Mock;
+  let mockOnError: jest.Mock;
+
+  const createMockToken = (
+    overrides: Partial<CardTokenAllowance> = {},
+  ): CardTokenAllowance => ({
+    address: '0x1234567890123456789012345678901234567890',
+    caipChainId: 'eip155:59144',
+    decimals: 18,
+    symbol: 'USDC',
+    name: 'USD Coin',
+    allowanceState: AllowanceState.Enabled,
+    allowance: '1000',
+    availableBalance: '500',
+    walletAddress: '0xwallet1',
+    delegationContract: '0xdelegation123',
+    priority: 2,
+    ...overrides,
+  });
+
+  const createMockWalletDetails = (): CardExternalWalletDetailsResponse => [
+    {
+      id: 1,
+      walletAddress: '0xwallet1',
+      caipChainId: 'eip155:59144',
+      tokenDetails: {
+        address: '0x1234567890123456789012345678901234567890',
+        symbol: 'USDC',
+        decimals: 18,
+        name: 'USD Coin',
+      },
+      allowance: '1000',
+      priority: 2,
+      balance: '500',
+      currency: 'USDC',
+      network: 'linea',
+    },
+    {
+      id: 2,
+      walletAddress: '0xwallet2',
+      caipChainId: 'eip155:59144',
+      tokenDetails: {
+        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        symbol: 'USDT',
+        decimals: 6,
+        name: 'Tether USD',
+      },
+      allowance: '500',
+      priority: 1,
+      balance: '250',
+      currency: 'USDT',
+      network: 'linea',
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(mockCardHomeData);
-    mockUpdateAssetPriority.mockResolvedValue(undefined);
+
+    mockInvalidateQueries.mockResolvedValue(undefined);
+    (
+      jest.requireMock('@tanstack/react-query') as {
+        useQueryClient: jest.Mock;
+      }
+    ).useQueryClient.mockReturnValue({
+      invalidateQueries: mockInvalidateQueries,
+    });
+
+    mockSDK = {
+      updateWalletPriority: jest.fn().mockResolvedValue({}),
+    };
+
+    mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
+      sdk: mockSDK as unknown as CardSDK,
+    });
+
+    mockOnSuccess = jest.fn();
+    mockOnError = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('updateTokenPriority', () => {
-    it('calls CardController.updateAssetPriority with matched asset and all assets', async () => {
-      const mockOnSuccess = jest.fn();
-      const { result } = renderHook(() =>
-        useUpdateTokenPriority({ onSuccess: mockOnSuccess }),
-      );
-
-      let updateResult: boolean | undefined;
-      await act(async () => {
-        updateResult = await result.current.updateTokenPriority(tokenA);
-      });
-
-      expect(updateResult).toBe(true);
-      expect(mockUpdateAssetPriority).toHaveBeenCalledWith(assetA, [
-        assetA,
-        assetB,
-      ]);
-      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
-    });
-
-    it('returns true and calls onSuccess when update succeeds', async () => {
-      const mockOnSuccess = jest.fn();
-      const mockOnError = jest.fn();
+    it('returns true and calls onSuccess when priority updates', async () => {
       const { result } = renderHook(() =>
         useUpdateTokenPriority({
           onSuccess: mockOnSuccess,
           onError: mockOnError,
         }),
       );
+      const mockToken = createMockToken();
+      const mockWalletDetails = createMockWalletDetails();
 
       let updateResult: boolean | undefined;
       await act(async () => {
-        updateResult = await result.current.updateTokenPriority(tokenA);
+        updateResult = await result.current.updateTokenPriority(
+          mockToken,
+          mockWalletDetails,
+        );
       });
 
       expect(updateResult).toBe(true);
-      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+      expect(mockSDK.updateWalletPriority).toHaveBeenCalledWith([
+        { id: 2, priority: 2 },
+        { id: 1, priority: 1 },
+      ]);
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: cardQueries.dashboard.keys.externalWalletDetails(),
+      });
+      expect(mockOnSuccess).toHaveBeenCalled();
       expect(mockOnError).not.toHaveBeenCalled();
     });
 
-    it('returns false and calls onError when no matching asset is found', async () => {
-      const mockOnError = jest.fn();
+    it('sets selected token as priority 1 and shifts others down', async () => {
       const { result } = renderHook(() =>
-        useUpdateTokenPriority({ onError: mockOnError }),
+        useUpdateTokenPriority({
+          onSuccess: mockOnSuccess,
+          onError: mockOnError,
+        }),
       );
+      const mockToken = createMockToken({ priority: 2 });
+      const mockWalletDetails = createMockWalletDetails();
 
-      const unknownToken: CardTokenAllowance = {
-        ...tokenA,
-        address: '0xunknown',
-        walletAddress: '0xunknown',
-        symbol: 'UNKNOWN',
-      };
+      await act(async () => {
+        await result.current.updateTokenPriority(mockToken, mockWalletDetails);
+      });
+
+      // Selected token (wallet-1) should get priority 1
+      // wallet-2 (previously priority 1) should shift to priority 2
+      expect(mockSDK.updateWalletPriority).toHaveBeenCalledWith([
+        { id: 2, priority: 2 }, // Previously 1
+        { id: 1, priority: 1 }, // Selected token
+      ]);
+    });
+
+    it('returns false when SDK is not available', async () => {
+      mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
+        sdk: null,
+      });
+      const { result } = renderHook(() =>
+        useUpdateTokenPriority({
+          onSuccess: mockOnSuccess,
+          onError: mockOnError,
+        }),
+      );
+      const mockToken = createMockToken();
+      const mockWalletDetails = createMockWalletDetails();
 
       let updateResult: boolean | undefined;
       await act(async () => {
-        updateResult = await result.current.updateTokenPriority(unknownToken);
+        updateResult = await result.current.updateTokenPriority(
+          mockToken,
+          mockWalletDetails,
+        );
       });
 
       expect(updateResult).toBe(false);
-      expect(mockUpdateAssetPriority).not.toHaveBeenCalled();
-      expect(mockOnError).toHaveBeenCalledTimes(1);
+      expect(mockSDK.updateWalletPriority).not.toHaveBeenCalled();
+      expect(mockOnError).toHaveBeenCalled();
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+      expect(Logger.error).toHaveBeenCalled();
     });
 
-    it('returns false and calls onError when cardHomeData is null', async () => {
-      mockUseSelector.mockReturnValue(null);
-      const mockOnError = jest.fn();
+    it('returns false when external wallet details are empty', async () => {
       const { result } = renderHook(() =>
-        useUpdateTokenPriority({ onError: mockOnError }),
+        useUpdateTokenPriority({
+          onSuccess: mockOnSuccess,
+          onError: mockOnError,
+        }),
       );
+      const mockToken = createMockToken();
 
       let updateResult: boolean | undefined;
       await act(async () => {
-        updateResult = await result.current.updateTokenPriority(tokenA);
+        updateResult = await result.current.updateTokenPriority(mockToken, []);
       });
 
       expect(updateResult).toBe(false);
-      expect(mockUpdateAssetPriority).not.toHaveBeenCalled();
-      expect(mockOnError).toHaveBeenCalledTimes(1);
+      expect(mockSDK.updateWalletPriority).not.toHaveBeenCalled();
+      expect(mockOnError).toHaveBeenCalled();
+      expect(mockOnSuccess).not.toHaveBeenCalled();
     });
 
-    it('returns false and calls onError when CardController.updateAssetPriority throws', async () => {
-      const sdkError = new Error('update failed');
-      mockUpdateAssetPriority.mockRejectedValue(sdkError);
-      const mockOnError = jest.fn();
+    it('returns false when matching wallet is not found', async () => {
       const { result } = renderHook(() =>
-        useUpdateTokenPriority({ onError: mockOnError }),
+        useUpdateTokenPriority({
+          onSuccess: mockOnSuccess,
+          onError: mockOnError,
+        }),
       );
+      const mockToken = createMockToken({
+        address: '0xnonexistent',
+        walletAddress: '0xnonexistent',
+      });
+      const mockWalletDetails = createMockWalletDetails();
 
       let updateResult: boolean | undefined;
       await act(async () => {
-        updateResult = await result.current.updateTokenPriority(tokenA);
+        updateResult = await result.current.updateTokenPriority(
+          mockToken,
+          mockWalletDetails,
+        );
+      });
+
+      expect(updateResult).toBe(false);
+      expect(mockSDK.updateWalletPriority).not.toHaveBeenCalled();
+      expect(mockOnError).toHaveBeenCalled();
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
+
+    it('returns false and calls onError when SDK throws error', async () => {
+      const sdkError = new Error('SDK update failed');
+      mockSDK.updateWalletPriority.mockRejectedValue(sdkError);
+      const { result } = renderHook(() =>
+        useUpdateTokenPriority({
+          onSuccess: mockOnSuccess,
+          onError: mockOnError,
+        }),
+      );
+      const mockToken = createMockToken();
+      const mockWalletDetails = createMockWalletDetails();
+
+      let updateResult: boolean | undefined;
+      await act(async () => {
+        updateResult = await result.current.updateTokenPriority(
+          mockToken,
+          mockWalletDetails,
+        );
       });
 
       expect(updateResult).toBe(false);
       expect(mockOnError).toHaveBeenCalledWith(sdkError);
+      expect(mockOnSuccess).not.toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalled();
     });
 
-    it('matches assets case-insensitively by symbol', async () => {
-      const uppercaseToken: CardTokenAllowance = {
-        ...tokenA,
-        symbol: 'usdc', // lowercase — assetA has 'USDC'
-      };
+    it('returns true when called without callbacks', async () => {
       const { result } = renderHook(() => useUpdateTokenPriority());
+      const mockToken = createMockToken();
+      const mockWalletDetails = createMockWalletDetails();
 
       let updateResult: boolean | undefined;
       await act(async () => {
-        updateResult = await result.current.updateTokenPriority(uppercaseToken);
+        updateResult = await result.current.updateTokenPriority(
+          mockToken,
+          mockWalletDetails,
+        );
       });
 
       expect(updateResult).toBe(true);
-      expect(mockUpdateAssetPriority).toHaveBeenCalledWith(assetA, [
-        assetA,
-        assetB,
+      expect(mockSDK.updateWalletPriority).toHaveBeenCalled();
+    });
+
+    it('maintains order of non-selected wallets', async () => {
+      const { result } = renderHook(() =>
+        useUpdateTokenPriority({
+          onSuccess: mockOnSuccess,
+          onError: mockOnError,
+        }),
+      );
+      const mockWalletDetails: CardExternalWalletDetailsResponse = [
+        {
+          id: 3,
+          walletAddress: '0xwallet3',
+          caipChainId: 'eip155:59144',
+          tokenDetails: {
+            address: '0xtoken3',
+            symbol: 'DAI',
+            decimals: 18,
+            name: 'Dai',
+          },
+          allowance: '300',
+          priority: 3,
+          balance: '150',
+          currency: 'DAI',
+          network: 'linea',
+        },
+        {
+          id: 1,
+          walletAddress: '0xwallet1',
+          caipChainId: 'eip155:59144',
+          tokenDetails: {
+            address: '0x1234567890123456789012345678901234567890',
+            symbol: 'USDC',
+            decimals: 18,
+            name: 'USD Coin',
+          },
+          allowance: '1000',
+          priority: 2,
+          balance: '500',
+          currency: 'USDC',
+          network: 'linea',
+        },
+        {
+          id: 2,
+          walletAddress: '0xwallet2',
+          caipChainId: 'eip155:59144',
+          tokenDetails: {
+            address: '0xtoken2',
+            symbol: 'USDT',
+            decimals: 6,
+            name: 'Tether USD',
+          },
+          allowance: '500',
+          priority: 1,
+          balance: '250',
+          currency: 'USDT',
+          network: 'linea',
+        },
+      ];
+      const mockToken = createMockToken({ priority: 3 });
+
+      await act(async () => {
+        await result.current.updateTokenPriority(mockToken, mockWalletDetails);
+      });
+
+      // Selected wallet-1 should be priority 1
+      // Others should maintain their relative order: wallet-2 (was 1) -> 2, wallet-3 (was 3) -> 3
+      expect(mockSDK.updateWalletPriority).toHaveBeenCalledWith([
+        { id: 2, priority: 2 },
+        { id: 1, priority: 1 },
+        { id: 3, priority: 3 },
       ]);
     });
 
-    it('matches assets case-insensitively by walletAddress', async () => {
-      const uppercaseToken: CardTokenAllowance = {
-        ...tokenA,
-        walletAddress: '0xWALLET1', // uppercase — assetA has '0xwallet1'
-      };
-      const { result } = renderHook(() => useUpdateTokenPriority());
+    it('calls onSuccess when token has stagingTokenAddress', async () => {
+      const { result } = renderHook(() =>
+        useUpdateTokenPriority({
+          onSuccess: mockOnSuccess,
+          onError: mockOnError,
+        }),
+      );
+      const mockToken = createMockToken({
+        stagingTokenAddress: '0xstaging123',
+      });
+      const mockWalletDetails = createMockWalletDetails();
 
-      let updateResult: boolean | undefined;
       await act(async () => {
-        updateResult = await result.current.updateTokenPriority(uppercaseToken);
+        await result.current.updateTokenPriority(mockToken, mockWalletDetails);
       });
 
-      expect(updateResult).toBe(true);
+      expect(mockOnSuccess).toHaveBeenCalled();
     });
   });
 });

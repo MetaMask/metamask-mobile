@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import type { Json } from '@metamask/utils';
-import ContentfulRichText, { documentToPlainText } from './ContentfulRichText';
+import ContentfulRichText from './ContentfulRichText';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -193,75 +193,5 @@ describe('ContentfulRichText', () => {
       <ContentfulRichText document={doc} testID="rt" />,
     );
     expect(getByText('no marks')).toBeOnTheScreen();
-  });
-});
-
-describe('documentToPlainText', () => {
-  it('returns a clean plain string unchanged', () => {
-    expect(documentToPlainText('hello')).toBe('hello');
-  });
-
-  it('strips U+FFFD replacement character from a plain string', () => {
-    expect(
-      documentToPlainText('Trade tokenized stocks, \uFFFDETFs and more'),
-    ).toBe('Trade tokenized stocks, ETFs and more');
-  });
-
-  it('strips U+FFFC object replacement character from a plain string', () => {
-    expect(documentToPlainText('before\uFFFCafter')).toBe('beforeafter');
-  });
-
-  it('strips zero-width spaces from a plain string', () => {
-    expect(documentToPlainText('foo\u200Bbar')).toBe('foobar');
-  });
-
-  it('collapses multiple spaces after stripping special chars in a plain string', () => {
-    expect(documentToPlainText('foo  \uFFFD  bar')).toBe('foo bar');
-  });
-
-  it('returns empty string for null', () => {
-    expect(documentToPlainText(null)).toBe('');
-  });
-
-  it('returns empty string for undefined', () => {
-    expect(documentToPlainText(undefined)).toBe('');
-  });
-
-  it('returns empty string for a number', () => {
-    expect(documentToPlainText(42)).toBe('');
-  });
-
-  it('extracts value from a text node', () => {
-    expect(documentToPlainText({ nodeType: 'text', value: 'leaf' })).toBe(
-      'leaf',
-    );
-  });
-
-  it('returns empty string for a text node whose value is not a string', () => {
-    expect(documentToPlainText({ nodeType: 'text', value: 99 })).toBe('');
-  });
-
-  it('recursively extracts text from a document with nested content', () => {
-    const doc = {
-      nodeType: 'document',
-      content: [
-        {
-          nodeType: 'paragraph',
-          content: [
-            { nodeType: 'text', value: 'Hello' },
-            { nodeType: 'text', value: 'world' },
-          ],
-        },
-      ],
-    };
-    expect(documentToPlainText(doc)).toBe('Hello world');
-  });
-
-  it('returns empty string for an empty content array', () => {
-    expect(documentToPlainText({ nodeType: 'document', content: [] })).toBe('');
-  });
-
-  it('returns empty string for an object with no nodeType and no content', () => {
-    expect(documentToPlainText({ foo: 'bar' })).toBe('');
   });
 });
