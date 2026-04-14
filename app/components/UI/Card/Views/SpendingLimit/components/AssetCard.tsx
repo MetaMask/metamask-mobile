@@ -28,6 +28,7 @@ import { LINEA_CAIP_CHAIN_ID } from '../../../util/buildTokenList';
 import { safeFormatChainIdToHex } from '../../../util/safeFormatChainIdToHex';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { cardNetworkInfos } from '../../../constants';
+import { CaipChainId } from '@metamask/utils';
 
 export interface AssetCardProps {
   /** Token symbol (e.g., 'mUSD', 'USDC') or 'Other' */
@@ -36,12 +37,14 @@ export interface AssetCardProps {
   tokenAddress?: string;
   /** Optional fallback staging address for icons */
   stagingTokenAddress?: string;
+  /** Chain the token lives on — used for icon URL and network badge */
+  caipChainId?: CaipChainId;
   /** Whether this card is currently selected */
   isSelected: boolean;
   /** Whether this is the "Other" option */
   isOther?: boolean;
-  /** Callback when card is pressed */
-  onPress: () => void;
+  /** Callback when card is pressed. Omit for non-interactive cards. */
+  onPress?: () => void;
   /** Test ID for E2E testing */
   testID?: string;
 }
@@ -54,6 +57,7 @@ const AssetCard: React.FC<AssetCardProps> = ({
   symbol,
   tokenAddress,
   stagingTokenAddress,
+  caipChainId,
   isSelected,
   isOther = false,
   onPress,
@@ -61,12 +65,12 @@ const AssetCard: React.FC<AssetCardProps> = ({
 }) => {
   const tw = useTailwind();
 
+  const resolvedChainId = caipChainId ?? LINEA_CAIP_CHAIN_ID;
+  const resolvedTokenAddress = tokenAddress || stagingTokenAddress;
+
   const iconUrl =
-    !isOther && (tokenAddress || stagingTokenAddress)
-      ? buildTokenIconUrl(
-          LINEA_CAIP_CHAIN_ID,
-          tokenAddress || stagingTokenAddress || '',
-        )
+    !isOther && resolvedTokenAddress
+      ? buildTokenIconUrl(resolvedChainId, resolvedTokenAddress)
       : null;
 
   return (
@@ -93,7 +97,7 @@ const AssetCard: React.FC<AssetCardProps> = ({
               <Badge
                 variant={BadgeVariant.Network}
                 imageSource={NetworkBadgeSource(
-                  safeFormatChainIdToHex(LINEA_CAIP_CHAIN_ID) as `0x${string}`,
+                  safeFormatChainIdToHex(resolvedChainId) as `0x${string}`,
                 )}
               />
             }

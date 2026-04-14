@@ -2,6 +2,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { isRelaySupported } from '../../../../../util/transactions/transaction-relay';
 import { Hex } from '@metamask/utils';
+import { isHardwareAccount } from '../../../../../util/address';
 import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmartTransactions';
 
 /**
@@ -45,9 +46,14 @@ export function useIsGaslessSupported() {
       txParams?.to !== undefined,
   );
 
-  const isSupported = Boolean(
-    isSmartTransactionAndBundleSupported || is7702Supported,
+  const fromAddress = txParams?.from;
+  const isHardwareWallet = Boolean(
+    fromAddress && isHardwareAccount(fromAddress),
   );
+
+  const isSupported =
+    !isHardwareWallet &&
+    Boolean(isSmartTransactionAndBundleSupported || is7702Supported);
 
   const isPending =
     smartTransactionPending || (shouldCheck7702Eligibility && relayPending);

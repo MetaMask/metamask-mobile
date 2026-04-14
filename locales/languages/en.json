@@ -20,6 +20,12 @@
       "update": "Update"
     }
   },
+  "access_restricted": {
+    "title": "Access restricted",
+    "description_line1": "This wallet address has been flagged during compliance screening. As a result, some MetaMask services are unavailable.",
+    "description_line2": "If you believe this is an error, contact support to request a review.",
+    "contact_support": "Contact support"
+  },
   "alert_system": {
     "alert_modal": {
       "title": "Alert",
@@ -110,6 +116,9 @@
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
       "title": "No quotes"
+    },
+    "account_no_funds": {
+      "message": "No funds available. Use a different account."
     },
     "perps_hardware_account": {
       "title": "Wallet not supported",
@@ -234,7 +243,6 @@
     "import_wallet_button": "Sync or import wallet",
     "new_to_crypto": "New to crypto?",
     "start_exploring_now": "Create a new wallet",
-    "unlock": "Unlock",
     "new_to_metamask": "New to MetaMask?",
     "already_have_wallet": "Already have a wallet?",
     "optin_back_title": "Heads up!",
@@ -470,7 +478,10 @@
     "biometric_authentication_cancelled": "Biometric authentication cancelled",
     "biometric_authentication_cancelled_title": "Biometric Setup Failed",
     "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
-    "biometric_authentication_cancelled_button": "Confirm"
+    "biometric_authentication_cancelled_button": "Confirm",
+    "biometric_changed": "Biometric Changed",
+    "biometric_changed_alert_desc": "Your biometric has been changed. Please re-enable biometric from settings.",
+    "biometric_changed_alert_confirm": "Confirm"
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
@@ -1002,6 +1013,25 @@
       "see_more": "See more"
     }
   },
+  "social_leaderboard": {
+    "top_traders_view": {
+      "title": "Top Traders"
+    },
+    "follow": "Follow",
+    "following": "Following",
+    "all_networks": "All networks",
+    "trader_profile": {
+      "followers_count": "{{count}} follower",
+      "followers_count_plural": "{{count}} followers",
+      "win_rate": "win rate",
+      "pnl_30d": "30D P&L",
+      "avg_hold": "avg. hold",
+      "open": "Open",
+      "closed": "Closed",
+      "no_positions": "No positions yet",
+      "error_loading_profile": "Couldn't load profile"
+    }
+  },
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
@@ -1177,7 +1207,15 @@
       "provider_fee": "Provider fee",
       "you_will_receive": "You receive",
       "continue": "Continue",
-      "funds_received": "{{amount}} {{symbol}} received"
+      "funds_received": "{{amount}} {{symbol}} received",
+      "toast_pending_title": "Withdrawal in progress",
+      "toast_pending_subtitle": "Available in about 1 minute",
+      "toast_completed_title": "Withdrawal complete",
+      "toast_completed_subtitle_generic": "Funds moved to your wallet",
+      "toast_completed_subtitle": "{{amount}} USDC moved to your wallet",
+      "toast_completed_any_token_subtitle": "{{amount}} {{token}} moved to your wallet",
+      "toast_error_title": "Something went wrong",
+      "toast_error_description": "Failed to proceed with withdrawal"
     },
     "quote": {
       "network_fee": "Network fee",
@@ -1787,12 +1825,13 @@
       "market_hours": {
         "title": "Market hours",
         "closes_in": "Closes in {{time}}",
-        "content": "You're trading within regular market hours (9:30 am to 4 pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "content": "You're trading within regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
       },
       "after_hours_trading": {
         "title": "After-hours trading",
         "reopens_in": "Reopens in {{time}}",
-        "content": "You're trading outside of regular market hours (9:30 am to 4 pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "reopens_in_label": "Reopens in",
+        "content": "You're trading outside of regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
       },
       "spread": {
         "title": "Spread",
@@ -2002,6 +2041,7 @@
       "trade_again": "Trade again",
       "activity": {
         "deposit_title": "Deposit",
+        "withdrawal_title": "Withdrawal",
         "deposited_amount": "Deposited {{amount}} {{symbol}}",
         "withdrew_amount": "Withdrew {{amount}} {{symbol}}",
         "status_completed": "Completed",
@@ -2087,7 +2127,13 @@
     "title": "Market insights",
     "a_closer_look": "A closer look",
     "whats_being_said": "What's being said",
+    "card_footer_disclaimer": "AI generated",
     "footer_disclaimer": "AI summary for information only",
+    "disclaimer_modal": {
+      "title": "AI generated content",
+      "body": "This summary is AI-generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
+      "got_it": "Got it"
+    },
     "swap_button": "Swap",
     "buy_button": "Buy",
     "sources_count": "+{{count}} sources",
@@ -2161,6 +2207,21 @@
       "about": "About",
       "positions": "Positions",
       "outcomes": "Outcomes"
+    },
+    "outcome_groups": {
+      "game_lines": "Game Lines",
+      "assists": "Assists",
+      "points": "Points",
+      "rebounds": "Rebounds",
+      "goals": "Goals",
+      "first_half": "1st Half",
+      "totals": "Totals",
+      "spreads": "Spreads",
+      "both_teams_to_score": "Both Teams to Score",
+      "goalscorers": "Goalscorers",
+      "exact_score": "Exact Score",
+      "halftime_result": "Halftime Result",
+      "corners": "Corners"
     },
     "sell_position": "Sell position",
     "cash_out": "Cash out",
@@ -2303,10 +2364,15 @@
       "cashing_out_subtitle": "Estimated {{time}} seconds",
       "placing_prediction": "Placing a prediction",
       "prediction_placed": "Prediction placed",
+      "prediction_in_progress": "Prediction in progress",
+      "prediction_in_progress_description": "Your prediction will be placed shortly",
+      "prediction_failed": "Failed to place prediction",
       "order_failed": "Order failed",
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Not enough funds. You can use up to {{amount}}.",
       "no_funds_enough": "Not enough funds.",
+      "prediction_insufficient_funds_try_token": "Not enough funds. You can use up to {{amount}}, or try a different token.",
+      "no_funds_enough_try_token": "Not enough funds. Try a different token.",
       "prediction_minimum_bet": "Minimum amount is {{amount}}",
       "to_win": "To win",
       "order_failed_generic": "Transaction failed. Please try again.",
@@ -2316,8 +2382,10 @@
       "order_failed_title": "Order failed",
       "order_failed_body": "There wasn't enough liquidity at this price. Want to try again?",
       "try_again": "Try again",
+      "view": "View",
       "yes_buy": "Yes, buy",
-      "yes_sell": "Yes, sell"
+      "yes_sell": "Yes, sell",
+      "predict_balance_first": "Your Predict balance will be used first"
     },
     "withdraw": {
       "withdrawing": "Withdrawal in progress",
@@ -2370,10 +2438,12 @@
       "unknown_error": "An unknown error occurred",
       "order_not_fully_filled": "Failed to fill your order",
       "buy_order_not_fully_filled": "Not enough shares available at market price to place your order right now.",
-      "sell_order_not_fully_filled": "There isn't enough demand at market price to cash out right now."
+      "sell_order_not_fully_filled": "There isn't enough demand at market price to cash out right now.",
+      "preview_not_available": "No preview available"
     },
     "game_details_footer": {
       "pick_a_winner": "Pick a winner",
+      "make_your_prediction": "Make your prediction",
       "volume_display": "${{volume}} Vol",
       "read_terms": "Read the full contract terms and conditions"
     },
@@ -3538,6 +3608,7 @@
     "predict_description": "Trade on real-world events",
     "chart_time_period": {
       "1d": "Today",
+      "1h": "Past hour",
       "7d": "Past 7 days",
       "1w": "Past week",
       "1m": "Past month",
@@ -3987,6 +4058,7 @@
     "tx_review_predict_deposit": "Funded predictions",
     "tx_review_predict_claim": "Claimed wins",
     "tx_review_predict_withdraw": "Predictions withdraw",
+    "tx_review_perps_withdraw": "Perps withdraw",
     "tx_review_musd_conversion": "mUSD conversion",
     "claim": "Claim",
     "sent_ether": "Sent ETH",
@@ -4793,11 +4865,9 @@
     "body_for_seedphrase": "Now that value was added to your wallet, protect your wallet by setting a password and saving your Secret Recovery Phrase (required).",
     "button": "Protect wallet"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Transaction update failed",
-    "text": "Would you like to try again?",
-    "cancel_button": "Cancel",
-    "retry_button": "Retry"
+    "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
   "payment_request": {
     "title": "Request",
@@ -5986,11 +6056,25 @@
     "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Claimable bonus",
     "claim_bonus": "Claim bonus",
+    "claim_bonus_with_fiat": "Claim {{amount}}",
     "claim_bonus_subtitle": "Bonus will be paid out on {{networkName}}.",
     "percentage_bonus_on_linea": "{{percentage}}% bonus on Linea",
     "claim": "Claim",
     "sounds_good": "Sounds good",
     "claimable_bonus_tooltip_with_percentage": "{{percentage}}% annualized bonus you've earned for holding mUSD. Your bonus is claimable daily on Linea.",
+    "your_bonus": "Your bonus",
+    "estimated_annual_bonus": "Estimated annual bonus",
+    "lifetime_bonus_claimed": "Lifetime bonus claimed",
+    "accruing_next_bonus": "Accruing next bonus",
+    "no_accruing_bonus": "No accruing bonus",
+    "claim_amount_bonus": "Claim ${{amount}} bonus",
+    "your_bonus_tooltip_your_bonus": "Your bonus",
+    "your_bonus_tooltip_your_bonus_desc": ":  {{percentage}}% annualized bonus you earn just for holding mUSD. You can claim it daily on Linea. ",
+    "your_bonus_tooltip_annual_bonus": "Estimated annual bonus: ",
+    "your_bonus_tooltip_annual_bonus_desc": "A projection of what you'd earn over a year based on your current balance and rate. Rate is variable and may change.",
+    "your_bonus_tooltip_lifetime_bonus": "Lifetime bonus claimed: ",
+    "your_bonus_tooltip_lifetime_bonus_desc": "The total bonus you've claimed since you started.",
+    "learn_more": "Learn more",
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
       "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
@@ -6144,6 +6228,88 @@
     },
     "your_stablecoins": "Your stablecoins"
   },
+  "money": {
+    "title": "Money",
+    "apy_label": "{{percentage}}% APY",
+    "action": {
+      "add": "Add",
+      "transfer": "Transfer",
+      "card": "Card"
+    },
+    "your_position": {
+      "title": "Your position",
+      "current_rate": "Current rate",
+      "lifetime_earnings": "Lifetime earnings",
+      "available_balance": "Avail. balance"
+    },
+    "how_it_works": {
+      "title": "How it works",
+      "description": "Hold mUSD in a Money Account and earn automatically. It's dollar-backed, always liquid, and ready to spend, trade, or send anytime.",
+      "musd_name": "MetaMask USD",
+      "musd_symbol": "mUSD",
+      "add": "Add"
+    },
+    "potential_earnings": {
+      "title": "Potential earnings",
+      "amount": "+$26,800",
+      "description": "See how your money can grow over time by converting your crypto to mUSD.",
+      "convert": "Convert",
+      "no_fee": "No fee",
+      "see_earnings": "See potential earnings"
+    },
+    "metamask_card": {
+      "title": "MetaMask Card",
+      "subtitle": "Spend your money anywhere.",
+      "virtual_card": "Virtual card",
+      "metal_card": "Metal card",
+      "cashback": "{{percentage}}% cashback",
+      "get_now": "Get now"
+    },
+    "why_metamask_money": {
+      "title": "Why MetaMask Money?",
+      "benefit_auto_earn": "Auto-earn ",
+      "benefit_dollar_backed": "Your money is held in mUSD, a 1:1 dollar-backed stablecoin",
+      "benefit_liquidity": "Full liquidity with no lockups, so you can trade or withdraw anytime",
+      "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
+      "benefit_spend_cashback": "1-3% cashback",
+      "benefit_global": "Send and receive money globally with no middle man",
+      "learn_more": "Learn more"
+    },
+    "footer": {
+      "add_money": "Add money"
+    },
+    "activity": {
+      "title": "Activity",
+      "view_all": "View all",
+      "empty": "No activity yet",
+      "filter_all": "All",
+      "filter_deposits": "Deposits",
+      "filter_transfers": "Transfers"
+    },
+    "transaction": {
+      "added": "Added",
+      "deposited": "Deposited",
+      "received": "Received",
+      "sent": "Sent",
+      "transferred": "Transferred",
+      "card_transaction": "Card transaction",
+      "converted": "Converted"
+    },
+    "convert_stablecoins": {
+      "title": "Convert your stablecoins",
+      "description_prefix": "Get a ",
+      "description_bonus": "3% annualized bonus",
+      "description_suffix": " by converting USDC, USDT, and DAI to mUSD.",
+      "tag_dollar_backed": "Dollar-backed",
+      "tag_no_lockups": "No lockups",
+      "tag_no_fee": "No MetaMask fee",
+      "tag_daily_bonus": "Daily bonus",
+      "convert_cta": "Convert to mUSD",
+      "learn_more": "Learn more",
+      "swap": "Swap",
+      "buy": "Buy"
+    }
+  },
   "stake": {
     "stake": "Stake",
     "earn": "Earn",
@@ -6156,6 +6322,10 @@
       "unstake_failed": "Unstaking failed",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
+      "total_rewards": "Total rewards",
+      "total_claimable_rewards": "Total claimable rewards",
+      "estimated_rewards_api_unavailable": "We couldn’t load estimated annual rewards. Try again later.",
+      "fiat_unavailable": "Fiat values are temporarily unavailable.",
       "estimated_annual_reward": "Est. annual reward",
       "trx_locked_for": "TRX locked for",
       "trx_locked_for_minimum_time": "~3 days",
@@ -6418,6 +6588,8 @@
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
       "receive_as": "Receive",
+      "from": "From",
+      "to": "To",
       "total": "Total",
       "you_receive": "You'll receive",
       "transaction_fee": "Transaction fee",
@@ -6440,9 +6612,11 @@
       "switch_account_type": "Account update",
       "approve": "Approve request",
       "perps_deposit": "Add funds",
+      "perps_withdraw": "Withdraw",
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
-      "perps_withdraw": "Withdraw"
+      "money_account_deposit": "Add funds",
+      "money_account_withdraw": "Withdraw funds"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -6463,6 +6637,9 @@
       },
       "predict_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
+      },
+      "perps_withdraw": {
+        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
       },
       "predict_withdraw": {
         "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
@@ -6568,7 +6745,6 @@
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction",
     "available_balance": "Available balance: ",
-    "available_perps_balance": "Available Perps balance: ",
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
@@ -6665,6 +6841,15 @@
     "slippage_info_title": "Slippage",
     "slippage_info_description": "The % change in price you're willing to allow before your transaction is canceled.",
     "blockaid_error_title": "This transaction will be reverted",
+    "quote_stream_complete_retry": "Unable to get a quote right now. Try again.",
+    "quote_stream_complete_amount_too_high": "No quotes available. Try a smaller amount.",
+    "quote_stream_complete_amount_too_low": "No quotes available. Try a larger amount.",
+    "quote_stream_complete_slippage_too_high": "Slippage is too high. Try lowering your slippage setting.",
+    "quote_stream_complete_slippage_too_low": "Slippage is too low. Try increasing your slippage setting.",
+    "quote_stream_complete_token_not_supported": "This token isn't supported. Try using a different token.",
+    "quote_stream_complete_rwa_geo_restricted": "This swap isn't available in your region.",
+    "quote_stream_complete_rwa_native_token_unsupported": "Swaps between this token and real-world assets aren't supported yet. Try using a different token.",
+    "quote_stream_complete_rwa_market_unavailable": "The market for this asset is currently unavailable. Try again later.",
     "max": "Max",
     "approval_needed": "Approves token for swap.",
     "approval_tooltip_title": "Grant exact access",
@@ -6695,7 +6880,12 @@
     "got_it": "Got it",
     "price_impact_warning_title": "High price impact",
     "price_impact_error_title": "Very high price impact",
-    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate."
+    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate.",
+    "token_warning_suspicious_banner": "{{token}} is a suspicious token.",
+    "token_warning_malicious_banner": "{{token}} is a malicious token. Be cautious interacting with this token.",
+    "token_warning_modal_suspicious_title": "Suspicious token",
+    "token_warning_modal_malicious_title": "Malicious token",
+    "price_impact_fiat_alert": "You will lose {{priceImpactFiat}} on this trade"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
@@ -6753,7 +6943,22 @@
     "oauth_error_button": "Try again",
     "no_internet_connection_title": "Unable to connect",
     "no_internet_connection_description": "Your internet connection is unstable. Check your connection and try again.",
-    "no_internet_connection_button": "Try again"
+    "no_internet_connection_button": "Try again",
+    "ios_need_update_title": "iOS update required",
+    "ios_need_update_description": "MetaMask Google Sign-In will soon require ",
+    "ios_need_update_description_version": "iOS 17.4 or later",
+    "ios_need_update_description_end": ". You can continue using Google Sign-In on this device for now, but it will no longer be supported in an upcoming update.",
+    "ios_need_update_description2": "You can still access your wallet using the same Google account on a supported device or the MetaMask extension. We also advise backing up your Secret Recovery Phrase if you are proceeding without updating iOS.",
+    "ios_need_update_button": "Continue",
+    "ios_google_login_unsupported_blocking_title": "Update iOS to create a wallet with Google",
+    "ios_google_login_unsupported_blocking_description": "MetaMask's Google Sign-In requires iOS 17.4 or later. Update your iPhone to continue creating a wallet with Google.",
+    "ios_google_login_unsupported_blocking_description_2": "Alternatively, you can create a wallet using a Secret Recovery Phrase instead.",
+    "ios_google_login_unsupported_blocking_button": "Close",
+    "ios_google_login_unsupported_blocking_rehydration_title": "Google Sign-In unavailable on this iOS version",
+    "ios_google_login_unsupported_blocking_rehydration_description": "MetaMask's Google Sign-In now requires iOS 17.4 or later. Your wallet and funds are safe.",
+    "ios_google_login_unsupported_blocking_rehydration_description_2": "Update your iPhone to iOS 17.4 or later to continue using Google Sign-In.",
+    "ios_google_login_unsupported_blocking_rehydration_description_3": "Can't update? You can still access your wallet by signing in on another device with the same Google login and password or importing with your Secret Recovery Phrase.",
+    "ios_google_login_unsupported_blocking_rehydration_button": "Close"
   },
   "password_hint": {
     "title": "Password hint",
@@ -7075,7 +7280,9 @@
         "country_label": "Country of residence",
         "country_placeholder": "Select your country",
         "invalid_email": "Invalid email address",
-        "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces."
+        "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces.",
+        "join_waitlist": "Join waitlist",
+        "country_not_available": "Card sign-up isn't available in your country yet."
       },
       "confirm_email": {
         "title": "Confirm your email",
@@ -7221,6 +7428,12 @@
       "confirm_button": "Confirm",
       "retry_button": "Try again",
       "close_button": "Got it",
+      "waitlist_form": {
+        "title": "Join waitlist",
+        "load_error": "Something went wrong loading the form. Please try again.",
+        "try_again": "Try again",
+        "success_toast": "You're on the waitlist! We'll let you know when the card is available in your country."
+      },
       "region_selector": {
         "title": "Select your Region"
       },
@@ -7373,7 +7586,9 @@
       "loading": "Loading available tokens...",
       "load_error": "Unable to load tokens. Please try again.",
       "retry": "Try again",
-      "on_linea": "on Linea"
+      "on_linea": "on Linea",
+      "account_label": "Account",
+      "token_label": "Token"
     },
     "cashback_screen": {
       "title": "Cashback",
@@ -7414,6 +7629,7 @@
     },
     "card_authentication": {
       "title": "Log in to your card account",
+      "auth_prompt_info": "Log in to your card account to access this feature.",
       "location_button_text": "International",
       "location_button_text_us": "United States",
       "email_label": "Email",
@@ -7797,8 +8013,8 @@
         "share_referral_subject": "Join MetaMask Rewards"
       },
       "info": {
-        "title": "Share your code to earn more",
-        "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
+        "title": "Share your code with friends",
+        "description": "Some campaigns may have extra benefits for referrals. Check the description for each campaign to confirm."
       },
       "referral_code_copied": "Referral code copied to clipboard"
     },
@@ -7815,6 +8031,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "mUSD bonus calculator",
       "description": "See how much you could earn by converting your stablecoins to mUSD.",
       "amount_label": "Amount converted",
@@ -7823,6 +8040,7 @@
       "daily_bonus": "Daily claimable bonus",
       "annualized_bonus": "Annualized bonus",
       "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "disclaimer_brief": "The bonus is an estimate and may change.",
       "buy_button": "Buy mUSD",
       "swap_button": "Swap to mUSD"
     },
@@ -7841,6 +8059,14 @@
       "reward_claimed": "Reward claimed",
       "time_left": "{{time}} left",
       "expired": "Expired"
+    },
+    "benefits": {
+      "title": "Benefits",
+      "list_header":  "Available",
+      "title_claim": "Claim Benefit",
+      "action": "Claim",
+      "empty-list":  "You don’t have any benefits right now.",
+      "powered_by": "Powered by"
     },
     "end_of_season_rewards": {
       "confirm_label_default": "Confirm",
@@ -7861,7 +8087,8 @@
     "campaign": {
       "starts_date": "Starts {{date}}",
       "ends_date": "Ends {{date}}",
-      "pill_up_next": "Up next",
+      "ended_date": "Ended {{date}}",
+      "pill_up_next": "Coming soon",
       "pill_active": "Live",
       "pill_complete": "Complete",
       "enter_now": "Enter now",
@@ -7869,11 +8096,9 @@
       "participant_count": "#{{count}}",
       "opt_in_cta": "Opt in",
       "opt_in_sheet_title": "Join the campaign",
-      "opt_in_sheet_description_pre_link": "By clicking 'Opt in' you agree to the MetaMask Rewards",
-      "opt_in_sheet_link_text": "Supplemental Terms of Use and Privacy Notice",
-      "opt_in_sheet_description_post_link": "We'll track onchain activity to reward you automatically.",
       "geo_restriction_banner_title": "Not available in your region",
-      "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations."
+      "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations.",
+      "opt_in_success_toast": "You're in!"
     },
     "campaign_mechanics": {
       "title": "Mechanics"
@@ -7886,9 +8111,141 @@
       "opted_in": "You're opted in to this campaign",
       "opt_in_error": "Failed to opt in. Please try again.",
       "join_campaign": "Join the campaign",
+      "competition_closed_title": "Competition no longer open",
+      "competition_closed_description": "Sorry, this competition is no longer open to join. You can follow the leaderboard below and check back for future campaigns.",
       "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
-      "how_it_works": "How it works"
+      "swap_ondo_assets": "Swap Ondo Assets",
+      "how_it_works": "How it works",
+      "ondo": {
+        "entries_closed_title": "Entries closed",
+        "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future.",
+        "open_position": "Swap Ondo assets"
+      }
+    },
+    "ondo_campaign_prize_pool": {
+      "title": "Prize Pool",
+      "current_label": "Current",
+      "next_label": "Next",
+      "volume_subtext": "{{current}} of {{target}} volume",
+      "max_tier_subtext": "{{maxThreshold}}+ TVL — all milestones reached",
+      "error_title": "Failed to load prize pool",
+      "error_description": "There was an error loading the prize pool. Please try again.",
+      "retry_button": "Retry"
+    },
+    "ondo_campaign_leaderboard_position": {
+      "title": "Your Position",
+      "rank": "My Rank",
+      "tier": "My Tier",
+      "rate_of_return": "Return",
+      "total_deposited": "Total Deposited",
+      "current_value": "Current Value",
+      "not_found": "Not on the leaderboard yet. Please check back later.",
+      "updated_at": "Last updated: {{time}}",
+      "error_loading": "Failed to load your position",
+      "error_loading_description": "There was an error loading your leaderboard position. Please try again.",
+      "retry": "Retry"
+    },
+    "ondo_campaign_portfolio": {
+      "total_value": "Total value",
+      "portfolio_pnl": "P&L",
+      "portfolio_pnl_percent": "P&L (%)",
+      "summary_cost_basis": "Cost basis",
+      "summary_net_deposit": "Net deposit",
+      "summary_cashed_out": "Cashed out",
+      "position_current_value": "Value",
+      "position_unrealized_pnl": "P&L",
+      "updated_at": "Last updated: {{time}}",
+      "error_loading": "Failed to load positions.",
+      "error_loading_description": "There was an error loading your positions. Please try again.",
+      "retry": "Retry",
+      "loading": "Loading positions...",
+      "empty": "You don't have any positions",
+      "empty_description": "Start earning rewards by opening a position in tokenized real-world assets.",
+      "empty_cta": "Open a position",
+      "position_units": "{{units}} shares",
+      "positions_title": "Positions",
+      "activity_title": "Activity",
+      "view_activity": "View activity",
+      "switch_account_title": "Switch account",
+      "switch_account_sheet_prefix": "Accounts with",
+      "switch_account_sheet_description": "Choose which balance to swap"
+    },
+    "ondo_rwa_asset_selector": {
+      "title_swap": "Swap {{symbol}}",
+      "title_swap_prefix": "Swap",
+      "title_open_position": "Open Position",
+      "search_placeholder": "Search assets",
+      "no_results": "No assets found"
+    },
+    "ondo_campaign_leaderboard": {
+      "title": "Leaderboard",
+      "of_total": "of {{total}} participants",
+      "total_participants": "{{count}} participants",
+      "updated_at": "Last updated: {{time}}",
+      "error_loading": "Failed to load leaderboard",
+      "error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "error_loading_position": "Failed to load your position",
+      "retry": "Retry",
+      "no_data": "No leaderboard data available",
+      "no_entries_in_tier": "No participants in this tier yet",
+      "not_yet_computed": "The leaderboard hasn't been computed yet. Check back soon.",
+      "tier_starter": "Bronze",
+      "tier_mid": "Silver",
+      "tier_upper": "Platinum",
+      "select_tier": "Select Tier",
+      "pending": "Pending",
+      "qualified": "Qualified",
+      "pending_sheet_title": "Pending",
+      "pending_sheet_tier_label": "Tier",
+      "pending_sheet_net_deposit_label": "Net Deposit",
+      "pending_sheet_own_body": "Hold a minimum balance of {{minNetDeposit}} for {{daysRemaining}} more day(s) to qualify for this tier.",
+      "pending_sheet_other_body": "This participant hasn't yet met the holding requirement for their projected tier.",
+      "pending_sheet_cta": "Got it",
+      "qualify_for_rank_title": "Qualify for this rank",
+      "qualify_for_rank_description": "Keep your deposit above {{minNetDeposit}} for {{daysRemaining}} more days, including the final day."
+    },
+    "ondo_campaign_stats": {
+      "title": "Stats",
+      "stats_error_title": "Unable to load all stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again later.",
+      "retry": "Retry",
+      "label_return": "Return",
+      "label_market_value": "Market Value",
+      "label_net_deposited": "Net deposited",
+      "label_cashed_out": "Cashed out",
+      "label_rank": "Rank",
+      "label_tier": "Tier",
+      "label_your_return": "Your return",
+      "label_your_rank": "Your rank",
+      "label_net_deposit": "Net deposit",
+      "label_days_held": "Days held",
+      "qualified_title": "You're qualified",
+      "qualified_description": "Keep your net deposit above {{minNetDeposit}} through the final day to stay eligible."
+    },
+    "ondo_campaign_activity": {
+      "title": "All activity",
+      "type_deposit": "Deposit",
+      "type_withdraw": "Withdraw",
+      "type_rebalance": "Rebalance",
+      "type_external_outflow": "Outflow",
+      "error_title": "Failed to load activity",
+      "error_description": "Something went wrong while loading the activity. Please try again.",
+      "retry_button": "Retry",
+      "empty_title": "No activity yet",
+      "empty_description": "Your campaign activity will appear here once you have transactions."
+    },
+    "ondo_campaign_after_hours_trading": {
+      "title": "After-hours trading",
+      "reopens_in_label": "Reopens in",
+      "content": "You're trading outside of regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates.",
+      "got_it_button": "Got it"
+    },
+    "ondo_campaign_not_eligible": {
+      "title": "Not eligible",
+      "body": "This position won't be entered in the campaign. It won't meet the {{days}}-day hold requirement.",
+      "cancel": "Cancel",
+      "confirm": "I understand"
     },
     "campaigns_preview": {
       "title": "Campaigns",
@@ -7924,6 +8281,7 @@
       "musd_conversion": "Converted to mUSD",
       "musd_claim": "Claimed mUSD",
       "perps_deposit": "Funded perps account",
+      "perps_withdraw": "Withdrawal",
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
       "predict_withdraw": "Withdrawal",
@@ -7951,6 +8309,7 @@
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
       "musd_claim": "Claim mUSD",
       "perps_deposit": "Add funds",
+      "perps_withdraw": "Withdrawal",
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",
       "swap_approval": "Approve tokens"
@@ -8023,6 +8382,7 @@
     "sites": "Sites",
     "popular_sites": "Popular sites",
     "search_sites": "Search sites",
+    "view_all": "View all",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
     "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
@@ -8133,14 +8493,14 @@
   },
   "homepage": {
     "sections": {
-      "cash": "Cash",
-
-      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash": "Money",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Money section on the homepage.",
       "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "Tokens",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
       "whats_happening": "What's happening",
+      "top_traders": "Top Traders",
       "whats_happening_categories": {
         "geopolitical": "Geopolitical",
         "macro": "Macro",
@@ -8151,6 +8511,9 @@
       },
       "defi": "DeFi",
       "nfts": "NFTs",
+      "trending_tokens": "Trending tokens",
+      "trending_perpetuals": "Trending perpetuals",
+      "trending_predictions": "Trending predictions",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",

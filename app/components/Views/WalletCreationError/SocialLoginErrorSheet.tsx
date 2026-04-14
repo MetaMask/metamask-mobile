@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
-import { Image, Linking, SafeAreaView } from 'react-native';
+import { Image, Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -8,6 +9,9 @@ import {
   Text,
   TextVariant,
   TextColor,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Icon,
   IconName,
   IconSize,
@@ -16,11 +20,6 @@ import {
 
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -116,12 +115,13 @@ const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
         </Text>
 
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('wallet_creation_error.try_again')}
+          isFullWidth
           onPress={handleTryAgain}
-        />
+        >
+          {strings('wallet_creation_error.try_again')}
+        </Button>
       </Box>
     </SafeAreaView>
   );

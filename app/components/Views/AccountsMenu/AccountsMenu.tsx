@@ -22,7 +22,6 @@ import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
@@ -48,7 +47,6 @@ const AccountsMenu = () => {
   const { colors } = useTheme();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampsButtonClickData = useRampsButtonClickData();
@@ -404,15 +402,13 @@ const AccountsMenu = () => {
         )}
 
         {/* MetaMask Card Row */}
-        {shouldDisplayCardButton && (
-          <ActionListItem
-            startAccessory={<Icon name={IconName.Card} size={IconSize.Lg} />}
-            label={strings('accounts_menu.card_title')}
-            onPress={onPressManageWallet}
-            endAccessory={arrowRightIcon}
-            testID={AccountsMenuSelectorsIDs.MANAGE_CARD}
-          />
-        )}
+        <ActionListItem
+          startAccessory={<Icon name={IconName.Card} size={IconSize.Lg} />}
+          label={strings('accounts_menu.card_title')}
+          onPress={onPressManageWallet}
+          endAccessory={arrowRightIcon}
+          testID={AccountsMenuSelectorsIDs.MANAGE_CARD}
+        />
 
         {separator}
 

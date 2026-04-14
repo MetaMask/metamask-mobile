@@ -10,7 +10,7 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 const mockUseDepositSDK = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoToAggregator = jest.fn();
-const mockDangerouslyGetParent = jest.fn();
+const mockGetParent = jest.fn();
 const mockPop = jest.fn();
 const mockGoBack = jest.fn();
 const mockOnStateSelect = jest.fn();
@@ -39,7 +39,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       goBack: mockGoBack,
       navigate: mockNavigate,
-      dangerouslyGetParent: mockDangerouslyGetParent,
+      getParent: mockGetParent,
       isFocused: jest.fn(() => true),
     }),
   };
@@ -77,18 +77,21 @@ function render(Component: React.ComponentType) {
 describe('UnsupportedStateModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDangerouslyGetParent.mockReturnValue({
+    mockGetParent.mockReturnValue({
       pop: mockPop,
     });
   });
 
-  it('render match snapshot', () => {
+  it('renders title, selected state and action buttons', () => {
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: mockSelectedRegion,
     });
 
-    const { toJSON } = render(UnsupportedStateModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = render(UnsupportedStateModal);
+    expect(getByText('Region not supported')).toBeOnTheScreen();
+    expect(getByText('New York')).toBeOnTheScreen();
+    expect(getByText('Try another option')).toBeOnTheScreen();
+    expect(getByText('Change region')).toBeOnTheScreen();
   });
 
   it('handles try another option button press correctly', () => {
@@ -102,7 +105,7 @@ describe('UnsupportedStateModal', () => {
     const tryAnotherOptionButton = getByText('Try another option');
     fireEvent.press(tryAnotherOptionButton);
 
-    expect(mockDangerouslyGetParent).toHaveBeenCalled();
+    expect(mockGetParent).toHaveBeenCalled();
     expect(mockPop).toHaveBeenCalled();
     expect(mockGoToAggregator).toHaveBeenCalledWith();
   });

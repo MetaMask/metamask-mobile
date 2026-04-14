@@ -18,17 +18,20 @@ import {
   RequestStatus,
   type QuoteResponse,
   MetaMetricsSwapsEventSource,
+  TokenFeatureType,
+  QuoteStreamCompleteReason,
 } from '@metamask/bridge-controller';
+import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import { useRWAToken } from '../../hooks/useRWAToken';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
+import { Button } from '@metamask/design-system-react-native';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -222,6 +225,8 @@ jest.mock(
 );
 
 const mockNavigate = jest.fn();
+const mockSetParams = jest.fn();
+const mockFocusEffects: (() => void | (() => void))[] = [];
 const mockRoute = {
   params: {
     sourcePage: 'test',
@@ -232,8 +237,12 @@ jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
+    useFocusEffect: jest.fn((callback: () => void | (() => void)) => {
+      mockFocusEffects.push(callback);
+    }),
     useNavigation: () => ({
       navigate: mockNavigate,
+      setParams: mockSetParams,
       setOptions: jest.fn(),
     }),
     useRoute: () => mockRoute,
@@ -259,12 +268,6 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
-}));
-
-jest.mock('../../hooks/useRWAToken', () => ({
-  useRWAToken: jest.fn().mockImplementation(() => ({
-    isStockToken: jest.fn().mockReturnValue(false),
-  })),
 }));
 
 jest.mock('../../../../../util/address', () => ({
@@ -354,6 +357,10 @@ describe('BridgeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFocusEffects.length = 0;
+    mockRoute.params = {
+      sourcePage: 'test',
+    } as BridgeRouteParams;
   });
 
   it('renders source and destination token areas', async () => {
@@ -369,6 +376,29 @@ describe('BridgeView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeTruthy();
+  });
+
+  it('scrolls to top and clears the route param when requested on focus', () => {
+    mockRoute.params = {
+      sourcePage: 'test',
+      scrollToTopOnNav: true,
+    } as BridgeRouteParams;
+
+    renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: mockState },
+    );
+
+    act(() => {
+      mockFocusEffects[mockFocusEffects.length - 1]?.();
+    });
+
+    expect(mockSetParams).toHaveBeenCalledWith({
+      scrollToTopOnNav: undefined,
+    });
   });
 
   it('should open BridgeTokenSelector when clicking source token', async () => {
@@ -935,42 +965,6 @@ describe('BridgeView', () => {
       ).toBeNull();
     });
 
-    it('shows error mode with banner and without quote or zero state', async () => {
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [],
-          quotesLastFetched: 12,
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: null,
-          isLoading: false,
-          quoteFetchError: 'Error fetching quote',
-          isNoQuotesAvailable: true,
-        }));
-
-      const { queryByTestId } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      await waitFor(() => {
-        expect(queryByTestId('banneralert')).toBeTruthy();
-      });
-      expect(queryByTestId('edit-slippage-button')).toBeNull();
-      expect(
-        queryByTestId(BridgeTrendingTokensSectionTestIds.SECTION),
-      ).toBeNull();
-    });
-
     it('shows quote mode with quote content and confirm button', async () => {
       const now = Date.now();
       const testState = createBridgeTestState({
@@ -1224,118 +1218,80 @@ describe('BridgeView', () => {
     });
   });
 
-  // TODO: This test suite is temporary and will be replaced by another behavior once geolocation detection will be implemented.
-  describe('Error Banner for RWA tokens', () => {
-    beforeEach(() => {
-      // Mock quote data to show an error
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          quoteFetchError: 'Error fetching quote',
-          isNoQuotesAvailable: true,
-          isLoading: false,
-        }));
-    });
-    it('should show regular error banner when no quotes and no RWA token selected', async () => {
+  describe('quoteStreamComplete error banner', () => {
+    it('shows the banner when quoteStreamComplete has a reason', async () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
           quotes: [],
           quotesLastFetched: 12,
-        },
-      });
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      const expected = strings('bridge.error_banner_description');
-
-      await waitFor(() => {
-        expect(getByText(expected)).toBeTruthy();
-      });
-    });
-
-    it('should show error banner about geolocation restriction when no quotes and RWA token selected', async () => {
-      jest.mocked(useRWAToken as jest.Mock).mockImplementation(() => ({
-        isStockToken: jest.fn().mockReturnValue(true),
-      }));
-
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [],
-          quotesLastFetched: 12,
-        },
-      });
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      const expected = strings('bridge.stock_token_error_banner_description');
-
-      await waitFor(() => {
-        expect(getByText(expected)).toBeTruthy();
-      });
-    });
-  });
-
-  describe('Error Banner Visibility', () => {
-    it('should focus input and show keypad when error banner is closed', async () => {
-      // Setup state with error condition
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [],
-          quotesLastFetched: 12,
+          quoteStreamComplete: {
+            hasQuotes: false,
+            quoteCount: 0,
+            reason: QuoteStreamCompleteReason.AMOUNT_TOO_LOW,
+          },
         },
         bridgeReducerOverrides: {
-          sourceAmount: '1.0',
+          sourceAmount: '0.0001',
         },
       });
 
-      // Mock quote data to show an error
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          quoteFetchError: 'Error fetching quote',
-          isNoQuotesAvailable: true,
-          isLoading: false,
-        }));
-
-      const { getByTestId, queryByTestId } = renderScreen(
+      const { getByText } = renderScreen(
         BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
+        { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
-      // Error banner should be visible initially
       await waitFor(() => {
-        expect(queryByTestId('banneralert')).toBeTruthy();
+        expect(
+          getByText(strings('bridge.quote_stream_complete_amount_too_low')),
+        ).toBeTruthy();
+      });
+    });
+
+    it('does not show the banner when quoteStreamComplete is null', async () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+          quoteStreamComplete: null,
+        },
       });
 
-      // Close the banner by clicking close button
-      const closeButton = getByTestId('banner-close-button-icon');
-      fireEvent.press(closeButton);
+      const { queryByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
 
-      // Error banner should be hidden and keypad should be visible
       await waitFor(() => {
-        expect(queryByTestId('banneralert')).toBeNull();
-        // Keypad should be visible - check for the delete button which is part of the keypad
-        expect(queryByTestId('keypad-delete-button')).toBeTruthy();
+        expect(
+          queryByText(strings('bridge.quote_stream_complete_amount_too_low')),
+        ).toBeNull();
+      });
+    });
+
+    it('does not show the banner when quoteStreamComplete has no reason', async () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+          quoteStreamComplete: { hasQuotes: false, quoteCount: 0 },
+        },
+      });
+
+      const { queryByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(
+          queryByText(strings('bridge.quote_stream_complete_amount_too_low')),
+        ).toBeNull();
       });
     });
   });
@@ -1536,14 +1492,21 @@ describe('BridgeView', () => {
         mockState,
       );
 
-      const { getByTestId } = renderScreen(
+      const rendered = renderScreen(
         BridgeView,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
+      // The new Pressable-based Button does not expose onPress on the host View
+      // when disabled, so we find the Button component instance and call onPress directly.
+      const buttons = rendered.UNSAFE_getAllByType(Button);
+      const confirmButton = buttons.find(
+        (b) => b.props.testID === BridgeViewSelectorsIDs.CONFIRM_BUTTON,
+      );
+
       await act(async () => {
-        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+        confirmButton?.props.onPress?.();
       });
 
       await waitFor(() => {
@@ -1931,6 +1894,172 @@ describe('BridgeView', () => {
       selectSourceWalletAddress.mockReturnValue(
         '0x1234567890123456789012345678901234567890',
       );
+    });
+  });
+
+  describe('Token Warning Banner', () => {
+    const mockWarning = {
+      type: TokenFeatureType.WARNING,
+      feature_id: 'warn-1',
+      description: 'This token is suspicious.',
+    };
+
+    const mockMaliciousWarning = {
+      type: TokenFeatureType.MALICIOUS,
+      feature_id: 'mal-1',
+      description: 'This token is malicious.',
+    };
+
+    // createBridgeTestState sets bridge from mockBridgeReducerState (sourceAmount non-zero,
+    // destToken.symbol = 'USDC') which puts the view into 'quote' contentMode.
+    const stateWithWarnings = (
+      warnings: {
+        type: TokenFeatureType;
+        feature_id: string;
+        description: string;
+      }[],
+    ) =>
+      createBridgeTestState(
+        { bridgeControllerOverrides: { tokenWarnings: warnings } },
+        mockState,
+      );
+
+    it('does not show the banner when tokenWarnings is empty', () => {
+      const testState = stateWithWarnings([]);
+
+      const { queryByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(
+        queryByText(
+          strings('bridge.token_warning_suspicious_banner', { token: 'USDC' }),
+        ),
+      ).toBeNull();
+      expect(
+        queryByText(
+          strings('bridge.token_warning_malicious_banner', { token: 'USDC' }),
+        ),
+      ).toBeNull();
+    });
+
+    it('does not show the banner in zero state (no source amount)', () => {
+      const testState = createBridgeTestState(
+        {
+          bridgeControllerOverrides: { tokenWarnings: [mockWarning] },
+          bridgeReducerOverrides: { sourceAmount: undefined },
+        },
+        mockState,
+      );
+
+      const { queryByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(
+        queryByText(
+          strings('bridge.token_warning_suspicious_banner', { token: 'USDC' }),
+        ),
+      ).toBeNull();
+    });
+
+    it('shows the suspicious banner for a WARNING type token', () => {
+      const testState = stateWithWarnings([mockWarning]);
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(
+        getByText(
+          strings('bridge.token_warning_suspicious_banner', { token: 'USDC' }),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the malicious banner for a MALICIOUS type token', () => {
+      const testState = stateWithWarnings([mockMaliciousWarning]);
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(
+        getByText(
+          strings('bridge.token_warning_malicious_banner', { token: 'USDC' }),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to TOKEN_WARNING_MODAL with Info mode when banner is pressed', async () => {
+      mockRoute.params = {
+        sourcePage: 'test',
+        bridgeViewMode: BridgeViewMode.Swap,
+        location: MetaMetricsSwapsEventSource.MainView,
+      };
+      const testState = stateWithWarnings([mockWarning]);
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      const banner = getByText(
+        strings('bridge.token_warning_suspicious_banner', { token: 'USDC' }),
+      );
+      await act(async () => {
+        fireEvent.press(banner);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: {
+          warningType: TokenFeatureType.WARNING,
+          description: mockWarning.description,
+          mode: TokenWarningModalMode.Info,
+          location: MetaMetricsSwapsEventSource.MainView,
+        },
+      });
+    });
+
+    it('passes MALICIOUS warningType when navigating from a malicious banner', async () => {
+      mockRoute.params = {
+        sourcePage: 'test',
+        bridgeViewMode: BridgeViewMode.Swap,
+        location: MetaMetricsSwapsEventSource.MainView,
+      };
+      const testState = stateWithWarnings([mockMaliciousWarning]);
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      const banner = getByText(
+        strings('bridge.token_warning_malicious_banner', { token: 'USDC' }),
+      );
+      await act(async () => {
+        fireEvent.press(banner);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: expect.objectContaining({
+          warningType: TokenFeatureType.MALICIOUS,
+          description: mockMaliciousWarning.description,
+          mode: TokenWarningModalMode.Info,
+        }),
+      });
     });
   });
 });

@@ -1,3 +1,4 @@
+import { hasProperty } from '@metamask/utils';
 import type {
   CaipAccountId,
   CaipChainId,
@@ -596,21 +597,35 @@ export type PerpsControllerConfig = {
   fallbackHip3BlocklistMarkets?: string[];
 
   /**
-   * MYX provider credentials.
+   * Per-provider credentials and configuration.
+   * Nested by provider name so each provider's settings are self-contained
+   * and new protocols can be added without polluting the top-level config.
    * Passed from the init file where `process.env.X` is babel-transformed at build time.
    */
-  myxAppIdTestnet?: string;
-  myxApiSecretTestnet?: string;
-  myxBrokerAddressTestnet?: string;
-  myxAppIdMainnet?: string;
-  myxApiSecretMainnet?: string;
-  myxBrokerAddressMainnet?: string;
+  providerCredentials?: PerpsProviderCredentials;
+};
 
-  /**
-   * Whether MYX provider is enabled via local env var (MM_PERPS_MYX_PROVIDER_ENABLED).
-   * Must match the UI selector logic so the controller and UI agree on MYX availability.
-   */
-  myxProviderEnabled?: boolean;
+export type HyperLiquidCredentials = {
+  /** Builder fee wallet address for testnet. Empty/omitted = uses BUILDER_FEE_CONFIG default. */
+  builderAddressTestnet?: string;
+  /** Builder fee wallet address for mainnet. Empty/omitted = uses BUILDER_FEE_CONFIG default. */
+  builderAddressMainnet?: string;
+};
+
+export type MYXCredentials = {
+  /** Whether MYX provider is enabled via local env var. */
+  enabled?: boolean;
+  appIdTestnet?: string;
+  apiSecretTestnet?: string;
+  brokerAddressTestnet?: string;
+  appIdMainnet?: string;
+  apiSecretMainnet?: string;
+  brokerAddressMainnet?: string;
+};
+
+export type PerpsProviderCredentials = {
+  hyperliquid?: HyperLiquidCredentials;
+  myx?: MYXCredentials;
 };
 
 export type PriceUpdate = {
@@ -1509,6 +1524,14 @@ export type PerpsPlatformDependencies = {
   // === Cache Invalidation (for standalone query caches) ===
   cacheInvalidator: PerpsCacheInvalidator;
 
+  // === Disk Cache (cold-start persistence) ===
+  diskCache: {
+    getItem(key: string): Promise<string | null>;
+    getItemSync?(key: string): string | null;
+    setItem(key: string, value: string): Promise<void>;
+    removeItem(key: string): Promise<void>;
+  };
+
   // === Rewards (DI — no RewardsController in Core yet) ===
   rewards: {
     /**
@@ -1629,8 +1652,8 @@ export function isVersionGatedFeatureFlag(
   return (
     typeof value === 'object' &&
     value !== null &&
-    'enabled' in value &&
-    'minimumVersion' in value &&
+    hasProperty(value, 'enabled') &&
+    hasProperty(value, 'minimumVersion') &&
     typeof (value as { enabled: unknown }).enabled === 'boolean' &&
     typeof (value as { minimumVersion: unknown }).minimumVersion === 'string'
   );

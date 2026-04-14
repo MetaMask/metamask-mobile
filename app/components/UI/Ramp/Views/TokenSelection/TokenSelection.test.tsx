@@ -21,7 +21,7 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     setOptions: mockSetOptions,
     goBack: mockGoBack,
-    dangerouslyGetParent: () => ({
+    getParent: () => ({
       goBack: mockParentGoBack,
     }),
   }),
@@ -190,32 +190,37 @@ describe('TokenSelection Component', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly and matches snapshot (legacy)', () => {
+  it('renders token list for legacy flow', () => {
     mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    const { toJSON } = renderWithProvider(TokenSelection);
+    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByPlaceholderText('Search token by name or address'),
+    ).toBeOnTheScreen();
   });
 
-  it('renders correctly and matches snapshot (V2 enabled)', () => {
+  it('renders token list for V2 flow', () => {
     mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-    const { toJSON } = renderWithProvider(TokenSelection);
+    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByPlaceholderText('Search token by name or address'),
+    ).toBeOnTheScreen();
   });
 
   it('displays empty state when no tokens match search', async () => {
     (useSearchTokenResults as jest.Mock).mockReturnValue([]);
-    const { getByPlaceholderText, getByText, toJSON } =
+    const { getByPlaceholderText, getByText } =
       renderWithProvider(TokenSelection);
 
     const searchInput = getByPlaceholderText('Search token by name or address');
     fireEvent.changeText(searchInput, 'Nonexistent Token');
 
     await waitFor(() => {
-      expect(getByText('No tokens match "Nonexistent Token"')).toBeTruthy();
+      expect(
+        getByText('No tokens match "Nonexistent Token"'),
+      ).toBeOnTheScreen();
     });
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('filters tokens by search string', async () => {

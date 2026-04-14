@@ -54,6 +54,12 @@ import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
   TokenSelectorBalanceLayoutVariant,
 } from './TokenSelectorItem.abTestConfig';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 
 const createStyles = ({
   theme,
@@ -98,6 +104,20 @@ const createStyles = ({
       flexShrink: 1,
       minWidth: 0,
       marginRight: 8,
+    },
+    tokenSymbolRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexShrink: 1,
+      minWidth: 0,
+    },
+    tokenSymbol: {
+      flexShrink: 1,
+      minWidth: 0,
+    },
+    verifiedIcon: {
+      marginLeft: 4,
+      flexShrink: 0,
     },
     rightValue: {
       flexShrink: 0,
@@ -344,13 +364,25 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
               justifyContent={JustifyContent.spaceBetween}
             >
               <Box style={styles.tokenMainInfo} gap={4}>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {token.symbol}
-                </Text>
+                <Box style={styles.tokenSymbolRow}>
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    style={styles.tokenSymbol}
+                  >
+                    {token.symbol}
+                  </Text>
+                  {token.isVerified && (
+                    <Icon
+                      testID={`token-verified-icon-${token.symbol}`}
+                      name={IconName.VerifiedFilled}
+                      size={IconSize.Sm}
+                      color={IconColor.InfoDefault}
+                      style={styles.verifiedIcon}
+                    />
+                  )}
+                </Box>
                 {label && <Tag label={label} />}
                 {showNoFeeBadge && (
                   <TagBase

@@ -1,11 +1,13 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import Button, {
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -320,15 +322,16 @@ const ConfirmEmail = () => {
   const renderActions = () => (
     <Box twClassName="flex flex-col items-center justify-center gap-2">
       <Button
-        variant={ButtonVariants.Primary}
-        label={strings('card.card_onboarding.continue_button')}
+        variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={handleContinue}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         isDisabled={isDisabled}
-        loading={verifyLoading}
+        isLoading={verifyLoading}
         testID="confirm-email-continue-button"
-      />
+      >
+        {strings('card.card_onboarding.continue_button')}
+      </Button>
       <Text
         variant={TextVariant.BodySm}
         testID="confirm-email-legal-terms"

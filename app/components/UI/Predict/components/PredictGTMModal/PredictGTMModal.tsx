@@ -17,7 +17,7 @@ import Button, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PredictMarketingImage from '../../../../../images/predict-marketing.png';
@@ -36,7 +36,7 @@ import {
 import { PREDICT_GTM_MODAL_TEST_IDS } from './PredictGTMModal.testIds';
 
 const PredictGTMModal = () => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { navigate } = useNavigation();
   const theme = useTheme();
   const [imageLoaded, setImageLoaded] = useState(false);

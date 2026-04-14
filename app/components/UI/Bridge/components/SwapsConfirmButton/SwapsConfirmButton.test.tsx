@@ -21,8 +21,12 @@ import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/te
 import { BigNumber } from 'ethers';
 import Engine from '../../../../../core/Engine';
 import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  MetaMetricsSwapsEventSource,
+  TokenFeatureType,
+} from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
+import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -234,6 +238,13 @@ const mockState: DeepPartial<RootState> = {
           bridgeConfigV2: defaultBridgeConfigV2,
         },
       },
+      // Required by selectControllerFields (used by selectDestTokenWarning)
+      GasFeeController: {
+        gasFeeEstimatesByChainId: {},
+      },
+      BridgeController: {
+        tokenWarnings: [],
+      },
     },
   },
   bridge: {
@@ -324,7 +335,7 @@ describe('SwapsConfirmButton', () => {
         },
       };
 
-      const { queryByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <SwapsConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
@@ -334,9 +345,9 @@ describe('SwapsConfirmButton', () => {
         },
       );
 
-      // When submitting, buttonIsInLoadingState is true so Button renders
-      // an ActivityIndicator instead of the label text
-      expect(queryByText(strings('bridge.submitting_transaction'))).toBeNull();
+      // When submitting, buttonIsInLoadingState is true so Button shows
+      // a spinner overlay (label text is rendered but visually hidden via opacity-0)
+      expect(getByTestId('spinner-container')).toBeTruthy();
     });
   });
 
@@ -361,7 +372,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('disables button when balance is insufficient', () => {
@@ -378,7 +389,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('disables button when transaction is submitting', () => {
@@ -401,7 +412,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('disables button for hardware wallet with Solana source', () => {
@@ -433,7 +444,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('disables button when blockaid error exists', () => {
@@ -455,7 +466,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('disables button when gas is insufficient', () => {
@@ -472,7 +483,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('disables button when walletAddress is missing', () => {
@@ -489,7 +500,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
   });
 
@@ -503,7 +514,7 @@ describe('SwapsConfirmButton', () => {
           activeQuote: null,
         }));
 
-      const { queryByText, getByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <SwapsConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
@@ -515,9 +526,9 @@ describe('SwapsConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       // Button is disabled (isLoading && !activeQuote)
-      expect(button.props.disabled).toBe(true);
-      // Label text is hidden behind ActivityIndicator
-      expect(queryByText(strings('bridge.confirm_swap'))).toBeNull();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      // Spinner overlay is shown (label text rendered but visually hidden via opacity-0)
+      expect(getByTestId('spinner-container')).toBeTruthy();
     });
 
     it('shows loading indicator when submitting transaction', () => {
@@ -529,7 +540,7 @@ describe('SwapsConfirmButton', () => {
         },
       };
 
-      const { queryByText, getByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <SwapsConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
@@ -540,9 +551,9 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
-      // Label hidden by loading indicator
-      expect(queryByText(strings('bridge.submitting_transaction'))).toBeNull();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      // Spinner overlay is shown (label text rendered but visually hidden via opacity-0)
+      expect(getByTestId('spinner-container')).toBeTruthy();
     });
 
     it('shows loading when awaiting quote (valid amount, no quote, not loading)', () => {
@@ -554,7 +565,7 @@ describe('SwapsConfirmButton', () => {
           activeQuote: null,
         }));
 
-      const { queryByText, getByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <SwapsConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
@@ -565,9 +576,9 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
-      // Label hidden by loading indicator during debounce gap
-      expect(queryByText(strings('bridge.confirm_swap'))).toBeNull();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      // Spinner overlay is shown (label text rendered but visually hidden via opacity-0)
+      expect(getByTestId('spinner-container')).toBeTruthy();
     });
 
     it('does not show loading when source amount is empty', () => {
@@ -656,7 +667,7 @@ describe('SwapsConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       // Not disabled because activeQuote exists
-      expect(button.props.disabled).toBe(false);
+      expect(button.props.accessibilityState?.disabled).toBe(false);
       // Label is visible (no loading indicator)
       expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
     });
@@ -676,7 +687,7 @@ describe('SwapsConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       // Button is disabled
-      expect(button.props.disabled).toBe(true);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
       // But not in loading state (isLoading=false, isSubmittingTx=false)
       // so the label is visible
       expect(getByText(strings('bridge.insufficient_funds'))).toBeTruthy();
@@ -696,7 +707,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
       // Label visible because not loading/submitting
       expect(getByText(strings('bridge.insufficient_gas'))).toBeTruthy();
     });
@@ -705,7 +716,7 @@ describe('SwapsConfirmButton', () => {
   describe('Stale Quote (isQuoteStale)', () => {
     it('shows loading when amount changes to non-zero and quote is stale', () => {
       // First render with sourceAmount='1.0' — settledAmountRef latches to '1.0'
-      const { queryByText, getByTestId, store } = renderWithProvider(
+      const { getByTestId, store } = renderWithProvider(
         <SwapsConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
@@ -722,9 +733,9 @@ describe('SwapsConfirmButton', () => {
       });
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
-      // Label hidden by loading indicator
-      expect(queryByText(strings('bridge.confirm_swap'))).toBeNull();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      // Spinner overlay is shown (label text rendered but visually hidden via opacity-0)
+      expect(getByTestId('spinner-container')).toBeTruthy();
     });
 
     it('disables button without loading when amount changes to zero and quote is stale', () => {
@@ -747,7 +758,7 @@ describe('SwapsConfirmButton', () => {
       });
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(true);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
       // Label visible (not loading) — shows default "Confirm swap"
       expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
     });
@@ -765,7 +776,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(false);
+      expect(button.props.accessibilityState?.disabled).toBe(false);
       expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
     });
   });
@@ -815,7 +826,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(false);
+      expect(button.props.accessibilityState?.disabled).toBe(false);
     });
 
     it('calls resetState and updateQuoteParams when expired quote button is pressed', async () => {
@@ -874,7 +885,7 @@ describe('SwapsConfirmButton', () => {
       ).toBeTruthy();
       // Button is not disabled — user can press "Get new quote"
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button.props.disabled).toBe(false);
+      expect(button.props.accessibilityState?.disabled).toBe(false);
     });
 
     it('does not show "Get new quote" when expired and loading with active quote', () => {
@@ -1099,10 +1110,159 @@ describe('SwapsConfirmButton', () => {
 
       // Button should be disabled when walletAddress is missing
       const continueButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
 
       // Verify submitBridgeTx is not called since button is disabled
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('handleContinue — token warning routing', () => {
+    const mockWarning = {
+      type: TokenFeatureType.WARNING,
+      feature_id: 'warn-1',
+      description: 'This token may be suspicious',
+    };
+
+    const stateWithWarning = (
+      warning = mockWarning,
+    ): DeepPartial<RootState> => ({
+      ...mockState,
+      engine: {
+        backgroundState: {
+          ...mockState.engine?.backgroundState,
+          BridgeController: {
+            tokenWarnings: [warning],
+          },
+        },
+      },
+    });
+
+    it('navigates to TokenWarningModal when a token warning is present', async () => {
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: stateWithWarning() },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: {
+          warningType: TokenFeatureType.WARNING,
+          description: mockWarning.description,
+          mode: TokenWarningModalMode.Execution,
+          location: MetaMetricsSwapsEventSource.MainView,
+        },
+      });
+    });
+
+    it('does not submit the transaction when a token warning is present', async () => {
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: stateWithWarning() },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+
+    it('passes MALICIOUS type through to TokenWarningModal params', async () => {
+      const maliciousWarning = {
+        type: TokenFeatureType.MALICIOUS,
+        feature_id: 'mal-1',
+        description: 'This token is malicious',
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: stateWithWarning(maliciousWarning) },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: expect.objectContaining({
+          warningType: TokenFeatureType.MALICIOUS,
+          description: maliciousWarning.description,
+          mode: TokenWarningModalMode.Execution,
+        }),
+      });
+    });
+
+    it('bypasses price impact check when token warning is present', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: { priceImpact: '0.90' }, // well above danger threshold
+            },
+          },
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: stateWithWarning() },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: expect.anything(),
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
+        params: expect.anything(),
+      });
+    });
+
+    it('proceeds to normal flow when no token warning is present', async () => {
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: mockState }, // tokenWarnings: [] by default
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: expect.anything(),
+      });
+      await waitFor(() => {
+        expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
+      });
     });
   });
 

@@ -33,6 +33,7 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
             ],
             '0xe708',
           )
+          .withCardController()
           .build(),
         restartDevice: true,
         testSpecificMock,

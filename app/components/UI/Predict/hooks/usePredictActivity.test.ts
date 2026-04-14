@@ -41,7 +41,7 @@ jest.mock('react-redux', () => ({
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+    defaultOptions: { queries: { retry: false, cacheTime: Infinity } },
   });
 
   const Wrapper = ({ children }: { children: React.ReactNode }) =>

@@ -93,11 +93,13 @@ jest.mock('react-native-confirmation-code-field', () => ({
     value,
     renderCell,
     cellCount,
+    editable,
     ...rest
   }: {
     onChangeText: (text: string) => void;
     value: string;
     cellCount: number;
+    editable?: boolean;
     renderCell: (info: {
       index: number;
       symbol: string;
@@ -114,6 +116,7 @@ jest.mock('react-native-confirmation-code-field', () => ({
         testID: rest.testID || 'otp-code-input',
         onChangeText,
         value,
+        editable,
       }),
       Array.from({ length: cellCount }, (_, i) =>
         renderCell({ index: i, symbol: value[i] || '', isFocused: false }),
@@ -144,11 +147,6 @@ describe('V2OtpCode', () => {
 
   afterEach(() => {
     jest.useRealTimers();
-  });
-
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(<V2OtpCode />);
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders the OTP input and submit button', () => {
@@ -400,6 +398,70 @@ describe('V2OtpCode', () => {
 
     await waitFor(() => {
       expect(getByText('Network error')).toBeOnTheScreen();
+    });
+  });
+
+  it('ignores OTP input changes while verification request is in-flight', async () => {
+    jest.useRealTimers();
+
+    let resolveAttempt: (value: unknown) => void = () => undefined;
+    const attemptPromise = new Promise((resolve) => {
+      resolveAttempt = resolve;
+    });
+
+    mockVerifyUserOtp.mockImplementationOnce(() => attemptPromise);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    const otpInput = getByTestId('otp-code-input');
+
+    await act(async () => {
+      fireEvent.changeText(otpInput, '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockVerifyUserOtp).toHaveBeenCalledTimes(1);
+    });
+
+    await act(async () => {
+      fireEvent.changeText(otpInput, '654321');
+    });
+
+    expect(otpInput.props.value).toBe('123456');
+
+    await act(async () => {
+      resolveAttempt(null);
+    });
+  });
+
+  it('sets input to non-editable while verification request is in-flight', async () => {
+    jest.useRealTimers();
+
+    let resolveAttempt: (value: unknown) => void = () => undefined;
+    const attemptPromise = new Promise((resolve) => {
+      resolveAttempt = resolve;
+    });
+
+    mockVerifyUserOtp.mockImplementationOnce(() => attemptPromise);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    const otpInput = getByTestId('otp-code-input');
+
+    expect(otpInput.props.editable).not.toBe(false);
+
+    await act(async () => {
+      fireEvent.changeText(otpInput, '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockVerifyUserOtp).toHaveBeenCalledTimes(1);
+    });
+
+    expect(otpInput.props.editable).toBe(false);
+
+    await act(async () => {
+      resolveAttempt(null);
     });
   });
 

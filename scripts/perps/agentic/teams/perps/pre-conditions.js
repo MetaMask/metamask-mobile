@@ -41,6 +41,8 @@
  * @property {{ operator: string, field?: string, value?: unknown }} assert
  *   Same operators as recipe step assertions.
  * @property {string}   hint         What to do when the check fails.
+ * @property {{ pass: string, fail: string }} fixtures
+ *   Inline test fixtures for offline assertion correctness checks.
  */
 
 /** @type {Record<string, PreCondition>} */
@@ -51,6 +53,10 @@ const REGISTRY = {
     expression: '(function(){ var r=globalThis.__AGENTIC__.getRoute().name; return JSON.stringify({route:r,unlocked:r!=="Login"&&r!=="LoginView"&&r!=="Onboarding"}); })()',
     assert: { operator: 'eq', field: 'unlocked', value: true },
     hint: 'Unlock the wallet first:\n  bash scripts/perps/agentic/app-state.sh unlock <password>',
+    fixtures: {
+      pass: '{"route":"WalletView","unlocked":true}',
+      fail: '{"route":"Login","unlocked":false}',
+    },
   },
 
   'perps.feature_enabled': {
@@ -59,6 +65,10 @@ const REGISTRY = {
     expression: 'JSON.stringify({enabled: !!(Engine.context && Engine.context.PerpsController)})',
     assert: { operator: 'eq', field: 'enabled', value: true },
     hint: 'Enable the Perps feature flag for this account/environment.',
+    fixtures: {
+      pass: '{"enabled":true}',
+      fail: '{"enabled":false}',
+    },
   },
 
   'perps.ready_to_trade': {
@@ -67,6 +77,10 @@ const REGISTRY = {
     expression: '(function(){ var c=Engine.context.PerpsController; var id=c.state.activeProvider; var p=c.providers.get(id); if(!p) return Promise.resolve(JSON.stringify({isAuthenticated:false,error:"no active provider"})); return p.isReadyToTrade().then(function(r){ return JSON.stringify({isAuthenticated:r.ready}); }); })()',
     assert: { operator: 'eq', field: 'isAuthenticated', value: true },
     hint: 'Complete Perps authentication/onboarding before running this flow.',
+    fixtures: {
+      pass: '{"isAuthenticated":true}',
+      fail: '{"isAuthenticated":false}',
+    },
   },
 
   'perps.sufficient_balance': {
@@ -75,6 +89,10 @@ const REGISTRY = {
     expression: 'Engine.context.PerpsController.getAccountState().then(function(r){ return JSON.stringify({balance: parseFloat(r.availableBalance||"0")}); })',
     assert: { operator: 'gt', field: 'balance', value: 0 },
     hint: 'Deposit funds into your Perps account before placing orders.',
+    fixtures: {
+      pass: '{"balance":100}',
+      fail: '{"balance":0}',
+    },
   },
 
   'perps.open_position': {
@@ -88,6 +106,10 @@ const REGISTRY = {
     },
     assert: { operator: 'gt', field: 'count', value: 0 },
     hint: 'Open a position first using the trade-open-market flow.',
+    fixtures: {
+      pass: '{"count":2}',
+      fail: '{"count":0}',
+    },
   },
 
   'perps.open_position_tpsl': {
@@ -101,6 +123,10 @@ const REGISTRY = {
     },
     assert: { operator: 'gt', field: 'count', value: 0 },
     hint: 'Create a TP/SL first using the tpsl-create flow.',
+    fixtures: {
+      pass: '{"count":1}',
+      fail: '{"count":0}',
+    },
   },
 
   'perps.open_limit_order': {
@@ -114,6 +140,10 @@ const REGISTRY = {
     },
     assert: { operator: 'gt', field: 'count', value: 0 },
     hint: 'Place a limit order first using the order-limit-place flow.',
+    fixtures: {
+      pass: '{"count":1}',
+      fail: '{"count":0}',
+    },
   },
 
   'perps.not_in_watchlist': {
@@ -125,6 +155,10 @@ const REGISTRY = {
     },
     assert: { operator: 'eq', field: 'inWatchlist', value: false },
     hint: 'Remove the symbol from the watchlist first, or use a symbol not already in it.',
+    fixtures: {
+      pass: '{"inWatchlist":false}',
+      fail: '{"inWatchlist":true}',
+    },
   },
 
   'perps.trading_flag': {
@@ -133,23 +167,12 @@ const REGISTRY = {
     expression: '(function(){ var f=Engine.context.RemoteFeatureFlagController.state.remoteFeatureFlags.perpsPerpTradingEnabled; var enabled=f===true||(f&&f.enabled===true); return JSON.stringify({enabled:!!enabled}); })()',
     assert: { operator: 'eq', field: 'enabled', value: true },
     hint: 'Enable the perps trading flag: Settings → Experimental → Feature Flags → perpsPerpTradingEnabled.',
+    fixtures: {
+      pass: '{"enabled":true}',
+      fail: '{"enabled":false}',
+    },
   },
 
-  'ui.homepage_redesign_v1_enabled': {
-    description: 'Homepage redesign V1 feature flag is ON',
-    async: false,
-    expression: '(function(){ var f=Engine.context.RemoteFeatureFlagController.state.remoteFeatureFlags.homepageRedesignV1; var enabled=f===true||(f&&f.enabled===true); return JSON.stringify({enabled:!!enabled}); })()',
-    assert: { operator: 'eq', field: 'enabled', value: true },
-    hint: 'Enable homepageRedesignV1: Settings → Experimental → Feature Flags → homepageRedesignV1.',
-  },
-
-  'ui.homepage_redesign_v1_disabled': {
-    description: 'Homepage redesign V1 feature flag is OFF (classic PerpsTabView layout)',
-    async: false,
-    expression: '(function(){ var f=Engine.context.RemoteFeatureFlagController.state.remoteFeatureFlags.homepageRedesignV1; var enabled=f===true||(f&&f.enabled===true); return JSON.stringify({enabled:!!enabled}); })()',
-    assert: { operator: 'eq', field: 'enabled', value: false },
-    hint: 'Disable homepageRedesignV1: Settings → Experimental → Feature Flags → homepageRedesignV1.',
-  },
 };
 
 module.exports = REGISTRY;

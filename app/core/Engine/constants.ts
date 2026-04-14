@@ -20,6 +20,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'RampsService',
   'TransakService',
   'ComplianceService',
+  'SocialService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -57,7 +58,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'MultichainNetworkController:stateChange',
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   'SnapController:stateChange',
-  'SnapsRegistry:stateChange',
+  'SnapRegistryController:stateChange',
   'SubjectMetadataController:stateChange',
   'AuthenticationController:stateChange',
   'UserStorageController:stateChange',
@@ -76,6 +77,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'BridgeController:stateChange',
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',
+  'MoneyAccountController:stateChange',
   'PerpsController:stateChange',
   'RewardsController:stateChange',
   'DeFiPositionsController:stateChange',
@@ -89,6 +91,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'DelegationController:stateChange',
   'ProfileMetricsController:stateChange',
   'ComplianceController:stateChange',
+  'SocialController:stateChange',
 ] as const;
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';

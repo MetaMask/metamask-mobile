@@ -7,6 +7,9 @@ import { useIdentityEffects } from './useIdentityEffects';
 jest.mock('../useAuthentication');
 jest.mock('../useAccountSyncing');
 jest.mock('../useContactSyncing');
+jest.mock('../../../../core/Braze/useBrazeIdentity', () => ({
+  useBrazeIdentity: jest.fn(),
+}));
 
 describe('useIdentityEffects', () => {
   const mockUseAutoSignIn = jest.mocked(useAutoSignIn);

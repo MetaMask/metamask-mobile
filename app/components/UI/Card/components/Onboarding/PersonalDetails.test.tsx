@@ -56,6 +56,20 @@ jest.mock('@metamask/design-system-react-native', () => {
     Lg: 'lg',
   };
 
+  const { TouchableOpacity } = jest.requireActual('react-native');
+
+  const ButtonVariant = {
+    Primary: 'Primary',
+    Secondary: 'Secondary',
+    Link: 'Link',
+  };
+
+  const ButtonSize = {
+    Sm: 'Sm',
+    Md: 'Md',
+    Lg: 'Lg',
+  };
+
   return {
     Box: ({
       children,
@@ -83,9 +97,32 @@ jest.mock('@metamask/design-system-react-native', () => {
       children: React.ReactNode;
       testID?: string;
     }) => React.createElement(Text, { testID, ...props }, children),
+    Button: ({
+      children,
+      testID,
+      onPress,
+      label,
+      isDisabled,
+      disabled,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+      label?: string;
+      isDisabled?: boolean;
+      disabled?: boolean;
+    }) =>
+      React.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: disabled || isDisabled, ...props },
+        React.createElement(Text, {}, children || label),
+      ),
     TextVariant,
     IconName,
     IconSize,
+    ButtonVariant,
+    ButtonSize,
   };
 });
 
@@ -399,8 +436,8 @@ describe('PersonalDetails Component', () => {
     it('does not show error messages initially', () => {
       const { queryByTestId } = render(<PersonalDetails />);
 
-      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
-      expect(queryByTestId('personal-details-error')).toBeNull();
+      expect(queryByTestId('personal-details-ssn-error')).not.toBeOnTheScreen();
+      expect(queryByTestId('personal-details-error')).not.toBeOnTheScreen();
     });
 
     it('calls fetchUserData on mount', () => {
@@ -432,7 +469,7 @@ describe('PersonalDetails Component', () => {
 
       const { queryByTestId } = render(<PersonalDetails />);
 
-      expect(queryByTestId('personal-details-ssn-input')).toBeNull();
+      expect(queryByTestId('personal-details-ssn-input')).not.toBeOnTheScreen();
     });
   });
 
@@ -502,7 +539,7 @@ describe('PersonalDetails Component', () => {
       fireEvent.changeText(ssnInput, '123'); // Invalid SSN (less than 9 digits)
 
       // Error should not be shown while typing
-      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+      expect(queryByTestId('personal-details-ssn-error')).not.toBeOnTheScreen();
     });
 
     it('shows SSN error after blur when SSN is invalid', () => {
@@ -524,7 +561,7 @@ describe('PersonalDetails Component', () => {
       fireEvent(ssnInput, 'onBlur');
 
       // Error should not be shown for valid SSN
-      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+      expect(queryByTestId('personal-details-ssn-error')).not.toBeOnTheScreen();
     });
 
     it('clears SSN error when user starts typing again', () => {
@@ -539,7 +576,7 @@ describe('PersonalDetails Component', () => {
 
       // Type again - error should be cleared
       fireEvent.changeText(ssnInput, '1234');
-      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+      expect(queryByTestId('personal-details-ssn-error')).not.toBeOnTheScreen();
     });
   });
 
@@ -790,7 +827,7 @@ describe('PersonalDetails Component', () => {
 
       // The nationality should show Canada (from countryOfNationality)
       expect(getByText('Canada')).toBeTruthy();
-      expect(queryByText('United States')).toBeNull();
+      expect(queryByText('United States')).not.toBeOnTheScreen();
     });
   });
 
@@ -1064,7 +1101,7 @@ describe('PersonalDetails Component', () => {
       fireEvent.changeText(firstNameInput, 'John');
       fireEvent.changeText(lastNameInput, 'Doe');
 
-      expect(queryByTestId('personal-details-ssn-input')).toBeNull();
+      expect(queryByTestId('personal-details-ssn-input')).not.toBeOnTheScreen();
     });
   });
 

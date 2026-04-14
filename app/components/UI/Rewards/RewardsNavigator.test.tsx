@@ -69,14 +69,38 @@ jest.mock('./Views/RewardsSettingsView', () => {
   };
 });
 
-jest.mock('./Views/CampaignDetailsView', () => {
+jest.mock('./Views/OndoCampaignDetailsView', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
-  return function MockCampaignDetailsView() {
+  return function MockOndoCampaignDetailsView() {
     return ReactActual.createElement(
       View,
       { testID: 'campaign-details-view' },
       ReactActual.createElement(Text, null, 'Campaign Details View'),
+    );
+  };
+});
+
+jest.mock('./Views/OndoCampaignRwaSelectorView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockOndoCampaignRwaSelectorView() {
+    return ReactActual.createElement(
+      View,
+      { testID: 'ondo-campaign-rwa-selector-view' },
+      ReactActual.createElement(Text, null, 'Ondo Campaign RWA Selector View'),
+    );
+  };
+});
+
+jest.mock('./Views/SeasonOneCampaignDetailsView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockSeasonOneCampaignDetailsView() {
+    return ReactActual.createElement(
+      View,
+      { testID: 'season-one-campaign-details-view' },
+      ReactActual.createElement(Text, null, 'Season One Campaign Details View'),
     );
   };
 });
@@ -195,6 +219,13 @@ jest.mock('./hooks/useSeasonStatus', () => ({
 // Mock useGeoRewardsMetadata hook
 jest.mock('./hooks/useGeoRewardsMetadata', () => ({
   useGeoRewardsMetadata: jest.fn(),
+}));
+
+// Mock useReferralDetails hook
+jest.mock('./hooks/useReferralDetails', () => ({
+  useReferralDetails: jest.fn().mockReturnValue({
+    fetchReferralDetails: jest.fn(),
+  }),
 }));
 
 // Mock useRewardsVersionGuard hook
@@ -463,12 +494,24 @@ describe('RewardsNavigator', () => {
       });
     });
 
-    it('registers CAMPAIGN_DETAILS and CAMPAIGN_MECHANICS routes when subscription exists', async () => {
+    it('registers ONDO_CAMPAIGN_DETAILS_VIEW and CAMPAIGN_MECHANICS routes when subscription exists', async () => {
       // Both views are registered inside the subscriptionId-guarded block,
       // so they are present in the navigator only when the user is enrolled.
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
 
       // Rendering should not throw even with the new screens registered
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
+      });
+    });
+
+    it('registers REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR route when subscription exists', async () => {
+      // The RWA selector screen is registered inside the subscriptionId-guarded block
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+
+      // Rendering should not throw with the new screen registered
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {

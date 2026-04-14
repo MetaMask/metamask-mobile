@@ -137,8 +137,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     ipfsGateway,
     newTab,
     activeChainId,
-    fromTrending,
     fromPerps,
+    fromBenefit,
   }) => {
     const navigation = useNavigation();
     const { styles } = useStyles(styleSheet, {});
@@ -1281,15 +1281,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.PERPS_HOME,
         });
-      } else if (fromTrending) {
-        // If within trending follow the normal back button behavior
+      } else if (fromBenefit) {
         navigation.goBack();
       } else {
+        // Navigate to TrendingView/TrendingFeed
+        // Note: We use explicit navigation instead of goBack() because the browser
+        // is a separate tab in the Tab Navigator, and goBack() doesn't properly
+        // navigate back between tabs.
         navigation.navigate(Routes.TRENDING_VIEW, {
           screen: Routes.TRENDING_FEED,
         });
       }
-    }, [navigation, fromTrending, fromPerps]);
+    }, [navigation, fromPerps, fromBenefit]);
 
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();

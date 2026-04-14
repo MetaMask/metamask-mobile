@@ -19,14 +19,26 @@ import {
   RedesignedSendViewSelectorsIDs,
 } from './RedesignedSendView.testIds';
 import { Send } from './send';
+import { SendAlertModalSelectorIDs } from './send-alert-modal/send-alert-modal.testIds';
+
+/** A minimal ETH asset with 2 ETH balance, suitable for EVM send tests. */
+const EVM_ETH_ASSET = {
+  address: '0x0000000000000000000000000000000000000000',
+  chainId: '0x1',
+  symbol: 'ETH',
+  decimals: 18,
+  balance: '2',
+  rawBalance: '0x1BC16D674EC80000', // 2 ETH
+};
+
+const VALID_EVM_RECIPIENT = '0x0000000000000000000000000000000000000002';
+const TOKEN_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000003';
 
 describeForPlatforms('Send', () => {
   describe('Non-EVM', () => {
-    /**
-     * Regression test for Issue #22789 and related to #23251
-     * TRON send flow: selecting a destination account must move the flow forward
-     * (previously it stayed on the recipient list and did not navigate).
-     */
+    // Regression test for Issue #22789 and related to #23251
+    // TRON send flow: selecting a destination account must move the flow forward
+    // (previously it stayed on the recipient list and did not navigate).
     it('TRON send: selecting destination account updates selection', async () => {
       const { tronOverrides, recipientAddresses } = buildTronSendFixture();
 
@@ -236,6 +248,272 @@ describeForPlatforms('Send', () => {
           RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
         ),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('EVM', () => {
+    beforeEach(() => {
+      // Reset AssetsContractController mock so each test starts clean.
+      // The Engine mock in mocks.ts registers this as jest.fn().mockResolvedValue({}).
+      // Resetting here ensures any one-time override from a previous test is cleared.
+      const engineMock = jest.requireMock(
+        '../../../../../../app/core/Engine',
+      ) as unknown as {
+        default: {
+          context: {
+            AssetsContractController: { getTokenStandardAndDetails: jest.Mock };
+          };
+        };
+      };
+      engineMock.default.context.AssetsContractController.getTokenStandardAndDetails.mockResolvedValue(
+        {},
+      );
+    });
+
+    /**
+     * Core EVM send happy path: Amount → Continue → Recipient.
+     * Typing a valid address must enable the Review button.
+     */
+    it('ETH: Amount → Continue → Recipient, valid address enables Review', async () => {
+      const state = initialStateWallet()
+        .withOverrides(sendViewOverrides)
+        .build();
+
+      const { getByTestId, getByRole, findByTestId } = renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        { screen: Routes.SEND.AMOUNT, params: { asset: EVM_ETH_ASSET } },
+      );
+
+      expect(
+        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
+      );
+      fireEvent.press(getByRole('button', { name: 'Continue' }));
+
+      const addressInput = await findByTestId(
+        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        {},
+        { timeout: 5000 },
+      );
+      fireEvent.changeText(addressInput, VALID_EVM_RECIPIENT);
+
+      const reviewButton = await findByTestId(
+        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        {},
+        { timeout: 5000 },
+      );
+      await waitFor(() => expect(reviewButton).toBeEnabled(), {
+        timeout: 5000,
+      });
+    });
+
+    /**
+     * Typing an invalid address (not a valid hex, ENS, or non-EVM address)
+     * must disable the Review button and show an error label.
+     */
+    it('Recipient: invalid address disables Review with error text', async () => {
+      const state = initialStateWallet()
+        .withOverrides(sendViewOverrides)
+        .build();
+
+      const { findByTestId } = renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        { screen: Routes.SEND.RECIPIENT, params: { asset: EVM_ETH_ASSET } },
+      );
+
+      const addressInput = await findByTestId(
+        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        {},
+        { timeout: 5000 },
+      );
+      fireEvent.changeText(addressInput, 'notanaddress');
+
+      const reviewButton = await findByTestId(
+        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        {},
+        { timeout: 5000 },
+      );
+      await waitFor(() => expect(reviewButton).toBeDisabled(), {
+        timeout: 5000,
+      });
+    });
+
+    /**
+     * When the recipient is a token contract address, sending would burn the tokens.
+     * The Recipient screen must show a warning modal before proceeding.
+     * Cancelling the modal must close it and keep the user on the Recipient screen.
+     */
+    it('Recipient: token contract address opens alert modal; cancel closes it', async () => {
+      const engineMock = jest.requireMock(
+        '../../../../../../app/core/Engine',
+      ) as unknown as {
+        default: {
+          context: {
+            AssetsContractController: { getTokenStandardAndDetails: jest.Mock };
+          };
+        };
+      };
+      engineMock.default.context.AssetsContractController.getTokenStandardAndDetails.mockImplementation(
+        (tokenAddress: string) => {
+          if (
+            tokenAddress?.toLowerCase() === TOKEN_CONTRACT_ADDRESS.toLowerCase()
+          ) {
+            return Promise.resolve({
+              standard: 'ERC20',
+              symbol: 'TOKEN',
+              decimals: '18',
+            });
+          }
+          return Promise.resolve({});
+        },
+      );
+
+      const state = initialStateWallet()
+        .withOverrides(sendViewOverrides)
+        .build();
+
+      const { findByTestId, queryByTestId } = renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        { screen: Routes.SEND.RECIPIENT, params: { asset: EVM_ETH_ASSET } },
+      );
+
+      const addressInput = await findByTestId(
+        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        {},
+        { timeout: 5000 },
+      );
+      fireEvent.changeText(addressInput, TOKEN_CONTRACT_ADDRESS);
+
+      const reviewButton = await findByTestId(
+        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        {},
+        { timeout: 5000 },
+      );
+      await waitFor(() => expect(reviewButton).toBeEnabled(), {
+        timeout: 5000,
+      });
+      fireEvent.press(reviewButton);
+
+      expect(
+        await findByTestId(
+          SendAlertModalSelectorIDs.CANCEL_BUTTON,
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(SendAlertModalSelectorIDs.CANCEL_BUTTON),
+      );
+
+      await waitFor(
+        () =>
+          expect(
+            queryByTestId(SendAlertModalSelectorIDs.CANCEL_BUTTON),
+          ).not.toBeOnTheScreen(),
+        { timeout: 5000 },
+      );
+    });
+
+    /**
+     * When the entered amount exceeds the asset balance, the Continue button
+     * must show the "Insufficient funds" error and be disabled.
+     */
+    it('Amount: exceeding balance disables Continue with Insufficient funds', async () => {
+      const tinyBalanceAsset = {
+        ...EVM_ETH_ASSET,
+        balance: '0',
+        rawBalance: '0x1', // 1 wei — any 1 ETH input exceeds it
+      };
+
+      const state = initialStateWallet()
+        .withOverrides(sendViewOverrides)
+        .build();
+
+      const { getByTestId, getByText, findByRole } = renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        { screen: Routes.SEND.AMOUNT, params: { asset: tinyBalanceAsset } },
+      );
+
+      expect(
+        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+      ).toBeOnTheScreen();
+
+      // Press digit '1' — enters 1 ETH, far exceeding 1 wei balance
+      fireEvent.press(getByText('1'));
+
+      // Finding the button by its error label is sufficient — it proves the error state is shown
+      expect(
+        await findByRole(
+          'button',
+          { name: 'Insufficient funds' },
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('ERC-1155', () => {
+    /**
+     * ERC-1155 tokens show the NFT name on the Amount screen and use a "Next"
+     * label instead of "Continue". The button is disabled until a quantity is entered,
+     * then enabled when the entered quantity does not exceed the owned balance.
+     */
+    it('Amount screen shows NFT name and Next button enabled after entering quantity', async () => {
+      const erc1155Asset = {
+        address: '0x495f947276749ce646f68ac8c248420045cb7b5e',
+        chainId: '0x1',
+        symbol: 'ITEM',
+        name: 'Magic Sword',
+        standard: TokenStandard.ERC1155,
+        tokenId: '99',
+        balance: '5',
+      };
+
+      const state = initialStateWallet()
+        .withOverrides(sendViewOverrides)
+        .build();
+
+      const { getByTestId, getByRole, getByText } = renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        { screen: Routes.SEND.AMOUNT, params: { asset: erc1155Asset } },
+      );
+
+      expect(
+        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+      ).toBeOnTheScreen();
+
+      // NFT name is shown in the amount header
+      expect(getByText('Magic Sword')).toBeOnTheScreen();
+
+      // "Next" button is visible immediately (ERC-1155 always shows it)
+      expect(getByRole('button', { name: 'Next' })).toBeOnTheScreen();
+
+      // Enter quantity 3 (≤ balance of 5) → button becomes enabled
+      fireEvent.press(getByText('3'));
+
+      await waitFor(
+        () => expect(getByRole('button', { name: 'Next' })).toBeEnabled(),
+        { timeout: 5000 },
+      );
     });
   });
 

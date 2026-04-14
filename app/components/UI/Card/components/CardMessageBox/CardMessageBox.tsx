@@ -1,19 +1,12 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 import {
-  FontWeight,
-  Text,
-  TextVariant,
+  BannerAlert,
+  Box,
+  BoxFlexDirection,
+  BannerAlertSeverity,
+  Button,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../../util/theme';
-import createStyles from './CardMessageBox.styles';
 import { CardMessageBoxType, CardMessageBoxVariant } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -24,15 +17,17 @@ interface CardMessageBoxProps {
   onDismiss?: () => void;
 }
 
-/**
- * Configuration for each message type including variant, title, description, and optional confirm button
- */
 interface MessageConfig {
   variant: CardMessageBoxVariant;
   title: string;
-  description: string;
+  description?: string;
   confirmButtonLabel?: string;
 }
+
+const SEVERITY_MAP: Record<CardMessageBoxVariant, BannerAlertSeverity> = {
+  [CardMessageBoxVariant.Warning]: BannerAlertSeverity.Warning,
+  [CardMessageBoxVariant.Info]: BannerAlertSeverity.Info,
+};
 
 const CardMessageBox = ({
   messageType,
@@ -40,8 +35,6 @@ const CardMessageBox = ({
   onConfirmLoading,
   onDismiss,
 }: CardMessageBoxProps) => {
-  const theme = useTheme();
-
   const messageConfigs: Record<CardMessageBoxType, MessageConfig> = useMemo(
     () => ({
       [CardMessageBoxType.CloseSpendingLimit]: {
@@ -66,65 +59,52 @@ const CardMessageBox = ({
           'card.card_home.messages.card_provisioning.description',
         ),
       },
+      [CardMessageBoxType.AuthPrompt]: {
+        variant: CardMessageBoxVariant.Info,
+        title: strings('card.card_authentication.auth_prompt_info'),
+      },
     }),
     [],
   );
 
   const config = messageConfigs[messageType];
-  const styles = createStyles(theme, config.variant);
-
-  const iconName =
-    config.variant === CardMessageBoxVariant.Warning
-      ? IconName.Danger
-      : IconName.Info;
-
-  const iconColor =
-    config.variant === CardMessageBoxVariant.Warning
-      ? theme.colors.warning.default
-      : theme.colors.info.default;
 
   return (
-    <View style={styles.container} testID="card-message-box">
-      <Icon
-        name={iconName}
-        size={IconSize.Xl}
-        color={iconColor}
-        testID="icon"
-      />
-      <View style={styles.contentContainer}>
-        <View style={styles.textsContainer}>
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-            {config.title}
-          </Text>
-          <Text variant={TextVariant.BodyMd}>{config.description}</Text>
-        </View>
-
-        <View
-          style={[
-            styles.buttonsContainer,
-            !(onConfirm || onDismiss) ? styles.isHidden : undefined,
-          ]}
+    <BannerAlert
+      severity={SEVERITY_MAP[config.variant]}
+      title={config.title}
+      description={config.description}
+      testID="card-message-box"
+    >
+      {(onConfirm || onDismiss) && (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          gap={2}
+          twClassName="mt-4"
+          testID="card-message-box-actions"
         >
           {onDismiss && (
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               onPress={onDismiss}
-              label={strings('card.card_spending_limit.dismiss')}
               testID="dismiss-button"
-            />
+            >
+              {strings('card.card_spending_limit.dismiss')}
+            </Button>
           )}
           {config.confirmButtonLabel && onConfirm ? (
             <Button
-              variant={ButtonVariants.Primary}
+              variant={ButtonVariant.Primary}
               onPress={onConfirm}
-              loading={onConfirmLoading}
-              label={config.confirmButtonLabel}
+              isLoading={onConfirmLoading}
               testID="confirm-button"
-            />
+            >
+              {config.confirmButtonLabel}
+            </Button>
           ) : null}
-        </View>
-      </View>
-    </View>
+        </Box>
+      )}
+    </BannerAlert>
   );
 };
 

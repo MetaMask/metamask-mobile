@@ -1,4 +1,4 @@
-import { CaipAccountId } from '@metamask/utils';
+import { CaipAccountId, hasProperty } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -375,6 +375,10 @@ export class HyperLiquidProvider implements PerpsProvider {
 
   readonly #messenger: PerpsControllerMessengerBase;
 
+  readonly #builderAddressTestnet?: string;
+
+  readonly #builderAddressMainnet?: string;
+
   constructor(options: {
     isTestnet?: boolean;
     hip3Enabled?: boolean;
@@ -384,9 +388,13 @@ export class HyperLiquidProvider implements PerpsProvider {
     platformDependencies: PerpsPlatformDependencies;
     messenger: PerpsControllerMessengerBase;
     initialAssetMapping?: [string, number][];
+    builderAddressTestnet?: string;
+    builderAddressMainnet?: string;
   }) {
     this.#deps = options.platformDependencies;
     this.#messenger = options.messenger;
+    this.#builderAddressTestnet = options.builderAddressTestnet;
+    this.#builderAddressMainnet = options.builderAddressMainnet;
     const isTestnet = options.isTestnet ?? false;
 
     // Dev-friendly defaults: Enable all markets by default for easier testing (discovery mode)
@@ -1960,14 +1968,19 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Check order status
       const status = result.response?.data?.statuses?.[0];
-      if (isStatusObject(status) && 'error' in status) {
+      if (isStatusObject(status) && hasProperty(status, 'error')) {
         return { success: false, error: String(status.error) };
       }
 
+      // Note: `in` narrows the HyperLiquid SDK discriminated union to the
+      // branch that has `filled`; `hasProperty` only narrows the key and
+      // types `status.filled` as `unknown`, which loses access to `.totalSz`.
+      /* eslint-disable no-restricted-syntax */
       const filledSize =
         isStatusObject(status) && 'filled' in status
           ? parseFloat(status.filled?.totalSz ?? '0')
           : 0;
+      /* eslint-enable no-restricted-syntax */
 
       this.#deps.debugLogger.log(
         'HyperLiquidProvider: USDC→USDH swap completed',
@@ -3418,10 +3431,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
 
       const status = result.response?.data?.statuses?.[0];
+      // Note: `in` narrows the HyperLiquid SDK discriminated union to the
+      // branch that has the property; `hasProperty` types the property as
+      // `unknown`, losing downstream access to `.oid`, `.totalSz`, `.avgPx`.
+      /* eslint-disable no-restricted-syntax */
       const restingOrder =
         isStatusObject(status) && 'resting' in status ? status.resting : null;
       const filledOrder =
         isStatusObject(status) && 'filled' in status ? status.filled : null;
+      /* eslint-enable no-restricted-syntax */
 
       // Success - auto-rebalance excess funds
       if (isHip3Order && transferInfo && dexName) {
@@ -4135,7 +4153,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       const { statuses } = result.response.data;
       const successCount = statuses.filter(
         (stat) =>
-          isStatusObject(stat) && ('filled' in stat || 'resting' in stat),
+          isStatusObject(stat) &&
+          (hasProperty(stat, 'filled') || hasProperty(stat, 'resting')),
       ).length;
       const failureCount = statuses.length - successCount;
 
@@ -4145,7 +4164,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           const status = statuses[i];
           const isSuccess =
             isStatusObject(status) &&
-            ('filled' in status || 'resting' in status);
+            (hasProperty(status, 'filled') || hasProperty(status, 'resting'));
 
           if (isSuccess && hip3Transfers[i]) {
             const { sourceDex, freedMargin } = hip3Transfers[i];
@@ -4171,9 +4190,9 @@ export class HyperLiquidProvider implements PerpsProvider {
           symbol: positionsToClose[index].symbol,
           success:
             isStatusObject(status) &&
-            ('filled' in status || 'resting' in status),
+            (hasProperty(status, 'filled') || hasProperty(status, 'resting')),
           error:
-            isStatusObject(status) && 'error' in status
+            isStatusObject(status) && hasProperty(status, 'error')
               ? String(status.error)
               : undefined,
         })),
@@ -4331,21 +4350,24 @@ export class HyperLiquidProvider implements PerpsProvider {
           { cachedOrdersCount: cachedOrders.length },
         );
 
-        // Filter using normalized Order type properties
-        // Note: Cached orders don't have isPositionTpsl, but we identify TP/SL orders by:
+        // Filter using normalized Order type properties, matching the REST fallback criteria:
+        // - symbol matches
         // - isTrigger === true
         // - reduceOnly === true
+        // - isPositionTpsl matches the configured mode (only cancel position-bound TP/SL,
+        //   not normalTpsl children that belong to pending limit orders)
         // - detailedOrderType contains 'Take Profit' or 'Stop'
         const tpslOrders = cachedOrders.filter(
           (order) =>
             order.symbol === symbol &&
             order.reduceOnly === true &&
             order.isTrigger === true &&
+            order.isPositionTpsl ===
+              Boolean(TP_SL_CONFIG.UsePositionBoundTpsl) &&
             order.detailedOrderType &&
             (order.detailedOrderType.includes('Take Profit') ||
               order.detailedOrderType.includes('Stop')),
         );
-
         cancelRequests = tpslOrders.map((order) => ({
           a: assetId,
           o: parseInt(order.orderId, 10),
@@ -4934,11 +4956,15 @@ export class HyperLiquidProvider implements PerpsProvider {
 
             // Find TP/SL orders for this position
             // First check direct trigger orders (raw SDK uses 'coin', adapted position uses 'symbol')
+            // Only match position-bound TP/SL orders when UsePositionBoundTpsl is enabled,
+            // to avoid picking up normalTpsl children from pending limit orders
             const positionOrders = allOrders.filter(
               (order) =>
                 order.coin === position.symbol &&
                 order.isTrigger &&
-                order.reduceOnly,
+                order.reduceOnly &&
+                order.isPositionTpsl ===
+                  Boolean(TP_SL_CONFIG.UsePositionBoundTpsl),
             );
 
             // Also check for parent orders that might have TP/SL children
@@ -5086,6 +5112,20 @@ export class HyperLiquidProvider implements PerpsProvider {
         count: rawFills?.length ?? 0,
       });
 
+      // Start fetching historical orders in parallel with fill transformation.
+      // The fills API does not return order type, so we cross-reference
+      // with historical orders to enable TP/SL pill rendering in activity.
+      const historicalOrdersPromise = (
+        infoClient.historicalOrders?.({ user: userAddress }) ??
+        Promise.resolve(null)
+      ).catch((enrichError: unknown) => {
+        this.#deps.debugLogger.log(
+          'Warning: failed to enrich fills with order types:',
+          enrichError,
+        );
+        return null;
+      });
+
       // Transform HyperLiquid fills to abstract OrderFill type
       const fills = (rawFills || []).reduce((acc: OrderFill[], fill) => {
         // Perps only, no Spots
@@ -5115,6 +5155,32 @@ export class HyperLiquidProvider implements PerpsProvider {
 
         return acc;
       }, []);
+
+      // Enrich fills with detailedOrderType from historical orders
+      // Wrapped in its own try/catch so a malformed order never discards fetched fills
+      try {
+        const rawOrders = await historicalOrdersPromise;
+        if (rawOrders) {
+          const orderTypeByOid = new Map<string, string>();
+          for (const rawOrder of rawOrders) {
+            const oid = rawOrder.order?.oid?.toString();
+            if (oid && rawOrder.order?.orderType && !orderTypeByOid.has(oid)) {
+              orderTypeByOid.set(oid, rawOrder.order.orderType);
+            }
+          }
+          for (const fill of fills) {
+            const orderType = orderTypeByOid.get(fill.orderId);
+            if (orderType) {
+              fill.detailedOrderType = orderType;
+            }
+          }
+        }
+      } catch (enrichError) {
+        this.#deps.debugLogger.log(
+          'Error enriching fills with order types:',
+          enrichError,
+        );
+      }
 
       return fills;
     } catch (error) {
@@ -5950,7 +6016,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Extract HIP-3 DEX names (filter out null which is main DEX)
       const hip3DexNames: string[] = [];
       allDexs.forEach((dex) => {
-        if (dex !== null && 'name' in dex) {
+        if (dex !== null && hasProperty(dex, 'name')) {
           hip3DexNames.push(dex.name);
         }
       });
@@ -8035,9 +8101,13 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   #getBuilderAddress(isTestnet: boolean): string {
-    return isTestnet
-      ? BUILDER_FEE_CONFIG.TestnetBuilder
-      : BUILDER_FEE_CONFIG.MainnetBuilder;
+    // || intentional: env vars default to '' which must fall through to the hardcoded default
+    if (isTestnet) {
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      return this.#builderAddressTestnet || BUILDER_FEE_CONFIG.TestnetBuilder;
+    }
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return this.#builderAddressMainnet || BUILDER_FEE_CONFIG.MainnetBuilder;
   }
 
   #getReferralCode(isTestnet: boolean): string {

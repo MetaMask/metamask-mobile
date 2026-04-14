@@ -18,8 +18,14 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { getCampaignStatusInfo } from './CampaignTile.utils';
+import {
+  CampaignType,
+  type CampaignDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  getCampaignStatusInfo,
+  isCampaignTypeSupported,
+} from './CampaignTile.utils';
 import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
 import { strings } from '../../../../../../locales/i18n';
 import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
@@ -27,36 +33,25 @@ import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipa
 interface CampaignTileProps {
   campaign: CampaignDto;
   /**
-   * Whether the tile is interactive (pressable). Defaults to true.
-   * When false, the tile is displayed but cannot be tapped.
-   */
-  isInteractive?: boolean;
-  /**
    * Custom press handler. If provided, this is called instead of the default
-   * navigation to campaign details. Only used when isInteractive is true.
+   * type-based navigation. Unsupported campaign types are only interactive
+   * when an onPress handler is provided.
    */
   onPress?: () => void;
 }
 
 /**
  * CampaignTile displays campaign information with status.
- * Tapping behavior can be customized via props:
- * - Default: navigates to campaign details screen
- * - With onPress: executes custom handler
- * - With isInteractive=false: tile is not pressable
+ * Tapping behavior is determined by campaign type:
+ * - ONDO_HOLDING: navigates to Ondo campaign details
+ * - SEASON_1: navigates to season one campaign details
+ * - Unsupported types: non-interactive unless onPress is provided
+ * - With onPress: executes custom handler regardless of type
  */
-const CampaignTile: React.FC<CampaignTileProps> = ({
-  campaign,
-  isInteractive = true,
-  onPress,
-}) => {
+const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   const tw = useTailwind();
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
-
-  const { status: participantStatus } = useGetCampaignParticipantStatus(
-    campaign.id,
-  );
 
   const participantCount = useSelector(
     selectCampaignParticipantCount(campaign.id),
@@ -65,22 +60,52 @@ const CampaignTile: React.FC<CampaignTileProps> = ({
   const {
     status: campaignStatus,
     statusLabel,
-    dateLabel,
-    dateLabelIcon,
+    /* dateLabel,
+    dateLabelIcon, */
   } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
+
+  const { status: participantStatus, isLoading: isParticipantStatusLoading } =
+    useGetCampaignParticipantStatus(
+      campaignStatus === 'active' && campaign.type === CampaignType.ONDO_HOLDING
+        ? campaign.id
+        : undefined,
+    );
+
+  const isInteractive =
+    campaignStatus !== 'upcoming' &&
+    (onPress != null || isCampaignTypeSupported(campaign.type));
 
   const backgroundImageUrl =
     colorScheme === 'dark'
-      ? campaign.details?.image?.darkModeUrl
-      : campaign.details?.image?.lightModeUrl;
+      ? campaign.image?.darkModeUrl
+      : campaign.image?.lightModeUrl;
+
+  const hasTour = (campaign.details?.howItWorks?.tour?.length ?? 0) > 0;
+  const shouldShowTour =
+    hasTour &&
+    !isParticipantStatusLoading &&
+    participantStatus?.optedIn !== true &&
+    campaignStatus === 'active';
 
   const handlePress = () => {
     if (!isInteractive) return;
 
     if (onPress) {
       onPress();
-    } else {
-      navigation.navigate(Routes.CAMPAIGN_DETAILS, { campaignId: campaign.id });
+    } else if (campaign.type === CampaignType.ONDO_HOLDING) {
+      if (shouldShowTour) {
+        navigation.navigate(Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+          campaignId: campaign.id,
+        });
+      } else {
+        navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+          campaignId: campaign.id,
+        });
+      }
+    } else if (campaign.type === CampaignType.SEASON_1) {
+      navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW, {
+        campaignId: campaign.id,
+      });
     }
   };
 
@@ -114,18 +139,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({
             twClassName="gap-1"
             testID="campaign-tile-date-label"
           >
-            <Icon
-              name={dateLabelIcon}
-              size={IconSize.Sm}
-              color={IconColor.OverlayInverse}
-            />
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.OverlayInverse}
-              fontWeight={FontWeight.Medium}
-            >
-              {dateLabel}
-            </Text>
+            {/* removed content for now; will be moved to bottom half of card instead */}
           </Box>
           <Box>
             <Box>

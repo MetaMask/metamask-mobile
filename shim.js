@@ -130,10 +130,45 @@ if (typeof global.CustomEvent === 'undefined') {
   };
 }
 
+class AbortError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'AbortError';
+  }
+}
+
+// The ReactNative polyfill for AbortController does not populate `signal.reason`.
+class AbortControllerWithReason extends AbortController {
+  abort(reason) {
+    if (this.signal.aborted) {
+      return;
+    }
+
+    this.signal.reason =
+      reason === undefined
+        ? new AbortError('Signal is aborted without reason')
+        : reason;
+    super.abort();
+  }
+}
+
+global.AbortController = AbortControllerWithReason;
+
 if (typeof global.AbortSignal.timeout === 'undefined') {
+  // In the browser this is a DOMException.
+  class TimeoutError extends Error {
+    constructor(message) {
+      super(message);
+      this.name = 'TimeoutError';
+    }
+  }
+
   global.AbortSignal.timeout = function (delay) {
     const controller = new AbortController();
-    setTimeout(() => controller.abort(), delay);
+    setTimeout(
+      () => controller.abort(new TimeoutError('Signal timed out')),
+      delay,
+    );
     return controller.signal;
   };
 }
