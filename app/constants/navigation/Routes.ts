@@ -408,9 +408,6 @@ const Routes = {
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
   },
-  MONEY_ACCOUNT: {
-    ROOT: 'MoneyAccountScreens',
-  },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
     NO_HEADER: 'NoHeaderConfirmations',
