@@ -109,7 +109,7 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         token_address: params.address,
         token_name: params.name,
         has_balance: hasBalance,
-        balance_usd: balanceUsd,
+        usd_balance: balanceUsd,
         sticky_buttons_shown: stickyButtonsShown,
         market_insights_displayed: isMarketInsightsDisplayed,
         severity,

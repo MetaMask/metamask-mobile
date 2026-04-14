@@ -26,6 +26,6 @@ export const STICKY_FOOTER_SWAP_LABEL_AB_TEST_ANALYTICS_MAPPING: ABTestAnalytics
     validVariants: Object.values(StickyFooterSwapLabelVariant),
     eventNames: [
       EVENT_NAME.TOKEN_DETAILS_OPENED,
-      EVENT_NAME.STICKY_BUTTON_TAPPED,
+      EVENT_NAME.TOKEN_DETAILS_STICKY_BOTTOM_CTA_CLICKED,
     ],
   };

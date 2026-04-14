@@ -4,16 +4,16 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 export type StickyFooterButtonAction = 'swap' | 'buy';
 
-interface TrackStickyButtonTappedParams {
-  action: StickyFooterButtonAction;
+interface TrackStickyBottomCtaClickedParams {
+  ctaType: StickyFooterButtonAction;
   isPrimary: boolean;
   tokenAddress: string;
   chainId: string;
-  balanceUsd: number | undefined;
+  usdBalance: number | undefined;
 }
 
 /**
- * Returns a stable callback for tracking "Sticky Button Tapped" events.
+ * Returns a stable callback for tracking "Token Details Sticky Bottom CTA Clicked" events.
  * Intended to be called from TokenDetailsStickyFooter on each button press.
  * A/B test variant is auto-injected as active_ab_tests by the analytics registry.
  */
@@ -22,20 +22,22 @@ export function useStickyFooterTracking() {
 
   return useCallback(
     ({
-      action,
+      ctaType,
       isPrimary,
       tokenAddress,
       chainId,
-      balanceUsd,
-    }: TrackStickyButtonTappedParams) => {
+      usdBalance,
+    }: TrackStickyBottomCtaClickedParams) => {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.STICKY_BUTTON_TAPPED)
+        createEventBuilder(
+          MetaMetricsEvents.TOKEN_DETAILS_STICKY_BOTTOM_CTA_CLICKED,
+        )
           .addProperties({
-            action,
+            cta_type: ctaType,
             is_primary: isPrimary,
             token_address: tokenAddress,
             chain_id: chainId,
-            ...(balanceUsd !== undefined && { balance_usd: balanceUsd }),
+            ...(usdBalance !== undefined && { usd_balance: usdBalance }),
           })
           .build(),
       );

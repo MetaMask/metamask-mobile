@@ -46,7 +46,7 @@ interface TokenStickyFooterProps {
   token: TokenDetailsRouteParams;
   securityData: TokenSecurityData | null | undefined;
   /** Token balance in USD, currency-agnostic. Used to determine which button gets the success style. */
-  balanceFiatUsd: number | undefined;
+  balanceFiatUsd?: number | undefined;
   /** Action handlers from parent's useTokenActions hook */
   onBuy: () => void;
   onSwap: () => void;
@@ -208,11 +208,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               startIconProps={buttonIconProps}
               onPress={() => {
                 trackStickyFooterTapped({
-                  action: 'swap',
+                  ctaType: 'swap',
                   isPrimary: swapIsSuccess,
                   tokenAddress: token.address ?? '',
                   chainId: token.chainId ?? '',
-                  balanceUsd: balanceFiatUsd,
+                  usdBalance: balanceFiatUsd,
                 });
                 handleFooterAction(onSwap, strings(buttonLabels.swapLabelKey));
               }}
@@ -232,11 +232,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               startIconProps={buttonIconProps}
               onPress={() => {
                 trackStickyFooterTapped({
-                  action: 'buy',
+                  ctaType: 'buy',
                   isPrimary: buyIsSuccess,
                   tokenAddress: token.address ?? '',
                   chainId: token.chainId ?? '',
-                  balanceUsd: balanceFiatUsd,
+                  usdBalance: balanceFiatUsd,
                 });
                 handleFooterAction(onBuy, strings('asset_overview.buy_button'));
               }}

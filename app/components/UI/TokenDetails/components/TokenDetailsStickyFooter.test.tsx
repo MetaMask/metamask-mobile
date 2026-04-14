@@ -299,11 +299,11 @@ describe('TokenDetailsStickyFooter', () => {
       fireEvent.press(getByText('Swap'));
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
-        action: 'swap',
+        ctaType: 'swap',
         isPrimary: false,
         tokenAddress: '0x123',
         chainId: '0x1',
-        balanceUsd: 50,
+        usdBalance: 50,
       });
     });
 
@@ -324,11 +324,11 @@ describe('TokenDetailsStickyFooter', () => {
       fireEvent.press(getByText('Buy'));
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
-        action: 'buy',
+        ctaType: 'buy',
         isPrimary: true,
         tokenAddress: '0x123',
         chainId: '0x1',
-        balanceUsd: 50,
+        usdBalance: 50,
       });
     });
 
@@ -348,11 +348,11 @@ describe('TokenDetailsStickyFooter', () => {
       fireEvent.press(getByText('Convert'));
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
-        action: 'swap',
+        ctaType: 'swap',
         isPrimary: true,
         tokenAddress: '0x123',
         chainId: '0x1',
-        balanceUsd: 150,
+        usdBalance: 150,
       });
     });
 
@@ -373,11 +373,11 @@ describe('TokenDetailsStickyFooter', () => {
       fireEvent.press(getByText('Swap'));
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
-        action: 'swap',
+        ctaType: 'swap',
         isPrimary: true,
         tokenAddress: '0x123',
         chainId: '0x1',
-        balanceUsd: 50,
+        usdBalance: 50,
       });
     });
   });
