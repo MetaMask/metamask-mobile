@@ -427,6 +427,20 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmActions', () => ({
 }));
 
 jest.mock(
+  '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+  () => ({
+    useInsufficientPayTokenBalanceAlert: jest.fn(() => []),
+  }),
+);
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+  () => ({
+    useNoPayTokenQuotesAlert: jest.fn(() => []),
+  }),
+);
+
+jest.mock(
   '../../../../Views/confirmations/hooks/pay/useAutomaticTransactionPayToken',
   () => ({
     useAutomaticTransactionPayToken: jest.fn(),
@@ -794,18 +808,23 @@ const createMockStreamManager = () => {
         };
       },
       subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
     },
     orders: {
       subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
     },
     positions: {
       subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
     },
     fills: {
       subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
     },
     account: {
       subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
     },
     topOfBook: {
       subscribeToSymbol: ({
@@ -828,13 +847,16 @@ const createMockStreamManager = () => {
           subscribers.delete(id);
         };
       },
+      getSnapshot: jest.fn(() => null),
     },
     marketData: {
       subscribe: jest.fn(() => jest.fn()),
       getMarkets: jest.fn(),
+      getSnapshot: jest.fn(() => null),
     },
     oiCaps: {
       subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
     },
   };
 };
@@ -1097,14 +1119,11 @@ describe('PerpsOrderView', () => {
     expect(mockGetPositions).toBeDefined();
   });
 
-  it('shows persistent submitting toast when custom token is selected (deposit flow)', async () => {
+  it('shows standard submitted toast when custom token is selected (deposit flow)', async () => {
     mockUseIsPerpsBalanceSelected.mockReturnValue(false);
 
     const mockShowToast = jest.fn();
     const mockSubmitted = jest.fn(() => ({ id: 'order-submitted-toast' }));
-    const mockSubmitting = jest.fn(() => ({
-      id: 'submitting-your-trade-toast',
-    }));
     (usePerpsToasts as jest.Mock).mockReturnValue({
       showToast: mockShowToast,
       PerpsToastOptions: {
@@ -1126,75 +1145,7 @@ describe('PerpsOrderView', () => {
             creationFailed: jest.fn(),
           },
           shared: {
-            submitting: mockSubmitting,
-          },
-        },
-        positionManagement: { tpsl: { updateTPSLError: jest.fn() } },
-        dataFetching: {
-          market: { error: { marketDataUnavailable: jest.fn() } },
-        },
-        accountManagement: {
-          deposit: {
-            inProgress: jest.fn(),
-            takingLonger: {},
-            tradeCanceled: {},
-            error: {},
-          },
-        },
-      },
-    });
-
-    (usePerpsOrderExecution as jest.Mock).mockImplementation(() => ({
-      placeOrder: jest.fn().mockResolvedValue({ success: true }),
-      isPlacing: false,
-    }));
-
-    render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-    const placeOrderButton = await screen.findByTestId(
-      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-    );
-    await act(async () => {
-      fireEvent.press(placeOrderButton);
-    });
-
-    await waitFor(() => {
-      expect(mockShowToast).toHaveBeenCalled();
-    });
-    expect(mockSubmitting).toHaveBeenCalled();
-    expect(mockSubmitted).not.toHaveBeenCalled();
-  });
-
-  it('shows standard submitted toast when using perps balance', async () => {
-    mockUseIsPerpsBalanceSelected.mockReturnValue(true);
-
-    const mockShowToast = jest.fn();
-    const mockSubmitted = jest.fn(() => ({ id: 'order-submitted-toast' }));
-    const mockSubmitting = jest.fn(() => ({
-      id: 'submitting-your-trade-toast',
-    }));
-    (usePerpsToasts as jest.Mock).mockReturnValue({
-      showToast: mockShowToast,
-      PerpsToastOptions: {
-        formValidation: {
-          orderForm: {
-            limitPriceRequired: {},
-            validationError: jest.fn(),
-          },
-        },
-        orderManagement: {
-          market: {
-            submitted: mockSubmitted,
-            confirmed: jest.fn(),
-            creationFailed: jest.fn(),
-          },
-          limit: {
-            submitted: jest.fn(),
-            confirmed: jest.fn(),
-            creationFailed: jest.fn(),
-          },
-          shared: {
-            submitting: mockSubmitting,
+            submitting: jest.fn(),
           },
         },
         positionManagement: { tpsl: { updateTPSLError: jest.fn() } },
@@ -1230,7 +1181,70 @@ describe('PerpsOrderView', () => {
       expect(mockShowToast).toHaveBeenCalled();
     });
     expect(mockSubmitted).toHaveBeenCalled();
-    expect(mockSubmitting).not.toHaveBeenCalled();
+  });
+
+  it('shows standard submitted toast when using perps balance', async () => {
+    mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+
+    const mockShowToast = jest.fn();
+    const mockSubmitted = jest.fn(() => ({ id: 'order-submitted-toast' }));
+    (usePerpsToasts as jest.Mock).mockReturnValue({
+      showToast: mockShowToast,
+      PerpsToastOptions: {
+        formValidation: {
+          orderForm: {
+            limitPriceRequired: {},
+            validationError: jest.fn(),
+          },
+        },
+        orderManagement: {
+          market: {
+            submitted: mockSubmitted,
+            confirmed: jest.fn(),
+            creationFailed: jest.fn(),
+          },
+          limit: {
+            submitted: jest.fn(),
+            confirmed: jest.fn(),
+            creationFailed: jest.fn(),
+          },
+          shared: {
+            submitting: jest.fn(),
+          },
+        },
+        positionManagement: { tpsl: { updateTPSLError: jest.fn() } },
+        dataFetching: {
+          market: { error: { marketDataUnavailable: jest.fn() } },
+        },
+        accountManagement: {
+          deposit: {
+            inProgress: jest.fn(),
+            takingLonger: {},
+            tradeCanceled: {},
+            error: {},
+          },
+        },
+      },
+    });
+
+    (usePerpsOrderExecution as jest.Mock).mockImplementation(() => ({
+      placeOrder: jest.fn().mockResolvedValue({ success: true }),
+      isPlacing: false,
+    }));
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalled();
+    });
+    expect(mockSubmitted).toHaveBeenCalled();
   });
 
   it('handles failed order placement', async () => {
@@ -3829,6 +3843,61 @@ describe('PerpsOrderView', () => {
       // Wait for price to appear after isDataReady becomes true
       const priceText = await findByText('$3,000');
       expect(priceText).toBeOnTheScreen();
+    });
+  });
+
+  describe('Market data fallback to route defaults', () => {
+    it('uses defaultSzDecimals and defaultMaxLeverage when marketData is loading', async () => {
+      // Arrange - marketData is null and still loading, but defaults are provided
+      (usePerpsMarketData as jest.Mock).mockReturnValue({
+        marketData: null,
+        isLoading: true,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          asset: 'ETH',
+          direction: 'long',
+          defaultSzDecimals: 4,
+          defaultMaxLeverage: 50,
+        },
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert - order button should be present (not blocked by loading) because
+      // the component falls back to route param defaults
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('treats market data as loading when no fallback defaults and data is unavailable', async () => {
+      // Arrange - marketData null, loading, AND no route defaults
+      (usePerpsMarketData as jest.Mock).mockReturnValue({
+        marketData: null,
+        isLoading: true,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          asset: 'ETH',
+          direction: 'long',
+        },
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
     });
   });
 });

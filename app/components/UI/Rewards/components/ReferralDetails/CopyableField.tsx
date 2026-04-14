@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
   Text,
   TextColor,
@@ -43,6 +44,7 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
     <Box
       twClassName="bg-muted border-muted rounded-md px-4 py-3"
       flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
     >
       <Box twClassName="flex-1">
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
@@ -51,7 +53,7 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
         {valueLoading ? (
           <Skeleton height={24} width={75} />
         ) : (
-          <Text variant={TextVariant.BodySm}>{value || '-'}</Text>
+          <Text variant={TextVariant.BodyMd}>{value || '-'}</Text>
         )}
       </Box>
       <ButtonIcon

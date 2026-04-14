@@ -15,7 +15,7 @@ import type { RootMessenger } from '../../types';
 export function getCardControllerMessenger(
   rootMessenger: RootMessenger,
 ): CardControllerMessenger {
-  return new Messenger<
+  const messenger = new Messenger<
     'CardController',
     MessengerActions<CardControllerMessenger>,
     MessengerEvents<CardControllerMessenger>,
@@ -24,4 +24,19 @@ export function getCardControllerMessenger(
     namespace: 'CardController',
     parent: rootMessenger,
   });
+
+  rootMessenger.delegate({
+    messenger,
+    actions: [
+      'AccountsController:getState',
+      'AccountTreeController:getState',
+      'RemoteFeatureFlagController:getState',
+      'KeyringController:signPersonalMessage',
+      'NetworkController:findNetworkClientIdByChainId',
+      'TransactionController:addTransaction',
+    ],
+    events: ['AccountTreeController:stateChange', 'KeyringController:unlock'],
+  });
+
+  return messenger;
 }

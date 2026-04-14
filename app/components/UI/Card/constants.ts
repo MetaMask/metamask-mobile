@@ -32,6 +32,8 @@ export const SUPPORTED_ASSET_NETWORKS: CardNetwork[] = [
   'monad',
 ];
 export const CARD_SUPPORT_EMAIL = 'metamask@cl-cards.com';
+export const HUBSPOT_WAITLIST_URL =
+  'https://share.hsforms.com/1kNZXeod7TU2xEy0BxmQxJw2urwb';
 export const NON_PRODUCTION_ENVIRONMENTS = [
   'e2e',
   'dev',

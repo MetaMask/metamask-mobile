@@ -16,4 +16,11 @@
   <!-- Forward non-Braze push notifications to the existing RN Firebase service -->
   <bool name="com_braze_fallback_firebase_cloud_messaging_service_enabled">true</bool>
   <string name="com_braze_fallback_firebase_cloud_messaging_service_classpath">io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService</string>
+
+  <!-- Let Braze open the app and route deep links when a push notification is tapped -->
+  <bool name="com_braze_handle_push_deep_links_automatically">true</bool>
+
+  <!-- Push notification icons -->
+  <drawable name="com_braze_push_small_notification_icon">@mipmap/ic_notification_small</drawable>
+  <drawable name="com_braze_push_large_notification_icon">@mipmap/ic_notification</drawable>
 </resources>

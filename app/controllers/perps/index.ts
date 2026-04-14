@@ -37,9 +37,96 @@ export type {
   PerpsControllerState,
   PerpsControllerOptions,
   PerpsControllerMessenger,
+  PerpsControllerGetStateAction,
   PerpsControllerActions,
   PerpsControllerEvents,
 } from './PerpsController';
+export type {
+  PerpsControllerCalculateFeesAction,
+  PerpsControllerCalculateLiquidationPriceAction,
+  PerpsControllerCalculateMaintenanceMarginAction,
+  PerpsControllerCancelOrderAction,
+  PerpsControllerCancelOrdersAction,
+  PerpsControllerClearDepositResultAction,
+  PerpsControllerClearPendingTradeConfigurationAction,
+  PerpsControllerClearPendingTransactionRequestsAction,
+  PerpsControllerClearWithdrawResultAction,
+  PerpsControllerClosePositionAction,
+  PerpsControllerClosePositionsAction,
+  PerpsControllerCompleteWithdrawalFromHistoryAction,
+  PerpsControllerDepositWithConfirmationAction,
+  PerpsControllerDepositWithOrderAction,
+  PerpsControllerDisconnectAction,
+  PerpsControllerEditOrderAction,
+  PerpsControllerFetchHistoricalCandlesAction,
+  PerpsControllerFlipPositionAction,
+  PerpsControllerGetAccountStateAction,
+  PerpsControllerGetActiveProviderAction,
+  PerpsControllerGetActiveProviderOrNullAction,
+  PerpsControllerGetAvailableDexsAction,
+  PerpsControllerGetBlockExplorerUrlAction,
+  PerpsControllerGetCachedMarketDataForActiveProviderAction,
+  PerpsControllerGetCachedUserDataForActiveProviderAction,
+  PerpsControllerGetCurrentNetworkAction,
+  PerpsControllerGetFundingAction,
+  PerpsControllerGetHistoricalPortfolioAction,
+  PerpsControllerGetMarketDataWithPricesAction,
+  PerpsControllerGetMarketFilterPreferencesAction,
+  PerpsControllerGetMarketsAction,
+  PerpsControllerGetMaxLeverageAction,
+  PerpsControllerGetOpenOrdersAction,
+  PerpsControllerGetOrderBookGroupingAction,
+  PerpsControllerGetOrderFillsAction,
+  PerpsControllerGetOrdersAction,
+  PerpsControllerGetPendingTradeConfigurationAction,
+  PerpsControllerGetPositionsAction,
+  PerpsControllerGetTradeConfigurationAction,
+  PerpsControllerGetWatchlistMarketsAction,
+  PerpsControllerGetWebSocketConnectionStateAction,
+  PerpsControllerGetWithdrawalProgressAction,
+  PerpsControllerGetWithdrawalRoutesAction,
+  PerpsControllerInitAction,
+  PerpsControllerIsCurrentlyReinitializingAction,
+  PerpsControllerIsFirstTimeUserOnCurrentNetworkAction,
+  PerpsControllerIsWatchlistMarketAction,
+  PerpsControllerMarkFirstOrderCompletedAction,
+  PerpsControllerMarkTutorialCompletedAction,
+  PerpsControllerPlaceOrderAction,
+  PerpsControllerReconnectAction,
+  PerpsControllerRefreshEligibilityAction,
+  PerpsControllerResetFirstTimeUserStateAction,
+  PerpsControllerResetSelectedPaymentTokenAction,
+  PerpsControllerSaveMarketFilterPreferencesAction,
+  PerpsControllerSaveOrderBookGroupingAction,
+  PerpsControllerSavePendingTradeConfigurationAction,
+  PerpsControllerSaveTradeConfigurationAction,
+  PerpsControllerSetLiveDataConfigAction,
+  PerpsControllerSetSelectedPaymentTokenAction,
+  PerpsControllerStartEligibilityMonitoringAction,
+  PerpsControllerStartMarketDataPreloadAction,
+  PerpsControllerStopEligibilityMonitoringAction,
+  PerpsControllerStopMarketDataPreloadAction,
+  PerpsControllerSubscribeToAccountAction,
+  PerpsControllerSubscribeToCandlesAction,
+  PerpsControllerSubscribeToConnectionStateAction,
+  PerpsControllerSubscribeToOICapsAction,
+  PerpsControllerSubscribeToOrderBookAction,
+  PerpsControllerSubscribeToOrderFillsAction,
+  PerpsControllerSubscribeToOrdersAction,
+  PerpsControllerSubscribeToPositionsAction,
+  PerpsControllerSubscribeToPricesAction,
+  PerpsControllerSwitchProviderAction,
+  PerpsControllerToggleTestnetAction,
+  PerpsControllerToggleWatchlistMarketAction,
+  PerpsControllerUpdateMarginAction,
+  PerpsControllerUpdatePositionTPSLAction,
+  PerpsControllerUpdateWithdrawalProgressAction,
+  PerpsControllerUpdateWithdrawalStatusAction,
+  PerpsControllerValidateClosePositionAction,
+  PerpsControllerValidateOrderAction,
+  PerpsControllerValidateWithdrawalAction,
+  PerpsControllerWithdrawAction,
+} from './PerpsController-method-action-types';
 
 // Provider interfaces and implementations
 export { HyperLiquidProvider } from './providers/HyperLiquidProvider';
@@ -331,6 +418,7 @@ export {
   DECIMAL_PRECISION_CONFIG,
   MARKET_SORTING_CONFIG,
   PROVIDER_CONFIG,
+  FUNDING_RATE_CONFIG,
 } from './constants';
 export type { SortOptionId } from './constants';
 
@@ -377,15 +465,10 @@ export {
 } from './utils';
 export type { HyperLiquidMarketData } from './utils';
 export {
-  adaptMarketFromMYX,
-  adaptPriceFromMYX,
-  adaptMarketDataFromMYX,
-  filterMYXExclusiveMarkets,
-  isOverlappingMarket,
-  buildPoolSymbolMap,
-  buildSymbolPoolsMap,
-  extractSymbolFromPoolId,
-} from './utils';
+  getPerpsConnectionAttemptContext,
+  withPerpsConnectionAttemptContext,
+} from './utils/perpsConnectionAttemptContext';
+export type { PerpsConnectionAttemptContext } from './utils/perpsConnectionAttemptContext';
 export {
   MAX_MARKET_PATTERN_LENGTH,
   escapeRegex,
@@ -452,6 +535,18 @@ export {
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
 } from './utils';
 export { getEnvironment } from './utils';
+export type { FiatRangeConfig } from './utils';
+export {
+  PRICE_THRESHOLD,
+  formatWithSignificantDigits,
+  PRICE_RANGES_MINIMAL_VIEW,
+  PRICE_RANGES_UNIVERSAL,
+  formatPerpsFiat,
+  formatPositionSize,
+  formatPnl,
+  formatPercentage,
+  formatFundingRate,
+} from './utils';
 
 // Error codes (explicit named exports)
 export { PERPS_ERROR_CODES } from './perpsErrorCodes';

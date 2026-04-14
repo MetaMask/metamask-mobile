@@ -372,18 +372,6 @@ const extractTrendingProperties = (
 };
 
 /**
- * Extract properties for ENABLE_CARD_BUTTON route
- * @param urlParams - URL parameters
- * @param sensitiveProps - Object to add properties to
- */
-const extractEnableCardButtonProperties = (
-  _urlParams: UrlParamValues,
-  _sensitiveProps: Record<string, string>,
-): void => {
-  // ENABLE_CARD_BUTTON route doesn't have sensitive parameters to extract
-};
-
-/**
  * Extract properties for CARD_ONBOARDING route
  * @param urlParams - URL parameters
  * @param sensitiveProps - Object to add properties to
@@ -467,7 +455,6 @@ const routeExtractors: Record<
   [DeepLinkRoute.PREDICT]: extractPredictProperties,
   [DeepLinkRoute.SHIELD]: extractShieldProperties,
   [DeepLinkRoute.TRENDING]: extractTrendingProperties,
-  [DeepLinkRoute.ENABLE_CARD_BUTTON]: extractEnableCardButtonProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.NFT]: extractNftProperties,
@@ -597,8 +584,6 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SHIELD;
     case ACTIONS.TRENDING:
       return DeepLinkRoute.TRENDING;
-    case ACTIONS.ENABLE_CARD_BUTTON:
-      return DeepLinkRoute.ENABLE_CARD_BUTTON;
     case ACTIONS.CARD_ONBOARDING:
       return DeepLinkRoute.CARD_ONBOARDING;
     case ACTIONS.CARD_HOME:
@@ -653,8 +638,6 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.SHIELD;
       case 'trending':
         return DeepLinkRoute.TRENDING;
-      case 'enable-card-button':
-        return DeepLinkRoute.ENABLE_CARD_BUTTON;
       case 'card-onboarding':
         return DeepLinkRoute.CARD_ONBOARDING;
       case 'card-home':

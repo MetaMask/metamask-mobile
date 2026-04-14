@@ -19,15 +19,13 @@ import {
 } from '../types';
 import { createPushProvisioningService, ProvisioningOptions } from '../service';
 import { getCardProvider, getWalletProvider } from '../providers';
-import { isAccountEligibleForProvisioning } from '../constants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { CardActions } from '../../util/metrics';
-import { useCardSDK } from '../../sdk';
 import {
-  selectIsAuthenticatedCard,
-  selectUserCardLocation,
-} from '../../../../../core/redux/slices/card';
+  selectIsCardAuthenticated,
+  selectCardUserLocation,
+} from '../../../../../selectors/cardController';
 import {
   selectGalileoAppleWalletProvisioningEnabled,
   selectGalileoGoogleWalletProvisioningEnabled,
@@ -66,7 +64,7 @@ export function usePushProvisioning(
   const {
     cardDetails,
     userAddress,
-    accountCreatedAt,
+    provisioningEligible,
     onSuccess,
     onError,
     onCancel,
@@ -80,10 +78,8 @@ export function usePushProvisioning(
   const statusRef = useRef<ProvisioningStatus>(status);
   statusRef.current = status;
 
-  // Get SDK and location
-  const { sdk: cardSDK, isLoading: isSDKLoading } = useCardSDK();
-  const userCardLocation = useSelector(selectUserCardLocation);
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const userCardLocation = useSelector(selectCardUserLocation);
+  const isAuthenticated = useSelector(selectIsCardAuthenticated);
 
   // Get feature flags for push provisioning
   const isAppleWalletProvisioningEnabled = useSelector(
@@ -103,11 +99,8 @@ export function usePushProvisioning(
 
   // Create the adapters based on user location and platform
   const cardAdapter = useMemo(
-    () =>
-      isSDKLoading || !cardSDK
-        ? null
-        : getCardProvider(userCardLocation, cardSDK),
-    [cardSDK, userCardLocation, isSDKLoading],
+    () => getCardProvider(userCardLocation),
+    [userCardLocation],
   );
 
   const walletAdapter = useMemo(() => getWalletProvider(), []);
@@ -383,8 +376,17 @@ export function usePushProvisioning(
         setStatus('provisioning');
         const result = await service.initiateProvisioning(provisioningOptions);
 
+        // Handle all result statuses from the service
+        // Note: On iOS, addCardToAppleWallet resolves with 'success' directly,
+        // but the onCardActivated event may not fire. We handle success here
+        // as the primary path, with the activation listener as a fallback.
         if (result.status === 'success') {
           setStatus('success');
+
+          trackAnalyticsEvent(
+            MetaMetricsEvents.CARD_PUSH_PROVISIONING_COMPLETED,
+            { token_id: result.tokenId },
+          );
           onSuccessRef.current?.({
             status: 'success',
             tokenId: result.tokenId,
@@ -443,24 +445,23 @@ export function usePushProvisioning(
     setError(null);
   }, []);
 
-  const isLoading = isSDKLoading || isEligibilityCheckLoading;
+  const isLoading = isEligibilityCheckLoading;
 
   // Check if card is eligible (status must be 'ACTIVE')
   const isCardEligible = cardDetails?.status === 'ACTIVE';
 
-  const isAccountEligible = isAccountEligibleForProvisioning(accountCreatedAt);
-
   const canAddToWallet =
     isPushProvisioningFeatureEnabled &&
     isAuthenticated &&
+    provisioningEligible &&
     !isLoading &&
     !!cardDetails &&
     isCardEligible &&
-    isAccountEligible &&
     !!cardAdapter &&
     !!walletAdapter &&
     eligibility?.isAvailable === true &&
-    eligibility?.canAddCard === true;
+    eligibility?.canAddCard === true &&
+    status !== 'success';
 
   return {
     status,

@@ -12,7 +12,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatusInfo } from './CampaignTile.utils';
-import { strings } from '../../../../../../locales/i18n';
+import { documentToPlainText } from '../ContentfulRichText/ContentfulRichText';
 
 export const CAMPAIGN_STATUS_TEST_IDS = {
   CONTAINER: 'campaign-status-container',
@@ -20,7 +20,6 @@ export const CAMPAIGN_STATUS_TEST_IDS = {
   STATUS_LABEL: 'campaign-status-label',
   DATE_LABEL: 'campaign-status-date-label',
   HOW_IT_WORKS_TITLE: 'campaign-status-how-it-works-title',
-  HOW_IT_WORKS_DESCRIPTION: 'campaign-status-how-it-works-description',
 } as const;
 
 interface CampaignStatusProps {
@@ -45,65 +44,13 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
       ? campaign.image?.darkModeUrl
       : campaign.image?.lightModeUrl;
 
-  const howItWorksTitle = campaign.details?.howItWorks?.title;
-  const howItWorksDescription = campaign.details?.howItWorks?.description;
+  const howItWorksTitle = documentToPlainText(
+    campaign.details?.howItWorks?.title,
+  );
 
   return (
     <Box twClassName="gap-4 p-4" testID={CAMPAIGN_STATUS_TEST_IDS.CONTAINER}>
-      <Box twClassName="rounded-xl overflow-hidden h-50 bg-muted">
-        <ImageBackground
-          source={{ uri: backgroundImageUrl }}
-          resizeMode="cover"
-          style={tw.style('flex-1')}
-          testID={CAMPAIGN_STATUS_TEST_IDS.IMAGE}
-        />
-      </Box>
-
-      <Box twClassName="gap-2">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
-            testID={CAMPAIGN_STATUS_TEST_IDS.STATUS_LABEL}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.SuccessDefault}
-            >
-              {statusLabel}
-            </Text>
-            {optedIn && (
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.SuccessDefault}
-              >
-                ({strings('rewards.campaign.entered')})
-              </Text>
-            )}
-          </Box>
-
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
-            testID={CAMPAIGN_STATUS_TEST_IDS.DATE_LABEL}
-          >
-            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-              •
-            </Text>
-            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-              {dateLabel}
-            </Text>
-          </Box>
-        </Box>
-
+      <Box>
         {howItWorksTitle ? (
           <Text
             variant={TextVariant.HeadingLg}
@@ -113,16 +60,45 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
             {howItWorksTitle}
           </Text>
         ) : null}
-
-        {howItWorksDescription ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-alternative"
-            testID={CAMPAIGN_STATUS_TEST_IDS.HOW_IT_WORKS_DESCRIPTION}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2"
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+            testID={CAMPAIGN_STATUS_TEST_IDS.STATUS_LABEL}
           >
-            {howItWorksDescription}
-          </Text>
-        ) : null}
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.SuccessDefault}
+            >
+              {statusLabel}
+            </Text>
+          </Box>
+
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+            testID={CAMPAIGN_STATUS_TEST_IDS.DATE_LABEL}
+          >
+            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              {dateLabel}
+            </Text>
+          </Box>
+        </Box>
+      </Box>
+      <Box twClassName="rounded-xl overflow-hidden h-50 bg-muted">
+        <ImageBackground
+          source={{ uri: backgroundImageUrl }}
+          resizeMode="cover"
+          style={tw.style('flex-1')}
+          testID={CAMPAIGN_STATUS_TEST_IDS.IMAGE}
+        />
       </Box>
     </Box>
   );
