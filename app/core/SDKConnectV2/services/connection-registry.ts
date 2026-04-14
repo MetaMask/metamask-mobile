@@ -18,7 +18,9 @@ import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
-import { trackWalletEvent, type WalletEventProperties } from './v2-analytics';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
 
 /**
  * Hard cap on the number of simultaneous active connections.
@@ -152,21 +154,33 @@ export class ConnectionRegistry {
     const conn = await this.store.get(id);
 
     if (conn) {
-      trackWalletEvent('Remote Connection Request Received', {
-        remote_session_id: id,
-        platform: 'mobile',
-        sdk_version: conn.metadata?.sdk?.version,
-        sdk_platform: conn.metadata?.sdk?.platform,
-        found_in_store: true,
-      });
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED,
+        )
+          .addProperties({
+            remote_session_id: id,
+            platform: 'mobile',
+            sdk_version: conn.metadata?.sdk?.version,
+            sdk_platform: conn.metadata?.sdk?.platform,
+            found_in_store: true,
+          })
+          .build(),
+      );
       return;
     }
 
-    trackWalletEvent('Remote Connection Request Received', {
-      remote_session_id: id,
-      platform: 'mobile',
-      found_in_store: false,
-    });
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED,
+      )
+        .addProperties({
+          remote_session_id: id,
+          platform: 'mobile',
+          found_in_store: false,
+        })
+        .build(),
+    );
 
     logger.error(
       'Failed to find connection in store for simple deeplink with id:',
@@ -225,13 +239,18 @@ export class ConnectionRegistry {
     try {
       connReq = this.parseConnectionRequest(url);
 
-      const baseProps: WalletEventProperties = {
-        remote_session_id: connReq.sessionRequest.id,
-        platform: 'mobile',
-        sdk_version: connReq.metadata.sdk.version,
-        sdk_platform: connReq.metadata.sdk.platform,
-      };
-      trackWalletEvent('Remote Connection Request Received', baseProps);
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED,
+        )
+          .addProperties({
+            remote_session_id: connReq.sessionRequest.id,
+            platform: 'mobile',
+            sdk_version: connReq.metadata.sdk.version,
+            sdk_platform: connReq.metadata.sdk.platform,
+          })
+          .build(),
+      );
 
       // Defense-in-depth: block connections whose self-reported dapp metadata
       // matches a known internal origin. This check is currently redundant
@@ -273,14 +292,20 @@ export class ConnectionRegistry {
       // protocol). User rejections of wallet_createSession are tracked by
       // the existing CONNECT_REQUEST_CANCELLED MetaMetrics event (with
       // source: 'sdk_connect_v2') — no double-fire occurs.
-      trackWalletEvent('Remote Connection Request Failed', {
-        remote_session_id: connReq?.sessionRequest?.id ?? 'unknown',
-        platform: 'mobile',
-        sdk_version: connReq?.metadata?.sdk?.version,
-        sdk_platform: connReq?.metadata?.sdk?.platform,
-        failure_reason:
-          error instanceof Error ? error.message : String(error),
-      });
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
+        )
+          .addProperties({
+            remote_session_id: connReq?.sessionRequest?.id ?? 'unknown',
+            platform: 'mobile',
+            sdk_version: connReq?.metadata?.sdk?.version,
+            sdk_platform: connReq?.metadata?.sdk?.platform,
+            failure_reason:
+              error instanceof Error ? error.message : String(error),
+          })
+          .build(),
+      );
     } finally {
       if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
     }
