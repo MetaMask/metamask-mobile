@@ -346,12 +346,18 @@ const RewardsHome = () => {
       <Stack.Screen
         name={Routes.MODAL.REWARDS_SELECT_SHEET}
         component={RewardsSelectSheet}
-        options={{ presentation: 'transparentModal' }}
+        options={{
+          presentation: 'transparentModal',
+          cardStyle: { backgroundColor: 'transparent' },
+        }}
       />
       <Stack.Screen
         name={Routes.MODAL.REWARDS_ONDO_PENDING_SHEET}
         component={OndoPendingSheet}
-        options={{ presentation: 'transparentModal' }}
+        options={{
+          presentation: 'transparentModal',
+          cardStyle: { backgroundColor: 'transparent' },
+        }}
       />
     </Stack.Navigator>
   );

@@ -192,6 +192,11 @@ const RewardsDashboard: React.FC = () => {
               disabled: !subscriptionId,
               testID: REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
             },
+            {
+              iconName: IconName.UserCircleAdd,
+              onPress: () => navigation.navigate(Routes.REFERRAL_REWARDS_VIEW),
+              testID: REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
+            },
           ]}
         />
         <Box twClassName="flex-1 gap-4">
