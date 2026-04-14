@@ -23,8 +23,6 @@ import { isTronNativeToken } from '../utils/isTronNativeToken';
 export interface UseTokenBalanceResult {
   balance: string | undefined;
   fiatBalance: string | undefined;
-  /** Token balance converted to USD regardless of the user's selected display currency. */
-  balanceFiatUsd: number | undefined;
   tokenFormattedBalance: string | undefined;
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   isTronNative: boolean;
@@ -34,7 +32,23 @@ export interface UseTokenBalanceResult {
   ///: END:ONLY_INCLUDE_IF
 }
 
-export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
+export interface UseTokenBalanceWithUsdResult extends UseTokenBalanceResult {
+  /** Token balance converted to USD regardless of the user's selected display currency. */
+  balanceFiatUsd: number;
+}
+
+export function useTokenBalance(
+  token: TokenI,
+  options: { calculateUsdBalance: true },
+): UseTokenBalanceWithUsdResult;
+export function useTokenBalance(
+  token: TokenI,
+  options?: { calculateUsdBalance?: false },
+): UseTokenBalanceResult;
+export function useTokenBalance(
+  token: TokenI,
+  options?: { calculateUsdBalance?: boolean },
+): UseTokenBalanceResult | UseTokenBalanceWithUsdResult {
   const processedAsset = useSelector((state: RootState) =>
     selectAsset(state, {
       address: toFormattedAddress(token.address),
@@ -44,10 +58,14 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
   );
 
   const conversionRate = useSelector((state: RootState) =>
-    selectCurrencyRateForChainId(state, token.chainId as Hex),
+    options?.calculateUsdBalance
+      ? selectCurrencyRateForChainId(state, token.chainId as Hex)
+      : undefined,
   );
   const usdConversionRate = useSelector((state: RootState) =>
-    selectUSDConversionRateByChainId(state, token.chainId as Hex),
+    options?.calculateUsdBalance
+      ? selectUSDConversionRateByChainId(state, token.chainId as Hex)
+      : undefined,
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -98,21 +116,9 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
 
   const balance = processedAsset?.balance;
 
-  const balanceFiatUsd = (() => {
-    if (!conversionRate || !usdConversionRate || !processedAsset?.balanceFiat) {
-      return undefined;
-    }
-    const fiatInSelectedCurrency = parseFloat(
-      processedAsset.balanceFiat.replace(/[^0-9.]/g, ''),
-    );
-    if (isNaN(fiatInSelectedCurrency)) return undefined;
-    return (fiatInSelectedCurrency / conversionRate) * usdConversionRate;
-  })();
-
-  return {
+  const base: UseTokenBalanceResult = {
     balance,
     fiatBalance: processedAsset?.balanceFiat,
-    balanceFiatUsd,
     tokenFormattedBalance: balance
       ? `${balance} ${processedAsset.symbol}`
       : undefined,
@@ -123,6 +129,23 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
     readyForWithdrawalBalance,
     ///: END:ONLY_INCLUDE_IF
   };
-};
+
+  if (!options?.calculateUsdBalance) {
+    return base;
+  }
+
+  const computedUsdBalance = (() => {
+    if (!conversionRate || !usdConversionRate || !processedAsset?.balanceFiat) {
+      return 0;
+    }
+    const fiatInSelectedCurrency = parseFloat(
+      processedAsset.balanceFiat.replace(/[^0-9.]/g, ''),
+    );
+    if (isNaN(fiatInSelectedCurrency)) return 0;
+    return (fiatInSelectedCurrency / conversionRate) * usdConversionRate;
+  })();
+
+  return { ...base, balanceFiatUsd: computedUsdBalance };
+}
 
 export default useTokenBalance;

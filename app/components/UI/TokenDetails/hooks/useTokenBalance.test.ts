@@ -8,6 +8,10 @@ import {
   selectTronSpecialAssetsBySelectedAccountGroup,
   TronSpecialAssetsMap,
 } from '../../../../selectors/assets/assets-list';
+import {
+  selectCurrencyRateForChainId,
+  selectUSDConversionRateByChainId,
+} from '../../../../selectors/currencyRateController';
 import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxAsset';
 
 const TRON_MAINNET_CHAIN_ID = 'tron:728126428';
@@ -59,6 +63,11 @@ jest.mock('../../../../selectors/assets/assets-list', () => ({
   ),
 }));
 
+jest.mock('../../../../selectors/currencyRateController', () => ({
+  selectCurrencyRateForChainId: jest.fn(),
+  selectUSDConversionRateByChainId: jest.fn(),
+}));
+
 jest.mock('../../AssetOverview/utils/createStakedTrxAsset', () => ({
   createStakedTrxAsset: jest.fn(),
 }));
@@ -68,6 +77,10 @@ const mockSelectTronResources = jest.mocked(
   selectTronSpecialAssetsBySelectedAccountGroup,
 );
 const mockCreateStakedTrxAsset = jest.mocked(createStakedTrxAsset);
+const mockSelectCurrencyRate = jest.mocked(selectCurrencyRateForChainId);
+const mockSelectUsdConversionRate = jest.mocked(
+  selectUSDConversionRateByChainId,
+);
 
 describe('useTokenBalance', () => {
   beforeEach(() => {
@@ -417,5 +430,94 @@ describe('useTokenBalance', () => {
     const { result } = renderHookWithProvider(() => useTokenBalance(tronToken));
 
     expect(result.current.readyForWithdrawalBalance).toBeUndefined();
+  });
+
+  describe('calculateUsdBalance option', () => {
+    const token = {
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      chainId: '0x1',
+      isStaked: false,
+    } as TokenI;
+
+    beforeEach(() => {
+      mockSelectAsset.mockReturnValue({
+        balance: '2',
+        balanceFiat: '$300.00',
+        symbol: 'DAI',
+      } as TokenI);
+    });
+
+    it('does not include balanceFiatUsd when option is not set', () => {
+      const { result } = renderHookWithProvider(() => useTokenBalance(token));
+      expect('balanceFiatUsd' in result.current).toBe(false);
+    });
+
+    it('computes balanceFiatUsd correctly when rates are available', () => {
+      // fiatBalance is $300 in EUR (selected currency), EUR/native rate = 1.5, USD/native rate = 1.2
+      // balanceFiatUsd = (300 / 1.5) * 1.2 = 240
+      mockSelectCurrencyRate.mockReturnValue(1.5);
+      mockSelectUsdConversionRate.mockReturnValue(1.2);
+
+      const { result } = renderHookWithProvider(() =>
+        useTokenBalance(token, { calculateUsdBalance: true }),
+      );
+
+      expect(result.current.balanceFiatUsd).toBeCloseTo(240);
+    });
+
+    it('returns 0 for balanceFiatUsd when conversionRate is 0', () => {
+      mockSelectCurrencyRate.mockReturnValue(0);
+      mockSelectUsdConversionRate.mockReturnValue(1.2);
+
+      const { result } = renderHookWithProvider(() =>
+        useTokenBalance(token, { calculateUsdBalance: true }),
+      );
+
+      expect(result.current.balanceFiatUsd).toBe(0);
+    });
+
+    it('returns 0 for balanceFiatUsd when usdConversionRate is missing', () => {
+      mockSelectCurrencyRate.mockReturnValue(1.5);
+      mockSelectUsdConversionRate.mockReturnValue(undefined);
+
+      const { result } = renderHookWithProvider(() =>
+        useTokenBalance(token, { calculateUsdBalance: true }),
+      );
+
+      expect(result.current.balanceFiatUsd).toBe(0);
+    });
+
+    it('returns 0 for balanceFiatUsd when balanceFiat is missing', () => {
+      mockSelectAsset.mockReturnValue({
+        balance: '2',
+        balanceFiat: undefined,
+        symbol: 'DAI',
+      } as unknown as TokenI);
+      mockSelectCurrencyRate.mockReturnValue(1.5);
+      mockSelectUsdConversionRate.mockReturnValue(1.2);
+
+      const { result } = renderHookWithProvider(() =>
+        useTokenBalance(token, { calculateUsdBalance: true }),
+      );
+
+      expect(result.current.balanceFiatUsd).toBe(0);
+    });
+
+    it('strips currency symbols and commas from balanceFiat before parsing', () => {
+      mockSelectAsset.mockReturnValue({
+        balance: '10',
+        balanceFiat: '$1,200.50',
+        symbol: 'ETH',
+      } as TokenI);
+      mockSelectCurrencyRate.mockReturnValue(1);
+      mockSelectUsdConversionRate.mockReturnValue(1);
+
+      const { result } = renderHookWithProvider(() =>
+        useTokenBalance(token, { calculateUsdBalance: true }),
+      );
+
+      expect(result.current.balanceFiatUsd).toBeCloseTo(1200.5);
+    });
+
   });
 });

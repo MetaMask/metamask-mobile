@@ -243,7 +243,7 @@ const TokenDetails: React.FC<{
     inLockPeriodBalance,
     readyForWithdrawalBalance,
     ///: END:ONLY_INCLUDE_IF
-  } = useTokenBalance(token);
+  } = useTokenBalance(token, { calculateUsdBalance: true });
 
   useEffect(() => {
     if (onFiatBalanceResolved) {
