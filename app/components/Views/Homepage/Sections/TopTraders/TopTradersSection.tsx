@@ -16,6 +16,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { TopTraderCard, TopTraderCardSkeleton } from './components';
+import { useTopTraders } from './hooks';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
@@ -23,49 +25,62 @@ const styles = StyleSheet.create({
   sectionGap: { gap: 12 },
 });
 
+const HOME_TRADER_LIMIT = 3;
+const SKELETON_KEYS = Array.from(
+  { length: HOME_TRADER_LIMIT },
+  (_, i) => `home-trader-skeleton-${i}`,
+);
+
 interface TopTradersSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
 }
 
 /**
- * TopTradersSection — Social leaderboard section on the homepage.
+ * TopTradersSection -- Social leaderboard entry point on the homepage.
  *
- * Shows a horizontal carousel of top-performing traders.
- * Currently renders an empty placeholder carousel while the data layer is being built.
+ * Renders a section header plus a horizontally scrollable row of the
+ * top 3 trader cards. Tapping the header chevron navigates to the
+ * full TopTradersView.
  */
 const TopTradersSection = forwardRef<
   SectionRefreshHandle,
   TopTradersSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
-  const tw = useTailwind();
   const navigation = useNavigation();
+  const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
+
+  const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
+    limit: HOME_TRADER_LIMIT,
+    enabled: isEnabled,
+  });
 
   useImperativeHandle(
     ref,
     () => ({
-      refresh: async () => undefined,
+      refresh,
     }),
-    [],
+    [refresh],
   );
 
   const { onLayout } = useHomeViewedEvent({
     sectionRef: sectionViewRef,
-    isLoading: false,
+    isLoading,
     sectionName: HomeSectionNames.TOP_TRADERS,
     sectionIndex,
     totalSectionsLoaded,
-    isEmpty: true,
-    itemCount: 0,
+    isEmpty: traders.length === 0,
+    itemCount: traders.length,
   });
 
   useSectionPerformance({
     sectionId: HomeSectionNames.TOP_TRADERS,
-    contentReady: isEnabled,
-    isEmpty: true,
+    contentReady: !isLoading && traders.length > 0,
+    isEmpty: !isLoading && traders.length === 0,
+    isLoading,
     enabled: isEnabled,
   });
 
@@ -73,7 +88,7 @@ const TopTradersSection = forwardRef<
     navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW as never);
   }, [navigation]);
 
-  if (!isEnabled) {
+  if (!isEnabled || (!isLoading && traders.length === 0)) {
     return null;
   }
 

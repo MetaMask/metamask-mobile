@@ -120,7 +120,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
           <Box twClassName="mb-6">
             <ContentfulRichText
               document={campaign.termsAndConditions}
-              textVariant={TextVariant.BodySm}
+              textVariant={TextVariant.BodyMd}
               bodyClassName="text-center text-default"
               testID="campaign-opt-in-sheet-description"
             />

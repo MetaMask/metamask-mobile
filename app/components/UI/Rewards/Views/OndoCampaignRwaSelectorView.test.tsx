@@ -20,29 +20,6 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const actual = jest.requireActual('react-native-safe-area-context');
-  return {
-    ...actual,
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    SafeAreaView: ({
-      children,
-      testID,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { ...props, testID }, children),
-  };
-});
-
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => {
     const tw = () => ({});
@@ -101,6 +78,13 @@ jest.mock('../../Trending/hooks/useRwaTokens/useRwaTokens', () => ({
 jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   useSwapBridgeNavigation: () => ({ goToSwaps: mockGoToSwaps }),
   SwapBridgeNavigationLocation: { Rewards: 'Rewards' },
+}));
+
+jest.mock('../../Bridge/hooks/useRWAToken', () => ({
+  useRWAToken: () => ({
+    isStockToken: jest.fn(() => false),
+    isTokenTradingOpen: jest.fn(() => true),
+  }),
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({

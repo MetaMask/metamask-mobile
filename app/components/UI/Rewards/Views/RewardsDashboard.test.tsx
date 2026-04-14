@@ -79,27 +79,6 @@ const mockSelectSelectedAccountGroup =
   >;
 
 // Mock react-native-safe-area-context
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    SafeAreaView: ({
-      children,
-      testID,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { ...props, testID }, children),
-  };
-});
-
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -405,6 +384,46 @@ describe('RewardsDashboard', () => {
 
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_SETTINGS_VIEW);
+    });
+
+    it('navigates to referral view when referral button is pressed', () => {
+      // Act
+      const { getByTestId } = render(<RewardsDashboard />);
+      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON));
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REFERRAL_REWARDS_VIEW);
+    });
+  });
+
+  describe('referral button state', () => {
+    it('always renders the referral button as enabled regardless of subscription state', () => {
+      // Arrange - no subscriptionId
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId) return null;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        return undefined;
+      });
+
+      // Act
+      const { getByTestId } = render(<RewardsDashboard />);
+      const referralButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
+      );
+
+      // Assert - referral button is never disabled
+      const isDisabled =
+        referralButton.props.disabled === true ||
+        referralButton.props.accessibilityState?.disabled === true;
+      expect(isDisabled).toBe(false);
     });
   });
 

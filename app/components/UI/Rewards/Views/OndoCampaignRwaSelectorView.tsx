@@ -20,7 +20,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -50,9 +49,11 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeToken } from '../../Bridge/types';
+import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { TimeOption } from '../../Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
+import OndoAfterHoursSheet from '../components/Campaigns/OndoAfterHoursSheet';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -93,6 +94,12 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   } = route.params;
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAfterHoursSheetOpen, setIsAfterHoursSheetOpen] = useState(false);
+  const [afterHoursNextOpen, setAfterHoursNextOpen] = useState<Date | null>(
+    null,
+  );
+  const [afterHoursPendingToken, setAfterHoursPendingToken] =
+    useState<BridgeToken | null>(null);
 
   // Build the source BridgeToken from route params (swap mode only)
   const srcBridgeToken = useMemo((): BridgeToken | undefined => {
@@ -152,6 +159,8 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
 
   const showSkeleton = isLoading || isFiltering;
 
+  const { isTokenTradingOpen } = useRWAToken();
+
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.Rewards,
     sourcePage: 'OndoCampaignRwaSelector',
@@ -183,9 +192,20 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
         rwaData: asset.rwaData as BridgeToken['rwaData'],
       };
 
+      if (!isTokenTradingOpen(destToken)) {
+        const rawNextOpen = destToken.rwaData?.market?.nextOpen;
+        const nextOpenDate = rawNextOpen ? new Date(String(rawNextOpen)) : null;
+        setAfterHoursNextOpen(
+          nextOpenDate && !isNaN(nextOpenDate.getTime()) ? nextOpenDate : null,
+        );
+        setAfterHoursPendingToken(destToken);
+        setIsAfterHoursSheetOpen(true);
+        return;
+      }
+
       goToSwaps(undefined, destToken);
     },
-    [goToSwaps],
+    [goToSwaps, isTokenTradingOpen],
   );
 
   const title =
@@ -195,7 +215,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
         alignItems={BoxAlignItems.Center}
         twClassName="gap-2"
       >
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('rewards.ondo_rwa_asset_selector.title_swap_prefix')}
         </Text>
         <BadgeWrapper
@@ -217,9 +237,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
             size={28}
           />
         </BadgeWrapper>
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-          {srcTokenSymbol}
-        </Text>
+        <Text variant={TextVariant.HeadingSm}>{srcTokenSymbol}</Text>
       </Box>
     ) : (
       strings('rewards.ondo_rwa_asset_selector.title_open_position')
@@ -316,6 +334,24 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style('pt-2 pb-4')}
             ListEmptyComponent={renderEmpty}
+          />
+        )}
+        {isAfterHoursSheetOpen && (
+          <OndoAfterHoursSheet
+            onClose={() => {
+              setIsAfterHoursSheetOpen(false);
+              setAfterHoursNextOpen(null);
+              setAfterHoursPendingToken(null);
+            }}
+            onConfirm={() => {
+              setIsAfterHoursSheetOpen(false);
+              setAfterHoursNextOpen(null);
+              if (afterHoursPendingToken) {
+                goToSwaps(undefined, afterHoursPendingToken);
+              }
+              setAfterHoursPendingToken(null);
+            }}
+            nextOpenAt={afterHoursNextOpen}
           />
         )}
       </SafeAreaView>

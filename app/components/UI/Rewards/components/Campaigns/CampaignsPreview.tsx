@@ -5,6 +5,7 @@ import { useTheme } from '../../../../../util/theme';
 import {
   Box,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Text,

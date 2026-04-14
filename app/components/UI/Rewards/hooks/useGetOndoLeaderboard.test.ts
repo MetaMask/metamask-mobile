@@ -66,13 +66,33 @@ const MOCK_LEADERBOARD: CampaignLeaderboardDto = {
   tiers: {
     STARTER: {
       entries: [
-        { rank: 1, referralCode: 'ABC123', rateOfReturn: 0.15 },
-        { rank: 2, referralCode: 'DEF456', rateOfReturn: 0.1 },
+        {
+          rank: 1,
+          referralCode: 'ABC123',
+          rateOfReturn: 0.15,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 2,
+          referralCode: 'DEF456',
+          rateOfReturn: 0.1,
+          qualifiedDays: 10,
+          qualified: true,
+        },
       ],
       totalParticipants: 50,
     },
     MID: {
-      entries: [{ rank: 1, referralCode: 'GHI789', rateOfReturn: 0.2 }],
+      entries: [
+        {
+          rank: 1,
+          referralCode: 'GHI789',
+          rateOfReturn: 0.2,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+      ],
       totalParticipants: 30,
     },
   },
@@ -184,7 +204,6 @@ describe('useGetOndoLeaderboard', () => {
     const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
     expect(result.current.leaderboard).toEqual(MOCK_LEADERBOARD);
-    expect(result.current.tierNames).toEqual(['STARTER', 'MID']);
     expect(result.current.selectedTier).toBe('STARTER');
     expect(result.current.computedAt).toBe('2024-03-20T12:00:00.000Z');
   });
@@ -237,7 +256,7 @@ describe('useGetOndoLeaderboard', () => {
     );
   });
 
-  it('setSelectedTier does not dispatch action when tier is invalid', () => {
+  it('setSelectedTier dispatches action for any tier name', () => {
     setupSelectors({
       leaderboard: MOCK_LEADERBOARD,
       isLoading: false,
@@ -250,11 +269,11 @@ describe('useGetOndoLeaderboard', () => {
     mockDispatch.mockClear();
 
     act(() => {
-      result.current.setSelectedTier('INVALID');
+      result.current.setSelectedTier('UPPER');
     });
 
-    expect(mockDispatch).not.toHaveBeenCalledWith(
-      setOndoCampaignLeaderboardSelectedTier('INVALID'),
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setOndoCampaignLeaderboardSelectedTier('UPPER'),
     );
   });
 
@@ -280,7 +299,7 @@ describe('useGetOndoLeaderboard', () => {
     );
   });
 
-  it('does not apply defaultTier when it is not in tierNames', async () => {
+  it('applies defaultTier even when not in leaderboard tiers', async () => {
     setupSelectors({
       leaderboard: MOCK_LEADERBOARD,
       isLoading: false,
@@ -288,7 +307,6 @@ describe('useGetOndoLeaderboard', () => {
       tierNames: ['STARTER', 'MID'],
       selectedTier: null,
     });
-    mockDispatch.mockClear();
 
     renderHook(() =>
       useGetOndoLeaderboard(CAMPAIGN_ID, { defaultTier: 'UPPER' }),
@@ -298,7 +316,7 @@ describe('useGetOndoLeaderboard', () => {
       await Promise.resolve();
     });
 
-    expect(mockDispatch).not.toHaveBeenCalledWith(
+    expect(mockDispatch).toHaveBeenCalledWith(
       setOndoCampaignLeaderboardSelectedTier('UPPER'),
     );
   });
