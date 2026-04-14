@@ -84,7 +84,7 @@ function getApiClient(
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.persistedState - The persisted state of the extension.
  * @param request.initMessenger - The init messenger to use for the controller.
- * @param request.getController - Function to get a controller by name.
+ * @param request.getMessengerClient - Function to get a controller by name.
  * @returns The initialized controller.
  */
 export const assetsControllerInit: MessengerClientInitFunction<

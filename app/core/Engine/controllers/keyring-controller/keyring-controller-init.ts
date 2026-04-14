@@ -87,7 +87,7 @@ export const keyringControllerInit: MessengerClientInitFunction<
       new MoneyKeyring({
         cryptographicFunctions,
         getMnemonic: async (entropySource: string) =>
-          // This builder needs the controller itself, so we re-use `getController` to access
+          // This builder needs the controller itself, so we re-use `getMessengerClient` to access
           // the controller instance as it will be available when this method gets called.
           // NOTE: This is required since we cannot self-use our own actions with the init messenger.
           getMessengerClient('KeyringController').withKeyringUnsafe(
