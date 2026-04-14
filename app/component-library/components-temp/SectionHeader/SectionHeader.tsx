@@ -89,20 +89,25 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 
   if (onPress) {
     return (
-      <Pressable
+      <View
         accessible={Platform.OS === 'ios' ? true : undefined}
         testID={testID}
-        onPress={onPress}
         accessibilityLabel={typeof title === 'string' ? title : undefined}
-        style={containerStyle}
       >
-        {innerContent}
-      </Pressable>
+        <Pressable onPress={onPress} style={containerStyle}>
+          {innerContent}
+        </Pressable>
+      </View>
     );
   }
 
   return (
-    <View testID={testID} style={containerStyle}>
+    <View
+      accessible={Platform.OS === 'ios' ? true : undefined}
+      testID={testID}
+      accessibilityLabel={typeof title === 'string' ? title : undefined}
+      style={containerStyle}
+    >
       {innerContent}
     </View>
   );

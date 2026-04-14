@@ -28,6 +28,7 @@ const MainActionButton = ({
   style,
   containerStyle,
   isDisabled = false,
+  testID,
   ...props
 }: MainActionButtonProps) => {
   const { styles } = useStyles(styleSheet, {
@@ -42,10 +43,12 @@ const MainActionButton = ({
 
   return (
     <Animated.View
+      accessible={Platform.OS === 'ios' ? true : undefined}
+      testID={testID}
+      accessibilityLabel={Platform.OS === 'ios' ? label : undefined}
       style={[{ transform: [{ scale: scaleAnim }] }, containerStyle]}
     >
       <Pressable
-        accessible={Platform.OS === 'ios' ? true : undefined}
         style={({ pressed }) => [styles.base, pressed && styles.pressed]}
         onPress={!isDisabled ? onPress : undefined}
         onPressIn={!isDisabled ? handlePressIn : undefined}
