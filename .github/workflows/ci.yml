@@ -658,7 +658,6 @@ jobs:
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    # [CI-DEV] Hardcoded CiSanityCheck tag — re-enable smart selection before merging.
     # Depends on either build-android-apks (when files changed) or provide-android-artifact (reuse).
     if: >-
       ${{
@@ -676,7 +675,11 @@ jobs:
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
-      selected_tags: '["CiSanityCheck"]'
+      selected_tags: >-
+        ${{
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
     secrets: inherit
 
   build-ios-apps:
@@ -799,7 +802,6 @@ jobs:
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    # [CI-DEV] Hardcoded CiSanityCheck tag — re-enable smart selection before merging.
     # Must check ios-tests-ready.result explicitly: !cancelled() alone is true even when
     # ios-tests-ready is skipped (skipped ≠ cancelled in GitHub Actions).
     if: >-
@@ -818,7 +820,11 @@ jobs:
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
-      selected_tags: '["CiSanityCheck"]'
+      selected_tags: >-
+        ${{
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
     secrets: inherit
 
   # Flask E2E tests
