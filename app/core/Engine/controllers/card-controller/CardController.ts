@@ -802,11 +802,13 @@ export class CardController extends BaseController<
     if (previous) {
       const reordered = reorderAssets(asset, allAssets);
       const newPrimary = pickPrimaryFromReordered(reordered);
+      const reorderedSupported = reorderAssets(asset, previous.supportedTokens);
       this.update((s) => {
         (s as unknown as CardControllerState).cardHomeData = {
           ...previous,
           assets: reordered,
           primaryAsset: newPrimary,
+          supportedTokens: reorderedSupported,
         } as unknown as Record<string, Json>;
       });
     }
