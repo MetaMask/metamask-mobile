@@ -8,8 +8,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,14 +333,13 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -1062,7 +1060,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                             </RCTScrollView>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1072,7 +1070,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1084,8 +1082,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1410,14 +1407,13 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -3644,7 +3640,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                             </RCTScrollView>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -3654,7 +3650,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -3666,8 +3662,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -3992,14 +3987,13 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
+                          [
+                            "right",
+                            "bottom",
+                            "left",
+                          ]
                         }
                         style={
                           {
@@ -6226,7 +6220,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                             </RCTScrollView>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -6236,6 +6230,6 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

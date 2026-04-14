@@ -8,8 +8,7 @@ exports[`Contacts renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -194,13 +193,10 @@ exports[`Contacts renders correctly 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -456,7 +452,7 @@ exports[`Contacts renders correctly 1`] = `
                             Add contact
                           </Text>
                         </TouchableOpacity>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -480,6 +476,6 @@ exports[`Contacts renders correctly 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

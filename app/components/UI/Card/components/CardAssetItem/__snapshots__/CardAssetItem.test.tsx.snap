@@ -8,8 +8,7 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -462,7 +461,7 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -474,8 +473,7 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -872,7 +870,7 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -884,8 +882,7 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1277,6 +1274,6 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
