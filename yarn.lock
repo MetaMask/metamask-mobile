@@ -9495,14 +9495,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^13.0.0":
-  version: 13.0.0
-  resolution: "@metamask/ramps-controller@npm:13.0.0"
+"@metamask/ramps-controller@npm:^13.0.0, @metamask/ramps-controller@npm:^13.1.0":
+  version: 13.1.0
+  resolution: "@metamask/ramps-controller@npm:13.1.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.1"
     "@metamask/controller-utils": "npm:^11.20.0"
     "@metamask/messenger": "npm:^1.1.1"
-  checksum: 10/94f2e84f39ca94382c8635676f8843797642a0829f51d4ad09f77131c4edcff6da20659bda80c6570bd646ce984e9ca35de7d0063b67bc23c3632b10e23d4c47
+  checksum: 10/e2994b535470794109322025d0414347577cf116109206fadd449af805dcba4ffc5f12352c0576b09aefefb044e789dc227980652d830b4ee36a9785de2350cf
   languageName: node
   linkType: hard
 
@@ -10140,9 +10140,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^64.0.0":
-  version: 64.0.0
-  resolution: "@metamask/transaction-controller@npm:64.0.0"
+"@metamask/transaction-controller@npm:^64.0.0, @metamask/transaction-controller@npm:^64.2.0":
+  version: 64.2.0
+  resolution: "@metamask/transaction-controller@npm:64.2.0"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -10151,13 +10151,13 @@ __metadata:
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
     "@ethersproject/wallet": "npm:^5.7.0"
-    "@metamask/accounts-controller": "npm:^37.1.1"
+    "@metamask/accounts-controller": "npm:^37.2.0"
     "@metamask/approval-controller": "npm:^9.0.1"
     "@metamask/base-controller": "npm:^9.0.1"
     "@metamask/controller-utils": "npm:^11.20.0"
     "@metamask/core-backend": "npm:^6.2.1"
     "@metamask/gas-fee-controller": "npm:^26.1.1"
-    "@metamask/messenger": "npm:^1.0.0"
+    "@metamask/messenger": "npm:^1.1.1"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
     "@metamask/network-controller": "npm:^30.0.1"
     "@metamask/nonce-tracker": "npm:^6.0.0"
@@ -10174,13 +10174,13 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.0.0
     "@metamask/eth-block-tracker": ">=9"
-  checksum: 10/8028f9fac1c28f8e4ab515171ef55addce44473f08b44a80bf758fac76ccc31cdff0dc06f8e644b5df12f3887b12140490c7182db2e363c66eccbfe8094e330e
+  checksum: 10/30fecb0deab98befde5cbdef1368a089ca4a636abea8734ee14cf8020214deda0ea3f00bc552aaecff6a8d1d07b9e83b369078fdef3c19ad8443e2c0369b4325
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^19.1.0":
-  version: 19.1.0
-  resolution: "@metamask/transaction-pay-controller@npm:19.1.0"
+"@metamask/transaction-pay-controller@npm:^19.1.1":
+  version: 19.1.1
+  resolution: "@metamask/transaction-pay-controller@npm:19.1.1"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10195,15 +10195,15 @@ __metadata:
     "@metamask/messenger": "npm:^1.1.1"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
     "@metamask/network-controller": "npm:^30.0.1"
-    "@metamask/ramps-controller": "npm:^13.0.0"
+    "@metamask/ramps-controller": "npm:^13.1.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.0"
-    "@metamask/transaction-controller": "npm:^64.0.0"
+    "@metamask/transaction-controller": "npm:^64.2.0"
     "@metamask/utils": "npm:^11.9.0"
     bignumber.js: "npm:^9.1.2"
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/6e301ae6238dadbb7d5bb64f32f4d74ce824531942344f3ec09803dbb4c74eb6c7e0558f35d1982f5dd7cb24215f0c09f1b17cadd5357b9654f6e33a8743b6ed
+  checksum: 10/e233f86d06d6436faaf0efe3a2897bc71f33d3a02413428f6c2932e634d2224aaabcf01e4c3a63c84ce83449bcc0e04a1535fbdde97a7c00621588d3822c27a7
   languageName: node
   linkType: hard
 
@@ -35678,8 +35678,8 @@ __metadata:
     "@metamask/test-dapp": "npm:9.5.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
-    "@metamask/transaction-controller": "npm:^64.0.0"
-    "@metamask/transaction-pay-controller": "npm:^19.1.0"
+    "@metamask/transaction-controller": "npm:^64.2.0"
+    "@metamask/transaction-pay-controller": "npm:^19.1.1"
     "@metamask/tron-wallet-snap": "npm:^1.25.2"
     "@metamask/utils": "npm:^11.8.1"
     "@myx-trade/sdk": "npm:^0.1.265"
