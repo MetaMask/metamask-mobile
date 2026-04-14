@@ -287,11 +287,16 @@ const PriceAdvanced = ({
       ? stableComparePriceRef.current
       : currentComparePrice;
 
-  const displayPrice = crosshairData?.close ?? currentPrice;
+  // Use last bar's close price for consistent percentage calculation with chart data
+  const lastBarClose = ohlcvData[ohlcvData.length - 1]?.close;
+  const displayPrice = crosshairData?.close ?? lastBarClose ?? currentPrice;
   const displayDiff = useMemo(() => {
     if (dynamicComparePrice === null) return null;
-    return (crosshairData?.close ?? currentPrice) - dynamicComparePrice;
-  }, [crosshairData, currentPrice, dynamicComparePrice]);
+    return (
+      (crosshairData?.close ?? lastBarClose ?? currentPrice) -
+      dynamicComparePrice
+    );
+  }, [crosshairData, lastBarClose, currentPrice, dynamicComparePrice]);
 
   const displayDate = crosshairData
     ? toDateFormat(crosshairData.time)
