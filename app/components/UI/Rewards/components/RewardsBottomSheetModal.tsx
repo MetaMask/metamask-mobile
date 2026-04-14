@@ -22,6 +22,7 @@ import {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
+import { IconName as LegacyIconName } from '../../../../component-library/components/Icons/Icon/Icon.types';
 
 export enum ModalType {
   Danger = 'danger',
@@ -137,7 +138,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
         iconName = IconName.Danger;
         break;
       case ModalType.Confirmation:
-        iconName = IconName.Question;
+        iconName = LegacyIconName.Question as unknown as IconName;
         iconStyle = 'text-primary-default';
         break;
     }
