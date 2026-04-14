@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   ClientController,
   ClientControllerMessenger,
@@ -12,7 +12,7 @@ import {
  * @param request.persistedState - The persisted state.
  * @returns The initialized controller.
  */
-export const clientControllerInit: ControllerInitFunction<
+export const clientControllerInit: MessengerClientInitFunction<
   ClientController,
   ClientControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

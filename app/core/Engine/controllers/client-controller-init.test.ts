@@ -1,7 +1,7 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getClientControllerMessenger } from '../messengers/client-controller-messenger';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { clientControllerInit } from './client-controller-init';
 import {
   ClientController,
@@ -12,19 +12,16 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/client-controller');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<ClientControllerMessenger>
+  MessengerClientInitRequest<ClientControllerMessenger>
 > {
-  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
-  const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+  return {
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getClientControllerMessenger(baseMessenger),
-    initMessenger: undefined,
   };
-
-  return requestMock;
 }
 
 describe('clientControllerInit', () => {
