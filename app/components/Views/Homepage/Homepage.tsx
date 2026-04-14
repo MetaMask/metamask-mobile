@@ -372,11 +372,16 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
             </PerpsStreamProvider>
           </PerpsConnectionProvider>
         )}
-        <PredictionsSection
-          ref={predictionsSectionRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
-          totalSectionsLoaded={totalSectionsLoaded}
-        />
+        {/* Mount only when enabled so predict homepage hooks are not invoked off-flag
+            (PredictionsSection returns null after hooks; see usePredictMarketsForHomepage). */}
+        {isPredictEnabled && (
+          <PredictionsSection
+            ref={predictionsSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+            totalSectionsLoaded={totalSectionsLoaded}
+            mode={sectionMode}
+          />
+        )}
         <WhatsHappeningSection
           ref={whatsHappeningSectionRef}
           sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
