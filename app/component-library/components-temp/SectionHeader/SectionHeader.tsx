@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import {
@@ -62,7 +62,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
     style,
   ]);
 
-  const children = (
+  const innerContent = (
     <>
       {typeof title === 'string' ? (
         <Text
@@ -97,18 +97,26 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
       <TouchableOpacity
         testID={testID}
         onPress={onPress}
+        accessible={Platform.OS === 'ios'}
         accessibilityRole="button"
         accessibilityLabel={typeof title === 'string' ? title : undefined}
         style={containerStyle}
       >
-        {children}
+        {/* Hide all inner content from iOS accessibility tree so the TouchableOpacity
+            becomes the sole accessibility element with its testID. */}
+        <View
+          style={tw.style('flex-row items-center flex-1')}
+          accessibilityElementsHidden={Platform.OS === 'ios'}
+        >
+          {innerContent}
+        </View>
       </TouchableOpacity>
     );
   }
 
   return (
     <View testID={testID} style={containerStyle}>
-      {children}
+      {innerContent}
     </View>
   );
 };
