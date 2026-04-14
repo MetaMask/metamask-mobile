@@ -465,7 +465,6 @@ describe('OndoCampaignDetailsView', () => {
       isLoading: false,
       hasError: false,
       isLeaderboardNotYetComputed: false,
-      tierNames: [],
       selectedTier: null,
       selectedTierData: null,
       computedAt: null,

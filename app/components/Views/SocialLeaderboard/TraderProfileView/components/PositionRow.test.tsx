@@ -52,13 +52,11 @@ describe('PositionRow', () => {
 
   it('renders current value formatted as USD', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
-
     expect(screen.getByText('$2,259.96')).toBeOnTheScreen();
   });
 
   it('renders positive PnL percent with plus sign', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
-
     expect(screen.getByText('+182%')).toBeOnTheScreen();
   });
 
@@ -66,7 +64,6 @@ describe('PositionRow', () => {
     const position = { ...basePosition, pnlPercent: -25 };
 
     renderWithProvider(<PositionRow position={position} />);
-
     expect(screen.getByText('-25%')).toBeOnTheScreen();
   });
 
@@ -77,7 +74,6 @@ describe('PositionRow', () => {
     } as unknown as Position;
 
     renderWithProvider(<PositionRow position={position} />);
-
     expect(screen.getByText('\u2014')).toBeOnTheScreen();
   });
 
@@ -90,7 +86,6 @@ describe('PositionRow', () => {
     renderWithProvider(<PositionRow position={position} />);
 
     const dashes = screen.getAllByText('\u2014');
-
     expect(dashes.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -98,7 +93,6 @@ describe('PositionRow', () => {
     const position = { ...basePosition, pnlPercent: 0 };
 
     renderWithProvider(<PositionRow position={position} />);
-
     expect(screen.getByText('+0%')).toBeOnTheScreen();
   });
 
@@ -106,7 +100,6 @@ describe('PositionRow', () => {
     const position = { ...basePosition, currentValueUSD: -150.5 };
 
     renderWithProvider(<PositionRow position={position} />);
-
     expect(screen.getByText('-$150.50')).toBeOnTheScreen();
   });
 
@@ -114,7 +107,6 @@ describe('PositionRow', () => {
     const position = { ...basePosition, currentValueUSD: 0 };
 
     renderWithProvider(<PositionRow position={position} />);
-
     expect(screen.getByText('$0.00')).toBeOnTheScreen();
   });
 

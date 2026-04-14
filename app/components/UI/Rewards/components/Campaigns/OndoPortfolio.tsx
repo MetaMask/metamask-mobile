@@ -48,6 +48,7 @@ import {
   groupPortfolioPositionsByAsset,
   formatPnlPercent,
   isPnlNonNegative,
+  sanitizeTokenName,
 } from './OndoPortfolio.utils';
 import { formatComputedAt } from './OndoLeaderboard.utils';
 import { selectCurrentSubscriptionAccounts } from '../../../../../selectors/rewards';
@@ -462,7 +463,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
                       variant={TextVariant.BodyMd}
                       fontWeight={FontWeight.Medium}
                     >
-                      {row.tokenName}
+                      {sanitizeTokenName(row.tokenName)}
                     </Text>
                     <Text
                       variant={TextVariant.BodyMd}

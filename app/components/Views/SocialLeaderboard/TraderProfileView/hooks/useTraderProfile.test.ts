@@ -83,7 +83,6 @@ describe('useTraderProfile', () => {
   describe('profile data', () => {
     it('returns null profile when data is undefined', () => {
       const { result } = renderHook(() => useTraderProfile('trader-1'));
-
       expect(result.current.profile).toBeNull();
     });
 
@@ -91,9 +90,7 @@ describe('useTraderProfile', () => {
       mockUseQuery.mockReturnValue(
         makeQueryResult({ data: fixtureProfile as never }),
       );
-
       const { result } = renderHook(() => useTraderProfile('trader-1'));
-
       expect(result.current.profile).toEqual(fixtureProfile);
     });
   });
@@ -101,33 +98,22 @@ describe('useTraderProfile', () => {
   describe('loading state', () => {
     it('exposes isLoading from useQuery', () => {
       mockUseQuery.mockReturnValue(makeQueryResult({ isLoading: true }));
-
       const { result } = renderHook(() => useTraderProfile('trader-1'));
-
       expect(result.current.isLoading).toBe(true);
     });
 
     it('returns false when useQuery is not loading', () => {
       const { result } = renderHook(() => useTraderProfile('trader-1'));
-
       expect(result.current.isLoading).toBe(false);
     });
   });
 
   describe('error handling', () => {
-    it('returns null when there is no error', () => {
-      const { result } = renderHook(() => useTraderProfile('trader-1'));
-
-      expect(result.current.error).toBeNull();
-    });
-
     it('returns error message string for Error objects', () => {
       mockUseQuery.mockReturnValue(
         makeQueryResult({ error: new Error('Network error') }),
       );
-
       const { result } = renderHook(() => useTraderProfile('trader-1'));
-
       expect(result.current.error).toBe('Network error');
     });
 
@@ -135,19 +121,19 @@ describe('useTraderProfile', () => {
       mockUseQuery.mockReturnValue(
         makeQueryResult({ error: 'raw error' as never }),
       );
-
       const { result } = renderHook(() => useTraderProfile('trader-1'));
-
       expect(result.current.error).toBe('raw error');
+    });
+
+    it('returns null when there is no error', () => {
+      const { result } = renderHook(() => useTraderProfile('trader-1'));
+      expect(result.current.error).toBeNull();
     });
 
     it('logs errors when error is present', () => {
       const error = new Error('fetch failed');
-
       mockUseQuery.mockReturnValue(makeQueryResult({ error }));
-
       renderHook(() => useTraderProfile('trader-1'));
-
       expect(Logger.error).toHaveBeenCalledWith(
         error,
         'useTraderProfile: profile fetch failed',
@@ -156,7 +142,6 @@ describe('useTraderProfile', () => {
 
     it('does not log when there is no error', () => {
       renderHook(() => useTraderProfile('trader-1'));
-
       expect(Logger.error).not.toHaveBeenCalled();
     });
   });
@@ -164,7 +149,6 @@ describe('useTraderProfile', () => {
   describe('toggleFollow', () => {
     it('defaults isFollowing to false', () => {
       const { result } = renderHook(() => useTraderProfile('trader-1'));
-
       expect(result.current.isFollowing).toBe(false);
     });
 
@@ -195,7 +179,6 @@ describe('useTraderProfile', () => {
   describe('refresh', () => {
     it('calls refetch when refresh is invoked', async () => {
       mockRefetch.mockResolvedValue(undefined);
-
       const { result } = renderHook(() => useTraderProfile('trader-1'));
 
       await act(async () => {
@@ -209,7 +192,6 @@ describe('useTraderProfile', () => {
       const error = new Error('Network failure');
 
       mockRefetch.mockRejectedValue(error);
-
       const { result } = renderHook(() => useTraderProfile('trader-1'));
 
       await expect(

@@ -23,7 +23,6 @@ describe('StatsRow', () => {
 
   it('renders win rate as percentage when winRate30d is non-null and positive', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
-
     expect(screen.getByText('92%')).toBeOnTheScreen();
   });
 

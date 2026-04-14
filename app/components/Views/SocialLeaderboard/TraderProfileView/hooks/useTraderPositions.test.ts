@@ -134,13 +134,11 @@ describe('useTraderPositions', () => {
     });
 
     it('returns closed positions from the closed query', () => {
-      mockUseQuery
-        .mockReturnValueOnce(makeQueryResult())
-        .mockReturnValueOnce(
-          makeQueryResult({
-            data: { positions: mockClosedPositions } as never,
-          }),
-        );
+      mockUseQuery.mockReturnValueOnce(makeQueryResult()).mockReturnValueOnce(
+        makeQueryResult({
+          data: { positions: mockClosedPositions } as never,
+        }),
+      );
 
       const { result } = renderHook(() => useTraderPositions('trader-1'));
 
@@ -166,7 +164,6 @@ describe('useTraderPositions', () => {
         .mockReturnValueOnce(makeQueryResult());
 
       const { result } = renderHook(() => useTraderPositions('trader-1'));
-
       expect(result.current.isLoadingOpen).toBe(true);
       expect(result.current.isLoadingClosed).toBe(false);
     });
@@ -177,7 +174,6 @@ describe('useTraderPositions', () => {
         .mockReturnValueOnce(makeQueryResult({ isLoading: true }));
 
       const { result } = renderHook(() => useTraderPositions('trader-1'));
-
       expect(result.current.isLoadingOpen).toBe(false);
       expect(result.current.isLoadingClosed).toBe(true);
     });
@@ -243,7 +239,6 @@ describe('useTraderPositions', () => {
 
     it('does not log when there is no error', () => {
       renderHook(() => useTraderPositions('trader-1'));
-
       expect(Logger.error).not.toHaveBeenCalled();
     });
   });

@@ -117,7 +117,6 @@ const TraderProfileView = () => {
     },
     [navigation, traderId, traderName],
   );
-
   const positions = activeTab === 'open' ? openPositions : closedPositions;
   const isLoadingPositions =
     activeTab === 'open' ? isLoadingOpen : isLoadingClosed;
