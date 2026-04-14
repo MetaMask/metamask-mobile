@@ -17,7 +17,7 @@ jest.setTimeout(150_000);
 
 const TOKEN = 'Ethereum';
 
-describe.skip(FlaskBuildTests('Name Lookup Snap Tests'), () => {
+describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
   it('displays the resolved recipient address in the send flow', async () => {
     await withFixtures(
       {
