@@ -1,17 +1,24 @@
-import React, { memo } from 'react';
-import {
-  Box,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import React, { memo, useCallback, useMemo, useState } from 'react';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import type { PredictMarket, PredictPosition } from '../../types';
+import type {
+  PredictMarket,
+  PredictOutcomeGroup,
+  PredictPosition,
+} from '../../types';
 import type { PredictMarketDetailsTabKey } from '../../Predict.testIds';
+import PredictChipList, { type PredictChipItem } from '../PredictChipList';
 import PredictPicks from '../PredictPicks/PredictPicks';
+import { getOutcomeGroupLabel } from '../../utils/outcomeGroupLabel';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
+
+const MOCK_OUTCOME_GROUPS: PredictOutcomeGroup[] = [
+  { key: 'game_lines', outcomes: [] },
+  { key: 'assists', outcomes: [] },
+  { key: 'points', outcomes: [] },
+  { key: 'rebounds', outcomes: [] },
+  { key: 'goals', outcomes: [] },
+];
 
 interface PredictGameDetailsTabsContentProps {
   market: PredictMarket;
@@ -23,18 +30,30 @@ interface PredictGameDetailsTabsContentProps {
   claimablePositions: PredictPosition[];
 }
 
-const OutcomesPlaceholder = () => (
-  <Box
-    alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Center}
-    twClassName="px-4 py-12"
-    testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER}
-  >
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-      Outcomes coming soon
-    </Text>
-  </Box>
+const toChips = (groups: PredictOutcomeGroup[]): PredictChipItem[] =>
+  groups.map((g) => ({ key: g.key, label: getOutcomeGroupLabel(g.key) }));
+
+const OutcomesContent = memo(
+  ({
+    chips,
+    activeChipKey,
+    onChipSelect,
+  }: {
+    chips: PredictChipItem[];
+    activeChipKey: string;
+    onChipSelect: (key: string) => void;
+  }) => (
+    <Box testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT}>
+      <PredictChipList
+        chips={chips}
+        activeChipKey={activeChipKey}
+        onChipSelect={onChipSelect}
+      />
+    </Box>
+  ),
 );
+
+OutcomesContent.displayName = 'OutcomesContent';
 
 const PredictGameDetailsTabsContent = memo(
   ({
@@ -46,6 +65,16 @@ const PredictGameDetailsTabsContent = memo(
     activePositions,
     claimablePositions,
   }: PredictGameDetailsTabsContentProps) => {
+    const [activeChipKey, setActiveChipKey] = useState(
+      MOCK_OUTCOME_GROUPS[0]?.key ?? '',
+    );
+
+    const chips = useMemo(() => toChips(MOCK_OUTCOME_GROUPS), []);
+
+    const handleChipSelect = useCallback((key: string) => {
+      setActiveChipKey(key);
+    }, []);
+
     const hasPositions =
       activePositions.length > 0 || claimablePositions.length > 0;
 
@@ -69,7 +98,13 @@ const PredictGameDetailsTabsContent = memo(
     }
 
     if (!showTabBar) {
-      return <OutcomesPlaceholder />;
+      return (
+        <OutcomesContent
+          chips={chips}
+          activeChipKey={activeChipKey}
+          onChipSelect={handleChipSelect}
+        />
+      );
     }
 
     const currentKey = tabs[activeTab]?.key;
@@ -89,7 +124,13 @@ const PredictGameDetailsTabsContent = memo(
             />
           </Box>
         )}
-        {currentKey === 'outcomes' && <OutcomesPlaceholder />}
+        {currentKey === 'outcomes' && (
+          <OutcomesContent
+            chips={chips}
+            activeChipKey={activeChipKey}
+            onChipSelect={handleChipSelect}
+          />
+        )}
       </>
     );
   },

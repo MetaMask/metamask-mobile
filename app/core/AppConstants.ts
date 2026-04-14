@@ -270,6 +270,7 @@ export default {
   ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID: 'custom-tab',
   REQUEST_SOURCES: {
     SDK_REMOTE_CONN: 'MetaMask-SDK-Remote-Conn',
+    MM_CONNECT: 'MetaMask-Connect',
     WC: 'WalletConnect',
     WC2: 'WalletConnectV2',
     IN_APP_BROWSER: 'In-App-Browser',

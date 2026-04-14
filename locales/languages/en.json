@@ -1814,12 +1814,13 @@
       "market_hours": {
         "title": "Market hours",
         "closes_in": "Closes in {{time}}",
-        "content": "You're trading within regular market hours (9:30 am to 4 pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "content": "You're trading within regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
       },
       "after_hours_trading": {
         "title": "After-hours trading",
         "reopens_in": "Reopens in {{time}}",
-        "content": "You're trading outside of regular market hours (9:30 am to 4 pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "reopens_in_label": "Reopens in",
+        "content": "You're trading outside of regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
       },
       "spread": {
         "title": "Spread",
@@ -2195,6 +2196,21 @@
       "about": "About",
       "positions": "Positions",
       "outcomes": "Outcomes"
+    },
+    "outcome_groups": {
+      "game_lines": "Game Lines",
+      "assists": "Assists",
+      "points": "Points",
+      "rebounds": "Rebounds",
+      "goals": "Goals",
+      "first_half": "1st Half",
+      "totals": "Totals",
+      "spreads": "Spreads",
+      "both_teams_to_score": "Both Teams to Score",
+      "goalscorers": "Goalscorers",
+      "exact_score": "Exact Score",
+      "halftime_result": "Halftime Result",
+      "corners": "Corners"
     },
     "sell_position": "Sell position",
     "cash_out": "Cash out",
@@ -6044,7 +6060,7 @@
     "your_bonus_tooltip_your_bonus": "Your bonus",
     "your_bonus_tooltip_your_bonus_desc": ":  {{percentage}}% annualized bonus you earn just for holding mUSD. You can claim it daily on Linea. ",
     "your_bonus_tooltip_annual_bonus": "Estimated annual bonus: ",
-    "your_bonus_tooltip_annual_bonus_desc": "A projection of what you'd earn over a year based on your current balance and rate.",
+    "your_bonus_tooltip_annual_bonus_desc": "A projection of what you'd earn over a year based on your current balance and rate. Rate is variable and may change.",
     "your_bonus_tooltip_lifetime_bonus": "Lifetime bonus claimed: ",
     "your_bonus_tooltip_lifetime_bonus_desc": "The total bonus you've claimed since you started.",
     "learn_more": "Learn more",
@@ -7602,6 +7618,7 @@
     },
     "card_authentication": {
       "title": "Log in to your card account",
+      "auth_prompt_info": "Log in to your card account to access this feature.",
       "location_button_text": "International",
       "location_button_text_us": "United States",
       "email_label": "Email",
@@ -8084,7 +8101,7 @@
       "ondo": {
         "entries_closed_title": "Entries closed",
         "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future.",
-        "open_position": "Open Position"
+        "open_position": "Swap Ondo assets"
       }
     },
     "ondo_campaign_prize_pool": {
@@ -8092,6 +8109,7 @@
       "current_label": "Current",
       "next_label": "Next",
       "volume_subtext": "{{current}} of {{target}} volume",
+      "max_tier_subtext": "{{maxThreshold}}+ TVL — all milestones reached",
       "error_title": "Failed to load prize pool",
       "error_description": "There was an error loading the prize pool. Please try again.",
       "retry_button": "Retry"
@@ -8115,6 +8133,7 @@
       "portfolio_pnl_percent": "P&L (%)",
       "summary_cost_basis": "Cost basis",
       "summary_net_deposit": "Net deposit",
+      "summary_cashed_out": "Cashed out",
       "position_current_value": "Value",
       "position_unrealized_pnl": "P&L",
       "updated_at": "Last updated: {{time}}",
@@ -8157,7 +8176,33 @@
       "tier_upper": "Platinum",
       "select_tier": "Select Tier",
       "pending": "Pending",
-      "qualified": "Qualified"
+      "qualified": "Qualified",
+      "pending_sheet_title": "Pending",
+      "pending_sheet_tier_label": "Tier",
+      "pending_sheet_net_deposit_label": "Net Deposit",
+      "pending_sheet_own_body": "Hold a minimum balance of {{minDeposit}} for {{daysRemaining}} more day(s) to qualify for this tier.",
+      "pending_sheet_other_body": "This participant hasn't yet met the holding requirement for their projected tier.",
+      "pending_sheet_cta": "Got it",
+      "qualify_for_rank_title": "Qualify for this rank",
+      "qualify_for_rank_description": "Keep your deposit above {{minDeposit}} for {{daysRemaining}} more days, including the final day."
+    },
+    "ondo_campaign_stats": {
+      "title": "Stats",
+      "stats_error_title": "Unable to load all stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again later.",
+      "retry": "Retry",
+      "label_return": "Return",
+      "label_market_value": "Market Value",
+      "label_net_deposited": "Net deposited",
+      "label_cashed_out": "Cashed out",
+      "label_rank": "Rank",
+      "label_tier": "Tier",
+      "label_your_return": "Your return",
+      "label_your_rank": "Your rank",
+      "label_net_deposit": "Net deposit",
+      "label_days_held": "Days held",
+      "qualified_title": "You're qualified",
+      "qualified_description": "Keep your net deposit above {{minDeposit}} through the final day to stay eligible."
     },
     "ondo_campaign_activity": {
       "title": "All activity",
@@ -8170,6 +8215,18 @@
       "retry_button": "Retry",
       "empty_title": "No activity yet",
       "empty_description": "Your campaign activity will appear here once you have transactions."
+    },
+    "ondo_campaign_after_hours_trading": {
+      "title": "After-hours trading",
+      "reopens_in_label": "Reopens in",
+      "content": "You're trading outside of regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates.",
+      "got_it_button": "Got it"
+    },
+    "ondo_campaign_not_eligible": {
+      "title": "Not eligible",
+      "body": "This position won't be entered in the campaign. It won't meet the {{days}}-day hold requirement.",
+      "cancel": "Cancel",
+      "confirm": "I understand"
     },
     "campaigns_preview": {
       "title": "Campaigns",
