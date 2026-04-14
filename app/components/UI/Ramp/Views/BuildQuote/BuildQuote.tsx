@@ -857,39 +857,62 @@ function BuildQuote() {
     : strings('fiat_on_ramp.no_quotes_available');
 
   return (
-    <>
-      <HeaderCompactStandard
-        title={
-          selectedToken?.symbol
-            ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
-            : undefined
-        }
-        subtitle={
-          networkInfo?.networkName
-            ? strings('fiat_on_ramp.on_network', {
-                networkName: networkInfo.networkName,
-              })
-            : undefined
-        }
-        onBack={handleBackPress}
-        backButtonProps={{ testID: BUILD_QUOTE_TEST_IDS.BACK_BUTTON }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Setting,
-            onPress: handleSettingsPress,
-            testID: BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON,
-          },
-        ]}
-        includesTopInset
-      />
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ScreenLayout.Content style={styles.content}>
-            <View style={styles.centerGroup}>
-              <View style={styles.amountContainer}>
-                <View style={styles.amountRow}>
+    <ScreenLayout>
+      <ScreenLayout.Body>
+        <HeaderCompactStandard
+          title={
+            selectedToken?.symbol
+              ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
+              : undefined
+          }
+          subtitle={
+            networkInfo?.networkName
+              ? strings('fiat_on_ramp.on_network', {
+                  networkName: networkInfo.networkName,
+                })
+              : undefined
+          }
+          onBack={handleBackPress}
+          backButtonProps={{ testID: BUILD_QUOTE_TEST_IDS.BACK_BUTTON }}
+          endButtonIconProps={[
+            {
+              iconName: IconName.Setting,
+              onPress: handleSettingsPress,
+              testID: BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON,
+            },
+          ]}
+          includesTopInset
+        />
+        <ScreenLayout.Content style={styles.content}>
+          <View style={styles.centerGroup}>
+            <View style={styles.amountContainer}>
+              <View style={styles.amountRow}>
+                <Text
+                  testID={BuildQuoteSelectors.AMOUNT_INPUT}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Regular}
+                  color={
+                    rampsError || hasNoQuotes || quoteFetchError
+                      ? TextColor.ErrorDefault
+                      : undefined
+                  }
+                  twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
+                  numberOfLines={1}
+                >
+                  {currencyPrefix}
+                  {amount}
+                </Text>
+                <Animated.View
+                  style={[
+                    styles.cursor,
+                    {
+                      height: Math.max(amountLineHeight - 4, 16),
+                      opacity: cursorOpacity,
+                    },
+                  ]}
+                />
+                {currencySuffix ? (
                   <Text
-                    testID={BuildQuoteSelectors.AMOUNT_INPUT}
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Regular}
                     color={
@@ -898,123 +921,98 @@ function BuildQuote() {
                         : undefined
                     }
                     twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
-                    numberOfLines={1}
                   >
-                    {currencyPrefix}
-                    {amount}
+                    {currencySuffix}
                   </Text>
-                  <Animated.View
-                    style={[
-                      styles.cursor,
-                      {
-                        height: Math.max(amountLineHeight - 4, 16),
-                        opacity: cursorOpacity,
-                      },
-                    ]}
-                  />
-                  {currencySuffix ? (
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Regular}
-                      color={
-                        rampsError || hasNoQuotes || quoteFetchError
-                          ? TextColor.ErrorDefault
-                          : undefined
-                      }
-                      twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
-                    >
-                      {currencySuffix}
-                    </Text>
-                  ) : null}
-                </View>
-                <PaymentMethodPill
-                  label={
-                    selectedPaymentMethod?.name ||
-                    strings('fiat_on_ramp.select_payment_method')
-                  }
-                  paymentMethod={selectedPaymentMethod}
-                  isLoading={paymentMethodsLoading}
-                  onPress={
-                    isTokenUnavailable ? undefined : handlePaymentPillPress
-                  }
-                  testID="build-quote-payment-pill"
-                />
+                ) : null}
               </View>
-            </View>
-
-            {quoteFetchError && (
-              <BannerAlert
-                severity={BannerAlertSeverity.Error}
-                description={parseUserFacingError(
-                  quoteFetchError,
-                  strings('deposit.buildQuote.quoteFetchError'),
-                )}
+              <PaymentMethodPill
+                label={
+                  selectedPaymentMethod?.name ||
+                  strings('fiat_on_ramp.select_payment_method')
+                }
+                paymentMethod={selectedPaymentMethod}
+                isLoading={paymentMethodsLoading}
+                onPress={
+                  isTokenUnavailable ? undefined : handlePaymentPillPress
+                }
+                testID="build-quote-payment-pill"
               />
-            )}
-
-            <View style={styles.actionSection}>
-              {hasAmount ? (
-                <>
-                  {rampsError ? (
-                    <TruncatedError
-                      error={rampsError}
-                      providerName={selectedProvider?.name}
-                      providerSupportUrl={
-                        selectedProvider?.links?.find(
-                          (link) => link.name === PROVIDER_LINKS.SUPPORT,
-                        )?.url
-                      }
-                    />
-                  ) : hasNoQuotes ? (
-                    <TruncatedError
-                      error={strings('fiat_on_ramp.encountered_error')}
-                      errorDetails={noQuotesErrorMessage}
-                      showChangeProvider
-                      amount={amountAsNumber}
-                    />
-                  ) : (
-                    selectedProvider && (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        style={styles.poweredByText}
-                      >
-                        {strings('fiat_on_ramp.powered_by_provider', {
-                          provider: selectedProvider.name,
-                        })}
-                      </Text>
-                    )
-                  )}
-                  <Button
-                    variant={ButtonVariant.Primary}
-                    size={ButtonSize.Lg}
-                    onPress={handleContinuePress}
-                    isFullWidth
-                    isDisabled={!canContinue}
-                    isLoading={selectedQuoteLoading || isContinueLoading}
-                    testID={BuildQuoteSelectors.CONTINUE_BUTTON}
-                  >
-                    {strings('fiat_on_ramp.continue')}
-                  </Button>
-                </>
-              ) : (
-                quickAmounts.length > 0 && (
-                  <QuickAmounts
-                    amounts={quickAmounts}
-                    currency={currency}
-                    onAmountPress={handleQuickAmountPress}
-                  />
-                )
-              )}
             </View>
-            <Keypad
-              currency={currency}
-              value={amount}
-              onChange={handleKeypadChange}
+          </View>
+
+          {quoteFetchError && (
+            <BannerAlert
+              severity={BannerAlertSeverity.Error}
+              description={parseUserFacingError(
+                quoteFetchError,
+                strings('deposit.buildQuote.quoteFetchError'),
+              )}
             />
-          </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScreenLayout>
-    </>
+          )}
+
+          <View style={styles.actionSection}>
+            {hasAmount ? (
+              <>
+                {rampsError ? (
+                  <TruncatedError
+                    error={rampsError}
+                    providerName={selectedProvider?.name}
+                    providerSupportUrl={
+                      selectedProvider?.links?.find(
+                        (link) => link.name === PROVIDER_LINKS.SUPPORT,
+                      )?.url
+                    }
+                  />
+                ) : hasNoQuotes ? (
+                  <TruncatedError
+                    error={strings('fiat_on_ramp.encountered_error')}
+                    errorDetails={noQuotesErrorMessage}
+                    showChangeProvider
+                    amount={amountAsNumber}
+                  />
+                ) : (
+                  selectedProvider && (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      style={styles.poweredByText}
+                    >
+                      {strings('fiat_on_ramp.powered_by_provider', {
+                        provider: selectedProvider.name,
+                      })}
+                    </Text>
+                  )
+                )}
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  onPress={handleContinuePress}
+                  isFullWidth
+                  isDisabled={!canContinue}
+                  isLoading={selectedQuoteLoading || isContinueLoading}
+                  testID={BuildQuoteSelectors.CONTINUE_BUTTON}
+                >
+                  {strings('fiat_on_ramp.continue')}
+                </Button>
+              </>
+            ) : (
+              quickAmounts.length > 0 && (
+                <QuickAmounts
+                  amounts={quickAmounts}
+                  currency={currency}
+                  onAmountPress={handleQuickAmountPress}
+                />
+              )
+            )}
+          </View>
+          <Keypad
+            currency={currency}
+            value={amount}
+            onChange={handleKeypadChange}
+          />
+        </ScreenLayout.Content>
+      </ScreenLayout.Body>
+    </ScreenLayout>
   );
 }
 

@@ -92,11 +92,11 @@ jest.mock('../../Charts/AdvancedChart/TimeRangeSelector', () => {
     __esModule: true,
     default: MockSelector,
     TIME_RANGE_CONFIGS: {
-      '1H': { timePeriod: '1h' },
-      '1D': { timePeriod: '1d' },
-      '1W': { timePeriod: '1w' },
-      '1M': { timePeriod: '1m' },
-      '1Y': { timePeriod: '1y' },
+      '1H': { timePeriod: '1h', durationMs: 60 * 60 * 1000 },
+      '1D': { timePeriod: '1d', durationMs: 24 * 60 * 60 * 1000 },
+      '1W': { timePeriod: '1w', durationMs: 7 * 24 * 60 * 60 * 1000 },
+      '1M': { timePeriod: '1m', durationMs: 30 * 24 * 60 * 60 * 1000 },
+      '1Y': { timePeriod: '1y', durationMs: 365 * 24 * 60 * 60 * 1000 },
     },
   };
 });
@@ -116,10 +116,8 @@ const mockAsset: TokenI = {
 
 const baseProps: PriceAdvancedProps = {
   asset: mockAsset,
-  priceDiff: 5,
   currentPrice: 105,
   currentCurrency: 'USD',
-  comparePrice: 100,
   isLoading: false,
 };
 
@@ -290,6 +288,230 @@ describe('PriceAdvanced', () => {
   it('renders price-label with the time range date label', () => {
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
     expect(getByTestId('price-label')).toBeOnTheScreen();
+  });
+
+  it('calculates percentage from OHLCV close price of the reference candle', () => {
+    // Reference candle close = 100, current price = 105
+    // Expected: (105 - 100) / 100 * 100 = 5.00%
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [
+        {
+          time: oneDayAgo,
+          open: 95,
+          high: 101,
+          low: 94,
+          close: 100,
+          volume: 1,
+        },
+        {
+          time: now - 1000,
+          open: 100,
+          high: 106,
+          low: 100,
+          close: 105,
+          volume: 1,
+        },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    const { getByText } = render(
+      <PriceAdvanced {...baseProps} currentPrice={105} />,
+    );
+
+    // Uses close (100) not open (95) — matches what the line chart visually draws
+    expect(getByText(/5\.00%/)).toBeOnTheScreen();
+  });
+
+  it('hides price diff when OHLCV data is empty', () => {
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    const { queryByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+    // Should not render price-label when no OHLCV data
+    expect(queryByTestId('price-label')).not.toBeOnTheScreen();
+  });
+
+  it('updates percentage when time range changes and new OHLCV data loads', () => {
+    // Initial: reference candle close = 100, current price = 105
+    // Expected: (105 - 100) / 100 * 100 = 5.00%
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [
+        {
+          time: oneDayAgo,
+          open: 95,
+          high: 101,
+          low: 94,
+          close: 100,
+          volume: 1,
+        },
+        {
+          time: now - 1000,
+          open: 100,
+          high: 106,
+          low: 100,
+          close: 105,
+          volume: 1,
+        },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    const { getByText, rerender } = render(
+      <PriceAdvanced {...baseProps} currentPrice={105} />,
+    );
+
+    expect(getByText(/5\.00%/)).toBeOnTheScreen();
+
+    // After time range change: reference candle close = 103, current = 105
+    // Expected: (105 - 103) / 103 * 100 = 1.94%
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [
+        {
+          time: oneDayAgo,
+          open: 102,
+          high: 104,
+          low: 102,
+          close: 103,
+          volume: 1,
+        },
+        {
+          time: now - 1000,
+          open: 103,
+          high: 106,
+          low: 103,
+          close: 105,
+          volume: 1,
+        },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    rerender(<PriceAdvanced {...baseProps} currentPrice={105} />);
+
+    expect(getByText(/1\.94%/)).toBeOnTheScreen();
+  });
+
+  it('displays price diff when dynamicComparePrice is 0', () => {
+    // Edge case: reference candle close is 0 — should still render, not hide
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [
+        {
+          time: oneDayAgo,
+          open: 0,
+          high: 1,
+          low: 0,
+          close: 0,
+          volume: 1,
+        },
+        {
+          time: now - 1000,
+          open: 0.5,
+          high: 10,
+          low: 0.5,
+          close: 10,
+          volume: 1,
+        },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    const { getByText, getByTestId } = render(
+      <PriceAdvanced {...baseProps} currentPrice={10} />,
+    );
+
+    expect(getByText(/\+\$10\.00/)).toBeOnTheScreen();
+    // Division by zero guard shows 0% instead of Infinity
+    expect(getByText(/0%/)).toBeOnTheScreen();
+    expect(getByTestId('price-label')).toBeOnTheScreen();
+  });
+
+  it('skips pre-visible candles when API returns extra history', () => {
+    // Simulates: API returns 4 days of data for 1D range.
+    // visibleFromMs = lastBar.time - 24h ≈ yesterday 15:00.
+    // Candles before that should be ignored.
+    const lastBarTime = Date.now() - 1000;
+    const oneDayMs = 24 * 60 * 60 * 1000;
+
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [
+        // 3 days ago — before visible range, should be skipped
+        {
+          time: lastBarTime - 3 * oneDayMs,
+          open: 200,
+          high: 210,
+          low: 190,
+          close: 200,
+          volume: 1,
+        },
+        // 2 days ago — still before visible range, should be skipped
+        {
+          time: lastBarTime - 2 * oneDayMs,
+          open: 190,
+          high: 195,
+          low: 185,
+          close: 190,
+          volume: 1,
+        },
+        // ~24h ago — first candle in visible range (close = 100)
+        {
+          time: lastBarTime - oneDayMs + 1000,
+          open: 95,
+          high: 101,
+          low: 94,
+          close: 100,
+          volume: 1,
+        },
+        // Recent candle
+        {
+          time: lastBarTime,
+          open: 103,
+          high: 106,
+          low: 103,
+          close: 105,
+          volume: 1,
+        },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    const { getByText } = render(
+      <PriceAdvanced {...baseProps} currentPrice={105} />,
+    );
+
+    // Should use close=100 from the first visible candle, NOT close=200 from 3 days ago
+    // (105 - 100) / 100 * 100 = 5.00%
+    expect(getByText(/5\.00%/)).toBeOnTheScreen();
   });
 
   describe('touch gesture handling', () => {

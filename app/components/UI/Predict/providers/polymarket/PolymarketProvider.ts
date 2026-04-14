@@ -175,9 +175,12 @@ export class PolymarketProvider implements PredictProvider {
     return filterSupportedLeagues(liveSportsLeagues);
   }
 
+  #getExtendedSportsMarketsLeagues(): string[] {
+    return this.#getFeatureFlags().extendedSportsMarketsLeagues;
+  }
+
   #hasExtendedMarketsForLeague(league: string): boolean {
-    const { extendedSportsMarketsLeagues } = this.#getFeatureFlags();
-    return extendedSportsMarketsLeagues.includes(league);
+    return this.#getExtendedSportsMarketsLeagues().includes(league);
   }
 
   #createTeamLookup(
@@ -296,6 +299,7 @@ export class PolymarketProvider implements PredictProvider {
       const [parsedMarket] = parsePolymarketEvents([event], {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       });
 
       if (!parsedMarket) {
@@ -403,6 +407,7 @@ export class PolymarketProvider implements PredictProvider {
         category,
         sortMarketsBy: 'price',
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       });
 
       const markets = isSearch
@@ -469,6 +474,7 @@ export class PolymarketProvider implements PredictProvider {
       return parsePolymarketEvents(events, {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       });
     } catch (error) {
       DevLogger.log('Error fetching series events via Polymarket API:', error);
@@ -500,6 +506,7 @@ export class PolymarketProvider implements PredictProvider {
         category: 'trending',
         sortMarketsBy: 'price',
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       }).filter((m) => m.status === 'open' && m.outcomes.length > 0);
 
       return liveSportsEnabled
