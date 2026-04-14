@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { LayoutChangeEvent, Pressable, View } from 'react-native';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -80,15 +81,23 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
     alignItems: 'center' as const,
   }));
 
+  const selectWithHaptics = useCallback(
+    (line: number) => {
+      impactAsync(ImpactFeedbackStyle.Light);
+      onSelectLine(line);
+    },
+    [onSelectLine],
+  );
+
   const handlePrevious = () => {
     if (!isFirstSelected) {
-      onSelectLine(lines[selectedIndex - 1]);
+      selectWithHaptics(lines[selectedIndex - 1]);
     }
   };
 
   const handleNext = () => {
     if (!isLastSelected) {
-      onSelectLine(lines[selectedIndex + 1]);
+      selectWithHaptics(lines[selectedIndex + 1]);
     }
   };
 
@@ -146,7 +155,7 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
               return (
                 <Pressable
                   key={line}
-                  onPress={() => onSelectLine(line)}
+                  onPress={() => selectWithHaptics(line)}
                   testID={`${baseTestID}-${PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.LINE_PREFIX}${line}`}
                   style={({ pressed }) =>
                     tw.style(

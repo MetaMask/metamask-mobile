@@ -28,6 +28,11 @@ jest.mock('@react-native-masked-view/masked-view', () =>
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  ImpactFeedbackStyle: { Light: 'light' },
+}));
+
 const TEST_ID = 'line-selector';
 const IDS = PREDICT_SPORT_LINE_SELECTOR_TEST_IDS;
 
