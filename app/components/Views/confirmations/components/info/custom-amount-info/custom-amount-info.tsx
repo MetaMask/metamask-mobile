@@ -1,5 +1,5 @@
 import React, { ReactNode, memo, useCallback, useState } from 'react';
-import { Hex, toCaipAssetType } from '@metamask/utils';
+import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
@@ -61,7 +61,7 @@ import Engine from '../../../../../../core/Engine';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import AccountSelector from '../../AccountSelector';
+import PayAccountSelector from '../../PayAccountSelector';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -122,31 +122,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
-    const [selectedAccountAddress, setSelectedAccountAddress] = useState<
-      string | undefined
-    >(undefined);
+    const [hasSelectedAccount, setHasSelectedAccount] = useState(false);
 
-    const handleAccountSelected = useCallback(
-      (address: string) => {
-        if (transactionId) {
-          Engine.context.TransactionPayController.setTransactionConfig(
-            transactionId,
-            (config) => {
-              config.accountOverride = address as Hex;
-              if (isMoneyAccountWithdraw) {
-                config.isPostQuote = true;
-              }
-            },
-          );
-        }
-        setSelectedAccountAddress(address);
-      },
-      [transactionId, isMoneyAccountWithdraw],
-    );
+    const handleAccountSelected = useCallback(() => {
+      setHasSelectedAccount(true);
+    }, []);
 
     const isAccountMissing =
-      (isMoneyAccountWithdraw || isMoneyAccountDeposit) &&
-      !selectedAccountAddress;
+      (isMoneyAccountWithdraw || isMoneyAccountDeposit) && !hasSelectedAccount;
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
@@ -225,15 +208,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!hidePayTokenAmount && (
             <>
               {isMoneyAccountDeposit && (
-                <AccountSelector
+                <PayAccountSelector
                   label={strings('confirm.label.from')}
-                  selectedAddress={selectedAccountAddress}
                   onAccountSelected={handleAccountSelected}
                 />
               )}
               {isMoneyAccountWithdraw && (
-                <AccountSelector
-                  selectedAddress={selectedAccountAddress}
+                <PayAccountSelector
+                  isPostQuote
                   onAccountSelected={handleAccountSelected}
                 />
               )}
