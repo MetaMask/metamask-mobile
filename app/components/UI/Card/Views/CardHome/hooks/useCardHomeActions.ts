@@ -16,7 +16,6 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { CardActions } from '../../../util/metrics';
 import { DEPOSIT_SUPPORTED_TOKENS } from '../../../constants';
-import { toCardTokenAllowance } from '../../../util/toCardTokenAllowance';
 import { withBiometricAuth } from '../../../util/withBiometricAuth';
 import { createAddFundsModalNavigationDetails } from '../../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
@@ -30,39 +29,41 @@ import { useOpenSwaps } from '../../../hooks/useOpenSwaps';
 import { useNavigateToCardPage } from '../../../hooks/useNavigateToCardPage';
 import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 import type {
-  CardTokenAllowance,
+  CardAssetWithBalance,
   DelegationSettingsResponse,
 } from '../../../types';
 
-function buildSpendingLimitParams(data: CardHomeData | null | undefined) {
-  const allTokens = (data?.supportedTokens ?? []).map(toCardTokenAllowance);
-  const priorityToken = data?.primaryAsset
-    ? toCardTokenAllowance(data.primaryAsset)
-    : null;
-  const delegationSettings: DelegationSettingsResponse | null =
-    data?.delegationSettings ?? null;
-  const externalWalletDetailsData = {
-    walletDetails: [] as never[],
-    mappedWalletDetails: (data?.assets ?? []).map(toCardTokenAllowance),
-    priorityWalletDetail: priorityToken ?? undefined,
-  };
+function buildSpendingLimitParams(
+  primaryAsset: CardAssetWithBalance | null,
+  supportedAssets: CardAssetWithBalance[],
+  assetTokens: CardAssetWithBalance[],
+  delegationSettings: DelegationSettingsResponse | null,
+) {
   return {
-    allTokens,
-    priorityToken,
+    allTokens: supportedAssets,
+    priorityToken: primaryAsset,
     delegationSettings,
-    externalWalletDetailsData,
+    externalWalletDetailsData: {
+      walletDetails: [] as never[],
+      mappedWalletDetails: assetTokens,
+      priorityWalletDetail: primaryAsset ?? undefined,
+    },
   };
 }
 
 interface UseCardHomeActionsParams {
   data: CardHomeData | null | undefined;
-  legacyPriorityToken: CardTokenAllowance | null;
+  primaryAsset: CardAssetWithBalance | null;
+  supportedAssets: CardAssetWithBalance[];
+  assetTokens: CardAssetWithBalance[];
   isFrozen: boolean;
 }
 
 export function useCardHomeActions({
   data,
-  legacyPriorityToken,
+  primaryAsset,
+  supportedAssets,
+  assetTokens,
   isFrozen,
 }: UseCardHomeActionsParams) {
   const navigation = useNavigation();
@@ -88,11 +89,17 @@ export function useCardHomeActions({
     isLoading: isPinLoading,
     reset: resetPinToken,
   } = useCardPinToken();
-  const { openSwaps } = useOpenSwaps({ priorityToken: legacyPriorityToken });
+  const { openSwaps } = useOpenSwaps({ priorityToken: primaryAsset });
 
   const spendingLimitParams = useMemo(
-    () => buildSpendingLimitParams(data),
-    [data],
+    () =>
+      buildSpendingLimitParams(
+        primaryAsset,
+        supportedAssets,
+        assetTokens,
+        data?.delegationSettings ?? null,
+      ),
+    [primaryAsset, supportedAssets, assetTokens, data?.delegationSettings],
   );
 
   // --- Freeze ---
@@ -323,7 +330,7 @@ export function useCardHomeActions({
     if (isPriorityTokenSupportedDeposit) {
       navigation.navigate(
         ...createAddFundsModalNavigationDetails({
-          priorityToken: legacyPriorityToken ?? undefined,
+          priorityToken: primaryAsset ?? undefined,
         }),
       );
     } else if (data?.primaryAsset) {
@@ -333,7 +340,7 @@ export function useCardHomeActions({
     trackEvent,
     createEventBuilder,
     data?.primaryAsset,
-    legacyPriorityToken,
+    primaryAsset,
     openSwaps,
     navigation,
   ]);

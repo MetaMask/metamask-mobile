@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView } from 'react-native-gesture-handler';
+import { RefreshControl, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,6 +17,8 @@ import {
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { useTheme } from '../../../../util/theme';
+import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import { TrendingTokenNetworkBottomSheet } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
@@ -46,11 +48,14 @@ const SKELETON_KEYS = Array.from(
 const TopTradersView = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const { colors } = useTheme();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
 
-  const { traders, isLoading, toggleFollow } = useTopTraders({
+  const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
     enabled: isEnabled,
   });
+
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (!isEnabled) {
@@ -81,6 +86,20 @@ const TopTradersView = () => {
   const handleNetworkBottomSheetClose = useCallback(() => {
     setShowNetworkBottomSheet(false);
   }, []);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const minDuration = new Promise<void>((resolve) =>
+        setTimeout(resolve, 1000),
+      );
+      await Promise.all([refresh(), minDuration]);
+    } catch (err) {
+      Logger.error(err as Error, 'TopTradersView: pull-to-refresh failed');
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refresh]);
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
@@ -146,7 +165,15 @@ const TopTradersView = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('pb-6')}
-        testID="top-traders-view-list"
+        testID={TopTradersViewSelectorsIDs.TRADER_LIST}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+          />
+        }
       >
         {isLoading
           ? SKELETON_KEYS.map((key) => <TraderRowSkeleton key={key} />)

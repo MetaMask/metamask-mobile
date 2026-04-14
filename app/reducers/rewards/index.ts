@@ -7,11 +7,13 @@ import {
   RewardDto,
   PointsEventDto,
   SeasonActivityTypeDto,
+  SubscriptionBenefitDto,
   SeasonWayToEarnDto,
   CampaignDto,
   CampaignParticipantStatusDto,
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
+  SubscriptionBenefitsState,
   OndoGmPortfolioDto,
   OndoGmActivityEntryDto,
   OndoGmCampaignDepositsDto,
@@ -120,6 +122,11 @@ export interface RewardsState {
   // Bulk link state (for linking all account groups across all wallets)
   bulkLink: BulkLinkState;
 
+  // Benefits state
+  benefits: SubscriptionBenefitDto[];
+  benefitsLoading: boolean;
+  benefitsError: boolean;
+
   // Campaigns state
   campaigns: CampaignDto[];
   campaignsLoading: boolean;
@@ -215,6 +222,11 @@ export const initialState: RewardsState = {
     wasInterrupted: false,
     initialSubscriptionId: null,
   },
+
+  // Benefits initial state
+  benefits: [],
+  benefitsLoading: false,
+  benefitsError: false,
 
   // Campaigns initial state
   campaigns: [],
@@ -624,6 +636,18 @@ const rewardsSlice = createSlice({
       }
     },
 
+    setBenefits: (state, action: PayloadAction<SubscriptionBenefitsState>) => {
+      state.benefits = action.payload.benefits;
+    },
+
+    setBenefitsLoading: (state, action: PayloadAction<boolean>) => {
+      state.benefitsLoading = action.payload;
+    },
+
+    setBenefitsError: (state, action: PayloadAction<boolean>) => {
+      state.benefitsError = action.payload;
+    },
+
     setOndoCampaignActivity: (
       state,
       action: PayloadAction<{
@@ -817,6 +841,10 @@ export const {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
+  // Benefits actions
+  setBenefits,
+  setBenefitsError,
+  setBenefitsLoading,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,

@@ -147,6 +147,8 @@ import CampaignTourStepView from '../../UI/Rewards/Views/CampaignTourStepView';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
+import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
+import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
 
 const Stack = createStackNavigator();
@@ -1127,6 +1129,16 @@ const MainNavigator = () => {
         options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen
+        name={Routes.REWARD_BENEFIT_FULL_VIEW}
+        component={BenefitFullView}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
+      />
+      <Stack.Screen
+        name={Routes.REWARD_BENEFITS_FULL_VIEW}
+        component={BenefitsFullView}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
+      />
+      <Stack.Screen
         name={Routes.RAMP.TOKEN_SELECTION}
         component={TokenListRoutes}
       />
@@ -1345,6 +1357,11 @@ const MainNavigator = () => {
         options={({ navigation }) => ({
           ...slideFromRightAnimation,
           ...getDeFiProtocolPositionDetailsNavbarOptions(navigation),
+          headerStyle: {
+            backgroundColor: colors.background.default,
+            shadowColor: importedColors.transparent,
+            elevation: 0,
+          },
         })}
       />
       {
@@ -1366,7 +1383,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}
-        options={clearStackNavigatorOptionsWithTransitionAnimation}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
       />
     </Stack.Navigator>
   );
