@@ -100,6 +100,13 @@ const createStyles = (colors) =>
 
 const foxImage = require('../../../../images/branding/fox.png'); // eslint-disable-line import-x/no-commonjs
 
+const maskSecret = (val) =>
+  val && val.length > 6
+    ? `${val.slice(0, 3)}...${val.slice(-3)}`
+    : val
+      ? '***'
+      : '—';
+
 /**
  * View that contains app information
  */
@@ -216,7 +223,7 @@ class AppInformation extends PureComponent {
         <ScrollView contentContainerStyle={styles.wrapperContent}>
           <View style={styles.logoWrapper}>
             <TouchableOpacity
-              delayLongPress={10 * 1000} // 10 seconds
+              delayLongPress={2 * 1000} // 2 seconds
               onLongPress={this.handleLongPressFox}
               activeOpacity={1}
             >
@@ -275,6 +282,50 @@ class AppInformation extends PureComponent {
                     </Text>
                   </>
                 )}
+
+                <Text style={styles.branchInfo}>
+                  {'--- Build Config (public) ---'}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`BRIDGE_USE_DEV_APIS: ${process.env.BRIDGE_USE_DEV_APIS ?? '—'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`RAMPS_ENVIRONMENT: ${process.env.RAMPS_ENVIRONMENT ?? '—'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`RAMP_DEV_BUILD: ${process.env.RAMP_DEV_BUILD ?? '—'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`SEEDLESS_ONBOARDING_ENABLED: ${process.env.SEEDLESS_ONBOARDING_ENABLED ?? '—'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`MM_PORTFOLIO_API_URL: ${process.env.MM_PORTFOLIO_API_URL ?? '—'}`}
+                </Text>
+
+                <Text style={styles.branchInfo}>
+                  {'--- Secrets (first3...last3) ---'}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`MM_INFURA_PROJECT_ID: ${maskSecret(process.env.MM_INFURA_PROJECT_ID)}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`SEGMENT_WRITE_KEY: ${maskSecret(process.env.SEGMENT_WRITE_KEY)}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`QUICKNODE_BSC_URL: ${maskSecret(process.env.QUICKNODE_BSC_URL)}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`QUICKNODE_SEI_URL: ${maskSecret(process.env.QUICKNODE_SEI_URL)}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`EXPO_TOKEN: ${maskSecret(process.env.EXPO_TOKEN)}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`MM_SENTRY_DSN: ${maskSecret(process.env.MM_SENTRY_DSN)}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`MM_CHARTING_LIBRARY_URL: ${maskSecret(process.env.MM_CHARTING_LIBRARY_URL)}`}
+                </Text>
 
                 {this.props.preinstalledSnaps.map((snap) => (
                   <Text key={snap.name} style={styles.branchInfo}>
