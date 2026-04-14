@@ -72,11 +72,12 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 jest.mock('../../AccountSelector', () => {
-  const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
       onAccountSelected,
+      selectedAddress,
     }: {
       onAccountSelected: (address: string) => void;
       selectedAddress?: string;
@@ -85,7 +86,9 @@ jest.mock('../../AccountSelector', () => {
         testID="account-selector"
         onPress={() => onAccountSelected('0xTestRecipient')}
       >
-        <Text>Select account</Text>
+        <Text testID="account-selector-address">
+          {selectedAddress ?? 'No selection'}
+        </Text>
       </TouchableOpacity>
     ),
   };
@@ -552,10 +555,10 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('account-selector')).toBeOnTheScreen();
   });
 
-  it('renders AccountSelector for moneyAccountDeposit when txParams.from is undefined', () => {
+  it('renders deposit AccountSelector with no pre-selected address', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
-      txParams: {},
+      txParams: { from: '0xExistingFrom' },
     } as never);
 
     const { getByTestId } = render({
@@ -563,6 +566,9 @@ describe('CustomAmountInfo', () => {
     });
 
     expect(getByTestId('account-selector')).toBeOnTheScreen();
+    expect(getByTestId('account-selector-address')).toHaveTextContent(
+      'No selection',
+    );
   });
 
   it('calls updateEditableParams with from key when deposit account is selected', async () => {
