@@ -187,7 +187,9 @@ jest.mock('../../../reducers/rewards/selectors', () => ({
 // Mock react-navigation/native hooks
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
+const mockSetParams = jest.fn();
 const mockIsFocused = jest.fn();
+let mockRouteParams: { page?: string; campaign?: string } = {};
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -196,7 +198,9 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       setOptions: mockSetOptions,
+      setParams: mockSetParams,
     }),
+    useRoute: () => ({ params: mockRouteParams }),
     useIsFocused: () => mockIsFocused(),
   };
 });
@@ -226,6 +230,21 @@ jest.mock('./hooks/useRewardsVersionGuard', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({ fetchVersionRequirements: jest.fn() }),
 }));
+
+jest.mock('./Views/BenefitsView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockBenefitsView() {
+      return ReactActual.createElement(
+        View,
+        { testID: 'benefits-view' },
+        ReactActual.createElement(Text, null, 'Benefits View'),
+      );
+    },
+  };
+});
 
 // Mock RewardsUpdateRequired component
 jest.mock('./components/RewardsUpdateRequired/RewardsUpdateRequired', () => {
@@ -272,6 +291,7 @@ describe('RewardsNavigator', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = {};
 
     // Set default mock return values
     mockSelectRewardsSubscriptionId.mockReturnValue(null);
@@ -578,6 +598,119 @@ describe('RewardsNavigator', () => {
       expect(mockUseSeasonStatus).toHaveBeenCalledWith({
         onlyForExplicitFetch: false,
       });
+    });
+  });
+
+  describe('Deeplink navigation params', () => {
+    beforeEach(() => {
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+      mockNavigate.mockClear();
+      mockSetParams.mockClear();
+    });
+
+    it('navigates to campaigns view when page=campaigns param is set', async () => {
+      mockRouteParams = { page: 'campaigns' };
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.REWARDS_CAMPAIGNS_VIEW,
+        );
+      });
+    });
+
+    it('navigates to ondo campaign when campaign=ondo param is set', async () => {
+      mockRouteParams = { campaign: 'ondo' };
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+        );
+      });
+    });
+
+    it('navigates to season1 campaign when campaign=season1 param is set', async () => {
+      mockRouteParams = { campaign: 'season1' };
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
+        );
+      });
+    });
+
+    it('navigates to musd calculator when page=musd param is set', async () => {
+      mockRouteParams = { page: 'musd' };
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.REWARDS_MUSD_CALCULATOR_VIEW,
+        );
+      });
+    });
+
+    it('navigates to benefits view when page=benefits param is set', async () => {
+      mockRouteParams = { page: 'benefits' };
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_BENEFITS_VIEW);
+      });
+    });
+
+    it('navigates to dashboard when no deeplink params are set', async () => {
+      mockRouteParams = {};
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
+      });
+    });
+
+    it('clears deeplink params via setParams after handling page param', async () => {
+      mockRouteParams = { page: 'campaigns' };
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockSetParams).toHaveBeenCalledWith({
+          page: undefined,
+          campaign: undefined,
+        });
+      });
+    });
+
+    it('clears deeplink params via setParams after handling campaign param', async () => {
+      mockRouteParams = { campaign: 'ondo' };
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockSetParams).toHaveBeenCalledWith({
+          page: undefined,
+          campaign: undefined,
+        });
+      });
+    });
+
+    it('does not call setParams when no deeplink params are present', async () => {
+      mockRouteParams = {};
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
+      });
+      expect(mockSetParams).not.toHaveBeenCalled();
     });
   });
 

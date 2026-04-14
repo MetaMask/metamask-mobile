@@ -32,9 +32,9 @@ const RewardsNavigator: React.FC = () => {
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
   const navigation = useNavigation();
   const route = useRoute();
-  const deepLinkParams = route.params as
-    | { page?: string; campaign?: string }
-    | undefined;
+  const deepLinkPage = (route.params as { page?: string } | undefined)?.page;
+  const deepLinkCampaign = (route.params as { campaign?: string } | undefined)
+    ?.campaign;
   const { colors } = useTheme();
 
   useRewardsVersionGuard();
@@ -64,23 +64,34 @@ const RewardsNavigator: React.FC = () => {
       return;
     }
     if (subscriptionId) {
-      if (deepLinkParams?.page === 'campaigns') {
+      if (deepLinkPage === 'campaigns') {
         navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW);
-      } else if (deepLinkParams?.campaign === 'ondo') {
+      } else if (deepLinkCampaign === 'ondo') {
         navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW);
-      } else if (deepLinkParams?.campaign === 'season1') {
+      } else if (deepLinkCampaign === 'season1') {
         navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW);
-      } else if (deepLinkParams?.page === 'musd') {
+      } else if (deepLinkPage === 'musd') {
         navigation.navigate(Routes.REWARDS_MUSD_CALCULATOR_VIEW);
-      } else if (deepLinkParams?.page === 'benefits') {
+      } else if (deepLinkPage === 'benefits') {
         navigation.navigate(Routes.REWARDS_BENEFITS_VIEW);
       } else {
         navigation.navigate(Routes.REWARDS_DASHBOARD);
       }
+      // Clear deeplink params after first use so re-fires (e.g. on account
+      // switch) don't re-navigate the user away from where they are.
+      if (deepLinkPage || deepLinkCampaign) {
+        navigation.setParams({ page: undefined, campaign: undefined });
+      }
     } else {
       navigation.navigate(Routes.REWARDS_ONBOARDING_FLOW);
     }
-  }, [navigation, subscriptionId, isVersionBlocked, deepLinkParams]);
+  }, [
+    navigation,
+    subscriptionId,
+    isVersionBlocked,
+    deepLinkPage,
+    deepLinkCampaign,
+  ]);
 
   if (isVersionBlocked) {
     return <RewardsUpdateRequired />;
