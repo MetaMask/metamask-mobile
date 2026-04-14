@@ -4,6 +4,13 @@
   "validate": {
     "workflow": {
       "pre_conditions": ["wallet.unlocked", "perps.ready_to_trade"],
+      "setup": [
+        {
+          "id": "setup-nav-home",
+          "action": "navigate",
+          "target": "PerpsHomeView"
+        }
+      ],
       "entry": "ensure-testnet",
       "nodes": {
         "ensure-testnet": {
@@ -18,7 +25,7 @@
         },
         "wait-perps-loaded": {
           "action": "wait_for",
-          "expression": "(function(){var el=globalThis.__AGENTIC__.findTestId('perps-market-add-funds-button');return JSON.stringify({visible:!!el})})()",
+          "expression": "(function(){var el=globalThis.__AGENTIC__.findFiberByTestId('perps-market-add-funds-button');return JSON.stringify({visible:!!el})})()",
           "assert": { "operator": "eq", "field": "visible", "value": true },
           "timeout_ms": 20000,
           "next": "screenshot-perps-home"
@@ -37,6 +44,11 @@
           "action": "wait_for",
           "test_id": "deposit-keyboard",
           "timeout_ms": 15000,
+          "next": "clear-keypad"
+        },
+        "clear-keypad": {
+          "action": "clear_keypad",
+          "count": 8,
           "next": "type-amount"
         },
         "type-amount": {
@@ -53,7 +65,14 @@
           "action": "end",
           "status": "pass"
         }
-      }
+      },
+      "teardown": [
+        {
+          "id": "teardown-nav-home",
+          "action": "navigate",
+          "target": "PerpsHomeView"
+        }
+      ]
     }
   }
 }

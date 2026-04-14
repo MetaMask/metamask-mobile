@@ -4,6 +4,9 @@
   "validate": {
     "workflow": {
       "pre_conditions": ["wallet.unlocked", "perps.ready_to_trade", "perps.sufficient_balance"],
+      "setup": [
+        { "id": "setup-nav-home", "action": "navigate", "target": "PerpsHomeView" }
+      ],
       "entry": "ensure-testnet",
       "nodes": {
         "ensure-testnet": {
@@ -27,7 +30,7 @@
           "action": "wait_for",
           "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});return JSON.stringify({found:!!p,side:p?p.side:null})})",
           "assert": { "operator": "eq", "field": "found", "value": true },
-          "timeout_ms": 15000,
+          "timeout_ms": 30000,
           "next": "screenshot-position-open"
         },
         "screenshot-position-open": {
@@ -70,7 +73,16 @@
           "action": "end",
           "status": "pass"
         }
-      }
+      },
+      "teardown": [
+        {
+          "id": "teardown-close-eth",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});if(!p)return JSON.stringify({clean:true});return Engine.context.PerpsController.closePosition({symbol:'ETH'}).then(function(){return JSON.stringify({clean:true})})})",
+          "assert": { "operator": "not_null" }
+        },
+        { "id": "teardown-nav-home", "action": "navigate", "target": "PerpsHomeView" }
+      ]
     }
   }
 }

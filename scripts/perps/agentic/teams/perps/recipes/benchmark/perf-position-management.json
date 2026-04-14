@@ -4,6 +4,9 @@
   "validate": {
     "workflow": {
       "pre_conditions": ["wallet.unlocked", "perps.ready_to_trade", "perps.sufficient_balance"],
+      "setup": [
+        { "id": "setup-nav-home", "action": "navigate", "target": "PerpsHomeView" }
+      ],
       "entry": "ensure-testnet",
       "nodes": {
         "ensure-testnet": {
@@ -57,7 +60,16 @@
           "action": "end",
           "status": "pass"
         }
-      }
+      },
+      "teardown": [
+        {
+          "id": "teardown-close-btc",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='BTC'});if(!p)return JSON.stringify({clean:true});return Engine.context.PerpsController.closePosition({symbol:'BTC'}).then(function(){return JSON.stringify({clean:true})})})",
+          "assert": { "operator": "not_null" }
+        },
+        { "id": "teardown-nav-home", "action": "navigate", "target": "PerpsHomeView" }
+      ]
     }
   }
 }

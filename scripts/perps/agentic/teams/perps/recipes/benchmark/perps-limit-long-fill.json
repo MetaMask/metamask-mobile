@@ -4,6 +4,9 @@
   "validate": {
     "workflow": {
       "pre_conditions": ["wallet.unlocked", "perps.ready_to_trade", "perps.sufficient_balance"],
+      "setup": [
+        { "id": "setup-nav-home", "action": "navigate", "target": "PerpsHomeView" }
+      ],
       "entry": "ensure-testnet",
       "nodes": {
         "ensure-testnet": {
@@ -129,7 +132,22 @@
           "action": "end",
           "status": "pass"
         }
-      }
+      },
+      "teardown": [
+        {
+          "id": "teardown-close-eth",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});if(!p)return JSON.stringify({clean:true});return Engine.context.PerpsController.closePosition({symbol:'ETH'}).then(function(){return JSON.stringify({clean:true})}).catch(function(){return JSON.stringify({clean:true})})})",
+          "assert": { "operator": "not_null" }
+        },
+        {
+          "id": "teardown-cancel-eth-orders",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getOpenOrders().then(function(os){var eth=os.filter(function(o){return o.symbol==='ETH'&&!o.isTrigger});if(!eth.length)return JSON.stringify({cancelled:0});return Promise.all(eth.map(function(o){return Engine.context.PerpsController.cancelOrder({orderId:o.oid})})).then(function(){return JSON.stringify({cancelled:eth.length})})})",
+          "assert": { "operator": "not_null" }
+        },
+        { "id": "teardown-nav-home", "action": "navigate", "target": "PerpsHomeView" }
+      ]
     }
   }
 }
