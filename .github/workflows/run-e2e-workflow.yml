@@ -53,11 +53,16 @@ on:
         required: false
         type: string
         default: 'main-'
+      use_bitrise_runner:
+        description: 'Route iOS jobs to Bitrise self-hosted runner group. SECURITY: runner group name is hardcoded — no arbitrary input.'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    runs-on: ${{ inputs.platform == 'ios' && (inputs.use_bitrise_runner && fromJSON('{"group":"temp-bitrise-runners"}') || 'ghcr.io/cirruslabs/macos-runner:tahoe') || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     outputs:
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
@@ -101,6 +106,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # TEMPORARY: Bitrise runners use Vagrant (user=vagrant, HOME=/Users/vagrant).
+      # GitHub Actions tools hardcode /Users/runner paths. Create symlink to fix.
+      # SECURITY: Only runs when use_bitrise_runner is true (boolean, not user string).
+      # sudo is required because /Users/ is root-owned. This is acceptable on ephemeral
+      # Bitrise VMs but should be removed when runner images are fixed upstream.
+      - name: Fix Vagrant environment paths (Bitrise runners)
+        if: ${{ inputs.use_bitrise_runner }}
+        run: |
+          if [ ! -e /Users/runner ]; then
+            sudo ln -s /Users/vagrant /Users/runner
+            echo "Created symlink /Users/runner"
+          fi
+          mkdir -p "$HOME/hostedtoolcache" "$HOME/tmp"
+          echo "RUNNER_TOOL_CACHE=$HOME/hostedtoolcache" >> "$GITHUB_ENV"
+          echo "RUNNER_TEMP=$HOME/tmp" >> "$GITHUB_ENV"
+        shell: bash
 
       - name: Set up E2E environment
         timeout-minutes: 15
