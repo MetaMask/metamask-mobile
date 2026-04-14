@@ -7,6 +7,8 @@ import {
   selectHasCardholderAccounts,
   selectIsCardholder,
   selectCardUserLocation,
+  selectCardHomeData,
+  selectCardHomeDataStatus,
 } from './cardController';
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
@@ -36,6 +38,8 @@ const createMockRootState = (
           isAuthenticated: false,
           cardholderAccounts: [],
           providerData: {},
+          cardHomeData: null,
+          cardHomeDataStatus: 'idle',
           ...overrides,
         },
       },
@@ -254,5 +258,56 @@ describe('selectCardUserLocation', () => {
       engine: { backgroundState: {} },
     } as unknown as RootState;
     expect(selectCardUserLocation(state)).toBeNull();
+  });
+});
+
+describe('selectCardHomeData', () => {
+  it('returns null by default', () => {
+    const state = createMockRootState();
+    expect(selectCardHomeData(state)).toBeNull();
+  });
+
+  it('returns the cardHomeData object when populated', () => {
+    const mockData = { primaryAsset: null, assets: [], card: null };
+    const state = createMockRootState({
+      cardHomeData: mockData as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardHomeData(state)).toStrictEqual(mockData);
+  });
+
+  it('returns null when CardController state is undefined', () => {
+    const state = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+    expect(selectCardHomeData(state)).toBeNull();
+  });
+});
+
+describe('selectCardHomeDataStatus', () => {
+  it("returns 'idle' by default", () => {
+    const state = createMockRootState();
+    expect(selectCardHomeDataStatus(state)).toBe('idle');
+  });
+
+  it("returns 'loading' when status is loading", () => {
+    const state = createMockRootState({ cardHomeDataStatus: 'loading' });
+    expect(selectCardHomeDataStatus(state)).toBe('loading');
+  });
+
+  it("returns 'error' when status is error", () => {
+    const state = createMockRootState({ cardHomeDataStatus: 'error' });
+    expect(selectCardHomeDataStatus(state)).toBe('error');
+  });
+
+  it("returns 'success' when status is success", () => {
+    const state = createMockRootState({ cardHomeDataStatus: 'success' });
+    expect(selectCardHomeDataStatus(state)).toBe('success');
+  });
+
+  it("returns 'idle' when CardController state is undefined", () => {
+    const state = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+    expect(selectCardHomeDataStatus(state)).toBe('idle');
   });
 });

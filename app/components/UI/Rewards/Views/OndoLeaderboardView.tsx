@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
@@ -21,6 +21,7 @@ import {
 import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
+import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { strings } from '../../../../../locales/i18n';
 import { selectReferralCode } from '../../../../reducers/rewards/selectors';
 
@@ -42,13 +43,17 @@ const OndoLeaderboardView: React.FC = () => {
   const { campaignId } = route.params;
   const referralCode = useSelector(selectReferralCode);
 
+  const { status: participantStatus } =
+    useGetCampaignParticipantStatus(campaignId);
+  const isOptedIn = participantStatus?.optedIn === true;
+
   const { position, isLoading: isPositionLoading } =
-    useGetOndoLeaderboardPosition(campaignId);
+    useGetOndoLeaderboardPosition(isOptedIn ? campaignId : undefined);
 
   const isPending = position != null && !position.qualified;
   const isQualified = position != null && position.qualified;
-
   const {
+    leaderboard: leaderboardData,
     tierNames,
     selectedTier,
     selectedTierData,
@@ -61,6 +66,19 @@ const OndoLeaderboardView: React.FC = () => {
     defaultTier: position?.projectedTier,
   });
 
+  const pendingSheetPosition = useMemo(() => {
+    if (!position || position.qualified) return null;
+    const tierMinDeposit =
+      leaderboardData?.tiers[position.projectedTier]?.minDeposit ?? null;
+    if (tierMinDeposit == null) return null;
+    return {
+      tier: position.projectedTier,
+      netDeposit: position.netDeposit,
+      qualifiedDays: position.qualifiedDays,
+      tierMinDeposit,
+    };
+  }, [position, leaderboardData]);
+
   return (
     <ErrorBoundary navigation={navigation} view="OndoLeaderboardView">
       <SafeAreaView
@@ -70,6 +88,7 @@ const OndoLeaderboardView: React.FC = () => {
       >
         <HeaderCompactStandard
           title={strings('rewards.ondo_campaign_leaderboard.title')}
+          titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'ondo-leaderboard-back-button' }}
           includesTopInset
@@ -118,6 +137,7 @@ const OndoLeaderboardView: React.FC = () => {
               isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
               onRetry={refetchLeaderboard}
               currentUserReferralCode={referralCode}
+              pendingSheetPosition={pendingSheetPosition}
             />
           </Box>
         </ScrollView>

@@ -19429,7 +19429,7 @@ describe('RewardsController', () => {
       campaignId: mockCampaignId,
       computedAt: '2024-03-20T12:00:00.000Z',
       tiers: {
-        STARTER: { entries: [], totalParticipants: 100 },
+        STARTER: { entries: [], totalParticipants: 100, minDeposit: 500 },
       },
     };
 
