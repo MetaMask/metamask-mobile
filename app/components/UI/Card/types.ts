@@ -89,18 +89,11 @@ export type CardTokenAllowance = {
 } & CardToken &
   AuthenticatedCardTokenAllowanceData;
 
-/**
- * A CardTokenAllowance with wallet-side balance data pre-merged.
- * Returned by useCardHomeData so consumers don't need a separate map lookup.
- * Structurally assignable to CardTokenAllowance — safe to pass to any existing
- * route param or hook that expects CardTokenAllowance (extra fields are ignored).
- */
 export type CardAssetWithBalance = CardTokenAllowance & {
   balanceFiat: string | undefined;
   balanceFormatted: string | undefined;
   rawFiatNumber: number | undefined;
   rawTokenBalance: number | undefined;
-  /** Token object for logo/icon display — populated by useCardHomeData, not needed for delegation/spending-limit flows. */
   asset?: TokenI;
 };
 
