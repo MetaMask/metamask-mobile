@@ -3,6 +3,16 @@ import { BrowserViewSelectorsIDs } from '../../../../../app/components/Views/Bro
 import Assertions from '../../../../framework/Assertions';
 
 class HistoryDisclosureWebsite {
+  async verifyUniswapElementNotExist(): Promise<void> {
+    await Assertions.expectElementToNotBeVisible(
+      Matchers.getElementByXPath(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        "//p[@id='result' and contains(text(), 'uniswap.org was visited')]",
+      ),
+      { timeout: 3000 },
+    );
+  }
+
   async verifyVisitedTargetNotLeaked(): Promise<void> {
     await Assertions.expectElementToNotBeVisible(
       Matchers.getElementByXPath(
