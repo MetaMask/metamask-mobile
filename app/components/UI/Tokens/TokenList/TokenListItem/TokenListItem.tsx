@@ -568,7 +568,6 @@ export const TokenListItem = React.memo(
           onLongPress?.(asset);
         }}
         style={styles.itemWrapper}
-        accessible={Platform.OS === 'ios'}
         accessibilityLabel={
           Platform.OS === 'ios'
             ? `${asset.name || asset.symbol}, ${fiatBalance}, ${tokenBalance}`
