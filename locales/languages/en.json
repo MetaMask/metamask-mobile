@@ -8088,11 +8088,11 @@
       "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
       "swap_ondo_assets": "Swap Ondo Assets",
+      "open_position": "Open Position",
       "how_it_works": "How it works",
       "ondo": {
         "entries_closed_title": "Entries closed",
-        "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future.",
-        "open_position": "Swap Ondo assets"
+        "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future."
       }
     },
     "ondo_campaign_prize_pool": {
@@ -8101,6 +8101,7 @@
       "next_label": "Next",
       "volume_subtext": "{{current}} of {{target}} volume",
       "max_tier_subtext": "{{maxThreshold}}+ TVL — all milestones reached",
+      "max_badge": "Max",
       "error_title": "Failed to load prize pool",
       "error_description": "There was an error loading the prize pool. Please try again.",
       "retry_button": "Retry"

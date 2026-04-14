@@ -144,7 +144,6 @@ import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeason
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 import OndoPendingSheet from '../../UI/Rewards/components/Campaigns/OndoPendingSheet';
 import CampaignTourStepView from '../../UI/Rewards/Views/CampaignTourStepView';
-import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
@@ -641,7 +640,6 @@ const HomeTabs = () => {
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
-  const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);

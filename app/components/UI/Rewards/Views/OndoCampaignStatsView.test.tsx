@@ -148,7 +148,13 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../utils/formatUtils', () => ({
-  formatPercentChange: (value: number) => `${(value * 100).toFixed(2)}%`,
+  formatPercentChange: (value: string | number): string => {
+    const num = typeof value === 'number' ? value : parseFloat(value);
+    if (Number.isNaN(num)) return '';
+    const percentage = num * 100;
+    const sign = percentage >= 0 ? '+' : '';
+    return `${sign}${percentage.toFixed(2)}%`;
+  },
   formatUsd: (value: number | string) =>
     `$${Number(value).toLocaleString('en-US', {
       minimumFractionDigits: 2,
@@ -340,7 +346,7 @@ describe('OndoCampaignStatsView', () => {
       },
     });
     const { getByText } = render(<OndoCampaignStatsView />);
-    expect(getByText('15.00%')).toBeDefined();
+    expect(getByText('+15.00%')).toBeDefined();
   });
 
   it('shows negative return with error color class when portfolio return is negative', () => {
