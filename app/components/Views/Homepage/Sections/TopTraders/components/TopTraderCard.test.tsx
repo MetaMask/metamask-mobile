@@ -89,7 +89,9 @@ describe('TopTraderCard', () => {
     renderWithProvider(
       <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
+
     fireEvent.press(screen.getByText('Follow'));
+
     expect(mockOnFollowPress).toHaveBeenCalledWith('trader-1');
   });
 
@@ -101,7 +103,9 @@ describe('TopTraderCard', () => {
         onTraderPress={mockOnTraderPress}
       />,
     );
+
     fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+
     expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'sniperliquid');
   });
 
@@ -109,7 +113,9 @@ describe('TopTraderCard', () => {
     renderWithProvider(
       <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
+
     fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+
     expect(mockOnTraderPress).not.toHaveBeenCalled();
   });
 
@@ -121,7 +127,9 @@ describe('TopTraderCard', () => {
         onTraderPress={mockOnTraderPress}
       />,
     );
+
     fireEvent.press(screen.getByText('Follow'));
+
     expect(mockOnFollowPress).toHaveBeenCalledWith('trader-1');
     expect(mockOnTraderPress).not.toHaveBeenCalled();
   });
