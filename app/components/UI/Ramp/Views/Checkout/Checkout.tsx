@@ -22,13 +22,14 @@ import ErrorView from '../../Aggregator/components/ErrorView';
 import Logger from '../../../../../util/Logger';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
-import { useStyles } from '../../../../../component-library/hooks';
+import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
@@ -296,7 +297,7 @@ const Checkout = () => {
     return (
       <BottomSheet
         ref={sheetRef}
-        shouldNavigateBack
+        goBack={navigation.goBack}
         isFullscreen
         keyboardAvoidingViewEnabled={false}
       >
@@ -322,7 +323,7 @@ const Checkout = () => {
     return (
       <BottomSheet
         ref={sheetRef}
-        shouldNavigateBack
+        goBack={navigation.goBack}
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
@@ -372,7 +373,7 @@ const Checkout = () => {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={navigation.goBack}
       isFullscreen
       keyboardAvoidingViewEnabled={false}
     >
