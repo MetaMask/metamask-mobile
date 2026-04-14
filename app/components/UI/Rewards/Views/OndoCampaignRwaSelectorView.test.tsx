@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import OndoCampaignRwaSelectorView from './OndoCampaignRwaSelectorView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import { selectCurrentSubscriptionAccounts } from '../../../../selectors/rewards';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 
 const mockGoBack = jest.fn();
@@ -20,9 +20,12 @@ let mockRouteParams: {
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 
-jest.mock('../../../../selectors/rewards', () => ({
-  selectCurrentSubscriptionAccounts: jest.fn(),
-}));
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroupInternalAccounts: jest.fn(),
+  }),
+);
 
 jest.mock('../../../../selectors/tokenBalancesController', () => ({
   selectAllTokenBalances: jest.fn(),
@@ -178,9 +181,6 @@ jest.mock('../../Trending/components/TrendingTokenLogo', () => {
 
 jest.mock('@metamask/utils', () => ({
   ...jest.requireActual('@metamask/utils'),
-  parseCaipAccountId: jest.fn((caipAccount: string) => ({
-    address: caipAccount.split(':').pop() ?? '0xaccount',
-  })),
 }));
 
 const buildToken = (symbol: string, assetId?: string): TrendingAsset =>
@@ -192,8 +192,8 @@ const buildToken = (symbol: string, assetId?: string): TrendingAsset =>
     rwaData: null,
   }) as unknown as TrendingAsset;
 
-// Default mock values: no subscription accounts, no balances
-let mockSubscriptionAccounts: { account: string }[] = [];
+// Default mock values: no active group accounts, no balances
+let mockActiveGroupAccounts: { address: string }[] = [];
 let mockAllTokenBalances: Record<
   string,
   Record<string, Record<string, string>>
@@ -204,11 +204,11 @@ describe('OndoCampaignRwaSelectorView', () => {
     jest.clearAllMocks();
     mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
     mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
-    mockSubscriptionAccounts = [];
+    mockActiveGroupAccounts = [];
     mockAllTokenBalances = {};
     (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectCurrentSubscriptionAccounts)
-        return mockSubscriptionAccounts;
+      if (selector === selectSelectedAccountGroupInternalAccounts)
+        return mockActiveGroupAccounts;
       if (selector === selectAllTokenBalances) return mockAllTokenBalances;
       return undefined;
     });
@@ -332,10 +332,10 @@ describe('OndoCampaignRwaSelectorView', () => {
   });
 
   describe('open_position mode — USDY source preselection', () => {
-    const ACCOUNT_CAIP = 'eip155:1:0xaccount1';
     // parseCaip19 mock always returns assetReference '0xabc', so the balance
     // lookup key matches that address regardless of the USDY_CAIP19 constant.
     const USDY_HEX_ADDRESS = '0xabc';
+    const ACCOUNT_ADDRESS = '0xaccount1';
 
     beforeEach(() => {
       mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
@@ -348,9 +348,9 @@ describe('OndoCampaignRwaSelectorView', () => {
         data: [buildToken('AAPL')],
         isLoading: false,
       });
-      mockSubscriptionAccounts = [{ account: ACCOUNT_CAIP }];
+      mockActiveGroupAccounts = [{ address: ACCOUNT_ADDRESS }];
       mockAllTokenBalances = {
-        '0xaccount1': { '0x1': { [USDY_HEX_ADDRESS]: '0x64' } },
+        [ACCOUNT_ADDRESS]: { '0x1': { [USDY_HEX_ADDRESS]: '0x64' } },
       };
 
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
@@ -369,9 +369,9 @@ describe('OndoCampaignRwaSelectorView', () => {
         data: [buildToken('AAPL')],
         isLoading: false,
       });
-      mockSubscriptionAccounts = [{ account: ACCOUNT_CAIP }];
+      mockActiveGroupAccounts = [{ address: ACCOUNT_ADDRESS }];
       mockAllTokenBalances = {
-        '0xaccount1': { '0x1': { [USDY_HEX_ADDRESS]: '0x64' } },
+        [ACCOUNT_ADDRESS]: { '0x1': { [USDY_HEX_ADDRESS]: '0x64' } },
       };
 
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
@@ -381,12 +381,12 @@ describe('OndoCampaignRwaSelectorView', () => {
       expect(srcArg?.symbol).toBe('USDY');
     });
 
-    it('passes undefined as source token when subscription accounts are empty', () => {
+    it('passes undefined as source token when active group accounts are empty', () => {
       mockUseRwaTokens.mockReturnValue({
         data: [buildToken('AAPL')],
         isLoading: false,
       });
-      mockSubscriptionAccounts = [];
+      mockActiveGroupAccounts = [];
 
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
       fireEvent.press(getByTestId('token-row-AAPL'));
@@ -401,9 +401,9 @@ describe('OndoCampaignRwaSelectorView', () => {
         data: [buildToken('AAPL')],
         isLoading: false,
       });
-      mockSubscriptionAccounts = [{ account: ACCOUNT_CAIP }];
+      mockActiveGroupAccounts = [{ address: ACCOUNT_ADDRESS }];
       mockAllTokenBalances = {
-        '0xaccount1': { '0x1': { [USDY_HEX_ADDRESS]: '0x0' } },
+        [ACCOUNT_ADDRESS]: { '0x1': { [USDY_HEX_ADDRESS]: '0x0' } },
       };
 
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
@@ -426,9 +426,9 @@ describe('OndoCampaignRwaSelectorView', () => {
         data: [buildToken('AAPL')],
         isLoading: false,
       });
-      mockSubscriptionAccounts = [{ account: ACCOUNT_CAIP }];
+      mockActiveGroupAccounts = [{ address: ACCOUNT_ADDRESS }];
       mockAllTokenBalances = {
-        '0xaccount1': { '0x1': { [USDY_HEX_ADDRESS]: '0x64' } },
+        [ACCOUNT_ADDRESS]: { '0x1': { [USDY_HEX_ADDRESS]: '0x64' } },
       };
 
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);

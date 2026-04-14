@@ -31,7 +31,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { parseCaipAccountId, Hex, type CaipChainId } from '@metamask/utils';
+import { Hex, type CaipChainId } from '@metamask/utils';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import TrendingTokenLogo from '../../Trending/components/TrendingTokenLogo';
@@ -55,7 +55,7 @@ import { TimeOption } from '../../Trending/components/TrendingTokensBottomSheet/
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import OndoAfterHoursSheet from '../components/Campaigns/OndoAfterHoursSheet';
-import { selectCurrentSubscriptionAccounts } from '../../../../selectors/rewards';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 
 // USDY (Ondo USD Yield) on Ethereum mainnet — used to preset the source token
@@ -148,7 +148,9 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     chainIds,
   });
 
-  const subscriptionAccounts = useSelector(selectCurrentSubscriptionAccounts);
+  const activeGroupAccounts = useSelector(
+    selectSelectedAccountGroupInternalAccounts,
+  );
   const allTokenBalances = useSelector(selectAllTokenBalances);
 
   // In open_position mode, preset USDY as the source if the user holds a balance.
@@ -156,7 +158,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   // rwaTokens is filtered by searchQuery and may not contain USDY when a user
   // searches for another token (e.g. "AAPL").
   const ondoUsdSrcToken = useMemo((): BridgeToken | undefined => {
-    if (mode !== 'open_position' || !subscriptionAccounts?.length)
+    if (mode !== 'open_position' || !activeGroupAccounts.length)
       return undefined;
     const parsed = parseCaip19(USDY_CAIP19);
     if (!parsed || parsed.namespace !== 'eip155') return undefined;
@@ -164,10 +166,9 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
       `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
     );
     const tokenHex = parsed.assetReference.toLowerCase() as Hex;
-    const hasBalance = subscriptionAccounts.some((a) => {
-      const address = parseCaipAccountId(a.account).address;
+    const hasBalance = activeGroupAccounts.some((a) => {
       const bal =
-        allTokenBalances?.[address.toLowerCase() as Hex]?.[chainHex]?.[
+        allTokenBalances?.[a.address.toLowerCase() as Hex]?.[chainHex]?.[
           tokenHex
         ];
       return bal !== undefined && !!parseInt(bal, 16);
@@ -181,7 +182,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
       chainId: `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
       image: getTrendingTokenImageUrl(USDY_CAIP19),
     };
-  }, [mode, subscriptionAccounts, allTokenBalances]);
+  }, [mode, activeGroupAccounts, allTokenBalances]);
 
   // Show skeleton while client-side filters are being applied.
   // useRwaTokens applies search/sort synchronously but via useStableReference,
