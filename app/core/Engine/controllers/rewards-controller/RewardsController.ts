@@ -503,7 +503,6 @@ export class RewardsController extends BaseController<
       tiers: season.tiers,
       activityTypes: season.activityTypes,
       waysToEarn: season.waysToEarn,
-      shouldInstallNewVersion: season.shouldInstallNewVersion,
     };
   }
 
@@ -523,7 +522,6 @@ export class RewardsController extends BaseController<
         tiers: seasonMetadata.tiers,
         activityTypes: seasonMetadata.activityTypes,
         waysToEarn: seasonMetadata.waysToEarn,
-        shouldInstallNewVersion: seasonMetadata.shouldInstallNewVersion,
       },
       balance: {
         total: seasonState.balance,
@@ -2098,8 +2096,6 @@ export class RewardsController extends BaseController<
             tiers: seasonMetadata.tiers,
             activityTypes: seasonMetadata.activityTypes,
             waysToEarn: seasonMetadata.waysToEarn,
-            shouldInstallNewVersion:
-              seasonMetadata.shouldInstallNewVersion?.mobile,
           });
 
           // Add lastFetched timestamp
