@@ -63,7 +63,7 @@ export const onrampReturningUserBuyExpectations: AnalyticsExpectations = {
         currency_destination_symbol: 'ETH',
         currency_destination_network:
           CustomNetworks.Tenderly.Mainnet.providerConfig.nickname,
-        ramp_routing: UnifiedRampRoutingType.AGGREGATOR,
+        ramp_routing: UnifiedRampRoutingType.DEPOSIT,
       },
     },
   ],
