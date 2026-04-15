@@ -669,6 +669,10 @@ export async function getTransactionActionKey(transaction, chainId) {
     return UPGRADE_SMART_ACCOUNT_ACTION_KEY;
   }
 
+  if (type === TransactionType.simpleSend) {
+    return SEND_ETHER_ACTION_KEY;
+  }
+
   if (toSmartContract) {
     return SMART_CONTRACT_INTERACTION_ACTION_KEY;
   }
