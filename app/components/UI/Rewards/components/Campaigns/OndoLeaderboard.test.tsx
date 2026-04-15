@@ -592,8 +592,8 @@ describe('OndoLeaderboard', () => {
       ).toBeNull();
     });
 
-    it('does not show split view in full leaderboard (no maxEntries)', () => {
-      const { queryByTestId } = render(
+    it('shows split view in full leaderboard (no maxEntries) when rank exceeds limit', () => {
+      const { getByTestId } = render(
         <OndoLeaderboard
           {...defaultProps}
           entries={tenEntries}
@@ -612,8 +612,8 @@ describe('OndoLeaderboard', () => {
       );
 
       expect(
-        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
-      ).toBeNull();
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+      ).toBeDefined();
     });
   });
 

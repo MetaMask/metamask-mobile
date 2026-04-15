@@ -76,44 +76,59 @@ interface CampaignLeaderboardProps {
 const LeaderboardEntryRow: React.FC<{
   entry: CampaignLeaderboardEntry;
   isCurrentUser?: boolean;
-}> = ({ entry, isCurrentUser = false }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Between}
-    twClassName={`py-2 px-4 ${isCurrentUser ? 'bg-background-muted' : ''}`}
-    testID={`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-${entry.rank}`}
-  >
+}> = ({ entry, isCurrentUser = false }) => {
+  const isPositiveReturn = entry.rateOfReturn >= 0;
+  const textColor = isCurrentUser
+    ? isPositiveReturn
+      ? TextColor.SuccessDefault
+      : TextColor.ErrorDefault
+    : TextColor.TextDefault;
+  const isPending = !entry.qualified;
+  const rowBg = isCurrentUser
+    ? isPending
+      ? 'bg-muted'
+      : isPositiveReturn
+        ? 'bg-success-muted'
+        : 'bg-error-muted'
+    : '';
+
+  return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-3"
+      justifyContent={BoxJustifyContent.Between}
+      twClassName={`py-2 px-4 ${rowBg}`}
+      testID={`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-${entry.rank}`}
     >
-      <Text variant={TextVariant.BodyMd} twClassName="w-8">
-        {String(entry.rank).padStart(2, '0')}.
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-3"
+      >
+        <Text variant={TextVariant.BodyMd} color={textColor} twClassName="w-8">
+          {String(entry.rank).padStart(2, '0')}.
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={textColor}
+        >
+          {entry.referralCode}
+        </Text>
+        {isCurrentUser && isPending && (
+          <PendingTag testID={CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG} />
+        )}
+      </Box>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={textColor}
+      >
+        {formatRateOfReturn(entry.rateOfReturn)}
       </Text>
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-        {entry.referralCode}
-      </Text>
-      {isCurrentUser && !entry.qualified && (
-        <PendingTag testID={CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG} />
-      )}
     </Box>
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      color={
-        isCurrentUser
-          ? entry.rateOfReturn >= 0
-            ? TextColor.SuccessDefault
-            : TextColor.ErrorDefault
-          : TextColor.TextDefault
-      }
-    >
-      {formatRateOfReturn(entry.rateOfReturn)}
-    </Text>
-  </Box>
-);
+  );
+};
 
 /**
  * LeaderboardSkeleton displays loading skeleton for the leaderboard section
@@ -192,26 +207,26 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
+  const effectiveMaxEntries =
+    maxEntries != null && maxEntries <= MAX_ENTRIES_LIMIT
+      ? maxEntries
+      : MAX_ENTRIES_LIMIT;
+
   const showSplitView = useMemo(() => {
-    if (!userPosition || maxEntries == null || maxEntries > MAX_ENTRIES_LIMIT) {
-      return false;
-    }
+    if (!userPosition) return false;
     return (
       userPosition.projectedTier === selectedTier &&
-      userPosition.rank > maxEntries &&
+      userPosition.rank > effectiveMaxEntries &&
       userPosition.neighbors.length > 0
     );
-  }, [userPosition, maxEntries, selectedTier]);
+  }, [userPosition, effectiveMaxEntries, selectedTier]);
 
   const visibleEntries = useMemo(() => {
     if (showSplitView) {
       return entries.slice(0, SPLIT_VIEW_TOP_COUNT);
     }
-    if (maxEntries != null && maxEntries <= MAX_ENTRIES_LIMIT) {
-      return entries.slice(0, maxEntries);
-    }
-    return entries;
-  }, [entries, maxEntries, showSplitView]);
+    return entries.slice(0, effectiveMaxEntries);
+  }, [entries, effectiveMaxEntries, showSplitView]);
 
   const selectedTierLabel = selectedTier
     ? formatTierDisplayName(selectedTier)
