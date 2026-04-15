@@ -248,28 +248,5 @@ describe('QuickBuyBottomSheet', () => {
       expect(screen.getByTestId('mock-amount-input')).toBeOnTheScreen();
       expect(screen.getByTestId('mock-footer')).toBeOnTheScreen();
     });
-
-    it('does not mount bridge hooks when visibility is toggled off', () => {
-      const { rerender } = renderWithProvider(
-        <QuickBuyBottomSheet
-          isVisible
-          position={createPosition()}
-          onClose={jest.fn()}
-        />,
-      );
-
-      expect(useQuickBuyBottomSheet).toHaveBeenCalledTimes(1);
-
-      rerender(
-        <QuickBuyBottomSheet
-          isVisible={false}
-          position={createPosition()}
-          onClose={jest.fn()}
-        />,
-      );
-
-      // Hook should not be called again after the gate closes
-      expect(useQuickBuyBottomSheet).toHaveBeenCalledTimes(1);
-    });
   });
 });

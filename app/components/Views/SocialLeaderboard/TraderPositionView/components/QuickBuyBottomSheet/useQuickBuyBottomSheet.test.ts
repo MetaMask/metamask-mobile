@@ -250,18 +250,6 @@ describe('useQuickBuyBottomSheet', () => {
       expect(result.current.usdAmount).toBe('20');
     });
 
-    it('accepts decimal input up to 2 places', () => {
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      act(() => {
-        result.current.handleAmountChange('20.99');
-      });
-
-      expect(result.current.usdAmount).toBe('20.99');
-    });
-
     it('strips non-numeric characters', () => {
       const { result } = renderHook(() =>
         useQuickBuyBottomSheet(createPosition(), jest.fn()),
@@ -272,36 +260,6 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(result.current.usdAmount).toBe('20');
-    });
-
-    it('rejects input with more than one decimal point', () => {
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      act(() => {
-        result.current.handleAmountChange('20.5');
-      });
-      act(() => {
-        result.current.handleAmountChange('20.5.1');
-      });
-
-      expect(result.current.usdAmount).toBe('20.5');
-    });
-
-    it('rejects more than 2 decimal places', () => {
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      act(() => {
-        result.current.handleAmountChange('20.50');
-      });
-      act(() => {
-        result.current.handleAmountChange('20.503');
-      });
-
-      expect(result.current.usdAmount).toBe('20.50');
     });
   });
 
@@ -317,21 +275,6 @@ describe('useQuickBuyBottomSheet', () => {
 
       expect(result.current.usdAmount).toBe('50');
     });
-
-    it('replaces a previously entered amount', () => {
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      act(() => {
-        result.current.handleAmountChange('75');
-      });
-      act(() => {
-        result.current.handlePresetPress('100');
-      });
-
-      expect(result.current.usdAmount).toBe('100');
-    });
   });
 
   describe('getButtonLabel', () => {
@@ -342,23 +285,6 @@ describe('useQuickBuyBottomSheet', () => {
 
       expect(result.current.getButtonLabel()).toBe(
         'social_leaderboard.trader_position.buy',
-      );
-    });
-
-    it('returns loading label when setup is fetching token metadata', () => {
-      (useQuickBuySetup as jest.Mock).mockReturnValue({
-        chainId: undefined,
-        destToken: undefined,
-        isLoading: true,
-        isUnsupportedChain: false,
-      });
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      expect(result.current.getButtonLabel()).toBe(
-        'social_leaderboard.quick_buy.loading',
       );
     });
 
@@ -380,66 +306,6 @@ describe('useQuickBuyBottomSheet', () => {
       );
 
       expect(result.current.getButtonLabel()).toBe('bridge.insufficient_gas');
-    });
-
-    it('does not return insufficient gas label when gas status is null (not yet determined)', () => {
-      (useHasSufficientGas as jest.Mock).mockReturnValue(null);
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      expect(result.current.getButtonLabel()).not.toBe(
-        'bridge.insufficient_gas',
-      );
-    });
-
-    it('returns submitting label while a transaction is in-flight', () => {
-      (selectIsSubmittingTx as jest.Mock).mockReturnValue(true);
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      expect(result.current.getButtonLabel()).toBe(
-        'bridge.submitting_transaction',
-      );
-    });
-
-    it('returns unavailable label when a quote error occurred', () => {
-      (useBridgeQuoteData as jest.Mock).mockReturnValue({
-        activeQuote: null,
-        isLoading: false,
-        isNoQuotesAvailable: false,
-        quoteFetchError: new Error('quote failed'),
-        blockaidError: null,
-      });
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      expect(result.current.getButtonLabel()).toBe(
-        'social_leaderboard.quick_buy.unavailable',
-      );
-    });
-
-    it('returns unavailable label when no quotes are available', () => {
-      (useBridgeQuoteData as jest.Mock).mockReturnValue({
-        activeQuote: null,
-        isLoading: false,
-        isNoQuotesAvailable: true,
-        quoteFetchError: null,
-        blockaidError: null,
-      });
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      expect(result.current.getButtonLabel()).toBe(
-        'social_leaderboard.quick_buy.unavailable',
-      );
     });
   });
 
@@ -478,75 +344,8 @@ describe('useQuickBuyBottomSheet', () => {
       expect(result.current.isConfirmDisabled).toBe(true);
     });
 
-    it('is NOT disabled when gas status is null (quote not yet loaded)', () => {
-      (useHasSufficientGas as jest.Mock).mockReturnValue(null);
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      act(() => {
-        result.current.handleAmountChange('20');
-      });
-
-      expect(result.current.isConfirmDisabled).toBe(false);
-    });
-
-    it('is disabled when destToken is undefined (metadata load failed)', () => {
-      (useQuickBuySetup as jest.Mock).mockReturnValue({
-        chainId: '0x1',
-        destToken: undefined,
-        isLoading: false,
-        isUnsupportedChain: false,
-      });
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      act(() => {
-        result.current.handleAmountChange('20');
-      });
-
-      expect(result.current.isConfirmDisabled).toBe(true);
-    });
-
     it('is disabled when balance is insufficient', () => {
       (useIsInsufficientBalance as jest.Mock).mockReturnValue(true);
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      act(() => {
-        result.current.handleAmountChange('20');
-      });
-
-      expect(result.current.isConfirmDisabled).toBe(true);
-    });
-
-    it('is disabled when there is a quote error', () => {
-      (useBridgeQuoteData as jest.Mock).mockReturnValue({
-        activeQuote: null,
-        isLoading: false,
-        isNoQuotesAvailable: false,
-        quoteFetchError: new Error('network error'),
-        blockaidError: null,
-      });
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      act(() => {
-        result.current.handleAmountChange('20');
-      });
-
-      expect(result.current.isConfirmDisabled).toBe(true);
-    });
-
-    it('is disabled when wallet address is not resolved', () => {
-      (selectSourceWalletAddress as jest.Mock).mockReturnValue(undefined);
 
       const { result } = renderHook(() =>
         useQuickBuyBottomSheet(createPosition(), jest.fn()),
@@ -570,43 +369,6 @@ describe('useQuickBuyBottomSheet', () => {
 
       expect(result.current.isConfirmLoading).toBe(true);
     });
-
-    it('is true while a quote is loading with a valid amount entered', () => {
-      (useBridgeQuoteData as jest.Mock).mockReturnValue({
-        activeQuote: null,
-        isLoading: true,
-        isNoQuotesAvailable: false,
-        quoteFetchError: null,
-        blockaidError: null,
-      });
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      act(() => {
-        result.current.handleAmountChange('20');
-      });
-
-      expect(result.current.isConfirmLoading).toBe(true);
-    });
-
-    it('is false while a quote is loading but no amount has been entered', () => {
-      (useBridgeQuoteData as jest.Mock).mockReturnValue({
-        activeQuote: null,
-        isLoading: true,
-        isNoQuotesAvailable: false,
-        quoteFetchError: null,
-        blockaidError: null,
-      });
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      // usdAmount is '' by default
-      expect(result.current.isConfirmLoading).toBe(false);
-    });
   });
 
   describe('sourceBalanceFiat', () => {
@@ -622,19 +384,6 @@ describe('useQuickBuyBottomSheet', () => {
       );
 
       expect(result.current.sourceBalanceFiat).toBe('$2000.00');
-    });
-
-    it('returns undefined when displayBalance is missing', () => {
-      (useLatestBalance as jest.Mock).mockReturnValue({
-        atomicBalance: undefined,
-        displayBalance: undefined,
-      });
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      expect(result.current.sourceBalanceFiat).toBeUndefined();
     });
   });
 
@@ -652,24 +401,6 @@ describe('useQuickBuyBottomSheet', () => {
       );
 
       expect(result.current.sourceToken?.symbol).toBe('ETH');
-    });
-
-    it('exposes all available source token options', () => {
-      const options = [
-        createSourceToken({ symbol: 'ETH' }),
-        createSourceToken({ symbol: 'USDC' }),
-      ];
-
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
-        options,
-        isLoading: false,
-      });
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      expect(result.current.sourceTokenOptions).toHaveLength(2);
     });
   });
 

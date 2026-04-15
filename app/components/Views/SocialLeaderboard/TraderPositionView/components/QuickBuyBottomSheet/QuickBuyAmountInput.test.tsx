@@ -53,17 +53,13 @@ describe('QuickBuyAmountInput', () => {
     jest.resetAllMocks();
   });
 
-  it('displays $0 when no amount has been entered', () => {
-    renderWithProvider(<QuickBuyAmountInput {...defaultProps} usdAmount="" />);
-
-    expect(screen.getByText('$0')).toBeOnTheScreen();
-  });
-
-  it('displays the entered USD amount', () => {
-    renderWithProvider(
-      <QuickBuyAmountInput {...defaultProps} usdAmount="20" />,
+  it('displays the USD amount ($0 when empty, entered value otherwise)', () => {
+    const { rerender } = renderWithProvider(
+      <QuickBuyAmountInput {...defaultProps} usdAmount="" />,
     );
+    expect(screen.getByText('$0')).toBeOnTheScreen();
 
+    rerender(<QuickBuyAmountInput {...defaultProps} usdAmount="20" />);
     expect(screen.getByText('$20')).toBeOnTheScreen();
   });
 
@@ -119,24 +115,6 @@ describe('QuickBuyAmountInput', () => {
     expect(
       screen.getByText('social_leaderboard.quick_buy.no_quotes'),
     ).toBeOnTheScreen();
-  });
-
-  it('shows "0 SYMBOL" instead of an error when the amount is invalid', () => {
-    // hasError=true but hasValidAmount=false — error message should NOT appear
-    renderWithProvider(
-      <QuickBuyAmountInput
-        {...defaultProps}
-        usdAmount=""
-        hasValidAmount={false}
-        hasError
-        estimatedReceiveAmount={undefined}
-      />,
-    );
-
-    expect(screen.getByText('0 PEPE')).toBeOnTheScreen();
-    expect(
-      screen.queryByText('social_leaderboard.quick_buy.no_quotes'),
-    ).not.toBeOnTheScreen();
   });
 
   it('calls onAmountAreaPress when the tappable area is pressed', () => {

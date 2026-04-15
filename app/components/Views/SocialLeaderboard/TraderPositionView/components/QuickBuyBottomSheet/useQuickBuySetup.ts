@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import { CaipChainId, Hex } from '@metamask/utils';
-import { isNonEvmChainId } from '@metamask/bridge-controller';
+import {
+  formatChainIdToHex,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
 import type { Position } from '@metamask/social-controllers';
 import { useAssetMetadata } from '../../../../../UI/Bridge/hooks/useAssetMetadata';
 import { chainNameToId } from '../../../utils/chainMapping';
@@ -26,11 +29,16 @@ export interface QuickBuySetupResult {
 export const useQuickBuySetup = (
   position: Position | null,
 ): QuickBuySetupResult => {
-  // Destination chain from the position
-  const destChainId = useMemo(
-    () => (position ? chainNameToId(position.chain) : undefined),
-    [position],
-  );
+  // Destination chain from the position — hex for EVM, CAIP for non-EVM
+  const destChainId = useMemo(() => {
+    if (!position) return undefined;
+    const caipId = chainNameToId(position.chain);
+    return caipId
+      ? isNonEvmChainId(caipId)
+        ? caipId
+        : formatChainIdToHex(caipId)
+      : undefined;
+  }, [position]);
 
   const isUnsupportedChain = Boolean(position && !destChainId);
 

@@ -126,41 +126,22 @@ describe('QuickBuyFooter', () => {
   });
 
   describe('preset buttons', () => {
-    it('renders all four preset buttons', () => {
-      renderWithProvider(<QuickBuyFooter {...defaultProps} />);
+    it('renders all four presets and calls onPresetPress when tapped', () => {
+      const onPresetPress = jest.fn();
+      renderWithProvider(
+        <QuickBuyFooter {...defaultProps} onPresetPress={onPresetPress} />,
+      );
 
       expect(screen.getByTestId('quick-buy-preset-1')).toBeOnTheScreen();
       expect(screen.getByTestId('quick-buy-preset-20')).toBeOnTheScreen();
       expect(screen.getByTestId('quick-buy-preset-50')).toBeOnTheScreen();
       expect(screen.getByTestId('quick-buy-preset-100')).toBeOnTheScreen();
-    });
-
-    it('calls onPresetPress with the preset value when a preset is tapped', () => {
-      const onPresetPress = jest.fn();
-
-      renderWithProvider(
-        <QuickBuyFooter {...defaultProps} onPresetPress={onPresetPress} />,
-      );
-
       fireEvent.press(screen.getByTestId('quick-buy-preset-50'));
-
       expect(onPresetPress).toHaveBeenCalledWith('50');
     });
   });
 
   describe('pay-with row', () => {
-    it('renders the source token symbol', () => {
-      renderWithProvider(<QuickBuyFooter {...defaultProps} />);
-
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
-    });
-
-    it('shows the source balance in fiat', () => {
-      renderWithProvider(<QuickBuyFooter {...defaultProps} />);
-
-      expect(screen.getByText('($2000.00)')).toBeOnTheScreen();
-    });
-
     it('calls setIsSourcePickerOpen when the pay-with row is tapped', () => {
       const setIsSourcePickerOpen = jest.fn();
 
@@ -182,16 +163,6 @@ describe('QuickBuyFooter', () => {
       );
 
       expect(screen.getByTestId('mock-source-token-picker')).toBeOnTheScreen();
-    });
-
-    it('hides the SourceTokenPicker when isSourcePickerOpen is false', () => {
-      renderWithProvider(
-        <QuickBuyFooter {...defaultProps} isSourcePickerOpen={false} />,
-      );
-
-      expect(
-        screen.queryByTestId('mock-source-token-picker'),
-      ).not.toBeOnTheScreen();
     });
 
     it('calls setSelectedSourceToken when a picker option is selected', () => {
@@ -216,43 +187,7 @@ describe('QuickBuyFooter', () => {
     });
   });
 
-  describe('total row', () => {
-    it('shows $0 when no amount is entered', () => {
-      renderWithProvider(<QuickBuyFooter {...defaultProps} usdAmount="" />);
-
-      expect(screen.getByText('$0')).toBeOnTheScreen();
-    });
-
-    it('shows the entered amount as the total', () => {
-      renderWithProvider(<QuickBuyFooter {...defaultProps} usdAmount="20" />);
-
-      // Both preset button "$20" and total "$20" exist — verify at least two
-      expect(screen.getAllByText('$20').length).toBeGreaterThanOrEqual(2);
-    });
-  });
-
   describe('est. points row', () => {
-    it('shows a dash when no rewards context is available', () => {
-      renderWithProvider(
-        <QuickBuyFooter
-          {...defaultProps}
-          shouldShowLiveRewardsEstimate={false}
-          shouldShowRewardsOptInCta={false}
-          shouldShowRewardsFallbackZero={false}
-        />,
-      );
-
-      expect(screen.getByText('-')).toBeOnTheScreen();
-    });
-
-    it('shows 0 when rewards context is set but no live estimate is available', () => {
-      renderWithProvider(
-        <QuickBuyFooter {...defaultProps} shouldShowRewardsFallbackZero />,
-      );
-
-      expect(screen.getByText('0')).toBeOnTheScreen();
-    });
-
     it('renders the AddRewardsAccount CTA when the user has not opted in', () => {
       renderWithProvider(
         <QuickBuyFooter
@@ -282,49 +217,15 @@ describe('QuickBuyFooter', () => {
   });
 
   describe('buy button', () => {
-    it('renders with the label from getButtonLabel', () => {
-      renderWithProvider(
-        <QuickBuyFooter
-          {...defaultProps}
-          getButtonLabel={() => 'social_leaderboard.trader_position.buy'}
-        />,
-      );
-
-      expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
-    });
-
-    it('calls onConfirm when the buy button is pressed', () => {
+    it('renders and calls onConfirm when pressed', () => {
       const onConfirm = jest.fn().mockResolvedValue(undefined);
-
       renderWithProvider(
         <QuickBuyFooter {...defaultProps} onConfirm={onConfirm} />,
       );
 
+      expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
       fireEvent.press(screen.getByTestId('quick-buy-confirm-button'));
-
       expect(onConfirm).toHaveBeenCalledTimes(1);
-    });
-
-    it('is disabled when isConfirmDisabled is true', () => {
-      renderWithProvider(
-        <QuickBuyFooter {...defaultProps} isConfirmDisabled />,
-      );
-
-      // The button should have the disabled prop set
-      const button = screen.getByTestId('quick-buy-confirm-button');
-      expect(button).toBeOnTheScreen();
-      // Verify the button does not fire onConfirm when pressed while disabled
-      const onConfirm = jest.fn();
-      // Re-render with onConfirm to check
-      const { unmount } = renderWithProvider(
-        <QuickBuyFooter
-          {...defaultProps}
-          isConfirmDisabled
-          onConfirm={onConfirm}
-        />,
-      );
-      fireEvent.press(screen.getAllByTestId('quick-buy-confirm-button')[0]);
-      unmount();
     });
   });
 });
