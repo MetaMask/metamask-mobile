@@ -2,6 +2,7 @@ import {
   groupPortfolioPositionsByAsset,
   formatPnlPercent,
   isPnlNonNegative,
+  sanitizeTokenName,
 } from './OndoPortfolio.utils';
 
 describe('groupPortfolioPositionsByAsset', () => {
@@ -109,5 +110,41 @@ describe('isPnlNonNegative', () => {
 
   it('returns false for non-parseable value (BigNumber NaN is not >= 0)', () => {
     expect(isPnlNonNegative('—')).toBe(false);
+  });
+});
+
+describe('sanitizeTokenName', () => {
+  it('strips "(Ondo Tokenized)" and trims', () => {
+    expect(sanitizeTokenName('US Dollar (Ondo Tokenized)')).toBe('US Dollar');
+  });
+
+  it('is case-insensitive', () => {
+    expect(sanitizeTokenName('Token (ondo tokenized)')).toBe('Token');
+  });
+
+  it('truncates to 20 characters with ellipsis', () => {
+    expect(sanitizeTokenName('A Very Long Token Name That Exceeds')).toBe(
+      'A Very Long Token Na...',
+    );
+  });
+
+  it('strips then truncates with ellipsis', () => {
+    const long = 'Extremely Long Name Here (Ondo Tokenized)';
+    const result = sanitizeTokenName(long);
+    expect(result).toBe('Extremely Long Name...');
+  });
+
+  it('does not add ellipsis when exactly 20 characters', () => {
+    expect(sanitizeTokenName('12345678901234567890')).toBe(
+      '12345678901234567890',
+    );
+  });
+
+  it('returns the name unchanged when no stripping or truncation is needed', () => {
+    expect(sanitizeTokenName('OUSG')).toBe('OUSG');
+  });
+
+  it('handles empty string', () => {
+    expect(sanitizeTokenName('')).toBe('');
   });
 });

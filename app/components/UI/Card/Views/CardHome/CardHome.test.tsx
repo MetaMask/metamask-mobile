@@ -74,10 +74,12 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   AllowanceState,
+  CardAssetWithBalance,
   CardStateWarning,
   CardStatus,
   CardType,
 } from '../../types';
+import type { TokenI } from '../../../Tokens/types';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -143,6 +145,15 @@ const mockPriorityToken = {
   priority: 1,
   stagingTokenAddress: null,
   delegationContract: null,
+};
+
+// CardAssetWithBalance — mockPriorityToken with balance data merged in.
+const mockPrimaryAssetWithBalance = {
+  ...mockPriorityToken,
+  balanceFiat: '$1,000.00',
+  balanceFormatted: '1000.000000 USDC',
+  rawFiatNumber: 1000,
+  rawTokenBalance: 1000,
 };
 
 // CardFundingAsset version — balance is remaining amount, allowance is total cap.
@@ -847,6 +858,17 @@ function setupLoadCardDataMock(
       }
     : null;
 
+  // Build enriched CardAssetWithBalance for the new fields returned by useCardHomeData
+  const enrichedPrimaryAsset = config.priorityToken
+    ? {
+        ...config.priorityToken,
+        balanceFiat: '$1,000.00',
+        balanceFormatted: '1000.000000 USDC',
+        rawFiatNumber: 1000,
+        rawTokenBalance: 1000,
+      }
+    : null;
+
   (useCardHomeData as jest.Mock).mockReturnValue({
     data: config.error
       ? null
@@ -860,10 +882,62 @@ function setupLoadCardDataMock(
           actions,
           delegationSettings: config.delegationSettings,
         },
+    primaryAsset: enrichedPrimaryAsset,
+    supportedAssets: enrichedPrimaryAsset ? [enrichedPrimaryAsset] : [],
+    assetTokens: enrichedPrimaryAsset ? [enrichedPrimaryAsset] : [],
+    assetBalancesMap: enrichedPrimaryAsset
+      ? createMockAssetBalancesMap(
+          {
+            balanceFiat: '$1,000.00',
+            asset: { symbol: enrichedPrimaryAsset.symbol, image: '' },
+            balanceFormatted: '1000.000000 USDC',
+            rawTokenBalance: 1000,
+            rawFiatNumber: 1000,
+          },
+          enrichedPrimaryAsset,
+        )
+      : new Map(),
     isLoading: config.isLoading,
     isError: !!config.error,
     refetch: mockRefetchAllData,
   });
+}
+
+// Helper: Override only primaryAsset balance fields in the useCardHomeData mock.
+// Use once=true to override only the next render, false to override all subsequent renders.
+// This replaces mockUseAssetBalances overrides — balance now flows via useCardHomeData().primaryAsset.
+function overrideCardHomeDataBalance(
+  assetOverrides: Partial<CardAssetWithBalance>,
+  once = false,
+) {
+  const mockReturn = {
+    data: {
+      primaryAsset: mockPrimaryAsset,
+      assets: [mockPrimaryAsset],
+      supportedTokens: [mockPrimaryAsset],
+      card: {
+        id: 'card-123',
+        status: 'ACTIVE',
+        lastFour: '1234',
+        type: CardType.VIRTUAL,
+      },
+      account: null,
+      alerts: [],
+      actions: [{ type: 'add_funds', enabled: true }, { type: 'change_asset' }],
+    },
+    primaryAsset: { ...mockPrimaryAssetWithBalance, ...assetOverrides },
+    supportedAssets: [mockPrimaryAssetWithBalance],
+    assetTokens: [mockPrimaryAssetWithBalance],
+    assetBalancesMap: new Map(),
+    isLoading: false,
+    isError: false,
+    refetch: mockRefetchAllData,
+  };
+  if (once) {
+    (useCardHomeData as jest.Mock).mockReturnValueOnce(mockReturn);
+  } else {
+    (useCardHomeData as jest.Mock).mockReturnValue(mockReturn);
+  }
 }
 
 // Helper: Render component with proper wrapper
@@ -975,6 +1049,16 @@ describe('CardHome Component', () => {
           { type: 'change_asset' },
         ],
       },
+      primaryAsset: mockPrimaryAssetWithBalance,
+      supportedAssets: [mockPrimaryAssetWithBalance],
+      assetTokens: [mockPrimaryAssetWithBalance],
+      assetBalancesMap: createMockAssetBalancesMap({
+        balanceFiat: '$1,000.00',
+        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+        balanceFormatted: '1000.000000 USDC',
+        rawTokenBalance: 1000,
+        rawFiatNumber: 1000,
+      }),
       isLoading: false,
       isError: false,
       refetch: mockRefetchAllData,
@@ -1100,13 +1184,14 @@ describe('CardHome Component', () => {
     fireEvent.press(addFundsButton);
 
     // Then: should navigate to add funds modal, not swaps
+    // priorityToken is CardAssetWithBalance (superset of mockPriorityToken) so use objectContaining
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
         'CardModals',
         expect.objectContaining({
           screen: 'CardAddFundsModal',
           params: expect.objectContaining({
-            priorityToken: mockPriorityToken,
+            priorityToken: expect.objectContaining(mockPriorityToken),
           }),
         }),
       );
@@ -1132,13 +1217,14 @@ describe('CardHome Component', () => {
     fireEvent.press(addFundsButton);
 
     // Then: should navigate to add funds modal for supported token
+    // priorityToken is CardAssetWithBalance (superset of usdtToken) so use objectContaining
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
         'CardModals',
         expect.objectContaining({
           screen: 'CardAddFundsModal',
           params: expect.objectContaining({
-            priorityToken: usdtToken,
+            priorityToken: expect.objectContaining(usdtToken),
           }),
         }),
       );
@@ -1248,19 +1334,17 @@ describe('CardHome Component', () => {
   });
 
   it('passes formatted balance to CardAssetItem', () => {
-    // Given: asset balances with formatted balance
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: '$1,000.00',
-        asset: {
-          symbol: 'USDC',
-          image: 'usdc-image-url',
-        },
-        balanceFormatted: '1000.000000 USDC',
-        rawTokenBalance: 1000,
-        rawFiatNumber: 1000,
-      }),
-    );
+    // Given: primary asset includes formatted balance and token metadata (from useCardHomeData)
+    overrideCardHomeDataBalance({
+      balanceFiat: '$1,000.00',
+      asset: {
+        symbol: 'USDC',
+        image: 'usdc-image-url',
+      } as TokenI,
+      balanceFormatted: '1000.000000 USDC',
+      rawTokenBalance: 1000,
+      rawFiatNumber: 1000,
+    });
 
     // When: component renders
     render();
@@ -1408,19 +1492,11 @@ describe('CardHome Component', () => {
   });
 
   it('falls back to balanceFormatted when balanceFiat is TOKEN_RATE_UNDEFINED', () => {
-    // Given: fiat rate is undefined
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: TOKEN_RATE_UNDEFINED,
-        asset: {
-          symbol: 'USDC',
-          image: 'usdc-image-url',
-        },
-        balanceFormatted: '1000.000000 USDC',
-        rawTokenBalance: 1000,
-        rawFiatNumber: 0,
-      }),
-    );
+    // Given: fiat rate is undefined — balance comes from useCardHomeData().primaryAsset now
+    overrideCardHomeDataBalance({
+      balanceFiat: TOKEN_RATE_UNDEFINED,
+      balanceFormatted: '1000.000000 USDC',
+    });
 
     // When: component renders
     render();
@@ -1430,19 +1506,11 @@ describe('CardHome Component', () => {
   });
 
   it('falls back to balanceFormatted when balanceFiat is not available', () => {
-    // Given: fiat balance is empty
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: '',
-        asset: {
-          symbol: 'USDC',
-          image: 'usdc-image-url',
-        },
-        balanceFormatted: '1000.000000 USDC',
-        rawTokenBalance: 1000,
-        rawFiatNumber: 0,
-      }),
-    );
+    // Given: fiat balance is empty — balance comes from useCardHomeData().primaryAsset now
+    overrideCardHomeDataBalance({
+      balanceFiat: '',
+      balanceFormatted: '1000.000000 USDC',
+    });
 
     // When: component renders
     render();
@@ -1479,14 +1547,14 @@ describe('CardHome Component', () => {
 
   it('includes zero raw balances in metrics', async () => {
     // Given: zero balances
-    mockUseAssetBalances.mockReturnValueOnce(
-      createMockAssetBalancesMap({
+    overrideCardHomeDataBalance(
+      {
         balanceFiat: '$0.00',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
         balanceFormatted: '0.000000 USDC',
         rawTokenBalance: 0,
         rawFiatNumber: 0,
-      }),
+      },
+      true,
     );
 
     // When: component renders
@@ -1504,14 +1572,14 @@ describe('CardHome Component', () => {
 
   it('includes only rawTokenBalance when fiat is undefined', async () => {
     // Given: only formatted balance is valid (fiat undefined)
-    mockUseAssetBalances.mockReturnValueOnce(
-      createMockAssetBalancesMap({
+    overrideCardHomeDataBalance(
+      {
         balanceFiat: undefined as unknown as string,
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
         balanceFormatted: '1000.000000 USDC',
         rawTokenBalance: 1000,
-        // rawFiatNumber intentionally omitted (undefined)
-      }),
+        rawFiatNumber: undefined,
+      },
+      true,
     );
 
     // When: component renders
@@ -1530,14 +1598,14 @@ describe('CardHome Component', () => {
 
   it('does not fire metrics when formatted balance is undefined even if rawFiatNumber exists', async () => {
     // Given: fiat exists but formatted balance is missing
-    mockUseAssetBalances.mockReturnValueOnce(
-      createMockAssetBalancesMap({
+    overrideCardHomeDataBalance(
+      {
         balanceFiat: '$1,000.00',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
         balanceFormatted: undefined as unknown as string,
-        // rawTokenBalance omitted
+        rawTokenBalance: undefined,
         rawFiatNumber: 1000,
-      }),
+      },
+      true,
     );
 
     // When: component renders
@@ -1550,15 +1618,15 @@ describe('CardHome Component', () => {
   });
 
   it('fires CARD_HOME_VIEWED once when only balanceFormatted is valid', async () => {
-    // Given: only formatted balance is available
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: undefined as unknown as string,
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+    // Given: only formatted balance is available (no fiat / no raw fiat from useCardHomeData)
+    overrideCardHomeDataBalance(
+      {
+        balanceFiat: undefined,
         balanceFormatted: '1000.000000 USDC',
         rawTokenBalance: 1000,
-        // rawFiatNumber omitted
-      }),
+        rawFiatNumber: undefined,
+      },
+      true,
     );
 
     // When: component renders
@@ -1575,15 +1643,12 @@ describe('CardHome Component', () => {
 
   it('does not fire CARD_HOME_VIEWED when only fiat balance is available', async () => {
     // Given: fiat exists but formatted balance is missing
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: '$1,000.00',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
-        balanceFormatted: undefined as unknown as string,
-        // rawTokenBalance omitted
-        rawFiatNumber: 1000,
-      }),
-    );
+    overrideCardHomeDataBalance({
+      balanceFiat: '$1,000.00',
+      balanceFormatted: undefined as unknown as string,
+      rawTokenBalance: undefined,
+      rawFiatNumber: 1000,
+    });
 
     // When: component renders
     render();
@@ -1595,14 +1660,12 @@ describe('CardHome Component', () => {
 
   it('does not fire metrics when balances are still loading', async () => {
     // Given: balances show loading sentinels
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: 'tokenBalanceLoading',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
-        balanceFormatted: 'TOKENBALANCELOADING',
-        // raw values omitted
-      }),
-    );
+    overrideCardHomeDataBalance({
+      balanceFiat: 'tokenBalanceLoading',
+      balanceFormatted: 'TOKENBALANCELOADING',
+      rawTokenBalance: undefined,
+      rawFiatNumber: undefined,
+    });
 
     // When: component renders
     render();
@@ -1614,14 +1677,12 @@ describe('CardHome Component', () => {
 
   it('does not fire metrics when balances are unavailable', async () => {
     // Given: fiat is undefined and formatted balance is also undefined
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: 'tokenRateUndefined',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
-        balanceFormatted: undefined as unknown as string,
-        // raw values omitted
-      }),
-    );
+    overrideCardHomeDataBalance({
+      balanceFiat: 'tokenRateUndefined',
+      balanceFormatted: undefined as unknown as string,
+      rawTokenBalance: undefined,
+      rawFiatNumber: undefined,
+    });
 
     // When: component renders
     render();
@@ -1633,14 +1694,14 @@ describe('CardHome Component', () => {
 
   it('converts NaN rawTokenBalance to 0 in metrics', async () => {
     // Given: rawTokenBalance is NaN
-    mockUseAssetBalances.mockReturnValueOnce(
-      createMockAssetBalancesMap({
+    overrideCardHomeDataBalance(
+      {
         balanceFiat: '$1,000.00',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
         balanceFormatted: '1000.000000 USDC',
         rawTokenBalance: NaN,
         rawFiatNumber: 1000,
-      }),
+      },
+      true,
     );
 
     // When: component renders and fires metrics
@@ -1659,14 +1720,14 @@ describe('CardHome Component', () => {
 
   it('converts NaN rawFiatNumber to 0 in metrics', async () => {
     // Given: rawFiatNumber is NaN
-    mockUseAssetBalances.mockReturnValueOnce(
-      createMockAssetBalancesMap({
+    overrideCardHomeDataBalance(
+      {
         balanceFiat: '$1,000.00',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
         balanceFormatted: '1000.000000 USDC',
         rawTokenBalance: 1000,
         rawFiatNumber: NaN,
-      }),
+      },
+      true,
     );
 
     // When: component renders and fires metrics
@@ -1685,14 +1746,14 @@ describe('CardHome Component', () => {
 
   it('converts both NaN raw values to 0 in metrics', async () => {
     // Given: both raw values are NaN
-    mockUseAssetBalances.mockReturnValueOnce(
-      createMockAssetBalancesMap({
+    overrideCardHomeDataBalance(
+      {
         balanceFiat: '$1,000.00',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
         balanceFormatted: '1000.000000 USDC',
         rawTokenBalance: NaN,
         rawFiatNumber: NaN,
-      }),
+      },
+      true,
     );
 
     // When: component renders and fires metrics
@@ -1711,13 +1772,14 @@ describe('CardHome Component', () => {
 
   it('preserves undefined raw values in metrics', async () => {
     // Given: raw values are undefined (not provided)
-    mockUseAssetBalances.mockReturnValueOnce(
-      createMockAssetBalancesMap({
+    overrideCardHomeDataBalance(
+      {
         balanceFiat: '$1,000.00',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
         balanceFormatted: '1000.000000 USDC',
-        // rawTokenBalance and rawFiatNumber intentionally omitted (undefined)
-      }),
+        rawTokenBalance: undefined,
+        rawFiatNumber: undefined,
+      },
+      true,
     );
 
     // When: component renders and fires metrics
@@ -2131,12 +2193,15 @@ describe('CardHome Component', () => {
       fireEvent.press(changeAssetButton);
 
       // Then: should navigate to asset selection modal
+      // tokensWithAllowances are CardAssetWithBalance (superset of mockPriorityToken) so use objectContaining
       expect(mockNavigate).toHaveBeenCalledWith(
         'CardModals',
         expect.objectContaining({
           screen: 'CardAssetSelectionModal',
           params: expect.objectContaining({
-            tokensWithAllowances: [mockPriorityToken],
+            tokensWithAllowances: expect.arrayContaining([
+              expect.objectContaining(mockPriorityToken),
+            ]),
           }),
         }),
       );

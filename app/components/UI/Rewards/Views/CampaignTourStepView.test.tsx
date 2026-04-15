@@ -162,7 +162,8 @@ const campaignWithoutTour: CampaignDto = {
 let mockCampaigns: CampaignDto[] = [campaignWithTour];
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
-  selectCampaigns: () => mockCampaigns,
+  selectCampaignById: (id: string) => () =>
+    mockCampaigns.find((c) => c.id === id) ?? null,
 }));
 
 jest.mock('react-redux', () => ({

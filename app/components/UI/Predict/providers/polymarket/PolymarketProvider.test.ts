@@ -8074,4 +8074,122 @@ describe('PolymarketProvider', () => {
       expect(requestUrl.searchParams.get('limit')).toBe('50');
     });
   });
+
+  describe('extendedSportsMarketsLeagues pass-through', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      global.fetch = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('getMarkets passes extendedSportsMarketsLeagues to parsePolymarketEvents', async () => {
+      const leagues = ['nfl', 'nba'];
+      const provider = createProvider({
+        liveSportsLeagues: ['nfl'],
+        extendedSportsMarketsLeagues: leagues,
+      });
+      mockFetchEventsFromPolymarketApi.mockResolvedValue({
+        events: [{ id: 'event-1' }],
+        category: 'trending',
+        isSearch: false,
+      });
+      mockExtractNeededTeamsFromEvents.mockReturnValue(new Map());
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await provider.getMarkets();
+
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ extendedSportsMarketsLeagues: leagues }),
+      );
+    });
+
+    it('getMarkets passes empty extendedSportsMarketsLeagues when flag has no leagues', async () => {
+      const provider = createProvider();
+      mockFetchEventsFromPolymarketApi.mockResolvedValue({
+        events: [{ id: 'event-1' }],
+        category: 'trending',
+        isSearch: false,
+      });
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await provider.getMarkets();
+
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ extendedSportsMarketsLeagues: [] }),
+      );
+    });
+
+    it('getMarketDetails passes extendedSportsMarketsLeagues to parsePolymarketEvents', async () => {
+      const leagues = ['nfl'];
+      const provider = createProvider({
+        liveSportsLeagues: ['nfl'],
+        extendedSportsMarketsLeagues: leagues,
+      });
+      const mockEvent = { id: 'market-1', question: 'Test?' };
+      mockIsLiveSportsEvent.mockReturnValue(true);
+      mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+      mockExtractNeededTeamsFromEvents.mockReturnValue(new Map());
+      mockParsePolymarketEvents.mockReturnValue([
+        { id: 'market-1', title: 'Test' },
+      ]);
+
+      await provider.getMarketDetails({ marketId: 'market-1' });
+
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        [mockEvent],
+        expect.objectContaining({ extendedSportsMarketsLeagues: leagues }),
+      );
+    });
+
+    it('getMarketSeries passes extendedSportsMarketsLeagues to parsePolymarketEvents', async () => {
+      const leagues = ['nfl', 'nba'];
+      const provider = createProvider({
+        liveSportsLeagues: ['nfl'],
+        extendedSportsMarketsLeagues: leagues,
+      });
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue([{ id: 'event-1' }]),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+      mockExtractNeededTeamsFromEvents.mockReturnValue(new Map());
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await provider.getMarketSeries({
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+      });
+
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ extendedSportsMarketsLeagues: leagues }),
+      );
+    });
+
+    it('getCarouselMarkets passes extendedSportsMarketsLeagues to parsePolymarketEvents', async () => {
+      const leagues = ['nfl'];
+      const provider = createProvider({
+        liveSportsLeagues: ['nfl'],
+        extendedSportsMarketsLeagues: leagues,
+      });
+      mockFetchCarouselFromPolymarketApi.mockResolvedValue([
+        { event: { id: 'event-1' } },
+      ]);
+      mockExtractNeededTeamsFromEvents.mockReturnValue(new Map());
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await provider.getCarouselMarkets();
+
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ extendedSportsMarketsLeagues: leagues }),
+      );
+    });
+  });
 });
