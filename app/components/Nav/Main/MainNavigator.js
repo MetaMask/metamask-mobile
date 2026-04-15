@@ -1310,6 +1310,11 @@ const MainNavigator = () => {
         options={({ navigation }) => ({
           ...slideFromRightAnimation,
           ...getDeFiProtocolPositionDetailsNavbarOptions(navigation),
+          headerStyle: {
+            backgroundColor: colors.background.default,
+            shadowColor: importedColors.transparent,
+            elevation: 0,
+          },
         })}
       />
       {
