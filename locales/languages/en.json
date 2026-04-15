@@ -7574,7 +7574,9 @@
         "unfreeze_card_description": "Resume all spending on your card",
         "freeze_error": "Failed to update card status. Please try again.",
         "freeze_success": "Card successfully frozen",
-        "unfreeze_success": "Card successfully unfrozen"
+        "unfreeze_success": "Card successfully unfrozen",
+        "change_asset": "Change asset",
+        "change_asset_description": "Select a different token"
       }
     },
     "card_spending_limit": {

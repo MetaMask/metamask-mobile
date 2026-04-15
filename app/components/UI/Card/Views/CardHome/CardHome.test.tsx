@@ -97,6 +97,7 @@ import {
   selectCardUserLocation,
 } from '../../../../../selectors/cardController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../hooks/useCardPinToken';
 
@@ -450,6 +451,7 @@ jest.mock('../../../Tokens/constants', () => ({
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
+    setSelectedAddress: jest.fn(),
     context: {
       PreferencesController: {
         setPrivacyMode: jest.fn(),
@@ -498,6 +500,9 @@ const mockGetAccountByAddress = Engine.context.AccountsController
 const mockSetSelectedAccount = Engine.context.AccountsController
   .setSelectedAccount as jest.MockedFunction<
   typeof Engine.context.AccountsController.setSelectedAccount
+>;
+const mockSetSelectedAddress = Engine.setSelectedAddress as jest.MockedFunction<
+  typeof Engine.setSelectedAddress
 >;
 const mockGetCapabilities = Engine.context.CardController
   .getCapabilities as jest.Mock;
@@ -656,6 +661,9 @@ function setupMockSelectors(
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
 
+    if (selector === selectSelectedInternalAccountByScope)
+      return () => config.selectedAccount;
+
     const selectorString =
       typeof selector === 'function' ? selector.toString() : '';
     if (selectorString.includes('selectSelectedInternalAccount'))
@@ -794,7 +802,6 @@ function setupLoadCardDataMock(
     }
   } else if (!config.warning && primaryFundingAsset) {
     actions.push({ type: 'add_funds', enabled: true });
-    actions.push({ type: 'change_asset' });
   }
 
   // Map kycStatus to CardAccountStatus
@@ -918,7 +925,7 @@ function overrideCardHomeDataBalance(
       },
       account: null,
       alerts: [],
-      actions: [{ type: 'add_funds', enabled: true }, { type: 'change_asset' }],
+      actions: [{ type: 'add_funds', enabled: true }],
     },
     primaryToken: { ...mockPrimaryAssetWithBalance, ...assetOverrides },
     availableTokens: [mockPrimaryAssetWithBalance],
@@ -1039,10 +1046,7 @@ describe('CardHome Component', () => {
         },
         account: null,
         alerts: [],
-        actions: [
-          { type: 'add_funds', enabled: true },
-          { type: 'change_asset' },
-        ],
+        actions: [{ type: 'add_funds', enabled: true }],
       },
       primaryToken: mockPrimaryAssetWithBalance,
       availableTokens: [mockPrimaryAssetWithBalance],
@@ -2134,6 +2138,78 @@ describe('CardHome Component', () => {
       await waitFor(() => {
         expect(mockTrackEvent).toHaveBeenCalled();
       });
+    });
+
+    it('calls Engine.setSelectedAddress when wallet address differs from selected account', async () => {
+      const differentWalletAddress = '0xAnotherOwnedAccount123456789000';
+
+      (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValueOnce(true);
+      (useCardHomeData as jest.Mock).mockReturnValueOnce({
+        data: {
+          primaryFundingAsset: {
+            ...mockPrimaryFundingAsset,
+            walletAddress: differentWalletAddress,
+          },
+          fundingAssets: [mockPrimaryFundingAsset],
+          availableFundingAssets: [mockPrimaryFundingAsset],
+          card: {
+            id: 'card-123',
+            status: 'ACTIVE',
+          },
+          account: null,
+          alerts: [],
+          actions: [{ type: 'add_funds', enabled: true }],
+        },
+        primaryToken: mockPrimaryAssetWithBalance,
+        availableTokens: [mockPrimaryAssetWithBalance],
+        fundingTokens: [mockPrimaryAssetWithBalance],
+        isLoading: false,
+        error: null,
+        warning: null,
+      });
+
+      render();
+
+      const addFundsButton = screen.getByTestId(
+        CardHomeSelectors.ADD_FUNDS_BUTTON,
+      );
+      fireEvent.press(addFundsButton);
+
+      await waitFor(() => {
+        expect(mockSetSelectedAddress).toHaveBeenCalledWith(
+          differentWalletAddress,
+        );
+      });
+    });
+
+    it('does not call Engine.setSelectedAddress when wallet address matches selected account', async () => {
+      (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValueOnce(true);
+
+      render();
+
+      const addFundsButton = screen.getByTestId(
+        CardHomeSelectors.ADD_FUNDS_BUTTON,
+      );
+      fireEvent.press(addFundsButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+      expect(mockSetSelectedAddress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Data refresh on focus', () => {
+    it('calls refetch when the screen gains focus', () => {
+      mockRefetchAllData.mockClear();
+
+      jest.mocked(useFocusEffect).mockImplementation((cb) => cb());
+
+      render();
+
+      expect(mockRefetchAllData).toHaveBeenCalled();
+
+      jest.mocked(useFocusEffect).mockImplementation(jest.fn());
     });
   });
 
@@ -5894,6 +5970,98 @@ describe('CardHome Component', () => {
           }),
         );
       });
+    });
+  });
+
+  describe('Zero priority token balance — manage options visibility', () => {
+    beforeEach(() => {
+      setupMockSelectors({ isAuthenticated: true });
+      mockGetCapabilities.mockReturnValue({
+        supportsPinView: true,
+        supportsCashback: true,
+      });
+    });
+
+    it('hides all manage options except Change asset when priority token balance is zero', () => {
+      setupLoadCardDataMock({ isAuthenticated: true });
+      overrideCardHomeDataBalance({
+        rawTokenBalance: 0,
+        rawFiatNumber: 0,
+        balanceFiat: '$0.00',
+        balanceFormatted: '0.000000 USDC',
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeOnTheScreen();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM),
+      ).toBeNull();
+      expect(screen.queryByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeNull();
+      expect(screen.queryByTestId(CardHomeSelectors.TRAVEL_ITEM)).toBeNull();
+    });
+
+    it('shows all manage options when priority token balance is positive', () => {
+      setupLoadCardDataMock({ isAuthenticated: true });
+      overrideCardHomeDataBalance({
+        rawTokenBalance: 1000,
+        rawFiatNumber: 1000,
+        balanceFiat: '$1,000.00',
+        balanceFormatted: '1000.000000 USDC',
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.TRAVEL_ITEM),
+      ).toBeOnTheScreen();
+    });
+
+    it('still shows teaser options for unauthenticated users regardless of balance', () => {
+      setupMockSelectors({ isAuthenticated: false });
+      setupLoadCardDataMock({ isAuthenticated: false });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+      ).toBeOnTheScreen();
     });
   });
 

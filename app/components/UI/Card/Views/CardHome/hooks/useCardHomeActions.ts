@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo } from 'react';
+import { useCallback, useContext } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -15,7 +15,7 @@ import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { CardActions } from '../../../util/metrics';
-import { DEPOSIT_SUPPORTED_TOKENS } from '../../../constants';
+import { DEPOSIT_SUPPORTED_TOKENS, cardNetworkInfos } from '../../../constants';
 import { withBiometricAuth } from '../../../util/withBiometricAuth';
 import { createAddFundsModalNavigationDetails } from '../../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
@@ -27,6 +27,7 @@ import useCardDetailsToken from '../../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../../hooks/useCardPinToken';
 import { useOpenSwaps } from '../../../hooks/useOpenSwaps';
 import { useNavigateToCardPage } from '../../../hooks/useNavigateToCardPage';
+import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 import type { CardFundingTokenWithBalance } from '../../../types';
 
@@ -65,6 +66,14 @@ export function useCardHomeActions({
     reset: resetPinToken,
   } = useCardPinToken();
   const { openSwaps } = useOpenSwaps({ priorityToken: primaryToken });
+
+  const selectAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
+  const evmAccount = selectAccountByScope('eip155:0');
+  const solanaAccount = selectAccountByScope(
+    cardNetworkInfos.solana.caipChainId,
+  );
 
   // --- Freeze ---
 
@@ -283,22 +292,39 @@ export function useCardHomeActions({
 
   // --- Navigation actions ---
 
+  const switchToFundingAccountIfNeeded = useCallback(() => {
+    const walletAddress = data?.primaryFundingAsset?.walletAddress;
+    if (!walletAddress) return;
+
+    const selectedAddress = evmAccount?.address ?? solanaAccount?.address;
+    if (selectedAddress?.toLowerCase() === walletAddress.toLowerCase()) return;
+
+    Engine.setSelectedAddress(walletAddress);
+  }, [
+    data?.primaryFundingAsset?.walletAddress,
+    evmAccount?.address,
+    solanaAccount?.address,
+  ]);
+
   const addFundsAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
     );
+
     const isPriorityTokenSupportedDeposit = !!DEPOSIT_SUPPORTED_TOKENS.find(
       (t) =>
         t.toLowerCase() === data?.primaryFundingAsset?.symbol?.toLowerCase(),
     );
 
     if (isPriorityTokenSupportedDeposit) {
+      switchToFundingAccountIfNeeded();
       navigation.navigate(
         ...createAddFundsModalNavigationDetails({
           priorityToken: primaryToken ?? undefined,
         }),
       );
     } else if (data?.primaryFundingAsset) {
+      switchToFundingAccountIfNeeded();
       openSwaps({});
     }
   }, [
@@ -308,6 +334,7 @@ export function useCardHomeActions({
     primaryToken,
     openSwaps,
     navigation,
+    switchToFundingAccountIfNeeded,
   ]);
 
   const changeAssetAction = useCallback(() => {
