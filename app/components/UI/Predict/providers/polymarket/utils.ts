@@ -797,6 +797,7 @@ export const parsePolymarketMarket = (
   liquidity: market.liquidity ?? 0,
   tokens: parsePolymarketMarketOutcomes(market, event),
   sportsMarketType: market.sportsMarketType,
+  line: market.line,
   negRisk: market.negRisk,
   tickSize: market.orderPriceMinTickSize.toString(),
   resolvedBy: market.resolvedBy,

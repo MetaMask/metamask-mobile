@@ -4118,8 +4118,8 @@ describe('polymarket utils', () => {
 
       expect(result).toHaveLength(3);
       expect(result.map((g) => g.key)).toEqual([
-        'game-lines',
-        'first-half',
+        'game_lines',
+        'first_half',
         'touchdowns',
       ]);
       expect(result[0].outcomes).toEqual([]);
@@ -4166,7 +4166,7 @@ describe('polymarket utils', () => {
       const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
-      expect(result[0].key).toBe('game-lines');
+      expect(result[0].key).toBe('game_lines');
       expect(result[0].outcomes).toEqual([]);
       expect(result[0].subgroups?.map((s) => s.key)).toEqual([
         'moneyline',
@@ -4200,7 +4200,7 @@ describe('polymarket utils', () => {
       const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
-      expect(result[0].key).toBe('game-lines');
+      expect(result[0].key).toBe('game_lines');
     });
 
     it('falls back undefined sportsMarketType to game-lines', () => {
@@ -4215,7 +4215,7 @@ describe('polymarket utils', () => {
       const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
-      expect(result[0].key).toBe('game-lines');
+      expect(result[0].key).toBe('game_lines');
     });
 
     it('groups single mapped type into standalone group', () => {
@@ -4234,7 +4234,7 @@ describe('polymarket utils', () => {
       const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
-      expect(result[0].key).toBe('first-half');
+      expect(result[0].key).toBe('first_half');
     });
 
     it('returns empty array for empty inputs', () => {
@@ -4275,7 +4275,7 @@ describe('polymarket utils', () => {
       const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
-      expect(result[0].key).toBe('game-lines');
+      expect(result[0].key).toBe('game_lines');
       expect(result[0].outcomes).toEqual([]);
       expect(result[0].subgroups?.map((s) => s.key)).toEqual([
         'moneyline',
@@ -4314,17 +4314,17 @@ describe('polymarket utils', () => {
       const result = buildOutcomeGroups(outcomes);
 
       expect(result.map((g) => g.key)).toEqual([
-        'game-lines',
-        'first-half',
+        'game_lines',
+        'first_half',
         'touchdowns',
       ]);
-      expect(GROUP_ORDER.indexOf('game-lines')).toBeLessThan(
-        GROUP_ORDER.indexOf('first-half'),
+      expect(GROUP_ORDER.indexOf('game_lines')).toBeLessThan(
+        GROUP_ORDER.indexOf('first_half'),
       );
-      expect(GROUP_ORDER.indexOf('first-half')).toBeLessThan(
+      expect(GROUP_ORDER.indexOf('first_half')).toBeLessThan(
         GROUP_ORDER.indexOf('touchdowns'),
       );
-      expect(SPORTS_MARKET_TYPE_TO_GROUP.first_half_spreads).toBe('first-half');
+      expect(SPORTS_MARKET_TYPE_TO_GROUP.first_half_spreads).toBe('first_half');
       expect(SPORTS_MARKET_TYPE_TO_GROUP.anytime_touchdowns).toBe('touchdowns');
     });
 
@@ -4392,7 +4392,7 @@ describe('polymarket utils', () => {
       const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
-      expect(result[0].key).toBe('first-half');
+      expect(result[0].key).toBe('first_half');
       expect(result[0].outcomes).toEqual([]);
       expect(result[0].subgroups?.map((s) => s.key)).toEqual([
         'first_half_moneyline',
@@ -4489,7 +4489,7 @@ describe('polymarket utils', () => {
       const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
-      expect(result[0].key).toBe('game-lines');
+      expect(result[0].key).toBe('game_lines');
       expect(result[0].outcomes).toEqual([]);
       expect(result[0].subgroups).toHaveLength(2);
       expect(result[0].subgroups?.map((s) => s.key)).toEqual([
@@ -4516,7 +4516,7 @@ describe('polymarket utils', () => {
       const result = buildOutcomeGroups(outcomes);
 
       expect(result).toHaveLength(1);
-      expect(result[0].key).toBe('game-lines');
+      expect(result[0].key).toBe('game_lines');
       expect(result[0].outcomes).toHaveLength(1);
       expect(result[0].outcomes[0].id).toBe('ml-1');
       expect(result[0].subgroups).toBeUndefined();
@@ -4597,7 +4597,7 @@ describe('polymarket utils', () => {
 
       const result = buildOutcomeGroups(outcomes);
 
-      const gameLines = result.find((g) => g.key === 'game-lines');
+      const gameLines = result.find((g) => g.key === 'game_lines');
       const points = result.find((g) => g.key === 'points');
       expect(gameLines?.subgroups).toHaveLength(3);
       expect(gameLines?.outcomes).toEqual([]);
