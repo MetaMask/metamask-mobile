@@ -76,7 +76,7 @@ const ReferralRewardsView: React.FC = () => {
           <ReferralDetails />
         </ScrollView>
 
-        <Box twClassName="px-4 pt-2">
+        <Box twClassName="px-4">
           <Button
             variant={ButtonVariant.Primary}
             isFullWidth
