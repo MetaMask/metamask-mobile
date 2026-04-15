@@ -12,6 +12,7 @@ import {
   AvatarToken,
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
+import { DateTime } from 'luxon';
 import type { Position } from '@metamask/social-controllers';
 import { getAssetImageUrl } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { chainNameToId } from '../../utils/chainMapping';
@@ -43,6 +44,10 @@ function formatTokenAmount(value: number): string {
 function formatPercent(value: number | null | undefined): string {
   if (value == null) return '\u2014';
   return formatPercentage(value, 0);
+}
+
+function formatClosedDate(timestamp: number): string {
+  return DateTime.fromSeconds(timestamp).toFormat('M/d/yy, h:mm a');
 }
 
 const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
@@ -102,7 +107,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
             numberOfLines={1}
           >
             {isClosed
-              ? `${formatUsd(position.boughtUsd)} invested`
+              ? formatClosedDate(position.lastTradeAt)
               : `${formatTokenAmount(position.positionAmount)} ${position.tokenSymbol}`}
           </Text>
         </Box>
