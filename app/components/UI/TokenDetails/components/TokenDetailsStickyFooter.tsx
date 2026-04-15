@@ -29,7 +29,6 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     paddingVertical: 4,
-    paddingHorizontal: 8,
   },
   button: {
     flex: 1,
@@ -41,6 +40,14 @@ const styles = StyleSheet.create({
 });
 
 const BALANCE_THRESHOLD_USD = 100;
+
+const SUCCESS_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
+const SECONDARY_TEXT_PROPS = { twClassName: 'text-success-default' } as const;
+const PRIMARY_ICON_PROPS = { size: IconSize.Md } as const;
+const SECONDARY_ICON_PROPS = {
+  size: IconSize.Md,
+  twClassName: 'text-success-default shrink-0',
+} as const;
 
 interface TokenStickyFooterProps {
   token: TokenDetailsRouteParams;
@@ -103,13 +110,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     ? balanceUsd >= BALANCE_THRESHOLD_USD
     : showSwapButton;
   const buyIsSuccess = showBothButtons ? !swapIsSuccess : showBuyButton;
-
-  const successTextProps = useMemo(
-    () => ({ color: TextColor.SuccessInverse }),
-    [],
-  );
-
-  const buttonIconProps = useMemo(() => ({ size: IconSize.Md }), []);
 
   const handleFooterAction = useCallback(
     (action: () => void, source: string) => {
@@ -182,7 +182,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     ],
   );
 
-  const footerStyle = React.useMemo(
+  const footerStyle = useMemo(
     () => ({
       backgroundColor: colors.background.default,
       paddingHorizontal: 16,
@@ -192,61 +192,71 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     [colors.background.default, insets.bottom],
   );
 
+  if (!tradingOpen) return null;
+
   return (
-    <>
-      {tradingOpen && (
-        <View testID="bottomsheetfooter" style={[styles.footer, footerStyle]}>
-          {showSwapButton && (
-            <Button
-              variant={
-                swapIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
-              }
-              style={styles.button}
-              twClassName={swapIsSuccess ? 'bg-success-default' : undefined}
-              textProps={swapIsSuccess ? successTextProps : undefined}
-              startIconName={IconName.SwapVertical}
-              startIconProps={buttonIconProps}
-              onPress={() => {
-                trackStickyFooterTapped({
-                  ctaType: 'swap',
-                  isPrimary: swapIsSuccess,
-                  tokenAddress: token.address ?? '',
-                  chainId: token.chainId ?? '',
-                  usdBalance: balanceFiatUsd,
-                });
-                handleFooterAction(onSwap, strings(buttonLabels.swapLabelKey));
-              }}
-            >
-              {strings(buttonLabels.swapLabelKey)}
-            </Button>
-          )}
-          {showBuyButton && (
-            <Button
-              variant={
-                buyIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
-              }
-              style={showSwapButton ? styles.subsequentButton : styles.button}
-              twClassName={buyIsSuccess ? 'bg-success-default' : undefined}
-              textProps={buyIsSuccess ? successTextProps : undefined}
-              startIconName={IconName.Bank}
-              startIconProps={buttonIconProps}
-              onPress={() => {
-                trackStickyFooterTapped({
-                  ctaType: 'buy',
-                  isPrimary: buyIsSuccess,
-                  tokenAddress: token.address ?? '',
-                  chainId: token.chainId ?? '',
-                  usdBalance: balanceFiatUsd,
-                });
-                handleFooterAction(onBuy, strings('asset_overview.buy_button'));
-              }}
-            >
-              {strings('asset_overview.buy_button')}
-            </Button>
-          )}
-        </View>
+    <View testID="bottomsheetfooter" style={[styles.footer, footerStyle]}>
+      {showSwapButton && (
+        <Button
+          variant={
+            swapIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
+          }
+          style={styles.button}
+          twClassName={
+            swapIsSuccess
+              ? 'bg-success-default'
+              : 'bg-transparent border-success-default'
+          }
+          textProps={swapIsSuccess ? SUCCESS_TEXT_PROPS : SECONDARY_TEXT_PROPS}
+          startIconName={IconName.SwapVertical}
+          startIconProps={
+            swapIsSuccess ? PRIMARY_ICON_PROPS : SECONDARY_ICON_PROPS
+          }
+          onPress={() => {
+            trackStickyFooterTapped({
+              ctaType: 'swap',
+              isPrimary: swapIsSuccess,
+              tokenAddress: token.address ?? '',
+              chainId: token.chainId ?? '',
+              usdBalance: balanceFiatUsd,
+            });
+            handleFooterAction(onSwap, strings(buttonLabels.swapLabelKey));
+          }}
+        >
+          {strings(buttonLabels.swapLabelKey)}
+        </Button>
       )}
-    </>
+      {showBuyButton && (
+        <Button
+          variant={
+            buyIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
+          }
+          style={showSwapButton ? styles.subsequentButton : styles.button}
+          twClassName={
+            buyIsSuccess
+              ? 'bg-success-default'
+              : 'bg-transparent border-success-default'
+          }
+          textProps={buyIsSuccess ? SUCCESS_TEXT_PROPS : SECONDARY_TEXT_PROPS}
+          startIconName={IconName.Bank}
+          startIconProps={
+            buyIsSuccess ? PRIMARY_ICON_PROPS : SECONDARY_ICON_PROPS
+          }
+          onPress={() => {
+            trackStickyFooterTapped({
+              ctaType: 'buy',
+              isPrimary: buyIsSuccess,
+              tokenAddress: token.address ?? '',
+              chainId: token.chainId ?? '',
+              usdBalance: balanceFiatUsd,
+            });
+            handleFooterAction(onBuy, strings('asset_overview.buy_button'));
+          }}
+        >
+          {strings('asset_overview.buy_button')}
+        </Button>
+      )}
+    </View>
   );
 };
 
