@@ -462,7 +462,7 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - uniffi-bindgen-react-native (= 0.29.3-1)
+    - uniffi-bindgen-react-native (= 0.31.0-2)
     - Yoga
   - MultiplatformBleAdapter (0.2.0)
   - nanopb (2.30910.0):
@@ -2979,7 +2979,7 @@ PODS:
   - SocketRocket (0.7.1)
   - sovran-react-native (1.0.4):
     - React-Core
-  - uniffi-bindgen-react-native (0.29.3-1):
+  - uniffi-bindgen-react-native (0.31.0-2):
     - React-Core
   - VeriffSDK (8.12.0)
   - VisionCamera (4.6.4):
@@ -3563,7 +3563,7 @@ SPEC CHECKSUMS:
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   lottie-ios: e047b1d2e6239b787cc5e9755b988869cf190494
   lottie-react-native: 7f3fc3f396b1d6c7b1454b77596bd2ad3151871e
-  MpcLibsReactNative: 2e801fb7945c54f41ed0e17cfd45a2918a109042
+  MpcLibsReactNative: 6854e840da286284296837798303051547d4cede
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeUtils: e1d5591114bd87ba0b91348477f77b029cd361b8
@@ -3693,7 +3693,7 @@ SPEC CHECKSUMS:
   Sentry: 2cbbe3592f30050c60e916c63c7f5a2fa584005e
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   sovran-react-native: e4721a564ee6ef5b5a0d901bc677018cf371ea01
-  uniffi-bindgen-react-native: 125eae9e3a0cf34bf8f3d4b0ceed517df7cc0733
+  uniffi-bindgen-react-native: 205a15613d97a49fe17d5bda57f7fa46a7bbafd0
   VeriffSDK: 4323cc7d0152c107f40795881c92a41cf5a80f29
   VisionCamera: f56eaedde0d3fa095143b78374d29e89e71735f9
   Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a

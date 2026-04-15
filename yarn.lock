@@ -9111,14 +9111,14 @@ __metadata:
 
 "@metamask/mpc-libs-react-native@file:./metamask-mpc-libs-react-native-0.1.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.1.0
-  resolution: "@metamask/mpc-libs-react-native@file:./metamask-mpc-libs-react-native-0.1.0.tgz#./metamask-mpc-libs-react-native-0.1.0.tgz::hash=828c81&locator=metamask%40workspace%3A."
+  resolution: "@metamask/mpc-libs-react-native@file:./metamask-mpc-libs-react-native-0.1.0.tgz#./metamask-mpc-libs-react-native-0.1.0.tgz::hash=96e12a&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/mpc-libs-interface": "workspace:*"
-    uniffi-bindgen-react-native: "npm:^0.29.3-1"
+    uniffi-bindgen-react-native: "npm:^0.31.0-2"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/e5348120cb0e131e3a5aebdbbe037756f1ad452a22411079da47b7395c77524a4ec1cf0845f48d59cdc3fa328998b69a8ca034396e90596083ea59026fbdc042
+  checksum: 10/e3e3f0bba609d8c872245b294a594c83fee81f84ac72c34f868c0dc8c6b6019a8dfe947396da94a692b332c86aa0a3daa452c061a07d8f2b8709f709ba12a785
   languageName: node
   linkType: hard
 
@@ -46033,13 +46033,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uniffi-bindgen-react-native@npm:^0.29.3-1":
-  version: 0.29.3-1
-  resolution: "uniffi-bindgen-react-native@npm:0.29.3-1"
+"uniffi-bindgen-react-native@npm:^0.31.0-2":
+  version: 0.31.0-2
+  resolution: "uniffi-bindgen-react-native@npm:0.31.0-2"
   bin:
     ubrn: bin/cli.cjs
     uniffi-bindgen-react-native: bin/cli.cjs
-  checksum: 10/e16c855e072bcfb0e9abaeab0d3a29e850a08ec54fd59f82d54116a740e839cdb75f9a3270daccef4577d6261d9ba6bcfc58a95574bc590e06f9f757c5425d7f
+  checksum: 10/0d55e360cc75e4785b9a22cbed10eb10f7fce21a9d4dcebfe59b7196e0de136ecc9f1dd79aff3c459c42ddde8e980eef1c4de0a82547cf39fcbeb32a2a3abb0e
   languageName: node
   linkType: hard
 
