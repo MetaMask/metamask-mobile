@@ -109,6 +109,12 @@
     "test:e2e:ios:flask:build": "IS_TEST='true' detox build -c ios.sim.flask",
     "test:e2e:android:flask:run": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c android.emu.flask",
     "test:e2e:ios:flask:run": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c ios.sim.flask",
+    "visual:test:ios": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c ios.sim.visual --testPathPattern",
+    "visual:test:android": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c android.emu.visual --testPathPattern",
+    "visual:test:ios:all": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c ios.sim.visual",
+    "visual:test:android:all": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c android.emu.visual",
+    "visual:update:ios": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' UPDATE_BASELINES=true detox test -c ios.sim.visual --testPathPattern",
+    "visual:update:android": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' UPDATE_BASELINES=true detox test -c android.emu.visual --testPathPattern",
     "test:reassure:baseline": "REASSURE=true yarn reassure --baseline",
     "test:reassure:branch": "REASSURE=true yarn reassure --branch && node -e \"const r=require('./.reassure/output.json'); if ((r.significant||[]).length>0) { console.error('Reassure: significant regressions detected'); process.exit(1);} else { process.exit(0);} \"",
     "test:e2e:feature-flag:coverage": "ts-node tests/feature-flags/feature-flag-coverage-report.ts",
@@ -668,6 +674,7 @@
     "redux-saga-test-plan": "^4.0.6",
     "regenerator-runtime": "0.13.9",
     "serve-handler": "^6.1.5",
+    "sharp": "^0.34.5",
     "simple-git": "^3.25.0",
     "tailwindcss": "^3.4.0",
     "ts-node": "^10.9.2",
@@ -779,7 +786,8 @@
       "ws>bufferutil": false,
       "ws>utf-8-validate": false,
       "eslint-plugin-import-x>unrs-resolver": false,
-      "eslint-import-resolver-typescript>unrs-resolver": false
+      "eslint-import-resolver-typescript>unrs-resolver": false,
+      "sharp": false
     }
   },
   "packageManager": "yarn@4.10.3",

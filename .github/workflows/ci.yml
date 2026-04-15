@@ -675,6 +675,38 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node .github/scripts/e2e-report-fixture-validation.mjs
 
+  visual-regression-ios:
+    name: 'iOS Visual Regression Tests'
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [ios-tests-ready]
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: visual-regression-ios
+      platform: ios
+      test_suite_tag: VisualRegression
+      test-timeout-minutes: 60
+      artifact_name_prefix: visual-
+    secrets: inherit
+
+  visual-regression-android:
+    name: 'Android Visual Regression Tests'
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [build-android-apks]
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: visual-regression-android
+      platform: android
+      test_suite_tag: VisualRegression
+      test-timeout-minutes: 60
+      artifact_name_prefix: visual-
+    secrets: inherit
+
   sonar-cloud:
     name: SonarCloud analysis
     runs-on: ubuntu-latest

@@ -1,0 +1,41 @@
+name: Visual Regression Tests
+on:
+  schedule:
+    - cron: '0 4 * * 1-5' # Weekday nightlies at 4 AM UTC
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to test'
+        type: choice
+        options:
+          - ios
+          - android
+          - both
+        default: both
+      update_baselines:
+        description: 'Update baselines instead of comparing'
+        type: boolean
+        default: false
+
+jobs:
+  visual-regression-ios:
+    if: ${{ github.event.inputs.platform != 'android' }}
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: visual-regression-ios
+      platform: ios
+      test_suite_tag: VisualRegression
+      test-timeout-minutes: 60
+      artifact_name_prefix: visual-
+    secrets: inherit
+
+  visual-regression-android:
+    if: ${{ github.event.inputs.platform != 'ios' }}
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: visual-regression-android
+      platform: android
+      test_suite_tag: VisualRegression
+      test-timeout-minutes: 60
+      artifact_name_prefix: visual-
+    secrets: inherit

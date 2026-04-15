@@ -92,6 +92,7 @@ jobs:
       SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
       MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
       MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
       GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
       GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
       MM_SOLANA_E2E_TEST_SRP: ${{ secrets.MM_SOLANA_E2E_TEST_SRP }}
@@ -320,4 +321,19 @@ jobs:
         with:
           name: test-e2e-${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-screenshots
           path: tests/artifacts/
+          retention-days: 7
+
+      - name: Aggregate Visual Regression Results
+        if: ${{ always() && contains(inputs.test_suite_tag, 'VisualRegression') }}
+        run: node tests/visual-regression/aggregate-results.mjs
+
+      - name: Upload Visual Regression Report
+        if: ${{ always() && contains(inputs.test_suite_tag, 'VisualRegression') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-visual-report
+          path: |
+            tests/visual-regression/results/
+            tests/visual-regression/diffs/
+            tests/visual-regression/current/
           retention-days: 7
