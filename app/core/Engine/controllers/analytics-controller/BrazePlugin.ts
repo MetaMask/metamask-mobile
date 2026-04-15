@@ -1,5 +1,5 @@
 import {
-  DestinationPlugin,
+  EventPlugin,
   PluginType,
   type IdentifyEventType,
   type TrackEventType,
@@ -19,9 +19,8 @@ import { captureException } from '@sentry/react-native';
  *
  * When no profileId is set the plugin is a no-op — nothing is sent to Braze.
  */
-export class BrazePlugin extends DestinationPlugin {
+export class BrazePlugin extends EventPlugin {
   type = PluginType.destination;
-  key = 'Braze';
 
   private brazeProfileId: string | undefined;
   private allowedEvents: Set<string> = new Set();
