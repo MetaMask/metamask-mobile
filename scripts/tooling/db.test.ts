@@ -3,6 +3,28 @@ import os from 'os';
 import path from 'path';
 import { openDb, DEFAULT_DB_PATH, DEFAULT_DB_DIR } from './db';
 
+// mockDb is used for all non-:memory: openDb calls to avoid real fs side effects
+const mockDb = {
+  pragma: jest.fn(),
+  exec: jest.fn(),
+  close: jest.fn(),
+};
+
+// :memory: paths use the real SQLite engine (for schema/constraint tests);
+// file paths return mockDb so no real files are created
+jest.mock('better-sqlite3', () => {
+  const RealDatabase = jest.requireActual('better-sqlite3');
+  return jest
+    .fn()
+    .mockImplementation((dbPath: string) =>
+      dbPath === ':memory:' ? new RealDatabase(dbPath) : mockDb,
+    );
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
 describe('DEFAULT_DB_PATH', () => {
   it('points inside the home directory', () => {
     expect(DEFAULT_DB_PATH).toContain(os.homedir());
@@ -18,9 +40,7 @@ describe('openDb', () => {
     const columns = db.prepare('PRAGMA table_info(events)').all() as {
       name: string;
     }[];
-    const names = columns.map((c) => c.name);
-
-    expect(names).toEqual([
+    expect(columns.map((c) => c.name)).toEqual([
       'event_id',
       'session_id',
       'tool_name',
@@ -37,19 +57,17 @@ describe('openDb', () => {
     db.close();
   });
 
-  it('is idempotent — calling openDb twice on the same DB does not throw', () => {
-    const tmpPath = path.join(
-      os.tmpdir(),
-      `tool-usage-idempotent-${Date.now()}.db`,
-    );
-    const db1 = openDb(tmpPath);
-    db1.close();
+  it('creates the idx_events_session_id index on session_id', () => {
+    const db = openDb(':memory:');
 
-    // A second open should apply CREATE TABLE IF NOT EXISTS without error
-    const db2 = openDb(tmpPath);
-    db2.close();
+    const indexes = db
+      .prepare(
+        `SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'events'`,
+      )
+      .all() as { name: string }[];
+    expect(indexes.map((i) => i.name)).toContain('idx_events_session_id');
 
-    fs.unlinkSync(tmpPath);
+    db.close();
   });
 
   it('enforces the event_type CHECK constraint', () => {
@@ -58,8 +76,7 @@ describe('openDb', () => {
     expect(() => {
       db
         .prepare(
-          `INSERT INTO events
-            (event_id, tool_name, tool_type, event_type, created_at)
+          `INSERT INTO events (event_id, tool_name, tool_type, event_type, created_at)
            VALUES (?, ?, ?, ?, ?)`,
         )
         .run('id-1', 'my-tool', 'skill', 'invalid', new Date().toISOString());
@@ -68,7 +85,7 @@ describe('openDb', () => {
     db.close();
   });
 
-  it('accepts valid event rows', () => {
+  it('accepts valid event rows including session_id', () => {
     const db = openDb(':memory:');
 
     const event = {
@@ -95,7 +112,6 @@ describe('openDb', () => {
     const row = db
       .prepare('SELECT * FROM events WHERE event_id = ?')
       .get('abc-123') as typeof event;
-
     expect(row).toMatchObject(event);
 
     db.close();
@@ -116,20 +132,49 @@ describe('openDb', () => {
     db.close();
   });
 
-  it('creates the db directory when it does not exist', () => {
-    const tmpDir = path.join(
-      os.tmpdir(),
-      `tool-usage-newdir-${Date.now()}`,
-      'nested',
-    );
-    const tmpDb = path.join(tmpDir, 'events.db');
+  // ── Filesystem / behavior tests — mockDb via file paths ───────────────────
 
-    expect(fs.existsSync(tmpDir)).toBe(false);
+  it('enables WAL mode for file-based DBs', () => {
+    const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValueOnce(true);
 
-    const db = openDb(tmpDb);
-    expect(fs.existsSync(tmpDb)).toBe(true);
-    db.close();
+    openDb('/some/path/events.db');
 
-    fs.rmSync(path.dirname(tmpDir), { recursive: true });
+    expect(mockDb.pragma).toHaveBeenCalledWith('journal_mode = WAL');
+
+    existsSpy.mockRestore();
   });
+
+  it('closes the handle and re-throws when schema setup fails', () => {
+    const execError = new Error('exec failed');
+    mockDb.exec.mockImplementationOnce(() => {
+      throw execError;
+    });
+    const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValueOnce(true);
+
+    expect(() => openDb('/some/path/events.db')).toThrow(execError);
+    expect(mockDb.close).toHaveBeenCalledTimes(1);
+
+    existsSpy.mockRestore();
+  });
+
+  it('creates the db directory when it does not exist', () => {
+    const dbPath = '/nonexistent/dir/events.db';
+    const dbDir = path.dirname(dbPath);
+
+    const existsSpy = jest
+      .spyOn(fs, 'existsSync')
+      .mockReturnValueOnce(false);
+    const mkdirSpy = jest
+      .spyOn(fs, 'mkdirSync')
+      .mockImplementationOnce(() => undefined);
+
+    openDb(dbPath);
+
+    expect(existsSpy).toHaveBeenCalledWith(dbDir);
+    expect(mkdirSpy).toHaveBeenCalledWith(dbDir, { recursive: true });
+
+    existsSpy.mockRestore();
+    mkdirSpy.mockRestore();
+  });
+
 });

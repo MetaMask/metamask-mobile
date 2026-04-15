@@ -25,25 +25,31 @@ export function openDb(dbPath = DEFAULT_DB_PATH): Database.Database {
 
   const db = new Database(dbPath);
 
-  if (!isMemory) {
-    db.pragma('journal_mode = WAL');
-  }
+  try {
+    if (!isMemory) {
+      db.pragma('journal_mode = WAL');
+    }
 
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS events (
-      event_id     TEXT PRIMARY KEY,
-      session_id   TEXT,
-      tool_name    TEXT NOT NULL,
-      tool_type    TEXT NOT NULL,
-      event_type   TEXT NOT NULL CHECK(event_type IN ('start', 'end')),
-      repo         TEXT,
-      agent_vendor TEXT,
-      success      INTEGER,
-      duration_ms  INTEGER,
-      metadata     TEXT,
-      created_at   TEXT NOT NULL
-    )
-  `);
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS events (
+        event_id     TEXT PRIMARY KEY,
+        session_id   TEXT,
+        tool_name    TEXT NOT NULL,
+        tool_type    TEXT NOT NULL,
+        event_type   TEXT NOT NULL CHECK(event_type IN ('start', 'end')),
+        repo         TEXT,
+        agent_vendor TEXT,
+        success      INTEGER,
+        duration_ms  INTEGER,
+        metadata     TEXT,
+        created_at   TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_events_session_id ON events (session_id);
+    `);
+  } catch (err) {
+    db.close();
+    throw err;
+  }
 
   return db;
 }
