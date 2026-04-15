@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -31,22 +31,14 @@ const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 /** Placeholder until Money home actions are implemented */
 const noopHandler = () => undefined;
 
+// TODO: Add loading states and skeletons.
+// TODO: Figure out why this component is re-rendering so much. Could it be because useMoneyAccountBalance is calling multiple queries on mount?
 const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
 
-  const {
-    musdBalanceResult,
-    musdShfvdBalanceResult,
-    exchangeRateResult,
-    vaultApyResult,
-    musdEquivalentBalanceResult,
-    musdFiatFormatted,
-    musdSHFvdFiatFormatted,
-    totalFiatFormatted,
-    tokenTotal,
-  } = useMoneyAccountBalance();
+  const { totalFiatFormatted, vaultApyResult } = useMoneyAccountBalance();
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
@@ -98,8 +90,10 @@ const MoneyHomeView = () => {
         showsVerticalScrollIndicator={false}
       >
         <MoneyBalanceSummary
-          apy={String(MUSD_CONVERSION_APY)}
+          apy={String(vaultApyResult.data?.apy ?? '-')}
+          balanceFormatted={totalFiatFormatted ?? '-'}
           onApyInfoPress={handleApyInfoPress}
+          isLoading={vaultApyResult.isLoading || vaultApyResult.isFetching}
         />
         <MoneyActionButtonRow
           onAddPress={handleAddPress}

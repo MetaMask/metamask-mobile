@@ -15,6 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
+import Skeleton from '../../../../../component-library/components-temp/Skeleton/Skeleton';
 
 const DEFAULT_BALANCE = '$0.00';
 

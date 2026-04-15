@@ -3,9 +3,7 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import { EVM_SCOPE } from '../../Earn/constants/networks';
 import { useMemo } from 'react';
 import {
-  MoneyAccountBalanceService,
   type MusdEquivalentValueResponse,
-  type ExchangeRateResponse,
   NormalizedVaultApyResponse,
 } from '@metamask/money-account-balance-service';
 import { useQueries, type UseQueryResult } from '@tanstack/react-query';
@@ -21,6 +19,7 @@ import {
 } from '../../Earn/constants/musd';
 import { fromTokenMinimalUnitString } from '../../../../util/number';
 import { toChecksumAddress } from '../../../../util/address';
+import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 
 // Placeholder hook to unblock work needing balances.
 const useMoneyAccountBalance = () => {
@@ -34,58 +33,32 @@ const useMoneyAccountBalance = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const formatFiat = useFiatFormatter();
 
-  // Query Key Factory.
-  const queryKeys = useMemo(
-    () => ({
-      GET_MUSD_BALANCE: [
-        `${MoneyAccountBalanceService.name}:getMusdBalance`,
-        selectedEvmAddress,
+  const [musdBalanceResult, vaultApyResult, musdEquivalentBalanceResult] =
+    useQueries({
+      queries: [
+        {
+          queryKey: [
+            MoneyAccountBalanceServiceQueryKeys.GET_MUSD_BALANCE,
+            selectedEvmAddress,
+          ],
+          enabled: Boolean(selectedEvmAddress),
+        },
+        {
+          queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_VAULT_APY],
+        },
+        {
+          queryKey: [
+            MoneyAccountBalanceServiceQueryKeys.GET_MUSD_EQUIVALENT_VALUE,
+            selectedEvmAddress,
+          ],
+          enabled: Boolean(selectedEvmAddress),
+        },
       ],
-      GET_MUSDSHFVD_BALANCE: [
-        `${MoneyAccountBalanceService.name}:getMusdSHFvdBalance`,
-        selectedEvmAddress,
-      ],
-      GET_EXCHANGE_RATE: [`${MoneyAccountBalanceService.name}:getExchangeRate`],
-      GET_VAULT_APY: [`${MoneyAccountBalanceService.name}:getVaultApy`],
-      GET_MUSD_EQUIVALENT_VALUE: [
-        `${MoneyAccountBalanceService.name}:getMusdEquivalentValue`,
-        selectedEvmAddress,
-      ],
-    }),
-    [selectedEvmAddress],
-  );
-
-  const [
-    musdBalanceResult,
-    musdShfvdBalanceResult,
-    exchangeRateResult,
-    vaultApyResult,
-    musdEquivalentBalanceResult,
-  ] = useQueries({
-    queries: [
-      {
-        queryKey: queryKeys.GET_MUSD_BALANCE,
-        enabled: Boolean(selectedEvmAddress),
-      },
-      {
-        queryKey: queryKeys.GET_MUSDSHFVD_BALANCE,
-        enabled: Boolean(selectedEvmAddress),
-      },
-      { queryKey: queryKeys.GET_EXCHANGE_RATE },
-      //   TEMP: Schema validation is failing in core. Keep commented out until new @metamask/money-account-controller preview release is available.
-      { queryKey: queryKeys.GET_VAULT_APY },
-      {
-        queryKey: queryKeys.GET_MUSD_EQUIVALENT_VALUE,
-        enabled: Boolean(selectedEvmAddress),
-      },
-    ],
-  }) as [
-    UseQueryResult<{ balance: string }>,
-    UseQueryResult<{ balance: string }>,
-    UseQueryResult<ExchangeRateResponse>,
-    UseQueryResult<NormalizedVaultApyResponse>,
-    UseQueryResult<MusdEquivalentValueResponse>,
-  ];
+    }) as [
+      UseQueryResult<{ balance: string }>,
+      UseQueryResult<NormalizedVaultApyResponse>,
+      UseQueryResult<MusdEquivalentValueResponse>,
+    ];
 
   // TODO: Review this logic.
   // Compute the per-mUSD fiat rate from Mainnet market data.
@@ -135,41 +108,59 @@ const useMoneyAccountBalance = () => {
         )
       : new BigNumber(0);
 
-    const computedMusdFiat = musdFiatRate
-      ? musdDecimal.times(musdFiatRate)
-      : undefined;
+    const isBalanceLoading =
+      musdBalanceResult.isLoading || musdEquivalentBalanceResult.isLoading;
 
-    const computedMusdSHFvdFiat = musdFiatRate
-      ? musdSHFvdDecimal.times(musdFiatRate)
-      : undefined;
+    if (!musdFiatRate) {
+      return {
+        musdFiat: undefined,
+        musdSHFvdFiat: undefined,
+        // Undefined during loading so callers can distinguish "loading" from a genuine zero balance.
+        tokenTotal: isBalanceLoading
+          ? undefined
+          : musdDecimal.plus(musdSHFvdDecimal),
+        totalFiat: undefined,
+      };
+    }
+
+    const computedMusdFiat = musdDecimal.times(musdFiatRate);
+    const computedMusdSHFvdFiat = musdSHFvdDecimal.times(musdFiatRate);
 
     return {
       musdFiat: computedMusdFiat,
       musdSHFvdFiat: computedMusdSHFvdFiat,
-      tokenTotal: musdDecimal.plus(musdSHFvdDecimal),
-      totalFiat:
-        computedMusdFiat && computedMusdSHFvdFiat
-          ? computedMusdFiat.plus(computedMusdSHFvdFiat)
-          : undefined,
+      // Undefined during loading so callers can distinguish "loading" from a genuine zero balance.
+      tokenTotal: isBalanceLoading
+        ? undefined
+        : musdDecimal.plus(musdSHFvdDecimal),
+      // Both fiat values share musdFiatRate as their sole dependency — computing
+      // them inside this guard means no null assertions are needed.
+      totalFiat: computedMusdFiat.plus(computedMusdSHFvdFiat),
     };
-  }, [musdBalanceResult.data, musdEquivalentBalanceResult.data, musdFiatRate]);
+  }, [
+    musdBalanceResult.isLoading,
+    musdBalanceResult.data,
+    musdEquivalentBalanceResult.isLoading,
+    musdEquivalentBalanceResult.data,
+    musdFiatRate,
+  ]);
 
   const musdFiatFormatted = musdFiat ? formatFiat(musdFiat) : undefined;
   const musdSHFvdFiatFormatted = musdSHFvdFiat
     ? formatFiat(musdSHFvdFiat)
     : undefined;
   const totalFiatFormatted = totalFiat ? formatFiat(totalFiat) : undefined;
+  const totalFiatRaw = totalFiat ? totalFiat.toString() : undefined;
 
   return {
     musdBalanceResult,
-    musdShfvdBalanceResult,
-    exchangeRateResult,
     vaultApyResult,
     musdEquivalentBalanceResult,
     musdFiatFormatted,
     musdSHFvdFiatFormatted,
     tokenTotal,
     totalFiatFormatted,
+    totalFiatRaw,
   };
 };
 
