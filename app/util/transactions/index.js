@@ -1795,8 +1795,8 @@ export function calcTokenAmount(value, decimals) {
 }
 
 export function calcTokenValue(value, decimals) {
-  const multiplier = Math.pow(10, Number(decimals || 0));
-  return new BigNumber(String(value)).times(multiplier);
+  const multiplier = new ScopedBigNumber(10).pow(decimals ?? 0);
+  return new ScopedBigNumber(String(value)).times(multiplier);
 }
 
 /**
