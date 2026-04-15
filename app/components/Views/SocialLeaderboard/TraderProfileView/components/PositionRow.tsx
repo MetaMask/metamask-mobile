@@ -47,7 +47,9 @@ function formatPercent(value: number | null | undefined): string {
 }
 
 function formatClosedDate(timestamp: number): string {
-  return DateTime.fromSeconds(timestamp).toFormat('M/d/yy, h:mm a');
+  const dt = DateTime.fromSeconds(timestamp);
+  const time = dt.toFormat('h:mma').toLowerCase();
+  return `${dt.toFormat('MMMM d')} at ${time}`;
 }
 
 const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
