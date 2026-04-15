@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   Keyboard,
+  Pressable,
   ScrollView,
   TextInput,
   TouchableOpacity,
@@ -583,13 +584,18 @@ const PerpsTPSLView: React.FC = () => {
 
             {/* Input row */}
             <View style={styles.inputRow}>
-              {/* Price Input */}
-              <View
+              {/* Price Input — Pressable wrapper so Detox can tap the
+                 visible container (solid background) instead of the
+                 transparent TextInput, which fails native-stack's
+                 pixel visibility check. */}
+              <Pressable
                 style={[
                   styles.inputContainer,
                   !isValid && takeProfitError && styles.inputError,
                 ]}
                 testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT}
+                onPress={() => takeProfitPriceRef.current?.focus()}
+                accessible={false}
               >
                 <Text
                   variant={TextVariant.BodyMD}
@@ -620,7 +626,7 @@ const PerpsTPSLView: React.FC = () => {
                   selectionColor={colors.primary.default}
                   cursorColor={colors.primary.default}
                 />
-              </View>
+              </Pressable>
 
               {/* RoE Percentage Input */}
               <View
@@ -754,13 +760,15 @@ const PerpsTPSLView: React.FC = () => {
 
             {/* Input row */}
             <View style={styles.inputRow}>
-              {/* Price Input */}
-              <View
+              {/* Price Input — same Pressable pattern as Take Profit */}
+              <Pressable
                 style={[
                   styles.inputContainer,
                   !isValid && stopLossError && styles.inputError,
                 ]}
                 testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT}
+                onPress={() => stopLossPriceRef.current?.focus()}
+                accessible={false}
               >
                 <Text
                   variant={TextVariant.BodyMD}
@@ -791,7 +799,7 @@ const PerpsTPSLView: React.FC = () => {
                   selectionColor={colors.primary.default}
                   cursorColor={colors.primary.default}
                 />
-              </View>
+              </Pressable>
 
               {/* Percentage Input */}
               <View
