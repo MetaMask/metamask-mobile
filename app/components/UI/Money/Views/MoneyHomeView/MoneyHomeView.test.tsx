@@ -40,6 +40,7 @@ const mockConversionTokens = [
     chainId: '0x1',
     decimals: 6,
     balanceInSelectedCurrency: '$5,000.00',
+    fiat: { balance: 5000 },
   },
 ];
 
@@ -91,8 +92,14 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 describe('MoneyHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Activity list renders when there are at least 10 transactions; pad the
+    // mock set so the activity-related assertions below find the View all button.
+    const paddedTransactions = Array.from({ length: 10 }, (_, index) => ({
+      ...MOCK_MONEY_TRANSACTIONS[index % MOCK_MONEY_TRANSACTIONS.length],
+      id: `padded-${index}`,
+    }));
     mockUseMoneyAccountTransactions.mockReturnValue({
-      allTransactions: MOCK_MONEY_TRANSACTIONS,
+      allTransactions: paddedTransactions,
       deposits: [],
       transfers: [],
       submittedTransactions: [],

@@ -52,13 +52,12 @@ const MoneyHomeView = () => {
   const handleMusdRowPress = noopHandler;
   const handleHeaderPress = noopHandler;
 
-  const handleTokenAddPress = noopHandler;
+  const handleTokenConvertPress = noopHandler;
 
-  const handleSeeEarningsPress = noopHandler;
+  const handleEarnCryptoPress = noopHandler;
   const handleLearnMorePress = noopHandler;
   const handleAddMoneyPress = noopHandler;
   const handleHowItWorksHeaderPress = noopHandler;
-  const handlePotentialEarningsHeaderPress = noopHandler;
   const handleWhyMetaMaskMoneyHeaderPress = noopHandler;
 
   const handleViewAllActivityPress = useCallback(() => {
@@ -108,9 +107,9 @@ const MoneyHomeView = () => {
           <>
             <MoneyPotentialEarnings
               tokens={conversionTokens}
-              onTokenAddPress={handleTokenAddPress}
-              onSeeEarningsPress={handleSeeEarningsPress}
-              onHeaderPress={handlePotentialEarningsHeaderPress}
+              onTokenPress={handleTokenConvertPress}
+              onViewAllPress={handleEarnCryptoPress}
+              onHeaderPress={handleEarnCryptoPress}
             />
             <Divider />
           </>
@@ -120,7 +119,7 @@ const MoneyHomeView = () => {
           onHeaderPress={handleHeaderPress}
         />
         <Divider />
-        {allTransactions.length > 0 && (
+        {allTransactions.length >= 10 && (
           <>
             <MoneyActivityList
               transactions={allTransactions}

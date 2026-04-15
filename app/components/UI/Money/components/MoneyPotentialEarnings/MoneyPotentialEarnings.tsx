@@ -1,4 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
+import { Pressable, StyleSheet } from 'react-native';
+import MaskedView from '@react-native-masked-view/masked-view';
+import LinearGradient from 'react-native-linear-gradient';
+import { brandColor } from '@metamask/design-tokens';
 import {
   Box,
   BoxAlignItems,
@@ -25,139 +29,220 @@ import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 
+/** 4% APY sustained for 5 years = 20% projected gain on current balance. */
+const PROJECTED_MULTIPLIER = 0.04 * 5;
+const MAX_TOKENS = 5;
+const STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT', 'DAI']);
+const GRADIENT_COLORS = [brandColor.lime100, brandColor.lime200];
+const GRADIENT_START = { x: 0, y: 0 };
+const GRADIENT_END = { x: 1, y: 0 };
+
+const styles = StyleSheet.create({
+  gradientContainer: { flexDirection: 'row' },
+  gradient: { flex: 1 },
+  row: { width: '100%' },
+});
+
+const formatUsd = (value: number) =>
+  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+
+const tokenFiatValue = (token: AssetType) => token.fiat?.balance ?? 0;
+
+const sortTokens = (tokens: AssetType[]) => {
+  const withBalance = tokens.filter((t) => tokenFiatValue(t) > 0);
+  const stables = withBalance
+    .filter((t) => STABLECOIN_SYMBOLS.has(t.symbol))
+    .sort((a, b) => tokenFiatValue(b) - tokenFiatValue(a));
+  const others = withBalance
+    .filter((t) => !STABLECOIN_SYMBOLS.has(t.symbol))
+    .sort((a, b) => tokenFiatValue(b) - tokenFiatValue(a));
+  return [...stables, ...others];
+};
+
 interface MoneyPotentialEarningsProps {
   tokens: AssetType[];
-  onTokenAddPress?: (tokenName: string) => void;
-  onSeeEarningsPress?: () => void;
+  onTokenPress?: (token: AssetType) => void;
+  onViewAllPress?: () => void;
   onHeaderPress?: () => void;
 }
+
+const GradientAmountText = ({ value }: { value: string }) => {
+  const textProps = {
+    variant: TextVariant.HeadingMd,
+    fontWeight: FontWeight.Bold,
+    testID: MoneyPotentialEarningsTestIds.AMOUNT,
+  };
+  return (
+    <MaskedView
+      style={styles.gradientContainer}
+      maskElement={
+        <Text {...textProps} color={TextColor.TextDefault}>
+          {value}
+        </Text>
+      }
+    >
+      <LinearGradient
+        colors={GRADIENT_COLORS}
+        start={GRADIENT_START}
+        end={GRADIENT_END}
+        style={styles.gradient}
+      >
+        <Text {...textProps} twClassName="opacity-0">
+          {value}
+        </Text>
+      </LinearGradient>
+    </MaskedView>
+  );
+};
 
 const TokenRow = ({
   token,
   hasSubsidizedFee,
-  onAddPress,
+  onPress,
 }: {
   token: AssetType;
-  // Temp prop: We will track if tokens have subsidized fees in useMusdConversionTokens hook. This is here purely for display purposes.
   hasSubsidizedFee: boolean;
-  onAddPress: () => void;
+  onPress: () => void;
 }) => {
   const networkBadgeSource = useMemo(
     () => (token.chainId ? NetworkBadgeSource(token.chainId as Hex) : null),
     [token.chainId],
   );
+  const projected = formatUsd(tokenFiatValue(token) * PROJECTED_MULTIPLIER);
+  const balanceDisplay = token.balanceInSelectedCurrency;
+
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="px-4 py-3 gap-4"
-    >
-      <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          networkBadgeSource && (
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={networkBadgeSource}
-            />
-          )
-        }
+    <Pressable onPress={onPress} style={styles.row}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="px-4 py-3 gap-4"
       >
-        <AssetLogo asset={token} />
-      </BadgeWrapper>
-
-      <Box twClassName="flex-1">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+        <BadgeWrapper
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            networkBadgeSource && (
+              <Badge
+                variant={BadgeVariant.Network}
+                imageSource={networkBadgeSource}
+              />
+            )
+          }
         >
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {token.name}
-          </Text>
-          {hasSubsidizedFee && (
-            <Box twClassName="rounded bg-muted px-1.5">
-              <Text
-                variant={TextVariant.BodyXs}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {strings('money.potential_earnings.no_fee')}
-              </Text>
-            </Box>
-          )}
+          <AssetLogo asset={token} />
+        </BadgeWrapper>
+
+        <Box twClassName="flex-1">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+          >
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {token.symbol}
+            </Text>
+            {hasSubsidizedFee && (
+              <Box twClassName="rounded bg-muted px-1.5">
+                <Text
+                  variant={TextVariant.BodyXs}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('money.potential_earnings.no_fee')}
+                </Text>
+              </Box>
+            )}
+          </Box>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+          >
+            <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+              {balanceDisplay}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.SuccessDefault}
+            >
+              {`+${projected}`}
+            </Text>
+          </Box>
         </Box>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-        >
-          {token.balanceInSelectedCurrency}
-        </Text>
-      </Box>
 
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Md}
-        onPress={onAddPress}
-      >
-        {strings('money.potential_earnings.convert')}
-      </Button>
-    </Box>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
+          onPress={onPress}
+        >
+          {strings('money.potential_earnings.convert')}
+        </Button>
+      </Box>
+    </Pressable>
   );
 };
 
-// Should only render if the user has at least one eligible conversion token.
 const MoneyPotentialEarnings = ({
   tokens,
-  onTokenAddPress = () => undefined,
-  onSeeEarningsPress = () => undefined,
+  onTokenPress,
+  onViewAllPress,
   onHeaderPress,
 }: MoneyPotentialEarningsProps) => {
-  const handleTokenAdd = useCallback(
-    (tokenName: string) => () => onTokenAddPress(tokenName),
-    [onTokenAddPress],
+  const sortedTokens = useMemo(() => sortTokens(tokens ?? []), [tokens]);
+  const visibleTokens = useMemo(
+    () => sortedTokens.slice(0, MAX_TOKENS),
+    [sortedTokens],
   );
 
-  if (!tokens || tokens.length === 0) {
+  const projectedAmount = useMemo(
+    () =>
+      sortedTokens.reduce(
+        (sum, token) => sum + tokenFiatValue(token) * PROJECTED_MULTIPLIER,
+        0,
+      ),
+    [sortedTokens],
+  );
+
+  const handleTokenPress = useCallback(
+    (token: AssetType) => () => onTokenPress?.(token),
+    [onTokenPress],
+  );
+
+  if (!sortedTokens.length) {
     return null;
   }
 
   return (
     <Box testID={MoneyPotentialEarningsTestIds.CONTAINER}>
-      <Box twClassName="px-4 py-3">
+      <Box twClassName="px-4 py-3 gap-3">
         <MoneySectionHeader
           title={strings('money.potential_earnings.title')}
           onPress={onHeaderPress}
         />
 
-        <Text
-          variant={TextVariant.SectionHeading}
-          color={TextColor.SuccessDefault}
-          twClassName="mt-3"
-          testID={MoneyPotentialEarningsTestIds.AMOUNT}
-        >
-          {strings('money.potential_earnings.amount')}
-        </Text>
+        <GradientAmountText value={`+${formatUsd(projectedAmount)}`} />
 
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
           color={TextColor.TextAlternative}
-          twClassName="mt-2"
         >
           {strings('money.potential_earnings.description')}
         </Text>
       </Box>
 
-      {/* Show max of 5 tokens */}
-      {tokens.slice(0, 5).map((token) => (
+      {visibleTokens.map((token) => (
         <TokenRow
           key={`${token.address}-${token.chainId}`}
           token={token}
-          onAddPress={handleTokenAdd(token.name)}
-          // Temp: hardcoding true to show the "No fee" tag.
-          hasSubsidizedFee
+          hasSubsidizedFee={STABLECOIN_SYMBOLS.has(token.symbol)}
+          onPress={handleTokenPress(token)}
         />
       ))}
 
@@ -166,10 +251,10 @@ const MoneyPotentialEarnings = ({
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
           isFullWidth
-          onPress={onSeeEarningsPress}
-          testID={MoneyPotentialEarningsTestIds.SEE_EARNINGS_BUTTON}
+          onPress={onViewAllPress}
+          testID={MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON}
         >
-          {strings('money.potential_earnings.see_earnings')}
+          {strings('money.potential_earnings.view_all')}
         </Button>
       </Box>
     </Box>

@@ -6257,12 +6257,11 @@
       "add": "Add"
     },
     "potential_earnings": {
-      "title": "Potential earnings",
-      "amount": "+$26,800",
+      "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "convert": "Convert",
-      "no_fee": "No fee",
-      "see_earnings": "See potential earnings"
+      "no_fee": "No MetaMask fee",
+      "view_all": "View all"
     },
     "metamask_card": {
       "title": "MetaMask Card",
