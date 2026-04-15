@@ -43,7 +43,7 @@ export const ADD_SOLANA_ACCOUNT_PRIVACY_POLICY_URL = `https://support.metamask.i
 export const MULTICHAIN_ACCOUNTS_URL = `https://support.metamask.io/configure/accounts/multichain-accounts/${MOBILE_UTM}`;
 
 // Tokens & Swaps
-export const MUSD_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/tokens/musd${MOBILE_UTM}`;
+export const MUSD_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/tokens/musd/${MOBILE_UTM}`;
 export const MISSING_TOKENS_URL = `https://support.metamask.io/managing-my-tokens/custom-tokens/how-to-display-tokens-in-metamask/${MOBILE_UTM}`;
 export const SWAP_ISSUES_URL = `https://support.metamask.io/token-swaps/error-fetching-quote/${MOBILE_UTM}`;
 
