@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { Image, Linking, ScrollView } from 'react-native';
 import {
   Text,
@@ -57,11 +57,13 @@ const V2VerifyIdentity = () => {
     );
   }, [navigation, amount, currency, assetId]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.verify_identity.navbar_title') },
+        {
+          title: ` ${strings('deposit.verify_identity.navbar_title')} fix me`,
+        },
         theme,
         () => {
           trackEvent(
