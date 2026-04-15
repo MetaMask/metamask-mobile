@@ -145,7 +145,7 @@ test.describe(PerformanceOnboarding, () => {
         await dismisspredictionsModalPlaywright();
         await timer6.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.container),
+            asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
             {
               description: 'Wallet main screen should be visible',
             },

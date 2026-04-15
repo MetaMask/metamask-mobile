@@ -170,7 +170,6 @@ function TokenIcon({
       <RemoteImage
         key={icon || `symbol-${symbol}`}
         testID={testID}
-        fadeIn
         source={getSource()}
         onError={() => setShowFallback(true)}
         style={[

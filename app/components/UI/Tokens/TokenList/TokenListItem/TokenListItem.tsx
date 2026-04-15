@@ -1,13 +1,7 @@
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import {
-  Platform,
-  Pressable,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useSelector } from 'react-redux';
 import Badge, {
@@ -562,8 +556,7 @@ export const TokenListItem = React.memo(
     }
 
     return (
-      <Pressable
-        accessible={Platform.OS === 'ios' ? true : undefined}
+      <TouchableOpacity
         {...generateTestId(Platform, getAssetTestId(asset.symbol))}
         onPress={() => {
           onItemPress?.(asset);
@@ -575,6 +568,7 @@ export const TokenListItem = React.memo(
               : showRemoveMenu;
           onLongPress?.(asset);
         }}
+        activeOpacity={0.7}
         style={styles.itemWrapper}
       >
         {/* Column: 1 - Token logo */}
@@ -729,7 +723,7 @@ export const TokenListItem = React.memo(
             </SensitiveText>
           </Box>
         </Box>
-      </Pressable>
+      </TouchableOpacity>
     );
   },
 );
