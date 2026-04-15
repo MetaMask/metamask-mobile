@@ -35,6 +35,7 @@ import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
 import {
   getHostname,
+  getCompatibleTronCaipChainIdsForWalletConnect,
   normalizeCaipChainIdOutbound,
   getScopedPermissions,
   hideWCLoadingState,
@@ -43,10 +44,9 @@ import {
   isValidUrl,
 } from './wc-utils';
 import {
-  getCompatibleTronCaipChainIdsForWalletConnect,
   getChainChangedEmissionForWalletConnect,
   shouldEmitChainChangedForWalletConnect,
-} from './WalletConnectMultiChainConnector';
+} from './multichain-connectors';
 
 import {
   Caip25CaveatType,
