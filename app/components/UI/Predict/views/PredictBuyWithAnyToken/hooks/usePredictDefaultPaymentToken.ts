@@ -1,20 +1,27 @@
-import { useEffect, useRef } from 'react';
-import { BigNumber } from 'bignumber.js';
+import { useEffect, useMemo, useRef } from 'react';
+import { Hex } from 'viem';
+import { useSelector } from 'react-redux';
 import { usePredictBalance } from '../../../hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
-import { useAccountTokens } from '../../../../../Views/confirmations/hooks/send/useAccountTokens';
-import { TokenStandard } from '../../../../../Views/confirmations/types/token';
-import { MINIMUM_BET } from '../../../constants/transactions';
+import { useTransactionPayAvailableTokens } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayAvailableTokens';
+import { useTransactionMetadataRequest } from '../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import { getBestToken } from '../../../../../Views/confirmations/utils/getBestToken';
+import {
+  selectMetaMaskPayTokensFlags,
+  getPreferredTokensForTransactionType,
+} from '../../../../../../selectors/featureFlagController/confirmations';
+import { isHardwareAccount } from '../../../../../../util/address';
+import { MINIMUM_PREDICT_BALANCE_FOR_BET } from '../../../constants/transactions';
 import { ActiveOrderState } from '../../../types';
-import { isTestNet } from '../../../../../../util/networks';
+import { TransactionType } from '@metamask/transaction-controller';
 
 /**
  * Initializes the payment token selection on the buy screen. Waits for
  * the active order to reach PREVIEW state (after initPayWithAnyToken),
- * then either resets to Predict balance or auto-selects the token with
- * the highest fiat balance when Predict balance is below MINIMUM_BET.
- * Runs once per mount.
+ * then either resets to Predict balance or auto-selects the best token
+ * using the shared getBestToken ranking logic when Predict balance is
+ * below MINIMUM_PREDICT_BALANCE_FOR_BET. Runs once per mount.
  */
 export function usePredictDefaultPaymentToken() {
   const { data: predictBalance, isLoading: isBalanceLoading } =
@@ -22,8 +29,30 @@ export function usePredictDefaultPaymentToken() {
   const { onPaymentTokenChange, resetSelectedPaymentToken } =
     usePredictPaymentToken();
   const { activeOrder } = usePredictActiveOrder();
-  const tokens = useAccountTokens();
+  const { availableTokens } = useTransactionPayAvailableTokens();
+  const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
+  const transactionMeta = useTransactionMetadataRequest();
+  const from = transactionMeta?.txParams?.from as string | undefined;
   const hasInitializedRef = useRef(false);
+
+  const isHardwareWallet = useMemo(
+    () => isHardwareAccount(from ?? '') ?? false,
+    [from],
+  );
+
+  const preferredTokensFromFlags = useMemo(
+    () =>
+      getPreferredTokensForTransactionType(
+        payTokensFlags.preferredTokens,
+        TransactionType.predictDeposit,
+      ),
+    [payTokensFlags.preferredTokens],
+  );
+
+  const tokens = useMemo(
+    () => availableTokens.filter((t) => !t.disabled),
+    [availableTokens],
+  );
 
   useEffect(() => {
     if (hasInitializedRef.current) return;
@@ -32,25 +61,40 @@ export function usePredictDefaultPaymentToken() {
 
     hasInitializedRef.current = true;
 
-    const balance = predictBalance ?? 0;
-    if (balance >= MINIMUM_BET) {
+    if (isHardwareWallet) {
       resetSelectedPaymentToken();
       return;
     }
 
-    const bestToken = tokens.find(
-      (token) =>
-        token.accountType?.includes('eip155') &&
-        token.standard === TokenStandard.ERC20 &&
-        token.address &&
-        token.chainId &&
-        !isTestNet(token.chainId) &&
-        token.fiat?.balance != null &&
-        new BigNumber(token.fiat.balance).isGreaterThan(0),
-    );
+    const balance = predictBalance ?? 0;
+    if (balance >= MINIMUM_PREDICT_BALANCE_FOR_BET) {
+      resetSelectedPaymentToken();
+      return;
+    }
+
+    const bestToken = getBestToken({
+      isHardwareWallet,
+      isWithdraw: false,
+      lastWithdrawToken: undefined,
+      preferredToken: undefined,
+      preferredTokensFromFlags,
+      minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
+      targetToken: undefined,
+      tokens,
+    });
 
     if (bestToken) {
-      onPaymentTokenChange(bestToken);
+      const matchingAsset = tokens.find(
+        (t) =>
+          t.address?.toLowerCase() === bestToken.address.toLowerCase() &&
+          (t.chainId as Hex)?.toLowerCase() === bestToken.chainId.toLowerCase(),
+      );
+
+      if (matchingAsset) {
+        onPaymentTokenChange(matchingAsset);
+      } else {
+        resetSelectedPaymentToken();
+      }
     } else {
       resetSelectedPaymentToken();
     }
@@ -61,5 +105,8 @@ export function usePredictDefaultPaymentToken() {
     onPaymentTokenChange,
     resetSelectedPaymentToken,
     activeOrder?.state,
+    isHardwareWallet,
+    preferredTokensFromFlags,
+    payTokensFlags.minimumRequiredTokenBalance,
   ]);
 }

@@ -1,9 +1,6 @@
 import { merge } from 'lodash';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import {
-  useAutomaticTransactionPayToken,
-  SetPayTokenRequest,
-} from './useAutomaticTransactionPayToken';
+import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import {
   simpleSendTransactionControllerMock,
@@ -23,8 +20,12 @@ import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTo
 import { AssetType } from '../../types/token';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
+import { getBestToken } from '../../utils/getBestToken';
 
+jest.mock('../../utils/getBestToken', () => ({
+  ...jest.requireActual('../../utils/getBestToken'),
+  getBestToken: jest.fn(),
+}));
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('./useTransactionPayToken');
 jest.mock('../../../../../util/address');
@@ -47,13 +48,12 @@ jest.mock(
 );
 
 const TOKEN_ADDRESS_1_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
-const TOKEN_ADDRESS_2_MOCK = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
-const TOKEN_ADDRESS_3_MOCK = '0xabc1234567890abcdef1234567890abcdef12345678';
-const PREFERRED_TOKEN_ADDRESS_MOCK =
-  '0x9999999999999999999999999999999999999999';
 const CHAIN_ID_1_MOCK = '0x1';
-const CHAIN_ID_2_MOCK = '0x2';
-const PREFERRED_CHAIN_ID_MOCK = '0x3';
+
+const BEST_TOKEN_MOCK = {
+  address: '0xBe57000000000000000000000000000000000000' as Hex,
+  chainId: '0x42' as Hex,
+};
 
 const STATE_MOCK = merge(
   {},
@@ -74,15 +74,9 @@ const STATE_MOCK = merge(
   },
 );
 
-function runHook({
-  disable = false,
-  preferredToken,
-}: {
-  disable?: boolean;
-  preferredToken?: SetPayTokenRequest;
-} = {}) {
+function runHook({ disable = false }: { disable?: boolean } = {}) {
   return renderHookWithProvider(
-    () => useAutomaticTransactionPayToken({ disable, preferredToken }),
+    () => useAutomaticTransactionPayToken({ disable }),
     {
       state: STATE_MOCK,
     },
@@ -105,6 +99,7 @@ describe('useAutomaticTransactionPayToken', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const getBestTokenMock = jest.mocked(getBestToken);
 
   const setPayTokenMock: jest.MockedFn<
     ReturnType<typeof useTransactionPayToken>['setPayToken']
@@ -112,6 +107,8 @@ describe('useAutomaticTransactionPayToken', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    getBestTokenMock.mockReturnValue(BEST_TOKEN_MOCK);
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
@@ -145,91 +142,7 @@ describe('useAutomaticTransactionPayToken', () => {
       type: TransactionType.perpsDeposit,
       txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
     } as never);
-  });
 
-  it('selects first token', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_3_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-
-    runHook();
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
-    });
-  });
-
-  it('selects target token if no tokens with balance', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [] as AssetType[],
-      hasTokens: false,
-    });
-
-    runHook();
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
-    });
-  });
-
-  it('does nothing if no required tokens', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [],
-      hasTokens: false,
-    });
-    useTransactionPayRequiredTokensMock.mockReturnValue([]);
-
-    runHook();
-
-    expect(setPayTokenMock).not.toHaveBeenCalled();
-  });
-
-  it('selects target token if hardware wallet', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_3_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-
-    isHardwareAccountMock.mockReturnValue(true);
-
-    runHook();
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
-    });
-  });
-
-  it('selected nothing if disabled', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
         {
@@ -239,523 +152,22 @@ describe('useAutomaticTransactionPayToken', () => {
       ] as AssetType[],
       hasTokens: true,
     });
+  });
 
+  it('calls getBestToken and passes result to setPayToken', () => {
+    runHook();
+
+    expect(getBestTokenMock).toHaveBeenCalledTimes(1);
+    expect(setPayTokenMock).toHaveBeenCalledWith(BEST_TOKEN_MOCK);
+  });
+
+  it('does nothing if disabled', () => {
     runHook({ disable: true });
 
     expect(setPayTokenMock).not.toHaveBeenCalled();
   });
 
-  it('selects preferred payment token when provided with available tokens', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-        {
-          address: PREFERRED_TOKEN_ADDRESS_MOCK,
-          chainId: PREFERRED_CHAIN_ID_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-
-    runHook({
-      preferredToken: {
-        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
-        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
-      },
-    });
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: PREFERRED_TOKEN_ADDRESS_MOCK,
-      chainId: PREFERRED_CHAIN_ID_MOCK,
-    });
-  });
-
-  it('ignores preferred payment token when using hardware wallet', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_3_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-
-    isHardwareAccountMock.mockReturnValue(true);
-
-    runHook({
-      preferredToken: {
-        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
-        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
-      },
-    });
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
-    });
-  });
-
-  it('selects target token when preferred payment token provided but no tokens available', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [] as AssetType[],
-      hasTokens: false,
-    });
-
-    runHook({
-      preferredToken: {
-        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
-        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
-      },
-    });
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
-    });
-  });
-
-  it('selects first available token when preferred token not in available tokens', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-
-    runHook({
-      preferredToken: {
-        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
-        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
-      },
-    });
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
-    });
-  });
-
-  it('selects preferred token from feature flags sorted by highest success rate', () => {
-    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
-      preferredTokens: {
-        default: [],
-        overrides: {
-          perpsDeposit: [
-            {
-              address: TOKEN_ADDRESS_2_MOCK,
-              chainId: CHAIN_ID_2_MOCK,
-              successRate: 0.7,
-            },
-            {
-              address: TOKEN_ADDRESS_1_MOCK,
-              chainId: CHAIN_ID_1_MOCK,
-              successRate: 0.95,
-            },
-          ],
-        },
-      },
-      minimumRequiredTokenBalance: 5,
-      blockedTokens: {
-        default: {
-          chainIds: [],
-          tokens: [],
-        },
-        overrides: {},
-      },
-    } as MetaMaskPayTokensFlags);
-
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-          fiat: { balance: 10 },
-        },
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-          fiat: { balance: 20 },
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-
-    runHook();
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
-    });
-  });
-
-  it('skips preferred token from flags if balance is below minimum', () => {
-    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
-      preferredTokens: {
-        default: [],
-        overrides: {
-          perpsDeposit: [
-            {
-              address: TOKEN_ADDRESS_1_MOCK,
-              chainId: CHAIN_ID_1_MOCK,
-              successRate: 0.95,
-            },
-            {
-              address: TOKEN_ADDRESS_2_MOCK,
-              chainId: CHAIN_ID_2_MOCK,
-              successRate: 0.7,
-            },
-          ],
-        },
-      },
-      minimumRequiredTokenBalance: 15,
-      blockedTokens: {
-        default: {
-          chainIds: [],
-          tokens: [],
-        },
-        overrides: {},
-      },
-    } as MetaMaskPayTokensFlags);
-
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-          fiat: { balance: 10 },
-        },
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-          fiat: { balance: 20 },
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-
-    runHook();
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
-    });
-  });
-
-  it('falls back to first available token when no preferred tokens meet minimum balance', () => {
-    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
-      preferredTokens: {
-        default: [],
-        overrides: {
-          perpsDeposit: [
-            {
-              address: TOKEN_ADDRESS_1_MOCK,
-              chainId: CHAIN_ID_1_MOCK,
-              successRate: 0.95,
-            },
-          ],
-        },
-      },
-      minimumRequiredTokenBalance: 100,
-      blockedTokens: {
-        default: {
-          chainIds: [],
-          tokens: [],
-        },
-        overrides: {},
-      },
-    } as MetaMaskPayTokensFlags);
-
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-          fiat: { balance: 5 },
-        },
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-          fiat: { balance: 50 },
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-
-    runHook();
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
-    });
-  });
-
-  it('uses override tokens for predict deposit transactions', () => {
-    const predictStateMock = merge(
-      {},
-      simpleSendTransactionControllerMock,
-      transactionApprovalControllerMock,
-      {
-        engine: {
-          backgroundState: {
-            TransactionController: {
-              transactions: [
-                {
-                  type: TransactionType.predictDeposit,
-                },
-              ],
-            },
-          },
-        },
-      },
-    );
-
-    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
-      preferredTokens: {
-        default: [],
-        overrides: {
-          predictDeposit: [
-            {
-              address: TOKEN_ADDRESS_2_MOCK,
-              chainId: CHAIN_ID_2_MOCK,
-              successRate: 0.9,
-            },
-          ],
-          perpsDeposit: [
-            {
-              address: TOKEN_ADDRESS_3_MOCK,
-              chainId: CHAIN_ID_2_MOCK,
-              successRate: 0.8,
-            },
-          ],
-        },
-      },
-      minimumRequiredTokenBalance: 0,
-      blockedTokens: {
-        default: {
-          chainIds: [],
-          tokens: [],
-        },
-        overrides: {},
-      },
-    } as MetaMaskPayTokensFlags);
-
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-          fiat: { balance: 10 },
-        },
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-          fiat: { balance: 10 },
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-
-    useTransactionMetadataRequestMock.mockReturnValue({
-      id: transactionIdMock,
-      type: TransactionType.predictDeposit,
-      txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
-    } as never);
-
-    renderHookWithProvider(() => useAutomaticTransactionPayToken(), {
-      state: predictStateMock,
-    });
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
-    });
-  });
-
-  it('selects last used token for predict withdraw from nested transaction history', () => {
-    const predictWithdrawStateMock = merge(
-      {},
-      simpleSendTransactionControllerMock,
-      transactionApprovalControllerMock,
-      {
-        engine: {
-          backgroundState: {
-            TransactionController: {
-              transactions: [
-                {
-                  id: transactionIdMock,
-                  nestedTransactions: [
-                    { type: TransactionType.predictWithdraw },
-                  ],
-                  status: 'unapproved',
-                  time: 200,
-                  txParams: { from: '0x123' },
-                  type: TransactionType.batch,
-                },
-                {
-                  id: 'previous-predict-withdraw',
-                  metamaskPay: {
-                    chainId: CHAIN_ID_2_MOCK,
-                    tokenAddress: TOKEN_ADDRESS_2_MOCK,
-                  },
-                  nestedTransactions: [
-                    { type: TransactionType.predictWithdraw },
-                  ],
-                  status: 'confirmed',
-                  time: 100,
-                  txParams: { from: '0x123' },
-                  type: TransactionType.batch,
-                },
-              ],
-            },
-          },
-        },
-      },
-    );
-
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          balance: '1',
-          chainId: CHAIN_ID_2_MOCK,
-          symbol: 'BNB',
-        },
-        {
-          address: PREFERRED_TOKEN_ADDRESS_MOCK,
-          balance: '1',
-          chainId: PREFERRED_CHAIN_ID_MOCK,
-          symbol: 'MUSD',
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
-      preferredTokens: {
-        default: [],
-        overrides: {
-          predictWithdraw: [
-            {
-              address: PREFERRED_TOKEN_ADDRESS_MOCK,
-              chainId: PREFERRED_CHAIN_ID_MOCK,
-              successRate: 1,
-            },
-          ],
-        },
-      },
-      minimumRequiredTokenBalance: 0,
-      blockedTokens: {
-        default: {
-          chainIds: [],
-          tokens: [],
-        },
-        overrides: {},
-      },
-    } as MetaMaskPayTokensFlags);
-
-    useTransactionMetadataRequestMock.mockReturnValue({
-      id: transactionIdMock,
-      type: TransactionType.batch,
-      nestedTransactions: [{ type: TransactionType.predictWithdraw }],
-      txParams: { from: '0x123' },
-    } as never);
-
-    jest.mocked(selectLastWithdrawTokenByType).mockReturnValue({
-      address: TOKEN_ADDRESS_2_MOCK as Hex,
-      chainId: CHAIN_ID_2_MOCK as Hex,
-    });
-
-    renderHookWithProvider(() => useAutomaticTransactionPayToken(), {
-      state: predictWithdrawStateMock,
-    });
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
-    });
-  });
-
-  it('treats missing fiat balance as 0 for minimum balance check', () => {
-    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
-      preferredTokens: {
-        default: [],
-        overrides: {
-          perpsDeposit: [
-            {
-              address: TOKEN_ADDRESS_1_MOCK,
-              chainId: CHAIN_ID_1_MOCK,
-              successRate: 0.95,
-            },
-            {
-              address: TOKEN_ADDRESS_2_MOCK,
-              chainId: CHAIN_ID_2_MOCK,
-              successRate: 0.7,
-            },
-          ],
-        },
-      },
-      minimumRequiredTokenBalance: 5,
-      blockedTokens: {
-        default: {
-          chainIds: [],
-          tokens: [],
-        },
-        overrides: {},
-      },
-    } as MetaMaskPayTokensFlags);
-
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-          fiat: { balance: 10 },
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-
-    runHook();
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
-    });
-  });
-
   it('does not re-select when payToken is already set and from unchanged', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
         address: TOKEN_ADDRESS_1_MOCK,
@@ -769,21 +181,15 @@ describe('useAutomaticTransactionPayToken', () => {
     expect(setPayTokenMock).not.toHaveBeenCalled();
   });
 
-  it('re-selects pay token when from address changes', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
+  it('does not select when transactionId is missing', () => {
+    useTransactionMetadataRequestMock.mockReturnValue(undefined as never);
 
+    runHook();
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('re-selects pay token when from address changes', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
       type: TransactionType.perpsDeposit,
@@ -793,6 +199,7 @@ describe('useAutomaticTransactionPayToken', () => {
     const { rerender } = runHook();
 
     expect(setPayTokenMock).toHaveBeenCalledTimes(1);
+    expect(setPayTokenMock).toHaveBeenCalledWith(BEST_TOKEN_MOCK);
     setPayTokenMock.mockClear();
 
     useTransactionMetadataRequestMock.mockReturnValue({
@@ -803,23 +210,10 @@ describe('useAutomaticTransactionPayToken', () => {
 
     rerender(undefined);
 
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
-    });
+    expect(setPayTokenMock).toHaveBeenCalledWith(BEST_TOKEN_MOCK);
   });
 
   it('does not re-select on from change when disabled', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
       type: TransactionType.perpsDeposit,
