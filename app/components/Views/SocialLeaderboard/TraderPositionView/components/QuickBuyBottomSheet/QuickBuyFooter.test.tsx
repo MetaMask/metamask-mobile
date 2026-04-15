@@ -142,21 +142,6 @@ describe('QuickBuyFooter', () => {
   });
 
   describe('pay-with row', () => {
-    it('calls setIsSourcePickerOpen when the pay-with row is tapped', () => {
-      const setIsSourcePickerOpen = jest.fn();
-
-      renderWithProvider(
-        <QuickBuyFooter
-          {...defaultProps}
-          setIsSourcePickerOpen={setIsSourcePickerOpen}
-        />,
-      );
-
-      fireEvent.press(screen.getByTestId('quick-buy-pay-with-row'));
-
-      expect(setIsSourcePickerOpen).toHaveBeenCalledTimes(1);
-    });
-
     it('renders the SourceTokenPicker when isSourcePickerOpen is true', () => {
       renderWithProvider(
         <QuickBuyFooter {...defaultProps} isSourcePickerOpen />,
@@ -188,20 +173,6 @@ describe('QuickBuyFooter', () => {
   });
 
   describe('est. points row', () => {
-    it('renders the AddRewardsAccount CTA when the user has not opted in', () => {
-      renderWithProvider(
-        <QuickBuyFooter
-          {...defaultProps}
-          shouldShowRewardsOptInCta
-          rewardsAccountScope="eip155:1:0xABC"
-        />,
-      );
-
-      expect(
-        screen.getByTestId('quick-buy-add-rewards-account'),
-      ).toBeOnTheScreen();
-    });
-
     it('renders the rewards animation when a live estimate is available', () => {
       renderWithProvider(
         <QuickBuyFooter

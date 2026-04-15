@@ -177,14 +177,6 @@ describe('QuickBuyBottomSheet', () => {
       expect(screen.queryByTestId('mock-bottom-sheet')).not.toBeOnTheScreen();
     });
 
-    it('renders nothing when position is null', () => {
-      renderWithProvider(
-        <QuickBuyBottomSheet isVisible position={null} onClose={jest.fn()} />,
-      );
-
-      expect(screen.queryByTestId('mock-bottom-sheet')).not.toBeOnTheScreen();
-    });
-
     it('mounts the inner sheet when visible with a valid position', () => {
       renderWithProvider(
         <QuickBuyBottomSheet

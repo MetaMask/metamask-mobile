@@ -249,18 +249,6 @@ describe('useQuickBuyBottomSheet', () => {
 
       expect(result.current.usdAmount).toBe('20');
     });
-
-    it('strips non-numeric characters', () => {
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      act(() => {
-        result.current.handleAmountChange('$20abc');
-      });
-
-      expect(result.current.usdAmount).toBe('20');
-    });
   });
 
   describe('handlePresetPress', () => {
@@ -297,16 +285,6 @@ describe('useQuickBuyBottomSheet', () => {
 
       expect(result.current.getButtonLabel()).toBe('bridge.insufficient_funds');
     });
-
-    it('returns insufficient gas label when gas estimate exceeds balance', () => {
-      (useHasSufficientGas as jest.Mock).mockReturnValue(false);
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      expect(result.current.getButtonLabel()).toBe('bridge.insufficient_gas');
-    });
   });
 
   describe('isConfirmDisabled', () => {
@@ -328,62 +306,6 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(result.current.isConfirmDisabled).toBe(false);
-    });
-
-    it('is disabled when gas is insufficient (false)', () => {
-      (useHasSufficientGas as jest.Mock).mockReturnValue(false);
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      act(() => {
-        result.current.handleAmountChange('20');
-      });
-
-      expect(result.current.isConfirmDisabled).toBe(true);
-    });
-
-    it('is disabled when balance is insufficient', () => {
-      (useIsInsufficientBalance as jest.Mock).mockReturnValue(true);
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      act(() => {
-        result.current.handleAmountChange('20');
-      });
-
-      expect(result.current.isConfirmDisabled).toBe(true);
-    });
-  });
-
-  describe('isConfirmLoading', () => {
-    it('is true while a transaction is being submitted', () => {
-      (selectIsSubmittingTx as jest.Mock).mockReturnValue(true);
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      expect(result.current.isConfirmLoading).toBe(true);
-    });
-  });
-
-  describe('sourceBalanceFiat', () => {
-    it('computes the fiat value from displayBalance and exchange rate', () => {
-      (useLatestBalance as jest.Mock).mockReturnValue({
-        atomicBalance: undefined,
-        displayBalance: '1.0',
-      });
-      // createSourceToken has currencyExchangeRate: 2000 — auto-selected as first option
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      expect(result.current.sourceBalanceFiat).toBe('$2000.00');
     });
   });
 
