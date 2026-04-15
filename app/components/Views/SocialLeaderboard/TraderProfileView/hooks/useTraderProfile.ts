@@ -4,6 +4,7 @@ import type {
   TraderProfileResponse,
   FetchTraderProfileOptions,
 } from '@metamask/social-controllers';
+import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 
 export interface UseTraderProfileOptions {
@@ -45,8 +46,35 @@ export const useTraderProfile = (
   const profile = data ?? null;
 
   const toggleFollow = useCallback(() => {
-    setLocalFollowOverride((prev) => !(prev ?? false));
-  }, []);
+    const wasFollowing = localFollowOverride ?? false;
+    const nowFollowing = !wasFollowing;
+    setLocalFollowOverride(nowFollowing);
+
+    (async () => {
+      try {
+        const { profileId } =
+          await Engine.context.AuthenticationController.getSessionProfile();
+        const opts = { addressOrUid: profileId, targets: [addressOrId] };
+        if (nowFollowing) {
+          await (Engine.controllerMessenger.call as CallableFunction)(
+            'SocialController:followTrader',
+            opts,
+          );
+        } else {
+          await (Engine.controllerMessenger.call as CallableFunction)(
+            'SocialController:unfollowTrader',
+            opts,
+          );
+        }
+      } catch (err) {
+        Logger.error(
+          err as Error,
+          `useTraderProfile: ${nowFollowing ? 'follow' : 'unfollow'} failed`,
+        );
+        setLocalFollowOverride(!nowFollowing);
+      }
+    })();
+  }, [localFollowOverride, addressOrId]);
 
   const refresh = useCallback(async () => {
     try {

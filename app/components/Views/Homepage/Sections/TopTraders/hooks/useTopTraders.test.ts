@@ -1,10 +1,26 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { useQuery } from '@metamask/react-data-query';
+import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { useTopTraders } from './useTopTraders';
 
 jest.mock('../../../../../../util/Logger', () => ({
   error: jest.fn(),
+}));
+
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    AuthenticationController: {
+      getSessionProfile: jest
+        .fn()
+        .mockResolvedValue({ profileId: 'mock-profile-id' }),
+    },
+  },
+  controllerMessenger: {
+    call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
 }));
 
 const mockTraders = [

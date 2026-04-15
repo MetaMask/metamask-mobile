@@ -7,6 +7,21 @@ jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    AuthenticationController: {
+      getSessionProfile: jest
+        .fn()
+        .mockResolvedValue({ profileId: 'mock-profile-id' }),
+    },
+  },
+  controllerMessenger: {
+    call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
+}));
+
 jest.mock('@metamask/react-data-query');
 
 const mockRefetch = jest.fn();

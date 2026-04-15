@@ -4,12 +4,10 @@ import type {
   LeaderboardResponse,
   FetchLeaderboardOptions,
 } from '@metamask/social-controllers';
+import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import type { TopTrader } from '../types';
 
-/**
- * Result interface for the useTopTraders hook.
- */
 export interface UseTopTradersResult {
   traders: TopTrader[];
   isLoading: boolean;
@@ -23,17 +21,6 @@ interface UseTopTradersOptions {
   enabled?: boolean;
 }
 
-/**
- * Hook that provides top traders data for the social leaderboard.
- *
- * Uses the Data Services Pattern -- `useQuery` from `@metamask/react-data-query`
- * resolves the `SocialService:fetchLeaderboard` query key through the messenger
- * adapter, so the SocialService handles caching, de-duplication, and retries.
- *
- * @param options - Optional configuration.
- * @param options.limit - Maximum number of traders to return.
- * @returns Object with traders, isLoading, error, refresh, toggleFollow
- */
 export const useTopTraders = (
   options?: UseTopTradersOptions,
 ): UseTopTradersResult => {
@@ -80,11 +67,38 @@ export const useTopTraders = (
     }
   }, [refetch]);
 
-  const toggleFollow = useCallback((traderId: string) => {
-    setLocalFollowOverrides((prev) => ({
-      ...prev,
-      [traderId]: !prev[traderId],
-    }));
+  const toggleFollow = useCallback(async (traderId: string) => {
+    setLocalFollowOverrides((prev) => {
+      const wasFollowing = prev[traderId] ?? false;
+      const nowFollowing = !wasFollowing;
+
+      (async () => {
+        try {
+          const { profileId } =
+            await Engine.context.AuthenticationController.getSessionProfile();
+          const opts = { addressOrUid: profileId, targets: [traderId] };
+          if (nowFollowing) {
+            await (Engine.controllerMessenger.call as CallableFunction)(
+              'SocialController:followTrader',
+              opts,
+            );
+          } else {
+            await (Engine.controllerMessenger.call as CallableFunction)(
+              'SocialController:unfollowTrader',
+              opts,
+            );
+          }
+        } catch (err) {
+          Logger.error(
+            err as Error,
+            `useTopTraders: ${nowFollowing ? 'follow' : 'unfollow'} failed`,
+          );
+          setLocalFollowOverrides((p) => ({ ...p, [traderId]: !nowFollowing }));
+        }
+      })();
+
+      return { ...prev, [traderId]: nowFollowing };
+    });
   }, []);
 
   useEffect(() => {
