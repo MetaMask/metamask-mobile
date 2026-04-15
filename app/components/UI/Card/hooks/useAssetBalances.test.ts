@@ -380,7 +380,7 @@ describe('useAssetBalances', () => {
       const enabledToken = {
         ...mockEvmToken,
         fundingStatus: FundingStatus.Enabled,
-        spendableBalance: undefined,
+        spendableBalance: '',
       };
 
       mockUseTokensWithBalance.mockReturnValue([
@@ -406,7 +406,7 @@ describe('useAssetBalances', () => {
       const enabledToken = {
         ...mockEvmToken,
         fundingStatus: FundingStatus.Enabled,
-        spendableBalance: undefined,
+        spendableBalance: '',
       };
 
       mockUseTokensWithBalance.mockReturnValue([]);
@@ -469,7 +469,7 @@ describe('useAssetBalances', () => {
       const enabledToken = {
         ...mockEvmToken,
         fundingStatus: FundingStatus.Enabled,
-        spendableBalance: undefined,
+        spendableBalance: '',
       };
 
       mockUseTokensWithBalance.mockReturnValue([]);
@@ -588,7 +588,7 @@ describe('useAssetBalances', () => {
     it('uses zero balance when no source available', () => {
       const tokenWithoutBalance = {
         ...mockNotEnabledToken,
-        spendableBalance: undefined,
+        spendableBalance: '',
       };
 
       mockUseTokensWithBalance.mockReturnValue([]);
@@ -625,7 +625,7 @@ describe('useAssetBalances', () => {
       const limitedToken = {
         ...mockEvmToken,
         fundingStatus: FundingStatus.Limited,
-        spendableBalance: undefined,
+        spendableBalance: '',
       };
 
       mockUseTokensWithBalance.mockReturnValue([
@@ -651,7 +651,7 @@ describe('useAssetBalances', () => {
       const limitedToken = {
         ...mockEvmToken,
         fundingStatus: FundingStatus.Limited,
-        spendableBalance: undefined,
+        spendableBalance: '',
       };
 
       mockUseTokensWithBalance.mockReturnValue([]);
@@ -714,7 +714,7 @@ describe('useAssetBalances', () => {
       const limitedToken = {
         ...mockEvmToken,
         fundingStatus: FundingStatus.Limited,
-        spendableBalance: undefined,
+        spendableBalance: '',
       };
 
       mockUseTokensWithBalance.mockReturnValue([]);
@@ -1599,7 +1599,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          spendableBalance: undefined,
+          spendableBalance: '',
         };
 
         mockUseTokensWithBalance.mockReturnValue([
@@ -1630,7 +1630,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          spendableBalance: undefined,
+          spendableBalance: '',
         };
 
         mockUseTokensWithBalance.mockReturnValue([
@@ -1661,7 +1661,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          spendableBalance: undefined,
+          spendableBalance: '',
         };
 
         mockUseTokensWithBalance.mockReturnValue([
@@ -1692,7 +1692,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          spendableBalance: undefined,
+          spendableBalance: '',
         };
 
         mockUseTokensWithBalance.mockReturnValue([
@@ -1723,7 +1723,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          spendableBalance: undefined,
+          spendableBalance: '',
         };
 
         mockUseTokensWithBalance.mockReturnValue([
@@ -1763,7 +1763,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          spendableBalance: undefined,
+          spendableBalance: '',
         };
 
         mockUseTokensWithBalance.mockReturnValue([
@@ -1794,7 +1794,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          spendableBalance: undefined,
+          spendableBalance: '',
         };
 
         mockUseTokensWithBalance.mockReturnValue([
@@ -1836,7 +1836,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          spendableBalance: undefined,
+          spendableBalance: '',
         };
 
         const walletAsset = {
@@ -1903,7 +1903,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          spendableBalance: undefined,
+          spendableBalance: '',
         };
 
         const walletAsset = {
@@ -1971,7 +1971,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          spendableBalance: undefined,
+          spendableBalance: '',
         };
 
         const walletAsset = {
@@ -2038,7 +2038,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          spendableBalance: undefined,
+          spendableBalance: '',
         };
 
         const walletAsset = {
