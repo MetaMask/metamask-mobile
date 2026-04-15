@@ -136,9 +136,9 @@ if (typeof global.CloseEvent === 'undefined') {
   global.CloseEvent = function (type, params) {
     params = params || {};
     const event = new global.Event(type, params);
-    event.code = params.code || 0;
-    event.reason = params.reason || '';
-    event.wasClean = params.wasClean || false;
+    event.code = params.code ?? 0;
+    event.reason = params.reason ?? '';
+    event.wasClean = params.wasClean ?? false;
     return event;
   };
 }
@@ -149,9 +149,9 @@ if (typeof global.MessageEvent === 'undefined') {
   global.MessageEvent = function (type, params) {
     params = params || {};
     const event = new global.Event(type, params);
-    event.data = params.data || null;
-    event.origin = params.origin || '';
-    event.lastEventId = params.lastEventId || '';
+    event.data = params.data ?? null;
+    event.origin = params.origin ?? '';
+    event.lastEventId = params.lastEventId ?? '';
     return event;
   };
 }
