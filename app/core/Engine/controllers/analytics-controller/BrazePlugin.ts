@@ -103,7 +103,6 @@ export class BrazePlugin extends EventPlugin {
    */
   setLanguage(locale: string): void {
     this.currentLanguage = locale;
-    Logger.log(`[BrazePlugin] setLanguage: ${locale}`);
     if (this.brazeProfileId !== undefined) {
       this.sendLanguageToBraze(locale);
     }
