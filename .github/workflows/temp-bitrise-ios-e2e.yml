@@ -32,7 +32,6 @@ jobs:
     timeout-minutes: 60
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
-      app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
     env:
       XCODE_CACHE_VERSION: 1
       IOS_APP_CACHE_VERSION: 2
