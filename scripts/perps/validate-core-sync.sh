@@ -555,8 +555,7 @@ step_changelog_check() {
 
   # Validate changelog format (section ordering, link format, etc.)
   local validate_output
-  validate_output=$(cd "$CORE_PATH" && yarn workspace "$WORKSPACE" changelog:validate 2>&1)
-  if [[ -n "$validate_output" ]]; then
+  if ! validate_output=$(cd "$CORE_PATH" && yarn workspace "$WORKSPACE" changelog:validate 2>&1); then
     echo "FAIL: Changelog format validation failed:"
     echo "$validate_output"
     return 1
