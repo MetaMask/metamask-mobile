@@ -49,6 +49,8 @@ import {
   getTransactionById,
   UPGRADE_SMART_ACCOUNT_ACTION_KEY,
   DOWNGRADE_SMART_ACCOUNT_ACTION_KEY,
+  SEND_ETHER_ACTION_KEY,
+  SMART_CONTRACT_INTERACTION_ACTION_KEY,
   isLegacyTransaction,
   getTokenAddressParam,
   getTokenValueParamAsHex,
@@ -1741,6 +1743,48 @@ describe('Transactions utils :: getTransactionActionKey', () => {
 
       expect(actionKey).toBe(TOKEN_METHOD_MINT);
     }
+  });
+
+  describe('simpleSend type bypasses smart contract check (gas-sponsored native sends)', () => {
+    it('returns SEND_ETHER_ACTION_KEY for simpleSend even when to is a smart contract', async () => {
+      const transaction = {
+        type: TransactionType.simpleSend,
+        toSmartContract: true,
+        txParams: {
+          to: '0xSmartContractAddress',
+        },
+      };
+
+      const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+      expect(actionKey).toBe(SEND_ETHER_ACTION_KEY);
+    });
+
+    it('returns SEND_ETHER_ACTION_KEY for simpleSend without toSmartContract flag', async () => {
+      const transaction = {
+        type: TransactionType.simpleSend,
+        txParams: {
+          to: '0x0000000000000000000000000000000000000001',
+        },
+      };
+
+      const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+      expect(actionKey).toBe(SEND_ETHER_ACTION_KEY);
+    });
+
+    it('returns SMART_CONTRACT_INTERACTION_ACTION_KEY when type is not simpleSend and to is a smart contract', async () => {
+      const transaction = {
+        toSmartContract: true,
+        txParams: {
+          to: '0xSmartContractAddress',
+        },
+      };
+
+      const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+      expect(actionKey).toBe(SMART_CONTRACT_INTERACTION_ACTION_KEY);
+    });
   });
 });
 
