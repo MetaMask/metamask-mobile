@@ -354,6 +354,7 @@ const PerpsScreenStack = () => {
             options={{
               title: strings('perps.tpsl.title'),
               headerShown: false,
+              animation: 'none',
             }}
           />
 
