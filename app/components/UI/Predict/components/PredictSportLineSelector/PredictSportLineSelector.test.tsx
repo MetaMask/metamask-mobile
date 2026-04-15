@@ -236,4 +236,23 @@ describe('PredictSportLineSelector', () => {
 
     expect(impactAsync).toHaveBeenCalledWith('light');
   });
+
+  it('does not call onSelectLine when selectedLine is not in lines', () => {
+    const onSelectLine = jest.fn();
+    const { getByTestId } = render(
+      <PredictSportLineSelector
+        lines={[4, 4.5, 5]}
+        selectedLine={999}
+        onSelectLine={onSelectLine}
+        testID={TEST_ID}
+      />,
+    );
+
+    const leftArrow = getByTestId(arrowLeftId);
+    expect(leftArrow.props.accessibilityState.disabled).toBe(true);
+
+    fireEvent.press(leftArrow);
+
+    expect(onSelectLine).not.toHaveBeenCalled();
+  });
 });

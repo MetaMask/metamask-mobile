@@ -45,9 +45,9 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
   const translateX = useSharedValue(0);
   const containerWidth = useSharedValue(0);
 
-  const selectedIndex = lines.indexOf(selectedLine);
-  const isFirstSelected = selectedIndex === 0;
-  const isLastSelected = selectedIndex === lines.length - 1;
+  const selectedIndex = Math.max(0, lines.indexOf(selectedLine));
+  const isFirstSelected = selectedIndex <= 0;
+  const isLastSelected = selectedIndex >= lines.length - 1;
 
   const baseTestID = testID || PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.CONTAINER;
 
