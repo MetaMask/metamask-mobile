@@ -14,6 +14,10 @@ import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
+import {
+  SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
+  setWalletHomeOnboardingStepsEligible,
+} from '../../../actions/onboarding';
 
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
@@ -148,6 +152,25 @@ describe('OnboardingSuccessComponent', () => {
     fireEvent.press(button);
 
     expect(mockDiscoverAccounts).toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setWalletHomeOnboardingStepsEligible(true),
+    );
+  });
+
+  it('does not mark steps eligible for SETTINGS_BACKUP flow when Done is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP}
+      />,
+    );
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    expect(
+      mockDispatch.mock.calls.some(
+        (call) => call[0]?.type === SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
+      ),
+    ).toBe(false);
   });
 
   it('navigate to the default settings screen when the manage default settings button is pressed', () => {
@@ -286,6 +309,9 @@ describe('OnboardingSuccess', () => {
       fireEvent.press(button);
       expect(mockDiscoverAccounts).toHaveBeenCalled();
 
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setWalletHomeOnboardingStepsEligible(true),
+      );
       expect(mockNavigationDispatch).toHaveBeenCalledWith(
         ResetNavigationToHome,
       );

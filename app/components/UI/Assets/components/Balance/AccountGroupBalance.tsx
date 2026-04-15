@@ -4,9 +4,10 @@ import React, {
   useState,
   useRef,
   useEffect,
+  useLayoutEffect,
 } from 'react';
 import { View, TouchableOpacity } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import createStyles from './AccountGroupBalance.styles';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -15,7 +16,16 @@ import {
   selectBalanceChangeBySelectedAccountGroup,
   selectAccountGroupBalanceForEmptyState,
 } from '../../../../../selectors/assets/balances';
-import { selectHomepageSectionsV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
+import {
+  selectHomepageSectionsV1Enabled,
+  selectWalletHomeOnboardingStepsEnabled,
+} from '../../../../../selectors/featureFlagController/homepage';
+import {
+  selectShouldShowWalletHomeOnboardingSteps,
+  selectWalletHomeOnboardingSteps,
+  selectWalletHomeOnboardingStepsEligible,
+} from '../../../../../selectors/onboarding';
+import { suppressWalletHomeOnboardingSteps } from '../../../../../actions/onboarding';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TEST_NETWORK_IDS } from '../../../../../constants/network';
@@ -28,6 +38,7 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
 import BalanceEmptyState from '../../../BalanceEmptyState';
+import WalletHomeOnboardingSteps from '../../../WalletHomeOnboardingSteps';
 
 /**
  * Timeout for account group balance fetch
@@ -36,12 +47,35 @@ import BalanceEmptyState from '../../../BalanceEmptyState';
  */
 const ACCOUNT_GROUP_BALANCE_FETCH_TIMEOUT = 3000;
 
-const AccountGroupBalance = () => {
+export interface AccountGroupBalanceProps {
+  /**
+   * Fires when the wallet home post-onboarding steps tile is the active empty-balance surface
+   * (same moment `WalletHomeOnboardingSteps` is mounted). Parent may hide redundant CTAs (e.g. buy/swap/send/receive).
+   */
+  onPostOnboardingStepsSurfaceActiveChange?: (active: boolean) => void;
+}
+
+const AccountGroupBalance = ({
+  onPostOnboardingStepsSurfaceActiveChange,
+}: AccountGroupBalanceProps) => {
+  const dispatch = useDispatch();
   const { PreferencesController } = Engine.context;
   const styles = createStyles();
   const { formatCurrency } = useFormatters();
   const isHomepageSectionsV1Enabled = useSelector(
     selectHomepageSectionsV1Enabled,
+  );
+  const isWalletHomeOnboardingStepsEnabled = useSelector(
+    selectWalletHomeOnboardingStepsEnabled,
+  );
+  const walletHomeOnboardingStepsEligible = useSelector(
+    selectWalletHomeOnboardingStepsEligible,
+  );
+  const shouldShowWalletHomeOnboardingSteps = useSelector(
+    selectShouldShowWalletHomeOnboardingSteps,
+  );
+  const walletHomeOnboardingSteps = useSelector(
+    selectWalletHomeOnboardingSteps,
   );
   const { popularNetworks } = useNetworkEnablement();
 
@@ -132,6 +166,32 @@ const AccountGroupBalance = () => {
     }
   }, [groupBalance, accountGroupBalance]);
 
+  // First funding suppresses the post-onboarding steps flow so it cannot reappear if balance later hits zero.
+  // Gate on the same "balance settled" signal as empty state: without this, stale persisted totals > 0 can fire
+  // before hasBalanceFetched flips, suppressing the flow while the UI later shows zero-balance empty state.
+  useEffect(() => {
+    if (!groupBalance || !hasBalanceFetched) {
+      return;
+    }
+    if (!walletHomeOnboardingStepsEligible) {
+      return;
+    }
+    if (walletHomeOnboardingSteps.suppressedReason !== null) {
+      return;
+    }
+    const total = accountGroupBalance?.totalBalanceInUserCurrency;
+    if (total !== undefined && total > 0) {
+      dispatch(suppressWalletHomeOnboardingSteps('account_funded'));
+    }
+  }, [
+    accountGroupBalance?.totalBalanceInUserCurrency,
+    dispatch,
+    groupBalance,
+    hasBalanceFetched,
+    walletHomeOnboardingSteps.suppressedReason,
+    walletHomeOnboardingStepsEligible,
+  ]);
+
   // Cleanup timeout on unmount
   useEffect(
     () => () => {
@@ -155,7 +215,8 @@ const AccountGroupBalance = () => {
 
   // Check if account group balance (across all mainnet networks) is zero for empty state
   const hasZeroAccountGroupBalance =
-    accountGroupBalance && accountGroupBalance.totalBalanceInUserCurrency === 0;
+    accountGroupBalance != null &&
+    accountGroupBalance.totalBalanceInUserCurrency === 0;
 
   // Check if current network is a testnet
   const isCurrentNetworkTestnet = TEST_NETWORK_IDS.includes(selectedChainId);
@@ -166,15 +227,50 @@ const AccountGroupBalance = () => {
     isHomepageSectionsV1Enabled &&
     !isCurrentNetworkTestnet;
 
+  const showWalletHomeOnboardingSteps =
+    shouldShowEmptyState &&
+    isWalletHomeOnboardingStepsEnabled &&
+    shouldShowWalletHomeOnboardingSteps;
+
   // Show skeleton while loading: either no groupBalance OR balance not fetched yet
   // We rely on balance change tracking + timeout instead of isBalanceDataReady
   // because controllers have persisted state that makes them appear "ready" even with stale data
   const isLoading = !groupBalance || !hasBalanceFetched;
 
+  const postOnboardingStepsSurfaceActive =
+    !isLoading && shouldShowEmptyState && showWalletHomeOnboardingSteps;
+
+  const onPostOnboardingStepsSurfaceActiveChangeRef = useRef(
+    onPostOnboardingStepsSurfaceActiveChange,
+  );
+  onPostOnboardingStepsSurfaceActiveChangeRef.current =
+    onPostOnboardingStepsSurfaceActiveChange;
+
+  useLayoutEffect(() => {
+    onPostOnboardingStepsSurfaceActiveChangeRef.current?.(
+      postOnboardingStepsSurfaceActive,
+    );
+  }, [postOnboardingStepsSurfaceActive]);
+
+  useLayoutEffect(
+    () => () => {
+      onPostOnboardingStepsSurfaceActiveChangeRef.current?.(false);
+    },
+    [],
+  );
+
   return (
     <View style={styles.accountGroupBalance}>
       {!isLoading && shouldShowEmptyState ? (
-        <BalanceEmptyState testID="account-group-balance-empty-state" />
+        showWalletHomeOnboardingSteps ? (
+          <WalletHomeOnboardingSteps
+            testID={WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}
+          />
+        ) : (
+          <BalanceEmptyState
+            testID={WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}
+          />
+        )
       ) : (
         <TouchableOpacity
           onPress={() => togglePrivacy(!privacyMode)}

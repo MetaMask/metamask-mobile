@@ -5,6 +5,16 @@ import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.test
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
+jest.mock('../../../BalanceEmptyState', () => {
+  const { View: V } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) => <V testID={testID} />;
+});
+
+jest.mock('../../../WalletHomeOnboardingSteps', () => {
+  const { View: V } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) => <V testID={testID} />;
+});
+
 jest.mock('../../../../../selectors/assets/balances', () => ({
   // Factory: selectBalanceBySelectedAccountGroup(popularChainIds?) -> (state) => value
   selectBalanceBySelectedAccountGroup: jest.fn(() => () => null),
@@ -17,6 +27,16 @@ jest.mock('../../../../../selectors/assets/balances', () => ({
 // Mock homepage feature flags (BalanceEmptyState and AccountGroupBalance use these)
 jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageSectionsV1Enabled: jest.fn(() => true),
+  selectWalletHomeOnboardingStepsEnabled: jest.fn(() => false),
+}));
+
+jest.mock('../../../../../selectors/onboarding', () => ({
+  selectShouldShowWalletHomeOnboardingSteps: jest.fn(() => false),
+  selectWalletHomeOnboardingStepsEligible: jest.fn(() => false),
+  selectWalletHomeOnboardingSteps: jest.fn(() => ({
+    suppressedReason: null,
+    stepIndex: 0,
+  })),
 }));
 
 // This selector is used to determine if the current network is a testnet for BalanceEmptyState display logic

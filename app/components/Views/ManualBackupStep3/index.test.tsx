@@ -51,15 +51,20 @@ jest.mock('../../../core/Analytics', () => ({
 jest.mock('../OnboardingSuccess', () => ({
   OnboardingSuccessComponent: ({
     onDone,
-    backedUpSRP,
+    successFlow,
   }: {
     onDone: () => void;
-    backedUpSRP: boolean;
+    successFlow?: string;
   }) => {
     const { TouchableOpacity, Text } = jest.requireActual('react-native');
+    const { ONBOARDING_SUCCESS_FLOW: Flow } = jest.requireActual(
+      '../../../constants/onboarding',
+    );
     return (
       <TouchableOpacity testID="onboarding-success-done" onPress={onDone}>
-        <Text>{backedUpSRP ? 'backed-up' : 'not-backed-up'}</Text>
+        <Text>
+          {successFlow === Flow.BACKED_UP_SRP ? 'backed-up' : 'not-backed-up'}
+        </Text>
       </TouchableOpacity>
     );
   },
@@ -205,7 +210,7 @@ describe('ManualBackupStep3', () => {
       });
     });
 
-    it('passes backedUpSRP=true to OnboardingSuccessComponent', async () => {
+    it('passes successFlow BACKED_UP_SRP to OnboardingSuccessComponent', async () => {
       const { getByText } = renderComponent();
 
       await waitFor(() => {
