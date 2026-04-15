@@ -4,7 +4,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
-        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -28,7 +28,7 @@
                                 </constraints>
                             </imageView>
                         </subviews>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <color key="backgroundColor" name="splashBackground"/>
                         <constraints>
                             <constraint firstItem="Rmq-1b-Way" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="fox-center-x-constraint"/>
                             <constraint firstItem="Rmq-1b-Way" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="fox-center-y-constraint"/>
@@ -42,8 +42,8 @@
     </scenes>
     <resources>
         <image name="fox-splash-screen" width="1000" height="1000"/>
-        <systemColor name="systemBackgroundColor">
-            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-        </systemColor>
+        <namedColor name="splashBackground">
+            <color red="0.99999994039535522" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
     </resources>
 </document>
