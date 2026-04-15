@@ -325,7 +325,7 @@ const useRefreshPredictPositions = ({
     await Promise.all([refetchPositions(), invalidatePnl]);
   }, [queryClient, refetchPositions]);
 
-const usePredictPositionsSectionData = () => {
+const usePredictPositionsSectionData = (homepageQueriesEnabled: boolean) => {
   const privacyMode = useSelector(selectPrivacyMode);
   const { claim } = usePredictClaim();
 
@@ -334,10 +334,13 @@ const usePredictPositionsSectionData = () => {
     isLoading: isLoadingPositions,
     error: positionsError,
     refetch: refetchPositions,
-  } = usePredictPositionsForHomepage();
+  } = usePredictPositionsForHomepage({
+    enabled: homepageQueriesEnabled,
+  });
   const { totalClaimableValue, isLoading: isLoadingClaimable } =
     usePredictPositionsForHomepage({
       claimable: true,
+      enabled: homepageQueriesEnabled,
     });
 
   const handleClaim = useCallback(async () => {
@@ -419,13 +422,15 @@ const PredictionsSectionDefault = forwardRef<
       handleClaim,
       hasPositions,
       predictHomepageUnrealizedPnl,
-    } = usePredictPositionsSectionData();
+    } = usePredictPositionsSectionData(isPredictEnabled);
     const {
       markets,
       isLoading: isLoadingMarkets,
       error: marketsError,
       refetch: refetchMarkets,
-    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
+    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED, {
+      enabled: isPredictEnabled,
+    });
 
     const isLoading = isLoadingPositions || isLoadingMarkets;
     const hasError =
@@ -544,7 +549,7 @@ const PredictionsSectionPositionsOnly = forwardRef<
       handleClaim,
       hasPositions,
       predictHomepageUnrealizedPnl,
-    } = usePredictPositionsSectionData();
+    } = usePredictPositionsSectionData(isPredictEnabled);
 
     const willRender = isPredictEnabled && !isLoadingPositions && hasPositions;
     const itemCount = positions.length;
@@ -614,7 +619,9 @@ const PredictionsSectionTrendingOnly = forwardRef<
       markets,
       isLoading: isLoadingMarkets,
       refetch: refetchMarkets,
-    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
+    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED, {
+      enabled: isPredictEnabled,
+    });
 
     const itemCount = markets.length;
     const willRender = isPredictEnabled && !isLoadingMarkets && itemCount > 0;

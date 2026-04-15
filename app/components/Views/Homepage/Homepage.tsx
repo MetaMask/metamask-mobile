@@ -11,6 +11,7 @@ import { Box } from '@metamask/design-system-react-native';
 import { CashSection } from './Sections/Cash';
 import TokensSection from './Sections/Tokens';
 import WhatsHappeningSection from './Sections/WhatsHappening';
+import PerpsSectionWithProvider from './Sections/Perpetuals';
 import { PerpsSection as PerpsSectionBase } from './Sections/Perpetuals/PerpsSection';
 import PredictionsSection from './Sections/Predictions';
 import TopTradersSection from './Sections/TopTraders';
@@ -209,14 +210,12 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
       trendingPerpsSection: React.ReactNode,
     ) => (
       <>
-        {isPredictEnabled && (
-          <PredictionsSection
-            ref={predictionsSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
-            totalSectionsLoaded={totalSectionsLoaded}
-            mode={sectionMode}
-          />
-        )}
+        <PredictionsSection
+          ref={predictionsSectionRef}
+          sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+          totalSectionsLoaded={totalSectionsLoaded}
+          mode={sectionMode}
+        />
         {isDeFiEnabled && (
           <DeFiSection
             ref={defiSectionRef}
@@ -249,16 +248,14 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
           titleOverride={strings('homepage.sections.trending_tokens')}
         />
         {trendingPerpsSection}
-        {isPredictEnabled && (
-          <PredictionsSection
-            ref={trendingPredictionsRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_PREDICT)}
-            totalSectionsLoaded={totalSectionsLoaded}
-            mode="trending-only"
-            sectionName={HomeSectionNames.TRENDING_PREDICT}
-            titleOverride={strings('homepage.sections.trending_predictions')}
-          />
-        )}
+        <PredictionsSection
+          ref={trendingPredictionsRef}
+          sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_PREDICT)}
+          totalSectionsLoaded={totalSectionsLoaded}
+          mode="trending-only"
+          sectionName={HomeSectionNames.TRENDING_PREDICT}
+          titleOverride={strings('homepage.sections.trending_predictions')}
+        />
 
         {/* NFTs below trending when user has no NFTs */}
         {!hasNfts && (
@@ -360,28 +357,18 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
             totalSectionsLoaded={totalSectionsLoaded}
           />
         )}
-        {isPerpsEnabled && (
-          <PerpsConnectionProvider suppressErrorView>
-            <PerpsStreamProvider>
-              <PerpsSectionBase
-                ref={perpsSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-                totalSectionsLoaded={totalSectionsLoaded}
-                mode={sectionMode}
-              />
-            </PerpsStreamProvider>
-          </PerpsConnectionProvider>
-        )}
-        {/* Mount only when enabled so predict homepage hooks are not invoked off-flag
-            (PredictionsSection returns null after hooks; see usePredictMarketsForHomepage). */}
-        {isPredictEnabled && (
-          <PredictionsSection
-            ref={predictionsSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
-            totalSectionsLoaded={totalSectionsLoaded}
-            mode={sectionMode}
-          />
-        )}
+        <PerpsSectionWithProvider
+          ref={perpsSectionRef}
+          sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+          totalSectionsLoaded={totalSectionsLoaded}
+          mode={sectionMode}
+        />
+        <PredictionsSection
+          ref={predictionsSectionRef}
+          sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+          totalSectionsLoaded={totalSectionsLoaded}
+          mode={sectionMode}
+        />
         <WhatsHappeningSection
           ref={whatsHappeningSectionRef}
           sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
