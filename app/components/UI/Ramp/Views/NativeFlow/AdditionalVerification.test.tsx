@@ -4,23 +4,19 @@ import V2AdditionalVerification from './AdditionalVerification';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    setOptions: mockSetOptions,
+    goBack: mockGoBack,
   }),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
   I18nEvents: { addListener: jest.fn() },
-}));
-
-jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn(() => ({})),
 }));
 
 const mockNavigateToKycWebview = jest.fn();
@@ -74,11 +70,13 @@ describe('V2AdditionalVerification', () => {
   });
 
   it('renders the title and paragraphs', () => {
-    const { getByText } = renderWithTheme(<V2AdditionalVerification />);
+    const { getByText, getAllByText } = renderWithTheme(
+      <V2AdditionalVerification />,
+    );
 
-    expect(
-      getByText('deposit.additional_verification.title'),
-    ).toBeOnTheScreen();
+    expect(getAllByText('deposit.additional_verification.title')).toHaveLength(
+      2,
+    );
     expect(
       getByText('deposit.additional_verification.paragraph_1'),
     ).toBeOnTheScreen();

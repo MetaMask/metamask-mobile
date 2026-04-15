@@ -6,7 +6,7 @@ import type { RampsOrder } from '@metamask/ramps-controller';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 const mockDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -14,7 +14,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     replace: mockReplace,
-    setOptions: mockSetOptions,
+    goBack: mockGoBack,
     dispatch: mockDispatch,
   }),
   StackActions: {
@@ -32,10 +32,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
     return key;
   },
   I18nEvents: { addListener: jest.fn() },
-}));
-
-jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn(() => ({})),
 }));
 
 let mockShouldUpdate = true;

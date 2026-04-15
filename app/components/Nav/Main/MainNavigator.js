@@ -285,6 +285,7 @@ const TransactionsHome = () => {
       <Stack.Screen
         name={Routes.RAMP.RAMPS_ORDER_DETAILS}
         component={RampsOrderDetails}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.DEPOSIT.ORDER_DETAILS}
@@ -615,7 +616,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.REGION_SELECTOR}
         component={RegionSelector}
-        options={RegionSelector.navigationOptions}
+        options={{ headerShown: false }}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)

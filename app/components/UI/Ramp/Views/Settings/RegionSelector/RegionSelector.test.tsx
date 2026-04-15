@@ -6,10 +6,10 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { Country, State, UserRegion } from '@metamask/ramps-controller';
+import { REGION_SELECTOR_TEST_IDS } from './RegionSelector.testIds';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockSetOptions = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -18,7 +18,6 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
-      setOptions: mockSetOptions,
     }),
   };
 });
@@ -237,7 +236,9 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(mockSetOptions).toHaveBeenCalled();
+    expect(
+      screen.getByTestId(REGION_SELECTOR_TEST_IDS.BACK_BUTTON),
+    ).toBeOnTheScreen();
     expect(screen.getByText('California')).toBeOnTheScreen();
   });
 
@@ -303,7 +304,9 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(mockSetOptions).toHaveBeenCalled();
+    expect(
+      screen.getByTestId(REGION_SELECTOR_TEST_IDS.BACK_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('renders search placeholder for states view', () => {
@@ -431,7 +434,9 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(mockSetOptions).toHaveBeenCalled();
+    expect(
+      screen.getByTestId(REGION_SELECTOR_TEST_IDS.BACK_BUTTON),
+    ).toBeOnTheScreen();
     expect(screen.getByText('California')).toBeOnTheScreen();
   });
 
@@ -530,7 +535,9 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(mockSetOptions).toHaveBeenCalled();
+    expect(
+      screen.getByTestId(REGION_SELECTOR_TEST_IDS.BACK_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('resets search when navigating to state view', () => {

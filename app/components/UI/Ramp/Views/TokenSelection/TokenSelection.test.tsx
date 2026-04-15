@@ -12,15 +12,13 @@ import { useRampsController } from '../../hooks/useRampsController';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
-const mockGoBack = jest.fn();
+const mockHeaderGoBack = jest.fn();
 const mockParentGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    setOptions: mockSetOptions,
-    goBack: mockGoBack,
+    goBack: mockHeaderGoBack,
     getParent: () => ({
       goBack: mockParentGoBack,
     }),
