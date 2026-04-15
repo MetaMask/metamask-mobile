@@ -7,8 +7,9 @@ import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
+import MoneyEarnings from '../../components/MoneyEarnings';
+import MoneyMusdTokenRow from '../../components/MoneyMusdTokenRow';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
-import MoneyYourPosition from '../../components/MoneyYourPosition';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
 import MoneyMetaMaskCard from '../../components/MoneyMetaMaskCard';
@@ -46,8 +47,9 @@ const MoneyHomeView = () => {
   const handleTransferPress = noopHandler;
   const handleCardPress = noopHandler;
   const handleApyInfoPress = noopHandler;
-  const handleAddMusdPress = noopHandler;
+  const handleProjectedEarningsPress = noopHandler;
   const handleGetNowPress = noopHandler;
+  const handleMusdRowPress = noopHandler;
   const handleHeaderPress = noopHandler;
 
   const handleTokenAddPress = noopHandler;
@@ -93,11 +95,13 @@ const MoneyHomeView = () => {
           onCardPress={handleCardPress}
         />
         <MoneyOnboardingCard onAddPress={handleAddPress} />
-        <MoneyYourPosition />
         <Divider />
-        <MoneyHowItWorks
-          onAddMusdPress={handleAddMusdPress}
-          onHeaderPress={handleHowItWorksHeaderPress}
+        <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
+        <Divider />
+        <MoneyHowItWorks onHeaderPress={handleHowItWorksHeaderPress} />
+        <MoneyMusdTokenRow
+          onPress={handleMusdRowPress}
+          onAddPress={handleAddPress}
         />
         <Divider />
         {conversionTokens.length > 0 && (

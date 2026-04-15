@@ -62,7 +62,7 @@ const MoneyOnboardingCard = ({
   totalSteps = 2,
 }: MoneyOnboardingCardProps) => (
   <Box
-    twClassName="mx-4 rounded-2xl bg-muted overflow-hidden"
+    twClassName="mx-4 my-3 rounded-2xl bg-muted overflow-hidden"
     testID={MoneyOnboardingCardTestIds.CONTAINER}
   >
     <Box twClassName="p-4 gap-2">

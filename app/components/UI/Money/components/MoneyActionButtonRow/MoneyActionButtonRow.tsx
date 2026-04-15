@@ -80,7 +80,7 @@ const MoneyActionButtonRow = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Stretch}
-      twClassName="px-4 pt-6 pb-4 gap-2"
+      twClassName="px-4 pt-6 gap-2"
       testID={MoneyActionButtonRowTestIds.CONTAINER}
     >
       <ActionButton
