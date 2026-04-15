@@ -1189,7 +1189,17 @@ function updateVisibleEdgeOutlinePriceLabel() {
     hideCustomSeriesLastValueLabelDom();
     return;
   }
-  var price = edgeBar.close;
+  /** Line chart: price/Y at the plot’s right edge matches the drawn segment (interpolate closes). */
+  var price = Number(edgeBar.close);
+  if (ct === 2) {
+    var tEdgeMs = getVisiblePlotRightEdgeTimeMs(chart);
+    if (tEdgeMs !== null) {
+      var pLine = interpolateCloseAlongLineAtTimeMs(w.ohlcvData, tEdgeMs);
+      if (pLine !== null && isFinite(pLine)) {
+        price = pLine;
+      }
+    }
+  }
   var y = getPriceYForLastCloseOverlay(chart, price);
   if (y === null || y === undefined || isNaN(y)) {
     elOut.style.display = 'none';
@@ -1229,6 +1239,11 @@ function updateVisibleEdgeOutlinePriceLabel() {
   if (!hO || hO < 8) {
     hO = 24;
   }
+  /**
+   * When outline and last-close pills overlap, separate with minimum gap (TradingView-style stack).
+   * Stack direction: higher outline **price** → outline above filled (smaller y); lower → below.
+   * Equal prices → outline below filled so the solid last-price pill stays primary.
+   */
   if (
     elLast &&
     elLast.style.display !== 'none' &&
@@ -1245,10 +1260,22 @@ function updateVisibleEdgeOutlinePriceLabel() {
         overlayOut && overlayOut.clientHeight > 0
           ? overlayOut.clientHeight - hO / 2 - 2
           : Infinity;
-      var edgeAboveFilled =
-        y < yLastClose ||
-        (Math.abs(y - yLastClose) < 1 &&
-          Number(price) > Number(lastClosePrice));
+      var pOut = Number(price);
+      var pLast = Number(lastClosePrice);
+      var edgeAboveFilled;
+      if (isFinite(pOut) && isFinite(pLast)) {
+        if (pOut > pLast) {
+          edgeAboveFilled = true;
+        } else if (pOut < pLast) {
+          edgeAboveFilled = false;
+        } else {
+          edgeAboveFilled = false;
+        }
+      } else {
+        edgeAboveFilled =
+          y < yLastClose ||
+          (Math.abs(y - yLastClose) < 1 && pOut > pLast);
+      }
       if (edgeAboveFilled) {
         yPos = yLastClose - hF / 2 - gapPx - hO / 2;
         if (yPos < minCenter) {
@@ -1266,20 +1293,44 @@ function updateVisibleEdgeOutlinePriceLabel() {
 }
 
 /**
- * Uses \`priceToCoordinate\` on the main source price scale when present (not listed on IPriceScaleApi
- * in Advanced Charts docs; fallback is \`getVisiblePriceRange\` + linear map in the caller).
+ * Maps a clamped price to Y in pane coordinates. Uses {@link https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.IPriceScaleApi#getmode IPriceScaleApi.getMode}
+ * so **Log** scales match the chart (Charting_Library.PriceScaleMode.Log = 1); other modes use linear mapping.
+ *
+ * @param {object} scale - IPriceScaleApi
+ * @param {number} lo
+ * @param {number} hi
+ * @param {number} h
+ * @param {number} pClamped
+ * @param {boolean} inverted
+ * @returns {number | null}
  */
-function priceScalePriceToY(scale, p) {
-  if (typeof scale.priceToCoordinate === 'function') {
-    var y = scale.priceToCoordinate(p);
-    if (y !== null && y !== undefined && !isNaN(y)) return y;
+function mapClampedPriceToPaneY(scale, lo, hi, h, pClamped, inverted) {
+  var mode = typeof scale.getMode === 'function' ? scale.getMode() : 0;
+  /* Log = 1 — https://www.tradingview.com/charting-library-docs/latest/api/enums/Charting_Library.PriceScaleMode/ */
+  if (mode === 1 && lo > 0 && hi > 0 && pClamped > 0) {
+    var logLo = Math.log(lo);
+    var logHi = Math.log(hi);
+    var logP = Math.log(pClamped);
+    if (logHi === logLo) {
+      return inverted ? 0 : h / 2;
+    }
+    var t = (logP - logLo) / (logHi - logLo);
+    if (inverted) {
+      return t * h;
+    }
+    return (1 - t) * h;
   }
-  return null;
+  if (inverted) {
+    return ((pClamped - lo) / (hi - lo)) * h;
+  }
+  return ((hi - pClamped) / (hi - lo)) * h;
 }
 
 /**
- * Y pixel for a price (same space as crosshair \`offsetY\`). Prefers \`priceToCoordinate\` when
- * present; else maps using \`getVisiblePriceRange\` and pane height (including clamped price).
+ * Y pixel for a price (same space as crosshair \`offsetY\`).
+ * Uses documented {@link https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.IPriceScaleApi#getvisiblepricerange IPriceScaleApi.getVisiblePriceRange},
+ * {@link https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.IPaneApi#getheight IPaneApi.getHeight}, and
+ * {@link https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.IPriceScaleApi#isinverted IPriceScaleApi.isInverted} — not undocumented coordinate helpers.
  */
 function getPriceYForLastCloseOverlay(chart, price) {
   if (!chart || price === undefined || price === null || isNaN(Number(price))) {
@@ -1293,9 +1344,6 @@ function getPriceYForLastCloseOverlay(chart, price) {
     var scale = pane.getMainSourcePriceScale();
     if (!scale) return null;
 
-    var y = priceScalePriceToY(scale, p);
-    if (y !== null) return y;
-
     var range = scale.getVisiblePriceRange();
     if (!range || range.from === undefined || range.to === undefined) {
       return null;
@@ -1305,9 +1353,9 @@ function getPriceYForLastCloseOverlay(chart, price) {
     var h = pane.getHeight();
     if (!h || h <= 0) return null;
     var pClamped = Math.min(hi, Math.max(lo, p));
-    y = priceScalePriceToY(scale, pClamped);
-    if (y !== null) return y;
-    return ((hi - pClamped) / (hi - lo)) * h;
+    var inverted =
+      typeof scale.isInverted === 'function' && scale.isInverted();
+    return mapClampedPriceToPaneY(scale, lo, hi, h, pClamped, inverted);
   } catch (e) {
     return null;
   }
@@ -2472,6 +2520,24 @@ function normalizeChartUnixSec(t) {
 }
 
 /**
+ * Unix **milliseconds** from raw TradingView time (\`coordinateToTime\`, \`getVisibleRange\`, etc.).
+ * Preserves sub-second precision for interpolation (unlike {@link normalizeChartUnixSec}).
+ *
+ * @param {number | string} rawT
+ * @returns {number | null}
+ */
+function chartRawTimeToUnixMs(rawT) {
+  var n = Number(rawT);
+  if (!isFinite(n)) {
+    return null;
+  }
+  if (n >= 1e12) {
+    return n;
+  }
+  return n * 1000;
+}
+
+/**
  * Step between last two OHLCV bars in seconds (for visible-range alignment checks).
  */
 function getApproxBarDurationSec() {
@@ -2485,6 +2551,8 @@ function getApproxBarDurationSec() {
 
 /** Pixels inset from time-scale right so \`coordinateToTime\` samples left of the price scale (16px dot + margin). */
 var LINE_END_ICON_TIME_INSET_PX = 40;
+/** Plot’s right edge for outline pill time — must not reuse {@link LINE_END_ICON_TIME_INSET_PX} (samples too far left vs drawn line). \`0\` = rightmost pixel (\`w - 1\`). */
+var OUTLINE_EDGE_TIME_INSET_PX = 0;
 var LINE_END_ICON_PROBE_STEP_PX = 8;
 var LINE_END_ICON_MAX_PROBES = 14;
 
@@ -2792,6 +2860,93 @@ function getVisibleEdgeOutlineBar(chart, data) {
     }
   }
   return best;
+}
+
+/**
+ * Unix **milliseconds** at the plot’s right edge (minimal inset vs line-icon), via
+ * {@link https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.ITimeScaleApi#coordinatetotime ITimeScaleApi.coordinateToTime}.
+ * Capped to \`getVisibleRange().to\`. Uses {@link OUTLINE_EDGE_TIME_INSET_PX}, not {@link LINE_END_ICON_TIME_INSET_PX}.
+ *
+ * @param {object} chart - \`widget.activeChart()\`
+ * @returns {number | null}
+ */
+function getVisiblePlotRightEdgeTimeMs(chart) {
+  if (!chart) {
+    return null;
+  }
+  try {
+    var ts = chart.getTimeScale();
+    if (
+      !ts ||
+      typeof ts.coordinateToTime !== 'function' ||
+      typeof ts.width !== 'function'
+    ) {
+      return null;
+    }
+    var w = ts.width();
+    if (!(w > OUTLINE_EDGE_TIME_INSET_PX + 2)) {
+      return null;
+    }
+    var x = Math.max(0, Math.floor(w - OUTLINE_EDGE_TIME_INSET_PX - 1));
+    var rawT = ts.coordinateToTime(x);
+    if (rawT === null || rawT === undefined) {
+      return null;
+    }
+    var tMs = chartRawTimeToUnixMs(rawT);
+    if (tMs === null) {
+      return null;
+    }
+    var vr = chart.getVisibleRange && chart.getVisibleRange();
+    if (vr && vr.to !== undefined && vr.to !== null) {
+      var capMs = chartRawTimeToUnixMs(vr.to);
+      if (capMs !== null && tMs > capMs) {
+        tMs = capMs;
+      }
+    }
+    return tMs;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Linear interpolation of \`close\` between adjacent OHLCV bars (line chart path between closes).
+ *
+ * @param {Array<{ time: number, close: number }>} data - ascending \`time\` (ms), \`window.ohlcvData\`
+ * @param {number} tMs
+ * @returns {number | null}
+ */
+function interpolateCloseAlongLineAtTimeMs(data, tMs) {
+  if (!data || !data.length || !isFinite(tMs)) {
+    return null;
+  }
+  var first = data[0];
+  var last = data[data.length - 1];
+  if (tMs <= first.time) {
+    var c0 = Number(first.close);
+    return isFinite(c0) ? c0 : null;
+  }
+  if (tMs >= last.time) {
+    var cL = Number(last.close);
+    return isFinite(cL) ? cL : null;
+  }
+  var i;
+  for (i = 0; i < data.length - 1; i++) {
+    var t0 = data[i].time;
+    var t1 = data[i + 1].time;
+    if (tMs >= t0 && tMs <= t1) {
+      var a = Number(data[i].close);
+      var b = Number(data[i + 1].close);
+      if (!isFinite(a) || !isFinite(b)) {
+        return null;
+      }
+      if (t1 === t0) {
+        return a;
+      }
+      return a + ((b - a) * (tMs - t0)) / (t1 - t0);
+    }
+  }
+  return null;
 }
 
 /**
