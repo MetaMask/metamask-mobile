@@ -74,7 +74,7 @@ const ChainPill: React.FC<ChainPillProps> = ({
       <Text
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
-        color={isSelected ? TextColor.TextDefault : TextColor.TextMuted}
+        color={isSelected ? TextColor.TextDefault : TextColor.TextAlternative}
       >
         {label}
       </Text>
