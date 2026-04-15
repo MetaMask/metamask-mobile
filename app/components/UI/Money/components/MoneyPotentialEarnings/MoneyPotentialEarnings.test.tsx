@@ -80,14 +80,6 @@ const MOCK_SOL = makeToken({
   fiat: { balance: 2000 },
 });
 
-const MOCK_LINK = makeToken({
-  name: 'Chainlink',
-  symbol: 'LINK',
-  address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
-  balanceInSelectedCurrency: '$500.00',
-  fiat: { balance: 500 },
-});
-
 describe('MoneyPotentialEarnings', () => {
   it('returns null when there are no tokens with balance', () => {
     const { queryByTestId } = render(<MoneyPotentialEarnings tokens={[]} />);

@@ -218,13 +218,16 @@ const MoneyPotentialEarnings = ({
     [sortedTokens],
   );
 
+  // Sum only the tokens we actually render so the gradient headline always
+  // matches the per-row "+$X" values the user sees. The View All button is the
+  // affordance for any tokens that didn't make the MAX_TOKENS cut.
   const projectedAmount = useMemo(
     () =>
-      sortedTokens.reduce(
+      visibleTokens.reduce(
         (sum, token) => sum + tokenFiatValue(token) * PROJECTED_MULTIPLIER,
         0,
       ),
-    [sortedTokens],
+    [visibleTokens],
   );
 
   const handleTokenPress = useCallback(
