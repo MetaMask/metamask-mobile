@@ -195,6 +195,13 @@ jest.mock('../../Trending/utils/getTrendingTokenImageUrl', () => ({
   ),
 }));
 
+jest.mock('../../Trending/utils/trendingNetworksList', () => ({
+  RWA_NETWORKS_LIST: [
+    { caipChainId: 'eip155:1', name: 'Ethereum' },
+    { caipChainId: 'eip155:56', name: 'BNB Chain' },
+  ],
+}));
+
 jest.mock('../../../../util/theme', () => ({
   useTheme: () => ({
     colors: {
@@ -314,6 +321,46 @@ describe('OndoCampaignRwaSelectorView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  describe('chain filter toggle', () => {
+    it('shows chain filter buttons in open_position mode', () => {
+      mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      expect(getByTestId('chain-filter-eip155:1')).toBeDefined();
+      expect(getByTestId('chain-filter-eip155:56')).toBeDefined();
+    });
+
+    it('calls useRwaTokens with Ethereum chainId by default', () => {
+      mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
+      render(<OndoCampaignRwaSelectorView />);
+      const lastCall =
+        mockUseRwaTokens.mock.calls[mockUseRwaTokens.mock.calls.length - 1][0];
+      expect(lastCall.chainIds).toEqual(['eip155:1']);
+    });
+
+    it('switches to BNB Chain when the BNB filter is pressed', () => {
+      mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      fireEvent.press(getByTestId('chain-filter-eip155:56'));
+      const lastCall =
+        mockUseRwaTokens.mock.calls[mockUseRwaTokens.mock.calls.length - 1][0];
+      expect(lastCall.chainIds).toEqual(['eip155:56']);
+    });
+
+    it('does not show chain filter in swap mode', () => {
+      mockRouteParams = {
+        mode: 'swap',
+        campaignId: 'campaign-1',
+        srcTokenAsset: 'eip155:1/erc20:0xabc',
+        srcTokenSymbol: 'USDC',
+        srcTokenDecimals: 6,
+      };
+      mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
+      const { queryByTestId } = render(<OndoCampaignRwaSelectorView />);
+      expect(queryByTestId('chain-filter-eip155:1')).toBeNull();
+      expect(queryByTestId('chain-filter-eip155:56')).toBeNull();
+    });
+  });
+
   describe('swap mode', () => {
     beforeEach(() => {
       mockRouteParams = {
@@ -338,6 +385,40 @@ describe('OndoCampaignRwaSelectorView', () => {
       expect(
         queryByText('rewards.ondo_rwa_asset_selector.title_open_position'),
       ).toBeNull();
+    });
+
+    it('uppercases the source symbol in the title', () => {
+      mockRouteParams = {
+        ...mockRouteParams,
+        srcTokenSymbol: 'NIOon',
+      };
+      const { getByText } = render(<OndoCampaignRwaSelectorView />);
+      expect(getByText('NIOON')).toBeDefined();
+    });
+
+    it('excludes the source token from the destination list by CAIP-19 assetId', () => {
+      // Even when the list symbol differs in casing (e.g. after uppercase normalisation),
+      // the source token must be filtered out using assetId, not symbol.
+      const srcAssetId = 'eip155:1/erc20:0xabc';
+      mockRouteParams = {
+        mode: 'swap',
+        campaignId: 'campaign-1',
+        srcTokenAsset: srcAssetId,
+        srcTokenSymbol: 'NIOon',
+        srcTokenDecimals: 18,
+      };
+      mockUseRwaTokens.mockReturnValue({
+        data: [
+          buildToken('NIOon', srcAssetId), // same assetId as source — must be excluded
+          buildToken('AAPL', 'eip155:1/erc20:0xdef'),
+        ],
+        isLoading: false,
+      });
+      const { queryByTestId, getByTestId } = render(
+        <OndoCampaignRwaSelectorView />,
+      );
+      expect(queryByTestId('token-row-NIOon')).toBeNull();
+      expect(getByTestId('token-row-AAPL')).toBeDefined();
     });
   });
 

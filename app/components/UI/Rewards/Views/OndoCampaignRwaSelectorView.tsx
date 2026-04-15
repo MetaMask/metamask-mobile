@@ -45,6 +45,7 @@ import { useRwaTokens } from '../../Trending/hooks/useRwaTokens/useRwaTokens';
 import TrendingTokenRowItem from '../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { getTrendingTokenImageUrl } from '../../Trending/utils/getTrendingTokenImageUrl';
 import { parseCaip19, caipChainIdToHex } from '../utils/formatUtils';
+import { RWA_NETWORKS_LIST } from '../../Trending/utils/trendingNetworksList';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
@@ -108,6 +109,9 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   } = route.params;
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedChainId, setSelectedChainId] = useState<CaipChainId>(
+    RWA_NETWORKS_LIST[0].caipChainId,
+  );
   const [isAfterHoursSheetOpen, setIsAfterHoursSheetOpen] = useState(false);
   const [afterHoursNextOpen, setAfterHoursNextOpen] = useState<Date | null>(
     null,
@@ -115,20 +119,31 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   const [afterHoursPendingToken, setAfterHoursPendingToken] =
     useState<BridgeToken | null>(null);
 
+  // Uppercase the source symbol for display and bridge — on-chain BSC symbols use
+  // mixed case (e.g. "NIOon") but the convention on this screen is always uppercase.
+  const srcTokenSymbolDisplay = srcTokenSymbol?.toUpperCase();
+
   // Build the source BridgeToken from route params (swap mode only)
   const srcBridgeToken = useMemo((): BridgeToken | undefined => {
-    if (mode !== 'swap' || !srcTokenAsset || !srcTokenSymbol) return undefined;
+    if (mode !== 'swap' || !srcTokenAsset || !srcTokenSymbolDisplay)
+      return undefined;
     const parsed = parseCaip19(srcTokenAsset);
     if (!parsed) return undefined;
     return {
       address: parsed.assetReference,
-      symbol: srcTokenSymbol,
-      name: srcTokenName ?? srcTokenSymbol,
+      symbol: srcTokenSymbolDisplay,
+      name: srcTokenName ?? srcTokenSymbolDisplay,
       decimals: srcTokenDecimals ?? 18,
       chainId: `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
       image: getTrendingTokenImageUrl(srcTokenAsset),
     };
-  }, [mode, srcTokenAsset, srcTokenSymbol, srcTokenName, srcTokenDecimals]);
+  }, [
+    mode,
+    srcTokenAsset,
+    srcTokenSymbolDisplay,
+    srcTokenName,
+    srcTokenDecimals,
+  ]);
 
   const srcChainHex = useMemo(() => {
     if (!srcTokenAsset) return undefined;
@@ -139,13 +154,17 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     );
   }, [srcTokenAsset]);
 
-  // In swap mode, filter to same chain as src asset
-  const chainIds = useMemo((): CaipChainId[] | undefined => {
-    if (mode !== 'swap' || !srcTokenAsset) return undefined;
-    const parsed = parseCaip19(srcTokenAsset);
-    if (!parsed) return undefined;
-    return [`${parsed.namespace}:${parsed.chainId}` as CaipChainId];
-  }, [mode, srcTokenAsset]);
+  // In swap mode, restrict to the same chain as the src asset.
+  // In open_position mode, use the user-selected chain (defaults to Ethereum).
+  const chainIds = useMemo((): CaipChainId[] => {
+    if (mode === 'swap' && srcTokenAsset) {
+      const parsed = parseCaip19(srcTokenAsset);
+      if (parsed) {
+        return [`${parsed.namespace}:${parsed.chainId}` as CaipChainId];
+      }
+    }
+    return [selectedChainId];
+  }, [mode, srcTokenAsset, selectedChainId]);
 
   const { data: rwaTokens, isLoading } = useRwaTokens({
     searchQuery,
@@ -225,15 +244,17 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   });
 
   // Deduplicate by symbol so the same stock on multiple chains appears once.
+  // Use CAIP-19 assetId (not symbol) to exclude the source token in swap mode —
+  // symbol comparison is fragile when casing differs between chains.
   const tokens = useMemo((): TrendingAsset[] => {
     const seen = new Set<string>();
     return rwaTokens.filter((token) => {
-      if (srcTokenSymbol && token.symbol === srcTokenSymbol) return false;
+      if (srcTokenAsset && token.assetId === srcTokenAsset) return false;
       if (seen.has(token.symbol)) return false;
       seen.add(token.symbol);
       return true;
     });
-  }, [rwaTokens, srcTokenSymbol]);
+  }, [rwaTokens, srcTokenAsset]);
 
   const handleAssetSelect = useCallback(
     (asset: TrendingAsset) => {
@@ -279,7 +300,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   );
 
   const title =
-    mode === 'swap' && srcTokenSymbol && srcTokenAsset ? (
+    mode === 'swap' && srcTokenSymbolDisplay && srcTokenAsset ? (
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -303,11 +324,11 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
         >
           <TrendingTokenLogo
             assetId={srcTokenAsset}
-            symbol={srcTokenSymbol}
+            symbol={srcTokenSymbolDisplay}
             size={28}
           />
         </BadgeWrapper>
-        <Text variant={TextVariant.HeadingSm}>{srcTokenSymbol}</Text>
+        <Text variant={TextVariant.HeadingSm}>{srcTokenSymbolDisplay}</Text>
       </Box>
     ) : (
       strings('rewards.ondo_rwa_asset_selector.title_open_position')
@@ -389,6 +410,41 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
             )}
           </View>
         </View>
+
+        {/* Chain filter — only shown when choosing a new position (not in swap mode) */}
+        {mode === 'open_position' && (
+          <View style={tw.style('px-4 pb-2')}>
+            <View
+              style={tw.style('flex-row bg-muted rounded-xl p-1 self-start')}
+            >
+              {RWA_NETWORKS_LIST.map((network) => {
+                const isSelected = network.caipChainId === selectedChainId;
+                return (
+                  <TouchableOpacity
+                    key={network.caipChainId}
+                    testID={`chain-filter-${network.caipChainId}`}
+                    onPress={() => setSelectedChainId(network.caipChainId)}
+                    style={tw.style(
+                      `px-4 py-1.5 rounded-lg${isSelected ? ' bg-default' : ''}`,
+                    )}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={
+                        isSelected
+                          ? TextColor.TextDefault
+                          : TextColor.TextAlternative
+                      }
+                    >
+                      {network.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        )}
 
         <View
           style={[styles.divider, { backgroundColor: colors.border.muted }]}
