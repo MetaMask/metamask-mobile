@@ -3822,37 +3822,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  tokenDetailsV2AbTest: {
-    name: 'tokenDetailsV2AbTest',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'Control is OFF',
-        scope: {
-          value: 0.5,
-          type: 'threshold',
-        },
-        value: {
-          minimumVersion: '7.69.0',
-          variant: 'treatment',
-        },
-      },
-      {
-        name: 'Control is ON',
-        scope: {
-          type: 'threshold',
-          value: 1,
-        },
-        value: {
-          minimumVersion: '7.69.0',
-          variant: 'control',
-        },
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
   tokenDetailsV2ButtonLayout: {
     name: 'tokenDetailsV2ButtonLayout',
     type: FeatureFlagType.Remote,

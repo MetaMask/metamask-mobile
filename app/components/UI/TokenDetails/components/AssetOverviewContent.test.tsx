@@ -74,10 +74,6 @@ jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
   default: (...args: unknown[]) => mockPerpsBottomSheetTooltipInner(...args),
 }));
 
-jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
-  selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
-}));
-
 jest.mock(
   '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart',
   () => ({
@@ -180,13 +176,10 @@ const defaultProps: AssetOverviewContentProps = {
   setTimePeriod: jest.fn(),
   chartNavigationButtons: ['1d', '1w', '1m', '3m', '1y', '3y'],
   isPerpsEnabled: true,
-  displayBuyButton: false,
-  displaySwapsButton: false,
   currentCurrency: 'USD',
   onBuy: jest.fn(),
   onSend: jest.fn().mockResolvedValue(undefined),
   onReceive: jest.fn(),
-  goToSwaps: jest.fn(),
 };
 
 const createMockSecurityData = (
