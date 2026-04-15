@@ -124,7 +124,7 @@ const Quote: React.FC<Props> = ({
       testID={QUOTE_TEST_IDS.ANIMATED_VIEW_OPACITY}
     >
       <Box
-        onPress={highlighted ? undefined : onPress}
+        onPress={highlighted || isLoading ? undefined : onPress}
         highlighted={highlighted}
         activeOpacity={0.8}
         accessible={!highlighted}

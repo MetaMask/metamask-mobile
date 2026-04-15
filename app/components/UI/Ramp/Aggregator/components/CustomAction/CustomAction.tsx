@@ -88,7 +88,7 @@ const CustomAction: React.FC<Props> = ({
       testID={CUSTOM_ACTION_TEST_IDS.ANIMATED_VIEW_OPACITY}
     >
       <Box
-        onPress={highlighted ? undefined : onPress}
+        onPress={highlighted || isLoading ? undefined : onPress}
         highlighted={highlighted}
         activeOpacity={0.8}
         accessible={!highlighted}
