@@ -9,7 +9,6 @@ interface TrackStickyBottomCtaClickedParams {
   isPrimary: boolean;
   tokenAddress: string;
   chainId: string;
-  usdBalance: number | undefined;
 }
 
 /**
@@ -26,7 +25,6 @@ export function useStickyFooterTracking() {
       isPrimary,
       tokenAddress,
       chainId,
-      usdBalance,
     }: TrackStickyBottomCtaClickedParams) => {
       trackEvent(
         createEventBuilder(
@@ -37,7 +35,6 @@ export function useStickyFooterTracking() {
             is_primary: isPrimary,
             token_address: tokenAddress,
             chain_id: chainId,
-            ...(usdBalance !== undefined && { usd_balance: usdBalance }),
           })
           .build(),
       );

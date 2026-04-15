@@ -303,7 +303,6 @@ describe('TokenDetailsStickyFooter', () => {
         isPrimary: false,
         tokenAddress: '0x123',
         chainId: '0x1',
-        usdBalance: 50,
       });
     });
 
@@ -328,7 +327,6 @@ describe('TokenDetailsStickyFooter', () => {
         isPrimary: true,
         tokenAddress: '0x123',
         chainId: '0x1',
-        usdBalance: 50,
       });
     });
 
@@ -352,7 +350,6 @@ describe('TokenDetailsStickyFooter', () => {
         isPrimary: true,
         tokenAddress: '0x123',
         chainId: '0x1',
-        usdBalance: 150,
       });
     });
 
@@ -377,7 +374,6 @@ describe('TokenDetailsStickyFooter', () => {
         isPrimary: true,
         tokenAddress: '0x123',
         chainId: '0x1',
-        usdBalance: 50,
       });
     });
   });

@@ -411,7 +411,6 @@ describe('TokenDetails', () => {
           token_symbol: 'DAI',
           market_insights_displayed: true,
           has_perps_market: false,
-          usd_balance: 150,
           sticky_buttons_shown: expect.stringMatching(/^(both|buy|swap)$/),
         }),
       );

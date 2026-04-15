@@ -218,7 +218,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               isPrimary: swapIsSuccess,
               tokenAddress: token.address ?? '',
               chainId: token.chainId ?? '',
-              usdBalance: balanceFiatUsd,
             });
             handleFooterAction(onSwap, strings(buttonLabels.swapLabelKey));
           }}
@@ -248,7 +247,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               isPrimary: buyIsSuccess,
               tokenAddress: token.address ?? '',
               chainId: token.chainId ?? '',
-              usdBalance: balanceFiatUsd,
             });
             handleFooterAction(onBuy, strings('asset_overview.buy_button'));
           }}

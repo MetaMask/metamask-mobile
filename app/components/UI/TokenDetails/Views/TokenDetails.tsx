@@ -80,13 +80,11 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       isMarketInsightsDisplayed,
       severity,
       hasPerpsMarket,
-      balanceUsd,
       stickyButtonsShown,
     }: {
       isMarketInsightsDisplayed: boolean;
       severity: string | undefined;
       hasPerpsMarket: boolean;
-      balanceUsd: number | undefined;
       stickyButtonsShown: 'both' | 'buy' | 'swap' | undefined;
     }) => {
       const source = params.source ?? TokenDetailsSource.Unknown;
@@ -109,7 +107,6 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         token_address: params.address,
         token_name: params.name,
         has_balance: hasBalance,
-        usd_balance: balanceUsd,
         sticky_buttons_shown: stickyButtonsShown,
         market_insights_displayed: isMarketInsightsDisplayed,
         severity,
@@ -152,14 +149,8 @@ const TokenDetails: React.FC<{
     isDisplayed: boolean;
     severity: string | undefined;
   }) => void;
-  onFiatBalanceResolved?: (balanceUsd: number | null) => void;
   onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
-}> = ({
-  token,
-  onMarketInsightsDisplayResolved,
-  onFiatBalanceResolved,
-  onStickyButtonsResolved,
-}) => {
+}> = ({ token, onMarketInsightsDisplayResolved, onStickyButtonsResolved }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
@@ -244,12 +235,6 @@ const TokenDetails: React.FC<{
     readyForWithdrawalBalance,
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token, { calculateUsdBalance: true });
-
-  useEffect(() => {
-    if (onFiatBalanceResolved) {
-      onFiatBalanceResolved(balanceFiatUsd ?? null);
-    }
-  }, [balanceFiatUsd, onFiatBalanceResolved]);
 
   const {
     onBuy,
@@ -424,10 +409,6 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const { hasPerpsMarket, isLoading: isPerpsMarketLoading } =
     usePerpsMarketForAsset(isPerpsEnabled ? token.symbol : null);
 
-  // undefined = not yet resolved; null = resolved with no value; number = resolved value
-  const [resolvedBalanceUsd, setResolvedBalanceUsd] = useState<
-    number | null | undefined
-  >(undefined);
   // undefined = not yet resolved; null = footer won't render; string = resolved value
   const [resolvedStickyButtons, setResolvedStickyButtons] = useState<
     'both' | 'buy' | 'swap' | null | undefined
@@ -472,18 +453,14 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     if (isPerpsEnabled && isPerpsMarketLoading) {
       return;
     }
-    if (
-      resolvedBalanceUsd === undefined ||
-      resolvedStickyButtons === undefined
-    ) {
-      // Wait until both async values have settled before firing the event.
+    if (resolvedStickyButtons === undefined) {
+      // Wait until sticky buttons have settled before firing the event.
       return;
     }
     trackTokenDetailsOpened({
       isMarketInsightsDisplayed: pendingInsights.isDisplayed,
       severity: pendingInsights.severity,
       hasPerpsMarket: isPerpsEnabled ? hasPerpsMarket : false,
-      balanceUsd: resolvedBalanceUsd ?? undefined,
       stickyButtonsShown: resolvedStickyButtons ?? undefined,
     });
     setPendingInsights(null);
@@ -492,7 +469,6 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     hasPerpsMarket,
     isPerpsEnabled,
     isPerpsMarketLoading,
-    resolvedBalanceUsd,
     resolvedStickyButtons,
     tokenKey,
     trackTokenDetailsOpened,
@@ -502,7 +478,6 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     <TokenDetails
       token={token}
       onMarketInsightsDisplayResolved={handleMarketInsightsDisplayResolved}
-      onFiatBalanceResolved={setResolvedBalanceUsd}
       onStickyButtonsResolved={setResolvedStickyButtons}
     />
   );
