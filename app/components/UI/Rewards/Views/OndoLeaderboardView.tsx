@@ -26,10 +26,12 @@ import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import {
   selectReferralCode,
   selectCampaignById,
 } from '../../../../reducers/rewards/selectors';
+import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -108,6 +110,14 @@ const OndoLeaderboardView: React.FC = () => {
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'ondo-leaderboard-back-button' }}
+          endButtonIconProps={getCampaignMechanicsButtonProps(
+            campaign != null,
+            () =>
+              navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
+                campaignId,
+              }),
+            'leaderboard-mechanics-button',
+          )}
           includesTopInset
         />
 
@@ -121,7 +131,7 @@ const OndoLeaderboardView: React.FC = () => {
               <Box flexDirection={BoxFlexDirection.Row}>
                 <StatCell
                   label="Rank"
-                  value={`${position.rank}`}
+                  value={String(position.rank).padStart(2, '0')}
                   isLoading={isPositionLoading}
                   suffix={isPending ? <PendingTag /> : undefined}
                 />

@@ -3,7 +3,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import OndoCampaignStatsView, {
   ONDO_CAMPAIGN_STATS_VIEW_TEST_IDS,
 } from './OndoCampaignStatsView';
-import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
@@ -20,6 +19,15 @@ const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   useRoute: () => ({ params: { campaignId: 'campaign-ondo-123' } }),
+}));
+
+const mockRewardsState: { campaigns: CampaignDto[] } = { campaigns: [] };
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (
+    selector: (state: { rewards: typeof mockRewardsState }) => unknown,
+  ) => selector({ rewards: mockRewardsState }),
 }));
 
 jest.mock('react-native-safe-area-context', () => {
@@ -140,7 +148,13 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../utils/formatUtils', () => ({
-  formatPercentChange: (value: number) => `${(value * 100).toFixed(2)}%`,
+  formatPercentChange: (value: string | number): string => {
+    const num = typeof value === 'number' ? value : parseFloat(value);
+    if (Number.isNaN(num)) return '';
+    const percentage = num * 100;
+    const sign = percentage >= 0 ? '+' : '';
+    return `${sign}${percentage.toFixed(2)}%`;
+  },
   formatUsd: (value: number | string) =>
     `$${Number(value).toLocaleString('en-US', {
       minimumFractionDigits: 2,
@@ -163,7 +177,6 @@ jest.mock('../../../../core/Engine/Engine', () => ({
 }));
 
 jest.mock('../components/Campaigns/CampaignTile.utils');
-jest.mock('../hooks/useRewardCampaigns');
 jest.mock('../hooks/useGetCampaignParticipantStatus');
 jest.mock('../hooks/useGetOndoPortfolioPosition');
 jest.mock('../hooks/useGetOndoLeaderboardPosition');
@@ -171,9 +184,6 @@ jest.mock('../hooks/useGetOndoLeaderboard');
 
 const mockGetCampaignStatus = getCampaignStatus as jest.MockedFunction<
   typeof getCampaignStatus
->;
-const mockUseRewardCampaigns = useRewardCampaigns as jest.MockedFunction<
-  typeof useRewardCampaigns
 >;
 const mockUseGetCampaignParticipantStatus =
   useGetCampaignParticipantStatus as jest.MockedFunction<
@@ -288,14 +298,7 @@ describe('OndoCampaignStatsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetCampaignStatus.mockReturnValue('active');
-    mockUseRewardCampaigns.mockReturnValue({
-      campaigns: [],
-      categorizedCampaigns: { active: [], upcoming: [], previous: [] },
-      isLoading: false,
-      hasLoaded: false,
-      hasError: false,
-      fetchCampaigns: jest.fn(),
-    });
+    mockRewardsState.campaigns = [];
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: null,
       isLoading: false,
@@ -325,19 +328,43 @@ describe('OndoCampaignStatsView', () => {
     expect(getAllByText('-').length).toBeGreaterThan(0);
   });
 
-  it('shows formatted return value when position is available', () => {
-    mockUseGetOndoLeaderboardPosition.mockReturnValue({
-      ...positionDefaults,
-      position: makeQualifiedPosition({ rateOfReturn: 0.15 }),
+  it('shows formatted return value when portfolio data is available', () => {
+    mockUseGetOndoPortfolioPosition.mockReturnValue({
+      ...portfolioDefaults,
+      portfolio: {
+        positions: [],
+        summary: {
+          totalCurrentValue: '15000',
+          totalBookValue: '13000',
+          totalUsdDeposited: '13000',
+          netDeposit: '12500',
+          totalCashedOut: '0',
+          portfolioPnl: '2000',
+          portfolioPnlPercent: '0.15',
+        },
+        computedAt: '2024-01-01T00:00:00Z',
+      },
     });
     const { getByText } = render(<OndoCampaignStatsView />);
-    expect(getByText('15.00%')).toBeDefined();
+    expect(getByText('+15.00%')).toBeDefined();
   });
 
-  it('shows negative return with error color class when rate of return is negative', () => {
-    mockUseGetOndoLeaderboardPosition.mockReturnValue({
-      ...positionDefaults,
-      position: makePendingPosition({ rateOfReturn: -0.03 }),
+  it('shows negative return with error color class when portfolio return is negative', () => {
+    mockUseGetOndoPortfolioPosition.mockReturnValue({
+      ...portfolioDefaults,
+      portfolio: {
+        positions: [],
+        summary: {
+          totalCurrentValue: '9700',
+          totalBookValue: '10000',
+          totalUsdDeposited: '10000',
+          netDeposit: '10000',
+          totalCashedOut: '0',
+          portfolioPnl: '-300',
+          portfolioPnlPercent: '-0.03',
+        },
+        computedAt: '2024-01-01T00:00:00Z',
+      },
     });
     const { getByText } = render(<OndoCampaignStatsView />);
     expect(getByText('-3.00%')).toBeDefined();
@@ -428,14 +455,7 @@ describe('OndoCampaignStatsView', () => {
   });
 
   it('shows qualify card when campaign is active, position is pending, and tierMinDeposit is set', () => {
-    mockUseRewardCampaigns.mockReturnValue({
-      campaigns: [createTestCampaign()],
-      categorizedCampaigns: { active: [], upcoming: [], previous: [] },
-      isLoading: false,
-      hasLoaded: true,
-      hasError: false,
-      fetchCampaigns: jest.fn(),
-    });
+    mockRewardsState.campaigns = [createTestCampaign()];
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: { optedIn: true, participantCount: 1 },
       isLoading: false,
@@ -456,14 +476,7 @@ describe('OndoCampaignStatsView', () => {
   });
 
   it('navigates to pending sheet when qualify card is pressed', () => {
-    mockUseRewardCampaigns.mockReturnValue({
-      campaigns: [createTestCampaign()],
-      categorizedCampaigns: { active: [], upcoming: [], previous: [] },
-      isLoading: false,
-      hasLoaded: true,
-      hasError: false,
-      fetchCampaigns: jest.fn(),
-    });
+    mockRewardsState.campaigns = [createTestCampaign()];
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: { optedIn: true, participantCount: 1 },
       isLoading: false,
@@ -488,14 +501,7 @@ describe('OndoCampaignStatsView', () => {
   });
 
   it('shows qualified card when position is qualified and tierMinDeposit is set', () => {
-    mockUseRewardCampaigns.mockReturnValue({
-      campaigns: [createTestCampaign()],
-      categorizedCampaigns: { active: [], upcoming: [], previous: [] },
-      isLoading: false,
-      hasLoaded: true,
-      hasError: false,
-      fetchCampaigns: jest.fn(),
-    });
+    mockRewardsState.campaigns = [createTestCampaign()];
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: { optedIn: true, participantCount: 1 },
       isLoading: false,
@@ -512,16 +518,124 @@ describe('OndoCampaignStatsView', () => {
     ).toBeDefined();
   });
 
+  describe('ineligible state', () => {
+    const makeIneligibleCampaign = (): CampaignDto => {
+      const now = new Date();
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const endDate = new Date(now);
+      endDate.setDate(endDate.getDate() + 5); // 6 days available — below 10-day threshold
+      return createTestCampaign({
+        startDate: yesterday.toISOString(),
+        endDate: endDate.toISOString(),
+      });
+    };
+
+    const setupIneligible = () => {
+      mockGetCampaignStatus.mockReturnValue('active');
+      mockRewardsState.campaigns = [makeIneligibleCampaign()];
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        ...positionDefaults,
+        position: makePendingPosition({ qualifiedDays: 0 }),
+      });
+    };
+
+    it('shows ineligible tag when not enough days remain', () => {
+      setupIneligible();
+      const { getByText } = render(<OndoCampaignStatsView />);
+      expect(
+        getByText('rewards.ondo_campaign_leaderboard.ineligible'),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not show pending tag when ineligible', () => {
+      setupIneligible();
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(
+        queryByText('rewards.ondo_campaign_leaderboard.pending'),
+      ).toBeNull();
+    });
+
+    it('does not show qualified tag when ineligible', () => {
+      setupIneligible();
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(
+        queryByText('rewards.ondo_campaign_leaderboard.qualified'),
+      ).toBeNull();
+    });
+
+    it('shows not-eligible banner when ineligible', () => {
+      setupIneligible();
+      const { getByTestId } = render(<OndoCampaignStatsView />);
+      expect(
+        getByTestId('campaign-stats-summary-not-eligible-banner'),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides qualify card when ineligible', () => {
+      setupIneligible();
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(
+        queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
+      ).toBeNull();
+    });
+
+    it('shows dash for rank and tier values when ineligible', () => {
+      setupIneligible();
+      // position has rank: 8 and projectedTier: 'STARTER' — neither should appear
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(queryByText('8')).toBeNull();
+      expect(queryByText('STARTER')).toBeNull();
+    });
+
+    it('does not show ineligible tag when qualified even if campaign ends soon', () => {
+      mockGetCampaignStatus.mockReturnValue('active');
+      mockRewardsState.campaigns = [makeIneligibleCampaign()];
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        ...positionDefaults,
+        position: makeQualifiedPosition(),
+      });
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(
+        queryByText('rewards.ondo_campaign_leaderboard.ineligible'),
+      ).toBeNull();
+    });
+
+    it('does not show ineligible tag when campaign is complete', () => {
+      mockGetCampaignStatus.mockReturnValue('complete');
+      mockRewardsState.campaigns = [makeIneligibleCampaign()];
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        ...positionDefaults,
+        position: makePendingPosition({ qualifiedDays: 0 }),
+      });
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(
+        queryByText('rewards.ondo_campaign_leaderboard.ineligible'),
+      ).toBeNull();
+    });
+  });
+
   it('hides qualified card when campaign is complete even if position is qualified', () => {
     mockGetCampaignStatus.mockReturnValue('complete');
-    mockUseRewardCampaigns.mockReturnValue({
-      campaigns: [createTestCampaign()],
-      categorizedCampaigns: { active: [], upcoming: [], previous: [] },
-      isLoading: false,
-      hasLoaded: true,
-      hasError: false,
-      fetchCampaigns: jest.fn(),
-    });
+    mockRewardsState.campaigns = [createTestCampaign()];
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: { optedIn: true, participantCount: 1 },
       isLoading: false,

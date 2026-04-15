@@ -3,16 +3,14 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+  IconName,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon/Icon.types';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 
 interface CopyableFieldProps {
@@ -42,7 +40,7 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
 
   return (
     <Box
-      twClassName="bg-muted border-muted rounded-md px-4 py-3"
+      twClassName="bg-muted rounded-lg px-4 py-1 border border-solid border-muted"
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
     >
@@ -57,14 +55,14 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
         )}
       </Box>
       <ButtonIcon
-        iconName={isCopied ? IconName.CopySuccess : IconName.Copy}
-        size={ButtonIconSizes.Md}
+        iconName={isCopied ? IconName.Confirmation : IconName.Copy}
+        size={ButtonIconSize.Md}
         onPress={handleCopy}
         isDisabled={!value}
         accessibilityLabel={isCopied ? 'Copied' : 'Copy'}
         accessibilityRole="button"
         testID="copy-button"
-        iconColor={isCopied ? IconColor.Success : undefined}
+        iconProps={isCopied ? { color: IconColor.SuccessDefault } : undefined}
       />
     </Box>
   );

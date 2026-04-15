@@ -156,7 +156,9 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
           onPress={hasPositions ? onSwapAssets : onOpenPosition}
           testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
         >
-          {strings('rewards.campaign_details.ondo.open_position')}
+          {hasPositions
+            ? strings('rewards.campaign_details.swap_ondo_assets')
+            : strings('rewards.campaign_details.open_position')}
         </Button>
       </Box>
       {isNotEligibleSheetOpen && (

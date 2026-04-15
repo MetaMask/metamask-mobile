@@ -302,6 +302,9 @@ describe('usePerpsHomeData', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn().mockResolvedValue(undefined),
+      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+      hasFundingMore: true,
+      isFetchingMoreFunding: false,
     });
 
     // Mock sortMarkets to return markets as-is by default
@@ -897,6 +900,9 @@ describe('usePerpsHomeData', () => {
         isLoading: false,
         error: null,
         refetch: jest.fn().mockResolvedValue(undefined),
+        loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+        hasFundingMore: true,
+        isFetchingMoreFunding: false,
       });
 
       const { result } = renderHook(() => usePerpsHomeData());

@@ -64,7 +64,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          color={TextColor.TextMuted}
+          color={TextColor.TextAlternative}
         >
           {strings(
             followerCount === 1

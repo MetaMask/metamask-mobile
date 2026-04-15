@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useQuery } from '@metamask/react-data-query';
 import type {
   PositionsResponse,
@@ -6,6 +6,12 @@ import type {
   Position,
 } from '@metamask/social-controllers';
 import Logger from '../../../../../util/Logger';
+
+const EMPTY_POSITIONS: Position[] = [];
+
+export interface UseTraderPositionsOptions {
+  refetchInterval?: number;
+}
 
 export interface UseTraderPositionsResult {
   openPositions: Position[];
@@ -17,6 +23,7 @@ export interface UseTraderPositionsResult {
 
 export const useTraderPositions = (
   addressOrId: string,
+  options?: UseTraderPositionsOptions,
 ): UseTraderPositionsResult => {
   const fetchOptions: FetchPositionsOptions = { addressOrId };
 
@@ -27,6 +34,7 @@ export const useTraderPositions = (
   } = useQuery<PositionsResponse>({
     queryKey: ['SocialService:fetchOpenPositions', fetchOptions],
     enabled: Boolean(addressOrId),
+    refetchInterval: options?.refetchInterval,
   });
 
   const {
@@ -38,12 +46,8 @@ export const useTraderPositions = (
     enabled: Boolean(addressOrId),
   });
 
-  const openPositions = useMemo(() => openData?.positions ?? [], [openData]);
-
-  const closedPositions = useMemo(
-    () => closedData?.positions ?? [],
-    [closedData],
-  );
+  const openPositions = openData?.positions ?? EMPTY_POSITIONS;
+  const closedPositions = closedData?.positions ?? EMPTY_POSITIONS;
 
   const combinedError = openError ?? closedError;
 

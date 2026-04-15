@@ -49,7 +49,10 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { OndoCampaignHowItWorks } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
-import { ONDO_GM_REQUIRED_QUALIFIED_DAYS } from '../utils/ondoCampaignConstants';
+import {
+  ONDO_GM_REQUIRED_QUALIFIED_DAYS,
+  isCampaignIneligible,
+} from '../utils/ondoCampaignConstants';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -194,24 +197,10 @@ const OndoCampaignDetailsView: React.FC = () => {
     [leaderboardPosition, tierMinDeposit],
   );
 
-  const notEligibleForCampaign = useMemo((): boolean => {
-    if (!campaign) return false;
-    if (isOptedIn && leaderboardPosition?.qualified) return false;
-    if (getCampaignStatus(campaign) !== 'active') return false;
-    // Backend counts calendar days (UTC): the day a position is opened counts as day 1,
-    // and every subsequent calendar day until endDate inclusive counts too.
-    // daysAvailable = floor((endDate - startOfTodayUTC) / 24h) + 1
-    const now = new Date();
-    const startOfTodayUTC = Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate(),
-    );
-    const endDate = new Date(campaign.endDate).getTime();
-    const daysAvailable =
-      Math.floor((endDate - startOfTodayUTC) / (1000 * 60 * 60 * 24)) + 1;
-    return daysAvailable < ONDO_GM_REQUIRED_QUALIFIED_DAYS;
-  }, [campaign, isOptedIn, leaderboardPosition]);
+  const notEligibleForCampaign = useMemo(
+    () => isCampaignIneligible(campaign, leaderboardPosition?.qualified),
+    [campaign, leaderboardPosition],
+  );
 
   const {
     showHowItWorksSection,
@@ -234,7 +223,7 @@ const OndoCampaignDetailsView: React.FC = () => {
         !hasPositions &&
         getCampaignStatus(campaign) === 'active',
       showStatsSummarySection: hasPositions,
-      showPortfolioSection: isOptedIn,
+      showPortfolioSection: isOptedIn && hasPositions,
       showLeaderboardSection: true,
     };
   }, [campaign, isOptedIn, hasPositions]);
@@ -351,6 +340,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       }}
                       showHeader={false}
                       tierMinDeposit={tierMinDeposit}
+                      isIneligible={notEligibleForCampaign}
                       onQualifyPress={
                         leaderboardPendingSheetPosition
                           ? () =>
@@ -413,27 +403,26 @@ const OndoCampaignDetailsView: React.FC = () => {
                 </>
               )}
 
-              {(getCampaignStatus(campaign) === 'active' ||
-                showLeaderboardSection) && (
-                <Box twClassName="my-1 border-b border-border-muted" />
-              )}
-
               {getCampaignStatus(campaign) === 'active' && (
-                <Box twClassName="p-4">
-                  <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
-                    {strings('rewards.ondo_campaign_prize_pool.title')}
-                  </Text>
-                  <OndoPrizePool
-                    totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
-                    isLoading={isDepositsLoading}
-                    hasError={hasDepositsError}
-                    refetch={refetchDeposits}
-                  />
-                </Box>
+                <>
+                  <Box twClassName="my-1 border-b border-border-muted" />
+                  <Box twClassName="p-4">
+                    <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
+                      {strings('rewards.ondo_campaign_prize_pool.title')}
+                    </Text>
+                    <OndoPrizePool
+                      totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
+                      isLoading={isDepositsLoading}
+                      hasError={hasDepositsError}
+                      refetch={refetchDeposits}
+                    />
+                  </Box>
+                </>
               )}
 
               {showLeaderboardSection && (
                 <>
+                  <Box twClassName="my-1 border-b border-border-muted" />
                   <Box twClassName="py-4">
                     <Pressable
                       onPress={() =>

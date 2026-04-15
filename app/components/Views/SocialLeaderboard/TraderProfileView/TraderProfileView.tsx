@@ -4,6 +4,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
   useRoute,
+  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
@@ -25,8 +26,10 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import { useTraderProfile, useTraderPositions } from './hooks';
+import type { Position } from '@metamask/social-controllers';
 import ProfileHeader from './components/ProfileHeader';
 import StatsRow from './components/StatsRow';
 import PositionRow from './components/PositionRow';
@@ -61,7 +64,7 @@ const TabButton: React.FC<TabButtonProps> = ({
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        color={isActive ? TextColor.TextDefault : TextColor.TextMuted}
+        color={isActive ? TextColor.TextDefault : TextColor.TextAlternative}
       >
         {label}
       </Text>
@@ -74,7 +77,7 @@ const TabButton: React.FC<TabButtonProps> = ({
 // ---------------------------------------------------------------------------
 
 const TraderProfileView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderProfileView'>>();
   const tw = useTailwind();
 
@@ -87,9 +90,9 @@ const TraderProfileView = () => {
     isFollowing,
     toggleFollow,
     refresh,
-  } = useTraderProfile(traderId);
+  } = useTraderProfile(traderId, { refetchInterval: 30_000 });
   const { openPositions, closedPositions, isLoadingOpen, isLoadingClosed } =
-    useTraderPositions(traderId);
+    useTraderPositions(traderId, { refetchInterval: 30_000 });
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
 
@@ -101,6 +104,17 @@ const TraderProfileView = () => {
     // TBD — notification preferences not yet wired
   }, []);
 
+  const handlePositionPress = useCallback(
+    (position: Position) => {
+      navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
+        traderId,
+        traderName,
+        tokenSymbol: position.tokenSymbol,
+        position,
+      });
+    },
+    [navigation, traderId, traderName],
+  );
   const positions = activeTab === 'open' ? openPositions : closedPositions;
   const isLoadingPositions =
     activeTab === 'open' ? isLoadingOpen : isLoadingClosed;
@@ -223,7 +237,7 @@ const TraderProfileView = () => {
                   >
                     <Text
                       variant={TextVariant.BodyMd}
-                      color={TextColor.TextMuted}
+                      color={TextColor.TextAlternative}
                     >
                       {strings(
                         'social_leaderboard.trader_profile.no_positions',
@@ -235,6 +249,7 @@ const TraderProfileView = () => {
                     <PositionRow
                       key={`${position.tokenAddress}-${position.chain}-${index}`}
                       position={position}
+                      onPress={handlePositionPress}
                     />
                   ))
                 )}

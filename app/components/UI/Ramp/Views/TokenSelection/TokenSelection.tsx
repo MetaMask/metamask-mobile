@@ -386,14 +386,7 @@ function TokenSelection() {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <Box twClassName="py-2">
-          <TokenNetworkFilterBar
-            networks={uniqueNetworks}
-            networkFilter={networkFilter}
-            setNetworkFilter={handleNetworkFilterChange}
-          />
-        </Box>
-        <Box twClassName="px-4 py-3">
+        <Box twClassName="px-4 pb-3">
           <TextFieldSearch
             testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
             value={searchString}
@@ -403,6 +396,13 @@ function TokenSelection() {
             placeholder={strings(
               'deposit.token_modal.search_by_name_or_address',
             )}
+          />
+        </Box>
+        <Box twClassName="pt-2 pb-4 pl-4">
+          <TokenNetworkFilterBar
+            networks={uniqueNetworks}
+            networkFilter={networkFilter}
+            setNetworkFilter={handleNetworkFilterChange}
           />
         </Box>
         <FlatList

@@ -3008,14 +3008,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  extensionUxPna25: {
-    name: 'extensionUxPna25',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: true,
-    status: FeatureFlagStatus.Active,
-  },
-
   forceRampsStagingEnvironment: {
     name: 'forceRampsStagingEnvironment',
     type: FeatureFlagType.Remote,
@@ -3849,37 +3841,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
-    status: FeatureFlagStatus.Active,
-  },
-
-  tokenDetailsV2AbTest: {
-    name: 'tokenDetailsV2AbTest',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        value: {
-          minimumVersion: '7.69.0',
-          variant: 'control',
-        },
-        name: 'Control is ON',
-        scope: {
-          value: 0,
-          type: 'threshold',
-        },
-      },
-      {
-        name: 'Control is OFF',
-        scope: {
-          value: 1,
-          type: 'threshold',
-        },
-        value: {
-          minimumVersion: '7.69.0',
-          variant: 'treatment',
-        },
-      },
-    ],
     status: FeatureFlagStatus.Active,
   },
 
