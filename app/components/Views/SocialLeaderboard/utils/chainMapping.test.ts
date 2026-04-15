@@ -2,13 +2,13 @@ import { chainNameToId, isSupportedChain } from './chainMapping';
 
 describe('chainNameToId', () => {
   it.each([
-    ['ethereum', '0x1'],
-    ['base', '0x2105'],
-    ['arbitrum', '0xa4b1'],
-    ['optimism', '0xa'],
-    ['polygon', '0x89'],
-    ['linea', '0xe708'],
-    ['bsc', '0x38'],
+    ['ethereum', 'eip155:1'],
+    ['base', 'eip155:8453'],
+    ['arbitrum', 'eip155:42161'],
+    ['optimism', 'eip155:10'],
+    ['polygon', 'eip155:137'],
+    ['linea', 'eip155:59144'],
+    ['bsc', 'eip155:56'],
     ['solana', 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
   ])('maps %s to %s', (chainName, expectedId) => {
     expect(chainNameToId(chainName)).toBe(expectedId);
@@ -23,15 +23,15 @@ describe('chainNameToId', () => {
   });
 
   it('is case-insensitive for lowercase input', () => {
-    expect(chainNameToId('ethereum')).toBe('0x1');
+    expect(chainNameToId('ethereum')).toBe('eip155:1');
   });
 
   it('is case-insensitive for uppercase input', () => {
-    expect(chainNameToId('ETHEREUM')).toBe('0x1');
+    expect(chainNameToId('ETHEREUM')).toBe('eip155:1');
   });
 
   it('is case-insensitive for mixed-case input', () => {
-    expect(chainNameToId('Base')).toBe('0x2105');
+    expect(chainNameToId('Base')).toBe('eip155:8453');
   });
 });
 
