@@ -667,6 +667,7 @@ jobs:
         (needs.build-android-apks.result == 'success' || needs.provide-android-artifact.result == 'success')
       }}
     permissions:
+      actions: read
       contents: read
       id-token: write
       checks: write
@@ -812,6 +813,7 @@ jobs:
         needs.ios-tests-ready.result == 'success'
       }}
     permissions:
+      actions: read
       contents: read
       id-token: write
       checks: write
