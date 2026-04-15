@@ -1,8 +1,14 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import OndoCampaignRwaSelectorView from './OndoCampaignRwaSelectorView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockUseAnalyticsHook,
+  createMockEventBuilder,
+} from '../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 
@@ -96,12 +102,44 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   SwapBridgeNavigationLocation: { Rewards: 'Rewards' },
 }));
 
+let mockIsTokenTradingOpen = jest.fn(() => true);
+
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
     isStockToken: jest.fn(() => false),
-    isTokenTradingOpen: jest.fn(() => true),
+    isTokenTradingOpen: mockIsTokenTradingOpen,
   }),
 }));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
+jest.mock('../components/Campaigns/OndoAfterHoursSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      onClose,
+      onConfirm,
+    }: {
+      onClose: () => void;
+      onConfirm: () => void;
+      nextOpenAt: Date | null;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'after-hours-sheet' },
+        ReactActual.createElement(TouchableOpacity, {
+          testID: 'after-hours-close',
+          onPress: onClose,
+        }),
+        ReactActual.createElement(TouchableOpacity, {
+          testID: 'after-hours-confirm',
+          onPress: onConfirm,
+        }),
+      ),
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -179,6 +217,9 @@ jest.mock('../../Trending/components/TrendingTokenLogo', () => {
   };
 });
 
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
+
 jest.mock('@metamask/utils', () => ({
   ...jest.requireActual('@metamask/utils'),
 }));
@@ -204,6 +245,13 @@ describe('OndoCampaignRwaSelectorView', () => {
     jest.clearAllMocks();
     mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
     mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
+    mockIsTokenTradingOpen = jest.fn(() => true);
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     mockActiveGroupAccounts = [];
     mockAllTokenBalances = {};
     (useSelector as jest.Mock).mockImplementation((selector) => {
@@ -293,9 +341,66 @@ describe('OndoCampaignRwaSelectorView', () => {
     });
   });
 
+  describe('after-hours sheet', () => {
+    const token = buildToken('AAPL');
+
+    beforeEach(() => {
+      mockIsTokenTradingOpen = jest.fn(() => false);
+      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
+    });
+
+    it('shows the after-hours sheet when token trading is closed', () => {
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+
+      fireEvent.press(getByTestId('token-row-AAPL'));
+
+      expect(getByTestId('after-hours-sheet')).toBeOnTheScreen();
+    });
+
+    it('closes the after-hours sheet without navigating when onClose is called', () => {
+      const { getByTestId, queryByTestId } = render(
+        <OndoCampaignRwaSelectorView />,
+      );
+
+      fireEvent.press(getByTestId('token-row-AAPL'));
+      expect(getByTestId('after-hours-sheet')).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId('after-hours-close'));
+
+      expect(queryByTestId('after-hours-sheet')).not.toBeOnTheScreen();
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+    });
+
+    it('tracks REWARDS_PAGE_BUTTON_CLICKED and calls goToSwaps when onConfirm is called', () => {
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+
+      fireEvent.press(getByTestId('token-row-AAPL'));
+
+      act(() => {
+        fireEvent.press(getByTestId('after-hours-confirm'));
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+      );
+      const buttonClickIndex = mockCreateEventBuilder.mock.calls.findIndex(
+        (call: unknown[]) =>
+          call[0] === MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+      );
+      const builder =
+        mockCreateEventBuilder.mock.results[buttonClickIndex]?.value;
+      expect(builder?.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          button_type: 'ondo_campaign_swap_aapl',
+        }),
+      );
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('search interactions', () => {
     it('shows the clear button when search query is not empty and clears it on press', () => {
-      const { getByPlaceholderText, getByTestId, queryByTestId } = render(
+      const { getByPlaceholderText, getByTestId } = render(
         <OndoCampaignRwaSelectorView />,
       );
       const input = getByPlaceholderText(
@@ -303,14 +408,9 @@ describe('OndoCampaignRwaSelectorView', () => {
       );
       fireEvent.changeText(input, 'AAPL');
       expect(getByTestId('clear-search-button')).toBeDefined();
-      // Clear button appears as a TouchableOpacity wrapping the close icon
-      // Verify the input has the typed value and pressing clear resets it
-      fireEvent.changeText(input, '');
-      expect(
-        getByPlaceholderText(
-          'rewards.ondo_rwa_asset_selector.search_placeholder',
-        ),
-      ).toBeDefined();
+      fireEvent.press(getByTestId('clear-search-button'));
+      // After pressing clear, the button should disappear
+      expect(() => getByTestId('clear-search-button')).toThrow();
     });
 
     it('displays skeleton after search query changes (isFiltering)', () => {
@@ -437,6 +537,30 @@ describe('OndoCampaignRwaSelectorView', () => {
       expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
       const [srcArg] = mockGoToSwaps.mock.calls[0];
       expect(srcArg).toBeUndefined();
+    });
+  });
+
+  describe('page view tracking', () => {
+    it('tracks ondo_campaign_open_position when mode is open_position', () => {
+      mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
+      render(<OndoCampaignRwaSelectorView />);
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const builder = mockCreateEventBuilder.mock.results[0].value;
+      expect(builder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ page_type: 'ondo_campaign_open_position' }),
+      );
+    });
+
+    it('tracks ondo_campaign_swap when mode is swap', () => {
+      mockRouteParams = { mode: 'swap', campaignId: 'campaign-1' };
+      render(<OndoCampaignRwaSelectorView />);
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const builder = mockCreateEventBuilder.mock.results[0].value;
+      expect(builder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ page_type: 'ondo_campaign_swap' }),
+      );
     });
   });
 });

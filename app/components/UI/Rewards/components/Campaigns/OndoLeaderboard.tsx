@@ -1,6 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   Box,
   BoxFlexDirection,
@@ -74,6 +76,8 @@ interface CampaignLeaderboardProps {
   userPosition?: UserPosition | null;
   /** Current user's position data; enables pending sheet on Pending tag tap. */
   pendingSheetPosition?: PendingSheetPosition | null;
+  /** Campaign ID used for analytics tracking. */
+  campaignId?: string;
 }
 
 /**
@@ -208,8 +212,10 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   maxEntries,
   userPosition,
   pendingSheetPosition,
+  campaignId,
 }) => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const showSplitView = useMemo(() => {
     if (!userPosition || maxEntries == null || maxEntries > MAX_ENTRIES_LIMIT) {
@@ -247,13 +253,27 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   );
 
   const openTierSelector = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: 'ondo_campaign_leaderboard_tier_select',
+        })
+        .build(),
+    );
     navigation.navigate(Routes.MODAL.REWARDS_SELECT_SHEET, {
       title: strings('rewards.ondo_campaign_leaderboard.select_tier'),
       options: tierOptions,
       selectedValue: selectedTier,
       onSelect: onTierChange,
     });
-  }, [navigation, tierOptions, selectedTier, onTierChange]);
+  }, [
+    navigation,
+    tierOptions,
+    selectedTier,
+    onTierChange,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const isCurrentUser = useCallback(
     (entry: CampaignLeaderboardEntry) =>
@@ -267,6 +287,13 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
       if (!entry.qualified) {
         if (isCurrentUser(entry) && pendingSheetPosition) {
           return () => {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+                .addProperties({
+                  button_type: 'ondo_campaign_leaderboard_pending',
+                })
+                .build(),
+            );
             navigation.navigate(Routes.MODAL.REWARDS_ONDO_PENDING_SHEET, {
               variant: 'own',
               tier: pendingSheetPosition.tier,
@@ -277,6 +304,13 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
           };
         }
         return () => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+              .addProperties({
+                button_type: 'ondo_campaign_leaderboard_pending_other',
+              })
+              .build(),
+          );
           navigation.navigate(Routes.MODAL.REWARDS_ONDO_PENDING_SHEET, {
             variant: 'other',
           });
@@ -284,7 +318,13 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
       }
       return undefined;
     },
-    [isCurrentUser, navigation, pendingSheetPosition],
+    [
+      isCurrentUser,
+      navigation,
+      pendingSheetPosition,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   if (isLoading && entries.length === 0) {

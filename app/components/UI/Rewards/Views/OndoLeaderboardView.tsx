@@ -31,6 +31,7 @@ import {
   selectReferralCode,
   selectCampaignById,
 } from '../../../../reducers/rewards/selectors';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 
 // ParamListBase requires an index signature, which interfaces don't support
@@ -55,6 +56,11 @@ const OndoLeaderboardView: React.FC = () => {
     [campaignId],
   );
   const campaign = useSelector(selectCampaign);
+
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_leaderboard',
+    campaign_id: campaignId,
+  });
 
   const { status: participantStatus } =
     useGetCampaignParticipantStatus(campaignId);
@@ -165,6 +171,7 @@ const OndoLeaderboardView: React.FC = () => {
               onRetry={refetchLeaderboard}
               currentUserReferralCode={referralCode}
               pendingSheetPosition={pendingSheetPosition}
+              campaignId={campaignId}
             />
           </Box>
         </ScrollView>
