@@ -175,8 +175,9 @@ export class ConnectionRegistry {
 
     if (conn) {
       trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
-        remote_session_id: id,
+        remote_session_id: conn.metadata?.analytics?.remote_session_id ?? id,
         platform: 'mobile',
+        transport_type: 'mwp',
         sdk_version: conn.metadata?.sdk?.version,
         sdk_platform: conn.metadata?.sdk?.platform,
         found_in_store: true,
@@ -187,6 +188,7 @@ export class ConnectionRegistry {
     trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
       remote_session_id: id,
       platform: 'mobile',
+      transport_type: 'mwp',
       found_in_store: false,
     });
 
@@ -248,8 +250,11 @@ export class ConnectionRegistry {
       connReq = this.parseConnectionRequest(url);
 
       trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
-        remote_session_id: connReq.sessionRequest.id,
+        remote_session_id:
+          connReq.metadata.analytics?.remote_session_id ??
+          connReq.sessionRequest.id,
         platform: 'mobile',
+        transport_type: 'mwp',
         sdk_version: connReq.metadata.sdk.version,
         sdk_platform: connReq.metadata.sdk.platform,
       });
@@ -292,8 +297,12 @@ export class ConnectionRegistry {
       // Track the failure before cleanup so the event fires even if
       // disconnect() throws.
       trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED, {
-        remote_session_id: connReq?.sessionRequest?.id ?? 'unknown',
+        remote_session_id:
+          connReq?.metadata?.analytics?.remote_session_id ??
+          connReq?.sessionRequest?.id ??
+          'unknown',
         platform: 'mobile',
+        transport_type: 'mwp',
         sdk_version: connReq?.metadata?.sdk?.version,
         sdk_platform: connReq?.metadata?.sdk?.platform,
         failure_reason: error instanceof Error ? error.message : String(error),
