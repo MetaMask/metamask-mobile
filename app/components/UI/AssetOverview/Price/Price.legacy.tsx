@@ -110,7 +110,7 @@ const PriceLegacy = ({
                 >
                   <SkeletonPlaceholder.Item
                     width={100}
-                    height={32}
+                    height={40}
                     borderRadius={6}
                   />
                 </SkeletonPlaceholder>
@@ -129,7 +129,7 @@ const PriceLegacy = ({
               >
                 <SkeletonPlaceholder.Item
                   width={150}
-                  height={18}
+                  height={24}
                   borderRadius={6}
                 />
               </SkeletonPlaceholder>
