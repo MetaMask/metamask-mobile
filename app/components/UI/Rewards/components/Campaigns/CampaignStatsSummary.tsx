@@ -167,10 +167,12 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
   const isQualified =
     leaderboardPosition != null && leaderboardPosition.qualified;
 
-  const isNegativeReturn = (leaderboardPosition?.rateOfReturn ?? 0) < 0;
+  const isNegativeReturn = portfolioSummary
+    ? parseFloat(portfolioSummary.portfolioPnlPercent) < 0
+    : false;
 
-  const returnValue = leaderboardPosition
-    ? formatPercentChange(leaderboardPosition.rateOfReturn)
+  const returnValue = portfolioSummary
+    ? formatPercentChange(portfolioSummary.portfolioPnlPercent)
     : '-';
 
   const returnColor = isNegativeReturn
@@ -188,7 +190,9 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
     : '-';
 
   const rankValue =
-    isIneligible || !leaderboardPosition ? '-' : `${leaderboardPosition.rank}`;
+    isIneligible || !leaderboardPosition
+      ? '-'
+      : String(leaderboardPosition.rank).padStart(2, '0');
 
   const tierValue =
     isIneligible || !leaderboardPosition
@@ -207,7 +211,7 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
         <StatCell
           label={strings('rewards.ondo_campaign_stats.label_return')}
           value={returnValue}
-          isLoading={leaderboardLoading}
+          isLoading={portfolioLoading}
           valueColor={returnColor}
           testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN}
         />

@@ -72,7 +72,7 @@ export const OHLCVBar: React.FC<OHLCVBarProps> = ({
           <Box key={key} twClassName="flex-1">
             <Text
               variant={TextVariant.BodySm}
-              style={{ fontWeight: FontWeight.Medium }}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
               numberOfLines={1}
               adjustsFontSizeToFit
@@ -85,7 +85,7 @@ export const OHLCVBar: React.FC<OHLCVBarProps> = ({
           <Box twClassName="flex-1">
             <Text
               variant={TextVariant.BodySm}
-              style={{ fontWeight: FontWeight.Medium }}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
               numberOfLines={1}
             >
