@@ -143,6 +143,19 @@ if (typeof global.CloseEvent === 'undefined') {
   };
 }
 
+// MessageEvent polyfill for @nktkas/rews v2 (used by Hyperliquid SDK WebSocket transport)
+// React Native/Hermes does not provide MessageEvent as a global constructor
+if (typeof global.MessageEvent === 'undefined') {
+  global.MessageEvent = function (type, params) {
+    params = params || {};
+    const event = new global.Event(type, params);
+    event.data = params.data || null;
+    event.origin = params.origin || '';
+    event.lastEventId = params.lastEventId || '';
+    return event;
+  };
+}
+
 class AbortError extends Error {
   constructor(message) {
     super(message);
