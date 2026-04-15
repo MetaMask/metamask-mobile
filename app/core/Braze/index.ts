@@ -113,3 +113,13 @@ export function clearBrazeUser(): void {
   getBrazePlugin().setBrazeProfileId(undefined);
   Logger.log('[Braze] Cleared Braze user identity');
 }
+
+/**
+ * Reset the BrazePlugin singleton for testing.
+ * This ensures each test gets a fresh plugin instance.
+ *
+ * @internal Test helper only — do not use in production code.
+ */
+export function resetBrazePluginForTesting(): void {
+  brazePlugin = undefined;
+}

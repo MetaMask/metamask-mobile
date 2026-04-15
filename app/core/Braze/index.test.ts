@@ -3,6 +3,7 @@ import {
   clearBrazeUser,
   getBrazePlugin,
   syncBrazeAllowlists,
+  resetBrazePluginForTesting,
 } from './index';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
 
@@ -37,7 +38,7 @@ const MockBrazePlugin = BrazePlugin as jest.MockedClass<typeof BrazePlugin>;
 describe('Braze service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (BrazePlugin as jest.MockedClass<typeof BrazePlugin>).mockClear();
+    resetBrazePluginForTesting();
   });
 
   describe('getBrazePlugin', () => {
