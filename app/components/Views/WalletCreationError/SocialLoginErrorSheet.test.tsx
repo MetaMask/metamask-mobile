@@ -4,7 +4,11 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import SocialLoginErrorSheet from './SocialLoginErrorSheet';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { AccountType } from '../../../constants/onboarding';
+import {
+  AccountType,
+  WalletCreationErrorCtaType,
+} from '../../../constants/onboarding';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { Authentication } from '../../../core';
 import AppConstants from '../../../core/AppConstants';
@@ -135,8 +139,11 @@ describe('SocialLoginErrorSheet', () => {
       fireEvent.press(getByText('Try again'));
 
       await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalled();
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
+        );
         expect(mockAddProperties).toHaveBeenCalledWith({
+          cta_type: WalletCreationErrorCtaType.Retry,
           account_type: AccountType.Metamask,
         });
         expect(mockTrackEvent).toHaveBeenCalled();
@@ -155,8 +162,11 @@ describe('SocialLoginErrorSheet', () => {
 
       fireEvent.press(getByText('MetaMask Support'));
 
-      expect(mockCreateEventBuilder).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
+      );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        cta_type: WalletCreationErrorCtaType.ContactSupport,
         account_type: AccountType.Metamask,
       });
       expect(mockTrackEvent).toHaveBeenCalled();

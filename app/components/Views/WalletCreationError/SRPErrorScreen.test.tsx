@@ -7,6 +7,7 @@ import SRPErrorScreen from './SRPErrorScreen';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { WalletCreationErrorCtaType } from '../../../constants/onboarding';
 
 const mockTrackOnboarding = jest.fn();
 
@@ -165,9 +166,10 @@ describe('SRPErrorScreen', () => {
         fireEvent.press(getByText('Try again'));
       });
 
-      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+      expect(mockTrackOnboarding).toHaveBeenLastCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({
+            cta_type: WalletCreationErrorCtaType.Retry,
             account_type: 'srp',
           }),
         }),
@@ -222,9 +224,10 @@ describe('SRPErrorScreen', () => {
 
       fireEvent.press(getByText('Send error report'));
 
-      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+      expect(mockTrackOnboarding).toHaveBeenLastCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({
+            cta_type: WalletCreationErrorCtaType.SendErrorReport,
             account_type: 'srp',
           }),
         }),
@@ -288,6 +291,15 @@ describe('SRPErrorScreen', () => {
 
       fireEvent.press(getByText('MetaMask Support'));
 
+      expect(mockTrackOnboarding).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            cta_type: WalletCreationErrorCtaType.ContactSupport,
+            account_type: 'srp',
+          }),
+        }),
+        expect.any(Function),
+      );
       expect(Linking.openURL).toHaveBeenCalledWith(
         AppConstants.REVIEW_PROMPT.SUPPORT,
       );

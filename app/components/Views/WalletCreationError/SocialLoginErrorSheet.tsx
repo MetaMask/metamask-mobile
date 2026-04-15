@@ -20,7 +20,10 @@ import {
 
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { getSocialAccountType } from '../../../constants/onboarding';
+import {
+  getSocialAccountType,
+  WalletCreationErrorCtaType,
+} from '../../../constants/onboarding';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 
 import { strings } from '../../../../locales/i18n';
@@ -59,8 +62,11 @@ const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
 
   const handleTryAgain = useCallback(async () => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.WALLET_CREATION_ERROR_RETRY_CLICKED)
+      createEventBuilder(
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
+      )
         .addProperties({
+          cta_type: WalletCreationErrorCtaType.Retry,
           account_type: accountType,
         })
         .build(),
@@ -75,9 +81,10 @@ const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
   const handleContactSupport = useCallback(() => {
     trackEvent(
       createEventBuilder(
-        MetaMetricsEvents.WALLET_CREATION_ERROR_SUPPORT_CLICKED,
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
       )
         .addProperties({
+          cta_type: WalletCreationErrorCtaType.ContactSupport,
           account_type: accountType,
         })
         .build(),

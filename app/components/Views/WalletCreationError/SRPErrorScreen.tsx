@@ -40,6 +40,7 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { Authentication } from '../../../core';
+import { WalletCreationErrorCtaType } from '../../../constants/onboarding';
 
 interface SRPErrorScreenProps {
   error: Error;
@@ -84,9 +85,10 @@ const SRPErrorScreen = ({
   const handleTryAgain = useCallback(async () => {
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_CREATION_ERROR_RETRY_CLICKED,
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
       )
         .addProperties({
+          cta_type: WalletCreationErrorCtaType.Retry,
           account_type: 'srp',
         })
         .build(),
@@ -102,9 +104,10 @@ const SRPErrorScreen = ({
   const handleSendErrorReport = useCallback(() => {
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_CREATION_ERROR_REPORT_SENT,
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
       )
         .addProperties({
+          cta_type: WalletCreationErrorCtaType.SendErrorReport,
           account_type: 'srp',
         })
         .build(),
@@ -144,8 +147,19 @@ const SRPErrorScreen = ({
   }, [errorReport]);
 
   const handleContactSupport = useCallback(() => {
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
+      )
+        .addProperties({
+          cta_type: WalletCreationErrorCtaType.ContactSupport,
+          account_type: 'srp',
+        })
+        .build(),
+      saveOnboardingEvent,
+    );
     Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, []);
+  }, [saveOnboardingEvent]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
