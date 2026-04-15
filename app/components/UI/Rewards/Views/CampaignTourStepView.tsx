@@ -8,6 +8,7 @@ import React, {
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
+  StackActions,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -60,9 +61,11 @@ const CampaignTourStepView: React.FC = () => {
   >(null);
 
   const navigateToDetails = useCallback(() => {
-    navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
-      campaignId,
-    });
+    navigation.dispatch(
+      StackActions.replace(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+        campaignId,
+      }),
+    );
   }, [navigation, campaignId]);
 
   const currentStep = tour?.[currentTab];
