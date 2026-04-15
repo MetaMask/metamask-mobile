@@ -21,6 +21,7 @@ interface CampaignOptInCtaProps {
     UseGetCampaignParticipantStatusResult,
     'status' | 'isLoading'
   >;
+  onJoinPress?: () => void;
 }
 
 /**
@@ -31,6 +32,7 @@ interface CampaignOptInCtaProps {
 const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
   campaign,
   participantStatus,
+  onJoinPress,
 }) => {
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
 
@@ -51,7 +53,10 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          onPress={() => setIsOptInSheetOpen(true)}
+          onPress={() => {
+            onJoinPress?.();
+            setIsOptInSheetOpen(true);
+          }}
           testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
         >
           {strings('rewards.campaign_details.join_campaign')}
