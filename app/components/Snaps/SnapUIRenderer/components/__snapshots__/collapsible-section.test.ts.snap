@@ -1,0 +1,299 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollapsibleSection can expand 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+      testID="snap-ui-renderer__scrollview"
+    >
+      <View>
+        <TouchableHighlight>
+          <View
+            backgroundColor="#f3f3f4"
+            borderRadius={8}
+            gap={8}
+            padding={16}
+            style={
+              [
+                {
+                  "backgroundColor": "#f3f3f4",
+                  "gap": 8,
+                },
+                undefined,
+              ]
+            }
+            testID="snaps-ui-collapsible-section"
+          >
+            <TouchableOpacity
+              onPress={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                My Section
+              </Text>
+              <SvgMock
+                fill="currentColor"
+                name="ArrowUp"
+                style={
+                  [
+                    {
+                      "color": "#4459ff",
+                      "height": 16,
+                      "width": 16,
+                    },
+                    undefined,
+                  ]
+                }
+              />
+            </TouchableOpacity>
+            <View
+              color="Default"
+              flexDirection="column"
+              gap={8}
+              justifyContent="flex-start"
+              style={
+                [
+                  {
+                    "color": "Default",
+                    "flexDirection": "column",
+                    "gap": 8,
+                    "justifyContent": "flex-start",
+                  },
+                  {
+                    "gap": 16,
+                    "margin": 16,
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "flexWrap": "wrap",
+                      "justifyContent": "space-between",
+                      "paddingBottom": 8,
+                      "paddingHorizontal": 8,
+                    },
+                    {
+                      "marginLeft": -8,
+                      "marginRight": -8,
+                      "paddingBottom": 0,
+                      "paddingTop": 0,
+                    },
+                  ]
+                }
+                testID="snap-ui-info-row"
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "alignSelf": "flex-start",
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "minHeight": 38,
+                      "paddingEnd": 4,
+                    }
+                  }
+                  testID="snap-ui-info-row-label-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                    testID="snap-ui-info-row-label"
+                  >
+                    Row 1
+                  </Text>
+                </View>
+                <View
+                  testID="snap-ui-info-row-children-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "textAlign": "left",
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#131416",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "left",
+                        }
+                      }
+                    >
+                      Foo
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "flexWrap": "wrap",
+                      "justifyContent": "space-between",
+                      "paddingBottom": 8,
+                      "paddingHorizontal": 8,
+                    },
+                    {
+                      "marginLeft": -8,
+                      "marginRight": -8,
+                      "paddingBottom": 0,
+                      "paddingTop": 0,
+                    },
+                  ]
+                }
+                testID="snap-ui-info-row"
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "alignSelf": "flex-start",
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "minHeight": 38,
+                      "paddingEnd": 4,
+                    }
+                  }
+                  testID="snap-ui-info-row-label-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                    testID="snap-ui-info-row-label"
+                  >
+                    Row 2
+                  </Text>
+                </View>
+                <View
+                  testID="snap-ui-info-row-children-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "textAlign": "left",
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#131416",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "left",
+                        }
+                      }
+                    >
+                      Bar
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </TouchableHighlight>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
