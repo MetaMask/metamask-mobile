@@ -30,7 +30,6 @@ import {
 } from './OndoLeaderboard.utils';
 
 export const CAMPAIGN_LEADERBOARD_TEST_IDS = {
-  QUALIFIED_CHECK: 'campaign-leaderboard-qualified-check',
   CONTAINER: 'campaign-leaderboard-container',
   TIER_TOGGLE: 'campaign-leaderboard-tier-toggle',
   LIST: 'campaign-leaderboard-list',
@@ -52,13 +51,6 @@ interface UserPosition {
   neighbors: CampaignLeaderboardEntry[];
 }
 
-interface PendingSheetPosition {
-  tier: string;
-  netDeposit: number;
-  qualifiedDays: number;
-  tierMinDeposit: number;
-}
-
 interface CampaignLeaderboardProps {
   tierNames: string[];
   selectedTier: string | null;
@@ -74,8 +66,6 @@ interface CampaignLeaderboardProps {
   maxEntries?: number;
   /** User's leaderboard position; enables neighbor display in preview mode. */
   userPosition?: UserPosition | null;
-  /** Current user's position data; enables pending sheet on Pending tag tap. */
-  pendingSheetPosition?: PendingSheetPosition | null;
   /** Campaign ID used for analytics tracking. */
   campaignId?: string;
 }
@@ -86,8 +76,7 @@ interface CampaignLeaderboardProps {
 const LeaderboardEntryRow: React.FC<{
   entry: CampaignLeaderboardEntry;
   isCurrentUser?: boolean;
-  onPendingPress?: () => void;
-}> = ({ entry, isCurrentUser = false, onPendingPress }) => (
+}> = ({ entry, isCurrentUser = false }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
@@ -106,22 +95,9 @@ const LeaderboardEntryRow: React.FC<{
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {entry.referralCode}
       </Text>
-      {!entry.qualified ? (
-        onPendingPress ? (
-          <Pressable onPress={onPendingPress}>
-            <PendingTag testID={CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG} />
-          </Pressable>
-        ) : (
-          <PendingTag testID={CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG} />
-        )
-      ) : isCurrentUser ? (
-        <Icon
-          name={IconName.Check}
-          size={IconSize.Sm}
-          color={IconColor.SuccessDefault}
-          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.QUALIFIED_CHECK}
-        />
-      ) : null}
+      {isCurrentUser && !entry.qualified && (
+        <PendingTag testID={CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG} />
+      )}
     </Box>
     <Text
       variant={TextVariant.BodyMd}
@@ -211,7 +187,6 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   currentUserReferralCode,
   maxEntries,
   userPosition,
-  pendingSheetPosition,
   campaignId,
 }) => {
   const navigation = useNavigation();
@@ -280,51 +255,6 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
       !!currentUserReferralCode &&
       entry.referralCode === currentUserReferralCode,
     [currentUserReferralCode],
-  );
-
-  const buildOnPendingPress = useCallback(
-    (entry: CampaignLeaderboardEntry) => {
-      if (!entry.qualified) {
-        if (isCurrentUser(entry) && pendingSheetPosition) {
-          return () => {
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
-                .addProperties({
-                  button_type: 'ondo_campaign_leaderboard_pending',
-                })
-                .build(),
-            );
-            navigation.navigate(Routes.MODAL.REWARDS_ONDO_PENDING_SHEET, {
-              variant: 'own',
-              tier: pendingSheetPosition.tier,
-              netDeposit: pendingSheetPosition.netDeposit,
-              qualifiedDays: pendingSheetPosition.qualifiedDays,
-              tierMinDeposit: pendingSheetPosition.tierMinDeposit,
-            });
-          };
-        }
-        return () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
-              .addProperties({
-                button_type: 'ondo_campaign_leaderboard_pending_other',
-              })
-              .build(),
-          );
-          navigation.navigate(Routes.MODAL.REWARDS_ONDO_PENDING_SHEET, {
-            variant: 'other',
-          });
-        };
-      }
-      return undefined;
-    },
-    [
-      isCurrentUser,
-      navigation,
-      pendingSheetPosition,
-      trackEvent,
-      createEventBuilder,
-    ],
   );
 
   if (isLoading && entries.length === 0) {
@@ -444,7 +374,6 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
               key={`${entry.rank}-${entry.referralCode}`}
               entry={entry}
               isCurrentUser={isCurrentUser(entry)}
-              onPendingPress={buildOnPendingPress(entry)}
             />
           ))}
           {showSplitView && userPosition && (
@@ -455,7 +384,6 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
                   key={`neighbor-${entry.rank}-${entry.referralCode}`}
                   entry={entry}
                   isCurrentUser={isCurrentUser(entry)}
-                  onPendingPress={buildOnPendingPress(entry)}
                 />
               ))}
             </>

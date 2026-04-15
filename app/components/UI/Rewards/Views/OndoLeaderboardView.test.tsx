@@ -292,30 +292,7 @@ describe('OndoLeaderboardView', () => {
     const { getAllByText } = render(<OndoLeaderboardView />);
     expect(
       getAllByText('rewards.ondo_campaign_leaderboard.pending'),
-    ).toHaveLength(2);
-  });
-
-  it('shows Qualified tag when position is qualified', () => {
-    mockUseGetOndoLeaderboardPosition.mockReturnValue({
-      ...positionDefaults,
-      position: {
-        rank: 5,
-        projectedTier: 'STARTER',
-        qualified: true,
-        qualifiedDays: 10,
-        totalInTier: 100,
-        rateOfReturn: 0.1,
-        currentUsdValue: 12500,
-        totalUsdDeposited: 10000,
-        netDeposit: 8500,
-        neighbors: [],
-        computedAt: '2024-01-01T00:00:00Z',
-      },
-    });
-    const { getByText } = render(<OndoLeaderboardView />);
-    expect(
-      getByText('rewards.ondo_campaign_leaderboard.qualified'),
-    ).toBeDefined();
+    ).toHaveLength(1);
   });
 
   it('does not show position section when position is null', () => {
