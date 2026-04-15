@@ -4138,6 +4138,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     },
     status: FeatureFlagStatus.Active,
   },
+
+  brazeSegmentForwarding: {
+    name: 'brazeSegmentForwarding',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      allowedEvents: [],
+      allowedTraits: [],
+    },
+    status: FeatureFlagStatus.Active,
+  },
 };
 
 // ============================================================================

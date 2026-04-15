@@ -50,7 +50,7 @@ export const analyticsControllerInit: MessengerClientInitFunction<
   initMessenger.subscribe(
     'RemoteFeatureFlagController:stateChange',
     syncBrazeAllowlists,
-    (flagState) => flagState.remoteFeatureFlags.brazeAllowedConfig,
+    (flagState) => flagState.remoteFeatureFlags.brazeSegmentForwarding,
   );
 
   const remoteFeatureFlagControllerState = initMessenger.call(
@@ -58,7 +58,7 @@ export const analyticsControllerInit: MessengerClientInitFunction<
   );
 
   syncBrazeAllowlists(
-    remoteFeatureFlagControllerState.remoteFeatureFlags.brazeAllowedConfig,
+    remoteFeatureFlagControllerState.remoteFeatureFlags.brazeSegmentForwarding,
   );
 
   return {
