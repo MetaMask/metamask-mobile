@@ -6,7 +6,10 @@ import SDKConnectV2 from '../../../SDKConnectV2';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
-import { DeepLinkRoute } from '../../types/deepLinkAnalytics.types';
+import {
+  DeepLinkRoute,
+  SignatureStatus,
+} from '../../types/deepLinkAnalytics.types';
 import { detectAppInstallation } from '../../util/deeplinks/deepLinkAnalytics';
 
 export function handleDeeplink(opts: { uri?: string; source?: string }) {
@@ -46,6 +49,7 @@ function trackMwpDeepLinkUsed(url: string): void {
       )
         .addProperties({
           route: DeepLinkRoute.MMC_MWP,
+          signature: SignatureStatus.MISSING,
           was_app_installed: wasAppInstalled,
         })
         .build();

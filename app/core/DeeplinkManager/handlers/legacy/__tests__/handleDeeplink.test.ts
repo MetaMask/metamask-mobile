@@ -7,7 +7,10 @@ import SDKConnectV2 from '../../../../SDKConnectV2';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../../../../Analytics/MetaMetrics.events';
-import { DeepLinkRoute } from '../../../types/deepLinkAnalytics.types';
+import {
+  DeepLinkRoute,
+  SignatureStatus,
+} from '../../../types/deepLinkAnalytics.types';
 import { detectAppInstallation } from '../../../util/deeplinks/deepLinkAnalytics';
 
 jest.mock('../../../../../actions/user', () => ({
@@ -67,6 +70,9 @@ jest.mock('../../../../Analytics/MetaMetrics.events', () => ({
 jest.mock('../../../types/deepLinkAnalytics.types', () => ({
   DeepLinkRoute: {
     MMC_MWP: 'mmc-mwp',
+  },
+  SignatureStatus: {
+    MISSING: 'missing',
   },
 }));
 
@@ -222,6 +228,7 @@ describe('handleDeeplink', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         route: DeepLinkRoute.MMC_MWP,
+        signature: SignatureStatus.MISSING,
         was_app_installed: true,
       });
       expect(mockBuild).toHaveBeenCalled();
@@ -237,6 +244,7 @@ describe('handleDeeplink', () => {
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         route: DeepLinkRoute.MMC_MWP,
+        signature: SignatureStatus.MISSING,
         was_app_installed: false,
       });
       expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mocked' });
