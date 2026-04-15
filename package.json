@@ -237,7 +237,7 @@
     "@metamask/core-backend": "^6.2.0",
     "@metamask/delegation-controller": "^2.0.2",
     "@metamask/delegation-deployments": "^1.0.0",
-    "@metamask/design-system-react-native": "^0.16.0",
+    "@metamask/design-system-react-native": "^0.17.0",
     "@metamask/design-system-twrnc-preset": "^0.4.1",
     "@metamask/design-tokens": "^8.3.0",
     "@metamask/earn-controller": "^12.0.0",
@@ -247,7 +247,7 @@
     "@metamask/eth-hd-keyring": "^13.0.0",
     "@metamask/eth-json-rpc-filters": "^9.0.0",
     "@metamask/eth-json-rpc-middleware": "^23.1.0",
-    "@metamask/eth-ledger-bridge-keyring": "11.3.0",
+    "@metamask/eth-ledger-bridge-keyring": "^11.4.0",
     "@metamask/eth-money-keyring": "^2.0.0",
     "@metamask/eth-qr-keyring": "^1.1.0",
     "@metamask/eth-query": "^4.0.0",
@@ -330,7 +330,7 @@
     "@metamask/utils": "^11.11.0",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
-    "@nktkas/hyperliquid": "^0.30.2",
+    "@nktkas/hyperliquid": "^0.32.2",
     "@noble/curves": "1.9.6",
     "@noble/hashes": "1.8.0",
     "@notifee/react-native": "^9.0.0",
@@ -564,6 +564,7 @@
     "@testing-library/react": "14.0.0",
     "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/react-native": "^13.2.0",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/bnjs4": "npm:@types/bn.js@^4.11.6",
     "@types/bnjs5": "npm:@types/bn.js@^5.2.0",
     "@types/enzyme": "^3.10.12",
@@ -611,6 +612,7 @@
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "babel-plugin-transform-remove-console": "6.9.4",
     "base64-js": "^1.5.1",
+    "better-sqlite3": "^12.8.0",
     "chalk": "^4.1.2",
     "chromedriver": "^123.0.1",
     "depcheck": "^1.4.7",
@@ -672,6 +674,7 @@
     "simple-git": "^3.25.0",
     "tailwindcss": "^3.4.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "~5.4.5",
     "webdriverio": "^9.27.0",
     "webextension-polyfill": "^0.12.0",
@@ -780,7 +783,14 @@
       "ws>bufferutil": false,
       "ws>utf-8-validate": false,
       "eslint-plugin-import-x>unrs-resolver": false,
-      "eslint-import-resolver-typescript>unrs-resolver": false
+      "eslint-import-resolver-typescript>unrs-resolver": false,
+      "better-sqlite3": true,
+      "tsx>esbuild": false
+    }
+  },
+  "dependenciesMeta": {
+    "better-sqlite3": {
+      "built": true
     }
   },
   "packageManager": "yarn@4.10.3",

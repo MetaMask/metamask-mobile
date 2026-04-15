@@ -21,7 +21,7 @@ import {
 import type { TokenI } from '../../../../Tokens/types';
 import { strings } from '../../../../../../../locales/i18n';
 
-// Minimal structural type — satisfied by both AssetBalanceInfo and CardAssetWithBalance.
+// Minimal structural type — satisfied by both AssetBalanceInfo and CardFundingTokenWithBalance.
 interface CardBalanceDisplayData {
   asset?: TokenI;
   balanceFormatted?: string;

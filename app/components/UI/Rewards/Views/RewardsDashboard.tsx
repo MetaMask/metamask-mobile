@@ -25,6 +25,7 @@ import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
@@ -39,6 +40,8 @@ const RewardsDashboard: React.FC = () => {
   const activeTab = useSelector(selectActiveTab);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
+
+  useTrackRewardsPageView({ page_type: 'home' });
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
   );
@@ -205,7 +208,7 @@ const RewardsDashboard: React.FC = () => {
           showsVerticalScrollIndicator={false}
           style={tw.style('flex-1')}
         >
-          <Box twClassName="gap-4">
+          <Box twClassName="gap-3">
             <CampaignsPreview />
             <EarnRewardsPreview />
             <BenefitsPreview />

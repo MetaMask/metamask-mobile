@@ -214,6 +214,7 @@ const Routes = {
     ACCOUNT_SELECTOR: 'AccountSelector',
     ADDRESS_SELECTOR: 'AddressSelector',
     ADD_ACCOUNT: 'AddAccount',
+    ADD_WALLET: 'AddWallet',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
     CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
@@ -354,6 +355,7 @@ const Routes = {
     ROOT: 'SocialLeaderboard',
     VIEW: 'TopTradersView',
     PROFILE: 'TraderProfileView',
+    POSITION: 'TraderPositionView',
   },
   PREDICT: {
     ROOT: 'Predict',
@@ -424,6 +426,7 @@ const Routes = {
   MULTI_SRP: {
     IMPORT: 'ImportSRPView',
   },
+  IMPORT_PRIVATE_KEY_VIEW: 'ImportPrivateKeyView',
   MULTICHAIN_ACCOUNTS: {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
     ACCOUNT_GROUP_DETAILS: 'MultichainAccountGroupDetails',

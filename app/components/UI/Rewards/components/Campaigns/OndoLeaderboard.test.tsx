@@ -4,6 +4,17 @@ import OndoLeaderboard, {
   CAMPAIGN_LEADERBOARD_TEST_IDS,
 } from './OndoLeaderboard';
 import type { CampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockUseAnalyticsHook,
+  createMockEventBuilder,
+} from '../../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -109,6 +120,12 @@ const defaultProps = {
 describe('OndoLeaderboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   describe('loading state', () => {
@@ -291,15 +308,15 @@ describe('OndoLeaderboard', () => {
         getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-3`),
       ).toBeDefined();
 
-      expect(getByText('#01')).toBeDefined();
+      expect(getByText('01.')).toBeDefined();
       expect(getByText('AAA111')).toBeDefined();
       expect(getByText('+20.00%')).toBeDefined();
 
-      expect(getByText('#02')).toBeDefined();
+      expect(getByText('02.')).toBeDefined();
       expect(getByText('BBB222')).toBeDefined();
       expect(getByText('+15.00%')).toBeDefined();
 
-      expect(getByText('#03')).toBeDefined();
+      expect(getByText('03.')).toBeDefined();
       expect(getByText('CCC333')).toBeDefined();
       expect(getByText('-5.00%')).toBeDefined();
     });
@@ -713,6 +730,82 @@ describe('OndoLeaderboard', () => {
       );
 
       expect(getByText('+0.00%')).toBeDefined();
+    });
+  });
+
+  describe('pending press handlers', () => {
+    const pendingEntry = createMockEntry({
+      rank: 1,
+      referralCode: 'MYCODE',
+      qualified: false,
+      qualifiedDays: 3,
+    });
+
+    const pendingSheetPosition = {
+      tier: 'STARTER',
+      netDeposit: 1000,
+      qualifiedDays: 3,
+      tierMinDeposit: 5000,
+    };
+
+    it('tracks ondo_campaign_leaderboard_pending and navigates when current user presses pending tag', () => {
+      const { getAllByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={[pendingEntry]}
+          currentUserReferralCode="MYCODE"
+          pendingSheetPosition={pendingSheetPosition}
+        />,
+      );
+
+      fireEvent.press(
+        getAllByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG)[0],
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+      );
+      const builder = mockCreateEventBuilder.mock.results[0].value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        button_type: 'ondo_campaign_leaderboard_pending',
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.stringContaining('RewardsOndoPendingSheet'),
+        expect.objectContaining({ variant: 'own' }),
+      );
+    });
+
+    it('tracks ondo_campaign_leaderboard_pending_other and navigates when another user presses pending tag', () => {
+      const anotherPendingEntry = createMockEntry({
+        rank: 2,
+        referralCode: 'OTHER',
+        qualified: false,
+        qualifiedDays: 2,
+      });
+      const { getAllByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={[anotherPendingEntry]}
+          currentUserReferralCode="MYCODE"
+          pendingSheetPosition={pendingSheetPosition}
+        />,
+      );
+
+      fireEvent.press(
+        getAllByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG)[0],
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+      );
+      const builder = mockCreateEventBuilder.mock.results[0].value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        button_type: 'ondo_campaign_leaderboard_pending_other',
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.stringContaining('RewardsOndoPendingSheet'),
+        expect.objectContaining({ variant: 'other' }),
+      );
     });
   });
 });
