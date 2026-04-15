@@ -8,7 +8,8 @@ import {
 import { createPlatformAdapter } from './platform-adapter';
 import { createPlatformAdapter as createE2EPlatformAdapter } from './platform-adapter-e2e';
 import { isE2E } from '../../../../util/test/utils';
-import { getBrazePlugin } from '../../../Braze';
+import { getBrazePlugin, syncBrazeAllowlists } from '../../../Braze';
+import type { AnalyticsControllerInitMessenger } from '../../messengers/analytics-controller-messenger';
 
 /**
  * Initialize the analytics controller.
@@ -17,13 +18,14 @@ import { getBrazePlugin } from '../../../Braze';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.analyticsId - The analytics ID to use.
  * @param request.persistedState - The persisted state for all controllers.
+ * @param request.initMessenger - The init messenger for remote feature flag subscriptions.
  * @returns The initialized controller.
  */
 export const analyticsControllerInit: MessengerClientInitFunction<
   AnalyticsController,
-  AnalyticsControllerMessenger
-> = ({ controllerMessenger, analyticsId, persistedState }) => {
-  // Get persisted state for AnalyticsController, or use defaults
+  AnalyticsControllerMessenger,
+  AnalyticsControllerInitMessenger
+> = ({ controllerMessenger, analyticsId, persistedState, initMessenger }) => {
   const persistedAnalyticsState = persistedState.AnalyticsController;
   const defaultState = getDefaultAnalyticsControllerState();
 
@@ -44,6 +46,20 @@ export const analyticsControllerInit: MessengerClientInitFunction<
   });
 
   controller.init();
+
+  initMessenger.subscribe(
+    'RemoteFeatureFlagController:stateChange',
+    syncBrazeAllowlists,
+    (flagState) => flagState.remoteFeatureFlags.brazeAllowedConfig,
+  );
+
+  const remoteFeatureFlagControllerState = initMessenger.call(
+    'RemoteFeatureFlagController:getState',
+  );
+
+  syncBrazeAllowlists(
+    remoteFeatureFlagControllerState.remoteFeatureFlags.brazeAllowedConfig,
+  );
 
   return {
     controller,

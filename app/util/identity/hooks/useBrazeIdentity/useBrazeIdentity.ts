@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { selectIsSignedIn } from '../../selectors/identity';
-import { setBrazeUser, clearBrazeUser } from './index';
+import { selectIsSignedIn } from '../../../../selectors/identity';
+import { setBrazeUser, clearBrazeUser } from '../../../../core/Braze';
 
 /**
  * Syncs the Braze identity with the MetaMask profile sign-in state.

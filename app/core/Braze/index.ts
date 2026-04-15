@@ -16,6 +16,67 @@ export function getBrazePlugin(): BrazePlugin {
 }
 
 /**
+ * Validate that a remote flag value has the expected BrazeAllowedConfig shape.
+ *
+ * @param value - The raw flag value from RemoteFeatureFlagController.
+ * @returns Validated allowedEvents/allowedTraits arrays, or undefined.
+ */
+function validateBrazeAllowedConfig(
+  value: unknown,
+): { allowedEvents?: string[]; allowedTraits?: string[] } | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const record = value as Record<string, unknown>;
+  const result: { allowedEvents?: string[]; allowedTraits?: string[] } = {};
+
+  if (
+    Array.isArray(record.allowedEvents) &&
+    record.allowedEvents.every((e: unknown) => typeof e === 'string')
+  ) {
+    result.allowedEvents = record.allowedEvents as string[];
+  }
+
+  if (
+    Array.isArray(record.allowedTraits) &&
+    record.allowedTraits.every((t: unknown) => typeof t === 'string')
+  ) {
+    result.allowedTraits = record.allowedTraits as string[];
+  }
+
+  return result.allowedEvents || result.allowedTraits ? result : undefined;
+}
+
+/**
+ * Update the Braze plugin allowlists from a remote feature flag value.
+ * Called by analytics-controller-init on startup and on flag updates.
+ *
+ * @param flagValue - The raw remote feature flag value for brazeAllowedConfig.
+ */
+export function syncBrazeAllowlists(flagValue: unknown): void {
+  try {
+    const brazeConfig = validateBrazeAllowedConfig(flagValue);
+    if (!brazeConfig) {
+      return;
+    }
+
+    const plugin = getBrazePlugin();
+    if (brazeConfig.allowedEvents) {
+      plugin.setAllowedEvents(brazeConfig.allowedEvents);
+    }
+    if (brazeConfig.allowedTraits) {
+      plugin.setAllowedTraits(brazeConfig.allowedTraits);
+    }
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      '[Braze] Failed to sync allowlists from remote config',
+    );
+  }
+}
+
+/**
  * Resolve the profile ID from the current session and forward it to the
  * Braze Segment plugin so all subsequent identify / track / flush calls
  * are attributed to this identity.

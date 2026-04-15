@@ -1,5 +1,4 @@
 {
-  "version": 1,
   "allowedEvents": [
     "On-ramp Purchase Completed",
     "Unified SwapBridge Completed",
