@@ -2386,6 +2386,41 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
     expect(instance.signLedgerTransaction).toHaveBeenCalled();
   });
+
+  it('does not close the modal twice after a hardware speed up signs successfully', async () => {
+    mockIsHardwareAccount.mockReturnValue(true);
+    instance.speedUpTxId = 'tx-123';
+    instance.closeSpeedUpCancelModal = jest.fn();
+    instance.signLedgerTransaction = jest.fn().mockImplementation(async () => {
+      instance.closeSpeedUpCancelModal();
+    });
+
+    await instance.speedUpTransaction({
+      suggestedMaxFeePerGasHex: '123',
+      suggestedMaxPriorityFeePerGasHex: '456',
+    });
+
+    expect(instance.signLedgerTransaction).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not close the modal twice after a hardware cancel signs successfully', async () => {
+    mockIsHardwareAccount.mockReturnValue(true);
+    instance.cancelTxId = 'tx-456';
+    instance.closeSpeedUpCancelModal = jest.fn();
+    instance.signLedgerTransaction = jest.fn().mockImplementation(async () => {
+      instance.closeSpeedUpCancelModal();
+    });
+
+    await instance.cancelTransaction({
+      suggestedMaxFeePerGasHex: '123',
+      suggestedMaxPriorityFeePerGasHex: '456',
+    });
+
+    expect(instance.signLedgerTransaction).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalledTimes(1);
+  });
+
   it('signs a plain Ledger transaction through ApprovalController when no replacement params are present', async () => {
     instance.props = {
       ...instance.props,

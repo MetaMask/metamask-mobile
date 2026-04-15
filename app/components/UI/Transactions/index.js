@@ -622,9 +622,12 @@ class Transactions extends PureComponent {
               : { legacyGasFee: params }),
           },
         });
-      } else {
-        await speedUpTransaction(this.speedUpTxId, params);
+        // The shared hardware-wallet flow closes the modal itself on success
+        // or rejection.
+        return;
       }
+
+      await speedUpTransaction(this.speedUpTxId, params);
       this.closeSpeedUpCancelModal();
     } catch (e) {
       this.handleSpeedUpTransactionFailure(e);
@@ -729,12 +732,15 @@ class Transactions extends PureComponent {
               : { legacyGasFee: params }),
           },
         });
-      } else {
-        await Engine.context.TransactionController.stopTransaction(
-          this.cancelTxId,
-          params,
-        );
+        // The shared hardware-wallet flow closes the modal itself on success
+        // or rejection.
+        return;
       }
+
+      await Engine.context.TransactionController.stopTransaction(
+        this.cancelTxId,
+        params,
+      );
       this.closeSpeedUpCancelModal();
     } catch (e) {
       this.handleCancelTransactionFailure(e);
