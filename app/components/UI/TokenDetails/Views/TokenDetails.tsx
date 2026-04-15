@@ -94,10 +94,12 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         token_address: params.address,
         token_name: params.name,
         has_balance: hasBalance,
-        sticky_buttons_shown: stickyButtonsShown,
         market_insights_displayed: isMarketInsightsDisplayed,
         severity,
         has_perps_market: hasPerpsMarket,
+        ...(stickyButtonsShown !== undefined && {
+          sticky_buttons_shown: stickyButtonsShown,
+        }),
       };
       const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
         .addProperties(eventProperties)
