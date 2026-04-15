@@ -20,7 +20,7 @@ import { MoneyWhatYouGetTestIds } from './MoneyWhatYouGet.testIds';
 
 interface MoneyWhatYouGetProps {
   /** APY expressed as a percentage (e.g. 3 for 3%). */
-  apy: number;
+  apy: string;
   /**
    * Handler fired when Learn more is tapped. Opens the marketing page web view.
    */
@@ -56,7 +56,7 @@ const MoneyWhatYouGet = ({
         <Text variant={TextVariant.BodyMd}>
           {strings('money.what_you_get.benefit_auto_earn')}
           <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
-            {strings('money.apy_label', { percentage: String(apy) })}
+            {strings('money.apy_label', { percentage: apy })}
           </Text>
         </Text>
       </BenefitRow>

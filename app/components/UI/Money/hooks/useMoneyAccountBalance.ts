@@ -85,6 +85,10 @@ const useMoneyAccountBalance = () => {
     return new BigNumber(priceInNativeCurrency).times(conversionRate);
   }, [tokenMarketData, currencyRates, networkConfigurations]);
 
+  // True while any query that feeds into the aggregated balance is still fetching.
+  const isAggregatedBalanceLoading =
+    musdBalanceResult.isLoading || musdEquivalentBalanceResult.isLoading;
+
   const { musdFiat, musdSHFvdFiat, tokenTotal, totalFiat } = useMemo(() => {
     // mUSD balance: raw uint256 (6 decimals) → decimal BigNumber
     const musdDecimal = musdBalanceResult.data?.balance
@@ -108,15 +112,12 @@ const useMoneyAccountBalance = () => {
         )
       : new BigNumber(0);
 
-    const isBalanceLoading =
-      musdBalanceResult.isLoading || musdEquivalentBalanceResult.isLoading;
-
     if (!musdFiatRate) {
       return {
         musdFiat: undefined,
         musdSHFvdFiat: undefined,
         // Undefined during loading so callers can distinguish "loading" from a genuine zero balance.
-        tokenTotal: isBalanceLoading
+        tokenTotal: isAggregatedBalanceLoading
           ? undefined
           : musdDecimal.plus(musdSHFvdDecimal),
         totalFiat: undefined,
@@ -130,7 +131,7 @@ const useMoneyAccountBalance = () => {
       musdFiat: computedMusdFiat,
       musdSHFvdFiat: computedMusdSHFvdFiat,
       // Undefined during loading so callers can distinguish "loading" from a genuine zero balance.
-      tokenTotal: isBalanceLoading
+      tokenTotal: isAggregatedBalanceLoading
         ? undefined
         : musdDecimal.plus(musdSHFvdDecimal),
       // Both fiat values share musdFiatRate as their sole dependency — computing
@@ -138,9 +139,8 @@ const useMoneyAccountBalance = () => {
       totalFiat: computedMusdFiat.plus(computedMusdSHFvdFiat),
     };
   }, [
-    musdBalanceResult.isLoading,
+    isAggregatedBalanceLoading,
     musdBalanceResult.data,
-    musdEquivalentBalanceResult.isLoading,
     musdEquivalentBalanceResult.data,
     musdFiatRate,
   ]);
@@ -156,6 +156,7 @@ const useMoneyAccountBalance = () => {
     musdBalanceResult,
     vaultApyResult,
     musdEquivalentBalanceResult,
+    isAggregatedBalanceLoading,
     musdFiatFormatted,
     musdSHFvdFiatFormatted,
     tokenTotal,

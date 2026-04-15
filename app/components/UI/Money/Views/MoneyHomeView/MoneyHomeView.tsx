@@ -29,16 +29,16 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 /** Placeholder until Money home actions are implemented */
-const noopHandler = () => undefined;
+// eslint-disable-next-line no-alert
+const displayUnderConstructionAlert = () => alert('Under construction 🚧');
 
-// TODO: Add loading states and skeletons.
-// TODO: Figure out why this component is re-rendering so much. Could it be because useMoneyAccountBalance is calling multiple queries on mount?
 const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
 
-  const { totalFiatFormatted, vaultApyResult } = useMoneyAccountBalance();
+  const { totalFiatFormatted, vaultApyResult, isAggregatedBalanceLoading } =
+    useMoneyAccountBalance();
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
@@ -47,23 +47,23 @@ const MoneyHomeView = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleMenuPress = noopHandler;
+  const handleMenuPress = displayUnderConstructionAlert;
 
-  const handleAddPress = noopHandler;
-  const handleTransferPress = noopHandler;
-  const handleCardPress = noopHandler;
-  const handleApyInfoPress = noopHandler;
-  const handleProjectedEarningsPress = noopHandler;
-  const handleGetNowPress = noopHandler;
-  const handleMusdRowPress = noopHandler;
-  const handleHeaderPress = noopHandler;
+  const handleAddPress = displayUnderConstructionAlert;
+  const handleTransferPress = displayUnderConstructionAlert;
+  const handleCardPress = displayUnderConstructionAlert;
+  const handleApyInfoPress = displayUnderConstructionAlert;
+  const handleProjectedEarningsPress = displayUnderConstructionAlert;
+  const handleGetNowPress = displayUnderConstructionAlert;
+  const handleMusdRowPress = displayUnderConstructionAlert;
+  const handleHeaderPress = displayUnderConstructionAlert;
 
-  const handleTokenConvertPress = noopHandler;
+  const handleTokenConvertPress = displayUnderConstructionAlert;
 
-  const handleEarnCryptoPress = noopHandler;
-  const handleLearnMorePress = noopHandler;
-  const handleAddMoneyPress = noopHandler;
-  const handleHowItWorksHeaderPress = noopHandler;
+  const handleEarnCryptoPress = displayUnderConstructionAlert;
+  const handleLearnMorePress = displayUnderConstructionAlert;
+  const handleAddMoneyPress = displayUnderConstructionAlert;
+  const handleHowItWorksHeaderPress = displayUnderConstructionAlert;
 
   const handleViewAllActivityPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.ACTIVITY as never);
@@ -90,10 +90,10 @@ const MoneyHomeView = () => {
         showsVerticalScrollIndicator={false}
       >
         <MoneyBalanceSummary
-          apy={String(vaultApyResult.data?.apy ?? '-')}
-          balanceFormatted={totalFiatFormatted ?? '-'}
+          apy={String(vaultApyResult.data?.apy)}
+          balance={totalFiatFormatted ?? '-'}
           onApyInfoPress={handleApyInfoPress}
-          isLoading={vaultApyResult.isLoading || vaultApyResult.isFetching}
+          isLoading={vaultApyResult.isLoading || isAggregatedBalanceLoading}
         />
         <MoneyActionButtonRow
           onAddPress={handleAddPress}
@@ -105,7 +105,7 @@ const MoneyHomeView = () => {
         <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
         <Divider />
         <MoneyHowItWorks
-          apy={MUSD_CONVERSION_APY}
+          apy={String(vaultApyResult.data?.apy)}
           onHeaderPress={handleHowItWorksHeaderPress}
         />
         <MoneyMusdTokenRow
@@ -143,7 +143,7 @@ const MoneyHomeView = () => {
           </>
         )}
         <MoneyWhatYouGet
-          apy={MUSD_CONVERSION_APY}
+          apy={String(vaultApyResult.data?.apy)}
           onLearnMorePress={handleLearnMorePress}
         />
       </ScrollView>
