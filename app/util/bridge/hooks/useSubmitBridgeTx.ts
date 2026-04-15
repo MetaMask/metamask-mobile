@@ -7,7 +7,6 @@ import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
-import { selectAbTestContext } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
 import {
   NUMPAD_QUICK_ACTIONS_AB_KEY,
@@ -26,7 +25,6 @@ import { useMemo } from 'react';
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const walletAddress = useSelector(selectSourceWalletAddress);
-  const abTestContext = useSelector(selectAbTestContext);
   const { variantName: numpadVariantName, isActive: isNumpadAbActive } =
     useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
   const {
@@ -44,12 +42,6 @@ export default function useSubmitBridgeTx() {
     STICKY_FOOTER_SWAP_LABEL_VARIANTS,
   );
 
-  const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
-    ? {
-        assetsASSETS2493AbtestTokenDetailsLayout:
-          abTestContext.assetsASSETS2493AbtestTokenDetailsLayout,
-      }
-    : undefined;
   const activeAbTests = useMemo(() => {
     const tests: { key: string; value: string }[] = [];
 
@@ -102,7 +94,7 @@ export default function useSubmitBridgeTx() {
         quoteResponse,
         accountAddress: walletAddress,
         location,
-        abTests,
+        abTests: undefined,
         activeAbTests,
       });
     }
@@ -115,7 +107,7 @@ export default function useSubmitBridgeTx() {
       stxEnabled,
       undefined, // quotesReceivedContext
       location,
-      abTests,
+      undefined, // abTests
       activeAbTests,
     );
   };

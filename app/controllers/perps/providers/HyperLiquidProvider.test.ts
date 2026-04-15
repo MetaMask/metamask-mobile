@@ -7459,13 +7459,7 @@ describe('HyperLiquidProvider', () => {
       // Create a provider instance with equity enabled for this specific test
       const testProvider = createTestProvider({ hip3Enabled: true });
 
-      // Override the private cachedValidatedDexs to simulate already validated state
-      // This avoids the complex initialization flow
-      Object.defineProperty(testProvider, 'cachedValidatedDexs', {
-        value: null, // Force re-evaluation
-        writable: true,
-        configurable: true,
-      });
+      // DEX discovery cache starts with null state on a fresh provider — no reset needed
 
       // Act
       const result = await testProvider.getAvailableHip3Dexs();
@@ -7778,7 +7772,14 @@ describe('HyperLiquidProvider', () => {
     describe('getAllAvailableDexs', () => {
       interface ProviderWithDexMethods {
         getAllAvailableDexs(): Promise<(string | null)[]>;
-        cachedAllPerpDexs: ({ name: string; url: string } | null)[] | null;
+        dexDiscoveryCache: {
+          state: {
+            raw: ({ name: string; url: string } | null)[];
+            validated: (string | null)[];
+            timestamp: number;
+          } | null;
+          reset(): void;
+        };
       }
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -7786,17 +7787,21 @@ describe('HyperLiquidProvider', () => {
 
       beforeEach(() => {
         testableProvider = provider as unknown as ProviderWithDexMethods;
-        // Reset cache
-        testableProvider.cachedAllPerpDexs = null;
+        // Reset unified state
+        testableProvider.dexDiscoveryCache.reset();
       });
 
       it('returns cached DEX list when cache is populated', async () => {
         // Arrange
-        testableProvider.cachedAllPerpDexs = [
-          null,
-          { name: 'dex1', url: 'https://dex1.example' },
-          { name: 'dex2', url: 'https://dex2.example' },
-        ];
+        testableProvider.dexDiscoveryCache.state = {
+          raw: [
+            null,
+            { name: 'dex1', url: 'https://dex1.example' },
+            { name: 'dex2', url: 'https://dex2.example' },
+          ],
+          validated: [null, 'dex1', 'dex2'],
+          timestamp: Date.now(),
+        };
 
         // Act
         const result = await testableProvider.getAllAvailableDexs();
@@ -7824,7 +7829,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null, 'dex1', 'dex2']);
-        expect(testableProvider.cachedAllPerpDexs).toEqual(mockDexs);
+        expect(testableProvider.dexDiscoveryCache.state?.raw).toEqual(mockDexs);
         expect(mockClientService.getInfoClient).toHaveBeenCalledTimes(1);
       });
 
@@ -7841,7 +7846,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+        expect(testableProvider.dexDiscoveryCache.state).toBeNull();
       });
 
       it('returns fallback when API returns non-array', async () => {
@@ -7857,7 +7862,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+        expect(testableProvider.dexDiscoveryCache.state).toBeNull();
       });
 
       it('returns fallback and logs error when API throws', async () => {
@@ -7875,7 +7880,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+        expect(testableProvider.dexDiscoveryCache.state).toBeNull();
         expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
           mockError,
           expect.objectContaining({
@@ -7891,12 +7896,16 @@ describe('HyperLiquidProvider', () => {
 
       it('filters out null entries from cached DEX list', async () => {
         // Arrange
-        testableProvider.cachedAllPerpDexs = [
-          null,
-          { name: 'dex1', url: 'https://dex1.example' },
-          null,
-          { name: 'dex2', url: 'https://dex2.example' },
-        ];
+        testableProvider.dexDiscoveryCache.state = {
+          raw: [
+            null,
+            { name: 'dex1', url: 'https://dex1.example' },
+            null,
+            { name: 'dex2', url: 'https://dex2.example' },
+          ],
+          validated: [null, 'dex1', 'dex2'],
+          timestamp: Date.now(),
+        };
 
         // Act
         const result = await testableProvider.getAllAvailableDexs();
@@ -7907,7 +7916,11 @@ describe('HyperLiquidProvider', () => {
 
       it('returns only main DEX when cached list contains only null', async () => {
         // Arrange
-        testableProvider.cachedAllPerpDexs = [null];
+        testableProvider.dexDiscoveryCache.state = {
+          raw: [null],
+          validated: [null],
+          timestamp: Date.now(),
+        };
 
         // Act
         const result = await testableProvider.getAllAvailableDexs();
@@ -9536,6 +9549,61 @@ describe('HyperLiquidProvider', () => {
         expect(infoClient.perpDexs).not.toHaveBeenCalled();
         // clearinghouseState should be called for both main + xyz DEX (from cache)
         expect(infoClient.clearinghouseState).toHaveBeenCalledTimes(2);
+      });
+
+      it('filters DEXs via testnet config when in testnet mode', async () => {
+        // Arrange: testnet mode with TESTNET_HIP3_CONFIG.EnabledDexs = ['xyz']
+        (mockClientService.isTestnetMode as jest.Mock).mockReturnValue(true);
+        const testnetProvider = createTestProvider({
+          hip3Enabled: true,
+          isTestnet: true,
+        });
+
+        // perpDexs returns main + xyz + other DEX
+        mockStandaloneInfoClient.perpDexs.mockResolvedValue([
+          null,
+          { name: 'xyz' },
+          { name: 'otherdex' },
+        ]);
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act
+        await testnetProvider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert: clearinghouseState called for main + xyz only (otherdex filtered out)
+        expect(
+          mockStandaloneInfoClient.clearinghouseState,
+        ).toHaveBeenCalledTimes(2);
+        // Restore
+        (mockClientService.isTestnetMode as jest.Mock).mockReturnValue(false);
+      });
+
+      it('updates unified state atomically when standalone perpDexs succeeds', async () => {
+        // Arrange
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act: first standalone call populates dexDiscoveryCache
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert: second call reuses cached state — perpDexs NOT called again
+        mockStandaloneInfoClient.perpDexs.mockClear();
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(mockStandaloneInfoClient.perpDexs).not.toHaveBeenCalled();
       });
     });
   });
