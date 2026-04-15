@@ -1026,6 +1026,9 @@
       "win_rate": "win rate",
       "pnl_30d": "30D P&L",
       "avg_hold": "avg. hold",
+      "hold_time_minutes": "{{count}}m",
+      "hold_time_hours": "{{count}} hrs",
+      "hold_time_days": "{{count}} days",
       "open": "Open",
       "closed": "Closed",
       "no_positions": "No positions yet",
@@ -5090,6 +5093,8 @@
     "got_it": "Got it",
     "encountered_error": "We've encountered an error",
     "no_quotes_error": "We encountered a problem fetching quotes from {{provider}}. Try a different amount or changing provider.",
+    "min_purchase_limit": "Minimum purchase is {{amount}}",
+    "max_purchase_limit": "Maximum purchase is {{amount}}",
     "change_provider_button": "Change provider"
   },
   "fiat_on_ramp_aggregator": {

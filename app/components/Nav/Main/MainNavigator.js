@@ -1354,6 +1354,11 @@ const MainNavigator = () => {
         options={({ navigation }) => ({
           ...slideFromRightAnimation,
           ...getDeFiProtocolPositionDetailsNavbarOptions(navigation),
+          headerStyle: {
+            backgroundColor: colors.background.default,
+            shadowColor: importedColors.transparent,
+            elevation: 0,
+          },
         })}
       />
       {
@@ -1375,7 +1380,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}
-        options={clearStackNavigatorOptionsWithTransitionAnimation}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
       />
     </Stack.Navigator>
   );

@@ -588,8 +588,6 @@ describe('usePerpsTransactionHistory', () => {
 
     it('uses provided parameters', async () => {
       const params = {
-        startTime: 1640995200000,
-        endTime: 1640995300000,
         accountId:
           'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
       };
@@ -608,10 +606,9 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockProvider.getOrders).toHaveBeenCalledWith({
         accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
       });
+      // startTime/endTime defaults are handled in HyperLiquidProvider via 30-day window
       expect(mockProvider.getFunding).toHaveBeenCalledWith({
         accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
-        startTime: 1640995200000,
-        endTime: 1640995300000,
       });
     });
 
@@ -1366,6 +1363,137 @@ describe('usePerpsTransactionHistory', () => {
       );
       expect(trades).toHaveLength(1);
       expect(trades[0].fill?.fillType).toBe(FillType.StopLoss);
+    });
+  });
+
+  describe('loadMoreFunding', () => {
+    const olderFundingRaw = [
+      {
+        symbol: 'ETH',
+        amountUsd: '-1.00',
+        rate: '0.0001',
+        timestamp: 1638403200000,
+      },
+    ];
+    const olderFundingTx = {
+      id: 'funding-1638403200000-ETH',
+      type: 'funding' as const,
+      category: 'funding_fee' as const,
+      title: 'Paid funding fee',
+      subtitle: 'ETH',
+      timestamp: 1638403200000,
+      asset: 'ETH',
+      fundingAmount: {
+        isPositive: false,
+        fee: '-$1.00',
+        feeNumber: -1,
+        rate: '0.01%',
+      },
+    };
+
+    async function renderAndWaitForInitialFetch() {
+      const hook = renderHook(() =>
+        usePerpsTransactionHistory({ skipInitialFetch: false }),
+      );
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      return hook;
+    }
+
+    it('fetches older funding and appends to transactions', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      mockProvider.getFunding.mockResolvedValueOnce(olderFundingRaw);
+      mockTransformFundingToTransactions.mockReturnValueOnce([olderFundingTx]);
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert
+      expect(mockProvider.getFunding).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+        }),
+      );
+      expect(result.current.hasFundingMore).toBe(true);
+      expect(result.current.isFetchingMoreFunding).toBe(false);
+    });
+
+    it('skips empty windows and keeps hasFundingMore true', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      mockProvider.getFunding.mockResolvedValueOnce([]);
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert — cursor advances but pagination continues
+      expect(result.current.hasFundingMore).toBe(true);
+    });
+
+    it('sets hasFundingMore to false on fetch error', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      mockProvider.getFunding.mockRejectedValueOnce(new Error('API error'));
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert
+      expect(result.current.hasFundingMore).toBe(false);
+      expect(result.current.isFetchingMoreFunding).toBe(false);
+    });
+
+    it('does not fetch when hasFundingMore is false', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      // Force hasFundingMore to false via error (errors still stop pagination)
+      mockProvider.getFunding.mockRejectedValueOnce(new Error('API error'));
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+      expect(result.current.hasFundingMore).toBe(false);
+      mockProvider.getFunding.mockClear();
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert — no new call
+      expect(mockProvider.getFunding).not.toHaveBeenCalled();
+    });
+
+    it('deduplicates transactions when loadMore returns overlapping ids', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      const dupFundingTx = {
+        ...olderFundingTx,
+        id: 'funding-1638403200000-ETH',
+      };
+      mockProvider.getFunding.mockResolvedValueOnce(olderFundingRaw);
+      mockTransformFundingToTransactions.mockReturnValueOnce([
+        dupFundingTx,
+        dupFundingTx,
+      ]);
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert — no duplicates in result
+      const ids = result.current.transactions.map((tx) => tx.id);
+      const uniqueIds = new Set(ids);
+      expect(ids.length).toBe(uniqueIds.size);
     });
   });
 
