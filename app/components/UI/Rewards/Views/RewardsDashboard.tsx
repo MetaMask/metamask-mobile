@@ -28,6 +28,8 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
+import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
+import { ScrollView } from 'react-native';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -192,12 +194,23 @@ const RewardsDashboard: React.FC = () => {
               disabled: !subscriptionId,
               testID: REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
             },
+            {
+              iconName: IconName.UserCircleAdd,
+              onPress: () => navigation.navigate(Routes.REFERRAL_REWARDS_VIEW),
+              testID: REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
+            },
           ]}
         />
-        <Box twClassName="flex-1 gap-4">
-          <CampaignsPreview />
-          <EarnRewardsPreview />
-        </Box>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          style={tw.style('flex-1')}
+        >
+          <Box twClassName="gap-3">
+            <CampaignsPreview />
+            <EarnRewardsPreview />
+            <BenefitsPreview />
+          </Box>
+        </ScrollView>
       </SafeAreaView>
       <Toast ref={toastRef} />
     </ErrorBoundary>

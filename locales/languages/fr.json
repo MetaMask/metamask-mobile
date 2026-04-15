@@ -2679,8 +2679,7 @@
     "description_content_2": "Lorsque nous recueillons des données, elles sont toujours…",
     "description_content_3": "Découvrez comment nous protégeons votre vie privée lors de la collecte de données d’utilisation pour votre profil.",
     "gather_basic_usage_title": "Collecte de données d’utilisation de base",
-    "gather_basic_usage_description": "Nous collecterons des données d’utilisation de base telles que votre emplacement général, vos clics et vos vues. Aucune autre information ne sera stockée.",
-    "gather_basic_usage_description_updated": "Nous collecterons des données de base sur l’utilisation des produits. Nous pouvons associer ces informations aux données disponibles sur la chaîne.",
+    "gather_basic_usage_description": "Nous collecterons des données de base sur l’utilisation des produits. Nous pouvons associer ces informations aux données disponibles sur la chaîne.",
     "gather_basic_usage_learn_more": "En savoir plus",
     "checkbox_marketing": "Mises à jour marketing",
     "checkbox": "Nous utiliserons ces données pour savoir comment vous interagissez avec nos communications commerciales et pour partager avec vous des informations pertinentes (comme les caractéristiques des produits).",
@@ -4810,11 +4809,9 @@
     "body_for_seedphrase": "À présent que des fonds ont été ajoutés à votre portefeuille, protégez-le en définissant un mot de passe et en sauvegardant votre phrase secrète de récupération (obligatoire).",
     "button": "Protéger le portefeuille"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Échec de la mise à jour de la transaction",
-    "text": "Réessayer ?",
-    "cancel_button": "Annuler",
-    "retry_button": "Réessayer"
+    "already_confirmed": "Cette transaction a déjà été confirmée et ne peut pas être modifiée."
   },
   "payment_request": {
     "title": "Demander",

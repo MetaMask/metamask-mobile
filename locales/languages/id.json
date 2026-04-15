@@ -2679,8 +2679,7 @@
     "description_content_2": "Saat kami mengumpulkan metrik, maka akan selalu...",
     "description_content_3": "Pelajari cara kami melindungi privasi Anda saat mengumpulkan data penggunaan untuk profil Anda.",
     "gather_basic_usage_title": "Kumpulkan data penggunaan dasar",
-    "gather_basic_usage_description": "Kami akan mengumpulkan data penggunaan produk dasar seperti lokasi umum, klik, dan lihat. Tidak ada informasi lain yang akan disimpan.",
-    "gather_basic_usage_description_updated": "Kami akan mengumpulkan data penggunaan produk dasar. Kami mungkin akan menghubungkan informasi ini dengan data on-chain.",
+    "gather_basic_usage_description": "Kami akan mengumpulkan data penggunaan produk dasar. Kami mungkin akan menghubungkan informasi ini dengan data on-chain.",
     "gather_basic_usage_learn_more": "Selengkapnya",
     "checkbox_marketing": "Pembaruan pemasaran",
     "checkbox": "Kami akan menggunakan data ini untuk mempelajari cara Anda berinteraksi dengan komunikasi pemasaran kami. Kami mungkin akan membagikan berita terkait (seperti fitur produk).",
@@ -4810,11 +4809,9 @@
     "body_for_seedphrase": "Kini nilai tersebut telah ditambahkan ke dompet Anda, lindungi dompet dengan mengatur kata sandi dan menyimpan Frasa Pemulihan Rahasia (wajib).",
     "button": "Lindungi dompet"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Pembaruan transaksi gagal",
-    "text": "Apakah Anda ingin mencobanya lagi?",
-    "cancel_button": "Batal",
-    "retry_button": "Coba lagi"
+    "already_confirmed": "Transaksi ini sudah dikonfirmasi dan tidak dapat diubah."
   },
   "payment_request": {
     "title": "Minta",

@@ -2679,8 +2679,7 @@
     "description_content_2": "指標を収集する際、常に次の条件が適用されます...",
     "description_content_3": "当社がプロファイル用に使用状況データを収集しつつ、どのようにユーザーのプライバシーを守るのかご覧ください。",
     "gather_basic_usage_title": "基本的な使用状況データの収集",
-    "gather_basic_usage_description": "当社は、おおまかな位置情報、クリック、閲覧内容など、製品の基本的な使用状況データを収集します。他の情報は一切保管されません。",
-    "gather_basic_usage_description_updated": "当社は、基本的な製品使用データを収集します。この情報はオンチェーンデータと関連付けられる場合があります。",
+    "gather_basic_usage_description": "当社は、基本的な製品使用データを収集します。この情報はオンチェーンデータと関連付けられる場合があります。",
     "gather_basic_usage_learn_more": "詳細",
     "checkbox_marketing": "マーケティング関連の最新情報",
     "checkbox": "このデータは、ユーザーによる当社のマーケティングコミュニケーションとのインタラクションを把握するために使用されます。また、関連ニュースをお伝えする場合もあります (製品の機能など)。",
@@ -4810,11 +4809,9 @@
     "body_for_seedphrase": "ウォレットに価値が追加された今、パスワードを設定して秘密のリカバリーフレーズを保存し、ウォレットを保護してください (必須)。",
     "button": "ウォレットを保護"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "トランザクションの更新に失敗しました",
-    "text": "もう一度試しますか？",
-    "cancel_button": "キャンセル",
-    "retry_button": "もう一度試す"
+    "already_confirmed": "このトランザクションはすでに確認済みのため変更できません。"
   },
   "payment_request": {
     "title": "リクエスト",

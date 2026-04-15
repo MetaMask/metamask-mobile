@@ -2679,8 +2679,7 @@
     "description_content_2": "Al recopilar métricas, siempre serán...",
     "description_content_3": "Conozca cómo protegemos su privacidad mientras recopilamos datos de uso para su perfil.",
     "gather_basic_usage_title": "Recopilar datos básicos de uso",
-    "gather_basic_usage_description": "Recopilaremos datos básicos de uso del producto, como ubicación general, clics y visualizaciones. No se almacenará ninguna otra información.",
-    "gather_basic_usage_description_updated": "Recopilaremos datos básicos de uso del producto. Podemos asociar esta información con datos en cadena.",
+    "gather_basic_usage_description": "Recopilaremos datos básicos de uso del producto. Podemos asociar esta información con datos en cadena.",
     "gather_basic_usage_learn_more": "Más información",
     "checkbox_marketing": "Actualizaciones de marketing",
     "checkbox": "Utilizaremos estos datos para saber cómo usted interactúa con nuestras comunicaciones de marketing. Podremos compartir noticias relevantes (como características de productos).",
@@ -4810,11 +4809,9 @@
     "body_for_seedphrase": "Ahora que se agregó valor a su monedero, para protegerlo, establezca una contraseña y guarde la frase secreta de recuperación (obligatorio).",
     "button": "Proteger monedero"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Error en la actualización de la transacción",
-    "text": "¿Quiere intentarlo de nuevo?",
-    "cancel_button": "Cancelar",
-    "retry_button": "Intente de nuevo"
+    "already_confirmed": "Esta transacción ya se ha confirmado y no se puede modificar."
   },
   "payment_request": {
     "title": "Solicitar",

@@ -2679,8 +2679,7 @@
     "description_content_2": "当我们收集指标时，总是...",
     "description_content_3": "了解我们如何在收集您的个人资料使用数据的同时保护您的隐私。",
     "gather_basic_usage_title": "收集基本使用数据",
-    "gather_basic_usage_description": "我们将收集基本的产品使用数据，例如大致位置、点击次数和浏览次数。不会存储其他任何信息。",
-    "gather_basic_usage_description_updated": "我们将收集基本的产品使用数据。我们可能会将这些信息与链上数据关联。",
+    "gather_basic_usage_description": "我们将收集基本的产品使用数据。我们可能会将这些信息与链上数据关联。",
     "gather_basic_usage_learn_more": "了解详情",
     "checkbox_marketing": "营销更新",
     "checkbox": "我们将使用此数据来了解您如何与我们的营销通信交互。我们可能会分享相关资讯（例如产品特点）。",
@@ -4810,11 +4809,9 @@
     "body_for_seedphrase": "现在价值已经添加到您的钱包中，请设置密码和保存助记词，保护您的钱包（必要）。",
     "button": "保护钱包"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "交易更新失败",
-    "text": "您想再试一次吗？",
-    "cancel_button": "取消",
-    "retry_button": "重试"
+    "already_confirmed": "此交易已确认，无法修改。"
   },
   "payment_request": {
     "title": "请求",

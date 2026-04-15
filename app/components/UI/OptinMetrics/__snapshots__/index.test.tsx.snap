@@ -8,8 +8,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -217,13 +216,10 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -493,7 +489,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       ]
                                     }
                                   >
-                                    We'll collect basic product usage data like general location, clicks, and views. No other information will be stored. 
+                                    We'll collect basic product usage data. We may associate this information with on-chain data. 
                                     <Text
                                       accessibilityRole="text"
                                       onPress={[Function]}
@@ -760,7 +756,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                             </Text>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -917,7 +913,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -929,8 +925,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1138,13 +1133,10 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -1414,7 +1406,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       ]
                                     }
                                   >
-                                    We'll collect basic product usage data like general location, clicks, and views. No other information will be stored. 
+                                    We'll collect basic product usage data. We may associate this information with on-chain data. 
                                     <Text
                                       accessibilityRole="text"
                                       onPress={[Function]}
@@ -1681,7 +1673,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                             </Text>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                     <View
                       collapsable={false}
@@ -1838,7 +1830,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
         }
       />
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1850,8 +1842,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2176,13 +2167,10 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
                             "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
                           }
                         }
                         style={
@@ -2452,7 +2440,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                       ]
                                     }
                                   >
-                                    We'll collect basic product usage data like general location, clicks, and views. No other information will be stored. 
+                                    We'll collect basic product usage data. We may associate this information with on-chain data. 
                                     <Text
                                       accessibilityRole="text"
                                       onPress={[Function]}
@@ -2719,7 +2707,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                             </Text>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2729,6 +2717,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

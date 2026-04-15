@@ -2679,8 +2679,7 @@
     "description_content_2": "메트릭을 수집할 때는 항상...",
     "description_content_3": "프로필 사용 데이터를 수집하는 동안 개인정보 보호 방법을 알아보세요.",
     "gather_basic_usage_title": "기본 사용 데이터 수집",
-    "gather_basic_usage_description": "일반적인 위치, 클릭, 조회수와 같은 기본적인 제품 사용 데이터를 수집합니다. 다른 정보는 저장하지 않습니다.",
-    "gather_basic_usage_description_updated": "기본적인 제품 사용 데이터를 수집합니다. 해당 정보는 온체인 데이터와 연계될 수 있습니다.",
+    "gather_basic_usage_description": "기본적인 제품 사용 데이터를 수집합니다. 해당 정보는 온체인 데이터와 연계될 수 있습니다.",
     "gather_basic_usage_learn_more": "더 보기",
     "checkbox_marketing": "마케팅 업데이트",
     "checkbox": "당사는 사용자가 마케팅 커뮤니케이션과 상호작용하는 방식을 파악하기 위해 이 데이터를 사용합니다. 관련 소식(제품 기능 등)을 공유할 수 있습니다.",
@@ -4810,11 +4809,9 @@
     "body_for_seedphrase": "지갑에 자산이 추가되었습니다. 비밀번호를 설정하고 비밀 복구 구문을 저장해 지갑을 보호하세요(필수).",
     "button": "지갑 보호하기"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "트랜잭션 업데이트 실패",
-    "text": "다시 시도하시겠습니까?",
-    "cancel_button": "취소",
-    "retry_button": "재시도"
+    "already_confirmed": "이 트랜잭션은 이미 확인되어 수정할 수 없습니다."
   },
   "payment_request": {
     "title": "요청",

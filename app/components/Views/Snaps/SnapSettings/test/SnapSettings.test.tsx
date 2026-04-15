@@ -32,20 +32,6 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_2,
 ]);
 
-jest.mock('react-native-safe-area-context', () => {
-  // using disting digits for mock rects to make sure they are not mixed up
-  const inset = { top: 1, right: 2, bottom: 3, left: 4 };
-  const frame = { width: 5, height: 6, x: 7, y: 8 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
 const mockUseParams = jest.fn();
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
@@ -278,9 +264,7 @@ describe('SnapSettings with non keyring snap', () => {
     expect(description).toBeTruthy();
     expect(permissionContainer).toBeTruthy();
     expect(permissions.length).toBe(7);
-    expect(removeButton.props.children[1].props.children).toBe(
-      'Remove Filsnap',
-    );
+    expect(removeButton).toHaveTextContent('Remove Filsnap');
   });
 
   it('remove snap and goes back when Remove button is pressed', async () => {

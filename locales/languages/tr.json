@@ -2679,8 +2679,7 @@
     "description_content_2": "Topladığımız ölçümler her zaman şu şekilde olacaktır...",
     "description_content_3": "Profiliniz için kullanım verilerini toplarken gizliliğinizi nasıl koruduğumuzu öğrenin.",
     "gather_basic_usage_title": "Temel kullanım verilerini topla",
-    "gather_basic_usage_description": "Genel konum, tıklamalar ve görüntülemeler gibi temel ürün kullanımı verilerini toplayacağız. Başka hiçbir bilgi depolanmayacaktır.",
-    "gather_basic_usage_description_updated": "Temel ürün kullanım verilerini toplarız. Bu bilgileri zincir içi verilerle ilişkilendirebiliriz.",
+    "gather_basic_usage_description": "Temel ürün kullanım verilerini toplarız. Bu bilgileri zincir içi verilerle ilişkilendirebiliriz.",
     "gather_basic_usage_learn_more": "Daha fazla bilgi edinin",
     "checkbox_marketing": "Pazarlama güncellemeleri",
     "checkbox": "Bu verileri, pazarlama iletişimlerimizle nasıl etkileşimde bulunduğunuzu öğrenmek için kullanacağız. İlgili haberleri (ürün özellikleri gibi) paylaşabiliriz.",
@@ -4810,11 +4809,9 @@
     "body_for_seedphrase": "Değer cüzdanınıza eklendiğine göre bir şifre belirleyerek ve Gizli Kurtarma İfadenizi (gereklidir) kaydederek cüzdanınızı koruyun.",
     "button": "Cüzdanı koru"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "İşlem güncellemesi başarısız oldu",
-    "text": "Tekrar denemek ister misiniz?",
-    "cancel_button": "İptal",
-    "retry_button": "Tekrar Dene"
+    "already_confirmed": "Bu işlem zaten onaylandı ve değiştirilemez."
   },
   "payment_request": {
     "title": "Talep",

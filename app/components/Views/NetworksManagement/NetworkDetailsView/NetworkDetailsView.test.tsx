@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import mockSafeAreaContext from 'react-native-safe-area-context/jest/mock';
 import { strings } from '../../../../../locales/i18n';
 import { IconColor } from '../../../../component-library/components/Icons/Icon';
 import { NetworkDetailsViewSelectorsIDs } from './NetworkDetailsView.testIds';
@@ -25,8 +24,6 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(() => false),
 }));
-
-jest.mock('react-native-safe-area-context', () => mockSafeAreaContext);
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
