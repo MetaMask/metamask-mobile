@@ -4,6 +4,21 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TopTradersSection from './TopTradersSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn(() => ({}));
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockNavigate = jest.fn();
@@ -67,16 +82,23 @@ const mockSelectSocialLeaderboardEnabled = jest.requireMock(
 
 const defaultProps = { sectionIndex: 1, totalSectionsLoaded: 3 };
 
+const mockToggleFollow = jest.fn();
+
 describe('TopTradersSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBuild.mockReturnValue({});
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
     mockSelectSocialLeaderboardEnabled.mockImplementation(() => true);
     mockUseTopTraders.mockReturnValue({
       traders: mockTraders,
       isLoading: false,
       error: null,
       refresh: mockRefetch,
-      toggleFollow: jest.fn(),
+      toggleFollow: mockToggleFollow,
     });
   });
 
@@ -136,6 +158,63 @@ describe('TopTradersSection', () => {
       Routes.SOCIAL_LEADERBOARD.PROFILE,
       { traderId: 'trader-1', traderName: 'alice' },
     );
+  });
+
+  it('tracks Trader Profile Screen Viewed with homepage_section source when a card is tapped', () => {
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.TRADER_PROFILE_SCREEN_VIEWED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trader_id: 'trader-1',
+        source: 'homepage_section',
+      }),
+    );
+  });
+
+  it('tracks Trader Follow Clicked when Follow is pressed on a not-yet-followed trader', () => {
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByText('Follow'));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.TRADER_FOLLOW_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trader_id: 'trader-1',
+        source: 'homepage_section',
+      }),
+    );
+    expect(mockToggleFollow).toHaveBeenCalledWith('trader-1');
+  });
+
+  it('tracks Trader Unfollow Clicked when Following is pressed on an already-followed trader', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [{ ...mockTraders[0], isFollowing: true }],
+      isLoading: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByText('Following'));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.TRADER_UNFOLLOW_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trader_id: 'trader-1',
+        source: 'homepage_section',
+      }),
+    );
+    expect(mockToggleFollow).toHaveBeenCalledWith('trader-1');
   });
 
   it('exposes refresh via ref and resolves when called', async () => {

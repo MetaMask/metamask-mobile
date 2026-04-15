@@ -23,6 +23,8 @@ import useHomeViewedEvent, {
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { useTopTraders } from './hooks';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 const HOME_TRADER_LIMIT = 3;
 const SKELETON_KEYS = Array.from(
@@ -51,6 +53,7 @@ const TopTradersSection = forwardRef<
   const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
     limit: HOME_TRADER_LIMIT,
@@ -87,14 +90,41 @@ const TopTradersSection = forwardRef<
     navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW);
   }, [navigation]);
 
+  const handleFollowPress = useCallback(
+    (traderId: string) => {
+      const trader = traders.find((t) => t.id === traderId);
+      const isCurrentlyFollowing = trader?.isFollowing ?? false;
+      trackEvent(
+        createEventBuilder(
+          isCurrentlyFollowing
+            ? MetaMetricsEvents.TRADER_UNFOLLOW_CLICKED
+            : MetaMetricsEvents.TRADER_FOLLOW_CLICKED,
+        )
+          .addProperties({
+            trader_id: traderId,
+            source: 'homepage_section',
+            ...(trader?.rank !== undefined && { trader_rank: trader.rank }),
+          })
+          .build(),
+      );
+      toggleFollow(traderId);
+    },
+    [traders, toggleFollow, trackEvent, createEventBuilder],
+  );
+
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TRADER_PROFILE_SCREEN_VIEWED)
+          .addProperties({ trader_id: traderId, source: 'homepage_section' })
+          .build(),
+      );
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
         traderId,
         traderName,
       });
     },
-    [navigation],
+    [navigation, trackEvent, createEventBuilder],
   );
 
   if (!isEnabled || (!isLoading && traders.length === 0)) {
@@ -122,7 +152,7 @@ const TopTradersSection = forwardRef<
                 <TopTraderCard
                   key={trader.id}
                   trader={trader}
-                  onFollowPress={toggleFollow}
+                  onFollowPress={handleFollowPress}
                   onTraderPress={handleTraderPress}
                 />
               ))}

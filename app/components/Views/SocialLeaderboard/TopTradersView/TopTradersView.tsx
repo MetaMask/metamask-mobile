@@ -32,6 +32,8 @@ import type { NetworkFilterSelection } from '../../Homepage/Sections/TopTraders/
 import type { CaipChainId } from '@metamask/utils';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const SKELETON_COUNT = 5;
 const SKELETON_KEYS = Array.from(
@@ -50,6 +52,7 @@ const TopTradersView = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
     enabled: isEnabled,
@@ -62,6 +65,16 @@ const TopTradersView = () => {
       navigation.goBack();
     }
   }, [isEnabled, navigation]);
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.LEADERBOARD_SCREEN_VIEWED)
+        .addProperties({ source: 'homepage_section' })
+        .build(),
+    );
+    // Fire once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [showNetworkBottomSheet, setShowNetworkBottomSheet] = useState(false);
   const [selectedNetwork, setSelectedNetwork] =
@@ -101,14 +114,41 @@ const TopTradersView = () => {
     }
   }, [refresh]);
 
+  const handleFollowPress = useCallback(
+    (traderId: string) => {
+      const trader = traders.find((t) => t.id === traderId);
+      const isCurrentlyFollowing = trader?.isFollowing ?? false;
+      trackEvent(
+        createEventBuilder(
+          isCurrentlyFollowing
+            ? MetaMetricsEvents.TRADER_UNFOLLOW_CLICKED
+            : MetaMetricsEvents.TRADER_FOLLOW_CLICKED,
+        )
+          .addProperties({
+            trader_id: traderId,
+            source: 'leaderboard',
+            ...(trader?.rank !== undefined && { trader_rank: trader.rank }),
+          })
+          .build(),
+      );
+      toggleFollow(traderId);
+    },
+    [traders, toggleFollow, trackEvent, createEventBuilder],
+  );
+
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TRADER_PROFILE_SCREEN_VIEWED)
+          .addProperties({ trader_id: traderId, source: 'leaderboard' })
+          .build(),
+      );
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
         traderId,
         traderName,
       });
     },
-    [navigation],
+    [navigation, trackEvent, createEventBuilder],
   );
 
   const selectedNetworkCaip = selectedNetwork
@@ -181,7 +221,7 @@ const TopTradersView = () => {
               <TraderRow
                 key={trader.id}
                 trader={trader}
-                onFollowPress={toggleFollow}
+                onFollowPress={handleFollowPress}
                 onTraderPress={handleTraderPress}
               />
             ))}

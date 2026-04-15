@@ -9,10 +9,25 @@ import type {
   TraderProfileResponse,
   Position,
 } from '@metamask/social-controllers';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const mockGoBack = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn(() => ({}));
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+}));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   getAssetImageUrl: () => 'https://example.com/token.png',
@@ -97,6 +112,11 @@ jest.mock('./hooks', () => ({
 describe('TraderProfileView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBuild.mockReturnValue({});
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
     mockProfileResult = {
       profile: fixtureProfile,
       isLoading: false,
@@ -159,6 +179,41 @@ describe('TraderProfileView', () => {
     renderWithProvider(<TraderProfileView />);
     fireEvent.press(screen.getByTestId('trader-profile-follow-button'));
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks Trader Follow Clicked when Follow is pressed on a not-yet-followed trader', () => {
+    renderWithProvider(<TraderProfileView />);
+    jest.clearAllMocks();
+
+    fireEvent.press(screen.getByTestId('trader-profile-follow-button'));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.TRADER_FOLLOW_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trader_id: 'trader-1',
+        source: 'trader_profile',
+      }),
+    );
+  });
+
+  it('tracks Trader Unfollow Clicked when Following is pressed on an already-followed trader', () => {
+    mockProfileResult.isFollowing = true;
+    renderWithProvider(<TraderProfileView />);
+    jest.clearAllMocks();
+
+    fireEvent.press(screen.getByTestId('trader-profile-follow-button'));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.TRADER_UNFOLLOW_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trader_id: 'trader-1',
+        source: 'trader_profile',
+      }),
+    );
   });
 
   it('renders open positions', () => {

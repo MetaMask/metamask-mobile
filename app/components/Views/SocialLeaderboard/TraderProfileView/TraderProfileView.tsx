@@ -36,6 +36,8 @@ import {
   PositionRowSkeleton,
 } from './components/Skeletons';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const POSITION_SKELETON_COUNT = 4;
 const POSITION_SKELETON_KEYS = Array.from(
@@ -77,6 +79,7 @@ const TraderProfileView = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderProfileView'>>();
   const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { traderId, traderName } = route.params;
 
@@ -92,6 +95,19 @@ const TraderProfileView = () => {
     useTraderPositions(traderId, { refetchInterval: 30_000 });
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
+
+  const handleFollowPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(
+        isFollowing
+          ? MetaMetricsEvents.TRADER_UNFOLLOW_CLICKED
+          : MetaMetricsEvents.TRADER_FOLLOW_CLICKED,
+      )
+        .addProperties({ trader_id: traderId, source: 'trader_profile' })
+        .build(),
+    );
+    toggleFollow();
+  }, [isFollowing, traderId, toggleFollow, trackEvent, createEventBuilder]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -182,7 +198,7 @@ const TraderProfileView = () => {
                         : ButtonVariant.Secondary
                     }
                     isFullWidth
-                    onPress={toggleFollow}
+                    onPress={handleFollowPress}
                     testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
                   >
                     {isFollowing

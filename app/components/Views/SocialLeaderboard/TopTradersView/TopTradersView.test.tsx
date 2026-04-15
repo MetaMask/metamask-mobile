@@ -6,9 +6,24 @@ import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hooks/useTopTraders';
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import Logger from '../../../../util/Logger';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
+}));
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn(() => ({}));
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+}));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 const mockGoBack = jest.fn();
@@ -77,6 +92,11 @@ jest.mock('../../Homepage/Sections/TopTraders/hooks', () => ({
 describe('TopTradersView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBuild.mockReturnValue({});
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
   });
 
   it('renders the container', () => {
@@ -135,6 +155,60 @@ describe('TopTradersView', () => {
     expect(mockToggleFollow).toHaveBeenCalledWith(fixtureTraders[0].id);
   });
 
+  it('tracks Leaderboard Screen Viewed on mount', () => {
+    renderWithProvider(<TopTradersView />);
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.LEADERBOARD_SCREEN_VIEWED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'homepage_section' }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks Trader Follow Clicked when Follow is pressed on a not-yet-followed trader', () => {
+    renderWithProvider(<TopTradersView />);
+    jest.clearAllMocks();
+
+    const followButtons = screen.getAllByText('Follow');
+    fireEvent.press(followButtons[0]);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.TRADER_FOLLOW_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trader_id: fixtureTraders[0].id,
+        source: 'leaderboard',
+      }),
+    );
+  });
+
+  it('tracks Trader Unfollow Clicked when Following is pressed on an already-followed trader', () => {
+    const originalTraders = mockUseTopTraders.traders;
+    mockUseTopTraders.traders = fixtureTraders.map((t, i) =>
+      i === 0 ? { ...t, isFollowing: true } : t,
+    );
+
+    renderWithProvider(<TopTradersView />);
+    jest.clearAllMocks();
+
+    const followingButton = screen.getAllByText('Following')[0];
+    fireEvent.press(followingButton);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.TRADER_UNFOLLOW_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trader_id: fixtureTraders[0].id,
+        source: 'leaderboard',
+      }),
+    );
+
+    mockUseTopTraders.traders = originalTraders;
+  });
+
   it('renders a RefreshControl with the correct props on the trader list', () => {
     renderWithProvider(<TopTradersView />);
 
@@ -170,6 +244,23 @@ describe('TopTradersView', () => {
     expect(Logger.error).toHaveBeenCalledWith(
       refreshError,
       'TopTradersView: pull-to-refresh failed',
+    );
+  });
+
+  it('tracks Trader Profile Screen Viewed with leaderboard source when a trader row is tapped', () => {
+    renderWithProvider(<TopTradersView />);
+    jest.clearAllMocks();
+
+    fireEvent.press(screen.getByText(fixtureTraders[0].username));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.TRADER_PROFILE_SCREEN_VIEWED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trader_id: fixtureTraders[0].id,
+        source: 'leaderboard',
+      }),
     );
   });
 
