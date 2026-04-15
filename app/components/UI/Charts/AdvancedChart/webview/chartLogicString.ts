@@ -1189,7 +1189,6 @@ function updateVisibleEdgeOutlinePriceLabel() {
     hideCustomSeriesLastValueLabelDom();
     return;
   }
-  /** Line chart: price/Y at the plot’s right edge matches the drawn segment (interpolate closes). */
   var price = Number(edgeBar.close);
   if (ct === 2) {
     var tEdgeMs = getVisiblePlotRightEdgeTimeMs(chart);
@@ -1239,11 +1238,7 @@ function updateVisibleEdgeOutlinePriceLabel() {
   if (!hO || hO < 8) {
     hO = 24;
   }
-  /**
-   * When outline and last-close pills overlap, separate with minimum gap (TradingView-style stack).
-   * Stack direction: higher outline **price** → outline above filled (smaller y); lower → below.
-   * Equal prices → outline below filled so the solid last-price pill stays primary.
-   */
+  /* Nudge outline if it overlaps last-close pill: higher price → above, else below (ties = below). */
   if (
     elLast &&
     elLast.style.display !== 'none' &&
@@ -1262,20 +1257,7 @@ function updateVisibleEdgeOutlinePriceLabel() {
           : Infinity;
       var pOut = Number(price);
       var pLast = Number(lastClosePrice);
-      var edgeAboveFilled;
-      if (isFinite(pOut) && isFinite(pLast)) {
-        if (pOut > pLast) {
-          edgeAboveFilled = true;
-        } else if (pOut < pLast) {
-          edgeAboveFilled = false;
-        } else {
-          edgeAboveFilled = false;
-        }
-      } else {
-        edgeAboveFilled =
-          y < yLastClose ||
-          (Math.abs(y - yLastClose) < 1 && pOut > pLast);
-      }
+      var edgeAboveFilled = isFinite(pOut) && isFinite(pLast) ? pOut > pLast : y < yLastClose;
       if (edgeAboveFilled) {
         yPos = yLastClose - hF / 2 - gapPx - hO / 2;
         if (yPos < minCenter) {
@@ -1293,44 +1275,8 @@ function updateVisibleEdgeOutlinePriceLabel() {
 }
 
 /**
- * Maps a clamped price to Y in pane coordinates. Uses {@link https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.IPriceScaleApi#getmode IPriceScaleApi.getMode}
- * so **Log** scales match the chart (Charting_Library.PriceScaleMode.Log = 1); other modes use linear mapping.
- *
- * @param {object} scale - IPriceScaleApi
- * @param {number} lo
- * @param {number} hi
- * @param {number} h
- * @param {number} pClamped
- * @param {boolean} inverted
- * @returns {number | null}
- */
-function mapClampedPriceToPaneY(scale, lo, hi, h, pClamped, inverted) {
-  var mode = typeof scale.getMode === 'function' ? scale.getMode() : 0;
-  /* Log = 1 — https://www.tradingview.com/charting-library-docs/latest/api/enums/Charting_Library.PriceScaleMode/ */
-  if (mode === 1 && lo > 0 && hi > 0 && pClamped > 0) {
-    var logLo = Math.log(lo);
-    var logHi = Math.log(hi);
-    var logP = Math.log(pClamped);
-    if (logHi === logLo) {
-      return inverted ? 0 : h / 2;
-    }
-    var t = (logP - logLo) / (logHi - logLo);
-    if (inverted) {
-      return t * h;
-    }
-    return (1 - t) * h;
-  }
-  if (inverted) {
-    return ((pClamped - lo) / (hi - lo)) * h;
-  }
-  return ((hi - pClamped) / (hi - lo)) * h;
-}
-
-/**
- * Y pixel for a price (same space as crosshair \`offsetY\`).
- * Uses documented {@link https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.IPriceScaleApi#getvisiblepricerange IPriceScaleApi.getVisiblePriceRange},
- * {@link https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.IPaneApi#getheight IPaneApi.getHeight}, and
- * {@link https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.IPriceScaleApi#isinverted IPriceScaleApi.isInverted} — not undocumented coordinate helpers.
+ * Y pixel for a price (crosshair overlay space). \`getVisiblePriceRange\` + \`getHeight\` + \`isInverted\`;
+ * \`getMode() === 1\` (log) uses log mapping.
  */
 function getPriceYForLastCloseOverlay(chart, price) {
   if (!chart || price === undefined || price === null || isNaN(Number(price))) {
@@ -1353,9 +1299,22 @@ function getPriceYForLastCloseOverlay(chart, price) {
     var h = pane.getHeight();
     if (!h || h <= 0) return null;
     var pClamped = Math.min(hi, Math.max(lo, p));
-    var inverted =
-      typeof scale.isInverted === 'function' && scale.isInverted();
-    return mapClampedPriceToPaneY(scale, lo, hi, h, pClamped, inverted);
+    var inverted = typeof scale.isInverted === 'function' && scale.isInverted();
+    var mode = typeof scale.getMode === 'function' ? scale.getMode() : 0;
+    if (mode === 1 && lo > 0 && hi > 0 && pClamped > 0) {
+      var logLo = Math.log(lo);
+      var logHi = Math.log(hi);
+      var logP = Math.log(pClamped);
+      if (logHi === logLo) {
+        return inverted ? 0 : h / 2;
+      }
+      var t = (logP - logLo) / (logHi - logLo);
+      return inverted ? t * h : (1 - t) * h;
+    }
+    if (inverted) {
+      return ((pClamped - lo) / (hi - lo)) * h;
+    }
+    return ((hi - pClamped) / (hi - lo)) * h;
   } catch (e) {
     return null;
   }
@@ -2519,13 +2478,7 @@ function normalizeChartUnixSec(t) {
   return n >= 1e12 ? Math.floor(n / 1000) : Math.floor(n);
 }
 
-/**
- * Unix **milliseconds** from raw TradingView time (\`coordinateToTime\`, \`getVisibleRange\`, etc.).
- * Preserves sub-second precision for interpolation (unlike {@link normalizeChartUnixSec}).
- *
- * @param {number | string} rawT
- * @returns {number | null}
- */
+/** Raw TV timestamp → unix ms (keeps sub-second precision vs {@link normalizeChartUnixSec}). */
 function chartRawTimeToUnixMs(rawT) {
   var n = Number(rawT);
   if (!isFinite(n)) {
@@ -2549,9 +2502,9 @@ function getApproxBarDurationSec() {
   return Math.max(60, Math.round(ms / 1000));
 }
 
-/** Pixels inset from time-scale right so \`coordinateToTime\` samples left of the price scale (16px dot + margin). */
+/** Time-scale inset from right so line-end icon stays on-screen (not under price scale). */
 var LINE_END_ICON_TIME_INSET_PX = 40;
-/** Plot’s right edge for outline pill time — must not reuse {@link LINE_END_ICON_TIME_INSET_PX} (samples too far left vs drawn line). \`0\` = rightmost pixel (\`w - 1\`). */
+/** Outline edge sample inset (0 = rightmost pixel; not the line-icon inset). */
 var OUTLINE_EDGE_TIME_INSET_PX = 0;
 var LINE_END_ICON_PROBE_STEP_PX = 8;
 var LINE_END_ICON_MAX_PROBES = 14;
@@ -2862,14 +2815,7 @@ function getVisibleEdgeOutlineBar(chart, data) {
   return best;
 }
 
-/**
- * Unix **milliseconds** at the plot’s right edge (minimal inset vs line-icon), via
- * {@link https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.ITimeScaleApi#coordinatetotime ITimeScaleApi.coordinateToTime}.
- * Capped to \`getVisibleRange().to\`. Uses {@link OUTLINE_EDGE_TIME_INSET_PX}, not {@link LINE_END_ICON_TIME_INSET_PX}.
- *
- * @param {object} chart - \`widget.activeChart()\`
- * @returns {number | null}
- */
+/** \`coordinateToTime\` at plot right edge (see {@link OUTLINE_EDGE_TIME_INSET_PX}); capped to \`visibleRange.to\`. */
 function getVisiblePlotRightEdgeTimeMs(chart) {
   if (!chart) {
     return null;
@@ -2909,13 +2855,7 @@ function getVisiblePlotRightEdgeTimeMs(chart) {
   }
 }
 
-/**
- * Linear interpolation of \`close\` between adjacent OHLCV bars (line chart path between closes).
- *
- * @param {Array<{ time: number, close: number }>} data - ascending \`time\` (ms), \`window.ohlcvData\`
- * @param {number} tMs
- * @returns {number | null}
- */
+/** Interpolate close between consecutive bars (line chart path). */
 function interpolateCloseAlongLineAtTimeMs(data, tMs) {
   if (!data || !data.length || !isFinite(tMs)) {
     return null;
