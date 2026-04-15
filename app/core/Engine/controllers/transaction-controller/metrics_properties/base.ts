@@ -82,6 +82,28 @@ export function getTransactionTypeValue(
     return 'musd_claim';
   }
 
+  if (transactionMeta?.type === TransactionType.batch) {
+    if (
+      hasTransactionType(transactionMeta, [TransactionType.perpsRelayDeposit])
+    ) {
+      return 'perps_deposit_batch';
+    }
+
+    if (
+      hasTransactionType(transactionMeta, [TransactionType.predictRelayDeposit])
+    ) {
+      return 'predict_deposit_batch';
+    }
+
+    if (
+      hasTransactionType(transactionMeta, [
+        'musdRelayDeposit' as TransactionType,
+      ])
+    ) {
+      return 'musd_conversion_batch';
+    }
+  }
+
   switch (transactionType) {
     case TransactionType.bridgeApproval:
       return 'bridge_approval';
@@ -95,6 +117,8 @@ export function getTransactionTypeValue(
       return 'perps_deposit';
     case TransactionType.perpsDepositAndOrder:
       return 'perps_deposit_and_order';
+    case 'musdRelayDeposit' as TransactionType:
+      return 'musd_relay_deposit';
     case TransactionType.perpsRelayDeposit:
       return 'perps_relay_deposit';
     case TransactionType.predictRelayDeposit:

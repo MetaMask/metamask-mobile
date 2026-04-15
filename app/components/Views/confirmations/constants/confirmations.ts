@@ -100,6 +100,7 @@ export const USER_CURRENCY_TYPES = [TransactionType.musdClaim] as const;
 
 export const RELAY_DEPOSIT_TYPES = [
   TransactionType.relayDeposit,
+  'musdRelayDeposit' as TransactionType,
   TransactionType.perpsRelayDeposit,
   TransactionType.predictRelayDeposit,
 ];
