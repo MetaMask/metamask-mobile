@@ -176,11 +176,13 @@ const AccountsMenu = () => {
   }, [goToBrowserUrl, trackEvent, createEventBuilder]);
 
   const onPressSupport = useCallback(() => {
-    let supportUrl = METAMASK_SUPPORT_URL;
+    let supportUrl;
 
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
     supportUrl = 'https://intercom.help/internal-beta-testing/en/';
     ///: END:ONLY_INCLUDE_IF
+
+    supportUrl = supportUrl || METAMASK_SUPPORT_URL;
 
     goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
     trackEvent(createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build());

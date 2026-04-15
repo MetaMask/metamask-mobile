@@ -66,11 +66,13 @@ const LinkedOffDeviceAccountsSheet: React.FC<
   const navigation = useNavigation();
 
   const handleContactSupport = useCallback(() => {
-    let supportUrl = METAMASK_SUPPORT_URL;
+    let supportUrl;
 
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
     supportUrl = 'https://intercom.help/internal-beta-testing/en/';
     ///: END:ONLY_INCLUDE_IF
+
+    supportUrl = supportUrl || METAMASK_SUPPORT_URL;
 
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
