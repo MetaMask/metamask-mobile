@@ -12,6 +12,7 @@ import MoneyMusdTokenRow from '../../components/MoneyMusdTokenRow';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
+import { hasConvertibleTokensWithBalance } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings';
 import MoneyMetaMaskCard from '../../components/MoneyMetaMaskCard';
 import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
 import MoneyActivityList from '../../components/MoneyActivityList';
@@ -102,7 +103,7 @@ const MoneyHomeView = () => {
           onAddPress={handleAddPress}
         />
         <Divider />
-        {conversionTokens.length > 0 && (
+        {hasConvertibleTokensWithBalance(conversionTokens) && (
           <>
             <MoneyPotentialEarnings
               tokens={conversionTokens}

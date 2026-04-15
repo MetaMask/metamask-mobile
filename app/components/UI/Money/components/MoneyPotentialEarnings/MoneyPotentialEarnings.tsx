@@ -53,6 +53,15 @@ const formatUsd = (value: number) =>
 
 const tokenFiatValue = (token: AssetType) => token.fiat?.balance ?? 0;
 
+/**
+ * True when the token list contains at least one token with a positive fiat
+ * balance — the same criterion MoneyPotentialEarnings uses before rendering.
+ * Exported so parents can gate surrounding chrome (e.g. Dividers) without
+ * drifting from the component's internal filter.
+ */
+export const hasConvertibleTokensWithBalance = (tokens: AssetType[]) =>
+  tokens.some((token) => tokenFiatValue(token) > 0);
+
 const sortTokens = (tokens: AssetType[]) => {
   const withBalance = tokens.filter((t) => tokenFiatValue(t) > 0);
   const stables = withBalance
@@ -75,7 +84,6 @@ const GradientAmountText = ({ value }: { value: string }) => {
   const textProps = {
     variant: TextVariant.HeadingMd,
     fontWeight: FontWeight.Bold,
-    testID: MoneyPotentialEarningsTestIds.AMOUNT,
   };
   return (
     <MaskedView
@@ -92,7 +100,11 @@ const GradientAmountText = ({ value }: { value: string }) => {
         end={GRADIENT_END}
         style={styles.gradient}
       >
-        <Text {...textProps} twClassName="opacity-0">
+        <Text
+          {...textProps}
+          twClassName="opacity-0"
+          testID={MoneyPotentialEarningsTestIds.AMOUNT}
+        >
           {value}
         </Text>
       </LinearGradient>
