@@ -16,6 +16,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { OnboardingSuccessComponent } from '../OnboardingSuccess';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const hardwareBackPress = () => ({});
 const HARDWARE_BACK_PRESS = 'hardwareBackPress';
@@ -131,7 +132,10 @@ class ManualBackupStep3 extends PureComponent {
   render() {
     return (
       <Box twClassName="flex-1 bg-default mt-4">
-        <OnboardingSuccessComponent onDone={this.done} backedUpSRP />
+        <OnboardingSuccessComponent
+          onDone={this.done}
+          successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
+        />
         {Device.isAndroid() && (
           <AndroidBackHandler customBackPress={this.props.navigation.pop} />
         )}

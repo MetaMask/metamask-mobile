@@ -11,6 +11,7 @@ import {
 } from '../../../components/Views/Homepage/abTestConfig';
 
 const homepageSectionsV1Key = 'homepageSectionsV1';
+const walletHomeOnboardingStepsKey = 'walletHomeOnboardingSteps';
 
 export const selectHomepageSectionsV1Enabled = createSelector(
   selectRemoteFeatureFlags,
@@ -30,4 +31,18 @@ export const selectHubPageDiscoveryTabsABTest = createSelector(
       HUB_PAGE_DISCOVERY_TABS_AB_KEY,
       Object.keys(HUB_PAGE_DISCOVERY_TABS_VARIANTS),
     ),
+);
+
+/**
+ * Remote flag for the wallet home post-onboarding steps (multi-step empty-balance tile).
+ * Defaults to false when absent so rollout is opt-in via remote config.
+ */
+export const selectWalletHomeOnboardingStepsEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags[
+      walletHomeOnboardingStepsKey
+    ] as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
 );

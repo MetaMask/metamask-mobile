@@ -591,6 +591,10 @@ const Wallet = ({
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [
+    hideWalletMainActionsForPostOnboardingSteps,
+    setHideWalletMainActionsForPostOnboardingSteps,
+  ] = useState(false);
   const { refreshBalance } = useBalanceRefresh();
   const theme = useTheme();
 
@@ -682,6 +686,13 @@ const Wallet = ({
 
   const displayBuyButton = true;
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
+
+  const handlePostOnboardingStepsSurfaceActiveChange = useCallback(
+    (active: boolean) => {
+      setHideWalletMainActionsForPostOnboardingSteps(active);
+    },
+    [],
+  );
 
   const onReceive = useCallback(() => {
     trackActionButtonClick(trackEvent, createEventBuilder, {
@@ -1317,19 +1328,25 @@ const Wallet = ({
         <NetworkConnectionBanner />
       </View>
       <>
-        <AccountGroupBalance />
-
-        <AssetDetailsActions
-          displayBuyButton={displayBuyButton}
-          displaySwapsButton={displaySwapsButton}
-          goToSwaps={goToSwaps}
-          onReceive={onReceive}
-          onSend={onSend}
-          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+        <AccountGroupBalance
+          onPostOnboardingStepsSurfaceActiveChange={
+            handlePostOnboardingStepsSurfaceActiveChange
+          }
         />
+
+        {!hideWalletMainActionsForPostOnboardingSteps ? (
+          <AssetDetailsActions
+            displayBuyButton={displayBuyButton}
+            displaySwapsButton={displaySwapsButton}
+            goToSwaps={goToSwaps}
+            onReceive={onReceive}
+            onSend={onSend}
+            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+            swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+            sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+            receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+          />
+        ) : null}
 
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
