@@ -181,6 +181,31 @@ describe('useReferralDetails', () => {
     expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
   });
 
+  it('does not fetch on mount when fetchOnMount is false', () => {
+    mockUseSelector
+      .mockReturnValueOnce('test-subscription-id')
+      .mockReturnValueOnce('test-season-id');
+
+    renderHook(() => useReferralDetails({ fetchOnMount: false }));
+
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
+    expect(mockEngineCall).not.toHaveBeenCalled();
+  });
+
+  it('still returns fetchReferralDetails when fetchOnMount is false', () => {
+    mockUseSelector
+      .mockReturnValueOnce('test-subscription-id')
+      .mockReturnValueOnce('test-season-id');
+
+    const { result } = renderHook(() =>
+      useReferralDetails({ fetchOnMount: false }),
+    );
+
+    expect(typeof result.current.fetchReferralDetails).toBe('function');
+  });
+
   it('prevents duplicate fetch calls when already loading', async () => {
     mockUseSelector
       .mockReturnValueOnce('test-subscription-id')

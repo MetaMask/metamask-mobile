@@ -302,11 +302,15 @@ const V2OtpCode = () => {
     routeAfterAuthentication,
   ]);
 
-  const handleValueChange = useCallback((text: string) => {
-    setValue(text);
-    setError(null);
-    setLatestValueSubmitted(null);
-  }, []);
+  const handleValueChange = useCallback(
+    (text: string) => {
+      if (isLoading) return;
+      setValue(text);
+      setError(null);
+      setLatestValueSubmitted(null);
+    },
+    [isLoading],
+  );
 
   const handlePaste = useCallback(async () => {
     const text = await Clipboard.getString();
@@ -361,6 +365,7 @@ const V2OtpCode = () => {
             rootStyle={styles.codeFieldRoot}
             keyboardType="number-pad"
             textContentType="oneTimeCode"
+            editable={!isLoading}
             renderCell={({ index, symbol, isFocused }) => (
               <View
                 onLayout={getCellOnLayoutHandler(index)}

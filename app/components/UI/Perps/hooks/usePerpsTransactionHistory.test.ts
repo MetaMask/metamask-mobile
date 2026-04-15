@@ -11,6 +11,8 @@ import {
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
   transformWalletPerpsDepositsToTransactions,
+  transformWithdrawalRequestsToTransactions,
+  walletPerpsWithdrawalsToRequests,
   mergeOrderFills,
 } from '../utils/transactionTransforms';
 import { FillType } from '../types/transactionHistory';
@@ -53,6 +55,14 @@ const mockTransformUserHistoryToTransactions =
 const mockTransformWalletPerpsDepositsToTransactions =
   transformWalletPerpsDepositsToTransactions as jest.MockedFunction<
     typeof transformWalletPerpsDepositsToTransactions
+  >;
+const mockTransformWithdrawalRequestsToTransactions =
+  transformWithdrawalRequestsToTransactions as jest.MockedFunction<
+    typeof transformWithdrawalRequestsToTransactions
+  >;
+const mockWalletPerpsWithdrawalsToRequests =
+  walletPerpsWithdrawalsToRequests as jest.MockedFunction<
+    typeof walletPerpsWithdrawalsToRequests
   >;
 const mockMergeOrderFills = mergeOrderFills as jest.MockedFunction<
   typeof mergeOrderFills
@@ -213,6 +223,8 @@ describe('usePerpsTransactionHistory', () => {
     mockTransformFundingToTransactions.mockReturnValue([]);
     mockTransformUserHistoryToTransactions.mockReturnValue([]);
     mockTransformWalletPerpsDepositsToTransactions.mockReturnValue([]);
+    mockWalletPerpsWithdrawalsToRequests.mockReturnValue([]);
+    mockTransformWithdrawalRequestsToTransactions.mockReturnValue([]);
     // Use real mergeOrderFills so dedup, sort, and detailedOrderType preservation
     // are exercised correctly in hook-level tests. Unit tests for the function
     // itself live in transactionTransforms.test.ts.
@@ -381,6 +393,157 @@ describe('usePerpsTransactionHistory', () => {
       expect(depositsWithSameTxHash).toHaveLength(1);
       expect(depositsWithSameTxHash[0].id).toBe('deposit-rest-1');
     });
+
+    it('includes wallet perps withdrawals in merged transactions', async () => {
+      mockTransformFillsToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+      const walletWithdrawalTx = {
+        id: 'wallet-withdrawal-tx-1',
+        type: 'withdrawal' as const,
+        category: 'withdrawal' as const,
+        title: 'Withdrew 0.26 USDC',
+        subtitle: 'Completed',
+        timestamp: 1640995204000,
+        asset: 'USDC',
+        depositWithdrawal: {
+          amount: '-$0.26',
+          amountNumber: -0.26,
+          isPositive: false,
+          asset: 'USDC',
+          txHash: '0xwithdraw1',
+          status: 'completed' as const,
+          type: 'withdrawal' as const,
+        },
+      };
+      mockWalletPerpsWithdrawalsToRequests.mockReturnValue([
+        {
+          id: 'wallet-w1',
+          timestamp: 1640995204000,
+          amount: '0.26',
+          asset: 'USDC',
+          txHash: '0xwithdraw1',
+          status: 'completed',
+        },
+      ]);
+      mockTransformWithdrawalRequestsToTransactions.mockReturnValue([
+        walletWithdrawalTx,
+      ]);
+      const selectedAddr = '0x1234567890123456789012345678901234567890';
+      mockUseSelector.mockImplementation(() => {
+        const len = mockUseSelector.mock.calls.length;
+        return len % 2 === 1
+          ? [
+              {
+                id: 'w1',
+                type: 'perpsWithdraw',
+                txParams: { from: selectedAddr },
+                nestedTransactions: [{ type: 'perpsWithdraw' }],
+              },
+            ]
+          : selectedAddr;
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsTransactionHistory({ skipInitialFetch: true }),
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(result.current.transactions).toContainEqual(walletWithdrawalTx);
+      expect(mockWalletPerpsWithdrawalsToRequests).toHaveBeenCalled();
+      expect(mockTransformWithdrawalRequestsToTransactions).toHaveBeenCalled();
+    });
+
+    it('deduplicates wallet withdrawals against REST withdrawals by txHash', async () => {
+      const sameTxHash = '0xwithdraw123';
+      const restWithdrawal = {
+        id: 'withdrawal-rest-1',
+        type: 'withdrawal' as const,
+        category: 'withdrawal' as const,
+        title: 'Withdrew 0.50 USDC',
+        subtitle: 'Completed',
+        timestamp: 1640995200000,
+        asset: 'USDC',
+        depositWithdrawal: {
+          amount: '-$0.50',
+          amountNumber: -0.5,
+          isPositive: false,
+          asset: 'USDC',
+          txHash: sameTxHash,
+          status: 'completed' as const,
+          type: 'withdrawal' as const,
+        },
+      };
+      const walletWithdrawalSameTx = {
+        id: 'wallet-withdrawal-tx-1',
+        type: 'withdrawal' as const,
+        category: 'withdrawal' as const,
+        title: 'Withdrew 0.50 USDC',
+        subtitle: 'Pending',
+        timestamp: 1640995201000,
+        asset: 'USDC',
+        depositWithdrawal: {
+          amount: '-$0.50',
+          amountNumber: -0.5,
+          isPositive: false,
+          asset: 'USDC',
+          txHash: sameTxHash,
+          status: 'pending' as const,
+          type: 'withdrawal' as const,
+        },
+      };
+      mockTransformFillsToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([restWithdrawal]);
+      mockWalletPerpsWithdrawalsToRequests.mockReturnValue([
+        {
+          id: 'wallet-w1',
+          timestamp: 1640995201000,
+          amount: '0.50',
+          asset: 'USDC',
+          txHash: sameTxHash,
+          status: 'pending',
+        },
+      ]);
+      mockTransformWithdrawalRequestsToTransactions.mockReturnValue([
+        walletWithdrawalSameTx,
+      ]);
+      const selectedAddr = '0x1234567890123456789012345678901234567890';
+      mockUseSelector.mockImplementation(() => {
+        const len = mockUseSelector.mock.calls.length;
+        return len % 2 === 1
+          ? [
+              {
+                id: 'w1',
+                type: 'perpsWithdraw',
+                txParams: { from: selectedAddr },
+                nestedTransactions: [{ type: 'perpsWithdraw' }],
+              },
+            ]
+          : selectedAddr;
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsTransactionHistory({ skipInitialFetch: false }),
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      await act(async () => {
+        await result.current.refetch();
+      });
+
+      const withdrawalsWithSameTxHash = result.current.transactions.filter(
+        (tx) =>
+          tx.type === 'withdrawal' &&
+          tx.depositWithdrawal?.txHash?.toLowerCase() ===
+            sameTxHash.toLowerCase(),
+      );
+      expect(withdrawalsWithSameTxHash).toHaveLength(1);
+      expect(withdrawalsWithSameTxHash[0].id).toBe('withdrawal-rest-1');
+    });
   });
 
   describe('fetchAllTransactions', () => {
@@ -425,8 +588,6 @@ describe('usePerpsTransactionHistory', () => {
 
     it('uses provided parameters', async () => {
       const params = {
-        startTime: 1640995200000,
-        endTime: 1640995300000,
         accountId:
           'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
       };
@@ -445,10 +606,9 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockProvider.getOrders).toHaveBeenCalledWith({
         accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
       });
+      // startTime/endTime defaults are handled in HyperLiquidProvider via 30-day window
       expect(mockProvider.getFunding).toHaveBeenCalledWith({
         accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
-        startTime: 1640995200000,
-        endTime: 1640995300000,
       });
     });
 
@@ -1203,6 +1363,137 @@ describe('usePerpsTransactionHistory', () => {
       );
       expect(trades).toHaveLength(1);
       expect(trades[0].fill?.fillType).toBe(FillType.StopLoss);
+    });
+  });
+
+  describe('loadMoreFunding', () => {
+    const olderFundingRaw = [
+      {
+        symbol: 'ETH',
+        amountUsd: '-1.00',
+        rate: '0.0001',
+        timestamp: 1638403200000,
+      },
+    ];
+    const olderFundingTx = {
+      id: 'funding-1638403200000-ETH',
+      type: 'funding' as const,
+      category: 'funding_fee' as const,
+      title: 'Paid funding fee',
+      subtitle: 'ETH',
+      timestamp: 1638403200000,
+      asset: 'ETH',
+      fundingAmount: {
+        isPositive: false,
+        fee: '-$1.00',
+        feeNumber: -1,
+        rate: '0.01%',
+      },
+    };
+
+    async function renderAndWaitForInitialFetch() {
+      const hook = renderHook(() =>
+        usePerpsTransactionHistory({ skipInitialFetch: false }),
+      );
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      return hook;
+    }
+
+    it('fetches older funding and appends to transactions', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      mockProvider.getFunding.mockResolvedValueOnce(olderFundingRaw);
+      mockTransformFundingToTransactions.mockReturnValueOnce([olderFundingTx]);
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert
+      expect(mockProvider.getFunding).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+        }),
+      );
+      expect(result.current.hasFundingMore).toBe(true);
+      expect(result.current.isFetchingMoreFunding).toBe(false);
+    });
+
+    it('skips empty windows and keeps hasFundingMore true', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      mockProvider.getFunding.mockResolvedValueOnce([]);
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert — cursor advances but pagination continues
+      expect(result.current.hasFundingMore).toBe(true);
+    });
+
+    it('sets hasFundingMore to false on fetch error', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      mockProvider.getFunding.mockRejectedValueOnce(new Error('API error'));
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert
+      expect(result.current.hasFundingMore).toBe(false);
+      expect(result.current.isFetchingMoreFunding).toBe(false);
+    });
+
+    it('does not fetch when hasFundingMore is false', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      // Force hasFundingMore to false via error (errors still stop pagination)
+      mockProvider.getFunding.mockRejectedValueOnce(new Error('API error'));
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+      expect(result.current.hasFundingMore).toBe(false);
+      mockProvider.getFunding.mockClear();
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert — no new call
+      expect(mockProvider.getFunding).not.toHaveBeenCalled();
+    });
+
+    it('deduplicates transactions when loadMore returns overlapping ids', async () => {
+      // Arrange
+      const { result } = await renderAndWaitForInitialFetch();
+      const dupFundingTx = {
+        ...olderFundingTx,
+        id: 'funding-1638403200000-ETH',
+      };
+      mockProvider.getFunding.mockResolvedValueOnce(olderFundingRaw);
+      mockTransformFundingToTransactions.mockReturnValueOnce([
+        dupFundingTx,
+        dupFundingTx,
+      ]);
+
+      // Act
+      await act(async () => {
+        await result.current.loadMoreFunding();
+      });
+
+      // Assert — no duplicates in result
+      const ids = result.current.transactions.map((tx) => tx.id);
+      const uniqueIds = new Set(ids);
+      expect(ids.length).toBe(uniqueIds.size);
     });
   });
 

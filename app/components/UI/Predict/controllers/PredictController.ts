@@ -67,6 +67,7 @@ import {
   ActiveOrderState,
   ClaimParams,
   ConnectionStatus,
+  CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
   GetBalanceParams,
@@ -369,6 +370,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'refreshEligibility',
   'selectPaymentToken',
   'setSelectedPaymentToken',
+  'subscribeToCryptoPrices',
   'subscribeToGameUpdates',
   'subscribeToMarketPrices',
   'trackActivityViewed',
@@ -1548,14 +1550,36 @@ export class PredictController extends BaseController<
   }
 
   /**
+   * Subscribes to real-time crypto price updates via RTDS WebSocket.
+   *
+   * @param symbols - Array of crypto symbols to subscribe to (e.g., ['btcusdt'])
+   * @param callback - Function invoked when a crypto price update is received
+   * @returns Unsubscribe function to clean up the subscription
+   */
+  public subscribeToCryptoPrices(
+    symbols: string[],
+    callback: CryptoPriceUpdateCallback,
+  ): () => void {
+    const provider = this.provider;
+    if (!provider?.subscribeToCryptoPrices) {
+      return () => undefined;
+    }
+    return provider.subscribeToCryptoPrices(symbols, callback);
+  }
+
+  /**
    * Gets the current WebSocket connection status for live data feeds.
    *
-   * @returns Connection status for sports and market data WebSocket channels
+   * @returns Connection status for sports, market, and RTDS data WebSocket channels
    */
   public getConnectionStatus(): ConnectionStatus {
     const provider = this.provider;
     if (!provider?.getConnectionStatus) {
-      return { sportsConnected: false, marketConnected: false };
+      return {
+        sportsConnected: false,
+        marketConnected: false,
+        rtdsConnected: false,
+      };
     }
     return provider.getConnectionStatus();
   }
