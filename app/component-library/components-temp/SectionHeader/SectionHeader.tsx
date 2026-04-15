@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import {
@@ -88,9 +88,14 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 
   if (onPress) {
     return (
-      <Pressable testID={testID} onPress={onPress} style={containerStyle}>
+      <TouchableOpacity
+        testID={testID}
+        onPress={onPress}
+        style={containerStyle}
+        activeOpacity={0.7}
+      >
         {innerContent}
-      </Pressable>
+      </TouchableOpacity>
     );
   }
 

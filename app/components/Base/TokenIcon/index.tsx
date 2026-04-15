@@ -6,7 +6,9 @@ import React, {
 } from 'react';
 import PropTypes from 'prop-types';
 import {
+  Image,
   ImageSourcePropType,
+  ImageStyle,
   StyleSheet,
   TextStyle,
   View,
@@ -166,19 +168,36 @@ function TokenIcon({
   const source = getSource();
 
   if (source && !showFallback) {
+    const iconStyle = [
+      styles.icon,
+      medium && styles.iconMedium,
+      big && styles.iconBig,
+      biggest && styles.iconBiggest,
+      style,
+    ];
+    // Use standard RN Image for local bundled assets (BTC, ETH, SOL, etc.)
+    // expo-image (via RemoteImage) interferes with iOS accessibility tree,
+    // preventing the parent TouchableOpacity from being detected by XCUITest.
+    // Only use RemoteImage for remote URL sources (when `icon` prop is a URL).
+    const isRemoteUrl = typeof source === 'object' && 'uri' in source;
+    if (isRemoteUrl) {
+      return (
+        <RemoteImage
+          key={icon || `symbol-${symbol}`}
+          testID={testID}
+          source={getSource()}
+          onError={() => setShowFallback(true)}
+          style={iconStyle}
+        />
+      );
+    }
     return (
-      <RemoteImage
+      <Image
         key={icon || `symbol-${symbol}`}
         testID={testID}
-        source={getSource()}
+        source={getSource() as ImageSourcePropType}
         onError={() => setShowFallback(true)}
-        style={[
-          styles.icon,
-          medium && styles.iconMedium,
-          big && styles.iconBig,
-          biggest && styles.iconBiggest,
-          style,
-        ]}
+        style={iconStyle as ImageStyle[]}
       />
     );
   }
