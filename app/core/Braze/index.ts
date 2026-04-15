@@ -1,3 +1,4 @@
+import I18n, { I18nEvents } from '../../../locales/i18n';
 import Logger from '../../util/Logger';
 import { isE2E } from '../../util/test/utils';
 import Engine from '../Engine/Engine';
@@ -9,9 +10,18 @@ let brazePlugin: BrazePlugin | undefined;
  * Get or create the singleton BrazePlugin instance.
  * This should be called during analytics controller initialization to pass
  * the plugin to the platform adapter.
+ *
+ * On first creation, sets the current language and subscribes to locale
+ * changes so the Braze `currentLanguage` attribute stays in sync.
  */
 export function getBrazePlugin(): BrazePlugin {
-  brazePlugin ??= new BrazePlugin();
+  if (!brazePlugin) {
+    brazePlugin = new BrazePlugin();
+    brazePlugin.setLanguage(I18n.locale.substring(0, 2));
+    I18nEvents.addListener('localeChanged', (locale: string) => {
+      brazePlugin?.setLanguage(locale);
+    });
+  }
   return brazePlugin;
 }
 

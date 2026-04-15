@@ -26,6 +26,7 @@ export class BrazePlugin extends EventPlugin {
   private allowedEvents: Set<string> = new Set();
   private allowedTraits: Set<string> = new Set();
   private pendingIdentifyTraits: Record<string, unknown> | undefined;
+  private currentLanguage: string | undefined;
 
   /**
    * Set the Braze profile ID used for `Braze.changeUser()`.
@@ -63,6 +64,10 @@ export class BrazePlugin extends EventPlugin {
         }
         this.pendingIdentifyTraits = undefined;
       }
+
+      if (this.currentLanguage) {
+        this.sendLanguageToBraze(this.currentLanguage);
+      }
     } else {
       this.pendingIdentifyTraits = undefined;
     }
@@ -88,6 +93,20 @@ export class BrazePlugin extends EventPlugin {
     Logger.log(
       `[BrazePlugin] Updated allowed traits (${traitNames.length} traits)`,
     );
+  }
+
+  /**
+   * Set the app language as a custom user attribute on Braze.
+   *
+   * Always stores the value so it can be sent when a profileId becomes
+   * available. If a profileId is already set, sends immediately.
+   */
+  setLanguage(locale: string): void {
+    this.currentLanguage = locale;
+    Logger.log(`[BrazePlugin] setLanguage: ${locale}`);
+    if (this.brazeProfileId !== undefined) {
+      this.sendLanguageToBraze(locale);
+    }
   }
 
   identify(event: IdentifyEventType): IdentifyEventType {
@@ -155,6 +174,20 @@ export class BrazePlugin extends EventPlugin {
           },
         });
       }
+    }
+  }
+
+  private sendLanguageToBraze(locale: string): void {
+    try {
+      Braze.setCustomUserAttribute('currentLanguage', locale);
+      Logger.log(`[BrazePlugin] Sent language to Braze: ${locale}`);
+    } catch (error) {
+      captureException(error as Error, {
+        tags: {
+          plugin: 'BrazePlugin',
+          context: 'Failed to set language on Braze',
+        },
+      });
     }
   }
 

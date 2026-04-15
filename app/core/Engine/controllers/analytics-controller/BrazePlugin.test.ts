@@ -355,6 +355,71 @@ describe('BrazePlugin', () => {
     });
   });
 
+  describe('setLanguage', () => {
+    it('sends language to Braze immediately when profileId is set', () => {
+      plugin.setBrazeProfileId('profile-123');
+
+      plugin.setLanguage('fr');
+
+      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
+        'currentLanguage',
+        'fr',
+      );
+    });
+
+    it('does not send language when profileId is not set', () => {
+      plugin.setLanguage('fr');
+
+      expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalled();
+    });
+
+    it('sends stored language when profileId is set later', () => {
+      plugin.setLanguage('fr');
+      expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalled();
+
+      plugin.setBrazeProfileId('profile-123');
+
+      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
+        'currentLanguage',
+        'fr',
+      );
+    });
+
+    it('sends the latest language when profileId is set after multiple changes', () => {
+      plugin.setLanguage('fr');
+      plugin.setLanguage('ja');
+
+      plugin.setBrazeProfileId('profile-123');
+
+      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
+        'currentLanguage',
+        'ja',
+      );
+      expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalledWith(
+        'currentLanguage',
+        'fr',
+      );
+    });
+
+    it('sends language on every profile change', () => {
+      plugin.setLanguage('fr');
+      plugin.setBrazeProfileId('profile-123');
+
+      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
+        'currentLanguage',
+        'fr',
+      );
+      mockBraze.setCustomUserAttribute.mockClear();
+
+      plugin.setBrazeProfileId('profile-456');
+
+      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
+        'currentLanguage',
+        'fr',
+      );
+    });
+  });
+
   describe('flush', () => {
     it('flushes Braze data when profileId is set', () => {
       plugin.setBrazeProfileId('profile-123');
