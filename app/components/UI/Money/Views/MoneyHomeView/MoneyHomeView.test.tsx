@@ -46,6 +46,7 @@ const mockConversionTokens = [
 
 jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
   useMusdConversionTokens: () => ({ tokens: mockConversionTokens }),
+  STABLECOIN_SYMBOLS: new Set(['USDC', 'USDT', 'DAI']),
 }));
 
 jest.mock('../../hooks/useMoneyAccountTransactions', () => ({

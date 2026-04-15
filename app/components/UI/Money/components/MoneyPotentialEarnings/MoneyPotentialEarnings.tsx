@@ -28,13 +28,13 @@ import Badge, {
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import { STABLECOIN_SYMBOLS } from '../../../Earn/hooks/useMusdConversionTokens';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 
 /** Number of years the projected earnings are simulated over. */
 const PROJECTION_YEARS = 5;
 const MAX_TOKENS = 5;
-const STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT', 'DAI']);
 const GRADIENT_COLORS = [brandColor.lime100, brandColor.lime200];
 const GRADIENT_START = { x: 0, y: 0 };
 const GRADIENT_END = { x: 1, y: 0 };
@@ -55,17 +55,6 @@ const tokenFiatValue = (token: AssetType) => token.fiat?.balance ?? 0;
  */
 export const hasConvertibleTokensWithBalance = (tokens: AssetType[]) =>
   tokens.some((token) => tokenFiatValue(token) > 0);
-
-const sortTokens = (tokens: AssetType[]) => {
-  const withBalance = tokens.filter((t) => tokenFiatValue(t) > 0);
-  const stables = withBalance
-    .filter((t) => STABLECOIN_SYMBOLS.has(t.symbol))
-    .sort((a, b) => tokenFiatValue(b) - tokenFiatValue(a));
-  const others = withBalance
-    .filter((t) => !STABLECOIN_SYMBOLS.has(t.symbol))
-    .sort((a, b) => tokenFiatValue(b) - tokenFiatValue(a));
-  return [...stables, ...others];
-};
 
 interface MoneyPotentialEarningsProps {
   tokens: AssetType[];
@@ -223,10 +212,16 @@ const MoneyPotentialEarnings = ({
     () => (apy / 100) * PROJECTION_YEARS,
     [apy],
   );
-  const sortedTokens = useMemo(() => sortTokens(tokens ?? []), [tokens]);
+  // Tokens arrive pre-sorted (stablecoins first, then fiat desc) from
+  // useMusdConversionTokens; we only strip zero-balance entries defensively —
+  // the feature flag threshold may be set to 0 in some environments — and cap
+  // the list at the MAX_TOKENS we render in-place.
   const visibleTokens = useMemo(
-    () => sortedTokens.slice(0, MAX_TOKENS),
-    [sortedTokens],
+    () =>
+      (tokens ?? [])
+        .filter((token) => tokenFiatValue(token) > 0)
+        .slice(0, MAX_TOKENS),
+    [tokens],
   );
 
   // Sum only the tokens we actually render so the gradient headline always
@@ -246,7 +241,7 @@ const MoneyPotentialEarnings = ({
     [onTokenPress],
   );
 
-  if (!sortedTokens.length) {
+  if (!visibleTokens.length) {
     return null;
   }
 

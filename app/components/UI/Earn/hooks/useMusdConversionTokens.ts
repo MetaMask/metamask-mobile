@@ -8,6 +8,16 @@ import { isTokenAllowed } from '../utils/wildcardTokenList';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAccountTokens';
 import { useCallback, useMemo } from 'react';
+
+/**
+ * Symbols treated as stablecoins for ordering purposes in Money-related
+ * surfaces. Exported so the list can be reused without redefining it per
+ * component.
+ */
+export const STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT', 'DAI']);
+
+const tokenFiatValue = (token: { fiat?: { balance?: number } }) =>
+  token.fiat?.balance ?? 0;
 import { TokenI } from '../../Tokens/types';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import { toHex } from '@metamask/controller-utils';
@@ -87,14 +97,21 @@ export const useMusdConversionTokens = () => {
     [filterTokensWithAllowlistAndBlocklist, filterTokensWithMinBalance],
   );
 
-  // Allowed tokens for conversion, sorted by fiat balance descending.
-  const conversionTokens = useMemo(
-    () =>
-      filterAllowedTokens(allTokens).sort(
-        (a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0),
-      ),
-    [allTokens, filterAllowedTokens],
-  );
+  // Allowed tokens for conversion, ordered with stablecoins first by fiat
+  // balance descending, then every other token by fiat balance descending.
+  // This matches how Money surfaces prefer to surface conversion candidates.
+  const conversionTokens = useMemo(() => {
+    const allowed = filterAllowedTokens(allTokens);
+    const byFiatDesc = (a: AssetType, b: AssetType) =>
+      tokenFiatValue(b) - tokenFiatValue(a);
+    const stables = allowed
+      .filter((token) => STABLECOIN_SYMBOLS.has(token.symbol))
+      .sort(byFiatDesc);
+    const others = allowed
+      .filter((token) => !STABLECOIN_SYMBOLS.has(token.symbol))
+      .sort(byFiatDesc);
+    return [...stables, ...others];
+  }, [allTokens, filterAllowedTokens]);
 
   const hasConvertibleTokensByChainId = useCallback(
     (chainId: Hex) =>
