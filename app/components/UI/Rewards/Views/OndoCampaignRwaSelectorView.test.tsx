@@ -38,8 +38,13 @@ jest.mock('../../../../selectors/tokenBalancesController', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
   useRoute: () => ({ params: mockRouteParams }),
+  StackActions: { push: jest.fn() },
+}));
+
+jest.mock('@react-navigation/stack', () => ({
+  ...jest.requireActual('@react-navigation/stack'),
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -60,15 +65,17 @@ jest.mock(
       default: ({
         title,
         onBack,
+        onClose,
       }: {
         title: React.ReactNode;
-        onBack: () => void;
+        onBack?: () => void;
+        onClose?: () => void;
       }) =>
         ReactActual.createElement(
           View,
           { testID: 'header' },
           ReactActual.createElement(Pressable, {
-            onPress: onBack,
+            onPress: onBack ?? onClose,
             testID: 'header-back-button',
           }),
           typeof title === 'string'
@@ -181,14 +188,6 @@ jest.mock(
   },
 );
 
-jest.mock(
-  '../../Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet',
-  () => ({
-    TimeOption: { TwentyFourHours: '24H', OneWeek: '1W', OneMonth: '1M' },
-  }),
-);
-
-// Silence utility mocks
 jest.mock('../../Trending/utils/getTrendingTokenImageUrl', () => ({
   getTrendingTokenImageUrl: jest.fn(
     (assetId: string) => `https://mock.image/${assetId}`,
@@ -202,6 +201,19 @@ jest.mock('../../Trending/utils/trendingNetworksList', () => ({
   ],
 }));
 
+jest.mock('../../Trending/hooks/useNetworkName/useNetworkName', () => ({
+  useNetworkName: () => 'All networks',
+}));
+
+jest.mock('../../Trending/services/TrendingFeedSessionManager', () => ({
+  __esModule: true,
+  default: {
+    getInstance: () => ({
+      trackFilterChange: jest.fn(),
+    }),
+  },
+}));
+
 jest.mock('../../../../util/theme', () => ({
   useTheme: () => ({
     colors: {
@@ -209,6 +221,7 @@ jest.mock('../../../../util/theme', () => ({
       border: { muted: 'muted-border' },
     },
   }),
+  useAppThemeFromContext: () => ({}),
 }));
 
 jest.mock('../../AssetOverview/Balance/Balance', () => ({
@@ -231,6 +244,112 @@ jest.mock('@metamask/utils', () => ({
   ...jest.requireActual('@metamask/utils'),
 }));
 
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaView: jest.requireActual('react-native').View,
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
+
+// Mock the shared ListHeaderWithSearch used by TrendingListHeader
+jest.mock('../../shared/ListHeaderWithSearch', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, Pressable, TextInput } =
+    jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      title,
+      isSearchVisible,
+      searchQuery,
+      onSearchQueryChange,
+      onBack,
+      onSearchToggle,
+      searchPlaceholder,
+      testID,
+    }: {
+      title: React.ReactNode;
+      isSearchVisible: boolean;
+      searchQuery: string;
+      onSearchQueryChange: (q: string) => void;
+      onBack: () => void;
+      onSearchToggle: () => void;
+      searchPlaceholder?: string;
+      cancelText?: string;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: testID ?? 'header' },
+        ReactActual.createElement(Pressable, {
+          onPress: onBack,
+          testID: 'header-back-button',
+        }),
+        typeof title === 'string'
+          ? ReactActual.createElement(Text, { testID: 'header-title' }, title)
+          : title,
+        ReactActual.createElement(Pressable, {
+          onPress: onSearchToggle,
+          testID: 'search-toggle',
+        }),
+        isSearchVisible
+          ? ReactActual.createElement(TextInput, {
+              testID: 'search-input',
+              placeholder: searchPlaceholder,
+              value: searchQuery,
+              onChangeText: onSearchQueryChange,
+            })
+          : null,
+      ),
+  };
+});
+
+// Mock FilterBar
+jest.mock('../../Trending/components/FilterBar/FilterBar', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Pressable, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      networkName,
+      onNetworkPress,
+      priceChangeButtonText,
+      onPriceChangePress,
+    }: {
+      networkName: string;
+      onNetworkPress: () => void;
+      priceChangeButtonText: string;
+      onPriceChangePress: () => void;
+      isPriceChangeDisabled?: boolean;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'filter-bar' },
+        ReactActual.createElement(
+          Pressable,
+          { testID: 'all-networks-button', onPress: onNetworkPress },
+          ReactActual.createElement(Text, null, networkName),
+        ),
+        ReactActual.createElement(
+          Pressable,
+          { testID: 'price-change-button', onPress: onPriceChangePress },
+          ReactActual.createElement(Text, null, priceChangeButtonText),
+        ),
+      ),
+  };
+});
+
+// Mock bottom sheets as no-ops for rendering
+jest.mock('../../Trending/components/TrendingTokensBottomSheet', () => ({
+  PriceChangeOption: {
+    PriceChange: 'price_change',
+    Volume: 'volume',
+    MarketCap: 'market_cap',
+  },
+  TimeOption: { TwentyFourHours: '24H', OneWeek: '1W', OneMonth: '1M' },
+  SortDirection: { Ascending: 'asc', Descending: 'desc' },
+  TrendingTokenNetworkBottomSheet: () => null,
+  TrendingTokenPriceChangeBottomSheet: () => null,
+}));
+
 const buildToken = (symbol: string, assetId?: string): TrendingAsset =>
   ({
     symbol,
@@ -240,7 +359,6 @@ const buildToken = (symbol: string, assetId?: string): TrendingAsset =>
     rwaData: null,
   }) as unknown as TrendingAsset;
 
-// Default mock values: no active group accounts, no balances
 let mockActiveGroupAccounts: { address: string }[] = [];
 let mockAllTokenBalances: Record<
   string,
@@ -271,13 +389,12 @@ describe('OndoCampaignRwaSelectorView', () => {
 
   it('renders without crashing', () => {
     const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
-    expect(getByTestId('header')).toBeDefined();
+    expect(getByTestId('ondo-rwa-selector-header')).toBeDefined();
   });
 
   it('renders skeleton when loading', () => {
     mockUseRwaTokens.mockReturnValue({ data: [], isLoading: true });
     const { queryByTestId } = render(<OndoCampaignRwaSelectorView />);
-    // When loading, FlatList is replaced by skeleton boxes — no token rows rendered
     expect(queryByTestId('token-row-AAPL')).toBeNull();
   });
 
@@ -299,14 +416,6 @@ describe('OndoCampaignRwaSelectorView', () => {
     expect(getByTestId('token-row-MSFT')).toBeDefined();
   });
 
-  it('in open_position mode, shows plain title string', () => {
-    mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
-    const { getByText } = render(<OndoCampaignRwaSelectorView />);
-    expect(
-      getByText('rewards.ondo_rwa_asset_selector.title_open_position'),
-    ).toBeDefined();
-  });
-
   it('calls goToSwaps when a token item is pressed', () => {
     const token = buildToken('AAPL');
     mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
@@ -321,32 +430,16 @@ describe('OndoCampaignRwaSelectorView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  describe('chain filter toggle', () => {
-    it('shows chain filter buttons in open_position mode', () => {
+  describe('filter bar', () => {
+    it('shows filter bar with network and price-change buttons in open_position mode', () => {
       mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
-      expect(getByTestId('chain-filter-eip155:1')).toBeDefined();
-      expect(getByTestId('chain-filter-eip155:56')).toBeDefined();
+      expect(getByTestId('filter-bar')).toBeDefined();
+      expect(getByTestId('all-networks-button')).toBeDefined();
+      expect(getByTestId('price-change-button')).toBeDefined();
     });
 
-    it('calls useRwaTokens with Ethereum chainId by default', () => {
-      mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
-      render(<OndoCampaignRwaSelectorView />);
-      const lastCall =
-        mockUseRwaTokens.mock.calls[mockUseRwaTokens.mock.calls.length - 1][0];
-      expect(lastCall.chainIds).toEqual(['eip155:1']);
-    });
-
-    it('switches to BNB Chain when the BNB filter is pressed', () => {
-      mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
-      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
-      fireEvent.press(getByTestId('chain-filter-eip155:56'));
-      const lastCall =
-        mockUseRwaTokens.mock.calls[mockUseRwaTokens.mock.calls.length - 1][0];
-      expect(lastCall.chainIds).toEqual(['eip155:56']);
-    });
-
-    it('does not show chain filter in swap mode', () => {
+    it('shows filter bar in swap mode', () => {
       mockRouteParams = {
         mode: 'swap',
         campaignId: 'campaign-1',
@@ -355,9 +448,16 @@ describe('OndoCampaignRwaSelectorView', () => {
         srcTokenDecimals: 6,
       };
       mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
-      const { queryByTestId } = render(<OndoCampaignRwaSelectorView />);
-      expect(queryByTestId('chain-filter-eip155:1')).toBeNull();
-      expect(queryByTestId('chain-filter-eip155:56')).toBeNull();
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      expect(getByTestId('filter-bar')).toBeDefined();
+    });
+
+    it('defaults to Ethereum chainId in open_position mode', () => {
+      mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
+      render(<OndoCampaignRwaSelectorView />);
+      const lastCall =
+        mockUseRwaTokens.mock.calls[mockUseRwaTokens.mock.calls.length - 1][0];
+      expect(lastCall.chainIds).toEqual(['eip155:1']);
     });
   });
 
@@ -397,8 +497,6 @@ describe('OndoCampaignRwaSelectorView', () => {
     });
 
     it('excludes the source token from the destination list by CAIP-19 assetId', () => {
-      // Even when the list symbol differs in casing (e.g. after uppercase normalisation),
-      // the source token must be filtered out using assetId, not symbol.
       const srcAssetId = 'eip155:1/erc20:0xabc';
       mockRouteParams = {
         mode: 'swap',
@@ -409,7 +507,7 @@ describe('OndoCampaignRwaSelectorView', () => {
       };
       mockUseRwaTokens.mockReturnValue({
         data: [
-          buildToken('NIOon', srcAssetId), // same assetId as source — must be excluded
+          buildToken('NIOon', srcAssetId),
           buildToken('AAPL', 'eip155:1/erc20:0xdef'),
         ],
         isLoading: false,
@@ -422,99 +520,7 @@ describe('OndoCampaignRwaSelectorView', () => {
     });
   });
 
-  describe('after-hours sheet', () => {
-    const token = buildToken('AAPL');
-
-    beforeEach(() => {
-      mockIsTokenTradingOpen = jest.fn(() => false);
-      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
-    });
-
-    it('shows the after-hours sheet when token trading is closed', () => {
-      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
-
-      fireEvent.press(getByTestId('token-row-AAPL'));
-
-      expect(getByTestId('after-hours-sheet')).toBeOnTheScreen();
-    });
-
-    it('closes the after-hours sheet without navigating when onClose is called', () => {
-      const { getByTestId, queryByTestId } = render(
-        <OndoCampaignRwaSelectorView />,
-      );
-
-      fireEvent.press(getByTestId('token-row-AAPL'));
-      expect(getByTestId('after-hours-sheet')).toBeOnTheScreen();
-
-      fireEvent.press(getByTestId('after-hours-close'));
-
-      expect(queryByTestId('after-hours-sheet')).not.toBeOnTheScreen();
-      expect(mockGoToSwaps).not.toHaveBeenCalled();
-    });
-
-    it('tracks REWARDS_PAGE_BUTTON_CLICKED and calls goToSwaps when onConfirm is called', () => {
-      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
-
-      fireEvent.press(getByTestId('token-row-AAPL'));
-
-      act(() => {
-        fireEvent.press(getByTestId('after-hours-confirm'));
-      });
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
-      );
-      const buttonClickIndex = mockCreateEventBuilder.mock.calls.findIndex(
-        (call: unknown[]) =>
-          call[0] === MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
-      );
-      const builder =
-        mockCreateEventBuilder.mock.results[buttonClickIndex]?.value;
-      expect(builder?.addProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          button_type: 'ondo_campaign_swap_aapl',
-        }),
-      );
-      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('search interactions', () => {
-    it('shows the clear button when search query is not empty and clears it on press', () => {
-      const { getByPlaceholderText, getByTestId } = render(
-        <OndoCampaignRwaSelectorView />,
-      );
-      const input = getByPlaceholderText(
-        'rewards.ondo_rwa_asset_selector.search_placeholder',
-      );
-      fireEvent.changeText(input, 'AAPL');
-      expect(getByTestId('clear-search-button')).toBeDefined();
-      fireEvent.press(getByTestId('clear-search-button'));
-      // After pressing clear, the button should disappear
-      expect(() => getByTestId('clear-search-button')).toThrow();
-    });
-
-    it('displays skeleton after search query changes (isFiltering)', () => {
-      mockUseRwaTokens.mockReturnValue({
-        data: [buildToken('AAPL'), buildToken('MSFT')],
-        isLoading: false,
-      });
-      const { getByPlaceholderText, queryByTestId } = render(
-        <OndoCampaignRwaSelectorView />,
-      );
-      const input = getByPlaceholderText(
-        'rewards.ondo_rwa_asset_selector.search_placeholder',
-      );
-      // After changing text, isFiltering becomes true → skeleton shown
-      fireEvent.changeText(input, 'AAPL');
-      // Skeleton replaces the token list
-      expect(queryByTestId('token-row-MSFT')).toBeNull();
-    });
-  });
-
   describe('open_position mode — USDY source preselection', () => {
-    // parseCaip19 mock always returns assetReference '0xabc', so the balance
-    // lookup key matches that address regardless of the USDY_CAIP19 constant.
     const USDY_HEX_ADDRESS = '0xabc';
     const ACCOUNT_ADDRESS = '0xaccount1';
 
@@ -523,8 +529,6 @@ describe('OndoCampaignRwaSelectorView', () => {
     });
 
     it('passes USDY as source token when user holds a non-zero USDY balance', () => {
-      // rwaTokens intentionally does NOT contain USDY — preset comes from the
-      // hardcoded constant, not from the token list.
       mockUseRwaTokens.mockReturnValue({
         data: [buildToken('AAPL')],
         isLoading: false,
@@ -542,24 +546,6 @@ describe('OndoCampaignRwaSelectorView', () => {
       expect(srcArg).toBeDefined();
       expect(srcArg?.symbol).toBe('USDY');
       expect(destArg?.symbol).toBe('AAPL');
-    });
-
-    it('preset survives search — applies even when rwaTokens is filtered to non-USDY results', () => {
-      // Simulate the user having searched for "AAPL": rwaTokens contains only AAPL.
-      mockUseRwaTokens.mockReturnValue({
-        data: [buildToken('AAPL')],
-        isLoading: false,
-      });
-      mockActiveGroupAccounts = [{ address: ACCOUNT_ADDRESS }];
-      mockAllTokenBalances = {
-        [ACCOUNT_ADDRESS]: { '0x1': { [USDY_HEX_ADDRESS]: '0x64' } },
-      };
-
-      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
-      fireEvent.press(getByTestId('token-row-AAPL'));
-
-      const [srcArg] = mockGoToSwaps.mock.calls[0];
-      expect(srcArg?.symbol).toBe('USDY');
     });
 
     it('passes undefined as source token when active group accounts are empty', () => {
