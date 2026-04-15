@@ -24,8 +24,6 @@ import { MetaMetricsEvents } from '../../Analytics';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { ANALYTICS_TRACKED_RPC_METHODS } from '../SDKConnectConstants';
-// eslint-disable-next-line
-const { version } = require('../../../../package.json');
 
 export const handleConnectionMessage = async ({
   message,
@@ -70,17 +68,16 @@ export const handleConnectionMessage = async ({
 
   if (anonId && ANALYTICS_TRACKED_RPC_METHODS.includes(message.method)) {
     DevLogger.log(
-      `[MM SDK Analytics] event=${MetaMetricsEvents.REMOTE_CONNECTION_RPC_REQUEST_RECEIVED.category} anonId=${anonId}`,
+      `[MM SDK Analytics] event=${MetaMetricsEvents.SDK_LEGACY_RPC_REQUEST_RECEIVED.category} anonId=${anonId}`,
     );
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.REMOTE_CONNECTION_RPC_REQUEST_RECEIVED,
+        MetaMetricsEvents.SDK_LEGACY_RPC_REQUEST_RECEIVED,
       )
         .addProperties({
           transport_type: 'socket_relay',
           sdk_version: connection.originatorInfo?.apiVersion,
           rpc_method: message.method,
-          wallet_version: version,
           remote_session_id: anonId,
         })
         .build(),

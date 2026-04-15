@@ -77,14 +77,13 @@ describe('handleSendMessage', () => {
       } as OriginatorInfo;
     });
 
-    it('should track Remote Connection RPC Request Approved when msg has no error', async () => {
+    it('should track SDK Legacy RPC Request Approved when msg has no error', async () => {
       const msg = { data: { id: '123' } };
       await handleSendMessage({ msg, connection: mockConnection });
 
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: MetaMetricsEvents.REMOTE_CONNECTION_RPC_REQUEST_APPROVED
-            .category,
+          name: MetaMetricsEvents.SDK_LEGACY_RPC_REQUEST_APPROVED.category,
           properties: expect.objectContaining({
             transport_type: 'socket_relay',
             rpc_method: 'eth_sendTransaction',
@@ -94,14 +93,13 @@ describe('handleSendMessage', () => {
       );
     });
 
-    it('should track Remote Connection RPC Request Rejected when msg has an error', async () => {
+    it('should track SDK Legacy RPC Request Rejected when msg has an error', async () => {
       const msg = { data: { id: '123', error: 'User rejected' } };
       await handleSendMessage({ msg, connection: mockConnection });
 
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: MetaMetricsEvents.REMOTE_CONNECTION_RPC_REQUEST_REJECTED
-            .category,
+          name: MetaMetricsEvents.SDK_LEGACY_RPC_REQUEST_REJECTED.category,
           properties: expect.objectContaining({
             remote_session_id: 'test-anon-id',
           }),

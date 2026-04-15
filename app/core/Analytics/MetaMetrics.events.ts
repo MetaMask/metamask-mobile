@@ -68,10 +68,10 @@ enum EVENT_NAME {
   // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
   REMOTE_CONNECTION_REQUEST_RECEIVED = 'Remote Connection Request Received',
 
-  // Remote connection RPC events (all remote transports)
-  REMOTE_CONNECTION_RPC_REQUEST_RECEIVED = 'Remote Connection RPC Request Received',
-  REMOTE_CONNECTION_RPC_REQUEST_APPROVED = 'Remote Connection RPC Request Approved',
-  REMOTE_CONNECTION_RPC_REQUEST_REJECTED = 'Remote Connection RPC Request Rejected',
+  // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
+  SDK_LEGACY_RPC_REQUEST_RECEIVED = 'SDK Legacy RPC Request Received',
+  SDK_LEGACY_RPC_REQUEST_APPROVED = 'SDK Legacy RPC Request Approved',
+  SDK_LEGACY_RPC_REQUEST_REJECTED = 'SDK Legacy RPC Request Rejected',
 
   // Phishing
   PHISHING_PAGE_DISPLAYED = 'Phishing Page Displayed',
@@ -801,15 +801,15 @@ const events = {
     EVENT_NAME.REMOTE_CONNECTION_REQUEST_RECEIVED,
   ),
 
-  // Remote connection RPC events (all remote transports)
-  REMOTE_CONNECTION_RPC_REQUEST_RECEIVED: generateOpt(
-    EVENT_NAME.REMOTE_CONNECTION_RPC_REQUEST_RECEIVED,
+  // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
+  SDK_LEGACY_RPC_REQUEST_RECEIVED: generateOpt(
+    EVENT_NAME.SDK_LEGACY_RPC_REQUEST_RECEIVED,
   ),
-  REMOTE_CONNECTION_RPC_REQUEST_APPROVED: generateOpt(
-    EVENT_NAME.REMOTE_CONNECTION_RPC_REQUEST_APPROVED,
+  SDK_LEGACY_RPC_REQUEST_APPROVED: generateOpt(
+    EVENT_NAME.SDK_LEGACY_RPC_REQUEST_APPROVED,
   ),
-  REMOTE_CONNECTION_RPC_REQUEST_REJECTED: generateOpt(
-    EVENT_NAME.REMOTE_CONNECTION_RPC_REQUEST_REJECTED,
+  SDK_LEGACY_RPC_REQUEST_REJECTED: generateOpt(
+    EVENT_NAME.SDK_LEGACY_RPC_REQUEST_REJECTED,
   ),
 
   // Phishing events
