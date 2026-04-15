@@ -2,12 +2,6 @@ import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
 
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import {
-  switchToMobileBrowser,
-  navigateToDapp,
-  refreshMobileBrowser,
-  launchMobileBrowser,
-} from '../../framework/utils/MobileBrowser';
 import WalletView from '../../page-objects/wallet/WalletView';
 import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers';
@@ -31,8 +25,13 @@ import {
   unlockIfLockScreenVisible,
   ensureAccountGroupsFinishedLoading,
 } from './utils';
+import {
+  launchMobileBrowser,
+  navigateToDapp,
+  refreshMobileBrowser,
+  switchToMobileBrowser,
+} from '../../flows/native-browser.flow';
 
-const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
 const DAPP_PORT = 8090;
 
 // NOTE: This test requires the testing SRP to be used
@@ -110,8 +109,8 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   await PlaywrightContextHelpers.withNativeAction(async () => {
     await loginToAppPlaywright();
     await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
-    await launchMobileBrowser(driver);
-    await navigateToDapp(driver, DAPP_URL, DAPP_NAME);
+    await launchMobileBrowser();
+    await navigateToDapp(DAPP_URL);
   });
   await sleep(5000);
 
@@ -130,7 +129,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await sleep(1000);
-  await switchToMobileBrowser(driver);
+  await switchToMobileBrowser();
   await sleep(1000);
 
   await PlaywrightContextHelpers.withWebAction(async () => {
@@ -148,7 +147,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await sleep(1000);
-  await switchToMobileBrowser(driver);
+  await switchToMobileBrowser();
   await sleep(1000);
 
   await PlaywrightContextHelpers.withWebAction(async () => {
@@ -167,7 +166,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await sleep(1000);
-  await switchToMobileBrowser(driver);
+  await switchToMobileBrowser();
   await sleep(1000);
 
   await PlaywrightContextHelpers.withWebAction(async () => {
@@ -184,7 +183,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await sleep(1000);
-  await switchToMobileBrowser(driver);
+  await switchToMobileBrowser();
   await sleep(1000);
 
   await PlaywrightContextHelpers.withWebAction(async () => {
@@ -200,7 +199,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await sleep(1000);
-  await switchToMobileBrowser(driver);
+  await switchToMobileBrowser();
   await sleep(1000);
 
   await PlaywrightContextHelpers.withWebAction(async () => {
@@ -223,7 +222,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await sleep(1000);
-  await switchToMobileBrowser(driver);
+  await switchToMobileBrowser();
   await sleep(1000);
 
   await PlaywrightContextHelpers.withWebAction(async () => {
@@ -233,7 +232,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
 
   await PlaywrightContextHelpers.withNativeAction(async () => {
     refreshReconnectTimer.start();
-    await refreshMobileBrowser(driver);
+    await refreshMobileBrowser();
   });
   await sleep(2000);
 
@@ -251,7 +250,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await sleep(1000);
-  await switchToMobileBrowser(driver);
+  await switchToMobileBrowser();
   await sleep(1000);
 
   await PlaywrightContextHelpers.withWebAction(async () => {
@@ -271,7 +270,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await sleep(1000);
-  await switchToMobileBrowser(driver);
+  await switchToMobileBrowser();
   await sleep(1000);
 
   await PlaywrightContextHelpers.withWebAction(async () => {
@@ -288,7 +287,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await sleep(1000);
-  await switchToMobileBrowser(driver);
+  await switchToMobileBrowser();
   await sleep(1000);
 
   await PlaywrightContextHelpers.withWebAction(async () => {
@@ -306,11 +305,11 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await sleep(1000);
-  await switchToMobileBrowser(driver);
+  await switchToMobileBrowser();
   await sleep(1000);
 
   await PlaywrightContextHelpers.withNativeAction(async () => {
-    await refreshMobileBrowser(driver);
+    await refreshMobileBrowser();
   });
   await sleep(2000);
 
@@ -331,7 +330,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await sleep(1000);
-  await switchToMobileBrowser(driver);
+  await switchToMobileBrowser();
   await sleep(1000);
 
   await PlaywrightContextHelpers.withWebAction(async () => {
