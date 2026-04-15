@@ -64,4 +64,30 @@ describe('StatsRow', () => {
     const dashes = screen.getAllByText('\u2014');
     expect(dashes.length).toBeGreaterThanOrEqual(3);
   });
+
+  describe('avg. hold time', () => {
+    it('renders a dash when avgHoldMinutes is null', () => {
+      renderWithProvider(<StatsRow stats={baseStats} avgHoldMinutes={null} />);
+
+      expect(screen.getByText('\u2014')).toBeOnTheScreen();
+    });
+
+    it('renders minutes when avgHoldMinutes is less than 60', () => {
+      renderWithProvider(<StatsRow stats={baseStats} avgHoldMinutes={45} />);
+
+      expect(screen.getByText('45m')).toBeOnTheScreen();
+    });
+
+    it('renders hours when avgHoldMinutes is 60 or more but less than 1440', () => {
+      renderWithProvider(<StatsRow stats={baseStats} avgHoldMinutes={90} />);
+
+      expect(screen.getByText('1.5 hrs')).toBeOnTheScreen();
+    });
+
+    it('renders days when avgHoldMinutes is 1440 or more', () => {
+      renderWithProvider(<StatsRow stats={baseStats} avgHoldMinutes={2880} />);
+
+      expect(screen.getByText('2 days')).toBeOnTheScreen();
+    });
+  });
 });
