@@ -308,6 +308,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
 
   return (
     <Box
+      accessible={false}
       flexDirection={FlexDirection.Row}
       alignItems={AlignItems.center}
       style={styles.container}
@@ -324,6 +325,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
         )}
       >
         <Box
+          accessible={false}
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
           gap={4}
@@ -354,17 +356,19 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
 
           {/* Token symbol/name on the left, balances on the right (extension layout pattern) */}
           <Box
+            accessible={false}
             style={styles.tokenInfo}
             flexDirection={FlexDirection.Column}
             gap={4}
           >
             <Box
+              accessible={false}
               flexDirection={FlexDirection.Row}
               alignItems={AlignItems.center}
               justifyContent={JustifyContent.spaceBetween}
             >
-              <Box style={styles.tokenMainInfo} gap={4}>
-                <Box style={styles.tokenSymbolRow}>
+              <Box accessible={false} style={styles.tokenMainInfo} gap={4}>
+                <Box accessible={false} style={styles.tokenSymbolRow}>
                   <Text
                     variant={TextVariant.BodyMDMedium}
                     numberOfLines={1}
@@ -414,6 +418,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             </Box>
 
             <Box
+              accessible={false}
               flexDirection={FlexDirection.Row}
               alignItems={AlignItems.center}
               justifyContent={JustifyContent.spaceBetween}
