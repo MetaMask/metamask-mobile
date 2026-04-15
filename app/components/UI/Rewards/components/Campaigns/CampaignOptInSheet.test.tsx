@@ -9,6 +9,12 @@ import {
 import { useOptInToCampaign } from '../../hooks/useOptInToCampaign';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { selectGeolocationStatus } from '../../../../../selectors/geolocationController';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockUseAnalyticsHook,
+  createMockEventBuilder,
+} from '../../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -70,6 +76,11 @@ jest.mock('../../hooks/useOptInToCampaign');
 const mockUseOptInToCampaign = useOptInToCampaign as jest.MockedFunction<
   typeof useOptInToCampaign
 >;
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 
 const mockShowToast = jest.fn();
 const mockRewardsToastOptionsSuccess = jest.fn((title: string) => ({ title }));
@@ -166,6 +177,16 @@ const mockOptInToCampaign = jest.fn();
 describe('CampaignOptInSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder
+      .mockClear()
+      .mockReturnValue(createMockEventBuilder());
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     mockShowToast.mockClear();
     mockRewardsToastOptionsSuccess.mockClear();
     // Default: geo complete, non-restricted country — keeps non-geo tests clean.
@@ -234,6 +255,43 @@ describe('CampaignOptInSheet', () => {
     fireEvent.press(getByTestId('campaign-opt-in-cta'));
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks REWARDS_CAMPAIGN_OPT_IN_COMPLETED event with campaign_id after successful opt-in', async () => {
+    mockOptInToCampaign.mockResolvedValue({ optedIn: true });
+    const { getByTestId } = render(
+      <CampaignOptInSheet campaign={createTestCampaign()} />,
+    );
+    fireEvent.press(getByTestId('campaign-opt-in-cta'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.REWARDS_CAMPAIGN_OPT_IN_COMPLETED,
+    );
+    const builderInstance = mockCreateEventBuilder.mock.results[0].value;
+    expect(builderInstance.addProperties).toHaveBeenCalledWith({
+      campaign_id: 'campaign-1',
+    });
+  });
+
+  it('does not track event when opt-in returns optedIn false', async () => {
+    mockOptInToCampaign.mockResolvedValue({ optedIn: false });
+    const { getByTestId } = render(
+      <CampaignOptInSheet campaign={createTestCampaign()} />,
+    );
+    fireEvent.press(getByTestId('campaign-opt-in-cta'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not track event when opt-in throws', async () => {
+    mockOptInToCampaign.mockRejectedValue(new Error('API error'));
+    const { getByTestId } = render(
+      <CampaignOptInSheet campaign={createTestCampaign()} />,
+    );
+    fireEvent.press(getByTestId('campaign-opt-in-cta'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   it('shows success toast after successful opt-in', async () => {
