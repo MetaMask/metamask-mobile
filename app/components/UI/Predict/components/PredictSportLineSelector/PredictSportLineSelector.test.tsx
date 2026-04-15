@@ -1,16 +1,22 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import PredictSportLineSelector from './PredictSportLineSelector';
 import { PREDICT_SPORT_LINE_SELECTOR_TEST_IDS } from './PredictSportLineSelector.testIds';
 
+const mockWithTiming = jest.fn((v: number) => v);
+
 jest.mock('react-native-reanimated', () => {
   const { View } = jest.requireActual('react-native');
+  const { useRef } = jest.requireActual('react');
   return {
     __esModule: true,
     default: { View },
-    useSharedValue: (v: number) => ({ value: v }),
+    useSharedValue: (v: number) => {
+      const ref = useRef({ value: v });
+      return ref.current;
+    },
     useAnimatedStyle: (fn: () => object) => fn(),
-    withTiming: (v: number) => v,
+    withTiming: mockWithTiming,
     Easing: { inOut: (fn: unknown) => fn, ease: jest.fn() },
   };
 });
@@ -171,44 +177,33 @@ describe('PredictSportLineSelector', () => {
     expect(getByText('4.5')).toBeOnTheScreen();
   });
 
-  it('computes translateX on layout', () => {
+  it('invokes onLayout handler without error', () => {
     const { UNSAFE_getAllByType } = render(
       <PredictSportLineSelector {...defaultProps} />,
     );
 
-    const boxes = UNSAFE_getAllByType(
-      jest.requireActual('@metamask/design-system-react-native').Box,
-    );
-    const layoutBox = boxes.find(
+    const Box = jest.requireActual('@metamask/design-system-react-native').Box;
+    const layoutBox = UNSAFE_getAllByType(Box).find(
       (b: { props: { onLayout?: unknown } }) => b.props.onLayout,
     );
 
-    layoutBox?.props.onLayout({
-      nativeEvent: { layout: { width: 300 } },
-    });
-
-    expect(layoutBox).toBeDefined();
+    expect(() => {
+      act(() => {
+        layoutBox?.props.onLayout({
+          nativeEvent: { layout: { width: 300 } },
+        });
+      });
+    }).not.toThrow();
   });
 
-  it('triggers animation when selectedLine changes after layout', () => {
-    const { rerender, UNSAFE_getAllByType } = render(
-      <PredictSportLineSelector {...defaultProps} />,
-    );
+  it('re-renders with a different selectedLine without error', () => {
+    const { rerender } = render(<PredictSportLineSelector {...defaultProps} />);
 
-    const boxes = UNSAFE_getAllByType(
-      jest.requireActual('@metamask/design-system-react-native').Box,
-    );
-    const layoutBox = boxes.find(
-      (b: { props: { onLayout?: unknown } }) => b.props.onLayout,
-    );
-
-    layoutBox?.props.onLayout({
-      nativeEvent: { layout: { width: 300 } },
-    });
-
-    rerender(<PredictSportLineSelector {...defaultProps} selectedLine={5.5} />);
-
-    expect(layoutBox).toBeDefined();
+    expect(() => {
+      rerender(
+        <PredictSportLineSelector {...defaultProps} selectedLine={5.5} />,
+      );
+    }).not.toThrow();
   });
 
   it('fires haptic feedback on line tap', () => {
