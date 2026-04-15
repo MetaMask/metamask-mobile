@@ -468,7 +468,7 @@ step_eslint_fix() {
 
 step_build() {
   cd "$CORE_PATH"
-  yarn workspace "$WORKSPACE" build
+  yarn workspace "$WORKSPACE" build:all
   cd "$MOBILE_ROOT"
 }
 

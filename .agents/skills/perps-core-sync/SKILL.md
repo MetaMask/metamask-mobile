@@ -60,21 +60,21 @@ Options:
 
 The script runs these 13 steps in order:
 
-| Step                       | What it does                                                                                     |
-| -------------------------- | ------------------------------------------------------------------------------------------------ |
-| 1. Pre-flight checks       | Confirms mobile source, core destination, required tools                                         |
-| 2. Conflict check          | Fetches origin/main, checks for upstream perps-controller changes, validates sync state          |
-| 3. Copy source files       | rsync `.ts` files (excluding tests, mocks, fixtures)                                             |
-| 4. Install dependencies    | `yarn install` in core                                                                           |
-| 5. Verify build fixes      | Checks for `__DEV__`, mobile imports, closure fixes                                              |
-| 6. ESLint auto-fix         | Runs `--fix`, `--suppress-all`, `--prune-suppressions`, checks suppression delta                 |
-| 7. Format fix (oxfmt)      | Runs `yarn lint:misc --write` — core uses oxfmt, not prettier                                    |
-| 8. Build                   | `yarn workspace @metamask/perps-controller build`                                                |
-| 9. Verify publish artifact | Confirms built `dist/PerpsController.{mjs,cjs}` still preserves the MYX webpack-ignore safeguard |
-| 10. Lint                   | Final lint pass to confirm zero violations                                                       |
-| 11. Test                   | `yarn workspace @metamask/perps-controller test` — catches DI/fixture mismatches                 |
-| 12. Changelog check        | Verifies `CHANGELOG.md` has been updated (core CI requirement)                                   |
-| 13. Write sync state       | Updates `.sync-state.json` with commit hashes and checksum                                       |
+| Step                       | What it does                                                                                       |
+| -------------------------- | -------------------------------------------------------------------------------------------------- |
+| 1. Pre-flight checks       | Confirms mobile source, core destination, required tools                                           |
+| 2. Conflict check          | Fetches origin/main, checks for upstream perps-controller changes, validates sync state            |
+| 3. Copy source files       | rsync `.ts` files (excluding tests, mocks, fixtures)                                               |
+| 4. Install dependencies    | `yarn install` in core                                                                             |
+| 5. Verify build fixes      | Checks for `__DEV__`, mobile imports, closure fixes                                                |
+| 6. ESLint auto-fix         | Runs `--fix`, `--suppress-all`, `--prune-suppressions`, checks suppression delta                   |
+| 7. Format fix (oxfmt)      | Runs `yarn lint:misc --write` — core uses oxfmt, not prettier                                      |
+| 8. Build                   | `yarn workspace @metamask/perps-controller build:all` (builds references on a clean Core checkout) |
+| 9. Verify publish artifact | Confirms built `dist/PerpsController.{mjs,cjs}` still preserves the MYX webpack-ignore safeguard   |
+| 10. Lint                   | Final lint pass to confirm zero violations                                                         |
+| 11. Test                   | `yarn workspace @metamask/perps-controller test` — catches DI/fixture mismatches                   |
+| 12. Changelog check        | Verifies `CHANGELOG.md` has been updated (core CI requirement)                                     |
+| 13. Write sync state       | Updates `.sync-state.json` with commit hashes and checksum                                         |
 
 ## Failure Resolution
 
