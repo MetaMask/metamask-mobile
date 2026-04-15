@@ -124,6 +124,12 @@ export function useUnifiedTxActions() {
 
   const signLedgerTransaction = useCallback(
     async (transaction: LedgerSignRequest) => {
+      if (!selectedAddress) {
+        throw new Error(
+          'Missing selected address for hardware wallet operation',
+        );
+      }
+
       let gasFeeParams: GasPriceValue | FeeMarketEIP1559Values | undefined;
 
       if (transaction?.replacementParams?.legacyGasFee?.gasPrice) {
@@ -143,7 +149,7 @@ export function useUnifiedTxActions() {
       }
 
       const didComplete = await executeHardwareWalletOperation({
-        address: selectedAddress ?? '',
+        address: selectedAddress,
         operationType: 'transaction',
         ensureDeviceReady,
         setTargetWalletType,

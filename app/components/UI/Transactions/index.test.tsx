@@ -209,6 +209,7 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
+const LEDGER_ADDRESS = '0x29D68015EE8Eb26fD23579a1df80ff1fb0F26209';
 
 const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
   typeof isNonEvmChainId
@@ -2388,7 +2389,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('signs a plain Ledger transaction through ApprovalController when no replacement params are present', async () => {
     instance.props = {
       ...instance.props,
-      selectedAddress: '0xledger',
+      selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: jest.fn(),
         setTargetWalletType: jest.fn(),
@@ -2420,7 +2421,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('calls speedUpTransaction when signLedgerTransaction receives speedUp replacementParams with legacy gas', async () => {
     instance.props = {
       ...instance.props,
-      selectedAddress: '0xledger',
+      selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: jest.fn(),
         setTargetWalletType: jest.fn(),
@@ -2455,7 +2456,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('calls speedUpTransaction with eip1559 gas when signLedgerTransaction receives speedUp with eip1559GasFee', async () => {
     instance.props = {
       ...instance.props,
-      selectedAddress: '0xledger',
+      selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: jest.fn(),
         setTargetWalletType: jest.fn(),
@@ -2493,7 +2494,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('calls stopTransaction when signLedgerTransaction receives cancel replacementParams with eip1559 gas', async () => {
     instance.props = {
       ...instance.props,
-      selectedAddress: '0xledger',
+      selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: jest.fn(),
         setTargetWalletType: jest.fn(),
@@ -2534,7 +2535,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('calls stopTransaction with legacy gas when signLedgerTransaction receives cancel replacementParams with legacyGasFee', async () => {
     instance.props = {
       ...instance.props,
-      selectedAddress: '0xledger',
+      selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: jest.fn(),
         setTargetWalletType: jest.fn(),
@@ -2568,7 +2569,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('does not close modal when executeHardwareWalletOperation returns false', async () => {
     instance.props = {
       ...instance.props,
-      selectedAddress: '0xledger',
+      selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: jest.fn(),
         setTargetWalletType: jest.fn(),
@@ -2595,7 +2596,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
     instance.props = {
       ...instance.props,
-      selectedAddress: '0xledger',
+      selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: mockEnsureDeviceReady,
         setTargetWalletType: mockSetTargetWalletType,
@@ -2619,7 +2620,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
     await instance.signLedgerTransaction({ id: 'param-test-tx' });
 
-    expect(capturedOptions.address).toBe('0xledger');
+    expect(capturedOptions.address).toBe(LEDGER_ADDRESS);
     expect(capturedOptions.operationType).toBe('transaction');
     expect(capturedOptions.ensureDeviceReady).toBe(mockEnsureDeviceReady);
     expect(capturedOptions.setTargetWalletType).toBe(mockSetTargetWalletType);
@@ -2627,6 +2628,27 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(capturedOptions.hideAwaitingConfirmation).toBe(mockHideAwaiting);
     expect(capturedOptions.showHardwareWalletError).toBe(mockShowError);
     expect(capturedOptions.onRejected).toBe(instance.closeSpeedUpCancelModal);
+  });
+
+  it('throws before executeHardwareWalletOperation when selectedAddress is empty', async () => {
+    instance.props = {
+      ...instance.props,
+      selectedAddress: '',
+      hardwareWallet: {
+        ensureDeviceReady: jest.fn(),
+        setTargetWalletType: jest.fn(),
+        showAwaitingConfirmation: jest.fn(),
+        hideAwaitingConfirmation: jest.fn(),
+        showHardwareWalletError: jest.fn(),
+      },
+    };
+
+    mockExecuteHardwareWalletOperation.mockResolvedValueOnce(false);
+
+    await expect(
+      instance.signLedgerTransaction({ id: 'missing-address-tx' }),
+    ).rejects.toThrow('Missing selected address for hardware wallet operation');
+    expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
   });
 
   describe('asset-chain explorer (tokenChainId / AssetDetails)', () => {

@@ -3,10 +3,13 @@ import { render } from '@testing-library/react-native';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 // Resolves to the mock from jest.mock below, not the real Engine
-import { controllerMessenger } from '../../../core/Engine';
+import Engine, { controllerMessenger } from '../../../core/Engine';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
 let capturedAutoSign;
+const SOFTWARE_ADDRESS = '0x1111111111111111111111111111111111111111';
+const LEDGER_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678';
+const QR_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 
 jest.mock('./onUnapprovedTransaction', () => ({
   onUnapprovedTransaction: jest.fn((_, { autoSign }) => {
@@ -108,12 +111,12 @@ describe('RootRPCMethodsUI', () => {
       const handleUnapprovedTransaction = subscribeCall[1];
       handleUnapprovedTransaction({
         id: 'tx-1',
-        txParams: { from: '0xSoftwareWalletAddress' },
+        txParams: { from: SOFTWARE_ADDRESS },
       });
 
       await capturedAutoSign({
         id: 'tx-1',
-        txParams: { from: '0xSoftwareWalletAddress' },
+        txParams: { from: SOFTWARE_ADDRESS },
       });
 
       expect(mockGetHardwareWalletTypeForAddress).toHaveBeenCalled();
@@ -129,16 +132,16 @@ describe('RootRPCMethodsUI', () => {
       const handleUnapprovedTransaction = subscribeCall[1];
       handleUnapprovedTransaction({
         id: 'tx-ledger',
-        txParams: { from: '0xLedgerAddress' },
+        txParams: { from: LEDGER_ADDRESS },
       });
 
       await capturedAutoSign({
         id: 'tx-ledger',
-        txParams: { from: '0xLedgerAddress' },
+        txParams: { from: LEDGER_ADDRESS },
       });
 
       expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith({
-        address: '0xLedgerAddress',
+        address: LEDGER_ADDRESS,
         operationType: 'transaction',
         ensureDeviceReady: expect.any(Function),
         setTargetWalletType: expect.any(Function),
@@ -155,8 +158,7 @@ describe('RootRPCMethodsUI', () => {
       await executeArg();
 
       expect(
-        require('../../../core/Engine').context.ApprovalController
-          .acceptRequest,
+        Engine.context.ApprovalController.acceptRequest,
       ).toHaveBeenCalledWith('tx-ledger', undefined, {
         waitForResult: true,
       });
@@ -175,12 +177,12 @@ describe('RootRPCMethodsUI', () => {
       const handleUnapprovedTransaction = subscribeCall[1];
       handleUnapprovedTransaction({
         id: 'tx-qr',
-        txParams: { from: '0xQrAddress' },
+        txParams: { from: QR_ADDRESS },
       });
 
       await capturedAutoSign({
         id: 'tx-qr',
-        txParams: { from: '0xQrAddress' },
+        txParams: { from: QR_ADDRESS },
       });
 
       expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
@@ -203,12 +205,12 @@ describe('RootRPCMethodsUI', () => {
 
     handleUnapprovedTransaction({
       id: 'tx-1',
-      txParams: { from: '0xLedgerAddress' },
+      txParams: { from: LEDGER_ADDRESS },
     });
 
     await capturedAutoSign({
       id: 'tx-1',
-      txParams: { from: '0xLedgerAddress' },
+      txParams: { from: LEDGER_ADDRESS },
     });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(

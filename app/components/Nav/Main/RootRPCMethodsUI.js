@@ -131,8 +131,6 @@ const RootRPCMethodsUI = (props) => {
     },
     [
       props.navigation,
-      trackEvent,
-      createEventBuilder,
       ensureDeviceReady,
       setTargetWalletType,
       showAwaitingConfirmation,

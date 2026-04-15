@@ -16,6 +16,7 @@ import {
   useUnifiedTxActions,
   type SpeedUpCancelParams,
 } from './useUnifiedTxActions';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import Engine from '../../../core/Engine';
@@ -114,6 +115,7 @@ import { validateTransactionActionBalance } from '../../../util/transactions';
 import { isHardwareAccount } from '../../../util/address';
 
 const mockShowToast = jest.fn();
+const SELECTED_ADDRESS = '0x29D68015EE8Eb26fD23579a1df80ff1fb0F26209';
 
 const mockToastRef = {
   current: {
@@ -172,9 +174,14 @@ describe('useUnifiedTxActions', () => {
       }
       if (selector === (selectAccounts as unknown)) {
         const accountsMock = {
-          '0xabc': { balance: '0xde0b6b3a7640000' },
+          [SELECTED_ADDRESS]: { balance: '0xde0b6b3a7640000' },
         };
         return accountsMock as unknown as ReturnType<typeof selectAccounts>;
+      }
+      if (
+        selector === (selectSelectedInternalAccountFormattedAddress as unknown)
+      ) {
+        return SELECTED_ADDRESS;
       }
       return undefined;
     };
@@ -562,7 +569,7 @@ describe('useUnifiedTxActions', () => {
       });
 
       expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith({
-        address: '',
+        address: SELECTED_ADDRESS,
         operationType: 'transaction',
         ensureDeviceReady: expect.any(Function),
         setTargetWalletType: expect.any(Function),
@@ -588,7 +595,7 @@ describe('useUnifiedTxActions', () => {
       });
 
       expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith({
-        address: '',
+        address: SELECTED_ADDRESS,
         operationType: 'transaction',
         ensureDeviceReady: expect.any(Function),
         setTargetWalletType: expect.any(Function),
@@ -622,6 +629,33 @@ describe('useUnifiedTxActions', () => {
       expect(acceptMock).toHaveBeenCalledWith('plain-ledger-sign', undefined, {
         waitForResult: true,
       });
+    });
+
+    it('throws before shared hardware wallet execution when selectedAddress is missing', async () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (
+          selector ===
+          (selectSelectedInternalAccountFormattedAddress as unknown)
+        ) {
+          return undefined;
+        }
+
+        return defaultSelectorImpl(selector);
+      });
+
+      const { result } = renderHook(() => useUnifiedTxActions());
+
+      await act(async () => {
+        await expect(
+          result.current.signLedgerTransaction({
+            id: 'missing-address-ledger-sign',
+          }),
+        ).rejects.toThrow(
+          'Missing selected address for hardware wallet operation',
+        );
+      });
+
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
     });
 
     describe('Ledger account transactions', () => {
