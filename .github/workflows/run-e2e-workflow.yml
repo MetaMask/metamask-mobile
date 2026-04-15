@@ -109,8 +109,6 @@ jobs:
 
       # TEMPORARY: Bitrise runners use Vagrant (user=vagrant, HOME=/Users/vagrant).
       # GitHub Actions tools hardcode /Users/runner paths. Create symlink to fix.
-      # TEMPORARY: Bitrise runners use Vagrant (user=vagrant, HOME=/Users/vagrant).
-      # GitHub Actions tools hardcode /Users/runner paths. Create symlink to fix.
       - name: Fix Vagrant environment paths (Bitrise runners)
         if: ${{ inputs.use_bitrise_runner && inputs.platform == 'ios' }}
         run: |

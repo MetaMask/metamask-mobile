@@ -7,13 +7,11 @@ name: "[TEMP] Bitrise iOS E2E POC"
 # Remove this workflow once benchmarking is complete.
 
 on:
-  workflow_dispatch:
-    inputs:
-      run_smoke_tests:
-        description: 'Run iOS smoke tests after build'
-        required: false
-        default: true
-        type: boolean
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 2-6 * * *'
 
 permissions:
   contents: read
@@ -338,7 +336,6 @@ jobs:
   # Run iOS E2E smoke tests on Bitrise runners (uses boolean runner toggle)
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests (Bitrise)'
-    if: ${{ github.event.inputs.run_smoke_tests == 'true' }}
     permissions:
       contents: read
       id-token: write
