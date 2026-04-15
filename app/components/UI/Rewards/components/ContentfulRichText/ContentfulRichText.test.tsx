@@ -197,12 +197,20 @@ describe('ContentfulRichText', () => {
 
   it('strips U+FFFD replacement character from a plain text node', () => {
     const doc = makeDoc(
-      paragraph(text('Stocks, ETFs, crypto, commodities \u2014 \uFFFD264 real world assets.')),
+      paragraph(
+        text(
+          'Stocks, ETFs, crypto, commodities \u2014 \uFFFD264 real world assets.',
+        ),
+      ),
     );
     const { getByText } = render(
       <ContentfulRichText document={doc} testID="rt" />,
     );
-    expect(getByText('Stocks, ETFs, crypto, commodities \u2014 264 real world assets.')).toBeOnTheScreen();
+    expect(
+      getByText(
+        'Stocks, ETFs, crypto, commodities \u2014 264 real world assets.',
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('strips U+FFFD replacement character from a bold text node', () => {

@@ -150,7 +150,9 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
 
       if (isTextNode(child)) {
         if (child.marks.length === 0) {
-          return <Fragment key={childKey}>{sanitizeText(child.value)}</Fragment>;
+          return (
+            <Fragment key={childKey}>{sanitizeText(child.value)}</Fragment>
+          );
         }
         return renderMarkedText(child.value, child.marks, childKey);
       }
