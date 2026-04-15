@@ -114,24 +114,24 @@ describe('WalletHomeOnboardingSteps', () => {
   it('renders fund hero and progress for step 0', () => {
     const { getByTestId } = renderSteps();
 
-    expect(getByTestId('steps-root-hero-fund')).toBeTruthy();
+    expect(getByTestId('steps-root-hero-fund')).toBeOnTheScreen();
     expect(
       getByTestId(WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('renders trade hero for step 1', () => {
     const { getByTestId } = renderSteps({
       walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
     });
-    expect(getByTestId('steps-root-hero-trade')).toBeTruthy();
+    expect(getByTestId('steps-root-hero-trade')).toBeOnTheScreen();
   });
 
   it('renders notifications hero for step 2', () => {
     const { getByTestId } = renderSteps({
       walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
     });
-    expect(getByTestId('steps-root-hero-notifications')).toBeTruthy();
+    expect(getByTestId('steps-root-hero-notifications')).toBeOnTheScreen();
   });
 
   it('treats missing stepIndex in persisted state as 0', () => {
