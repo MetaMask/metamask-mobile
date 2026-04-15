@@ -62,7 +62,7 @@ export function useFirstTimeInteractionSendAlert(): {
     return checkFirstTimeInteraction({ from, to, chainId: chainIdNum });
   }, [to, from, chainId, shouldSkip]);
 
-  const isPending = !shouldSkip && pending;
+  const isPending = isTrustSignalLoading || (!shouldSkip && pending);
 
   if (shouldSkip || pending || isFirstTime !== true) {
     return { alert: null, isPending };

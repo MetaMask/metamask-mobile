@@ -134,7 +134,7 @@ describe('useFirstTimeInteractionSendAlert', () => {
     expect(result.current.alert).toBeNull();
   });
 
-  it('returns null alert when trust signal is loading', () => {
+  it('returns isPending true when trust signal is loading', () => {
     mockUseAddressTrustSignal.mockReturnValue({
       state: TrustSignalDisplayState.Loading,
       label: null,
@@ -143,6 +143,7 @@ describe('useFirstTimeInteractionSendAlert', () => {
     const { result } = renderHook(() => useFirstTimeInteractionSendAlert());
 
     expect(result.current.alert).toBeNull();
+    expect(result.current.isPending).toBe(true);
   });
 
   it('returns isPending true when async check is pending', () => {
