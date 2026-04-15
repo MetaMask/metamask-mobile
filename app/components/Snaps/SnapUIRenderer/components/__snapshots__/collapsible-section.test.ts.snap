@@ -35,16 +35,19 @@ exports[`CollapsibleSection can expand 1`] = `
         <TouchableHighlight>
           <View
             backgroundColor="#f3f3f4"
-            borderRadius={8}
             gap={8}
-            padding={16}
             style={
               [
                 {
                   "backgroundColor": "#f3f3f4",
                   "gap": 8,
                 },
-                undefined,
+                {
+                  "borderRadius": 8,
+                  "paddingBottom": 8,
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                },
               ]
             }
             testID="snaps-ui-collapsible-section"
@@ -57,6 +60,8 @@ exports[`CollapsibleSection can expand 1`] = `
                   "display": "flex",
                   "flexDirection": "row",
                   "justifyContent": "space-between",
+                  "paddingBottom": 0,
+                  "paddingTop": 8,
                 }
               }
             >

@@ -1,10 +1,7 @@
 import React, { FunctionComponent, ReactNode, useState } from 'react';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Box } from '../../UI/Box/Box';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../hooks/useStyles';
 import {
   Icon,
@@ -34,8 +31,8 @@ export const SnapUICollapsibleSection: FunctionComponent<
   ...props
 }) => {
   const theme = useTheme();
-  const { styles } = useStyles(stylesheet, {});
   const [isExpanded, setIsExpanded] = useState(isExpandedProp);
+  const { styles } = useStyles(stylesheet, { isExpanded });
 
   const handleToggle = () => {
     setIsExpanded((state) => !state);
@@ -47,9 +44,8 @@ export const SnapUICollapsibleSection: FunctionComponent<
     <Box
       testID="snaps-ui-collapsible-section"
       gap={8}
-      padding={16}
-      borderRadius={8}
       backgroundColor={backgroundColor}
+      style={styles.container}
     >
       <TouchableOpacity
         disabled={isLoading}
