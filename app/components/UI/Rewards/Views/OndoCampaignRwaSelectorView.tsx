@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -54,6 +55,15 @@ import { TimeOption } from '../../Trending/components/TrendingTokensBottomSheet/
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import OndoAfterHoursSheet from '../components/Campaigns/OndoAfterHoursSheet';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
+
+// USDY (Ondo USD Yield) on Ethereum mainnet — used to preset the source token
+// for open_position mode. This is the only network where USDY is supported in
+// the RWA campaign feature.
+const USDY_CAIP19 =
+  'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c' as const;
+const USDY_DECIMALS = 18;
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -138,6 +148,42 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     chainIds,
   });
 
+  const activeGroupAccounts = useSelector(
+    selectSelectedAccountGroupInternalAccounts,
+  );
+  const allTokenBalances = useSelector(selectAllTokenBalances);
+
+  // In open_position mode, preset USDY as the source if the user holds a balance.
+  // Uses a hardcoded CAIP-19 so the preset is independent of the search state —
+  // rwaTokens is filtered by searchQuery and may not contain USDY when a user
+  // searches for another token (e.g. "AAPL").
+  const ondoUsdSrcToken = useMemo((): BridgeToken | undefined => {
+    if (mode !== 'open_position' || !activeGroupAccounts.length)
+      return undefined;
+    const parsed = parseCaip19(USDY_CAIP19);
+    if (!parsed || parsed.namespace !== 'eip155') return undefined;
+    const chainHex = caipChainIdToHex(
+      `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
+    );
+    const tokenHex = parsed.assetReference.toLowerCase() as Hex;
+    const hasBalance = activeGroupAccounts.some((a) => {
+      const bal =
+        allTokenBalances?.[a.address.toLowerCase() as Hex]?.[chainHex]?.[
+          tokenHex
+        ];
+      return bal !== undefined && !!parseInt(bal, 16);
+    });
+    if (!hasBalance) return undefined;
+    return {
+      address: parsed.assetReference,
+      symbol: 'USDY',
+      name: 'Ondo USD Yield',
+      decimals: USDY_DECIMALS,
+      chainId: `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
+      image: getTrendingTokenImageUrl(USDY_CAIP19),
+    };
+  }, [mode, activeGroupAccounts, allTokenBalances]);
+
   // Show skeleton while client-side filters are being applied.
   // useRwaTokens applies search/sort synchronously but via useStableReference,
   // which delays opts by one render cycle — so rwaTokens lags behind the inputs
@@ -203,9 +249,9 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
         return;
       }
 
-      goToSwaps(undefined, destToken);
+      goToSwaps(ondoUsdSrcToken, destToken);
     },
-    [goToSwaps, isTokenTradingOpen],
+    [goToSwaps, isTokenTradingOpen, ondoUsdSrcToken],
   );
 
   const title =
@@ -347,7 +393,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
               setIsAfterHoursSheetOpen(false);
               setAfterHoursNextOpen(null);
               if (afterHoursPendingToken) {
-                goToSwaps(undefined, afterHoursPendingToken);
+                goToSwaps(ondoUsdSrcToken, afterHoursPendingToken);
               }
               setAfterHoursPendingToken(null);
             }}

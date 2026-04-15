@@ -142,11 +142,16 @@ function PredictPayWithAnyTokenInfoInner({
       return;
     }
 
+    const selectedTokenAddress = selectedPaymentToken.address?.toLowerCase();
+    const selectedTokenChainId = selectedPaymentToken.chainId?.toLowerCase();
+
+    if (!selectedTokenAddress || !selectedTokenChainId) {
+      return;
+    }
+
     const hasSelectedTokenApplied =
-      payToken?.address?.toLowerCase() ===
-        selectedPaymentToken.address.toLowerCase() &&
-      payToken?.chainId?.toLowerCase() ===
-        selectedPaymentToken.chainId.toLowerCase();
+      payToken?.address?.toLowerCase() === selectedTokenAddress &&
+      payToken?.chainId?.toLowerCase() === selectedTokenChainId;
 
     if (!hasSelectedTokenApplied) {
       setPayToken({
