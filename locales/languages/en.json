@@ -1026,10 +1026,21 @@
       "win_rate": "win rate",
       "pnl_30d": "30D P&L",
       "avg_hold": "avg. hold",
+      "hold_time_minutes": "{{count}}m",
+      "hold_time_hours": "{{count}} hrs",
+      "hold_time_days": "{{count}} days",
       "open": "Open",
       "closed": "Closed",
       "no_positions": "No positions yet",
       "error_loading_profile": "Couldn't load profile"
+    },
+    "trader_position": {
+      "market_cap": "Market cap",
+      "position": "Position",
+      "trades": "Trades",
+      "buy": "Buy",
+      "bought": "{{name}} bought",
+      "sold": "{{name}} sold"
     }
   },
   "perps": {
@@ -2733,8 +2744,7 @@
     "description_content_2": "When we gather metrics, it will always be...",
     "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "gather_basic_usage_title": "Gather basic usage data",
-    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
-    "gather_basic_usage_description_updated": "We'll collect basic product usage data. We may associate this information with on-chain data.",
+    "gather_basic_usage_description": "We'll collect basic product usage data. We may associate this information with on-chain data.",
     "gather_basic_usage_learn_more": "Learn more",
     "checkbox_marketing": "Marketing updates",
     "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).",
@@ -5089,6 +5099,8 @@
     "got_it": "Got it",
     "encountered_error": "We've encountered an error",
     "no_quotes_error": "We encountered a problem fetching quotes from {{provider}}. Try a different amount or changing provider.",
+    "min_purchase_limit": "Minimum purchase is {{amount}}",
+    "max_purchase_limit": "Maximum purchase is {{amount}}",
     "change_provider_button": "Change provider"
   },
   "fiat_on_ramp_aggregator": {
@@ -7884,55 +7896,27 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.",
-      "gtm_title": "Rewards are here",
-      "gtm_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
-      "gtm_confirm": "Get started",
-      "intro_title": "Season 1 \nis live",
-      "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
-      "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
-      "checking_opt_in": "Checking accounts...",
-      "redirecting_to_dashboard": "Redirecting...",
-      "intro_skip": "Not now",
       "step_confirm": "Next",
       "step_skip": "Skip",
-      "step1_title": "Earn points on every trade",
-      "step1_description": "Every swap and perps trade you make in MetaMask gets you closer to rewards. Add your accounts and watch your points add up.",
-      "step2_title": "Level up for bigger perks",
-      "step2_description": "Hit points milestones to get perks like 50% off perps fees, exclusive tokens, and a free MetaMask Metal Card.",
-      "step3_title": "Exclusive seasonal rewards",
-      "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
-      "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with this code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 more",
-      "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
-      "step4_confirm": "Claim points",
-      "step4_confirm_loading": "Claiming points...",
-      "step4_bulk_link_checkbox": "Opt-in all my accounts on this device",
-      "step4_linking_accounts": "Adding accounts... ({{current}}/{{total}})",
-      "step4_linking_accounts_loading": "Adding additional accounts...",
-      "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer_1": "By selecting 'Claim Points', you agree to the MetaMask Rewards",
-      "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
-      "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
-      "step4_legal_disclaimer_4": "learn more",
-      "no_active_season": {
-        "title": "Sign up for Rewards",
-        "description": "Get more out of MetaMask with the best loyalty program in crypto.",
-        "sign_up": "Sign up",
-        "sign_up_loading": "Signing up...",
-        "legal_disclaimer_1": "By clicking 'Sign up,' you agree to the MetaMask Rewards",
-        "legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
-        "legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
-        "legal_disclaimer_4": "learn more"
-      }
+      "title": "Start earning rewards",
+      "description": "Join campaigns and find claimable benefits",
+      "sign_up": "Join Rewards",
+      "sign_up_loading": "Joining...",
+      "legal_disclaimer_1": "By joining, you agree to the",
+      "legal_disclaimer_2": "Terms",
+      "legal_disclaimer_3": ". All accounts on this device will be opted in.",
+      "legal_disclaimer_4": "Learn more",
+      "referral_prompt": "Have a referral code?",
+      "referral_placeholder": "Optional referral code",
+      "referral_label": "Referral code"
     },
     "settings": {
       "title": "Rewards settings",
       "subtitle": "Accounts",
-      "description": "Add multiple accounts to combine your points and unlock rewards faster.",
+      "description": "Add multiple accounts to combine your progress and unlock rewards faster.",
       "tab_linked_accounts": "Added ({{count}})",
       "tab_unlinked_accounts": "Not added ({{count}})",
       "no_linked_accounts": "No accounts opted in",
@@ -7972,7 +7956,7 @@
     },
     "optout": {
       "title": "Opt out of Rewards",
-      "description": "This will remove your accounts from the Rewards program and erase your points and progress. You won't be able to undo this.",
+      "description": "This will remove your accounts from the Rewards program and erase your progress. You won't be able to undo this.",
       "confirm": "Opt out",
       "modal": {
         "confirmation_title": "Are you sure?",
@@ -7997,8 +7981,8 @@
       },
       "account_not_supported": {
         "title": "Account not supported",
-        "description_hardware": "Hardware wallet accounts are not yet eligible to earn points. Please switch to a different account to proceed.",
-        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible to earn points. Please switch to a different account to proceed.",
+        "description_hardware": "Hardware wallet accounts are not yet eligible. Please switch to a different account to proceed.",
+        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible. Please switch to a different account to proceed.",
         "confirm": "Go back"
       }
     },
@@ -8091,7 +8075,7 @@
       "pill_up_next": "Coming soon",
       "pill_active": "Live",
       "pill_complete": "Complete",
-      "enter_now": "Enter now",
+      "enter": "Enter",
       "entered": "Entered",
       "participant_count": "#{{count}}",
       "opt_in_cta": "Opt in",
@@ -8116,11 +8100,11 @@
       "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
       "swap_ondo_assets": "Swap Ondo Assets",
+      "open_position": "Open Position",
       "how_it_works": "How it works",
       "ondo": {
         "entries_closed_title": "Entries closed",
-        "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future.",
-        "open_position": "Swap Ondo assets"
+        "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future."
       }
     },
     "ondo_campaign_prize_pool": {
@@ -8129,6 +8113,7 @@
       "next_label": "Next",
       "volume_subtext": "{{current}} of {{target}} volume",
       "max_tier_subtext": "{{maxThreshold}}+ TVL — all milestones reached",
+      "max_badge": "Max",
       "error_title": "Failed to load prize pool",
       "error_description": "There was an error loading the prize pool. Please try again.",
       "retry_button": "Retry"
@@ -8228,8 +8213,8 @@
     },
     "ondo_campaign_activity": {
       "title": "All activity",
-      "type_deposit": "Deposit",
-      "type_withdraw": "Withdraw",
+      "type_deposit": "Inflow",
+      "type_withdraw": "Outflow",
       "type_rebalance": "Rebalance",
       "type_external_outflow": "Outflow",
       "error_title": "Failed to load activity",
@@ -8259,7 +8244,7 @@
       "title": "Earn rewards",
       "musd_title": "Up to 3% bonus on stables",
       "musd_subtitle": "Calculate your mUSD bonus",
-      "card_title": "Up to 3% cash back",
+      "card_title": "Up to 3% back on spend",
       "card_subtitle": "Get your MetaMask Card now",
       "card_subtitle_cardholder": "Access your MetaMask Card benefits"
     },

@@ -113,7 +113,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
           >
             <Text
               variant={TextVariant.BodySm}
-              style={{ fontWeight: FontWeight.Medium }}
+              fontWeight={FontWeight.Medium}
               twClassName={
                 isSelected ? 'text-text-default' : 'text-text-alternative'
               }

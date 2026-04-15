@@ -223,7 +223,7 @@ const OndoCampaignDetailsView: React.FC = () => {
         !hasPositions &&
         getCampaignStatus(campaign) === 'active',
       showStatsSummarySection: hasPositions,
-      showPortfolioSection: isOptedIn,
+      showPortfolioSection: isOptedIn && hasPositions,
       showLeaderboardSection: true,
     };
   }, [campaign, isOptedIn, hasPositions]);
@@ -403,27 +403,26 @@ const OndoCampaignDetailsView: React.FC = () => {
                 </>
               )}
 
-              {(getCampaignStatus(campaign) === 'active' ||
-                showLeaderboardSection) && (
-                <Box twClassName="my-1 border-b border-border-muted" />
-              )}
-
               {getCampaignStatus(campaign) === 'active' && (
-                <Box twClassName="p-4">
-                  <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
-                    {strings('rewards.ondo_campaign_prize_pool.title')}
-                  </Text>
-                  <OndoPrizePool
-                    totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
-                    isLoading={isDepositsLoading}
-                    hasError={hasDepositsError}
-                    refetch={refetchDeposits}
-                  />
-                </Box>
+                <>
+                  <Box twClassName="my-1 border-b border-border-muted" />
+                  <Box twClassName="p-4">
+                    <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
+                      {strings('rewards.ondo_campaign_prize_pool.title')}
+                    </Text>
+                    <OndoPrizePool
+                      totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
+                      isLoading={isDepositsLoading}
+                      hasError={hasDepositsError}
+                      refetch={refetchDeposits}
+                    />
+                  </Box>
+                </>
               )}
 
               {showLeaderboardSection && (
                 <>
+                  <Box twClassName="my-1 border-b border-border-muted" />
                   <Box twClassName="py-4">
                     <Pressable
                       onPress={() =>

@@ -66,7 +66,9 @@ describe('V2AdditionalVerification', () => {
     fireEvent.press(getByText('deposit.additional_verification.button'));
 
     expect(mockNavigateToKycWebview).toHaveBeenCalledWith({
+      quote: { quoteId: 'test-quote-id', fiatAmount: 127.37 },
       kycUrl: 'https://kyc.example.com',
+      workFlowRunId: 'wf-123',
       amount: 25,
     });
   });
