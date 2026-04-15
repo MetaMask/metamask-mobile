@@ -87,10 +87,7 @@ const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
     },
   });
 
-const ConnectQRHardware = ({
-  navigation,
-  route,
-}: IConnectQRHardwareProps) => {
+const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const insets = useSafeAreaInsets();

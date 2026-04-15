@@ -72,8 +72,12 @@ describe('SelectHardwareWallet', () => {
   it('renders component with correct text', () => {
     renderWithProvider(<SelectHardwareWallet />, { state: initialState });
 
-    expect(strings).toHaveBeenCalledWith('connect_hardware.title_select_hardware');
-    expect(screen.getByText('connect_hardware.title_select_hardware')).toBeTruthy();
+    expect(strings).toHaveBeenCalledWith(
+      'connect_hardware.title_select_hardware',
+    );
+    expect(
+      screen.getByText('connect_hardware.title_select_hardware'),
+    ).toBeTruthy();
     expect(screen.getByText('Keystone')).toBeTruthy();
     expect(screen.getByText('OneKey')).toBeTruthy();
     expect(screen.getByText('Other QR wallet')).toBeTruthy();
