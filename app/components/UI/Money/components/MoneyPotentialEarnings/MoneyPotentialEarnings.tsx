@@ -28,7 +28,10 @@ import Badge, {
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
-import { STABLECOIN_SYMBOLS } from '../../../Earn/hooks/useMusdConversionTokens';
+import {
+  STABLECOIN_SYMBOLS,
+  tokenFiatValue,
+} from '../../../Earn/hooks/useMusdConversionTokens';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 
@@ -44,8 +47,6 @@ const styles = StyleSheet.create({
   gradient: { flex: 1 },
   rowPressable: { flex: 1 },
 });
-
-const tokenFiatValue = (token: AssetType) => token.fiat?.balance ?? 0;
 
 /**
  * True when the token list contains at least one token with a positive fiat
@@ -213,27 +214,28 @@ const MoneyPotentialEarnings = ({
     [apy],
   );
   // Tokens arrive pre-sorted (stablecoins first, then fiat desc) from
-  // useMusdConversionTokens; we only strip zero-balance entries defensively —
-  // the feature flag threshold may be set to 0 in some environments — and cap
-  // the list at the MAX_TOKENS we render in-place.
-  const visibleTokens = useMemo(
-    () =>
-      (tokens ?? [])
-        .filter((token) => tokenFiatValue(token) > 0)
-        .slice(0, MAX_TOKENS),
+  // useMusdConversionTokens; strip zero-balance entries defensively — the
+  // feature flag threshold may be set to 0 in some environments.
+  const eligibleTokens = useMemo(
+    () => (tokens ?? []).filter((token) => tokenFiatValue(token) > 0),
     [tokens],
   );
+  const visibleTokens = useMemo(
+    () => eligibleTokens.slice(0, MAX_TOKENS),
+    [eligibleTokens],
+  );
 
-  // Sum only the tokens we actually render so the gradient headline always
-  // matches the per-row "+$X" values the user sees. The View All button is the
-  // affordance for any tokens that didn't make the MAX_TOKENS cut.
+  // Sum across every eligible token (not just the five we render). The "View
+  // all" affordance tells users there are more rows than shown, so the
+  // gradient headline is intentionally the full projection — clipping the
+  // headline to the visible five would contradict that affordance.
   const projectedAmount = useMemo(
     () =>
-      visibleTokens.reduce(
+      eligibleTokens.reduce(
         (sum, token) => sum + tokenFiatValue(token) * projectedMultiplier,
         0,
       ),
-    [visibleTokens, projectedMultiplier],
+    [eligibleTokens, projectedMultiplier],
   );
 
   const handleTokenPress = useCallback(

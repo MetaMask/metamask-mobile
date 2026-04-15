@@ -17,9 +17,10 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyWhatYouGetTestIds } from './MoneyWhatYouGet.testIds';
-import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 
 interface MoneyWhatYouGetProps {
+  /** APY expressed as a percentage (e.g. 3 for 3%). */
+  apy: number;
   /**
    * Handler fired when Learn more is tapped. Opens the marketing page web view.
    */
@@ -44,6 +45,7 @@ const BenefitRow = ({ children }: { children: React.ReactNode }) => (
 );
 
 const MoneyWhatYouGet = ({
+  apy,
   onLearnMorePress = () => undefined,
 }: MoneyWhatYouGetProps) => (
   <Box twClassName="px-4 py-3" testID={MoneyWhatYouGetTestIds.CONTAINER}>
@@ -54,9 +56,7 @@ const MoneyWhatYouGet = ({
         <Text variant={TextVariant.BodyMd}>
           {strings('money.what_you_get.benefit_auto_earn')}
           <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
-            {strings('money.apy_label', {
-              percentage: String(MUSD_CONVERSION_APY),
-            })}
+            {strings('money.apy_label', { percentage: String(apy) })}
           </Text>
         </Text>
       </BenefitRow>

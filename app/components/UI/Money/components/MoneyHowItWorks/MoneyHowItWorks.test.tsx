@@ -3,17 +3,16 @@ import { render, fireEvent } from '@testing-library/react-native';
 import MoneyHowItWorks from './MoneyHowItWorks';
 import { MoneyHowItWorksTestIds } from './MoneyHowItWorks.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 
 describe('MoneyHowItWorks', () => {
   it('renders the section title', () => {
-    const { getByText } = render(<MoneyHowItWorks />);
+    const { getByText } = render(<MoneyHowItWorks apy={4} />);
 
     expect(getByText(strings('money.how_it_works.title'))).toBeOnTheScreen();
   });
 
   it('renders the description with prefix, APY, and suffix', () => {
-    const { getByTestId } = render(<MoneyHowItWorks />);
+    const { getByTestId } = render(<MoneyHowItWorks apy={4} />);
 
     const description = getByTestId(MoneyHowItWorksTestIds.DESCRIPTION);
     expect(description).toHaveTextContent(
@@ -25,11 +24,11 @@ describe('MoneyHowItWorks', () => {
   });
 
   it('renders the highlighted APY value', () => {
-    const { getByTestId } = render(<MoneyHowItWorks />);
+    const { getByTestId } = render(<MoneyHowItWorks apy={4} />);
 
     expect(getByTestId(MoneyHowItWorksTestIds.APY)).toHaveTextContent(
       strings('money.apy_label', {
-        percentage: String(MUSD_CONVERSION_APY),
+        percentage: '4',
       }),
     );
   });
@@ -37,7 +36,7 @@ describe('MoneyHowItWorks', () => {
   it('calls onHeaderPress when the section header is tapped', () => {
     const mockHeaderPress = jest.fn();
     const { getByText } = render(
-      <MoneyHowItWorks onHeaderPress={mockHeaderPress} />,
+      <MoneyHowItWorks apy={4} onHeaderPress={mockHeaderPress} />,
     );
 
     fireEvent.press(getByText(strings('money.how_it_works.title')));

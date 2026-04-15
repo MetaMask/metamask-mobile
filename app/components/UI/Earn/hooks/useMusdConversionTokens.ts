@@ -8,6 +8,12 @@ import { isTokenAllowed } from '../utils/wildcardTokenList';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAccountTokens';
 import { useCallback, useMemo } from 'react';
+import { TokenI } from '../../Tokens/types';
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
+import { toHex } from '@metamask/controller-utils';
+import { BigNumber } from 'bignumber.js';
+import { Hex } from '@metamask/utils';
+import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
 
 /**
  * Symbols treated as stablecoins for ordering purposes in Money-related
@@ -16,14 +22,14 @@ import { useCallback, useMemo } from 'react';
  */
 export const STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT', 'DAI']);
 
-const tokenFiatValue = (token: { fiat?: { balance?: number } }) =>
-  token.fiat?.balance ?? 0;
-import { TokenI } from '../../Tokens/types';
-import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
-import { toHex } from '@metamask/controller-utils';
-import { BigNumber } from 'bignumber.js';
-import { Hex } from '@metamask/utils';
-import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
+/**
+ * Extracts the fiat balance from a token, defaulting to 0 when missing.
+ * Exported so consumers that sort, filter, or project based on the token's
+ * fiat value stay in lockstep with the hook's own internal ordering logic.
+ */
+export const tokenFiatValue = (
+  token: Pick<AssetType, 'fiat'> | undefined | null,
+): number => token?.fiat?.balance ?? 0;
 
 /**
  * The source of truth for the tokens that are eligible for mUSD conversion.

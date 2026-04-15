@@ -97,7 +97,10 @@ const MoneyHomeView = () => {
         <Divider />
         <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
         <Divider />
-        <MoneyHowItWorks onHeaderPress={handleHowItWorksHeaderPress} />
+        <MoneyHowItWorks
+          apy={MUSD_CONVERSION_APY}
+          onHeaderPress={handleHowItWorksHeaderPress}
+        />
         <MoneyMusdTokenRow
           onPress={handleMusdRowPress}
           onAddPress={handleAddPress}
@@ -132,7 +135,10 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        <MoneyWhatYouGet onLearnMorePress={handleLearnMorePress} />
+        <MoneyWhatYouGet
+          apy={MUSD_CONVERSION_APY}
+          onLearnMorePress={handleLearnMorePress}
+        />
       </ScrollView>
       <MoneyFooter onAddMoneyPress={handleAddMoneyPress} />
     </Box>
