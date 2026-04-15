@@ -1,11 +1,17 @@
-import { getLocalHost } from './FixtureUtils.ts';
 import Koa, { Context } from 'koa';
-import { createLogger } from '../logger.ts';
-import { E2ECommandTypes, Resource, ServerStatus } from '../types.ts';
-import PortManager, { ResourceType } from '../PortManager.ts';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import https from 'https';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import http from 'http';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import fs from 'fs';
+import { createLogger, LogLevel } from '../logger';
+import { E2ECommandTypes, Resource, ServerStatus, SrpProfile } from '../types';
+import PortManager, { ResourceType } from '../PortManager';
 
 const logger = createLogger({
   name: 'CommandQueueServer',
+  level: LogLevel.DEBUG,
 });
 
 /**
@@ -19,11 +25,18 @@ export interface CommandQueueItem {
   args: Record<string, unknown>;
 }
 
+interface HttpsOptions {
+  certPath: string;
+  keyPath: string;
+}
+
 class CommandQueueServer implements Resource {
   private _app: Koa;
-  private _server: ReturnType<Koa['listen']> | undefined;
+  private _server: http.Server | https.Server | undefined;
   private _queue: CommandQueueItem[];
   private _exportedState: Record<string, unknown> | null;
+  private _srpProfile: SrpProfile;
+  private _httpsOptions: HttpsOptions | undefined;
   _serverPort: number;
   _serverStatus: ServerStatus = ServerStatus.STOPPED;
 
@@ -31,6 +44,7 @@ class CommandQueueServer implements Resource {
     this._app = new Koa();
     this._queue = [];
     this._exportedState = null;
+    this._srpProfile = SrpProfile.PERFORMANCE;
     this._serverPort = 0; // will be set with setServerPort()
     this._app.use(async (ctx: Context) => {
       // Middleware to handle requests
@@ -51,6 +65,7 @@ class CommandQueueServer implements Resource {
       }
 
       if (this._isDebugRequest(ctx)) {
+        logger.debug('Debug request received');
         ctx.body = {
           queue: this._queue,
         };
@@ -58,6 +73,7 @@ class CommandQueueServer implements Resource {
       }
 
       if (this._isExportedStatePost(ctx)) {
+        logger.debug('Exported state post request received');
         const body = await this._parseJsonBody(ctx);
         this._exportedState = body as Record<string, unknown>;
         ctx.status = 200;
@@ -66,12 +82,24 @@ class CommandQueueServer implements Resource {
       }
 
       if (this._isExportedStateGet(ctx)) {
+        logger.debug('Exported state get request received');
         if (this._exportedState === null) {
           ctx.status = 404;
           ctx.body = { error: 'No exported state available' };
           return;
         }
         ctx.body = this._exportedState;
+        return;
+      }
+
+      if (this._isSrpProfileTypeRequest(ctx)) {
+        logger.debug(
+          'SRP profile type request received. Current SRP profile:',
+          this._srpProfile,
+        );
+        ctx.body = {
+          srpProfile: this._srpProfile,
+        };
         return;
       }
     });
@@ -93,22 +121,44 @@ class CommandQueueServer implements Resource {
     this._serverPort = port;
   }
 
+  enableHttps(certPath: string, keyPath: string): void {
+    this._httpsOptions = { certPath, keyPath };
+  }
+
+  get isHttps(): boolean {
+    return this._httpsOptions !== undefined;
+  }
+
   // Start the fixture server
   async start(): Promise<void> {
     if (this._serverStatus === ServerStatus.STARTED) {
-      logger.debug('The command queue server has already been started');
+      logger.info('The command queue server has already been started');
       return;
     }
 
     const options = {
-      host: getLocalHost(),
+      host: '0.0.0.0',
       port: this._serverPort,
       exclusive: true,
     };
 
     await new Promise<void>((resolve, reject) => {
-      logger.debug('Starting command queue server on port', this._serverPort);
-      this._server = this._app.listen(options);
+      logger.info(
+        `Starting command queue server (${this._httpsOptions ? 'HTTPS' : 'HTTP'}) on port`,
+        this._serverPort,
+      );
+
+      if (this._httpsOptions) {
+        const sslOptions = {
+          key: fs.readFileSync(this._httpsOptions.keyPath),
+          cert: fs.readFileSync(this._httpsOptions.certPath),
+        };
+        this._server = https
+          .createServer(sslOptions, this._app.callback())
+          .listen(options);
+      } else {
+        this._server = this._app.listen(options);
+      }
       if (!this._server) {
         logger.error(
           '❌ Failed to start command queue server on port',
@@ -155,7 +205,7 @@ class CommandQueueServer implements Resource {
     }
 
     await new Promise((resolve, reject) => {
-      logger.debug('Stopping command queue server on port', this._serverPort);
+      logger.info('Stopping command queue server on port', this._serverPort);
       if (!this._server) {
         logger.error(
           '❌ Failed to stop command queue server on port',
@@ -177,11 +227,22 @@ class CommandQueueServer implements Resource {
       this._server = undefined;
       this._serverStatus = ServerStatus.STOPPED;
     });
-    logger.debug('Command queue server stopped on port', this._serverPort);
+    logger.info('Command queue server stopped on port', this._serverPort);
   }
 
   addToQueue(item: CommandQueueItem) {
     this._queue.push(item);
+  }
+
+  /**
+   * Set the number of SRPs the app should pre-load during initialization.
+   * The app fetches this value from the root endpoint (GET /) at startup.
+   *
+   * @param type - The type of SRP profile to import
+   */
+  setSrpProfile(type: SrpProfile): void {
+    logger.debug('Setting SRP profile type to', type.toString());
+    this._srpProfile = type;
   }
 
   requestStateExport() {
@@ -219,6 +280,10 @@ class CommandQueueServer implements Resource {
 
   private _isDebugRequest(ctx: Context) {
     return ctx.method === 'GET' && ctx.path === '/debug.json';
+  }
+
+  private _isSrpProfileTypeRequest(ctx: Context) {
+    return ctx.method === 'GET' && ctx.path === '/srp-profile-type.json';
   }
 
   private _isExportedStatePost(ctx: Context) {

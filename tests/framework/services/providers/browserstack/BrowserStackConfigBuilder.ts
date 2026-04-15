@@ -1,6 +1,6 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import path from 'path';
-import type { BrowserStackConfig } from '../../../types';
+import { Platform, type BrowserStackConfig } from '../../../types';
 import type { ProjectConfig } from '../../common/types';
 import { createLogger, LogLevel } from '../../../logger';
 
@@ -72,9 +72,16 @@ export class BrowserStackConfigBuilder {
       key: accessKey,
       hostname: 'hub.browserstack.com',
       capabilities: {
+        // W3C standard capability — must be at the top level
+        platformName: platformName === 'android' ? 'Android' : 'iOS',
+
+        // BrowserStack vendor capabilities
         'bstack:options': {
           debug: true,
-          local: process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true',
+          local: true,
+          ...(process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+            ? { localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER }
+            : {}),
           interactiveDebugging: true,
           networkLogsOptions: {
             captureContent: true,
@@ -84,7 +91,6 @@ export class BrowserStackConfigBuilder {
           idleTimeout: 180,
           deviceName: device.name,
           osVersion: device.osVersion,
-          platformName,
           deviceOrientation: device.orientation,
           buildName:
             process.env.BROWSERSTACK_BUILD_NAME ||
@@ -95,15 +101,19 @@ export class BrowserStackConfigBuilder {
           appProfiling: true,
           selfHeal: true,
           networkProfile: '4g-lte-advanced-good',
-          geoLocation: process.env.BROWSERSTACK_GEO_LOCATION || 'ES',
+          // geoLocation: process.env.BROWSERSTACK_GEO_LOCATION || 'ES',
           enableCameraImageInjection: device.enableCameraImageInjection,
-          ...(process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-            ? { localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER }
-            : {}),
           ...(process.env.BROWSERSTACK_RN_PLAYGROUND_URL
             ? { otherApps: [process.env.BROWSERSTACK_RN_PLAYGROUND_URL] }
             : {}),
         },
+
+        // Appium capabilities
+        'appium:deviceName': device.name,
+        'appium:platformVersion': device.osVersion,
+        'appium:automationName':
+          platformName === Platform.ANDROID ? 'UiAutomator2' : 'XCUITest',
+        'appium:app': appBsUrl,
         ...(platformName === 'android'
           ? {
               'appium:appPackage': this.project.use.app?.packageName,
@@ -114,7 +124,6 @@ export class BrowserStackConfigBuilder {
             }),
         'appium:newCommandTimeout': 300,
         'appium:autoGrantPermissions': true,
-        'appium:app': appBsUrl,
         'appium:autoAcceptAlerts': true,
         'appium:fullReset': true,
         'appium:settings[actionAcknowledgmentTimeout]': 3000,
@@ -123,13 +132,13 @@ export class BrowserStackConfigBuilder {
         'appium:settings[waitForSelectorTimeout]': 1000,
         'appium:includeSafariInWebviews': true,
         'appium:chromedriverAutodownload': true,
-        'appium:waitForQuiescence': false, // Don't wait for app idle
-        'appium:animationCoolOffTimeout': 0, // Skip animation wait
-        'appium:reduceMotion': true, // Reduce iOS animations
-        'appium:customSnapshotTimeout': 15, // Snapshot timeout in seconds"
-        'appium:waitForIdleTimeout': 0, // Don't wait for idle
-        'appium:disableWindowAnimation': true, // Disable animations
-        'appium:skipDeviceInitialization': true, // Skip init (faster startup)
+        'appium:waitForQuiescence': false,
+        'appium:animationCoolOffTimeout': 0,
+        'appium:reduceMotion': true,
+        'appium:customSnapshotTimeout': 15,
+        'appium:waitForIdleTimeout': 0,
+        'appium:disableWindowAnimation': true,
+        'appium:skipDeviceInitialization': true,
         'appium:bstackPageSource': {
           enable: true,
           samplesX: 3,

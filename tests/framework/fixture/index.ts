@@ -1,6 +1,9 @@
 import { test as base, type FullProject } from '@playwright/test';
-import { WebDriverConfig } from '../types.ts';
-import { DEFAULT_IMPLICIT_WAIT_MS } from '../Constants.ts';
+import { SrpProfile, TestType, WebDriverConfig } from '../types';
+import {
+  DEFAULT_IMPLICIT_WAIT_MS,
+  FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+} from '../Constants';
 import { createServiceProvider, type ServiceProvider } from '../services';
 import {
   MetricsOutput,
@@ -14,6 +17,15 @@ import {
 } from '../quality-gates';
 import { getTeamInfoFromTags } from '../utils/teams';
 import { publishPerformanceScenarioToSentry } from '../../reporters/providers/sentry/PerformanceSentryPublisher';
+import CommandQueueServer from '../fixtures/CommandQueueServer';
+import { PlatformDetector } from '../PlatformLocator';
+import { createLogger, LogLevel } from '../logger';
+import { isBrowserStack } from '../fixtures/FixtureUtils';
+
+const logger = createLogger({
+  name: 'Playwright TestFixture',
+  level: LogLevel.DEBUG,
+});
 
 // Extend globalThis to include driver property
 declare global {
@@ -35,6 +47,15 @@ interface TestLevelFixtures {
    * This detects the platform of the device being tested.
    */
   currentDeviceDetails: CurrentDeviceDetails;
+
+  /**
+   * Command queue server to be used for the test.
+   * This is used to pre-load SRPs into the app during initialization.
+   * The app fetches this value from the command queue server at startup.
+   * Override per-test via test.use({ commandQueueServer: CommandQueueServer }) or default to a new instance.
+   * This CommandQueueServer is meant to be used on performance tests only. E2E wil use withFixtures from FixtureHelper instead.
+   */
+  commandQueueServer: CommandQueueServer | null;
 
   /**
    * Device provider to be used for the test.
@@ -95,8 +116,40 @@ export const test = base.extend<TestLevelFixtures>({
     await use(deviceDetails);
   },
 
+  commandQueueServer: async ({ currentDeviceDetails }, use, testInfo) => {
+    const project = testInfo.project as FullProject<WebDriverConfig>;
+    if (project.use.testContext?.testType !== TestType.PERFORMANCE) {
+      return use(null);
+    }
+    const srpProfile = project.use.testContext?.srpProfile as SrpProfile;
+
+    // Set platform from appwright project config so PlatformDetector works
+    // without Detox/Appium globals or env vars
+    const platform = currentDeviceDetails.platform;
+    if (platform === 'android' || platform === 'ios') {
+      PlatformDetector.setPlatform(platform);
+    }
+    const server = new CommandQueueServer();
+    server.setServerPort(FALLBACK_COMMAND_QUEUE_SERVER_PORT);
+    if (isBrowserStack() && currentDeviceDetails.platform === 'ios') {
+      server.enableHttps(
+        'tests/framework/fixtures/certs/server.crt',
+        'tests/framework/fixtures/certs/server.key',
+      );
+    }
+    await server.start();
+    server.setSrpProfile(srpProfile);
+
+    logger.debug(
+      `[CommandQueueServer] Command queue server started on port ${server.getServerPort()} with srpProfile=${srpProfile.toString()}`,
+    );
+    await use(server);
+    await server.stop();
+    logger.debug('[CommandQueueServer] Command queue server stopped');
+  },
+
   // eslint-disable-next-line no-empty-pattern
-  deviceProvider: async ({}, use, testInfo) => {
+  deviceProvider: async ({ commandQueueServer }, use, testInfo) => {
     const deviceProvider = createServiceProvider(testInfo.project);
     await use(deviceProvider);
   },

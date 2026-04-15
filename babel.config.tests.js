@@ -57,6 +57,8 @@ const newOverrides = [
       'app/core/Engine/controllers/card-controller/services/baanx-config.test.ts',
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
+      'app/util/generateSkipOnboardingState.ts',
+      'app/util/generateSkipOnboardingState.test.ts',
     ],
     plugins: ['transform-inline-environment-variables'],
   },

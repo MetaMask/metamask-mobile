@@ -1,5 +1,4 @@
 // Device Matrix
-
 export interface DeviceMatrixEntry {
   name: string;
   os_version: string;
@@ -7,6 +6,7 @@ export interface DeviceMatrixEntry {
   description: string;
 }
 
+// Device Matrix for the test devices
 export interface DeviceMatrix {
   android_devices: DeviceMatrixEntry[];
   ios_devices: DeviceMatrixEntry[];
@@ -18,8 +18,20 @@ export interface DeviceMatrix {
   notes: Record<string, string>;
 }
 
-// Gestures
+// SRP Profile Types
+// Used to determine which set of SRPs to import for the test
+export enum SrpProfile {
+  PERFORMANCE = 'performance',
+  MM_CONNECT = 'mm-connect',
+  ONBOARDING = 'onboarding',
+}
 
+export enum TestType {
+  E2E = 'e2e-test',
+  PERFORMANCE = 'performance-test',
+}
+
+// Gestures
 import { LanguageAndLocale } from 'detox/detox';
 import { DappVariants } from './Constants.ts';
 import { AnvilManager, Hardfork } from '../seeder/anvil-manager.ts';
@@ -68,6 +80,17 @@ export interface AppConfig {
 
 export type DeviceConfig = EmulatorConfig | BrowserStackConfig;
 
+export interface E2EContext {
+  testType: 'e2e-test';
+}
+
+export interface PerformanceContext {
+  testType: 'performance-test';
+  srpProfile: SrpProfile;
+}
+
+export type TestContext = E2EContext | PerformanceContext;
+
 export interface TimeoutOptions {
   /**
    * The maximum amount of time (in milliseconds) to wait for the condition to be met.
@@ -82,6 +105,7 @@ export interface WebDriverConfig {
   appBundleId: string;
   expectTimeout: number;
   app: AppConfig;
+  testContext: TestContext;
 }
 /**
  * END OF WDIO PLAYWRIIGHT

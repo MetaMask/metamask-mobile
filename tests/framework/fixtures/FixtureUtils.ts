@@ -414,7 +414,7 @@ export async function startMultiInstanceResourceWithRetry(
  *
  * @returns True when BrowserStack local tunnel is enabled
  */
-function isBrowserStack() {
+export function isBrowserStack() {
   return process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
 }
 

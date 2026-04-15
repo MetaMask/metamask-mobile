@@ -4,7 +4,6 @@ import TimerHelper from '../../framework/TimerHelper';
 
 import WalletView from '../../page-objects/wallet/WalletView';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-
 import {
   PerformanceLogin,
   PerformanceAssetLoading,
