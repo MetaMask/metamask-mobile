@@ -1321,7 +1321,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.changeText(passwordInput, 'StrongPass123!');
       });
 
-      expect(passwordInput.props.value).toBe('StrongPass123!');
+      expect(passwordInput.findByType(TextInput).props.value).toBe(
+        'StrongPass123!',
+      );
 
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
@@ -1331,19 +1333,23 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
       });
 
-      expect(confirmPasswordInput.props.value).toBe('StrongPass123!');
+      expect(confirmPasswordInput.findByType(TextInput).props.value).toBe(
+        'StrongPass123!',
+      );
 
       await act(async () => {
         fireEvent.changeText(passwordInput, 'StrongPass12');
       });
 
-      expect(confirmPasswordInput.props.value).toBe('StrongPass123!');
+      expect(confirmPasswordInput.findByType(TextInput).props.value).toBe(
+        'StrongPass123!',
+      );
 
       await act(async () => {
         fireEvent.changeText(passwordInput, '');
       });
 
-      expect(confirmPasswordInput.props.value).toBe('');
+      expect(confirmPasswordInput.findByType(TextInput).props.value).toBe('');
     });
 
     it('minimum password length requirement message shown when create new password field value is less than 8 characters', async () => {
