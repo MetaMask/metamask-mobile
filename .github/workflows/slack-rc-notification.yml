@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.source_branch }}
-          fetch-depth: 1
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
@@ -63,4 +63,5 @@ jobs:
           IOS_BUILD_NUMBER: ${{ inputs.ios_build_number || steps.build-meta.outputs.ios_version_code }}
           ANDROID_BUILD_NUMBER: ${{ inputs.android_build_number || steps.build-meta.outputs.android_version_code }}
           BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ANDROID_PUBLIC_URL: ${{ secrets.ANDROID_PUBLIC_BUCKET_URL }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

@@ -13,6 +13,7 @@ import MusdCalculatorView from './Views/MusdCalculatorView';
 import OndoLeaderboardView from './Views/OndoLeaderboardView';
 import OndoCampaignRwaSelectorView from './Views/OndoCampaignRwaSelectorView';
 import OndoCampaignPortfolioView from './Views/OndoCampaignPortfolioView';
+import OndoCampaignStatsView from './Views/OndoCampaignStatsView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
@@ -22,6 +23,7 @@ import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useTheme } from '../../../util/theme';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
+import { useReferralDetails } from './hooks/useReferralDetails';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
 const Stack = createStackNavigator();
 
@@ -41,6 +43,9 @@ const RewardsNavigator: React.FC = () => {
 
   // Fetch geo rewards metadata so optinAllowedForGeo is available across all rewards screens
   useGeoRewardsMetadata({});
+
+  // Fetch referral details so referral code is available across all rewards screens
+  useReferralDetails();
 
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {
@@ -133,6 +138,11 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW}
             component={OndoCampaignPortfolioView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_ONDO_CAMPAIGN_STATS}
+            component={OndoCampaignStatsView}
             options={{ headerShown: false }}
           />
         </>

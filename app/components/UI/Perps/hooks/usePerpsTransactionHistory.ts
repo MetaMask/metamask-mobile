@@ -2,15 +2,38 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import usePrevious from '../../../hooks/usePrevious';
 import { BigNumber } from 'bignumber.js';
-import { TransactionType } from '@metamask/transaction-controller';
-import type { OrderFill } from '@metamask/perps-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import {
+  PERPS_TRANSACTIONS_HISTORY_CONSTANTS,
+  type OrderFill,
+} from '@metamask/perps-controller';
+
+const PAGE_WINDOW_MS =
+  PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_PAGE_WINDOW_DAYS *
+  24 *
+  60 *
+  60 *
+  1000;
+const MAX_LOOKBACK_MS =
+  PERPS_TRANSACTIONS_HISTORY_CONSTANTS.DEFAULT_FUNDING_HISTORY_DAYS *
+  24 *
+  60 *
+  60 *
+  1000;
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
 import { areAddressesEqual } from '../../../../util/address';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { PerpsTransaction } from '../types/transactionHistory';
+import {
+  PerpsTransaction,
+  PerpsTransactionType,
+} from '../types/transactionHistory';
+import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { useUserHistory } from './useUserHistory';
 import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
 import {
@@ -19,12 +42,32 @@ import {
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
   transformWalletPerpsDepositsToTransactions,
+  transformWithdrawalRequestsToTransactions,
+  walletPerpsWithdrawalsToRequests,
   mergeOrderFills,
 } from '../utils/transactionTransforms';
 
+function deduplicateById(transactions: PerpsTransaction[]): PerpsTransaction[] {
+  const seen = new Set<string>();
+  return transactions.filter((tx) => {
+    if (seen.has(tx.id)) return false;
+    seen.add(tx.id);
+    return true;
+  });
+}
+
+function deduplicateByTxHash(
+  walletTxs: PerpsTransaction[],
+  restHashes: Set<string>,
+) {
+  return walletTxs.filter((tx) => {
+    const walletTxHash =
+      tx.depositWithdrawal?.txHash?.toLowerCase?.()?.trim() ?? '';
+    return walletTxHash === '' || !restHashes.has(walletTxHash);
+  });
+}
+
 interface UsePerpsTransactionHistoryParams {
-  startTime?: number;
-  endTime?: number;
   accountId?: CaipAccountId;
   skipInitialFetch?: boolean;
 }
@@ -34,6 +77,9 @@ interface UsePerpsTransactionHistoryResult {
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  loadMoreFunding: () => Promise<void>;
+  hasFundingMore: boolean;
+  isFetchingMoreFunding: boolean;
 }
 
 /**
@@ -42,8 +88,6 @@ interface UsePerpsTransactionHistoryResult {
  * Uses HyperLiquid user history as the single source of truth for withdrawals
  */
 export const usePerpsTransactionHistory = ({
-  startTime,
-  endTime,
   accountId,
   skipInitialFetch = false,
 }: UsePerpsTransactionHistoryParams = {}): UsePerpsTransactionHistoryResult => {
@@ -52,33 +96,69 @@ export const usePerpsTransactionHistory = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Cursor tracks the startTime of the oldest funding window already fetched.
+  // null = initial fetch not done yet.
+  const fundingCursorRef = useRef<number | null>(null);
+  // Bumped on every fetchAllTransactions so in-flight loadMoreFunding calls
+  // can detect a concurrent refresh and discard stale results.
+  const fetchGenerationRef = useRef(0);
+  const [hasFundingMore, setHasFundingMore] = useState(true);
+  const [isFetchingMoreFunding, setIsFetchingMoreFunding] = useState(false);
+  const isFetchingMoreFundingRef = useRef(false);
+
   // Get user history (includes deposits/withdrawals) - single source of truth
   const {
     userHistory,
     isLoading: userHistoryLoading,
     error: userHistoryError,
     refetch: refetchUserHistory,
-  } = useUserHistory({ startTime, endTime, accountId });
+  } = useUserHistory({ accountId });
 
   // Subscribe to live WebSocket fills for instant trade updates
   // This ensures new trades appear immediately without waiting for REST refetch
   const { fills: liveFills } = usePerpsLiveFills({ throttleMs: 0 });
 
-  // Wallet perps deposits (TransactionType.perpsDeposit / perpsDepositAndOrder) for the Deposits tab
+  // Wallet perps deposits and withdrawals for the Deposits tab
   const walletTransactions = useSelector(selectNonReplacedTransactions);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const walletDepositTransactions = useMemo(() => {
-    const filtered = walletTransactions.filter(
-      (tx) =>
-        selectedAddress &&
-        areAddressesEqual(tx.txParams?.from ?? '', selectedAddress) &&
-        (tx.type === TransactionType.perpsDeposit ||
-          tx.type === TransactionType.perpsDepositAndOrder),
-    );
-    return transformWalletPerpsDepositsToTransactions(filtered);
-  }, [walletTransactions, selectedAddress]);
+  const { walletDepositTransactions, walletWithdrawalTransactions } =
+    useMemo(() => {
+      if (!selectedAddress) {
+        return {
+          walletDepositTransactions: [] as PerpsTransaction[],
+          walletWithdrawalTransactions: [] as PerpsTransaction[],
+        };
+      }
+
+      const deposits: TransactionMeta[] = [];
+      const withdrawals: TransactionMeta[] = [];
+
+      for (const tx of walletTransactions) {
+        if (!areAddressesEqual(tx.txParams?.from ?? '', selectedAddress)) {
+          continue;
+        }
+        if (
+          hasTransactionType(tx, [
+            TransactionType.perpsDeposit,
+            TransactionType.perpsDepositAndOrder,
+          ])
+        ) {
+          deposits.push(tx);
+        } else if (hasTransactionType(tx, [TransactionType.perpsWithdraw])) {
+          withdrawals.push(tx);
+        }
+      }
+
+      return {
+        walletDepositTransactions:
+          transformWalletPerpsDepositsToTransactions(deposits),
+        walletWithdrawalTransactions: transformWithdrawalRequestsToTransactions(
+          walletPerpsWithdrawalsToRequests(withdrawals),
+        ),
+      };
+    }, [walletTransactions, selectedAddress]);
 
   // Store userHistory in ref to avoid recreating fetchAllTransactions callback
   const userHistoryRef = useRef(userHistory);
@@ -108,6 +188,8 @@ export const usePerpsTransactionHistory = ({
 
       DevLogger.log('Fetching comprehensive transaction history...');
 
+      const fetchEndTime = Date.now();
+
       // Fetch all transaction data in parallel
       const [fills, orders, funding] = await Promise.all([
         provider.getOrderFills({
@@ -115,11 +197,7 @@ export const usePerpsTransactionHistory = ({
           aggregateByTime: false,
         }),
         provider.getOrders({ accountId }),
-        provider.getFunding({
-          accountId,
-          startTime,
-          endTime,
-        }),
+        provider.getFunding({ accountId }),
       ]);
 
       DevLogger.log('Transaction data fetched:', { fills, orders, funding });
@@ -166,33 +244,31 @@ export const usePerpsTransactionHistory = ({
         ...userHistoryTransactions,
       ];
 
-      // Sort by timestamp descending (newest first)
-      allTransactions.sort((a, b) => b.timestamp - a.timestamp);
-
-      // Remove duplicates based on ID
-      const uniqueTransactions = allTransactions.reduce((acc, transaction) => {
-        const existingIndex = acc.findIndex((t) => t.id === transaction.id);
-        if (existingIndex === -1) {
-          acc.push(transaction);
-        }
-        return acc;
-      }, [] as PerpsTransaction[]);
+      // Dedup only — final sort happens in mergedTransactions memo
+      const uniqueTransactions = deduplicateById(allTransactions);
 
       DevLogger.log('Combined transactions:', uniqueTransactions);
       setTransactions(uniqueTransactions);
+
+      // Reset funding pagination cursor and bump generation to invalidate
+      // any in-flight loadMoreFunding calls from a previous scroll.
+      fundingCursorRef.current = fetchEndTime - PAGE_WINDOW_MS;
+      fetchGenerationRef.current += 1;
+      setHasFundingMore(true);
     } catch (err) {
       const errorMessage =
         err instanceof Error
           ? err.message
           : 'Failed to fetch transaction history';
       DevLogger.log('Error fetching transaction history:', errorMessage);
+      // Preserve existing transactions on error so a transient API failure
+      // (rate limit, network hiccup) during pull-to-refresh does not wipe
+      // the user's already-loaded funding history with an empty state.
       setError(errorMessage);
-      setTransactions([]);
-      setRestFills([]);
     } finally {
       setIsLoading(false);
     }
-  }, [startTime, endTime, accountId]);
+  }, [accountId]);
 
   const refetch = useCallback(async () => {
     // Fetch user history first, then fetch all transactions
@@ -200,6 +276,78 @@ export const usePerpsTransactionHistory = ({
     userHistoryRef.current = freshUserHistory;
     await fetchAllTransactions();
   }, [fetchAllTransactions, refetchUserHistory]);
+
+  const loadMoreFunding = useCallback(async () => {
+    if (!hasFundingMore || isFetchingMoreFundingRef.current) return;
+
+    const controller = Engine.context.PerpsController;
+    if (!controller) return;
+
+    const provider = controller.getActiveProviderOrNull();
+    if (!provider) return;
+
+    const cursorEndTime = fundingCursorRef.current;
+    if (cursorEndTime === null) return;
+
+    const cursorStartTime = cursorEndTime - PAGE_WINDOW_MS;
+    const maxStartTime = Date.now() - MAX_LOOKBACK_MS;
+
+    if (cursorEndTime <= maxStartTime) {
+      setHasFundingMore(false);
+      return;
+    }
+
+    DevLogger.log('[PERPS-FUNDING] loadMoreFunding: fetching older window', {
+      cursorStartTime,
+      cursorEndTime,
+      windowDays: Math.round(PAGE_WINDOW_MS / (24 * 60 * 60 * 1000)),
+    });
+
+    const generation = fetchGenerationRef.current;
+    isFetchingMoreFundingRef.current = true;
+    setIsFetchingMoreFunding(true);
+    try {
+      const olderFunding = await provider.getFunding({
+        accountId,
+        startTime: Math.max(cursorStartTime, maxStartTime),
+        endTime: cursorEndTime,
+      });
+
+      // A refresh fired while we were awaiting — discard stale results
+      if (fetchGenerationRef.current !== generation) return;
+
+      DevLogger.log('[PERPS-FUNDING] loadMoreFunding: older records loaded', {
+        count: olderFunding.length,
+        newCursor: cursorStartTime,
+        hasMore: olderFunding.length > 0,
+      });
+
+      // Advance cursor even when the window is empty so pagination skips
+      // gaps in activity (e.g. no open positions for 30+ days) instead of
+      // stopping permanently.
+      fundingCursorRef.current = cursorStartTime;
+
+      if (olderFunding.length === 0) {
+        return;
+      }
+
+      const olderFundingTxs = transformFundingToTransactions(olderFunding);
+      // Dedup only — final sort happens in mergedTransactions memo
+      setTransactions((prev) => deduplicateById([...prev, ...olderFundingTxs]));
+
+      if (Math.max(cursorStartTime, maxStartTime) <= maxStartTime) {
+        setHasFundingMore(false);
+      }
+    } catch (err) {
+      DevLogger.log('[PERPS-FUNDING] loadMoreFunding error:', err);
+      // Stop pagination so the auto-advance effect does not retry in a loop.
+      // Pull-to-refresh resets hasFundingMore, allowing the user to retry.
+      setHasFundingMore(false);
+    } finally {
+      isFetchingMoreFundingRef.current = false;
+      setIsFetchingMoreFunding(false);
+    }
+  }, [accountId, hasFundingMore]);
 
   useEffect(() => {
     // Detect transition from skipping (not connected) to not skipping (connected)
@@ -243,41 +391,65 @@ export const usePerpsTransactionHistory = ({
 
     // Separate non-trade transactions (orders, funding, user history deposits)
     const nonTradeTransactions = transactions.filter(
-      (tx) => tx.type !== 'trade',
+      (tx) => tx.type !== PerpsTransactionType.Trade,
     );
 
-    // Deduplicate wallet deposits against REST (user history) deposits by txHash.
-    // When a wallet-originated deposit is bridged and recorded by the perps backend,
+    // Deduplicate wallet deposits/withdrawals against REST (user history) by txHash.
+    // When a wallet-originated transaction is bridged and recorded by the perps backend,
     // it appears in both sources; we keep the REST version and drop the wallet duplicate.
-    const restDepositTxHashes = new Set(
-      nonTradeTransactions
-        .filter(
-          (tx) =>
-            tx.type === 'deposit' &&
-            tx.depositWithdrawal?.txHash?.trim() !== '',
-        )
-        .map((tx) => (tx.depositWithdrawal?.txHash ?? '').toLowerCase().trim()),
+    const restDepositTxHashes = new Set<string>();
+    const restWithdrawalTxHashes = new Set<string>();
+    for (const tx of nonTradeTransactions) {
+      const restTxHash = tx.depositWithdrawal?.txHash?.trim();
+      if (!restTxHash) continue;
+      const normalizedHash = restTxHash.toLowerCase();
+      if (tx.type === PerpsTransactionType.Deposit) {
+        restDepositTxHashes.add(normalizedHash);
+      } else if (tx.type === PerpsTransactionType.Withdrawal) {
+        restWithdrawalTxHashes.add(normalizedHash);
+      }
+    }
+
+    const walletDepositsDeduplicated = deduplicateByTxHash(
+      walletDepositTransactions,
+      restDepositTxHashes,
     );
-    const walletDepositsDeduplicated = walletDepositTransactions.filter(
-      (tx) => {
-        const h = tx.depositWithdrawal?.txHash?.toLowerCase?.()?.trim() ?? '';
-        return h === '' || !restDepositTxHashes.has(h);
-      },
+    const walletWithdrawalsDeduplicated = deduplicateByTxHash(
+      walletWithdrawalTransactions,
+      restWithdrawalTxHashes,
     );
 
     const allTransactions = [
       ...mergedFillTransactions,
       ...nonTradeTransactions,
       ...walletDepositsDeduplicated,
+      ...walletWithdrawalsDeduplicated,
     ];
 
-    return allTransactions.sort((a, b) => b.timestamp - a.timestamp);
-  }, [liveFills, restFills, transactions, walletDepositTransactions]);
+    return allTransactions.sort(
+      (a, b) =>
+        b.timestamp - a.timestamp ||
+        ((a.asset ?? '') < (b.asset ?? '')
+          ? -1
+          : (a.asset ?? '') > (b.asset ?? '')
+            ? 1
+            : 0),
+    );
+  }, [
+    liveFills,
+    restFills,
+    transactions,
+    walletDepositTransactions,
+    walletWithdrawalTransactions,
+  ]);
 
   return {
     transactions: mergedTransactions,
     isLoading: combinedIsLoading,
     error: combinedError,
     refetch,
+    loadMoreFunding,
+    hasFundingMore,
+    isFetchingMoreFunding,
   };
 };

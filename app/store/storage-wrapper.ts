@@ -56,6 +56,15 @@ class StorageWrapper extends EventEmitter2 {
    *   console.log('No value found for key: my_key');
    * }
    */
+  getItemSync(key: string): string | null {
+    try {
+      if (isE2E) return null;
+      return (this.storage as MMKV).getString(key) ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   async getItem(key: string) {
     try {
       // asyncStorage returns null for no value
