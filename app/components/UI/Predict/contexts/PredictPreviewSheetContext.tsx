@@ -196,6 +196,9 @@ export const PredictPreviewSheetProvider: React.FC<
     [payWithAnyTokenEnabled],
   );
 
+  const onBuyDismiss = useCallback(() => setBuyParams(null), []);
+  const onSellDismiss = useCallback(() => setSellParams(null), []);
+
   const contextValue = React.useMemo(
     () => ({ openBuySheet, openSellSheet }),
     [openBuySheet, openSellSheet],
@@ -215,7 +218,7 @@ export const PredictPreviewSheetProvider: React.FC<
               ? `${strings('predict.odds')} ${formatCents(buyParams.outcomeToken.price ?? 0)}`
               : undefined
           }
-          onDismiss={() => setBuyParams(null)}
+          onDismiss={onBuyDismiss}
           testID={PredictMarketDetailsSelectorsIDs.BUY_PREVIEW_SHEET}
         >
           {(closeSheet) => (
@@ -228,7 +231,7 @@ export const PredictPreviewSheetProvider: React.FC<
           ref={sellSheetRef}
           isFullscreen={false}
           renderHeader={() => <SellSheetHeader params={sellParams} />}
-          onDismiss={() => setSellParams(null)}
+          onDismiss={onSellDismiss}
           testID={PredictMarketDetailsSelectorsIDs.SELL_PREVIEW_SHEET}
         >
           {(closeSheet) => (
