@@ -10,12 +10,16 @@ import {
   upgradeOnlyAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import { approveERC20TransactionStateMock } from '../../__mocks__/approve-transaction-mock';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import Info from './info-root';
 import { contractDeploymentTransactionStateMock } from '../../__mocks__/contract-deployment-transaction-mock';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
@@ -137,6 +141,19 @@ jest.mock('../../../../../core/Engine', () => ({
 
 describe('Info', () => {
   const mockUseNetworkEnablement = jest.fn();
+  const perpsWithdrawConfirmation = {
+    chainId: '0xa4b1',
+    id: 'perps-withdraw-confirmation-id',
+    networkClientId: 'arbitrum',
+    origin: 'metamask',
+    txParams: {
+      from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+      to: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+      value: '0x0',
+    },
+    type: TransactionType.perpsWithdraw,
+  } as unknown as TransactionMeta;
+
   mockUseNetworkEnablement.mockReturnValue({
     namespace: 'eip155',
     enabledNetworksByNamespace: {
@@ -209,6 +226,56 @@ describe('Info', () => {
     expect(
       getByTestId(ConfirmationInfoComponentIDs.CONTRACT_DEPLOYMENT),
     ).toBeDefined();
+  });
+
+  it('renders CustomAmountInfo for perps withdraw confirmations', () => {
+    const { getByTestId } = renderWithProvider(<Info />, {
+      state: getAppStateForConfirmation(perpsWithdrawConfirmation),
+    });
+
+    expect(getByTestId('custom-amount-info')).toBeOnTheScreen();
+  });
+
+  it('renders CustomAmountInfo for money account deposit confirmations', () => {
+    const moneyAccountDepositConfirmation = {
+      chainId: '0x89',
+      id: 'money-account-deposit-confirmation-id',
+      networkClientId: 'polygon',
+      origin: 'metamask',
+      txParams: {
+        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        value: '0x0',
+      },
+      type: TransactionType.moneyAccountDeposit,
+    } as unknown as TransactionMeta;
+
+    const { getByTestId } = renderWithProvider(<Info />, {
+      state: getAppStateForConfirmation(moneyAccountDepositConfirmation),
+    });
+
+    expect(getByTestId('custom-amount-info')).toBeOnTheScreen();
+  });
+
+  it('renders CustomAmountInfo for money account withdraw confirmations', () => {
+    const moneyAccountWithdrawConfirmation = {
+      chainId: '0x89',
+      id: 'money-account-withdraw-confirmation-id',
+      networkClientId: 'polygon',
+      origin: 'metamask',
+      txParams: {
+        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        value: '0x0',
+      },
+      type: TransactionType.moneyAccountWithdraw,
+    } as unknown as TransactionMeta;
+
+    const { getByTestId } = renderWithProvider(<Info />, {
+      state: getAppStateForConfirmation(moneyAccountWithdrawConfirmation),
+    });
+
+    expect(getByTestId('custom-amount-info')).toBeOnTheScreen();
   });
 
   describe('useRefreshSmartTransactionsLiveness', () => {

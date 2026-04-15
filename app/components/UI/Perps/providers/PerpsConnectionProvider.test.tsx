@@ -4,6 +4,7 @@ import { Text } from 'react-native';
 import { PerpsConnectionProvider } from './PerpsConnectionProvider';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
 jest.mock('../services/PerpsConnectionManager');
 
@@ -52,9 +53,6 @@ jest.mock('../components/PerpsConnectionErrorView', () => ({
       </View>
     );
   },
-}));
-jest.mock('../hooks/usePerpsConnectionLifecycle', () => ({
-  usePerpsConnectionLifecycle: jest.fn(() => ({ hasConnected: false })),
 }));
 // Mock the withdrawal status hook that uses Redux
 jest.mock('../hooks/usePerpsWithdrawStatus', () => ({
@@ -126,6 +124,10 @@ describe('PerpsConnectionProvider', () => {
     (PerpsConnectionManager.getActiveProviderName as jest.Mock) = jest
       .fn()
       .mockReturnValue('hyperliquid');
+    (PerpsConnectionManager.ensureConnected as jest.Mock) = jest
+      .fn()
+      .mockResolvedValue(undefined);
+    (PerpsConnectionManager.resetError as jest.Mock) = jest.fn();
   });
 
   afterEach(() => {
@@ -161,60 +163,6 @@ describe('PerpsConnectionProvider', () => {
     );
 
     expect(getByText('Child Component')).toBeDefined();
-  });
-
-  it('connects on mount', async () => {
-    // Mock the lifecycle hook to trigger connection when visible
-    const mockLifecycleHook = jest.requireMock(
-      '../hooks/usePerpsConnectionLifecycle',
-    ).usePerpsConnectionLifecycle;
-
-    mockLifecycleHook.mockImplementation(
-      ({ onConnect }: { onConnect: () => Promise<void> }) => {
-        // Simulate immediate connection since isVisible defaults to true
-        setTimeout(() => onConnect(), 0);
-        return { hasConnected: false };
-      },
-    );
-
-    render(
-      <PerpsConnectionProvider isVisible>
-        <Text>Test</Text>
-      </PerpsConnectionProvider>,
-    );
-
-    await waitFor(() => {
-      expect(mockConnect).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('disconnects on unmount', async () => {
-    // Mock the lifecycle hook to trigger disconnection on unmount
-    const mockLifecycleHook = jest.requireMock(
-      '../hooks/usePerpsConnectionLifecycle',
-    ).usePerpsConnectionLifecycle;
-
-    let disconnectCallback: (() => Promise<void>) | null = null;
-    mockLifecycleHook.mockImplementation(
-      ({ onDisconnect }: { onDisconnect: () => Promise<void> }) => {
-        disconnectCallback = onDisconnect;
-        return { hasConnected: false };
-      },
-    );
-
-    const { unmount } = render(
-      <PerpsConnectionProvider>
-        <Text>Test</Text>
-      </PerpsConnectionProvider>,
-    );
-
-    // Simulate unmount triggering disconnect
-    if (disconnectCallback) {
-      await (disconnectCallback as () => Promise<void>)();
-    }
-    unmount();
-
-    expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
   it('provides connection state through context', async () => {
@@ -281,11 +229,7 @@ describe('PerpsConnectionProvider', () => {
     });
   });
 
-  it('handles connect errors', async () => {
-    const error = new Error('Connection failed');
-    mockConnect.mockRejectedValue(error);
-
-    // Mock the connection state to return error state persistently
+  it('shows error view when connection state has error', async () => {
     mockGetConnectionState.mockReturnValue({
       isConnected: false,
       isConnecting: false,
@@ -293,37 +237,12 @@ describe('PerpsConnectionProvider', () => {
       error: 'Connection failed',
     });
 
-    // Mock lifecycle hook to trigger error
-    const mockLifecycleHook = jest.requireMock(
-      '../hooks/usePerpsConnectionLifecycle',
-    ).usePerpsConnectionLifecycle;
-
-    mockLifecycleHook.mockImplementation(
-      ({
-        onConnect,
-        onError,
-      }: {
-        onConnect: () => Promise<void>;
-        onError: (error: string) => void;
-      }) => {
-        setTimeout(async () => {
-          try {
-            await onConnect();
-          } catch (err) {
-            onError(err instanceof Error ? err.message : String(err));
-          }
-        }, 0);
-        return { hasConnected: false };
-      },
-    );
-
     const { getByTestId, getByText } = render(
-      <PerpsConnectionProvider isVisible>
+      <PerpsConnectionProvider>
         <TestComponent />
       </PerpsConnectionProvider>,
     );
 
-    // Should show error view instead of children
     await waitFor(() => {
       expect(getByTestId('perps-connection-error')).toBeTruthy();
       expect(getByText('Connection failed')).toBeTruthy();
@@ -419,11 +338,7 @@ describe('PerpsConnectionProvider', () => {
     console.error = originalError;
   });
 
-  it('handles unknown errors in connect', async () => {
-    // Non-Error object thrown
-    mockConnect.mockRejectedValue('String error');
-
-    // Mock the connection state to return error state persistently
+  it('shows error view for unknown error string in connection state', async () => {
     mockGetConnectionState.mockReturnValue({
       isConnected: false,
       isConnecting: false,
@@ -431,40 +346,12 @@ describe('PerpsConnectionProvider', () => {
       error: 'Unknown connection error',
     });
 
-    // Mock lifecycle hook to trigger error with non-Error object
-    const mockLifecycleHook = jest.requireMock(
-      '../hooks/usePerpsConnectionLifecycle',
-    ).usePerpsConnectionLifecycle;
-
-    mockLifecycleHook.mockImplementation(
-      ({
-        onConnect,
-        onError,
-      }: {
-        onConnect: () => Promise<void>;
-        onError: (error: string) => void;
-      }) => {
-        setTimeout(async () => {
-          try {
-            await onConnect();
-          } catch (err) {
-            // Simulate unknown error handling
-            onError(
-              err instanceof Error ? err.message : 'Unknown connection error',
-            );
-          }
-        }, 0);
-        return { hasConnected: false };
-      },
-    );
-
     const { getByTestId, getByText } = render(
-      <PerpsConnectionProvider isVisible>
+      <PerpsConnectionProvider>
         <TestComponent />
       </PerpsConnectionProvider>,
     );
 
-    // Should show error view instead of children
     await waitFor(() => {
       expect(getByTestId('perps-connection-error')).toBeTruthy();
       expect(getByText('Unknown connection error')).toBeTruthy();
@@ -785,10 +672,87 @@ describe('PerpsConnectionProvider', () => {
       await waitFor(() => {
         // resetError should NOT be called during retry
         expect(mockResetError).not.toHaveBeenCalled();
-        // But connect should be called
-        expect(mockConnect).toHaveBeenCalled();
+        // reconnectWithNewContext is called instead of connect
+        expect(mockReconnectWithNewContext).toHaveBeenCalled();
       });
     });
+  });
+
+  it('skips ensureConnected when suppressErrorView is true', async () => {
+    // Arrange: disconnected, not connecting, no error — would normally trigger ensureConnected
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: true,
+      isDisconnecting: false,
+      isInGracePeriod: false,
+      error: null,
+    });
+    const mockEnsureConnected =
+      PerpsConnectionManager.ensureConnected as jest.Mock;
+    mockEnsureConnected.mockClear();
+
+    render(
+      <PerpsConnectionProvider suppressErrorView>
+        <Text>Child Component</Text>
+      </PerpsConnectionProvider>,
+    );
+
+    // Advance timers to ensure effect has run
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+
+    expect(mockEnsureConnected).not.toHaveBeenCalled();
+  });
+
+  it('handles ensureConnected error on entry gracefully', async () => {
+    // Arrange: disconnected, not connecting, no error — triggers ensureConnected
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: true,
+      isDisconnecting: false,
+      isInGracePeriod: false,
+      error: null,
+    });
+    const mockEnsureConnected =
+      PerpsConnectionManager.ensureConnected as jest.Mock;
+    mockEnsureConnected.mockRejectedValueOnce(new Error('connection failed'));
+
+    const { getByText } = render(
+      <PerpsConnectionProvider>
+        <Text>Child Component</Text>
+      </PerpsConnectionProvider>,
+    );
+
+    // The error is caught — children still render
+    await waitFor(() => {
+      expect(getByText('Child Component')).toBeOnTheScreen();
+    });
+    expect(mockEnsureConnected).toHaveBeenCalledWith({
+      source: PERPS_CONNECTION_SOURCE.PERPS_FULLSCREEN_ENTRY,
+    });
+  });
+
+  it('renders children when suppressErrorView is true even with error state', async () => {
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: false,
+      isDisconnecting: false,
+      isInGracePeriod: false,
+      error: 'Connection failed',
+    });
+
+    const { getByText, queryByTestId } = render(
+      <PerpsConnectionProvider suppressErrorView>
+        <Text>Child Component</Text>
+      </PerpsConnectionProvider>,
+    );
+
+    expect(getByText('Child Component')).toBeOnTheScreen();
+    expect(queryByTestId('perps-connection-error')).toBeNull();
   });
 
   it('cleans up polling interval on unmount', () => {
@@ -809,220 +773,6 @@ describe('PerpsConnectionProvider', () => {
 
     expect(clearIntervalSpy).toHaveBeenCalled();
     clearIntervalSpy.mockRestore();
-  });
-
-  describe('usePerpsConnectionLifecycle Hook Integration', () => {
-    let mockUsePerpsConnectionLifecycle: jest.Mock;
-
-    beforeEach(() => {
-      mockUsePerpsConnectionLifecycle = jest.requireMock(
-        '../hooks/usePerpsConnectionLifecycle',
-      ).usePerpsConnectionLifecycle;
-    });
-
-    it('calls usePerpsConnectionLifecycle with correct parameters', () => {
-      const { rerender } = render(
-        <PerpsConnectionProvider isVisible>
-          <Text>Test</Text>
-        </PerpsConnectionProvider>,
-      );
-
-      expect(mockUsePerpsConnectionLifecycle).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isVisible: true,
-          onConnect: expect.any(Function),
-          onDisconnect: expect.any(Function),
-          onError: expect.any(Function),
-        }),
-      );
-
-      // Test with different visibility
-      rerender(
-        <PerpsConnectionProvider isVisible={false}>
-          <Text>Test</Text>
-        </PerpsConnectionProvider>,
-      );
-
-      expect(mockUsePerpsConnectionLifecycle).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          isVisible: false,
-        }),
-      );
-    });
-
-    it('updates connection state when hook onConnect is called', async () => {
-      let capturedOnConnect: (() => Promise<void>) | null = null;
-
-      mockUsePerpsConnectionLifecycle.mockImplementation(
-        ({ onConnect }: { onConnect: () => Promise<void> }) => {
-          capturedOnConnect = onConnect;
-          return { hasConnected: false };
-        },
-      );
-
-      mockGetConnectionState.mockReturnValue({
-        isConnected: false, // Start disconnected
-        isConnecting: false,
-        isInitialized: true,
-      });
-
-      const TestComponentConnect = () => {
-        const { isConnected } = usePerpsConnection();
-        return <Text>{isConnected ? 'Connected' : 'Not Connected'}</Text>;
-      };
-
-      const { getByText } = render(
-        <PerpsConnectionProvider isVisible>
-          <TestComponentConnect />
-        </PerpsConnectionProvider>,
-      );
-
-      // Initially not connected
-      expect(getByText('Not Connected')).toBeDefined();
-
-      // Call the onConnect callback
-      await act(async () => {
-        if (capturedOnConnect) {
-          // Update mock to return connected state after connect
-          mockGetConnectionState.mockReturnValue({
-            isConnected: true,
-            isConnecting: false,
-            isInitialized: true,
-          });
-          await capturedOnConnect();
-        }
-      });
-
-      await waitFor(() => {
-        expect(mockConnect).toHaveBeenCalled();
-        expect(getByText('Connected')).toBeDefined();
-      });
-    });
-
-    it('updates connection state when hook onDisconnect is called', async () => {
-      let capturedOnDisconnect: (() => Promise<void>) | null = null;
-
-      mockUsePerpsConnectionLifecycle.mockImplementation(
-        ({ onDisconnect }: { onDisconnect: () => Promise<void> }) => {
-          capturedOnDisconnect = onDisconnect;
-          return { hasConnected: true };
-        },
-      );
-
-      mockGetConnectionState
-        .mockReturnValueOnce({
-          isConnected: true,
-          isConnecting: false,
-          isInitialized: true,
-          error: null,
-        })
-        .mockReturnValue({
-          isConnected: false,
-          isConnecting: false,
-          isInitialized: false,
-          error: null,
-        });
-
-      const TestComponentDisconnect = () => {
-        const { isConnected } = usePerpsConnection();
-        return <Text>{isConnected ? 'Connected' : 'Not Connected'}</Text>;
-      };
-
-      const { getByText } = render(
-        <PerpsConnectionProvider isVisible>
-          <TestComponentDisconnect />
-        </PerpsConnectionProvider>,
-      );
-
-      // Initially connected
-      expect(getByText('Connected')).toBeDefined();
-
-      // Call the onDisconnect callback
-      await act(async () => {
-        if (capturedOnDisconnect) {
-          await capturedOnDisconnect();
-        }
-      });
-
-      await waitFor(() => {
-        expect(mockDisconnect).toHaveBeenCalled();
-      });
-    });
-
-    it('sets error when hook onError is called', () => {
-      let capturedOnError: ((error: string) => void) | null = null;
-
-      mockUsePerpsConnectionLifecycle.mockImplementation(
-        ({ onError }: { onError: (error: string) => void }) => {
-          capturedOnError = onError;
-          return { hasConnected: false };
-        },
-      );
-
-      const TestComponentError = () => {
-        const { error } = usePerpsConnection();
-        return <Text>{error || 'No error'}</Text>;
-      };
-
-      const { getByText } = render(
-        <PerpsConnectionProvider>
-          <TestComponentError />
-        </PerpsConnectionProvider>,
-      );
-
-      expect(getByText('No error')).toBeDefined();
-
-      // Call the onError callback and update mock state
-      act(() => {
-        if (capturedOnError) {
-          // Update the connection state to include the error
-          mockGetConnectionState.mockReturnValue({
-            isConnected: false,
-            isConnecting: false,
-            isInitialized: false,
-            error: 'Test error message',
-          });
-          capturedOnError('Test error message');
-        }
-      });
-
-      expect(getByText('Test error message')).toBeDefined();
-    });
-
-    it('handles visibility changes through the hook', () => {
-      const { rerender } = render(
-        <PerpsConnectionProvider isVisible>
-          <Text>Test</Text>
-        </PerpsConnectionProvider>,
-      );
-
-      // Initial call with visible
-      expect(mockUsePerpsConnectionLifecycle).toHaveBeenCalledWith(
-        expect.objectContaining({ isVisible: true }),
-      );
-
-      // Change to not visible
-      rerender(
-        <PerpsConnectionProvider isVisible={false}>
-          <Text>Test</Text>
-        </PerpsConnectionProvider>,
-      );
-
-      expect(mockUsePerpsConnectionLifecycle).toHaveBeenLastCalledWith(
-        expect.objectContaining({ isVisible: false }),
-      );
-
-      // Change back to visible
-      rerender(
-        <PerpsConnectionProvider isVisible>
-          <Text>Test</Text>
-        </PerpsConnectionProvider>,
-      );
-
-      expect(mockUsePerpsConnectionLifecycle).toHaveBeenLastCalledWith(
-        expect.objectContaining({ isVisible: true }),
-      );
-    });
   });
 
   it('handles rapid state changes', async () => {

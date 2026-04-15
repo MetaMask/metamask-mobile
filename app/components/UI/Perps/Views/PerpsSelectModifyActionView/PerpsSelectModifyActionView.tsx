@@ -91,13 +91,17 @@ const PerpsSelectModifyActionView: React.FC<
               asset: position.symbol,
               existingPosition: position, // Pass position to maintain leverage consistency
               hideTPSL: true, // Hide TP/SL when adding to existing position
+              source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
             });
           }
           break;
 
         case 'reduce_position':
           // Open close position screen
-          navigateToClosePosition(position);
+          navigateToClosePosition(
+            position,
+            PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+          );
           break;
 
         case 'flip_position':
@@ -116,6 +120,7 @@ const PerpsSelectModifyActionView: React.FC<
               asset: position.symbol,
               amount: positionSize.toString(),
               leverage: positionLeverage,
+              source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
             });
           }
           break;

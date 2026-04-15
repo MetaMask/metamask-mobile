@@ -68,39 +68,15 @@ jest.mock('../../../../core/Engine', () => {
   };
 });
 
-// HOC mock must inject metrics; mock factory runs before imports so React is not in scope (hence require).
-jest.mock(
-  '../../../../components/hooks/useAnalytics/withAnalyticsAwareness',
-  () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- hoisted mock factory
-    const ReactModule = require('react');
-    return {
-      withAnalyticsAwareness:
-        (Component: unknown) => (props: Record<string, unknown>) =>
-          ReactModule.createElement(Component, {
-            ...props,
-            analytics: {
-              trackEvent: jest.fn(),
-              createEventBuilder: jest.fn(() => ({
-                addProperties: jest.fn().mockReturnThis(),
-                build: jest.fn(),
-              })),
-              addTraitsToUser: jest.fn(),
-            },
-          }),
-    };
-  },
-);
-
 describe('AdvancedSettings', () => {
   it('should render correctly', () => {
-    const container = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <AdvancedSettings navigation={defaultNavigation} />,
       {
         state: initialState,
       },
     );
-    expect(container).toMatchSnapshot();
+    expect(getByText(strings('app_settings.advanced_title'))).toBeOnTheScreen();
   });
 
   it('renders header with correct title', () => {
@@ -132,7 +108,7 @@ describe('AdvancedSettings', () => {
     Device.isIos = jest.fn().mockReturnValue(true);
     Device.isAndroid = jest.fn().mockReturnValue(false);
 
-    it('should render option to dismiss smart account upgrade', async () => {
+    it('should render smart account dapp requests toggle on by default', async () => {
       const { findByLabelText } = renderWithProvider(
         <AdvancedSettings navigation={defaultNavigation} />,
         {
@@ -141,12 +117,12 @@ describe('AdvancedSettings', () => {
       );
 
       const switchElement = await findByLabelText(
-        strings('app_settings.dismiss_smart_account_update_heading'),
+        strings('app_settings.smart_account_dapp_requests_heading'),
       );
-      expect(switchElement.props.value).toBe(false);
+      expect(switchElement.props.value).toBe(true);
     });
 
-    it('should update dismissSmartAccountSuggestionEnabled when dismiss smart account upgrade is pressed', async () => {
+    it('should set dismissSmartAccountSuggestionEnabled to true when smart account dapp requests toggle is turned off', async () => {
       const { findByLabelText } = renderWithProvider(
         <AdvancedSettings navigation={defaultNavigation} />,
         {
@@ -155,12 +131,14 @@ describe('AdvancedSettings', () => {
       );
 
       const switchElement = await findByLabelText(
-        strings('app_settings.dismiss_smart_account_update_heading'),
+        strings('app_settings.smart_account_dapp_requests_heading'),
       );
 
       fireEvent(switchElement, 'onValueChange', false);
 
-      expect(mockDismissSmartAccountSuggestionEnabled).toHaveBeenCalled();
+      expect(mockDismissSmartAccountSuggestionEnabled).toHaveBeenCalledWith(
+        true,
+      );
     });
 
     it('should render smart transactions opt in switch on by default', async () => {

@@ -5,6 +5,7 @@ import {
   cashbackWithdrawEstimationOptions,
 } from './cashback';
 import { dashboardKeys } from './dashboard';
+import { authKeys } from './auth';
 
 export const cardQueries = {
   keys: {
@@ -21,5 +22,8 @@ export const cardQueries = {
     keys: cashbackKeys,
     walletOptions: cashbackWalletOptions,
     withdrawEstimationOptions: cashbackWithdrawEstimationOptions,
+  },
+  auth: {
+    keys: authKeys,
   },
 };

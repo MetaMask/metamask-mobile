@@ -2,6 +2,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 import {
   AccountState,
   ConnectionStatus,
+  CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
   GetBalanceParams,
@@ -10,6 +11,7 @@ import {
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
+  GetSeriesParams,
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
@@ -30,6 +32,7 @@ import { PredictFeatureFlags } from '../types/flags';
 export type {
   AccountState,
   ConnectionStatus,
+  CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
   GetBalanceParams,
@@ -122,6 +125,7 @@ export interface PredictProvider {
   readonly chainId: number;
 
   getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
+  getCarouselMarkets?(): Promise<PredictMarket[]>;
   getMarketsByIds?(marketIds: string[]): Promise<PredictMarket[]>;
   getMarketDetails(params: { marketId: string }): Promise<PredictMarket>;
   getPriceHistory(
@@ -167,6 +171,13 @@ export interface PredictProvider {
     tokenIds: string[],
     callback: PriceUpdateCallback,
   ): () => void;
+
+  subscribeToCryptoPrices?(
+    symbols: string[],
+    callback: CryptoPriceUpdateCallback,
+  ): () => void;
+
+  getMarketSeries?(params: GetSeriesParams): Promise<PredictMarket[]>;
 
   getConnectionStatus?(): ConnectionStatus;
 }

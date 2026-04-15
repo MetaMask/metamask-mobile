@@ -28,6 +28,12 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: () => ({
+    activeOrder: null,
+  }),
+}));
+
 jest.mock('../../hooks/usePredictPositions');
 jest.mock('../../hooks/usePredictActionGuard');
 jest.mock('../../hooks/usePredictClaim');
@@ -238,6 +244,7 @@ describe('PredictSportCardFooter', () => {
 
     mockUsePredictClaim.mockReturnValue({
       claim: mockClaim,
+      isClaimPending: false,
     });
 
     mockExecuteGuardedAction.mockImplementation((callback) => callback());

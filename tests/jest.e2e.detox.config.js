@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 require('dotenv').config({ path: '.e2e.env' });
 
 // Due the emulator resource constraints, is much better to run the tests in band (1 worker)

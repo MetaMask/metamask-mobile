@@ -9,9 +9,10 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import { IconName } from '@metamask/design-system-react-native';
 import {
-  IconName,
-  IconColor,
+  IconName as ComponentLibraryIconName,
+  IconColor as ComponentLibraryIconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -22,9 +23,9 @@ import {
   ToastVariants,
 } from '../../../../../../component-library/components/Toast';
 import Logger from '../../../../../../util/Logger';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import MenuItem from '../../../components/MenuItem';
-import { useRampsController } from '../../../hooks/useRampsController';
+import { useRampsProviders } from '../../../hooks/useRampsProviders';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
@@ -52,7 +53,7 @@ function SettingsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
-  const { selectedProvider, setSelectedProvider } = useRampsController();
+  const { selectedProvider, setSelectedProvider } = useRampsProviders();
 
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
     useState<boolean>(false);
@@ -166,8 +167,9 @@ function SettingsModal() {
             ),
           },
         ],
-        iconName: IconName.CheckBold,
-        iconColor: IconColor.Success,
+        iconName: ComponentLibraryIconName.CheckBold,
+        // Toast still renders component-library Icon; use its IconColor enum, not DS tokens.
+        iconColor: ComponentLibraryIconColor.Success,
         hasNoTimeout: false,
       });
     } catch (error) {
@@ -181,8 +183,8 @@ function SettingsModal() {
             ),
           },
         ],
-        iconName: IconName.CircleX,
-        iconColor: IconColor.Error,
+        iconName: ComponentLibraryIconName.CircleX,
+        iconColor: ComponentLibraryIconColor.Error,
         hasNoTimeout: false,
       });
     }
@@ -194,9 +196,10 @@ function SettingsModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={handleClosePress}>
-        {strings('fiat_on_ramp.build_quote_settings_modal.title')}
-      </BottomSheetHeader>
+      <HeaderCompactStandard
+        title={strings('fiat_on_ramp.build_quote_settings_modal.title')}
+        onClose={handleClosePress}
+      />
       <MenuItem
         iconName={IconName.Clock}
         title={strings(

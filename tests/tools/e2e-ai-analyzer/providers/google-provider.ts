@@ -296,10 +296,17 @@ export class GoogleProvider implements ILLMProvider {
     const contents = toGoogleContents(request.messages);
     const result = await model.generateContent({ contents });
 
+    const meta = result.response.usageMetadata;
     return {
       content: fromGoogleResponse(result),
       model: request.model,
       stopReason: mapFinishReason(result),
+      usage: meta
+        ? {
+            inputTokens: meta.promptTokenCount ?? 0,
+            outputTokens: meta.candidatesTokenCount ?? 0,
+          }
+        : undefined,
     };
   }
 
@@ -319,7 +326,9 @@ export class GoogleProvider implements ILLMProvider {
         contents: [{ role: 'user', parts: [{ text: 'hi' }] }],
       });
       return true;
-    } catch {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`   ⚠️  Google API error: ${message}`);
       return false;
     }
   }

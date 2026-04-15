@@ -41,6 +41,10 @@ import {
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import type { PredictFeatureFlags } from '../../types/flags';
+import {
+  extractNeededTeamsFromEvents,
+  isLiveSportsEvent,
+} from '../../utils/gameParser';
 import { OrderPreview, PlaceOrderParams } from '../types';
 import { PolymarketProvider } from './PolymarketProvider';
 import {
@@ -59,16 +63,16 @@ import {
   getBalance,
   getContractConfig,
   getFeeRateBps,
+  fetchEventsFromPolymarketApi,
+  fetchCarouselFromPolymarketApi,
   getL2Headers,
   getMarketDetailsFromGammaApi,
   getOrderTypedData,
-  getParsedMarketsFromPolymarketApi,
   getPolymarketEndpoints,
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
   priceValid,
-  refreshBalanceAllowance,
   submitClobOrder,
 } from './utils';
 
@@ -91,6 +95,12 @@ jest.mock('./utils', () => {
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
     })),
     getParsedMarketsFromPolymarketApi: jest.fn(),
+    fetchCarouselFromPolymarketApi: jest.fn(),
+    fetchEventsFromPolymarketApi: jest.fn().mockResolvedValue({
+      events: [],
+      category: 'trending',
+      isSearch: false,
+    }),
     getMarketsFromPolymarketApi: jest.fn(),
     getMarketDetailsFromGammaApi: jest.fn(),
     getTickSize: jest.fn(),
@@ -109,7 +119,6 @@ jest.mock('./utils', () => {
     priceValid: jest.fn(),
     createApiKey: jest.fn(),
     submitClobOrder: jest.fn(),
-    refreshBalanceAllowance: jest.fn(),
     getMarketPositions: jest.fn(),
     getBalance: jest.fn(),
     previewOrder: jest.fn(),
@@ -152,11 +161,14 @@ jest.mock('./GameCache', () => ({
 
 jest.mock('../../constants/sports', () => ({
   SUPPORTED_SPORTS_LEAGUES: ['nfl'],
+  filterSupportedLeagues: (leagues: string[]) =>
+    leagues.filter((l) => ['nfl'].includes(l)),
 }));
 
 const mockTeamsCacheInstance = {
   ensureLeagueLoaded: jest.fn().mockResolvedValue(undefined),
   ensureLeaguesLoaded: jest.fn().mockResolvedValue(undefined),
+  ensureTeamsLoaded: jest.fn().mockResolvedValue(undefined),
   getTeam: jest.fn(),
   getNflTeam: jest.fn(),
   isLeagueLoaded: jest.fn().mockReturnValue(true),
@@ -174,6 +186,7 @@ jest.mock('./TeamsCache', () => ({
 const mockWebSocketManagerInstance = {
   subscribeToGame: jest.fn(),
   subscribeToMarketPrices: jest.fn(),
+  subscribeToCryptoPrices: jest.fn(),
   getConnectionStatus: jest.fn(),
   disconnect: jest.fn(),
   cleanup: jest.fn(),
@@ -184,6 +197,14 @@ jest.mock('./WebSocketManager', () => ({
     getInstance: jest.fn(() => mockWebSocketManagerInstance),
     resetInstance: jest.fn(),
   },
+}));
+
+jest.mock('../../utils/gameParser', () => ({
+  ...jest.requireActual('../../utils/gameParser'),
+  extractNeededTeamsFromEvents: jest.fn(() => new Map()),
+  getEventLeague: jest.fn(() => null),
+  isLiveSportsEvent: jest.fn(),
+  parseGameSlugTeams: jest.fn(() => null),
 }));
 
 jest.mock('../../../../../util/transactions', () => ({
@@ -199,8 +220,10 @@ const mockSignTypedMessage = Engine.context.KeyringController
   .signTypedMessage as jest.Mock;
 const mockSignPersonalMessage = Engine.context.KeyringController
   .signPersonalMessage as jest.Mock;
-const mockGetMarketsFromPolymarketApi =
-  getParsedMarketsFromPolymarketApi as jest.Mock;
+const mockFetchEventsFromPolymarketApi =
+  fetchEventsFromPolymarketApi as jest.Mock;
+const mockFetchCarouselFromPolymarketApi =
+  fetchCarouselFromPolymarketApi as jest.Mock;
 const mockGetMarketDetailsFromGammaApi =
   getMarketDetailsFromGammaApi as jest.Mock;
 const mockGetContractConfig = getContractConfig as jest.Mock;
@@ -212,7 +235,6 @@ const mockParsePolymarketPositions = parsePolymarketPositions as jest.Mock;
 const mockPriceValid = priceValid as jest.Mock;
 const mockCreateApiKey = createApiKey as jest.Mock;
 const mockSubmitClobOrder = submitClobOrder as jest.Mock;
-const mockRefreshBalanceAllowance = refreshBalanceAllowance as jest.Mock;
 const mockEncodeClaim = encodeClaim as jest.Mock;
 const mockComputeProxyAddress = computeProxyAddress as jest.Mock;
 const mockCreatePermit2FeeAuthorization =
@@ -223,17 +245,23 @@ const mockHasAllowances = hasAllowances as jest.Mock;
 const mockQuery = query as jest.Mock;
 const mockPreviewOrder = previewOrder as jest.Mock;
 const mockGetBalance = getBalance as jest.Mock;
+const mockIsLiveSportsEvent = isLiveSportsEvent as jest.Mock;
+const mockExtractNeededTeamsFromEvents =
+  extractNeededTeamsFromEvents as jest.Mock;
 
 describe('PolymarketProvider', () => {
   const defaultFeatureFlags: PredictFeatureFlags = {
     feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
     liveSportsLeagues: [],
+    extendedSportsMarketsLeagues: [],
     marketHighlightsFlag: {
       enabled: false,
       highlights: [],
       minimumVersion: '7.64.0',
     },
     fakOrdersEnabled: false,
+    predictWithAnyTokenEnabled: false,
+    predictUpDownEnabled: false,
   };
   const createProvider = (
     featureFlagsOverride?: Partial<PredictFeatureFlags>,
@@ -251,7 +279,7 @@ describe('PolymarketProvider', () => {
   });
 
   it('getMarkets returns an array with some length', async () => {
-    const mockMarkets = [
+    const mockEvents = [
       {
         id: 'market-1',
         title: 'Test Market 1',
@@ -302,7 +330,24 @@ describe('PolymarketProvider', () => {
       },
     ];
 
-    mockGetMarketsFromPolymarketApi.mockResolvedValue(mockMarkets);
+    const parsedMarkets = [
+      {
+        id: 'market-1',
+        title: 'Test Market 1',
+      },
+      {
+        id: 'market-2',
+        title: 'Test Market 2',
+      },
+    ];
+
+    mockFetchEventsFromPolymarketApi.mockResolvedValue({
+      events: mockEvents,
+      category: 'trending',
+      isSearch: false,
+    });
+    mockExtractNeededTeamsFromEvents.mockReturnValue(new Map());
+    mockParsePolymarketEvents.mockReturnValue(parsedMarkets);
 
     const markets = await createProvider({
       liveSportsLeagues: ['nfl'],
@@ -310,28 +355,32 @@ describe('PolymarketProvider', () => {
     expect(Array.isArray(markets)).toBe(true);
     expect(markets.length).toBeGreaterThan(0);
     expect(markets.length).toBe(2);
-    expect(mockGetMarketsFromPolymarketApi).toHaveBeenCalledWith(
-      expect.objectContaining({ teamLookup: expect.any(Function) }),
+    expect(mockFetchEventsFromPolymarketApi).toHaveBeenCalled();
+    expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+      mockEvents,
+      expect.objectContaining({
+        category: 'trending',
+        sortMarketsBy: 'price',
+        teamLookup: expect.any(Function),
+      }),
     );
   });
 
   it('getMarkets returns empty array when API fails', async () => {
     const apiError = new Error('API request failed');
-    mockGetMarketsFromPolymarketApi.mockRejectedValue(apiError);
+    mockFetchEventsFromPolymarketApi.mockRejectedValue(apiError);
 
     const result = await createProvider({
       liveSportsLeagues: ['nfl'],
     }).getMarkets();
 
     expect(result).toEqual([]);
-    expect(mockGetMarketsFromPolymarketApi).toHaveBeenCalledWith(
-      expect.objectContaining({ teamLookup: expect.any(Function) }),
-    );
+    expect(mockFetchEventsFromPolymarketApi).toHaveBeenCalled();
   });
 
   it('getMarkets returns empty array when non-Error exception is thrown', async () => {
     const provider = createProvider();
-    mockGetMarketsFromPolymarketApi.mockRejectedValue('String error');
+    mockFetchEventsFromPolymarketApi.mockRejectedValue('String error');
 
     const result = await provider.getMarkets();
 
@@ -1573,97 +1622,6 @@ describe('PolymarketProvider', () => {
       expect(mockCreateApiKey).toHaveBeenCalledWith({
         address: mockSigner2.address,
       });
-    });
-  });
-
-  describe('placeOrder balance/allowance refresh workaround', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockRefreshBalanceAllowance.mockResolvedValue(undefined);
-    });
-
-    it('calls refreshBalanceAllowance with COLLATERAL before submitting a BUY order', async () => {
-      // Arrange
-      const { provider, mockSigner } = setupPlaceOrderTest();
-      const preview = createMockOrderPreview({ side: Side.BUY });
-
-      // Act
-      await provider.placeOrder({ signer: mockSigner, preview });
-
-      // Assert
-      expect(mockRefreshBalanceAllowance).toHaveBeenCalledWith({
-        address: mockSigner.address,
-        apiKey: expect.objectContaining({ apiKey: 'test-api-key' }),
-        side: Side.BUY,
-        outcomeTokenId: preview.outcomeTokenId,
-      });
-    });
-
-    it('calls refreshBalanceAllowance with CONDITIONAL before submitting a SELL order', async () => {
-      // Arrange
-      const { provider, mockSigner } = setupPlaceOrderTest();
-      const preview = createMockOrderPreview({ side: Side.SELL });
-
-      // Act
-      await provider.placeOrder({ signer: mockSigner, preview });
-
-      // Assert
-      expect(mockRefreshBalanceAllowance).toHaveBeenCalledWith({
-        address: mockSigner.address,
-        apiKey: expect.objectContaining({ apiKey: 'test-api-key' }),
-        side: Side.SELL,
-        outcomeTokenId: preview.outcomeTokenId,
-      });
-    });
-
-    it('calls refreshBalanceAllowance before submitClobOrder', async () => {
-      // Arrange
-      const { provider, mockSigner } = setupPlaceOrderTest();
-      const callOrder: string[] = [];
-      mockRefreshBalanceAllowance.mockImplementation(async () => {
-        callOrder.push('refresh');
-      });
-      mockSubmitClobOrder.mockImplementation(async () => {
-        callOrder.push('submit');
-        return {
-          success: true,
-          response: {
-            success: true,
-            makingAmount: '1000000',
-            orderID: 'order-123',
-            status: 'success',
-            takingAmount: '0',
-            transactionsHashes: [],
-          },
-          error: undefined,
-        };
-      });
-      const preview = createMockOrderPreview({ side: Side.BUY });
-
-      // Act
-      await provider.placeOrder({ signer: mockSigner, preview });
-
-      // Assert
-      expect(callOrder).toEqual(['refresh', 'submit']);
-    });
-
-    it('proceeds with order submission when refreshBalanceAllowance fails', async () => {
-      // Arrange
-      const { provider, mockSigner } = setupPlaceOrderTest();
-      mockRefreshBalanceAllowance.mockRejectedValue(
-        new Error('Network timeout'),
-      );
-      const preview = createMockOrderPreview({ side: Side.BUY });
-
-      // Act
-      const result = await provider.placeOrder({
-        signer: mockSigner,
-        preview,
-      });
-
-      // Assert - order still submitted despite refresh failure
-      expect(mockSubmitClobOrder).toHaveBeenCalled();
-      expect(result.success).toBe(true);
     });
   });
 
@@ -3132,6 +3090,7 @@ describe('PolymarketProvider', () => {
 
     it('get market details successfully', async () => {
       const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+      mockIsLiveSportsEvent.mockReturnValueOnce(true);
       mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
       mockParsePolymarketEvents.mockReturnValue([mockParsedMarket]);
 
@@ -5220,6 +5179,168 @@ describe('PolymarketProvider', () => {
         // Assert
         const result = await provider.getPositions({ address: mockAddress });
         expect(result).toHaveLength(0);
+      });
+    });
+
+    describe('createOptimisticPositionFromPreview', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('creates optimistic position for a new position using preview data', async () => {
+        const { provider, mockAddress, mockFetch } =
+          setupOptimisticUpdateTest();
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        });
+        mockParsePolymarketPositions.mockResolvedValue([]);
+
+        mockMarketDetailsForOptimistic({
+          marketId: 'market-1',
+          outcomes: [
+            {
+              id: 'outcome-456',
+              title: 'Yes',
+              tokenId: 'token-456',
+              price: 0.5,
+            },
+          ],
+        });
+
+        const preview = createMockOrderPreview({
+          side: Side.BUY,
+          outcomeTokenId: 'token-456',
+          outcomeId: 'outcome-456',
+          marketId: 'market-1',
+          sharePrice: 0.5,
+          maxAmountSpent: 10,
+          minAmountReceived: 20,
+        });
+
+        await provider.createOptimisticPositionFromPreview({
+          address: mockAddress,
+          preview,
+        });
+
+        const positions = await provider.getPositions({
+          address: mockAddress,
+        });
+
+        expect(positions).toHaveLength(1);
+        expect(positions[0]).toEqual(
+          expect.objectContaining({
+            marketId: 'market-1',
+            outcomeTokenId: 'token-456',
+            optimistic: true,
+          }),
+        );
+      });
+
+      it('updates existing position when one already exists', async () => {
+        const { provider, mockAddress, mockFetch } =
+          setupOptimisticUpdateTest();
+
+        const existingPosition = createMockPosition({
+          outcomeTokenId: 'token-456',
+          outcomeId: 'outcome-456',
+          marketId: 'market-1',
+          amount: 10,
+          size: 10,
+          initialValue: 5,
+        });
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        });
+        mockParsePolymarketPositions.mockResolvedValue([existingPosition]);
+
+        const preview = createMockOrderPreview({
+          side: Side.BUY,
+          outcomeTokenId: 'token-456',
+          outcomeId: 'outcome-456',
+          marketId: 'market-1',
+          sharePrice: 0.5,
+          maxAmountSpent: 5,
+          minAmountReceived: 10,
+        });
+
+        await provider.createOptimisticPositionFromPreview({
+          address: mockAddress,
+          preview,
+        });
+
+        mockParsePolymarketPositions.mockResolvedValue([existingPosition]);
+
+        const positions = await provider.getPositions({
+          address: mockAddress,
+        });
+
+        const optimisticPosition = positions.find(
+          (p) => p.outcomeTokenId === 'token-456',
+        );
+        expect(optimisticPosition?.optimistic).toBe(true);
+        expect(optimisticPosition?.amount).toBe(20);
+        expect(optimisticPosition?.initialValue).toBe(10);
+      });
+    });
+
+    describe('clearOptimisticPosition', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('removes optimistic position so it no longer appears in getPositions', async () => {
+        const { provider, mockAddress, mockFetch } =
+          setupOptimisticUpdateTest();
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        });
+        mockParsePolymarketPositions.mockResolvedValue([]);
+
+        mockMarketDetailsForOptimistic({
+          marketId: 'market-1',
+          outcomes: [
+            {
+              id: 'outcome-456',
+              title: 'Yes',
+              tokenId: 'token-456',
+              price: 0.5,
+            },
+          ],
+        });
+
+        const preview = createMockOrderPreview({
+          side: Side.BUY,
+          outcomeTokenId: 'token-456',
+          outcomeId: 'outcome-456',
+          marketId: 'market-1',
+        });
+
+        await provider.createOptimisticPositionFromPreview({
+          address: mockAddress,
+          preview,
+        });
+
+        provider.clearOptimisticPosition(mockAddress, 'token-456');
+
+        const positions = await provider.getPositions({
+          address: mockAddress,
+        });
+
+        expect(positions).toHaveLength(0);
+      });
+
+      it('is a no-op when no optimistic position exists for the address', () => {
+        const provider = createProvider();
+
+        expect(() => {
+          provider.clearOptimisticPosition('0xunknown', 'token-1');
+        }).not.toThrow();
       });
     });
 
@@ -7354,11 +7475,18 @@ describe('PolymarketProvider', () => {
     describe('getMarkets', () => {
       it('applies GameCache overlay to fetched markets when live sports are enabled', async () => {
         const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+        const mockEvents = [{ id: 'event-1' }, { id: 'event-2' }];
         const mockMarkets = [
           { id: 'market-1', title: 'Test Market 1' },
           { id: 'market-2', title: 'Test Market 2' },
         ];
-        mockGetMarketsFromPolymarketApi.mockResolvedValue(mockMarkets);
+        mockFetchEventsFromPolymarketApi.mockResolvedValue({
+          events: mockEvents,
+          category: 'trending',
+          isSearch: false,
+        });
+        mockParsePolymarketEvents.mockReturnValue(mockMarkets);
+        mockExtractNeededTeamsFromEvents.mockReturnValue(new Map());
 
         await provider.getMarkets();
 
@@ -7369,6 +7497,7 @@ describe('PolymarketProvider', () => {
 
       it('returns markets with cached game data overlay applied when live sports are enabled', async () => {
         const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+        const mockEvents = [{ id: 'event-1' }];
         const mockMarkets = [{ id: 'market-1', title: 'Test Market' }];
         const overlaidMarkets = [
           {
@@ -7377,7 +7506,13 @@ describe('PolymarketProvider', () => {
             gameData: { score: '3-2', status: 'live' },
           },
         ];
-        mockGetMarketsFromPolymarketApi.mockResolvedValue(mockMarkets);
+        mockFetchEventsFromPolymarketApi.mockResolvedValue({
+          events: mockEvents,
+          category: 'trending',
+          isSearch: false,
+        });
+        mockParsePolymarketEvents.mockReturnValue(mockMarkets);
+        mockExtractNeededTeamsFromEvents.mockReturnValue(new Map());
         mockGameCacheInstance.overlayOnMarkets.mockReturnValue(overlaidMarkets);
 
         const result = await provider.getMarkets();
@@ -7387,7 +7522,7 @@ describe('PolymarketProvider', () => {
 
       it('returns empty array when API fails without calling GameCache overlay', async () => {
         const provider = createProvider({ liveSportsLeagues: ['nfl'] });
-        mockGetMarketsFromPolymarketApi.mockRejectedValue(
+        mockFetchEventsFromPolymarketApi.mockRejectedValue(
           new Error('API error'),
         );
 
@@ -7398,28 +7533,127 @@ describe('PolymarketProvider', () => {
       });
     });
 
-    describe('getMarketDetails', () => {
-      it('applies GameCache overlay to fetched market details when live sports are enabled', async () => {
+    describe('getCarouselMarkets', () => {
+      it('returns parsed markets from carousel API', async () => {
+        const provider = createProvider();
+        const mockEvents = [{ id: 'event-1' }, { id: 'event-2' }];
+        const parsedMarkets = [
+          { id: 'market-1', status: 'open', outcomes: [{ id: 'o1' }] },
+          { id: 'market-2', status: 'open', outcomes: [{ id: 'o2' }] },
+        ];
+
+        mockFetchCarouselFromPolymarketApi.mockResolvedValue([
+          { event: mockEvents[0] },
+          { event: mockEvents[1] },
+        ]);
+        mockParsePolymarketEvents.mockReturnValue(parsedMarkets);
+
+        const result = await provider.getCarouselMarkets();
+
+        expect(result).toEqual(parsedMarkets);
+        expect(mockFetchCarouselFromPolymarketApi).toHaveBeenCalled();
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          mockEvents,
+          expect.objectContaining({
+            category: 'trending',
+            sortMarketsBy: 'price',
+          }),
+        );
+      });
+
+      it('returns empty array on error', async () => {
+        const provider = createProvider();
+
+        mockFetchCarouselFromPolymarketApi.mockRejectedValue(
+          new Error('carousel error'),
+        );
+
+        const result = await provider.getCarouselMarkets();
+
+        expect(result).toEqual([]);
+      });
+
+      it('filters out closed markets and markets with no outcomes', async () => {
+        const provider = createProvider();
+
+        mockFetchCarouselFromPolymarketApi.mockResolvedValue([{ event: {} }]);
+        mockParsePolymarketEvents.mockReturnValue([
+          { id: 'open-market', status: 'open', outcomes: [{ id: 'o1' }] },
+          { id: 'closed-market', status: 'closed', outcomes: [{ id: 'o2' }] },
+          { id: 'empty-outcomes', status: 'open', outcomes: [] },
+        ]);
+
+        const result = await provider.getCarouselMarkets();
+
+        expect(result).toEqual([
+          { id: 'open-market', status: 'open', outcomes: [{ id: 'o1' }] },
+        ]);
+      });
+
+      it('loads teams when live sports is enabled', async () => {
         const provider = createProvider({ liveSportsLeagues: ['nfl'] });
-        const mockEvent = { id: 'market-1', question: 'Test Market?' };
+        const mockEvents = [{ id: 'event-1' }];
+
+        mockFetchCarouselFromPolymarketApi.mockResolvedValue([
+          { event: mockEvents[0] },
+        ]);
+        mockExtractNeededTeamsFromEvents.mockReturnValue(
+          new Map([['nfl', ['sea', 'den']]]),
+        );
+        mockParsePolymarketEvents.mockReturnValue([]);
+
+        await provider.getCarouselMarkets();
+
+        expect(mockExtractNeededTeamsFromEvents).toHaveBeenCalledWith(
+          mockEvents,
+          ['nfl'],
+        );
+        expect(mockTeamsCacheInstance.ensureTeamsLoaded).toHaveBeenCalledWith(
+          'nfl',
+          ['sea', 'den'],
+        );
+      });
+    });
+
+    describe('getMarketDetails', () => {
+      it('applies GameCache overlay to fetched market details when event is a sports event', async () => {
+        const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+        mockIsLiveSportsEvent.mockReturnValue(true);
+        const mockEvent = {
+          id: 'market-1',
+          slug: 'sea-vs-den-2024-01-15',
+          question: 'Test Market?',
+        };
         const parsedMarket = {
           id: 'market-1',
           title: 'Test Market',
           providerId: POLYMARKET_PROVIDER_ID,
         };
         mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+        mockExtractNeededTeamsFromEvents.mockReturnValue(
+          new Map([['nfl', ['sea', 'den']]]),
+        );
         mockParsePolymarketEvents.mockReturnValue([parsedMarket]);
 
         await provider.getMarketDetails({ marketId: 'market-1' });
 
+        expect(mockTeamsCacheInstance.ensureTeamsLoaded).toHaveBeenCalledWith(
+          'nfl',
+          ['sea', 'den'],
+        );
         expect(mockGameCacheInstance.overlayOnMarket).toHaveBeenCalledWith(
           parsedMarket,
         );
       });
 
-      it('returns market with cached game data overlay applied when live sports are enabled', async () => {
+      it('returns market with cached game data overlay applied when event is a sports event', async () => {
         const provider = createProvider({ liveSportsLeagues: ['nfl'] });
-        const mockEvent = { id: 'market-1', question: 'Test Market?' };
+        mockIsLiveSportsEvent.mockReturnValue(true);
+        const mockEvent = {
+          id: 'market-1',
+          slug: 'sea-vs-den-2024-01-15',
+          question: 'Test Market?',
+        };
         const parsedMarket = { id: 'market-1', title: 'Test Market' };
         const overlaidMarket = {
           id: 'market-1',
@@ -7427,6 +7661,9 @@ describe('PolymarketProvider', () => {
           gameData: { score: '1-0', status: 'live', elapsed: '45:00' },
         };
         mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+        mockExtractNeededTeamsFromEvents.mockReturnValue(
+          new Map([['nfl', ['sea', 'den']]]),
+        );
         mockParsePolymarketEvents.mockReturnValue([parsedMarket]);
         mockGameCacheInstance.overlayOnMarket.mockReturnValue(overlaidMarket);
 
@@ -7435,10 +7672,32 @@ describe('PolymarketProvider', () => {
         });
 
         expect(result).toEqual(overlaidMarket);
+        expect(mockTeamsCacheInstance.ensureTeamsLoaded).toHaveBeenCalledWith(
+          'nfl',
+          ['sea', 'den'],
+        );
+      });
+
+      it('skips GameCache overlay when event is not a sports event despite leagues being enabled', async () => {
+        const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+        mockIsLiveSportsEvent.mockReturnValue(false);
+        const mockEvent = { id: 'market-1', question: 'Will BTC hit 100k?' };
+        const parsedMarket = { id: 'market-1', title: 'Will BTC hit 100k?' };
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+        mockParsePolymarketEvents.mockReturnValue([parsedMarket]);
+
+        const result = await provider.getMarketDetails({
+          marketId: 'market-1',
+        });
+
+        expect(mockGameCacheInstance.overlayOnMarket).not.toHaveBeenCalled();
+        expect(mockTeamsCacheInstance.ensureTeamsLoaded).not.toHaveBeenCalled();
+        expect(result).toEqual(parsedMarket);
       });
 
       it('throws error when parsing fails without calling GameCache overlay', async () => {
         const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+        mockIsLiveSportsEvent.mockReturnValueOnce(true);
         mockGetMarketDetailsFromGammaApi.mockResolvedValue({});
         mockParsePolymarketEvents.mockReturnValue([]);
 
@@ -7531,14 +7790,54 @@ describe('PolymarketProvider', () => {
       });
     });
 
+    describe('subscribeToCryptoPrices', () => {
+      it('delegates to WebSocketManager.subscribeToCryptoPrices', () => {
+        const provider = createProvider();
+        const mockCallback = jest.fn();
+        const mockUnsubscribeCrypto = jest.fn();
+        mockWebSocketManagerInstance.subscribeToCryptoPrices.mockReturnValue(
+          mockUnsubscribeCrypto,
+        );
+
+        const unsubscribe = provider.subscribeToCryptoPrices(
+          ['btcusdt', 'ethusdt'],
+          mockCallback,
+        );
+
+        expect(
+          mockWebSocketManagerInstance.subscribeToCryptoPrices,
+        ).toHaveBeenCalledWith(['btcusdt', 'ethusdt'], mockCallback);
+        expect(unsubscribe).toBe(mockUnsubscribeCrypto);
+      });
+
+      it('returns unsubscribe function from WebSocketManager', () => {
+        const provider = createProvider();
+        const mockUnsubscribeCrypto = jest.fn();
+        mockWebSocketManagerInstance.subscribeToCryptoPrices.mockReturnValue(
+          mockUnsubscribeCrypto,
+        );
+
+        const unsubscribe = provider.subscribeToCryptoPrices(
+          ['btcusdt'],
+          jest.fn(),
+        );
+
+        unsubscribe();
+
+        expect(mockUnsubscribeCrypto).toHaveBeenCalled();
+      });
+    });
+
     describe('getConnectionStatus', () => {
       it('returns connection status from WebSocketManager', () => {
         const provider = createProvider();
         mockWebSocketManagerInstance.getConnectionStatus.mockReturnValue({
           sportsConnected: true,
           marketConnected: false,
+          rtdsConnected: false,
           gameSubscriptionCount: 5,
           priceSubscriptionCount: 10,
+          cryptoPriceSubscriptionCount: 0,
         });
 
         const status = provider.getConnectionStatus();
@@ -7546,6 +7845,7 @@ describe('PolymarketProvider', () => {
         expect(status).toEqual({
           sportsConnected: true,
           marketConnected: false,
+          rtdsConnected: false,
         });
       });
 
@@ -7554,8 +7854,10 @@ describe('PolymarketProvider', () => {
         mockWebSocketManagerInstance.getConnectionStatus.mockReturnValue({
           sportsConnected: false,
           marketConnected: true,
+          rtdsConnected: true,
           gameSubscriptionCount: 0,
           priceSubscriptionCount: 3,
+          cryptoPriceSubscriptionCount: 1,
         });
 
         const status = provider.getConnectionStatus();
@@ -7565,6 +7867,7 @@ describe('PolymarketProvider', () => {
         expect(Object.keys(status)).toEqual([
           'sportsConnected',
           'marketConnected',
+          'rtdsConnected',
         ]);
       });
     });
@@ -7578,19 +7881,28 @@ describe('PolymarketProvider', () => {
     describe('getMarkets', () => {
       it('skips TeamsCache loading when live sports leagues are empty', async () => {
         const provider = createProvider();
-        mockGetMarketsFromPolymarketApi.mockResolvedValue([]);
+        mockFetchEventsFromPolymarketApi.mockResolvedValue({
+          events: [],
+          category: 'trending',
+          isSearch: false,
+        });
+        mockParsePolymarketEvents.mockReturnValue([]);
 
         await provider.getMarkets();
 
-        expect(
-          mockTeamsCacheInstance.ensureLeaguesLoaded,
-        ).not.toHaveBeenCalled();
+        expect(mockTeamsCacheInstance.ensureTeamsLoaded).not.toHaveBeenCalled();
       });
 
       it('skips GameCache overlay when live sports leagues are empty', async () => {
         const provider = createProvider();
+        const mockEvents = [{ id: 'event-1' }];
         const mockMarkets = [{ id: 'market-1', title: 'Test Market' }];
-        mockGetMarketsFromPolymarketApi.mockResolvedValue(mockMarkets);
+        mockFetchEventsFromPolymarketApi.mockResolvedValue({
+          events: mockEvents,
+          category: 'trending',
+          isSearch: false,
+        });
+        mockParsePolymarketEvents.mockReturnValue(mockMarkets);
 
         const result = await provider.getMarkets();
 
@@ -7600,24 +7912,34 @@ describe('PolymarketProvider', () => {
 
       it('does not pass teamLookup when live sports leagues are empty', async () => {
         const provider = createProvider();
-        mockGetMarketsFromPolymarketApi.mockResolvedValue([]);
+        const mockEvents = [{ id: 'event-1' }];
+        mockFetchEventsFromPolymarketApi.mockResolvedValue({
+          events: mockEvents,
+          category: 'sports',
+          isSearch: false,
+        });
+        mockParsePolymarketEvents.mockReturnValue([]);
 
         await provider.getMarkets({ category: 'sports' });
 
-        expect(mockGetMarketsFromPolymarketApi).toHaveBeenCalledWith(
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          mockEvents,
           expect.objectContaining({ teamLookup: undefined }),
         );
       });
 
       it('skips TeamsCache loading when live sports config is defaulted', async () => {
         const provider = createProvider();
-        mockGetMarketsFromPolymarketApi.mockResolvedValue([]);
+        mockFetchEventsFromPolymarketApi.mockResolvedValue({
+          events: [],
+          category: 'trending',
+          isSearch: false,
+        });
+        mockParsePolymarketEvents.mockReturnValue([]);
 
         await provider.getMarkets();
 
-        expect(
-          mockTeamsCacheInstance.ensureLeaguesLoaded,
-        ).not.toHaveBeenCalled();
+        expect(mockTeamsCacheInstance.ensureTeamsLoaded).not.toHaveBeenCalled();
       });
     });
 
@@ -7631,9 +7953,7 @@ describe('PolymarketProvider', () => {
 
         await provider.getMarketDetails({ marketId: 'market-1' });
 
-        expect(
-          mockTeamsCacheInstance.ensureLeaguesLoaded,
-        ).not.toHaveBeenCalled();
+        expect(mockTeamsCacheInstance.ensureTeamsLoaded).not.toHaveBeenCalled();
       });
 
       it('skips GameCache overlay when live sports leagues are empty', async () => {
@@ -7665,6 +7985,93 @@ describe('PolymarketProvider', () => {
           expect.objectContaining({ teamLookup: undefined }),
         );
       });
+    });
+  });
+
+  describe('getMarketSeries', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      global.fetch = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('calls the series events endpoint with the requested params', async () => {
+      const provider = createProvider();
+      const mockEvents = [{ id: 'event-1' }];
+      const parsedMarkets = [{ id: 'market-1' }];
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockEvents),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+      mockParsePolymarketEvents.mockReturnValue(parsedMarkets);
+
+      await provider.getMarketSeries({
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+        limit: 10,
+      });
+
+      const requestUrl = new URL((global.fetch as jest.Mock).mock.calls[0][0]);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('series_id=10684'),
+      );
+      expect(requestUrl.origin + requestUrl.pathname).toBe(
+        'https://gamma-api.polymarket.com/events',
+      );
+      expect(requestUrl.searchParams.get('series_id')).toBe('10684');
+      expect(requestUrl.searchParams.get('end_date_min')).toBe(
+        '2026-04-06T00:00:00.000Z',
+      );
+      expect(requestUrl.searchParams.get('end_date_max')).toBe(
+        '2026-04-07T00:00:00.000Z',
+      );
+      expect(requestUrl.searchParams.get('limit')).toBe('10');
+      expect(requestUrl.searchParams.get('order')).toBe('endDate');
+      expect(requestUrl.searchParams.get('ascending')).toBe('true');
+    });
+
+    it('returns an empty array when the API returns no events', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getMarketSeries({
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+      });
+
+      expect(result).toEqual([]);
+      expect(mockParsePolymarketEvents).not.toHaveBeenCalled();
+    });
+
+    it('uses the default limit when one is not provided', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue([{ id: 'event-1' }]),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await provider.getMarketSeries({
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+      });
+
+      const requestUrl = new URL((global.fetch as jest.Mock).mock.calls[0][0]);
+
+      expect(requestUrl.searchParams.get('limit')).toBe('50');
     });
   });
 });

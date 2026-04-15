@@ -18,7 +18,7 @@ import {
   PermissionController,
   PermissionSpecificationConstraint,
 } from '@metamask/permission-controller';
-import { InitModularizedControllersFunctionRequest } from '../types';
+import { InitMessengerClientsFunctionRequest } from '../types';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -34,7 +34,7 @@ describe('initModularizedControllers', () => {
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
-  ): InitModularizedControllersFunctionRequest {
+  ): InitMessengerClientsFunctionRequest {
     const partialRequest = merge(
       {
         existingControllersByName: {},
@@ -60,7 +60,7 @@ describe('initModularizedControllers', () => {
 
     // @ts-expect-error: Intentionally only providing a subset of all
     // controllers, to avoid excessive boilerplate in tests.
-    return partialRequest as InitModularizedControllersFunctionRequest;
+    return partialRequest as InitMessengerClientsFunctionRequest;
   }
 
   beforeEach(() => {

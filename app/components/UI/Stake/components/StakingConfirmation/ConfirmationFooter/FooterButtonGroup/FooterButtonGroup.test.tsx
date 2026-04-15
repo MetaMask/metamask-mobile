@@ -1,5 +1,7 @@
-import { fireEvent , act } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import React from 'react';
+import { useAnalytics } from '../../../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../../../util/test/analyticsMock';
 import { strings } from '../../../../../../../../locales/i18n';
 import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
@@ -33,7 +35,6 @@ const mockInitialState: DeepPartial<RootState> = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: 'keyring:test-wallet/ethereum',
           wallets: {
             'keyring:test-wallet': {
               groups: {
@@ -44,6 +45,7 @@ const mockInitialState: DeepPartial<RootState> = {
             },
           },
         },
+        selectedAccountGroup: 'keyring:test-wallet/ethereum',
       },
     },
   },
@@ -94,33 +96,8 @@ jest.mock('../../../../hooks/usePooledStakes', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({}),
-}));
 
-jest.mock('../../../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-  MetaMetricsEvents: {
-    STAKE_TRANSACTION_APPROVED: 'STAKE_TRANSACTION_APPROVED',
-    STAKE_TRANSACTION_REJECTED: 'STAKE_TRANSACTION_REJECTED',
-    STAKE_TRANSACTION_CONFIRMED: 'STAKE_TRANSACTION_CONFIRMED',
-    STAKE_TRANSACTION_FAILED: 'STAKE_TRANSACTION_FAILED',
-    STAKE_TRANSACTION_SUBMITTED: 'STAKE_TRANSACTION_SUBMITTED',
-    UNSTAKE_TRANSACTION_APPROVED: 'UNSTAKE_TRANSACTION_APPROVED',
-    UNSTAKE_TRANSACTION_REJECTED: 'UNSTAKE_TRANSACTION_REJECTED',
-    UNSTAKE_TRANSACTION_CONFIRMED: 'UNSTAKE_TRANSACTION_CONFIRMED',
-    UNSTAKE_TRANSACTION_FAILED: 'UNSTAKE_TRANSACTION_FAILED',
-    UNSTAKE_TRANSACTION_SUBMITTED: 'UNSTAKE_TRANSACTION_SUBMITTED',
-    STAKE_TRANSACTION_INITIATED: 'STAKE_TRANSACTION_INITIATED',
-    UNSTAKE_TRANSACTION_INITIATED: 'UNSTAKE_TRANSACTION_INITIATED',
-    STAKE_CANCEL_CLICKED: 'STAKE_CANCEL_CLICKED',
-    UNSTAKE_CANCEL_CLICKED: 'UNSTAKE_CANCEL_CLICKED',
-  },
-}));
+jest.mock('../../../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../../../constants/events', () => ({
   EVENT_LOCATIONS: {
@@ -140,7 +117,9 @@ describe('FooterButtonGroup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Suppress React 19 act() warnings during async state updates
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(jest.fn());
+    consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(jest.fn());
     mockAddProperties = jest.fn().mockReturnThis();
     mockBuild = jest.fn().mockReturnValue({});
     mockCreateEventBuilder.mockImplementation(() => ({
@@ -280,7 +259,6 @@ describe('FooterButtonGroup', () => {
     });
 
     expect(mockTrackEvent).toHaveBeenCalled();
-    expect(mockCreateEventBuilder).toHaveBeenCalled();
   });
 
   it('disables buttons during transaction', async () => {

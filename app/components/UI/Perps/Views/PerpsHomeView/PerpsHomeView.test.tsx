@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import { mockTheme } from '../../../../../util/theme';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -99,6 +100,15 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
+  usePerpsNetworkManagement: jest.fn(() => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+    enableArbitrumNetwork: jest.fn(),
+    getArbitrumChainId: jest.fn(),
+    currentNetwork: 'mainnet',
+  })),
+}));
+
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
@@ -132,16 +142,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: (className: string) => ({ testID: className }),
-  }),
-}));
-
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaView: 'SafeAreaView',
-  useSafeAreaInsets: () => ({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
   }),
 }));
 
@@ -193,12 +193,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
       bottomSpacer: {},
       tabBarContainer: {},
     },
-    theme: {
-      colors: {
-        primary: { default: '#0000ff' },
-        icon: { default: '#000000' },
-      },
-    },
+    theme: mockTheme,
   }),
 }));
 
@@ -216,6 +211,7 @@ jest.mock('../../../../../util/trace', () => ({
 }));
 
 jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
   PERPS_EVENT_PROPERTY: {
     SCREEN_TYPE: 'screen_type',
     SOURCE: 'source',
@@ -234,6 +230,7 @@ jest.mock('@metamask/perps-controller', () => ({
     SOURCE: {
       MAIN_ACTION_BUTTON: 'main_action_button',
       HOMESCREEN_TAB: 'homescreen_tab',
+      PERPS_HOME: 'perps_home',
     },
     BUTTON_LOCATION: {
       PERPS_HOME: 'perps_home',
@@ -562,7 +559,7 @@ describe('PerpsHomeView', () => {
 
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
       defaultMarketTypeFilter: 'all',
-      source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       fromHome: true,
       button_clicked: 'magnifying_glass',
       button_location: 'perps_home',

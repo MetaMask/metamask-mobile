@@ -19,7 +19,7 @@ const sampleIconProps: IconProps = {
   name: IconName.Add,
 };
 
-describe('TextWithPrefixIcon - Snapshot', () => {
+describe('TextWithPrefixIcon', () => {
   it('should render default settings correctly', () => {
     const { toJSON } = render(
       <TextWithPrefixIcon
@@ -58,7 +58,9 @@ describe('TextWithPrefixIcon', () => {
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,
     );
-    expect(screen.getByTestId(TEXT_WITH_PREFIX_ICON_ICON_TEST_ID)).toBeDefined();
+    expect(
+      screen.getByTestId(TEXT_WITH_PREFIX_ICON_ICON_TEST_ID),
+    ).toBeDefined();
   });
   it('should render the given text with the appropriate variant', () => {
     const testTextVariant = TextVariant.BodySM;

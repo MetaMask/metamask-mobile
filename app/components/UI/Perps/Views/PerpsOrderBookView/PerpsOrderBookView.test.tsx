@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
+import { mockTheme } from '../../../../../util/theme';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -48,35 +49,23 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 // Mock useStyles
 jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      container: { flex: 1 },
-      header: { flexDirection: 'row', padding: 16 },
-      headerBackButton: { marginRight: 12 },
-      headerTitleContainer: { flex: 1 },
-      headerUnitToggle: { flexDirection: 'row' },
-      headerUnitButton: { padding: 8 },
-      headerUnitButtonActive: { backgroundColor: '#000' },
-      depthBandButton: { padding: 8 },
-      depthBandButtonPressed: { opacity: 0.7 },
-      scrollView: { flex: 1 },
-      scrollContent: { padding: 16 },
-      section: { marginBottom: 16 },
-      depthChartSection: { paddingTop: 16 },
-      tableSection: { flex: 1 },
-      footer: { padding: 16 },
-      actionsContainer: { flexDirection: 'row', gap: 12 },
-      actionButtonWrapper: { flex: 1 },
-      errorContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
-      depthBandSheetContent: { padding: 16 },
-      depthBandOption: { padding: 16 },
-      depthBandOptionSelected: { backgroundColor: '#eee' },
-    },
-  })),
+  useStyles: jest.fn((styleSheet) => {
+    const perpsOrderBookViewStyleSheet = jest.requireActual(
+      './PerpsOrderBookView.styles',
+    ).default;
+
+    if (styleSheet === perpsOrderBookViewStyleSheet) {
+      return {
+        styles: styleSheet({ theme: mockTheme }),
+        theme: mockTheme,
+      };
+    }
+
+    return {
+      styles: {},
+      theme: mockTheme,
+    };
+  }),
 }));
 
 // Mock usePerpsLiveOrderBook
@@ -339,6 +328,19 @@ jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
 }));
 
+const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
+  action(),
+);
+
+jest.mock('../../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: mockComplianceGate,
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
+}));
+
 describe('PerpsOrderBookView', () => {
   const initialState = {
     engine: {
@@ -348,6 +350,9 @@ describe('PerpsOrderBookView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
+      action(),
+    );
     mockUsePerpsLiveOrderBook.mockReturnValue({
       orderBook: mockOrderBook,
       isLoading: false,
@@ -666,6 +671,7 @@ describe('PerpsOrderBookView', () => {
       expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'long',
         asset: 'BTC',
+        source: 'order_book_long_button',
       });
       expect(mockTrack).toHaveBeenCalled();
     });
@@ -684,8 +690,33 @@ describe('PerpsOrderBookView', () => {
       expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'short',
         asset: 'BTC',
+        source: 'order_book_short_button',
       });
       expect(mockTrack).toHaveBeenCalled();
+    });
+
+    it('does not navigate when compliance gate blocks long press', () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      fireEvent.press(getByTestId(PerpsOrderBookViewSelectorsIDs.LONG_BUTTON));
+
+      expect(mockNavigateToOrder).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate when compliance gate blocks short press', () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      fireEvent.press(getByTestId(PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON));
+
+      expect(mockNavigateToOrder).not.toHaveBeenCalled();
     });
   });
 
@@ -784,6 +815,7 @@ describe('PerpsOrderBookView', () => {
 
       expect(mockNavigateToClosePosition).toHaveBeenCalledWith(
         mockLongPosition,
+        'order_book',
       );
     });
 

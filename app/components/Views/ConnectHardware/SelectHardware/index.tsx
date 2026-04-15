@@ -19,7 +19,7 @@ import {
   useAppThemeFromContext,
   useAssetFromTheme,
 } from '../../../../util/theme';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import { HardwareDeviceTypes } from '../../../../constants/keyringTypes';
 import { getConnectedDevicesCount } from '../../../../core/HardwareWallets/analytics';
 
@@ -75,7 +75,7 @@ const qrHardwareLogoDark = require(qrHardwareLogoDarkImgPath);
 
 const SelectHardwareWallet = () => {
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
 

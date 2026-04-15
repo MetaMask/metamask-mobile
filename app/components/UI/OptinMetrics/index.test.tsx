@@ -6,6 +6,10 @@ import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
 import { Platform } from 'react-native';
 import Device from '../../../util/device';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AccountType } from '../../../constants/onboarding';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -26,6 +30,8 @@ jest.mock('../../../util/analytics/analytics', () => ({
     isOptedIn: jest.fn().mockResolvedValue(false),
   },
 }));
+
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Mock MetaMetrics for events and getInstance
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
@@ -85,6 +91,24 @@ jest.doMock('react-native', () => {
 describe('OptinMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: (event) => mockAnalytics.trackEvent(event),
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+        enable: async (enable) => {
+          if (enable === false) {
+            await mockAnalytics.optOut();
+          } else {
+            await mockAnalytics.optIn();
+          }
+        },
+        identify: async (traits) => {
+          mockAnalytics.identify(traits);
+        },
+        isEnabled: () => mockAnalytics.isEnabled(),
+        getAnalyticsId: () => mockAnalytics.getAnalyticsId(),
+      }),
+    );
     (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
     (Device.isAndroid as jest.Mock).mockReturnValue(false);
     (Device.isIos as jest.Mock).mockReturnValue(true);
@@ -146,6 +170,16 @@ describe('OptinMetrics', () => {
         expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
           1,
           expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_IN.category,
+            properties: expect.objectContaining({
+              location: 'onboarding_metametrics',
+              updated_after_onboarding: false,
+            }),
+          }),
+        );
+        expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
+          2,
+          expect.objectContaining({
             name: 'Analytics Preference Selected',
             properties: expect.objectContaining({
               has_marketing_consent: false,
@@ -177,6 +211,16 @@ describe('OptinMetrics', () => {
         expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
           1,
           expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_IN.category,
+            properties: expect.objectContaining({
+              location: 'onboarding_metametrics',
+              updated_after_onboarding: false,
+            }),
+          }),
+        );
+        expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
+          2,
+          expect.objectContaining({
             name: 'Analytics Preference Selected',
             properties: expect.objectContaining({
               has_marketing_consent: true,
@@ -191,6 +235,101 @@ describe('OptinMetrics', () => {
           deviceProp: 'Device value',
           userProp: 'User value',
         });
+      });
+    });
+  });
+
+  describe('account_type property in events', () => {
+    it('includes account_type in ANALYTICS_PREFERENCE_SELECTED when accountType route param is provided', async () => {
+      renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+        { accountType: AccountType.Imported },
+      );
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_IN.category,
+            properties: expect.objectContaining({
+              location: 'onboarding_metametrics',
+              updated_after_onboarding: false,
+              account_type: AccountType.Imported,
+            }),
+          }),
+        );
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Analytics Preference Selected',
+            properties: expect.objectContaining({
+              is_metrics_opted_in: true,
+              location: 'onboarding_metametrics',
+              updated_after_onboarding: false,
+              account_type: AccountType.Imported,
+            }),
+          }),
+        );
+      });
+    });
+
+    it('includes account_type in METRICS_OPT_OUT when accountType route param is provided', async () => {
+      renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+        { accountType: AccountType.Metamask },
+      );
+
+      const basicUsageCheckbox = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_title'),
+      );
+      fireEvent.press(basicUsageCheckbox);
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+            properties: expect.objectContaining({
+              updated_after_onboarding: false,
+              location: 'onboarding_metametrics',
+              account_type: AccountType.Metamask,
+            }),
+          }),
+        );
+      });
+    });
+
+    it('does not include account_type when accountType route param is not provided', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Analytics Preference Selected',
+            properties: expect.not.objectContaining({
+              account_type: expect.anything(),
+            }),
+          }),
+        );
       });
     });
   });

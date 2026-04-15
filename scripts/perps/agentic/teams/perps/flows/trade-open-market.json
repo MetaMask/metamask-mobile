@@ -1,0 +1,122 @@
+{
+  "title": "Trade — market {{side}} {{symbol}} ${{usdAmount}}",
+  "inputs": {
+    "side": {
+      "type": "string",
+      "default": "long",
+      "description": "Trade side (long/short)"
+    },
+    "symbol": {
+      "type": "string",
+      "default": "BTC",
+      "description": "Market symbol"
+    },
+    "usdAmount": {
+      "type": "string",
+      "default": "10",
+      "description": "USD notional amount"
+    },
+    "leverage": {
+      "type": "string",
+      "default": "2",
+      "description": "Leverage multiplier (reserved, not wired yet)"
+    }
+  },
+  "validate": {
+    "workflow": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.ready_to_trade",
+        "perps.sufficient_balance"
+      ],
+      "entry": "nav",
+      "nodes": {
+        "nav": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "wait-render"
+        },
+        "wait-render": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-{{side}}-button",
+          "next": "press-side"
+        },
+        "press-side": {
+          "action": "press",
+          "test_id": "perps-market-details-{{side}}-button",
+          "next": "wait-form"
+        },
+        "wait-form": {
+          "action": "wait_for",
+          "route": "RedesignedConfirmations",
+          "next": "press-amount"
+        },
+        "press-amount": {
+          "action": "press",
+          "test_id": "perps-amount-display-touchable",
+          "next": "wait-keypad"
+        },
+        "wait-keypad": {
+          "action": "wait_for",
+          "test_id": "keypad-delete-button",
+          "next": "clear-keypad"
+        },
+        "clear-keypad": {
+          "action": "clear_keypad",
+          "count": 8,
+          "next": "type-amount"
+        },
+        "type-amount": {
+          "action": "type_keypad",
+          "value": "{{usdAmount}}",
+          "next": "assert-amount"
+        },
+        "assert-amount": {
+          "action": "eval_sync",
+          "expression": "JSON.stringify((function(){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; if(!hook)return{v:null}; var found=null; function walk(f){if(!f)return; if(f.memoizedProps&&f.memoizedProps.testID==='perps-amount-display-amount'){found=f;return;} walk(f.child);if(!found)walk(f.sibling);} for(var [id] of hook.renderers){var roots=hook.getFiberRoots?hook.getFiberRoots(id):null;if(roots)roots.forEach(function(r){if(!found)walk(r.current);});} return {v: found&&found.memoizedProps?String(found.memoizedProps.children||''):null}; })())",
+          "assert": {
+            "operator": "contains",
+            "field": "v",
+            "value": "{{usdAmount}}"
+          },
+          "next": "press-done"
+        },
+        "press-done": {
+          "action": "press",
+          "test_id": "perps-order-view-keypad-done",
+          "next": "wait-summary"
+        },
+        "wait-summary": {
+          "action": "wait_for",
+          "test_id": "perps-order-view-place-order-button",
+          "next": "place-order"
+        },
+        "place-order": {
+          "action": "press",
+          "test_id": "perps-order-view-place-order-button",
+          "next": "wait-order-placed"
+        },
+        "wait-order-placed": {
+          "action": "wait_for",
+          "not_route": "RedesignedConfirmations",
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      }
+    }
+  }
+}

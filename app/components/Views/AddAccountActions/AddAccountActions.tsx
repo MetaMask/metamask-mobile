@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useState } from 'react';
-import { SafeAreaView, View } from 'react-native';
+import { View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
@@ -15,7 +16,7 @@ import Logger from '../../../util/Logger';
 import { AddAccountActionsProps } from './AddAccountActions.types';
 import { AddAccountBottomSheetSelectorsIDs } from './AddAccountBottomSheet.testIds';
 import Routes from '../../../constants/navigation/Routes';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './AddAccountActions.styles';
 
@@ -40,7 +41,7 @@ import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithN
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [isLoading, setIsLoading] = useState(false);
   const hdKeyrings = useSelector(selectHDKeyrings);
   const hasMultipleSRPs = hdKeyrings.length > 1;

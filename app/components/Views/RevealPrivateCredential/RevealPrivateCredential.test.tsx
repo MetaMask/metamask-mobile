@@ -60,10 +60,31 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   }),
 }));
 
+let mockRouteParams: Record<string, unknown> = {};
+
+let mockNavigationReturn: {
+  navigate: jest.Mock;
+  goBack: jest.Mock;
+  pop: jest.Mock;
+  popToTop: jest.Mock;
+  setOptions: jest.Mock;
+  dispatch: jest.Mock;
+} | null = {
+  navigate: jest.fn(),
+  goBack: jest.fn(),
+  pop: jest.fn(),
+  popToTop: jest.fn(),
+  setOptions: jest.fn(),
+  dispatch: jest.fn(),
+};
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: jest.fn(),
+  useNavigation: () => mockNavigationReturn,
+  useRoute: () => ({
+    key: 'RevealPrivateCredential',
+    name: 'RevealPrivateCredential',
+    params: mockRouteParams,
   }),
 }));
 
@@ -182,7 +203,6 @@ jest.mock('../../../util/address', () => ({
   getInternalAccountByAddress: jest.fn(),
   isHardwareAccount: jest.fn().mockReturnValue(false),
 }));
-
 
 // Mock trace utilities
 jest.mock('../../../util/trace', () => ({
@@ -357,21 +377,19 @@ const completeSecurityQuizAndWaitForPasswordEntry = async (
   });
 };
 
-const createDefaultRoute = (
-  params: Record<string, unknown> = {},
-): {
-  key: string;
-  name: 'RevealPrivateCredential';
-  params: Record<string, unknown>;
-} => ({
-  key: 'RevealPrivateCredential',
-  name: 'RevealPrivateCredential',
-  params,
-});
-
 describe('RevealPrivateCredential', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockRouteParams = {};
+    mockNavigationReturn = {
+      navigate: jest.fn(),
+      goBack: jest.fn(),
+      pop: jest.fn(),
+      popToTop: jest.fn(),
+      setOptions: jest.fn(),
+      dispatch: jest.fn(),
+    };
 
     // Restore mock implementations after clearAllMocks
     mockCreateEventBuilder.mockImplementation(createMockEventBuilder);
@@ -399,11 +417,7 @@ describe('RevealPrivateCredential', () => {
   describe('rendering', () => {
     it('renders introduction screen initially', () => {
       const { getByTestId, getByText } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       expect(
@@ -425,11 +439,7 @@ describe('RevealPrivateCredential', () => {
       );
 
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
@@ -451,11 +461,7 @@ describe('RevealPrivateCredential', () => {
       );
 
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
@@ -474,12 +480,7 @@ describe('RevealPrivateCredential', () => {
       );
 
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-          showCancelButton
-        />,
+        <RevealPrivateCredential cancel={() => null} showCancelButton />,
       );
 
       await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
@@ -493,13 +494,7 @@ describe('RevealPrivateCredential', () => {
 
     it('renders back button', () => {
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={{
-            goBack: jest.fn(),
-          }}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
       expect(
         getByTestId(
@@ -521,11 +516,7 @@ describe('RevealPrivateCredential', () => {
   describe('security quiz flow', () => {
     it('navigates from introduction to quiz when Get started is pressed', async () => {
       const { getByTestId, getByText } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       // Initially on introduction screen
@@ -544,11 +535,7 @@ describe('RevealPrivateCredential', () => {
 
     it('shows correct feedback when correct answer is selected', async () => {
       const { getByTestId, getByText } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       // Navigate to quiz
@@ -576,11 +563,7 @@ describe('RevealPrivateCredential', () => {
 
     it('shows incorrect feedback and try again option when wrong answer is selected', async () => {
       const { getByTestId, getByText } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       // Navigate to quiz
@@ -610,11 +593,7 @@ describe('RevealPrivateCredential', () => {
 
     it('renders learn more button on introduction screen', () => {
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       expect(
@@ -624,11 +603,7 @@ describe('RevealPrivateCredential', () => {
 
     it('shows question 2 specific test IDs when correct answer is selected', async () => {
       const { getByTestId, getByText } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       // Navigate to quiz
@@ -680,11 +655,7 @@ describe('RevealPrivateCredential', () => {
 
     it('shows question 2 try again button when wrong answer is selected', async () => {
       const { getByTestId, getByText } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       // Navigate to quiz
@@ -732,11 +703,7 @@ describe('RevealPrivateCredential', () => {
 
     it('verifies all question 1 answer button test IDs are present', async () => {
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       // Navigate to quiz
@@ -759,11 +726,7 @@ describe('RevealPrivateCredential', () => {
       mockReauthenticate.mockRejectedValue(new Error(WRONG_PASSWORD_ERROR));
 
       const { getByTestId, getByText } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
@@ -803,11 +766,7 @@ describe('RevealPrivateCredential', () => {
       mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
 
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
@@ -834,11 +793,7 @@ describe('RevealPrivateCredential', () => {
       );
 
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
@@ -862,11 +817,7 @@ describe('RevealPrivateCredential', () => {
       );
 
       const { getByTestId, queryByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
@@ -890,11 +841,7 @@ describe('RevealPrivateCredential', () => {
       mockRevealSRP.mockRejectedValue(new Error('Some unknown error'));
 
       const { getByTestId, getByText } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
@@ -919,16 +866,11 @@ describe('RevealPrivateCredential', () => {
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
       mockRevealSRP.mockResolvedValue('seed phrase');
 
-      renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute({
-            keyringId: testKeyringId,
-            skipQuiz: true,
-          })}
-          navigation={null}
-          cancel={() => null}
-        />,
-      );
+      mockRouteParams = {
+        keyringId: testKeyringId,
+        skipQuiz: true,
+      };
+      renderWithProviders(<RevealPrivateCredential cancel={() => null} />);
 
       await waitFor(() => {
         expect(mockRevealSRP).toHaveBeenCalledWith(
@@ -951,11 +893,7 @@ describe('RevealPrivateCredential', () => {
       mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
 
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
@@ -986,11 +924,7 @@ describe('RevealPrivateCredential', () => {
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
       const { getByTestId, queryByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuiz(getByTestId);
@@ -1014,11 +948,7 @@ describe('RevealPrivateCredential', () => {
       mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
 
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
@@ -1056,12 +986,7 @@ describe('RevealPrivateCredential', () => {
       );
 
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={mockCancel}
-          showCancelButton
-        />,
+        <RevealPrivateCredential cancel={mockCancel} showCancelButton />,
       );
 
       await completeSecurityQuiz(getByTestId);
@@ -1085,12 +1010,7 @@ describe('RevealPrivateCredential', () => {
       );
 
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={mockCancel}
-          showCancelButton
-        />,
+        <RevealPrivateCredential cancel={mockCancel} showCancelButton />,
       );
 
       await completeSecurityQuiz(getByTestId);
@@ -1109,11 +1029,16 @@ describe('RevealPrivateCredential', () => {
       );
     });
 
-    it('calls navigation.pop when shouldUpdateNav is true', async () => {
-      const mockPop = jest.fn();
-      const mockNavigation = {
-        pop: mockPop,
+    it('calls navigation.dispatch with pop when shouldUpdateNav is true', async () => {
+      const mockDispatchNav = jest.fn();
+      mockRouteParams = { shouldUpdateNav: true };
+      mockNavigationReturn = {
+        navigate: jest.fn(),
+        goBack: jest.fn(),
+        pop: jest.fn(),
+        popToTop: jest.fn(),
         setOptions: jest.fn(),
+        dispatch: mockDispatchNav,
       };
       mockReauthenticate.mockRejectedValue(
         new Error(
@@ -1123,8 +1048,6 @@ describe('RevealPrivateCredential', () => {
 
       const { getByTestId } = renderWithProviders(
         <RevealPrivateCredential
-          route={createDefaultRoute({ shouldUpdateNav: true })}
-          navigation={mockNavigation}
           cancel={undefined as unknown as () => void}
           showCancelButton
         />,
@@ -1139,7 +1062,9 @@ describe('RevealPrivateCredential', () => {
         fireEvent.press(cancelButton);
       });
 
-      expect(mockPop).toHaveBeenCalled();
+      expect(mockDispatchNav).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'POP', payload: { count: 1 } }),
+      );
     });
   });
 
@@ -1165,11 +1090,7 @@ describe('RevealPrivateCredential', () => {
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
       const { getByTestId } = renderWithClipboardProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuiz(getByTestId);
@@ -1198,11 +1119,7 @@ describe('RevealPrivateCredential', () => {
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
       const { getByTestId } = renderWithClipboardProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuiz(getByTestId);
@@ -1244,11 +1161,7 @@ describe('RevealPrivateCredential', () => {
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
       const { getByTestId, queryByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuiz(getByTestId);
@@ -1280,11 +1193,7 @@ describe('RevealPrivateCredential', () => {
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
       const { getByTestId, queryByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuiz(getByTestId);
@@ -1325,11 +1234,7 @@ describe('RevealPrivateCredential', () => {
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
       const { getByTestId, queryByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuiz(getByTestId);
@@ -1359,11 +1264,7 @@ describe('RevealPrivateCredential', () => {
   describe('modal interactions', () => {
     it('navigates to learn more when learn more link is pressed', () => {
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       // Press the Learn more button on the introduction screen
@@ -1378,54 +1279,35 @@ describe('RevealPrivateCredential', () => {
   });
 
   describe('navigation', () => {
-    it('does not update navigation options when shouldUpdateNav is false', () => {
-      const mockSetOptions = jest.fn();
-      const mockNavigation = {
-        pop: jest.fn(),
-        setOptions: mockSetOptions,
-      };
-
-      renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute({ shouldUpdateNav: false })}
-          navigation={mockNavigation}
-          cancel={() => null}
-        />,
-      );
-
-      expect(mockSetOptions).not.toHaveBeenCalled();
-    });
-
-    it('does not update navigation options when navigation is null', () => {
-      const mockSetOptions = jest.fn();
-
+    it('renders when shouldUpdateNav is false', () => {
+      mockRouteParams = { shouldUpdateNav: false };
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute({ shouldUpdateNav: true })}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       expect(
         getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
       ).toBeOnTheScreen();
-      // When navigation is null, hasNavigation is false, so setOptions should never be called.
-      // The component handles null navigation gracefully (no error thrown),
-      // which proves updateNavBar returns early without calling navigation.setOptions()
-      expect(mockSetOptions).not.toHaveBeenCalled();
+    });
+
+    it('renders when useNavigation returns null (no navigation context)', () => {
+      mockRouteParams = { shouldUpdateNav: true };
+      mockNavigationReturn = null;
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential cancel={() => null} />,
+      );
+
+      expect(
+        getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
+      ).toBeOnTheScreen();
     });
   });
 
   describe('analytics', () => {
     it('tracks REVEAL_SRP_SCREEN event when reaching action view', () => {
-      renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute({ skipQuiz: true })}
-          navigation={null}
-          cancel={() => null}
-        />,
-      );
+      mockRouteParams = { skipQuiz: true };
+      renderWithProviders(<RevealPrivateCredential cancel={() => null} />);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1443,12 +1325,7 @@ describe('RevealPrivateCredential', () => {
       );
 
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={mockCancel}
-          showCancelButton
-        />,
+        <RevealPrivateCredential cancel={mockCancel} showCancelButton />,
       );
 
       await completeSecurityQuiz(getByTestId);
@@ -1468,13 +1345,7 @@ describe('RevealPrivateCredential', () => {
     });
 
     it('tracks SRP_REVEAL_QUIZ_PROMPT_SEEN when introduction screen is shown', () => {
-      renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
-      );
+      renderWithProviders(<RevealPrivateCredential cancel={() => null} />);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1485,11 +1356,7 @@ describe('RevealPrivateCredential', () => {
 
     it('tracks SRP_REVEAL_START_CTA_SELECTED when Get started is pressed', async () => {
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       // Press Get started button
@@ -1506,11 +1373,7 @@ describe('RevealPrivateCredential', () => {
 
     it('tracks SRP_REVEAL_FIRST_QUESTION_SEEN when question 1 is shown', async () => {
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       // Navigate to quiz
@@ -1527,11 +1390,7 @@ describe('RevealPrivateCredential', () => {
 
     it('tracks SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER when Q1 correct answer is selected', async () => {
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       // Navigate to quiz
@@ -1560,11 +1419,7 @@ describe('RevealPrivateCredential', () => {
 
     it('tracks SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER when Q1 wrong answer is selected', async () => {
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       // Navigate to quiz
@@ -1593,11 +1448,7 @@ describe('RevealPrivateCredential', () => {
 
     it('tracks SRP_REVEAL_SECOND_QUESTION_SEEN when question 2 is shown', async () => {
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       // Navigate to quiz and complete Q1
@@ -1634,11 +1485,7 @@ describe('RevealPrivateCredential', () => {
 
     it('tracks SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER when Q2 correct answer is selected', async () => {
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       // Complete Q1
@@ -1683,11 +1530,7 @@ describe('RevealPrivateCredential', () => {
 
     it('tracks SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER when Q2 wrong answer is selected', async () => {
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       // Complete Q1
@@ -1738,11 +1581,7 @@ describe('RevealPrivateCredential', () => {
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={mockCancel}
-        />,
+        <RevealPrivateCredential cancel={mockCancel} />,
       );
 
       await completeSecurityQuiz(getByTestId);
@@ -1780,12 +1619,9 @@ describe('RevealPrivateCredential', () => {
       // Mock biometrics to fail, but then fail with a specific error when trying to unlock
       mockReauthenticate.mockRejectedValue(new Error('Test error'));
 
+      mockRouteParams = { selectedAccount: customAccount };
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute({ selectedAccount: customAccount })}
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
@@ -1816,11 +1652,7 @@ describe('RevealPrivateCredential', () => {
       mockRevealSRP.mockResolvedValue('test seed phrase');
 
       const { getByTestId, queryByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()} // No selectedAccount provided - falls back to selector
-          navigation={null}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={() => null} />,
       );
 
       await completeSecurityQuiz(getByTestId);

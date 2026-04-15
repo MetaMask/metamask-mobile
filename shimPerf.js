@@ -1,6 +1,6 @@
-/* eslint-disable import/no-extraneous-dependencies */
-/* eslint-disable import/no-commonjs */
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-extraneous-dependencies */
+/* eslint-disable import-x/no-commonjs */
+/* eslint-disable import-x/no-nodejs-modules */
 import { Buffer } from '@craftzdog/react-native-buffer';
 
 import { getPublicKey, hmacSha512, keccak256 } from '@metamask/native-utils';

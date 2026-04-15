@@ -13,7 +13,7 @@ import {
 import { useGetTokenStandardAndDetails } from '../../../hooks/useGetTokenStandardAndDetails';
 import { TokenStandard } from '../../../types/token';
 import { ApproveMethod } from '../../../types/approve';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as useApproveTransactionDataModule from '../../../hooks/useApproveTransactionData';
 import { IncreaseDecreaseAllowance } from './increase-decrease-allowance';
 

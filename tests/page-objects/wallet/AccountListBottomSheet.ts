@@ -9,12 +9,38 @@ import { AccountCellIds } from '../../../app/component-library/components-temp/M
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import UnifiedGestures from '../../framework/UnifiedGestures';
+import {
+  asPlaywrightElement,
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import {
+  createLogger,
+  encapsulatedAction,
+  LogLevel,
+  PlaywrightGestures,
+} from '../../framework';
+
+const logger = createLogger({
+  name: 'AccountListBottomSheet',
+  level: LogLevel.DEBUG,
+});
 
 class AccountListBottomSheet {
-  get accountList(): DetoxElement {
-    return Matchers.getElementByID(
-      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
-    );
+  /** Account list container - wdio uses getElementByText('Accounts') for Appium */
+  get accountList(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
+        ),
+    });
   }
 
   get accountTypeLabel(): DetoxElement {
@@ -33,10 +59,19 @@ class AccountListBottomSheet {
     );
   }
 
-  get addAccountButton(): DetoxElement {
-    return Matchers.getElementByID(
-      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-    );
+  /** Add wallet/account button - wdio tapOnAddWalletButton uses 'account-list-add-account-button' */
+  get addAccountButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+          { exact: true },
+        ),
+    });
   }
 
   get addEthereumAccountButton(): DetoxElement {
@@ -57,11 +92,19 @@ class AccountListBottomSheet {
     );
   }
 
-  createAccountLink(index: number): DetoxElement {
-    return Matchers.getElementByID(
-      AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
-      index,
-    );
+  createAccountLink(index: number): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
+          index,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
+          { exact: true },
+        ),
+    });
   }
 
   async getAccountElementByAccountName(
@@ -107,8 +150,11 @@ class AccountListBottomSheet {
     );
   }
 
-  async accountNameInList(accountName: string): Promise<DetoxElement> {
-    return Matchers.getElementByText(accountName, 1);
+  accountNameInList(accountName: string): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(accountName, 1),
+      appium: () => PlaywrightMatchers.getElementByCatchAll(accountName),
+    });
   }
 
   async tapAccountIndex(index: number): Promise<void> {
@@ -130,8 +176,8 @@ class AccountListBottomSheet {
   }
 
   async tapAddAccountButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addAccountButton, {
-      elemDescription: 'Add Account button',
+    await UnifiedGestures.waitAndTap(this.addAccountButton, {
+      description: 'Add Account button',
     });
   }
 
@@ -162,9 +208,22 @@ class AccountListBottomSheet {
   }
 
   async tapCreateAccount(index: number): Promise<void> {
-    const link = this.createAccountLink(index);
-    await Gestures.waitAndTap(link, {
-      elemDescription: 'Create account link',
+    await encapsulatedAction({
+      detox: async () => {
+        const link = this.createAccountLink(index);
+        await Gestures.waitAndTap(link, {
+          elemDescription: 'Create account link',
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.scrollIntoView(
+          await asPlaywrightElement(this.createAccountLink(0)),
+          { scrollParams: { direction: 'down' } },
+        );
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.createAccountLink(index)),
+        );
+      },
     });
   }
 
@@ -194,15 +253,33 @@ class AccountListBottomSheet {
   }
 
   async tapAccountByName(accountName: string): Promise<void> {
-    const name = Matchers.getElementByText(accountName);
-
-    await Gestures.waitAndTap(name);
+    await encapsulatedAction({
+      detox: async () => {
+        const name = Matchers.getElementByText(accountName);
+        await Gestures.waitAndTap(name);
+      },
+      appium: async () => {
+        const name = await PlaywrightMatchers.getElementByText(accountName);
+        await PlaywrightGestures.scrollIntoView(name);
+        await PlaywrightGestures.waitAndTap(name);
+      },
+    });
   }
 
   async tapAccountByNameV2(accountName: string): Promise<void> {
-    const element = this.getAccountElementByAccountNameV2(accountName);
-    await Gestures.waitAndTap(element, {
-      elemDescription: `Tap on account with name: ${accountName}`,
+    await encapsulatedAction({
+      detox: async () => {
+        const accountEl = this.getAccountElementByAccountNameV2(accountName);
+        await Gestures.waitAndTap(accountEl, {
+          elemDescription: `Tap on account with name: ${accountName}`,
+        });
+      },
+      appium: async () => {
+        const accountEl =
+          await PlaywrightMatchers.getElementByText(accountName);
+        await PlaywrightGestures.scrollIntoView(accountEl);
+        await PlaywrightGestures.waitAndTap(accountEl);
+      },
     });
   }
 
@@ -216,8 +293,9 @@ class AccountListBottomSheet {
   }
 
   async scrollToBottomOfAccountList(): Promise<void> {
-    await Gestures.swipe(this.accountList, 'up', {
+    await UnifiedGestures.swipe(this.accountList, 'up', {
       speed: 'fast',
+      description: 'Scroll to bottom of account list',
     });
   }
 
@@ -263,6 +341,87 @@ class AccountListBottomSheet {
 
     // Second swipe to dismiss the AccountListBottomSheet
     await this.swipeToDismissAccountsModal();
+  }
+
+  /**
+   * Waits for the account sync to complete.
+   * @param timeout - The timeout in milliseconds.
+   * @returns {Promise<void>} Resolves when the account sync is complete.
+   */
+  async waitForAccountSyncToComplete(timeout = 60000): Promise<void> {
+    logger.debug('⏳ waitForSyncingToComplete: Starting...');
+    const startTime = Date.now();
+    const pollInterval = 500;
+    const initialWaitTimeout = 5000; // 5 seconds to wait for syncing/discovering to appear
+
+    const getElapsed = () => ((Date.now() - startTime) / 1000).toFixed(1);
+
+    /** Safely check if a text element is visible — returns false if not found. */
+    const isTextVisible = async (text: string): Promise<boolean> => {
+      try {
+        const el = await PlaywrightMatchers.getElementByCatchAll(text);
+        return await el.isVisible();
+      } catch {
+        return false;
+      }
+    };
+
+    // Step 1: Wait up to 5 seconds for "Syncing" or "Discovering" to appear
+    logger.debug(
+      '⏳ Step 1: Waiting up to 5s for "Syncing" or "Discovering" to appear...',
+    );
+    let syncingDetected = false;
+    while (Date.now() - startTime < initialWaitTimeout) {
+      const isSyncing = await isTextVisible('Syncing');
+      const isDiscovering = await isTextVisible('Discovering');
+
+      if (isSyncing || isDiscovering) {
+        syncingDetected = true;
+        logger.debug(
+          `✅ Step 1: Loading detected after ${getElapsed()}s (Syncing: ${isSyncing}, Discovering: ${isDiscovering})`,
+        );
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+
+    // If nothing appeared after 5 seconds, we're done
+    if (!syncingDetected) {
+      logger.debug(
+        `✅ waitForSyncingToComplete: No syncing detected after 5s, finishing after ${getElapsed()}s`,
+      );
+      return;
+    }
+
+    // Step 2: Wait for "Syncing" to disappear
+    logger.debug('⏳ Step 2: Waiting for "Syncing" to disappear...');
+    while (Date.now() - startTime < timeout) {
+      if (!(await isTextVisible('Syncing'))) {
+        logger.debug(`✅ Step 2: "Syncing" disappeared after ${getElapsed()}s`);
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+
+    // Step 3: Wait 1 second delay
+    logger.debug('⏳ Step 3: Waiting 1 second...');
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Step 4: Wait for "Discovering" to disappear
+    logger.debug('⏳ Step 4: Waiting for "Discovering" to disappear...');
+    while (Date.now() - startTime < timeout) {
+      if (!(await isTextVisible('Discovering'))) {
+        logger.debug(
+          `✅ Step 4: "Discovering" disappeared after ${getElapsed()}s`,
+        );
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+
+    logger.debug(
+      `✅ waitForSyncingToComplete: Completed after ${getElapsed()}s`,
+    );
   }
 }
 

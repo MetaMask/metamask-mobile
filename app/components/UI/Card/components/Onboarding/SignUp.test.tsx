@@ -25,17 +25,21 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 // Mock hooks
 jest.mock('../../hooks/useEmailVerificationSend');
-jest.mock('../../hooks/useRegistrationSettings', () => ({
+const mockSignUpRegions = [
+  { key: 'US', name: 'United States', emoji: '🇺🇸', canSignUp: true },
+  { key: 'CA', name: 'Canada', emoji: '🇨🇦', canSignUp: true },
+  { key: 'GB', name: 'United Kingdom', emoji: '🇬🇧', canSignUp: false },
+  { key: 'DE', name: 'Germany', emoji: '🇩🇪', canSignUp: true },
+];
+const mockGetRegionByCode = (code: string) =>
+  mockSignUpRegions.find((r) => r.key === code) ?? null;
+jest.mock('../../hooks/useRegions', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-    data: {
-      countries: [
-        { iso3166alpha2: 'US', name: 'United States', canSignUp: true },
-        { iso3166alpha2: 'CA', name: 'Canada', canSignUp: true },
-        { iso3166alpha2: 'GB', name: 'United Kingdom', canSignUp: false },
-        { iso3166alpha2: 'DE', name: 'Germany', canSignUp: true },
-      ],
-    },
+    allRegions: mockSignUpRegions,
+    signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
+    getRegionByCode: mockGetRegionByCode,
+    isLoading: false,
   })),
 }));
 jest.mock('../../../../hooks/useDebouncedValue');
@@ -44,17 +48,15 @@ jest.mock('../../../../hooks/useDebouncedValue');
 jest.mock('../../../Ramp/Deposit/utils');
 jest.mock('../../util/validatePassword');
 
-// Mock @metamask/design-system-react-native to provide Label (not yet exported from the package)
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactActual = jest.requireActual('react');
-  const { Text: RNText } = jest.requireActual('react-native');
-  return {
-    ...actual,
-    Label: actual.Label ?? (({ children }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(RNText, null, children)),
-  };
-});
+// Mock Engine
+const mockSetUserLocation = jest.fn();
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    CardController: {
+      setUserLocation: (...args: unknown[]) => mockSetUserLocation(...args),
+    },
+  },
+}));
 
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
@@ -94,9 +96,25 @@ jest.mock('./OnboardingStep', () => {
 });
 
 // Create test store
-const createTestStore = (initialState = {}) =>
-  configureStore({
+// SignUp reads geoLocation from state.engine.backgroundState.GeolocationController.location
+// via selectGeolocationLocation. Pass { geoLocation: 'US' } etc. to control it.
+const createTestStore = (initialState: Record<string, unknown> = {}) => {
+  const { geoLocation, ...cardState } = initialState;
+  const engineState = {
+    backgroundState: {
+      GeolocationController:
+        typeof geoLocation === 'string' ? { location: geoLocation } : undefined,
+    },
+  };
+
+  return configureStore({
     reducer: {
+      engine: (state = engineState, action = { type: '', payload: null }) => {
+        switch (action.type) {
+          default:
+            return state;
+        }
+      },
       card: (
         state = {
           onboarding: {
@@ -105,32 +123,18 @@ const createTestStore = (initialState = {}) =>
             contactVerificationId: null,
             user: null,
           },
-          userCardLocation: 'international',
-          geoLocation: 'UNKNOWN',
-          ...initialState,
+          ...cardState,
         },
         action = { type: '', payload: null },
       ) => {
         switch (action.type) {
-          case 'card/setSelectedCountry':
-            return {
-              ...state,
-              onboarding: {
-                ...state.onboarding,
-                selectedCountry: action.payload,
-              },
-            };
-          case 'card/setUserCardLocation':
-            return {
-              ...state,
-              userCardLocation: action.payload,
-            };
           default:
             return state;
         }
       },
     },
   });
+};
 
 describe('SignUp Component', () => {
   let store: ReturnType<typeof createTestStore>;
@@ -192,8 +196,8 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(queryByTestId('signup-email-error-text')).toBeNull();
-      expect(queryByTestId('signup-password-error-text')).toBeNull();
+      expect(queryByTestId('signup-email-error-text')).not.toBeOnTheScreen();
+      expect(queryByTestId('signup-password-error-text')).not.toBeOnTheScreen();
     });
   });
 
@@ -207,8 +211,8 @@ describe('SignUp Component', () => {
 
       const emailInput = getByTestId('signup-email-input');
       await act(async () => {
-      fireEvent.changeText(emailInput, 'test@example.com');
-    });
+        fireEvent.changeText(emailInput, 'test@example.com');
+      });
 
       expect(emailInput.props.value).toBe('test@example.com');
     });
@@ -223,8 +227,8 @@ describe('SignUp Component', () => {
 
       const emailInput = getByTestId('signup-email-input');
       await act(async () => {
-      fireEvent.changeText(emailInput, 'invalid-email');
-    });
+        fireEvent.changeText(emailInput, 'invalid-email');
+      });
 
       const errorText = await findByTestId('signup-email-error-text');
       expect(errorText).toBeTruthy();
@@ -240,11 +244,11 @@ describe('SignUp Component', () => {
 
       const emailInput = getByTestId('signup-email-input');
       await act(async () => {
-      fireEvent.changeText(emailInput, 'valid@example.com');
-    });
+        fireEvent.changeText(emailInput, 'valid@example.com');
+      });
 
       await waitFor(() => {
-        expect(queryByTestId('signup-email-error-text')).toBeNull();
+        expect(queryByTestId('signup-email-error-text')).not.toBeOnTheScreen();
       });
     });
   });
@@ -259,8 +263,8 @@ describe('SignUp Component', () => {
 
       const passwordInput = getByTestId('signup-password-input');
       await act(async () => {
-      fireEvent.changeText(passwordInput, 'password123');
-    });
+        fireEvent.changeText(passwordInput, 'password123');
+      });
 
       expect(passwordInput.props.value).toBe('password123');
     });
@@ -291,14 +295,14 @@ describe('SignUp Component', () => {
 
       // Press to show password
       await act(async () => {
-      fireEvent.press(visibilityToggle);
-    });
+        fireEvent.press(visibilityToggle);
+      });
       expect(passwordInput).toHaveProp('secureTextEntry', false);
 
       // Press again to hide password
       await act(async () => {
-      fireEvent.press(visibilityToggle);
-    });
+        fireEvent.press(visibilityToggle);
+      });
       expect(passwordInput).toHaveProp('secureTextEntry', true);
     });
 
@@ -315,7 +319,7 @@ describe('SignUp Component', () => {
       ).toBeTruthy();
 
       // Error should not be visible
-      expect(queryByTestId('signup-password-error-text')).toBeNull();
+      expect(queryByTestId('signup-password-error-text')).not.toBeOnTheScreen();
     });
 
     it('shows error message and hides description when password is invalid', async () => {
@@ -328,8 +332,8 @@ describe('SignUp Component', () => {
 
       const passwordInput = getByTestId('signup-password-input');
       await act(async () => {
-      fireEvent.changeText(passwordInput, 'weak');
-    });
+        fireEvent.changeText(passwordInput, 'weak');
+      });
 
       // Error should be visible
       const errorText = await findByTestId('signup-password-error-text');
@@ -338,7 +342,7 @@ describe('SignUp Component', () => {
       // Description should be hidden when error is shown
       expect(
         queryByText('card.card_onboarding.sign_up.password_description'),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('shows description again when password becomes valid', async () => {
@@ -353,8 +357,8 @@ describe('SignUp Component', () => {
 
       // First, enter invalid password
       await act(async () => {
-      fireEvent.changeText(passwordInput, 'weak');
-    });
+        fireEvent.changeText(passwordInput, 'weak');
+      });
 
       // Error should be visible
       await findByTestId('signup-password-error-text');
@@ -362,12 +366,14 @@ describe('SignUp Component', () => {
       // Now enter valid password
       (validatePassword as jest.Mock).mockReturnValue(true);
       await act(async () => {
-      fireEvent.changeText(passwordInput, 'ValidPassword123!');
-    });
+        fireEvent.changeText(passwordInput, 'ValidPassword123!');
+      });
 
       // Error should be hidden
       await waitFor(() => {
-        expect(queryByTestId('signup-password-error-text')).toBeNull();
+        expect(
+          queryByTestId('signup-password-error-text'),
+        ).not.toBeOnTheScreen();
       });
 
       // Description should be visible again
@@ -398,8 +404,8 @@ describe('SignUp Component', () => {
 
       const countrySelect = getByTestId('signup-country-select');
       await act(async () => {
-      fireEvent.press(countrySelect);
-    });
+        fireEvent.press(countrySelect);
+      });
 
       expect(mockNavigate).toHaveBeenCalled();
     });
@@ -414,9 +420,7 @@ describe('SignUp Component', () => {
       );
 
       expect(getByText('Canada')).toBeOnTheScreen();
-      expect(storeWithGeo.getState().card.userCardLocation).toBe(
-        'international',
-      );
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 
     it('prefills country and sets US location when geoLocation is US', () => {
@@ -428,13 +432,10 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(storeWithGeo.getState().card.onboarding.selectedCountry).toEqual(
-        expect.objectContaining({ key: 'US', name: 'United States' }),
-      );
-      expect(storeWithGeo.getState().card.userCardLocation).toBe('us');
+      expect(mockSetUserLocation).toHaveBeenCalledWith('us');
     });
 
-    it('does not prefill country when geoLocation is UNKNOWN', () => {
+    it('does not set userCardLocation when geoLocation is UNKNOWN', () => {
       const storeWithUnknown = createTestStore({ geoLocation: 'UNKNOWN' });
 
       render(
@@ -443,12 +444,10 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(
-        storeWithUnknown.getState().card.onboarding.selectedCountry,
-      ).toBeNull();
+      expect(mockSetUserLocation).not.toHaveBeenCalled();
     });
 
-    it('does not prefill country when geoLocation does not match any available region', () => {
+    it('does not set userCardLocation when geoLocation does not match any available region', () => {
       const storeWithUnsupported = createTestStore({ geoLocation: 'JP' });
 
       render(
@@ -457,48 +456,85 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(
-        storeWithUnsupported.getState().card.onboarding.selectedCountry,
-      ).toBeNull();
+      expect(mockSetUserLocation).not.toHaveBeenCalled();
     });
 
-    it('does not override an already selected country with geoLocation', () => {
-      const storeWithExisting = createTestStore({
-        geoLocation: 'US',
-        onboarding: {
-          selectedCountry: { key: 'DE', name: 'Germany' },
-          onboardingId: null,
-          contactVerificationId: null,
-          user: null,
-        },
-      });
+    it('pre-selects country when geoLocation matches a canSignUp: false country and enables waitlist mode', () => {
+      // GB exists in allRegions with canSignUp: false — now gets auto-selected and shows waitlist CTA
+      const storeWithGB = createTestStore({ geoLocation: 'GB' });
 
-      render(
-        <Provider store={storeWithExisting}>
+      const { getByText, getByTestId, queryByTestId } = render(
+        <Provider store={storeWithGB}>
           <SignUp />
         </Provider>,
       );
 
+      // GB is now pre-selected
+      expect(getByText('United Kingdom')).toBeOnTheScreen();
+      // Button is enabled (country is selected) and shows waitlist label
+      expect(getByTestId('signup-continue-button')).toBeEnabled();
+      // Country not available info text shown
       expect(
-        storeWithExisting.getState().card.onboarding.selectedCountry,
-      ).toEqual(expect.objectContaining({ key: 'DE', name: 'Germany' }));
+        getByTestId('signup-country-not-available-text'),
+      ).toBeOnTheScreen();
+      // Password field hidden in waitlist mode
+      expect(queryByTestId('signup-password-input')).not.toBeOnTheScreen();
+      // GB maps to 'international' location
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
+    });
+
+    it('does not re-run auto-selection when getRegionByCode reference changes after initial selection', () => {
+      // Simulates a background re-fetch of registrationSettings that produces a
+      // new getRegionByCode reference without changing the actual data.
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
+      const mockUseRegions = jest.requireMock('../../hooks/useRegions').default;
+
+      const firstGetRegionByCode = jest.fn(mockGetRegionByCode);
+      mockUseRegions.mockReturnValue({
+        allRegions: mockSignUpRegions,
+        signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
+        getRegionByCode: firstGetRegionByCode,
+        isLoading: false,
+      });
+
+      const { getByText, rerender } = render(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      // US was auto-selected on first render
+      expect(getByText('United States')).toBeOnTheScreen();
+      expect(firstGetRegionByCode).toHaveBeenCalledTimes(1);
+
+      // Simulate background refetch: new function identity, same data
+      const secondGetRegionByCode = jest.fn(mockGetRegionByCode);
+      mockUseRegions.mockReturnValue({
+        allRegions: mockSignUpRegions,
+        signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
+        getRegionByCode: secondGetRegionByCode,
+        isLoading: false,
+      });
+
+      rerender(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      // hasAutoSelectedCountry ref must have blocked the second run
+      expect(secondGetRegionByCode).not.toHaveBeenCalled();
+      expect(getByText('United States')).toBeOnTheScreen();
     });
   });
 
   describe('Form Validation', () => {
     it('enables continue button when all fields are valid', async () => {
-      // Create store with pre-selected country
-      const storeWithCountry = createTestStore({
-        onboarding: {
-          selectedCountry: { key: 'US', name: 'United States' },
-          onboardingId: null,
-          contactVerificationId: null,
-          user: null,
-        },
-      });
+      // useRegions is mocked to return signUpRegions; geoLocation US prefills country via effect
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
 
       const { getByTestId } = render(
-        <Provider store={storeWithCountry}>
+        <Provider store={storeWithGeo}>
           <SignUp />
         </Provider>,
       );
@@ -510,11 +546,11 @@ describe('SignUp Component', () => {
       // Fill in all form fields
       await act(async () => {
         await act(async () => {
-      fireEvent.changeText(emailInput, 'test@example.com');
-    });
+          fireEvent.changeText(emailInput, 'test@example.com');
+        });
         await act(async () => {
-      fireEvent.changeText(passwordInput, 'Password123!');
-    });
+          fireEvent.changeText(passwordInput, 'Password123!');
+        });
       });
 
       // Now check if the continue button is enabled
@@ -528,17 +564,10 @@ describe('SignUp Component', () => {
 
     it('keeps continue button disabled when email is invalid', async () => {
       (validateEmail as jest.Mock).mockReturnValue(false);
-      const storeWithCountry = createTestStore({
-        onboarding: {
-          selectedCountry: { key: 'US', name: 'United States' },
-          onboardingId: null,
-          contactVerificationId: null,
-          user: null,
-        },
-      });
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
 
       const { getByTestId } = render(
-        <Provider store={storeWithCountry}>
+        <Provider store={storeWithGeo}>
           <SignUp />
         </Provider>,
       );
@@ -549,11 +578,11 @@ describe('SignUp Component', () => {
 
       await act(async () => {
         await act(async () => {
-      fireEvent.changeText(emailInput, 'invalid-email');
-    });
+          fireEvent.changeText(emailInput, 'invalid-email');
+        });
         await act(async () => {
-      fireEvent.changeText(passwordInput, 'Password123!');
-    });
+          fireEvent.changeText(passwordInput, 'Password123!');
+        });
       });
 
       await waitFor(() => {
@@ -584,11 +613,11 @@ describe('SignUp Component', () => {
 
       await act(async () => {
         await act(async () => {
-      fireEvent.changeText(emailInput, 'test@example.com');
-    });
+          fireEvent.changeText(emailInput, 'test@example.com');
+        });
         await act(async () => {
-      fireEvent.changeText(passwordInput, 'weak');
-    });
+          fireEvent.changeText(passwordInput, 'weak');
+        });
       });
 
       await waitFor(() => {
@@ -609,11 +638,11 @@ describe('SignUp Component', () => {
 
       await act(async () => {
         await act(async () => {
-      fireEvent.changeText(emailInput, 'test@example.com');
-    });
+          fireEvent.changeText(emailInput, 'test@example.com');
+        });
         await act(async () => {
-      fireEvent.changeText(passwordInput, 'Password123!');
-    });
+          fireEvent.changeText(passwordInput, 'Password123!');
+        });
         // Don't select country
       });
 
@@ -625,17 +654,10 @@ describe('SignUp Component', () => {
 
   describe('Form Submission', () => {
     it('calls sendEmailVerification when continue button is pressed', async () => {
-      const storeWithCountry = createTestStore({
-        onboarding: {
-          selectedCountry: { key: 'US', name: 'United States' },
-          onboardingId: null,
-          contactVerificationId: null,
-          user: null,
-        },
-      });
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
 
       const { getByTestId } = render(
-        <Provider store={storeWithCountry}>
+        <Provider store={storeWithGeo}>
           <SignUp />
         </Provider>,
       );
@@ -646,11 +668,11 @@ describe('SignUp Component', () => {
 
       await act(async () => {
         await act(async () => {
-      fireEvent.changeText(emailInput, 'test@example.com');
-    });
+          fireEvent.changeText(emailInput, 'test@example.com');
+        });
         await act(async () => {
-      fireEvent.changeText(passwordInput, 'Password123!');
-    });
+          fireEvent.changeText(passwordInput, 'Password123!');
+        });
       });
 
       await waitFor(() => {
@@ -658,10 +680,46 @@ describe('SignUp Component', () => {
       });
 
       await act(async () => {
-      fireEvent.press(continueButton);
-    });
+        fireEvent.press(continueButton);
+      });
 
       expect(mockSendEmailVerification).toHaveBeenCalled();
+    });
+
+    it('passes countryKey to ConfirmEmail navigation params', async () => {
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
+
+      const { getByTestId } = render(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      const passwordInput = getByTestId('signup-password-input');
+      const continueButton = getByTestId('signup-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(emailInput, 'test@example.com');
+        fireEvent.changeText(passwordInput, 'Password123!');
+      });
+
+      await waitFor(() => {
+        expect(continueButton).toBeEnabled();
+      });
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          email: 'test@example.com',
+          password: 'Password123!',
+          countryKey: 'US',
+        }),
+      );
     });
 
     it('does not call sendEmailVerification when continue button is disabled', async () => {
@@ -674,8 +732,8 @@ describe('SignUp Component', () => {
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
-      fireEvent.press(continueButton);
-    });
+        fireEvent.press(continueButton);
+      });
 
       expect(mockSendEmailVerification).not.toHaveBeenCalled();
     });
@@ -699,8 +757,8 @@ describe('SignUp Component', () => {
 
       const emailInput = getByTestId('signup-email-input');
       await act(async () => {
-      fireEvent.changeText(emailInput, 'test@example.com');
-    });
+        fireEvent.changeText(emailInput, 'test@example.com');
+      });
 
       const errorText = await findByTestId('signup-email-error-text');
       expect(errorText).toBeTruthy();
@@ -719,8 +777,8 @@ describe('SignUp Component', () => {
         'signup-i-already-have-an-account-text',
       );
       await act(async () => {
-      fireEvent.press(alreadyHaveAccountButton);
-    });
+        fireEvent.press(alreadyHaveAccountButton);
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith('CardAuthentication');
     });

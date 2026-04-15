@@ -21,7 +21,7 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     setOptions: mockSetOptions,
     goBack: mockGoBack,
-    dangerouslyGetParent: () => ({
+    getParent: () => ({
       goBack: mockParentGoBack,
     }),
   }),
@@ -48,7 +48,6 @@ function renderWithProvider(
           backgroundState,
         },
         fiatOrders: {
-          detectedGeolocation: 'US',
           rampRoutingDecision: UnifiedRampRoutingType.DEPOSIT,
           ...customState?.fiatOrders,
         },
@@ -179,11 +178,14 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      paymentMethodsFetching: false,
+      paymentMethodsStatus: 'idle' as const,
       getQuotes: jest.fn(),
-      getWidgetUrl: jest.fn(),
+      getBuyWidgetData: jest.fn(),
       orders: [],
       getOrderById: jest.fn(),
       addOrder: jest.fn(),
+      addPrecreatedOrder: jest.fn(),
       removeOrder: jest.fn(),
       refreshOrder: jest.fn(),
       getOrderFromCallback: jest.fn(),
@@ -194,32 +196,37 @@ describe('TokenSelection Component', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly and matches snapshot (legacy)', () => {
+  it('renders token list for legacy flow', () => {
     mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    const { toJSON } = renderWithProvider(TokenSelection);
+    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByPlaceholderText('Search token by name or address'),
+    ).toBeOnTheScreen();
   });
 
-  it('renders correctly and matches snapshot (V2 enabled)', () => {
+  it('renders token list for V2 flow', () => {
     mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-    const { toJSON } = renderWithProvider(TokenSelection);
+    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByPlaceholderText('Search token by name or address'),
+    ).toBeOnTheScreen();
   });
 
   it('displays empty state when no tokens match search', async () => {
     (useSearchTokenResults as jest.Mock).mockReturnValue([]);
-    const { getByPlaceholderText, getByText, toJSON } =
+    const { getByPlaceholderText, getByText } =
       renderWithProvider(TokenSelection);
 
     const searchInput = getByPlaceholderText('Search token by name or address');
     fireEvent.changeText(searchInput, 'Nonexistent Token');
 
     await waitFor(() => {
-      expect(getByText('No tokens match "Nonexistent Token"')).toBeTruthy();
+      expect(
+        getByText('No tokens match "Nonexistent Token"'),
+      ).toBeOnTheScreen();
     });
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('filters tokens by search string', async () => {
@@ -320,11 +327,14 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      paymentMethodsFetching: false,
+      paymentMethodsStatus: 'idle' as const,
       getQuotes: jest.fn(),
-      getWidgetUrl: jest.fn(),
+      getBuyWidgetData: jest.fn(),
       orders: [],
       getOrderById: jest.fn(),
       addOrder: jest.fn(),
+      addPrecreatedOrder: jest.fn(),
       removeOrder: jest.fn(),
       refreshOrder: jest.fn(),
       getOrderFromCallback: jest.fn(),
@@ -360,11 +370,14 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      paymentMethodsFetching: false,
+      paymentMethodsStatus: 'idle' as const,
       getQuotes: jest.fn(),
-      getWidgetUrl: jest.fn(),
+      getBuyWidgetData: jest.fn(),
       orders: [],
       getOrderById: jest.fn(),
       addOrder: jest.fn(),
+      addPrecreatedOrder: jest.fn(),
       removeOrder: jest.fn(),
       refreshOrder: jest.fn(),
       getOrderFromCallback: jest.fn(),
@@ -414,11 +427,14 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      paymentMethodsFetching: false,
+      paymentMethodsStatus: 'idle' as const,
       getQuotes: jest.fn(),
-      getWidgetUrl: jest.fn(),
+      getBuyWidgetData: jest.fn(),
       orders: [],
       getOrderById: jest.fn(),
       addOrder: jest.fn(),
+      addPrecreatedOrder: jest.fn(),
       removeOrder: jest.fn(),
       refreshOrder: jest.fn(),
       getOrderFromCallback: jest.fn(),
@@ -479,11 +495,14 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      paymentMethodsFetching: false,
+      paymentMethodsStatus: 'idle' as const,
       getQuotes: jest.fn(),
-      getWidgetUrl: jest.fn(),
+      getBuyWidgetData: jest.fn(),
       orders: [],
       getOrderById: jest.fn(),
       addOrder: jest.fn(),
+      addPrecreatedOrder: jest.fn(),
       removeOrder: jest.fn(),
       refreshOrder: jest.fn(),
       getOrderFromCallback: jest.fn(),
@@ -554,11 +573,14 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      paymentMethodsFetching: false,
+      paymentMethodsStatus: 'idle' as const,
       getQuotes: jest.fn(),
-      getWidgetUrl: jest.fn(),
+      getBuyWidgetData: jest.fn(),
       orders: [],
       getOrderById: jest.fn(),
       addOrder: jest.fn(),
+      addPrecreatedOrder: jest.fn(),
       removeOrder: jest.fn(),
       refreshOrder: jest.fn(),
       getOrderFromCallback: jest.fn(),
@@ -633,11 +655,14 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      paymentMethodsFetching: false,
+      paymentMethodsStatus: 'idle' as const,
       getQuotes: jest.fn(),
-      getWidgetUrl: jest.fn(),
+      getBuyWidgetData: jest.fn(),
       orders: [],
       getOrderById: jest.fn(),
       addOrder: jest.fn(),
+      addPrecreatedOrder: jest.fn(),
       removeOrder: jest.fn(),
       refreshOrder: jest.fn(),
       getOrderFromCallback: jest.fn(),
@@ -693,11 +718,14 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      paymentMethodsFetching: false,
+      paymentMethodsStatus: 'idle' as const,
       getQuotes: jest.fn(),
-      getWidgetUrl: jest.fn(),
+      getBuyWidgetData: jest.fn(),
       orders: [],
       getOrderById: jest.fn(),
       addOrder: jest.fn(),
+      addPrecreatedOrder: jest.fn(),
       removeOrder: jest.fn(),
       refreshOrder: jest.fn(),
       getOrderFromCallback: jest.fn(),

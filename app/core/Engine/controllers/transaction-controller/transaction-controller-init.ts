@@ -9,7 +9,6 @@ import {
   TransactionControllerOptions,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { ApprovalController } from '@metamask/approval-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import {
   SmartTransactionsController,
@@ -34,8 +33,8 @@ import { getTransactionById } from '../../../../util/transactions';
 import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import type {
-  ControllerInitFunction,
-  ControllerInitRequest,
+  MessengerClientInitFunction,
+  MessengerClientInitRequest,
 } from '../../types';
 import AppConstants from '../../../../core/AppConstants';
 import type { TransactionEventHandlerRequest } from './types';
@@ -51,14 +50,25 @@ import {
   TransactionPayControllerMessenger,
   TransactionPayPublishHook,
 } from '@metamask/transaction-pay-controller';
+import { selectMetaMaskPayFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { trace } from '../../../../util/trace';
+import { accountSupports7702 } from '../../../../util/transactions/account-supports-7702';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { NetworkClientId } from '@metamask/network-controller';
 import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
+import { updateConfirmationMetric } from '../../../redux/slices/confirmationMetrics';
+import { store } from '../../../../store';
 
-export const TransactionControllerInit: ControllerInitFunction<
+const TRANSACTION_SUBMISSION_METHOD_METRIC_NAME =
+  'transaction_submission_method';
+const TRANSACTION_SUBMISSION_METHOD = {
+  SENTINEL_STX: 'sentinel_stx',
+  SENTINEL_RELAY: 'sentinel_relay',
+} as const;
+
+export const TransactionControllerInit: MessengerClientInitFunction<
   TransactionController,
   TransactionControllerMessenger,
   TransactionControllerInitMessenger
@@ -67,7 +77,6 @@ export const TransactionControllerInit: ControllerInitFunction<
     request;
 
   const {
-    approvalController,
     gasFeeController,
     keyringController,
     networkController,
@@ -111,9 +120,9 @@ export const TransactionControllerInit: ControllerInitFunction<
             publishHook({
               transactionMeta,
               getState,
+              keyringController,
               transactionController,
               smartTransactionsController,
-              approvalController,
               initMessenger,
               signedTransactionInHex,
             }),
@@ -123,7 +132,6 @@ export const TransactionControllerInit: ControllerInitFunction<
               smartTransactionsController,
               initMessenger,
               getState,
-              approvalController,
               transactions:
                 _request.transactions as PublishBatchHookTransaction[],
             }),
@@ -137,6 +145,15 @@ export const TransactionControllerInit: ControllerInitFunction<
         isFirstTimeInteractionEnabled: () =>
           isFirstTimeInteractionEnabled(preferencesController),
         isEIP7702GasFeeTokensEnabled: async (transactionMeta) => {
+          if (
+            !(await accountSupports7702(
+              transactionMeta.txParams?.from,
+              keyringController as Parameters<typeof accountSupports7702>[1],
+            ))
+          ) {
+            return false;
+          }
+
           const { chainId, isExternalSign } = transactionMeta;
           const state = getState();
 
@@ -194,17 +211,17 @@ async function getNextNonce(
 async function publishHook({
   transactionMeta,
   getState,
+  keyringController,
   transactionController,
   smartTransactionsController,
-  approvalController,
   initMessenger,
   signedTransactionInHex,
 }: {
   transactionMeta: TransactionMeta;
   getState: () => RootState;
+  keyringController: Parameters<typeof accountSupports7702>[1];
   transactionController: TransactionController;
   smartTransactionsController: SmartTransactionsController;
-  approvalController: ApprovalController;
   initMessenger: TransactionControllerInitMessenger;
   signedTransactionInHex: Hex;
 }): Promise<{ transactionHash?: string }> {
@@ -216,8 +233,10 @@ async function publishHook({
     transactionMeta.chainId,
   );
 
+  const { stxDisabled } = selectMetaMaskPayFlags(state);
+
   const payResult = await new TransactionPayPublishHook({
-    isSmartTransaction: () => shouldUseSmartTransaction,
+    isSmartTransaction: () => shouldUseSmartTransaction && !stxDisabled,
     messenger: initMessenger as TransactionPayControllerMessenger,
   }).getHook()(transactionMeta, signedTransactionInHex);
 
@@ -227,7 +246,15 @@ async function publishHook({
 
   const { isExternalSign } = transactionMeta;
 
-  if (!shouldUseSmartTransaction || !sendBundleSupport || isExternalSign) {
+  const keyringSupports7702 = await accountSupports7702(
+    transactionMeta.txParams?.from,
+    keyringController,
+  );
+
+  if (
+    keyringSupports7702 &&
+    (!shouldUseSmartTransaction || !sendBundleSupport || isExternalSign)
+  ) {
     const hook = new Delegation7702PublishHook({
       isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(
         transactionController,
@@ -239,6 +266,21 @@ async function publishHook({
 
     const result = await hook(transactionMeta, signedTransactionInHex);
     if (result?.transactionHash) {
+      try {
+        store.dispatch(
+          updateConfirmationMetric({
+            id: transactionMeta.id,
+            params: {
+              properties: {
+                [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
+                  TRANSACTION_SUBMISSION_METHOD.SENTINEL_RELAY,
+              },
+            },
+          }),
+        );
+      } catch (e) {
+        console.error('Failed to record sentinel_relay metrics fragment', e);
+      }
       return result;
     }
     // else, fall back to regular regular transaction submission
@@ -253,7 +295,6 @@ async function publishHook({
       transactionController,
       smartTransactionsController,
       shouldUseSmartTransaction,
-      approvalController,
       controllerMessenger:
         initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
       featureFlags,
@@ -261,6 +302,21 @@ async function publishHook({
     });
 
     if (result?.transactionHash) {
+      try {
+        store.dispatch(
+          updateConfirmationMetric({
+            id: transactionMeta.id,
+            params: {
+              properties: {
+                [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
+                  TRANSACTION_SUBMISSION_METHOD.SENTINEL_STX,
+              },
+            },
+          }),
+        );
+      } catch (e) {
+        console.error('Failed to record sentinel_stx metrics fragment', e);
+      }
       return result;
     }
   }
@@ -282,19 +338,17 @@ function getSmartTransactionCommonParams(state: RootState, chainId: Hex) {
   };
 }
 
-function publishBatchSmartTransactionHook({
+async function publishBatchSmartTransactionHook({
   transactionController,
   smartTransactionsController,
   initMessenger,
   getState,
-  approvalController,
   transactions,
 }: {
   transactionController: TransactionController;
   smartTransactionsController: SmartTransactionsController;
   initMessenger: TransactionControllerInitMessenger;
   getState: () => RootState;
-  approvalController: ApprovalController;
   transactions: PublishBatchHookTransaction[];
 }): Promise<PublishBatchHookResult> {
   // Get transactionMeta based on the last transaction ID
@@ -315,20 +369,46 @@ function publishBatchSmartTransactionHook({
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
 
   if (!shouldUseSmartTransaction) {
-    return Promise.resolve(undefined);
+    return undefined;
   }
 
-  return submitBatchSmartTransactionHook({
+  const result = await submitBatchSmartTransactionHook({
     transactions,
     transactionController,
     smartTransactionsController,
     controllerMessenger:
       initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
     shouldUseSmartTransaction,
-    approvalController,
     featureFlags,
     transactionMeta,
   });
+
+  if (result) {
+    for (const tx of transactions) {
+      if (tx.id) {
+        try {
+          store.dispatch(
+            updateConfirmationMetric({
+              id: tx.id,
+              params: {
+                properties: {
+                  [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
+                    TRANSACTION_SUBMISSION_METHOD.SENTINEL_STX,
+                },
+              },
+            }),
+          );
+        } catch (e) {
+          console.error(
+            'Failed to record sentinel_stx metrics fragment for batch tx',
+            e,
+          );
+        }
+      }
+    }
+  }
+
+  return result;
 }
 
 function isIncomingTransactionsEnabled(
@@ -344,13 +424,12 @@ function isFirstTimeInteractionEnabled(
 }
 
 function getControllers(
-  request: ControllerInitRequest<
+  request: MessengerClientInitRequest<
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >,
 ) {
   return {
-    approvalController: request.getController('ApprovalController'),
     gasFeeController: request.getController('GasFeeController'),
     keyringController: request.getController('KeyringController'),
     networkController: request.getController('NetworkController'),
@@ -363,7 +442,7 @@ function getControllers(
 
 function beforeSign(
   hookRequest: { transactionMeta: TransactionMeta },
-  request: ControllerInitRequest<
+  request: MessengerClientInitRequest<
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >,

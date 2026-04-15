@@ -37,7 +37,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
           },
         ],
         fixture: new FixtureBuilder()
-          .withNetworkController(PopularNetworksList.Polygon)
+          .withNetworkController(PopularNetworksList.Polygon.providerConfig)
           .build(),
         restartDevice: true,
       },

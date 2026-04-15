@@ -20,10 +20,10 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 
 jest.mock('../../UI/NetworkVerificationInfo', () => {
-  const { View, Text } = require('react-native');
+  const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: (props: Record<string, unknown>) => (
+    default: (_props: Record<string, unknown>) => (
       <View testID="network-verification-info">
         <Text>NetworkVerificationInfo Mock</Text>
       </View>

@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -18,6 +18,7 @@ import {
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
 } from '../Constants.ts';
+import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.ts';
 import { PlatformDetector } from '../PlatformLocator.ts';
 import { FrameworkDetector } from '../FrameworkDetector.ts';
@@ -50,6 +51,8 @@ function getFallbackPort(resourceType: ResourceType): number {
       return DEFAULT_ANVIL_PORT;
     case ResourceType.DAPP_SERVER:
       return FALLBACK_DAPP_SERVER_PORT;
+    case ResourceType.ACCOUNT_ACTIVITY_WS:
+      return ACCOUNT_ACTIVITY_WS.fallbackPort;
     default:
       throw new Error(`No fallback port defined for ${resourceType}`);
   }
@@ -93,6 +96,7 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
     FALLBACK_DAPP_SERVER_PORT, // 8085
     FALLBACK_DAPP_SERVER_PORT + 1, // 8086 (dapp-server-1)
     FALLBACK_DAPP_SERVER_PORT + 2, // 8087 (dapp-server-2)
+    ACCOUNT_ACTIVITY_WS.fallbackPort, // 8089
   ];
 
   logger.debug('Cleaning up test port forwards before test...');
@@ -139,77 +143,102 @@ async function setupAndroidPortForwarding(
   actualPort: number,
   instanceIndex?: number,
 ): Promise<void> {
-  try {
-    // Only set up port forwarding on Android
-    if (!(await PlatformDetector.isAndroid())) {
-      return;
-    }
+  // Only set up port forwarding on Android
+  if (!(await PlatformDetector.isAndroid())) {
+    return;
+  }
 
-    // Skip adb reverse on BrowserStack - BrowserStack Local tunnel handles port forwarding
-    if (isBrowserStack()) {
-      logger.info(
-        `BrowserStack mode: Skipping adb reverse for ${resourceType} (port ${actualPort} forwarded via tunnel)`,
+  // Skip adb reverse on BrowserStack - BrowserStack Local tunnel handles port forwarding
+  if (isBrowserStack()) {
+    logger.info(
+      `BrowserStack mode: Skipping adb reverse for ${resourceType} (port ${actualPort} forwarded via tunnel)`,
+    );
+    return;
+  }
+
+  // Forward all dynamically allocated ports that the app needs to access
+  // - LaunchArgs ports: Android doesn't support LaunchArgs, needs adb reverse
+  // - Dapp servers: Browser navigation bypasses MockServer, needs adb reverse
+  // - Ganache/Anvil: Even though fixture is updated, some code paths may use fallback ports
+  const forwardedResources = [
+    ResourceType.FIXTURE_SERVER,
+    ResourceType.COMMAND_QUEUE_SERVER,
+    ResourceType.MOCK_SERVER,
+    ResourceType.DAPP_SERVER,
+    ResourceType.GANACHE,
+    ResourceType.ANVIL,
+    ResourceType.ACCOUNT_ACTIVITY_WS,
+  ];
+
+  if (!forwardedResources.includes(resourceType)) {
+    return;
+  }
+
+  // Calculate the correct fallback port for multi-instance resources
+  let fallbackPort = getFallbackPort(resourceType);
+  if (
+    resourceType === ResourceType.DAPP_SERVER &&
+    instanceIndex !== undefined
+  ) {
+    fallbackPort += instanceIndex;
+  }
+
+  // Get device ID to target specific device (important for CI with multiple devices)
+  // In Detox: use device.id for multi-device support
+  // In Appium/Playwright: skip device flag (single emulator assumption)
+  let deviceFlag = '';
+  if (FrameworkDetector.isDetox()) {
+    const deviceId = device.id || '';
+    deviceFlag = deviceId ? `-s ${deviceId}` : '';
+  }
+
+  const command = `adb ${deviceFlag} reverse tcp:${fallbackPort} tcp:${actualPort}`;
+
+  // Retry on transient device-offline/not-found errors (common on CI when the
+  // emulator is still initialising between tests). Three attempts with 2 s gaps
+  // cover most boot-delay scenarios without adding significant wait time.
+  const maxAdbRetries = 3;
+  const adbRetryDelayMs = 2000;
+
+  for (let attempt = 1; attempt <= maxAdbRetries; attempt++) {
+    try {
+      logger.debug(`Executing port forward (attempt ${attempt}): ${command}`);
+      const { stdout, stderr } = await execAsync(command);
+
+      if (stderr && !stderr.includes('')) {
+        logger.warn(`adb reverse stderr: ${stderr}`);
+      }
+      if (stdout) {
+        logger.debug(`adb reverse stdout: ${stdout}`);
+      }
+
+      logger.debug(
+        `✓ Android port forwarding: ${fallbackPort} → ${actualPort} (${resourceType}${instanceIndex !== undefined ? `:${instanceIndex}` : ''})`,
       );
-      return;
+      return; // success
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      const isDeviceOffline =
+        errorMessage.includes('not found') ||
+        errorMessage.includes('device offline') ||
+        errorMessage.includes('unauthorized');
+
+      if (isDeviceOffline && attempt < maxAdbRetries) {
+        logger.warn(
+          `adb reverse failed (attempt ${attempt}/${maxAdbRetries}) — device not yet reachable: ${errorMessage}. Retrying in ${adbRetryDelayMs}ms…`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, adbRetryDelayMs));
+        continue;
+      }
+
+      logger.error(
+        `Failed to set up Android port forwarding for ${resourceType}: ${errorMessage}`,
+      );
+      logger.error('Error details:', error);
+      throw error;
     }
-
-    // Forward all dynamically allocated ports that the app needs to access
-    // - LaunchArgs ports: Android doesn't support LaunchArgs, needs adb reverse
-    // - Dapp servers: Browser navigation bypasses MockServer, needs adb reverse
-    // - Ganache/Anvil: Even though fixture is updated, some code paths may use fallback ports
-    const forwardedResources = [
-      ResourceType.FIXTURE_SERVER,
-      ResourceType.COMMAND_QUEUE_SERVER,
-      ResourceType.MOCK_SERVER,
-      ResourceType.DAPP_SERVER,
-      ResourceType.GANACHE,
-      ResourceType.ANVIL,
-    ];
-
-    if (!forwardedResources.includes(resourceType)) {
-      return;
-    }
-
-    // Calculate the correct fallback port for multi-instance resources
-    let fallbackPort = getFallbackPort(resourceType);
-    if (
-      resourceType === ResourceType.DAPP_SERVER &&
-      instanceIndex !== undefined
-    ) {
-      fallbackPort += instanceIndex;
-    }
-
-    // Get device ID to target specific device (important for CI with multiple devices)
-    // In Detox: use device.id for multi-device support
-    // In Appium/Playwright: skip device flag (single emulator assumption)
-    let deviceFlag = '';
-    if (FrameworkDetector.isDetox()) {
-      const deviceId = device.id || '';
-      deviceFlag = deviceId ? `-s ${deviceId}` : '';
-    }
-
-    const command = `adb ${deviceFlag} reverse tcp:${fallbackPort} tcp:${actualPort}`;
-
-    logger.debug(`Executing port forward: ${command}`);
-    const { stdout, stderr } = await execAsync(command);
-
-    if (stderr && !stderr.includes('')) {
-      logger.warn(`adb reverse stderr: ${stderr}`);
-    }
-    if (stdout) {
-      logger.debug(`adb reverse stdout: ${stdout}`);
-    }
-
-    logger.debug(
-      `✓ Android port forwarding: ${fallbackPort} → ${actualPort} (${resourceType}${instanceIndex !== undefined ? `:${instanceIndex}` : ''})`,
-    );
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(
-      `Failed to set up Android port forwarding for ${resourceType}: ${errorMessage}`,
-    );
-    logger.error('Error details:', error);
-    throw error;
   }
 }
 

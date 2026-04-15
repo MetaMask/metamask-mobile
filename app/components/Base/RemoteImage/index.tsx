@@ -3,12 +3,11 @@ import {
   View,
   StyleSheet,
   Dimensions,
+  Image as RNImage,
   ImageSourcePropType,
   StyleProp,
 } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
-// @ts-expect-error - resolveAssetSource has no type definitions
-import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
 import Logger from '../../../util/Logger';
@@ -27,6 +26,7 @@ interface RemoteImageProps {
   style?: StyleProp<object>;
   placeholderStyle?: StyleProp<object>;
   onError?: () => void;
+  onLoad?: () => void;
   isUrl?: boolean;
   address?: string;
   isTokenImage?: boolean;
@@ -49,9 +49,10 @@ const styles = StyleSheet.create({
 
 const RemoteImage: React.FC<RemoteImageProps> = (props) => {
   const [error, setError] = useState<string | undefined>(undefined);
-  const source = resolveAssetSource(props.source);
+  const source = RNImage.resolveAssetSource(props.source as ImageSourcePropType);
   const ipfsGateway = useIpfsGateway();
   const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState<string | false>();
+  const { onLoad: onLoadProp } = props;
 
   const uri =
     resolvedIpfsUrl ||
@@ -134,8 +135,9 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
           return { width: calculatedWidth, height: calculatedHeight };
         });
       }
+      onLoadProp?.();
     },
-    [calculateImageDimensions],
+    [calculateImageDimensions, onLoadProp],
   );
 
   if (error && props.address) {
@@ -147,7 +149,13 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
   }
 
   const defaultImage = (
-    <Image {...props} source={{ uri }} onLoad={onImageLoad} onError={onError} />
+    <Image
+      {...props}
+      source={{ uri }}
+      recyclingKey={uri}
+      onLoad={onImageLoad}
+      onError={onError}
+    />
   );
 
   if (props.fadeIn) {
@@ -164,6 +172,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
             {showFullRatioImage ? (
               <Image
                 source={{ uri }}
+                recyclingKey={uri}
                 style={{
                   width: dimensions.width,
                   height: dimensions.height,
@@ -178,6 +187,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
                   style={styles.imageStyle}
                   {...restProps}
                   source={{ uri }}
+                  recyclingKey={uri}
                   onLoad={onImageLoad}
                   onError={onError}
                 />

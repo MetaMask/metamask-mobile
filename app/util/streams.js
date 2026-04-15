@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 const Through = require('through2');
 const ObjectMultiplex = require('@metamask/object-multiplex');
 const pump = require('pump');

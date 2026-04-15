@@ -1,52 +1,25 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import {
-  usePredictPositionsForHomepage,
-  _clearPositionsCache,
-} from './usePredictPositionsForHomepage';
+import { usePredictPositionsForHomepage } from './usePredictPositionsForHomepage';
 import type { PredictPosition } from '../../../../../UI/Predict/types';
 
-const mockGetPositions = jest.fn();
+const mockRefetch = jest.fn().mockResolvedValue(undefined);
+let mockUsePredictPositionsReturn: {
+  data: PredictPosition[] | undefined;
+  isLoading: boolean;
+  error: Error | null;
+  refetch: jest.Mock;
+} = {
+  data: undefined,
+  isLoading: false,
+  error: null,
+  refetch: mockRefetch,
+};
 
-jest.mock('../../../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      getPositions: (...args: unknown[]) => mockGetPositions(...args),
-    },
-  },
+jest.mock('../../../../../UI/Predict/hooks/usePredictPositions', () => ({
+  usePredictPositions: () => mockUsePredictPositionsReturn,
 }));
 
-let mockIsPredictEnabled = true;
-let mockUserAddress: string | null = '0xuser123';
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: (selector: (...args: unknown[]) => unknown) => {
-    if (
-      selector ===
-      jest.requireMock('../../../../../UI/Predict').selectPredictEnabledFlag
-    ) {
-      return mockIsPredictEnabled;
-    }
-    if (
-      selector ===
-      jest.requireMock('../../../../../../selectors/accountsController')
-        .selectSelectedInternalAccountFormattedAddress
-    ) {
-      return mockUserAddress;
-    }
-    return undefined;
-  },
-}));
-
-jest.mock('../../../../../UI/Predict', () => ({
-  selectPredictEnabledFlag: jest.fn(),
-}));
-
-jest.mock('../../../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccountFormattedAddress: jest.fn(),
-}));
-
-const createMockPosition = (id: string): PredictPosition =>
+const createMockPosition = (id: string, currentValue = 12): PredictPosition =>
   ({
     outcomeId: `outcome-${id}`,
     outcomeIndex: 0,
@@ -55,7 +28,7 @@ const createMockPosition = (id: string): PredictPosition =>
     outcome: 'Yes',
     icon: `https://example.com/icon-${id}.png`,
     initialValue: 10,
-    currentValue: 12,
+    currentValue,
     size: 15,
     percentPnl: 20,
   }) as unknown as PredictPosition;
@@ -63,224 +36,140 @@ const createMockPosition = (id: string): PredictPosition =>
 describe('usePredictPositionsForHomepage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    _clearPositionsCache();
-    mockIsPredictEnabled = true;
-    mockUserAddress = '0xuser123';
-
-    mockGetPositions.mockResolvedValue([
-      createMockPosition('1'),
-      createMockPosition('2'),
-      createMockPosition('3'),
-    ]);
+    mockUsePredictPositionsReturn = {
+      data: [
+        createMockPosition('1'),
+        createMockPosition('2'),
+        createMockPosition('3'),
+      ],
+      isLoading: false,
+      error: null,
+      refetch: mockRefetch,
+    };
   });
 
-  it('fetches positions on mount when predict is enabled', async () => {
-    const { result } = renderHook(() =>
-      usePredictPositionsForHomepage(5),
-    );
+  it('returns positions from usePredictPositions', () => {
+    const { result } = renderHook(() => usePredictPositionsForHomepage());
 
-    await waitFor(() => {
-      expect(result.current.positions).toHaveLength(3);
-    });
+    expect(result.current.positions).toHaveLength(3);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
-    expect(mockGetPositions).toHaveBeenCalledWith({
-      address: '0xuser123',
-      claimable: false,
-    });
   });
 
-  it('returns empty positions when predict is disabled', () => {
-    mockIsPredictEnabled = false;
+  it('returns empty positions when data is undefined', () => {
+    mockUsePredictPositionsReturn.data = undefined;
 
-    const { result } = renderHook(() => usePredictPositionsForHomepage(5));
+    const { result } = renderHook(() => usePredictPositionsForHomepage());
 
     expect(result.current.positions).toHaveLength(0);
-    expect(result.current.isLoading).toBe(false);
-    expect(mockGetPositions).not.toHaveBeenCalled();
   });
 
-  it('returns empty positions when user address is null', () => {
-    mockUserAddress = null;
-
-    const { result } = renderHook(() => usePredictPositionsForHomepage(5));
-
-    expect(result.current.positions).toHaveLength(0);
-    expect(result.current.isLoading).toBe(false);
-    expect(mockGetPositions).not.toHaveBeenCalled();
-  });
-
-  it('limits positions to maxPositions parameter', async () => {
-    mockGetPositions.mockResolvedValue([
+  it('slices positions to maxPositions', () => {
+    mockUsePredictPositionsReturn.data = [
       createMockPosition('1'),
       createMockPosition('2'),
       createMockPosition('3'),
       createMockPosition('4'),
       createMockPosition('5'),
-    ]);
+    ];
 
     const { result } = renderHook(() =>
-      usePredictPositionsForHomepage(2),
+      usePredictPositionsForHomepage({ maxPositions: 2 }),
     );
 
-    await waitFor(() => {
-      expect(result.current.positions).toHaveLength(2);
-    });
+    expect(result.current.positions).toHaveLength(2);
+    expect(result.current.positions[0].outcomeId).toBe('outcome-1');
+    expect(result.current.positions[1].outcomeId).toBe('outcome-2');
   });
 
-  it('sets error state when fetch fails', async () => {
-    mockGetPositions.mockRejectedValue(new Error('API error'));
+  it('returns all positions when maxPositions is omitted', () => {
+    const { result } = renderHook(() => usePredictPositionsForHomepage());
 
-    const { result } = renderHook(() =>
-      usePredictPositionsForHomepage(5),
-    );
-
-    await waitFor(() => {
-      expect(result.current.error).toBe('API error');
-    });
-    expect(result.current.positions).toHaveLength(0);
-    expect(result.current.isLoading).toBe(false);
+    expect(result.current.positions).toHaveLength(3);
   });
 
-  it('sets fallback error for non-Error throws', async () => {
-    mockGetPositions.mockRejectedValue('string error');
+  it('maps Error to error string', () => {
+    mockUsePredictPositionsReturn.error = new Error('API error');
 
-    const { result } = renderHook(() =>
-      usePredictPositionsForHomepage(5),
-    );
+    const { result } = renderHook(() => usePredictPositionsForHomepage());
 
-    await waitFor(() => {
-      expect(result.current.error).toBe('Failed to fetch positions');
-    });
+    expect(result.current.error).toBe('API error');
   });
 
-  it('handles null response from getPositions', async () => {
-    mockGetPositions.mockResolvedValue(null);
+  it('maps non-Error to error string', () => {
+    mockUsePredictPositionsReturn.error = 'string error' as unknown as Error;
 
-    const { result } = renderHook(() =>
-      usePredictPositionsForHomepage(5),
-    );
+    const { result } = renderHook(() => usePredictPositionsForHomepage());
 
-    await waitFor(() => {
-      expect(result.current.positions).toHaveLength(0);
-    });
+    expect(result.current.error).toBe('string error');
+  });
+
+  it('returns null error when no error', () => {
+    const { result } = renderHook(() => usePredictPositionsForHomepage());
+
     expect(result.current.error).toBeNull();
   });
 
-  it('uses cached data on subsequent renders within TTL', async () => {
-    const { unmount } = renderHook(() =>
-      usePredictPositionsForHomepage(5),
-    );
+  it('forwards isLoading from usePredictPositions', () => {
+    mockUsePredictPositionsReturn.isLoading = true;
 
-    await waitFor(() => {
-      expect(mockGetPositions).toHaveBeenCalledTimes(1);
-    });
-    unmount();
+    const { result } = renderHook(() => usePredictPositionsForHomepage());
 
-    const { result: result2 } = renderHook(() =>
-      usePredictPositionsForHomepage(5),
-    );
-
-    expect(result2.current.positions).toHaveLength(3);
-    expect(result2.current.isLoading).toBe(false);
-    expect(mockGetPositions).toHaveBeenCalledTimes(1);
+    expect(result.current.isLoading).toBe(true);
   });
 
-  it('clears cache and refetches on refresh', async () => {
-    const { result } = renderHook(() =>
-      usePredictPositionsForHomepage(5),
-    );
+  it('exposes refetch from usePredictPositions', async () => {
+    const { result } = renderHook(() => usePredictPositionsForHomepage());
 
-    await waitFor(() => {
-      expect(mockGetPositions).toHaveBeenCalledTimes(1);
-    });
+    await result.current.refetch();
 
-    await act(async () => {
-      await result.current.refresh();
-    });
-
-    expect(mockGetPositions).toHaveBeenCalledTimes(2);
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
-  describe('claimable parameter', () => {
-    it('passes claimable: false to getPositions by default', async () => {
-      renderHook(() =>
-        usePredictPositionsForHomepage(5),
-      );
+  describe('claimable option', () => {
+    it('defaults claimable to false', () => {
+      const { result } = renderHook(() => usePredictPositionsForHomepage());
 
-      await waitFor(() => {
-        expect(mockGetPositions).toHaveBeenCalledWith({
-          address: '0xuser123',
-          claimable: false,
-        });
-      });
+      expect(result.current.totalClaimableValue).toBe(0);
     });
 
-    it('passes claimable: true to getPositions when specified', async () => {
-      renderHook(() =>
-        usePredictPositionsForHomepage(undefined, true),
-      );
-
-      await waitFor(() => {
-        expect(mockGetPositions).toHaveBeenCalledWith({
-          address: '0xuser123',
-          claimable: true,
-        });
-      });
-    });
-
-    it('uses separate cache keys for claimable and non-claimable fetches', async () => {
-      // Fetch non-claimable
-      const { unmount: unmount1 } = renderHook(() =>
-        usePredictPositionsForHomepage(5, false),
-      );
-      await waitFor(() => {
-        expect(mockGetPositions).toHaveBeenCalledTimes(1);
-      });
-      unmount1();
-
-      // Fetch claimable — must hit the API again (different cache key)
-      renderHook(() =>
-        usePredictPositionsForHomepage(5, true),
-      );
-      await waitFor(() => {
-        expect(mockGetPositions).toHaveBeenCalledTimes(2);
-      });
-    });
-
-    it('serves claimable positions from cache independently of non-claimable', async () => {
-      const claimablePositions = [createMockPosition('c1')];
-      const nonClaimablePositions = [
-        createMockPosition('1'),
-        createMockPosition('2'),
+    it('computes totalClaimableValue as sum of currentValue when claimable is true', () => {
+      mockUsePredictPositionsReturn.data = [
+        createMockPosition('c1', 5),
+        createMockPosition('c2', 10),
+        createMockPosition('c3', 3),
       ];
 
-      mockGetPositions
-        .mockResolvedValueOnce(nonClaimablePositions)
-        .mockResolvedValueOnce(claimablePositions);
+      const { result } = renderHook(() =>
+        usePredictPositionsForHomepage({ claimable: true }),
+      );
 
-      // Populate both caches
-      const {
-        result: r1,
-        unmount: u1,
-      } = renderHook(() => usePredictPositionsForHomepage(undefined, false));
-      await waitFor(() => {
-        expect(r1.current.positions).toHaveLength(2);
-      });
-      u1();
+      expect(result.current.totalClaimableValue).toBe(18);
+    });
 
-      const {
-        result: r2,
-        unmount: u2,
-      } = renderHook(() => usePredictPositionsForHomepage(undefined, true));
-      await waitFor(() => {
-        expect(r2.current.positions).toHaveLength(1);
-      });
-      u2();
+    it('returns totalClaimableValue 0 when claimable is false', () => {
+      mockUsePredictPositionsReturn.data = [createMockPosition('1', 100)];
 
-      // Each set has its own cached value
-      expect(r1.current.positions).toHaveLength(2);
-      expect(r2.current.positions).toHaveLength(1);
+      const { result } = renderHook(() =>
+        usePredictPositionsForHomepage({ claimable: false }),
+      );
+
+      expect(result.current.totalClaimableValue).toBe(0);
+    });
+
+    it('treats undefined currentValue as 0 in totalClaimableValue sum', () => {
+      mockUsePredictPositionsReturn.data = [
+        {
+          ...createMockPosition('c1', 5),
+          currentValue: undefined,
+        } as unknown as PredictPosition,
+      ];
+
+      const { result } = renderHook(() =>
+        usePredictPositionsForHomepage({ claimable: true }),
+      );
+
+      expect(result.current.totalClaimableValue).toBe(0);
     });
   });
 });

@@ -88,13 +88,22 @@ exports[`PredictDetailsHeaderSkeleton matches snapshot 1`] = `
   >
     <View
       style={
-        {
-          "alignSelf": "center",
-          "borderRadius": 6,
-          "height": 20,
-          "overflow": "hidden",
-          "width": "60%",
-        }
+        [
+          {
+            "borderRadius": 4,
+            "overflow": "hidden",
+          },
+          {
+            "height": 20,
+          },
+          {
+            "width": "60%",
+          },
+          {
+            "alignSelf": "center",
+            "borderRadius": 6,
+          },
+        ]
       }
       testID="predict-details-header-skeleton-title"
     >
@@ -118,12 +127,21 @@ exports[`PredictDetailsHeaderSkeleton matches snapshot 1`] = `
   </View>
   <View
     style={
-      {
-        "borderRadius": 6,
-        "height": 24,
-        "overflow": "hidden",
-        "width": 24,
-      }
+      [
+        {
+          "borderRadius": 4,
+          "overflow": "hidden",
+        },
+        {
+          "height": 24,
+        },
+        {
+          "width": 24,
+        },
+        {
+          "borderRadius": 6,
+        },
+      ]
     }
     testID="predict-details-header-skeleton-share"
   >

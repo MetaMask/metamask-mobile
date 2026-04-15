@@ -19,20 +19,6 @@ const mockUsePerpsOrderFees = jest.fn((_params?: unknown) => ({
 }));
 
 // Mock dependencies
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = jest.requireActual('react-native');
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaView: jest
-      .fn()
-      .mockImplementation(({ children, ...props }) => (
-        <View {...props}>{children}</View>
-      )),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-  };
-});
-
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
@@ -93,15 +79,12 @@ jest.mock('react-redux', () => ({
   useSelector: () => ({ address: '0x1234' }),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      success: { default: '#00FF00' },
-      error: { default: '#FF0000' },
-      border: { muted: '#CCCCCC' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),

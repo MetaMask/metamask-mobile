@@ -14,7 +14,7 @@ import {
   SAMPLE_ACCORDIONHEADER_TITLE,
 } from './AccordionHeader.constants';
 
-describe('AccordionHeader - Snapshot', () => {
+describe('AccordionHeader - Rendering', () => {
   it('should render default settings correctly', () => {
     const { toJSON } = render(
       <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />,
@@ -31,22 +31,16 @@ describe('AccordionHeader - Snapshot', () => {
 
 describe('AccordionHeader', () => {
   it('should render AccordionHeader', () => {
-    render(
-      <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />,
-    );
+    render(<AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />);
     expect(screen.getByTestId(TESTID_ACCORDIONHEADER)).toBeDefined();
   });
   it('should render the given title', () => {
-    render(
-      <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />,
-    );
+    render(<AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />);
     const titleElement = screen.getByTestId(TESTID_ACCORDIONHEADER_TITLE);
     expect(titleElement.props.children).toBe(SAMPLE_ACCORDIONHEADER_TITLE);
   });
   it('should render the proper arrow down icon', () => {
-    render(
-      <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />,
-    );
+    render(<AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />);
     const iconElement = screen.getByTestId(TESTID_ACCORDIONHEADER_ARROWICON);
     expect(iconElement.props.name).toBe(IconName.ArrowDown);
   });

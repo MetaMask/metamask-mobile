@@ -21,15 +21,18 @@
 # Shared env (non-secret): servers + build flags. Production defaults.
 # Each build merges <<: *public_envs and overrides only what differs (inline in that build).
 _public_envs: &public_envs # Servers (production)
+  TAP_AND_PAY_SDK_REPO_SSH: 'git@github.com:MetaMask/tap-and-pay-sdk.git'
+  PORTFOLIO_API_URL: 'https://portfolio.api.cx.metamask.io'
   MM_PORTFOLIO_URL: 'https://portfolio.api.cx.metamask.io'
   SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
   DECODING_API_URL: 'https://signature-insights.api.cx.metamask.io/v1'
   AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
-  DIGEST_API_URL: 'https://digest-api.api.cx.metamask.io/api/v1'
+  DIGEST_API_URL: 'https://digest.api.cx.metamask.io/api/v1'
   REWARDS_API_URL: 'https://rewards.api.cx.metamask.io'
   BAANX_API_URL: 'https://api.baanx.com'
-  RAMPS_ENVIRONMENT: 'production'
   # Build flags (production defaults)
+  RAMPS_ENVIRONMENT: 'production'
+  RAMP_DEV_BUILD: 'false'
   BRIDGE_USE_DEV_APIS: 'false'
   RAMP_INTERNAL_BUILD: 'false'
   IS_TEST: 'false'
@@ -42,6 +45,7 @@ _public_envs: &public_envs # Servers (production)
   MM_PERPS_HIP3_ENABLED: 'true'
   # Temporary flag to enable builds with GitHub Actions, remove it when deprecating bitrise
   BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY: 'true'
+  MM_CHARTING_LIBRARY_URL: 'https://charting-assets.static.metamask.io/tradingview/advanced-charts/v30.1.0/'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
@@ -89,6 +93,10 @@ _secrets: &secrets # Infrastructure
   ANDROID_GOOGLE_SERVER_CLIENT_ID: 'ANDROID_GOOGLE_SERVER_CLIENT_ID'
   # Card/Baanx
   MM_CARD_BAANX_API_CLIENT_KEY: 'MM_CARD_BAANX_API_CLIENT_KEY'
+  # Braze
+  MM_BRAZE_API_KEY_IOS: 'MM_BRAZE_API_KEY_IOS'
+  MM_BRAZE_API_KEY_ANDROID: 'MM_BRAZE_API_KEY_ANDROID'
+  MM_BRAZE_SDK_ENDPOINT: 'MM_BRAZE_SDK_ENDPOINT'
   # Expo
   EXPO_PROJECT_ID: 'EXPO_PROJECT_ID'
 
@@ -97,7 +105,7 @@ _secrets: &secrets # Infrastructure
 # GH Environments vs AWS: build-production=prod signer; build-rc & build-beta=rc signer; build-uat/build-e2e/build-exp=uat signer; build-flask-prod=flask prod; build-flask-uat/build-flask-e2e=flask uat
 _signing_prod: &signing_prod
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
-  aws_secret: 'metamask-mobile-main-prod-signer'
+  aws_secret: 'metamask-mobile-main-prod-signer-v2'
   android_keystore_path: 'release.keystore'
 _signing_rc: &signing_rc
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-rc-signer'
@@ -109,7 +117,7 @@ _signing_uat: &signing_uat
   android_keystore_path: 'internalRelease.keystore'
 _signing_flask_prod: &signing_flask_prod
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
-  aws_secret: 'metamask-mobile-flask-prod-signer'
+  aws_secret: 'metamask-mobile-flask-prod-signer-v2'
   android_keystore_path: 'flaskRelease.keystore'
 _signing_flask_uat: &signing_flask_uat
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-uat-signer'
@@ -211,9 +219,10 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
-      DIGEST_API_URL: 'https://digest-api.dev-api.cx.metamask.io/api/v1'
-      RAMPS_ENVIRONMENT: 'staging'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       BRIDGE_USE_DEV_APIS: 'true'
+      RAMPS_ENVIRONMENT: 'staging'
+      RAMP_DEV_BUILD: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       IS_TEST: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
@@ -232,10 +241,11 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
-      DIGEST_API_URL: 'https://digest-api.dev-api.cx.metamask.io/api/v1'
-      RAMPS_ENVIRONMENT: 'staging'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       BRIDGE_USE_DEV_APIS: 'true'
+      RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
+      RAMP_DEV_BUILD: 'true'
       IS_TEST: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
@@ -253,18 +263,20 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
-      DIGEST_API_URL: 'https://digest-api.dev-api.cx.metamask.io/api/v1'
-      RAMPS_ENVIRONMENT: 'staging'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       BRIDGE_USE_DEV_APIS: 'true'
+      RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
+      RAMP_DEV_BUILD: 'true'
       IS_TEST: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
-  # Local development / Expo development build (Runway .app for simulator)
+  # Local development / Expo development build (simulator .app + optional device IPA when IS_DEVICE_BUILD)
   main-dev:
     github_environment: build-exp
+    signing: *signing_uat
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
@@ -272,13 +284,15 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
-      DIGEST_API_URL: 'https://digest-api.dev-api.cx.metamask.io/api/v1'
-      RAMPS_ENVIRONMENT: 'staging'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       BRIDGE_USE_DEV_APIS: 'true'
+      RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
+      RAMP_DEV_BUILD: 'true'
       IS_TEST: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       IS_SIM_BUILD: 'true'
+      IS_DEVICE_BUILD: 'true'
       CONFIGURATION: 'Debug'
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
@@ -310,10 +324,11 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
-      DIGEST_API_URL: 'https://digest-api.dev-api.cx.metamask.io/api/v1'
-      RAMPS_ENVIRONMENT: 'staging'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       BRIDGE_USE_DEV_APIS: 'true'
+      RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
+      RAMP_DEV_BUILD: 'true'
       IS_TEST: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
@@ -331,10 +346,11 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
-      DIGEST_API_URL: 'https://digest-api.dev-api.cx.metamask.io/api/v1'
-      RAMPS_ENVIRONMENT: 'staging'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       BRIDGE_USE_DEV_APIS: 'true'
+      RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
+      RAMP_DEV_BUILD: 'true'
       IS_TEST: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
@@ -351,9 +367,10 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
-      DIGEST_API_URL: 'https://digest-api.dev-api.cx.metamask.io/api/v1'
-      RAMPS_ENVIRONMENT: 'staging'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       BRIDGE_USE_DEV_APIS: 'true'
+      RAMPS_ENVIRONMENT: 'staging'
+      RAMP_DEV_BUILD: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       IS_TEST: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
@@ -401,10 +418,11 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
-      DIGEST_API_URL: 'https://digest-api.dev-api.cx.metamask.io/api/v1'
-      RAMPS_ENVIRONMENT: 'staging'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       BRIDGE_USE_DEV_APIS: 'true'
+      RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
+      RAMP_DEV_BUILD: 'true'
       IS_TEST: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       IS_SIM_BUILD: 'true'

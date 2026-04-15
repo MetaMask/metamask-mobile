@@ -5,8 +5,6 @@ import StakingBalance from '../../../Stake/components/StakingBalance/StakingBala
 import { TokenI } from '../../../Tokens/types';
 import EarnLendingBalance from '../EarnLendingBalance';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
-import { selectTronResourcesBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
-import TronStakingButtons from '../Tron/TronStakingButtons';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../selectors/featureFlags';
 
 /**
@@ -24,16 +22,6 @@ jest.mock(
     selectTrxStakingEnabled: jest.fn(),
   }),
 );
-
-jest.mock('../../../../../selectors/assets/assets-list', () => ({
-  ...jest.requireActual('../../../../../selectors/assets/assets-list'),
-  selectTronResourcesBySelectedAccountGroup: jest.fn(),
-}));
-
-jest.mock('../Tron/TronStakingButtons', () => ({
-  __esModule: true,
-  default: jest.fn(() => null),
-}));
 
 jest.mock('../../../../../selectors/earnController', () => ({
   ...jest.requireActual('../../../../../selectors/earnController'),
@@ -128,32 +116,10 @@ const mockUseMusdConversionEligibility =
     typeof useMusdConversionEligibility
   >;
 
-jest.mock('../../hooks/useTronStakeApy', () => ({
-  __esModule: true,
-  default: jest.fn().mockReturnValue({
-    apyPercent: '4.5%',
-    isLoading: false,
-    error: null,
-  }),
-}));
-
-const createEmptyResourcesMap = () => ({
-  energy: undefined,
-  bandwidth: undefined,
-  maxEnergy: undefined,
-  maxBandwidth: undefined,
-  stakedTrxForEnergy: undefined,
-  stakedTrxForBandwidth: undefined,
-  totalStakedTrx: 0,
-});
-
 describe('EarnBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (jest.mocked(selectTrxStakingEnabled) as jest.Mock).mockReturnValue(false);
-    (
-      jest.mocked(selectTronResourcesBySelectedAccountGroup) as jest.Mock
-    ).mockReturnValue(createEmptyResourcesMap());
   });
 
   describe('Ethereum Mainnet', () => {
@@ -250,10 +216,8 @@ describe('EarnBalance', () => {
 
   describe('TRON', () => {
     const mockFlag = selectTrxStakingEnabled as unknown as jest.Mock;
-    const mockTronResources =
-      selectTronResourcesBySelectedAccountGroup as unknown as jest.Mock;
 
-    it('renders TRON stake button with aprText for TRX without staked positions', () => {
+    it('renders nothing for TRX when Tron staking is enabled', () => {
       const trx: Partial<TokenI> = {
         chainId: 'tron:728126428',
         ticker: 'TRX',
@@ -261,19 +225,17 @@ describe('EarnBalance', () => {
       };
 
       mockFlag.mockReturnValue(true);
-      mockTronResources.mockReturnValue(createEmptyResourcesMap());
 
-      renderWithProvider(<EarnBalance asset={trx as TokenI} />);
+      const { toJSON } = renderWithProvider(
+        <EarnBalance asset={trx as TokenI} />,
+      );
 
-      expect(TronStakingButtons).toHaveBeenCalled();
-      const props = (TronStakingButtons as jest.Mock).mock.calls[0][0];
-      expect(props.asset).toBe(trx);
-      expect(props.aprText).toBe('4.5%');
-      expect(props.showUnstake).toBeUndefined();
-      expect(props.hasStakedPositions).toBeUndefined();
+      expect(toJSON()).toBeNull();
+      expect(StakingBalance).not.toHaveBeenCalled();
+      expect(EarnLendingBalance).not.toHaveBeenCalled();
     });
 
-    it('renders TRON stake more and unstake for sTRX with staked positions', () => {
+    it('renders nothing for sTRX when Tron staking is enabled', () => {
       const strx: Partial<TokenI> = {
         chainId: 'tron:728126428',
         ticker: 'sTRX',
@@ -282,20 +244,14 @@ describe('EarnBalance', () => {
       };
 
       mockFlag.mockReturnValue(true);
-      mockTronResources.mockReturnValue({
-        ...createEmptyResourcesMap(),
-        stakedTrxForEnergy: { symbol: 'strx-energy', balance: '1' },
-        stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '2' },
-        totalStakedTrx: 3,
-      });
 
-      renderWithProvider(<EarnBalance asset={strx as TokenI} />);
+      const { toJSON } = renderWithProvider(
+        <EarnBalance asset={strx as TokenI} />,
+      );
 
-      expect(TronStakingButtons).toHaveBeenCalled();
-      const props = (TronStakingButtons as jest.Mock).mock.calls[0][0];
-      expect(props.asset).toBe(strx);
-      expect(props.showUnstake).toBe(true);
-      expect(props.hasStakedPositions).toBe(true);
+      expect(toJSON()).toBeNull();
+      expect(StakingBalance).not.toHaveBeenCalled();
+      expect(EarnLendingBalance).not.toHaveBeenCalled();
     });
   });
 

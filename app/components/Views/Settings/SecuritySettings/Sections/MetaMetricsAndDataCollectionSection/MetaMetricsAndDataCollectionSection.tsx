@@ -32,6 +32,7 @@ import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthenti
 import OAuthService from '../../../../../../core/OAuthService/OAuthService';
 import Logger from '../../../../../../util/Logger';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
+import { selectOnboardingAccountType } from '../../../../../../selectors/onboarding';
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
 import { selectIsPna25FlagEnabled } from '../../../../../../selectors/featureFlagController/legalNotices';
@@ -64,6 +65,8 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
+
+  const accountType = useSelector(selectOnboardingAccountType);
 
   const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
   const isPna25Acknowledged = useSelector(selectIsPna25Acknowledged);
@@ -113,12 +116,24 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       analytics.identify(consolidatedTraits);
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.METRICS_OPT_IN,
+        )
+          .addProperties({
+            updated_after_onboarding: true,
+            location: analyticsLocation,
+            ...(accountType && { account_type: accountType }),
+          })
+          .build(),
+      );
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
         )
           .addProperties({
             is_metrics_opted_in: true,
             updated_after_onboarding: true,
             location: analyticsLocation,
+            ...(accountType && { account_type: accountType }),
           })
           .build(),
       );
@@ -138,6 +153,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
           .addProperties({
             updated_after_onboarding: true,
             location: analyticsLocation,
+            ...(accountType && { account_type: accountType }),
           })
           .build(),
       );
@@ -157,9 +173,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
   const addMarketingConsentToTraits = (marketingOptIn: boolean) => {
     analytics.identify({
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn
-        ? UserProfileProperty.ON
-        : UserProfileProperty.OFF,
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn,
     });
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(

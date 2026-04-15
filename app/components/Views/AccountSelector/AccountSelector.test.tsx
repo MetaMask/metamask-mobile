@@ -101,11 +101,12 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
     dispatch: jest.fn(),
+    isFocused: jest.fn(() => true),
   }),
 }));
 
 // Mock whenEngineReady
-jest.mock('../../../core/Analytics/whenEngineReady', () => ({
+jest.mock('../../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -132,7 +133,10 @@ const createTestState = (
     // Extract wallet ID from group ID (e.g., 'entropy:wallet1/group1' -> 'entropy:wallet1')
     const groupIdStr = group.id as string;
     const slashIndex = groupIdStr.indexOf('/');
-    const walletId = slashIndex !== -1 ? groupIdStr.substring(0, slashIndex) : `wallet${index + 1}`;
+    const walletId =
+      slashIndex !== -1
+        ? groupIdStr.substring(0, slashIndex)
+        : `wallet${index + 1}`;
     return createMockEntropyWallet(walletId, `Wallet ${index + 1}`, [group]);
   });
 
@@ -143,9 +147,9 @@ const createTestState = (
   if (selectedGroupId) {
     (
       baseState.engine.backgroundState.AccountTreeController as {
-        accountTree: { selectedAccountGroup: string };
+        selectedAccountGroup: string;
       }
-    ).accountTree.selectedAccountGroup = selectedGroupId;
+    ).selectedAccountGroup = selectedGroupId;
   }
 
   return baseState;
@@ -695,9 +699,9 @@ describe('AccountSelector', () => {
       const emptyState = createTestState([mockAccountGroup1]);
       (
         emptyState.engine.backgroundState.AccountTreeController as {
-          accountTree: { selectedAccountGroup: string };
+          selectedAccountGroup: string;
         }
-      ).accountTree.selectedAccountGroup = '';
+      ).selectedAccountGroup = '';
 
       renderScreen(
         AccountSelectorWrapper,

@@ -4,7 +4,10 @@ import {
   OriginatorInfo,
   RemoteCommunication,
 } from '@metamask/sdk-communication-layer';
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import EventEmitter2 from 'eventemitter2';
 import AppConstants from '../../AppConstants';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';

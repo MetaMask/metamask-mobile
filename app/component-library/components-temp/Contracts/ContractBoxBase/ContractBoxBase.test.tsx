@@ -25,22 +25,23 @@ describe('Component ContractBoxBase', () => {
     };
   });
 
-  const renderComponent = () => renderWithProvider(<ContractBoxBase {...props} />, {
-    state: {
-      engine: {
-        backgroundState: {
-          PreferencesController: { isIpfsGatewayEnabled: true },
+  const renderComponent = () =>
+    renderWithProvider(<ContractBoxBase {...props} />, {
+      state: {
+        engine: {
+          backgroundState: {
+            PreferencesController: { isIpfsGatewayEnabled: true },
+          },
         },
       },
-    },
-  });
+    });
 
   it('should render correctly', () => {
     const { toJSON } = renderComponent();
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render correctly when contract petname is not provided', () => {
+  it('renders the no-pet-name element when contractPetName is undefined', () => {
     props.contractPetName = undefined;
     renderComponent();
     expect(screen.getByTestId(CONTRACT_BOX_NO_PET_NAME_TEST_ID)).toBeTruthy();

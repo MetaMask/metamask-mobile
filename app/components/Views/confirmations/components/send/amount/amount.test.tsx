@@ -8,6 +8,7 @@ import renderWithProvider, {
 import {
   ETHEREUM_ADDRESS,
   MOCK_NFT1155,
+  MOCK_NFT721,
   SOLANA_ASSET,
   TOKEN_ADDRESS_MOCK_1,
   evmSendStateMock,
@@ -27,7 +28,9 @@ jest.mock('../../../context/send-context', () => ({
 
 jest.mock('../../../hooks/send/useCurrencyConversions');
 
-jest.mock('../../../hooks/send/useRouteParams');
+jest.mock('../../../hooks/send/useRouteParams', () => ({
+  useRouteParams: jest.fn().mockReturnValue({ isLoading: false }),
+}));
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn().mockReturnValue({}),
@@ -318,6 +321,23 @@ describe('Amount', () => {
 
     expect(getByText('Doodleverse (Draw Me Closer) Pack')).toBeTruthy();
     expect(getByText('17')).toBeTruthy();
+  });
+
+  it('displays NFT image and details for ERC721 asset', async () => {
+    mockUseSendContext.mockReturnValue({
+      asset: MOCK_NFT721,
+      updateValue: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
+
+    const { getByTestId, getByText, queryByText } = renderComponent();
+
+    await waitFor(() => {
+      expect(getByTestId('nft-image')).toBeTruthy();
+    });
+
+    expect(getByText('Bored Ape Yacht Club #1')).toBeTruthy();
+    // ERC721 has no ticker/symbol — display symbol must be 'NFT', not empty
+    expect(queryByText('NFT')).toBeTruthy();
   });
 
   // it('display total balance correctly for ERC20 token', () => {

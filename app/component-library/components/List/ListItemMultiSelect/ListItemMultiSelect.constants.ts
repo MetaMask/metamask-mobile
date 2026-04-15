@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 // External dependencies.
 import { SAMPLE_LISTITEM_PROPS } from '../../List/ListItem/ListItem.constants';
 

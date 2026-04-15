@@ -31,7 +31,8 @@ const mockPop = jest.fn();
 const mockNavigation = {
   goBack: jest.fn(),
   setOptions: mockSetOptions,
-  dangerouslyGetParent: () => ({ pop: mockPop }),
+  getParent: () => ({ pop: mockPop }),
+  isFocused: jest.fn(() => true),
 };
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -114,20 +115,20 @@ describe('Checkout', () => {
   });
 
   it('displays WebView when url is present and no errors', () => {
-    const { toJSON } = render();
-    expect(toJSON()).toMatchSnapshot();
+    const { getByTestId } = render();
+    expect(getByTestId('checkout-webview')).toBeOnTheScreen();
   });
 
   it('displays sell WebView when url is present and no errors', () => {
     mockUseRampSDKValues.isBuy = false;
-    const { toJSON } = render();
-    expect(toJSON()).toMatchSnapshot();
+    const { getByTestId } = render();
+    expect(getByTestId('checkout-webview')).toBeOnTheScreen();
   });
 
   it('displays sdkError when present', () => {
     mockUseRampSDKValues.sdkError = new Error('SDK Error');
-    const { toJSON } = render();
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = render();
+    expect(getByText('SDK Error')).toBeOnTheScreen();
   });
 
   it('displays and tracks error if no url or errors', () => {
@@ -137,8 +138,8 @@ describe('Checkout', () => {
       customOrderId: 'test-order-id',
       provider: { id: 'test-provider', name: 'Test Provider' } as Provider,
     });
-    const { toJSON } = render();
-    expect(toJSON()).toMatchSnapshot();
+    const { getByTestId } = render();
+    expect(getByTestId('checkout-close-button')).toBeOnTheScreen();
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'ONRAMP_ERROR',
       expect.any(Object),
@@ -200,7 +201,7 @@ describe('Checkout', () => {
   });
 
   it('sets and displays error on http error in WebView', async () => {
-    const { getByTestId, toJSON, getByText } = render();
+    const { getByTestId, getByText } = render();
     const webView = getByTestId('checkout-webview');
     await act(async () => {
       await webView.props.onHttpError({
@@ -211,17 +212,15 @@ describe('Checkout', () => {
         },
       });
     });
-    expect(toJSON()).toMatchSnapshot();
-
     const tryAgainButton = getByText('Try again');
-    expect(tryAgainButton).toBeDefined();
+    expect(tryAgainButton).toBeOnTheScreen();
     act(() => {
       fireEvent.press(tryAgainButton);
     });
   });
 
   it('sets and displays error on http error in WebView for callback url', async () => {
-    const { getByTestId, toJSON } = render();
+    const { getByTestId, getByText } = render();
     const webView = getByTestId('checkout-webview');
     await act(async () => {
       await webView.props.onHttpError({
@@ -232,11 +231,11 @@ describe('Checkout', () => {
         },
       });
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Try again')).toBeOnTheScreen();
   });
 
   it('ignores irrelevant error on http error in WebView for callback url', async () => {
-    const { getByTestId, toJSON } = render();
+    const { getByTestId, queryByText } = render();
     const webView = getByTestId('checkout-webview');
     await act(async () => {
       await webView.props.onHttpError({
@@ -247,7 +246,7 @@ describe('Checkout', () => {
         },
       });
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(queryByText('Try again')).not.toBeOnTheScreen();
   });
 
   it('ignores irrelevant url navigation state changes', async () => {
@@ -290,7 +289,7 @@ describe('Checkout', () => {
 
   it('sets error when handling url navigation state change and selectedAddress is undefined', async () => {
     mockUseRampSDKValues.selectedAddress = undefined;
-    const { getByTestId, toJSON, getByText } = render();
+    const { getByTestId, getByText } = render();
     const webView = getByTestId('checkout-webview');
     await act(async () => {
       await webView.props.onNavigationStateChange({
@@ -299,10 +298,9 @@ describe('Checkout', () => {
       });
     });
 
-    expect(toJSON()).toMatchSnapshot();
     expect(
       getByText('No wallet address was provided to continue'),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('handles successful buy order on url navigation state change', async () => {
@@ -379,7 +377,7 @@ describe('Checkout', () => {
     (SDK.orders as jest.Mock).mockResolvedValueOnce({
       getOrderFromCallback: mockGetOrderFromCallback,
     });
-    const { getByTestId, toJSON } = render();
+    const { getByTestId } = render();
     const webView = getByTestId('checkout-webview');
     await act(async () => {
       await webView.props.onNavigationStateChange({
@@ -388,7 +386,7 @@ describe('Checkout', () => {
       });
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('checkout-close-button')).toBeOnTheScreen();
   });
 
   it('handles undefined order gracefully', async () => {
@@ -396,7 +394,7 @@ describe('Checkout', () => {
     (SDK.orders as jest.Mock).mockResolvedValueOnce({
       getOrderFromCallback: mockGetOrderFromCallback,
     });
-    const { getByTestId, toJSON } = render();
+    const { getByTestId } = render();
     const webView = getByTestId('checkout-webview');
     await act(async () => {
       await webView.props.onNavigationStateChange({
@@ -405,7 +403,7 @@ describe('Checkout', () => {
       });
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('checkout-close-button')).toBeOnTheScreen();
   });
 
   describe('onShouldStartLoadWithRequest', () => {

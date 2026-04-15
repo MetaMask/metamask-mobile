@@ -1,10 +1,12 @@
 import React, { ComponentType } from 'react';
+import { RefreshControl } from 'react-native';
 import { TransactionStatus } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import UnifiedTransactionsView from './UnifiedTransactionsView';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
+import { useUnifiedTxActions } from './useUnifiedTxActions';
 
 // Type helper for UNSAFE_queryByType with mocked string components
 const asComponentType = (name: string) => name as unknown as ComponentType;
@@ -47,36 +49,35 @@ jest.mock('../../UI/AssetOverview/PriceChart/PriceChart.context', () => ({
   PriceChartProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+const mockBridgeHistoryItemsBySrcTxHash: Record<string, unknown> = {};
 jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
   useBridgeHistoryItemBySrcTxHash: () => ({
-    bridgeHistoryItemsBySrcTxHash: {},
+    bridgeHistoryItemsBySrcTxHash: mockBridgeHistoryItemsBySrcTxHash,
   }),
 }));
 
+const mockDefaultUnifiedTxActionsReturn = {
+  retryIsOpen: false,
+  retryErrorMsg: '',
+  speedUpIsOpen: false,
+  cancelIsOpen: false,
+  confirmDisabled: false,
+  existingTx: null,
+  speedUpTxId: null,
+  cancelTxId: null,
+  toggleRetry: jest.fn(),
+  onSpeedUpAction: jest.fn(),
+  onCancelAction: jest.fn(),
+  onSpeedUpCancelCompleted: jest.fn(),
+  speedUpTransaction: jest.fn(),
+  cancelTransaction: jest.fn(),
+  signQRTransaction: jest.fn(),
+  signLedgerTransaction: jest.fn(),
+  cancelUnsignedQRTransaction: jest.fn(),
+};
+
 jest.mock('./useUnifiedTxActions', () => ({
-  useUnifiedTxActions: () => ({
-    retryIsOpen: false,
-    retryErrorMsg: '',
-    speedUpIsOpen: false,
-    cancelIsOpen: false,
-    speedUp1559IsOpen: false,
-    cancel1559IsOpen: false,
-    speedUpConfirmDisabled: false,
-    cancelConfirmDisabled: false,
-    existingTx: null,
-    speedUpTxId: null,
-    cancelTxId: null,
-    toggleRetry: jest.fn(),
-    onSpeedUpAction: jest.fn(),
-    onCancelAction: jest.fn(),
-    onSpeedUpCompleted: jest.fn(),
-    onCancelCompleted: jest.fn(),
-    speedUpTransaction: jest.fn(),
-    cancelTransaction: jest.fn(),
-    signQRTransaction: jest.fn(),
-    signLedgerTransaction: jest.fn(),
-    cancelUnsignedQRTransaction: jest.fn(),
-  }),
+  useUnifiedTxActions: jest.fn(() => mockDefaultUnifiedTxActionsReturn),
 }));
 
 jest.mock('./useTransactionAutoScroll', () => ({
@@ -93,6 +94,30 @@ jest.mock('../../hooks/useBlockExplorer', () => ({
   }),
 }));
 
+const mockSelectBridgeHistoryForAccount = jest.fn(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  (_state: unknown) => ({}) as Record<string, unknown>,
+);
+jest.mock('../../../selectors/bridgeStatusController', () => ({
+  ...jest.requireActual('../../../selectors/bridgeStatusController'),
+  selectBridgeHistoryForAccount: (...args: unknown[]) =>
+    mockSelectBridgeHistoryForAccount(args[0]),
+}));
+
+const mockSelectNonEvmTransactions = jest.fn(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  (_state: unknown) => ({
+    transactions: [] as unknown[],
+    next: null,
+    lastUpdated: 0,
+  }),
+);
+jest.mock('../../../selectors/multichain/multichain', () => ({
+  ...jest.requireActual('../../../selectors/multichain/multichain'),
+  selectNonEvmTransactionsForSelectedAccountGroup: (...args: unknown[]) =>
+    mockSelectNonEvmTransactions(args[0]),
+}));
+
 jest.mock('../../UI/TransactionElement', () => 'TransactionElement');
 jest.mock(
   '../../UI/MultichainTransactionListItem',
@@ -107,16 +132,25 @@ jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
   return {
-    CancelSpeedupModal: ({ isCancel }: { isCancel: boolean }) =>
-      ReactActual.createElement(
-        Text,
-        {
-          testID: isCancel ? 'cancel-modal' : 'speedup-modal',
-        },
-        isCancel ? 'Cancel Transaction' : 'Speed Up Transaction',
-      ),
+    CancelSpeedupModal: ({
+      isVisible,
+      isCancel,
+    }: {
+      isVisible: boolean;
+      isCancel: boolean;
+    }) =>
+      isVisible
+        ? ReactActual.createElement(
+            Text,
+            {
+              testID: isCancel ? 'cancel-modal' : 'speedup-modal',
+            },
+            isCancel ? 'Cancel Transaction' : 'Speed Up Transaction',
+          )
+        : null,
   };
 });
+
 jest.mock('../../UI/Transactions/RetryModal', () => 'RetryModal');
 jest.mock(
   '../../UI/Transactions/TransactionsFooter',
@@ -150,7 +184,7 @@ jest.mock(
       '../../../selectors/multichainAccounts/accountTreeController',
     ),
     selectSelectedAccountGroupInternalAccounts: () => [
-      { address: '0xabc', type: 'eip155:eoa' },
+      { id: '0xabc', address: '0xabc', type: 'eip155:eoa' },
     ],
   }),
 );
@@ -164,6 +198,9 @@ describe('UnifiedTransactionsView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useUnifiedTxActions as jest.Mock).mockImplementation(
+      () => mockDefaultUnifiedTxActionsReturn,
+    );
   });
 
   afterEach(() => {
@@ -313,6 +350,9 @@ describe('UnifiedTransactionsView with transactions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useUnifiedTxActions as jest.Mock).mockImplementation(
+      () => mockDefaultUnifiedTxActionsReturn,
+    );
   });
 
   it('renders TransactionElement for EVM transactions', () => {
@@ -329,6 +369,91 @@ describe('UnifiedTransactionsView with transactions', () => {
       asComponentType('TransactionElement'),
     );
     expect(transactionElements.length).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe('UnifiedTransactionsView - Speed up / Cancel modal', () => {
+  const initialState = {
+    engine: {
+      backgroundState,
+    },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useUnifiedTxActions as jest.Mock).mockImplementation(
+      () => mockDefaultUnifiedTxActionsReturn,
+    );
+  });
+
+  it('does not render CancelSpeedupModal when both speed up and cancel are closed', () => {
+    const { queryByTestId } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: initialState,
+    });
+
+    expect(queryByTestId('speedup-modal')).not.toBeOnTheScreen();
+    expect(queryByTestId('cancel-modal')).not.toBeOnTheScreen();
+  });
+
+  it('renders CancelSpeedupModal as speed up when speedUpIsOpen is true', () => {
+    (useUnifiedTxActions as jest.Mock).mockReturnValue({
+      ...mockDefaultUnifiedTxActionsReturn,
+      speedUpIsOpen: true,
+      existingTx: { id: 'tx-1', chainId: '0x1' },
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      { state: initialState },
+    );
+
+    expect(getByTestId('speedup-modal')).toBeOnTheScreen();
+    expect(getByText('Speed Up Transaction')).toBeOnTheScreen();
+  });
+
+  it('renders CancelSpeedupModal as cancel when cancelIsOpen is true', () => {
+    (useUnifiedTxActions as jest.Mock).mockReturnValue({
+      ...mockDefaultUnifiedTxActionsReturn,
+      cancelIsOpen: true,
+      existingTx: { id: 'tx-1', chainId: '0x1' },
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      { state: initialState },
+    );
+
+    expect(getByTestId('cancel-modal')).toBeOnTheScreen();
+    expect(getByText('Cancel Transaction')).toBeOnTheScreen();
+  });
+});
+
+describe('UnifiedTransactionsView - refresh', () => {
+  const initialState = {
+    engine: {
+      backgroundState,
+    },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useUnifiedTxActions as jest.Mock).mockImplementation(
+      () => mockDefaultUnifiedTxActionsReturn,
+    );
+  });
+
+  it('calls updateIncomingTransactions when refresh is triggered', async () => {
+    const { UNSAFE_getByType } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      { state: initialState },
+    );
+
+    const refreshControl = UNSAFE_getByType(RefreshControl);
+    expect(refreshControl.props.onRefresh).toBeDefined();
+
+    await refreshControl.props.onRefresh();
+
+    expect(updateIncomingTransactions).toHaveBeenCalled();
   });
 });
 
@@ -377,6 +502,9 @@ describe('UnifiedTransactionsView - token poisoning protection', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useUnifiedTxActions as jest.Mock).mockImplementation(
+      () => mockDefaultUnifiedTxActionsReturn,
+    );
     // Re-set implementations after any prior resetAllMocks() calls
     (mockBuildTrustedAddressSet as jest.Mock).mockReturnValue(
       new Set<string>(),
@@ -458,6 +586,148 @@ describe('UnifiedTransactionsView - token poisoning protection', () => {
     });
 
     // Transaction passes filter → data is non-empty → empty state is absent
-    expect(queryByText('You have no transactions')).toBeNull();
+    expect(queryByText('You have no transactions')).not.toBeOnTheScreen();
+  });
+});
+
+describe('UnifiedTransactionsView - cross-chain bridge visibility', () => {
+  const SOLANA_TX_HASH = 'SolanaTxHash123abc';
+
+  const bridgeHistoryItem = {
+    txMetaId: SOLANA_TX_HASH,
+    account: '0xabc',
+    quote: {
+      srcChainId: 1151111081099710,
+      destChainId: 10,
+      srcAsset: {
+        symbol: 'SOL',
+        chainId: 1151111081099710,
+        decimals: 9,
+        address: 'native',
+      },
+      destAsset: {
+        symbol: 'ETH',
+        chainId: 10,
+        decimals: 18,
+        address: 'native',
+        assetId: 'eip155:10/slip44:60',
+      },
+    },
+    status: {
+      srcChain: {
+        txHash: SOLANA_TX_HASH,
+        chainId: 1151111081099710,
+        amount: '1',
+      },
+      destChain: { txHash: '0xDestHash', chainId: 10, amount: '0.1' },
+      status: 'COMPLETE',
+    },
+    estimatedProcessingTimeInSeconds: 60,
+    slippagePercentage: 0,
+    completionTime: Date.now(),
+    startTime: Date.now() - 60000,
+  };
+
+  const solanaTransaction = {
+    id: SOLANA_TX_HASH,
+    chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    type: 'send',
+    status: 'confirmed',
+    timestamp: Math.floor(Date.now() / 1000),
+    account: '0xabc',
+    events: [],
+    from: [],
+    to: [],
+  };
+
+  const {
+    filterByAddress: mockFilterByAddress2,
+    isTransactionOnChains: mockIsTransactionOnChains2,
+    buildTrustedAddressSet: mockBuildTrustedAddressSet2,
+  } = jest.requireMock('../../../util/activity');
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useUnifiedTxActions as jest.Mock).mockImplementation(
+      () => mockDefaultUnifiedTxActionsReturn,
+    );
+    (mockFilterByAddress2 as jest.Mock).mockReturnValue(true);
+    (mockIsTransactionOnChains2 as jest.Mock).mockReturnValue(true);
+    (mockBuildTrustedAddressSet2 as jest.Mock).mockReturnValue(new Set());
+    mockBridgeHistoryItemsBySrcTxHash[SOLANA_TX_HASH] = bridgeHistoryItem;
+  });
+
+  afterEach(() => {
+    delete mockBridgeHistoryItemsBySrcTxHash[SOLANA_TX_HASH];
+    jest.resetAllMocks();
+  });
+
+  it('shows bridge source tx when only destination EVM chain is enabled', () => {
+    mockSelectBridgeHistoryForAccount.mockReturnValue({
+      [SOLANA_TX_HASH]: bridgeHistoryItem,
+    });
+    mockSelectNonEvmTransactions.mockReturnValue({
+      transactions: [solanaTransaction],
+      next: null,
+      lastUpdated: Date.now(),
+    });
+
+    const stateWithBridge = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkEnablementController: {
+            ...backgroundState.NetworkEnablementController,
+            enabledNetworkMap: {
+              eip155: { '0xa': true },
+            },
+          },
+        },
+      },
+    };
+
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      { state: stateWithBridge },
+    );
+
+    const bridgeItems = UNSAFE_queryAllByType(
+      asComponentType('MultichainBridgeTransactionListItem'),
+    );
+    expect(bridgeItems.length).toBe(1);
+  });
+
+  it('does not show non-bridge non-EVM tx when only EVM chains are enabled', () => {
+    const nonBridgeSolTx = {
+      ...solanaTransaction,
+      id: 'RegularSolanaTx',
+    };
+
+    mockSelectBridgeHistoryForAccount.mockReturnValue({});
+    mockSelectNonEvmTransactions.mockReturnValue({
+      transactions: [nonBridgeSolTx],
+      next: null,
+      lastUpdated: Date.now(),
+    });
+
+    const stateWithNonBridgeTx = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkEnablementController: {
+            ...backgroundState.NetworkEnablementController,
+            enabledNetworkMap: {
+              eip155: { '0xa': true },
+            },
+          },
+        },
+      },
+    };
+
+    const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: stateWithNonBridgeTx,
+    });
+
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
   });
 });

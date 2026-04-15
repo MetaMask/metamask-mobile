@@ -35,7 +35,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 import { useTheme } from '../../../util/theme';
 import { Theme } from '../../../util/theme/models';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Icon, {
   IconName,
   IconSize,
@@ -143,7 +143,7 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
+const frameImage = require('../../../images/frame.png'); // eslint-disable-line import-x/no-commonjs
 
 interface AnimatedQRScannerProps {
   visible: boolean;
@@ -167,7 +167,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   const [urDecoder, setURDecoder] = useState(new URRegistryDecoder());
   const [progress, setProgress] = useState(0);
   const theme = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(theme);
 
   const cameraDevice = useCameraDevice('back');
@@ -371,9 +371,11 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
               </View>
 
               <View style={styles.overlay}>
-                <Text style={styles.scanningText}>{`${strings(
-                  'qr_scanner.scanning',
-                )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
+                {progress > 0 && (
+                  <Text style={styles.scanningText}>{`${strings(
+                    'qr_scanner.scanning',
+                  )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
+                )}
               </View>
             </View>
             {/* Close button */}

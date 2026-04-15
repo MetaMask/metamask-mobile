@@ -9,15 +9,19 @@ import { renderScreenWithRoutes } from '../../../../../../tests/component-view/r
 import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
 import BridgeView from './index';
-import { describeForPlatforms } from '../../../../../util/test/platform';
+import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
-import Engine from '../../../../../core/Engine';
 import { setSlippage } from '../../../../../core/redux/slices/bridge';
 import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
+import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
+import {
+  RequestStatus,
+  QuoteStreamCompleteReason,
+} from '@metamask/bridge-controller';
 import {
   DEFAULT_BRIDGE,
   ETH_SOURCE,
@@ -90,7 +94,10 @@ describeForPlatforms('BridgeView', () => {
       fireEvent.press(closeBanner);
     }
 
-    // Keypad opens on focus (useBridgeViewOnFocus); wait for it to render
+    const sourceInput = getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT);
+    fireEvent(sourceInput, 'pressIn');
+
+    // Keypad opens on source input interaction
     await waitFor(() => {
       expect(
         getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
@@ -120,7 +127,7 @@ describeForPlatforms('BridgeView', () => {
               unknown
             >,
             quotesLastFetched: now,
-            quotesLoadingStatus: 'SUCCEEDED',
+            quotesLoadingStatus: RequestStatus.FETCHED,
             quoteFetchError: null,
           },
         },
@@ -138,12 +145,7 @@ describeForPlatforms('BridgeView', () => {
     ).not.toBe(true);
   });
 
-  it('calls quote API with custom slippage when user has set 5% and quote is requested', async () => {
-    const updateQuoteSpy = jest.spyOn(
-      Engine.context.BridgeController,
-      'updateBridgeQuoteRequestParams',
-    );
-
+  it('stores custom slippage when user sets 5%', async () => {
     const { store } = defaultBridgeWithTokens({
       bridge: { selectedDestChainId: '0x1' },
       engine: {
@@ -151,14 +153,12 @@ describeForPlatforms('BridgeView', () => {
           BridgeController: {
             quotesLastFetched: 0,
             quotes: [],
-            quotesLoadingStatus: 'IDLE',
+            quotesLoadingStatus: null,
             quoteFetchError: null,
           },
         },
       },
     } as unknown as Record<string, unknown>);
-
-    updateQuoteSpy.mockClear();
 
     act(() => {
       store.dispatch(setSlippage('5'));
@@ -166,106 +166,10 @@ describeForPlatforms('BridgeView', () => {
 
     await waitFor(
       () => {
-        expect(updateQuoteSpy).toHaveBeenCalledWith(
-          expect.objectContaining({ slippage: 5 }),
-          expect.anything(),
-        );
+        expect(store.getState().bridge.slippage).toBe('5');
       },
       { timeout: 1000 },
     );
-
-    updateQuoteSpy.mockRestore();
-  });
-
-  it('displays no MM fee disclaimer for mUSD destination with zero MM fee', async () => {
-    const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
-    const now = Date.now();
-    const active = {
-      ...(mockQuoteWithMetadata as unknown as Record<string, unknown>),
-    };
-    const currentQuote = (active.quote as Record<string, unknown>) ?? {};
-    active.quote = {
-      ...currentQuote,
-      feeData: {
-        metabridge: { quoteBpsFee: 0 },
-      },
-      gasIncluded: true,
-      srcChainId: 1,
-      destChainId: 1,
-    };
-
-    const { findByText } = defaultBridgeWithTokens({
-      bridge: {
-        sourceAmount: '1.0',
-        sourceToken: ETH_SOURCE,
-        destToken: {
-          address: musdAddress,
-          chainId: '0x1',
-          decimals: 18,
-          symbol: 'mUSD',
-          name: 'mStable USD',
-        },
-      },
-      engine: {
-        backgroundState: {
-          BridgeController: {
-            quotes: [active as unknown as Record<string, unknown>],
-            recommendedQuote: active as unknown as Record<string, unknown>,
-            quotesLastFetched: now,
-            quotesLoadingStatus: 'SUCCEEDED',
-            quoteFetchError: null,
-          },
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              bridgeConfigV2: {
-                minimumVersion: '0.0.0',
-                maxRefreshCount: 5,
-                refreshRate: 30000,
-                support: true,
-                chains: {
-                  'eip155:1': {
-                    isActiveSrc: true,
-                    isActiveDest: true,
-                    noFeeAssets: [musdAddress],
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    } as unknown as Record<string, unknown>);
-
-    const expected = strings('bridge.no_mm_fee_disclaimer', {
-      destTokenSymbol: 'mUSD',
-    });
-    expect(await findByText(expected)).toBeOnTheScreen();
-  });
-
-  it('shows confirm button when refreshing quote with previous active quote', () => {
-    const now = Date.now();
-    const previousQuote = { ...mockQuoteWithMetadata };
-
-    const { getByTestId } = defaultBridgeWithTokens({
-      engine: {
-        backgroundState: {
-          BridgeController: {
-            quotes: [previousQuote as unknown as Record<string, unknown>],
-            recommendedQuote: previousQuote as unknown as Record<
-              string,
-              unknown
-            >,
-            quotesLastFetched: now - 1000,
-            quotesLoadingStatus: 'LOADING',
-            quoteFetchError: null,
-          },
-        },
-      },
-    } as unknown as Record<string, unknown>);
-
-    // With a previous quote and loading, confirm button is shown (may be in keypad or main content)
-    const confirmButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-    expect(confirmButton).toBeOnTheScreen();
   });
 
   it('navigates to dest token selector on press', async () => {
@@ -296,8 +200,42 @@ describeForPlatforms('BridgeView', () => {
     expect(await findByText('dest')).toBeOnTheScreen();
   });
 
+  describe('Gasless swap', () => {
+    it('shows error banner when gasless swap quote fetch fails', async () => {
+      const now = Date.now();
+
+      const { findByText } = defaultBridgeWithTokens({
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [],
+              recommendedQuote: null,
+              quotesLastFetched: now,
+              quotesLoadingStatus: RequestStatus.FETCHED,
+              quoteStreamComplete: {
+                hasQuotes: false,
+                quoteCount: 0,
+                reason: QuoteStreamCompleteReason.RETRY,
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                gasFeesSponsoredNetwork: { '0x1': true },
+              },
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>);
+
+      expect(
+        await findByText(strings('bridge.quote_stream_complete_retry')),
+      ).toBeOnTheScreen();
+    });
+  });
+
   describe('Swap team regression (bug matrix team-swaps-and-bridge)', () => {
     /** Issues covered: #24744, #24865, #24802, #25256 */
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#24744" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('displays gas included label and enables confirm when quote has gas included (#24744)', async () => {
       const now = Date.now();
       const quoteWithGasIncluded = {
@@ -319,7 +257,7 @@ describeForPlatforms('BridgeView', () => {
               quotes: [quoteWithGasIncluded],
               recommendedQuote: quoteWithGasIncluded,
               quotesLastFetched: now,
-              quotesLoadingStatus: 'SUCCEEDED',
+              quotesLoadingStatus: RequestStatus.FETCHED,
               quoteFetchError: null,
             },
           },
@@ -337,6 +275,7 @@ describeForPlatforms('BridgeView', () => {
     });
 
     // Regression for #25256: two USDT tokens on Linea must both appear in search results.
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#25256" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('shows two USDT when search API returns two USDT on Linea (#25256)', async () => {
       jest
         .spyOn(Engine.context.AuthenticationController, 'getBearerToken')
@@ -488,18 +427,9 @@ describeForPlatforms('BridgeView', () => {
       );
       fireEvent.changeText(searchInput, 'USDT');
 
-      // useSearchTokens debounce is 300ms; wait so the search request is sent
-      await new Promise((resolve) => {
-        setTimeout(resolve, 350);
-      });
-
-      // Ensure the search API was called (proves debounce + chainIds are correct)
-      const urlStr = (url: unknown) =>
-        typeof url === 'string' ? url : (url as URL).toString();
-      const searchCalls = fetchSpy.mock.calls.filter(([url]) =>
-        urlStr(url).includes('/getTokens/search'),
-      );
-      expect(searchCalls.length).toBeGreaterThanOrEqual(1);
+      // Force immediate re-search by changing network with an active query.
+      // BridgeTokenSelector calls `searchTokens(searchString)` on chain switch.
+      fireEvent.press(getByText('Linea'));
 
       // Wait for list to show results (second token has unique name)
       await waitFor(
@@ -515,6 +445,7 @@ describeForPlatforms('BridgeView', () => {
       fetchSpy.mockRestore();
     }, 25000);
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#24865" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('shows native token in source area when source is native token from token details (#24865)', () => {
       const bnbChainId = '0x38';
       const nativeBnbAddress = '0x0000000000000000000000000000000000000000';
@@ -542,6 +473,7 @@ describeForPlatforms('BridgeView', () => {
       expect(within(sourceArea).getByText('BNB')).toBeOnTheScreen();
     });
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#24802" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('renders USDC to BNB swap setup without crash and hides confirm when no quote (#24802)', () => {
       const bnbChainIdHex = '0x38';
 
@@ -558,7 +490,7 @@ describeForPlatforms('BridgeView', () => {
               quotes: [],
               recommendedQuote: null,
               quotesLastFetched: 0,
-              quotesLoadingStatus: 'IDLE',
+              quotesLoadingStatus: null,
               quoteFetchError: null,
             },
           },

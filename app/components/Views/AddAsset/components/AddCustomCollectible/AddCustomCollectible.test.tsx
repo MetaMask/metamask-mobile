@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import AddCustomCollectible from './AddCustomCollectible';
 import Engine from '../../../../../core/Engine';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as utilsTransactions from '../../../../../util/transactions';
 
 // --- Mock variables (hoisted by Jest) ---
@@ -220,10 +220,16 @@ describe('AddCustomCollectible', () => {
 
       // Type a valid-looking address then clear it to trigger the empty error
       await act(async () => {
-        fireEvent.changeText(utils.getByTestId('input-collectible-address'), 'a');
+        fireEvent.changeText(
+          utils.getByTestId('input-collectible-address'),
+          'a',
+        );
       });
       await act(async () => {
-        fireEvent.changeText(utils.getByTestId('input-collectible-address'), '');
+        fireEvent.changeText(
+          utils.getByTestId('input-collectible-address'),
+          '',
+        );
       });
 
       // The button should be disabled when address is empty
@@ -319,9 +325,7 @@ describe('AddCustomCollectible', () => {
       await fillFormAndWait(utils);
 
       await waitFor(() => {
-        expect(
-          utils.getByTestId('add-collectible-button'),
-        ).not.toBeDisabled();
+        expect(utils.getByTestId('add-collectible-button')).not.toBeDisabled();
       });
     });
 
@@ -329,9 +333,7 @@ describe('AddCustomCollectible', () => {
       const utils = renderComponent({ selectedNetwork: null });
       await fillFormAndWait(utils);
 
-      expect(
-        utils.getByTestId('add-collectible-button'),
-      ).toBeDisabled();
+      expect(utils.getByTestId('add-collectible-button')).toBeDisabled();
     });
 
     it('is disabled during submission', async () => {
@@ -348,9 +350,7 @@ describe('AddCustomCollectible', () => {
         fireEvent.press(utils.getByTestId('add-collectible-button'));
       });
 
-      expect(
-        utils.getByTestId('add-collectible-button'),
-      ).toBeDisabled();
+      expect(utils.getByTestId('add-collectible-button')).toBeDisabled();
     });
   });
 
@@ -359,7 +359,10 @@ describe('AddCustomCollectible', () => {
       collectibleContract: { address: VALID_ADDRESS },
     });
 
-    expect(getByTestId('input-collectible-address')).toHaveProp('value', VALID_ADDRESS);
+    expect(getByTestId('input-collectible-address')).toHaveProp(
+      'value',
+      VALID_ADDRESS,
+    );
   });
 
   it('navigates back when cancel is pressed', () => {

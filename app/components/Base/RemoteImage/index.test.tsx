@@ -1,12 +1,13 @@
 import React from 'react';
 import RemoteImage from './';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
-import { act, render, waitFor , fireEvent } from '@testing-library/react-native';
+import { act, render, waitFor, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Logger from '../../../util/Logger';
 import { Dimensions } from 'react-native';
 import { Image } from 'expo-image';
+import { mockTheme } from '../../../util/theme';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -223,6 +224,28 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         expect(queryByTestId('remote-image-2')).toBeOnTheScreen();
+      });
+    });
+  });
+
+  describe('onLoad callback', () => {
+    it('calls onLoad prop when image loads successfully', async () => {
+      const mockOnLoad = jest.fn();
+
+      const { UNSAFE_getByType } = render(
+        <RemoteImage
+          source={{ uri: 'https://example.com/image.png' }}
+          onLoad={mockOnLoad}
+        />,
+      );
+
+      await act(async () => {
+        const image = UNSAFE_getByType(Image);
+        image.props.onLoad({ source: { width: 100, height: 100 } });
+      });
+
+      await waitFor(() => {
+        expect(mockOnLoad).toHaveBeenCalledTimes(1);
       });
     });
   });
@@ -560,7 +583,9 @@ describe('RemoteImage', () => {
     });
 
     it('renders with fadeIn but not as token image', async () => {
-      const testPlaceholderStyle = { backgroundColor: '#808080' };
+      const testPlaceholderStyle = {
+        backgroundColor: mockTheme.colors.background.alternative,
+      };
       const { UNSAFE_getByType } = render(
         <RemoteImage
           fadeIn

@@ -21,7 +21,7 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
       {
         fixture: new FixtureBuilder()
           .withMetaMetricsOptIn()
-          .withNetworkController(CustomNetworks.Tenderly.Linea)
+          .withNetworkController(CustomNetworks.Tenderly.Linea.providerConfig)
           .withAccountTreeController()
           .withTokens(
             [
@@ -52,6 +52,7 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
 
   beforeEach(async () => {
     jest.setTimeout(150000);
+    eventsToCheck.length = 0;
   });
 
   it('should open Card Home and add funds successfully', async () => {
@@ -78,6 +79,13 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
   });
 
   it('should validate segment/metametric event when opening Card Home', async () => {
+    await setupCardTest(async () => {
+      await Assertions.expectElementToBeVisible(WalletView.navbarCardButton);
+      await WalletView.tapNavbarCardButton();
+      await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
+      await CardHomeView.tapAddFundsButton();
+    });
+
     const expectedEvents = {
       CARD_BUTTON_VIEWED: 'Card Button Viewed',
       CARD_HOME_CLICKED: 'Card Home Clicked',

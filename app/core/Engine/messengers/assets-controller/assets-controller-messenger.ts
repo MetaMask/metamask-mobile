@@ -36,8 +36,8 @@ import type {
   PermissionControllerStateChange,
 } from '@metamask/permission-controller';
 import type {
-  HandleSnapRequest,
-  GetRunnableSnaps,
+  SnapControllerHandleRequestAction,
+  SnapControllerGetRunnableSnapsAction,
 } from '@metamask/snaps-controllers';
 import type {
   TransactionControllerTransactionConfirmedEvent,
@@ -59,8 +59,8 @@ type AssetsControllerAllowedActions =
   | GetTokenListState
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
   | BackendWebSocketServiceActions
-  | HandleSnapRequest
-  | GetRunnableSnaps
+  | SnapControllerHandleRequestAction
+  | SnapControllerGetRunnableSnapsAction
   | GetPermissions;
 /**
  * Events that AssetsController and its data sources subscribe to.
@@ -152,7 +152,7 @@ export function getAssetsControllerInitMessenger(
 ) {
   const messenger = new Messenger<
     'AssetsControllerInit',
-    | AuthenticationController.AuthenticationControllerGetBearerToken
+    | AuthenticationController.AuthenticationControllerGetBearerTokenAction
     | PreferencesControllerGetStateAction
     | RemoteFeatureFlagControllerGetStateAction
     | AnalyticsControllerActions,

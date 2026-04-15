@@ -53,10 +53,9 @@ exports[`MarketClosedBottomSheet renders correctly 1`] = `
         style={
           [
             {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
+              "color": "#131416",
               "fontSize": 16,
-              "fontWeight": 700,
+              "fontWeight": 600,
               "letterSpacing": 0,
               "lineHeight": 24,
             },
@@ -114,7 +113,7 @@ exports[`MarketClosedBottomSheet renders correctly 1`] = `
           }
         >
           <SvgMock
-            color="#121314"
+            color="#131416"
             fill="currentColor"
             height={24}
             name="Close"
@@ -141,7 +140,7 @@ exports[`MarketClosedBottomSheet renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -212,7 +211,7 @@ exports[`MarketClosedBottomSheet renders correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -231,7 +230,7 @@ exports[`MarketClosedBottomSheet renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,

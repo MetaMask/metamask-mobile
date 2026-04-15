@@ -1,5 +1,5 @@
 /* eslint-disable no-unsafe-finally */
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import FixtureServer from './FixtureServer';
 import {
   AnvilManager,
@@ -46,11 +46,22 @@ import ContractAddressRegistry from '../../../app/util/test/contract-address-reg
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
+import {
+  runAnalyticsExpectations,
+  shouldRunAnalyticsExpectations,
+} from '../../helpers/analytics/runAnalyticsExpectations';
 import PortManager, { ResourceType } from '../PortManager';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
+import type { Fixture } from './types';
 import CommandQueueServer from './CommandQueueServer';
 import DappServer from '../DappServer';
 import { PlatformDetector } from '../PlatformLocator';
+import LocalWebSocketServer from '../../websocket/server';
+import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants';
+import {
+  setupAccountActivityMocks,
+  resetAccountActivityMockState,
+} from '../../websocket/account-activity-mocks';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -292,9 +303,7 @@ async function handleDappCleanup(
  * @param state - The fixture state to update
  * @returns The updated fixture state
  */
-function updateRpcUrlsWithAllocatedPorts(
-  state: FixtureBuilder['fixture'],
-): FixtureBuilder {
+function updateRpcUrlsWithAllocatedPorts(state: Fixture): Fixture {
   const portManager = PortManager.getInstance();
 
   const actualAnvilPort = portManager.getPort(ResourceType.ANVIL);
@@ -305,7 +314,7 @@ function updateRpcUrlsWithAllocatedPorts(
       ?.networkConfigurationsByChainId;
   if (networkConfigs) {
     for (const chainId of Object.keys(networkConfigs)) {
-      const config = networkConfigs[chainId];
+      const config = networkConfigs[chainId as `0x${string}`];
       if (config.rpcEndpoints) {
         for (const endpoint of config.rpcEndpoints) {
           if (endpoint.url) {
@@ -334,9 +343,7 @@ function updateRpcUrlsWithAllocatedPorts(
  * Updates dapp URLs in PermissionController with actual allocated ports by index.
  * Replaces all occurrences of dapp URLs (by index) with their actual allocated ports.
  */
-function updateDappUrlsWithAllocatedPorts(
-  state: FixtureBuilder['fixture'],
-): FixtureBuilder {
+function updateDappUrlsWithAllocatedPorts(state: Fixture): Fixture {
   const portManager = PortManager.getInstance();
   const permissionController =
     state.state?.engine?.backgroundState?.PermissionController;
@@ -377,9 +384,7 @@ function updateDappUrlsWithAllocatedPorts(
  * Replaces all occurrences of localhost:8000 with the actual mock server port.
  * This affects browser tabs and RPC endpoints that proxy through mock server.
  */
-function updateMockServerUrlsInFixture(
-  state: FixtureBuilder['fixture'],
-): FixtureBuilder {
+function updateMockServerUrlsInFixture(state: Fixture): Fixture {
   const portManager = PortManager.getInstance();
   const actualPort = portManager.getPort(ResourceType.MOCK_SERVER);
 
@@ -405,11 +410,13 @@ function updateMockServerUrlsInFixture(
  */
 export const loadFixture = async (
   fixtureServer: FixtureServer,
-  { fixture }: { fixture: FixtureBuilder },
+  { fixture }: { fixture: FixtureBuilder | Fixture },
 ) => {
-  // If no fixture is provided, the `onboarding` option is set to `true` by default, which means
-  // the app will be loaded without any fixtures and will start and go through the onboarding process.
-  let state = fixture || new FixtureBuilder({ onboarding: true }).build();
+  // Normalize FixtureBuilder → Fixture; fall back to onboarding fixture if nothing provided.
+  let state: Fixture =
+    fixture instanceof FixtureBuilder
+      ? fixture.build()
+      : (fixture ?? new FixtureBuilder({ onboarding: true }).build());
 
   // Update RPC URLs with actual allocated ports from PortManager
   state = updateRpcUrlsWithAllocatedPorts(state);
@@ -509,6 +516,7 @@ export async function withFixtures(
     endTestfn,
     skipReactNativeReload = false,
     useCommandQueueServer = false,
+    analyticsExpectations,
   } = options;
 
   // Clean up any stale port forwarding from previous failed tests
@@ -542,6 +550,7 @@ export async function withFixtures(
   let mockServerPort;
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
+  const accountActivityWsServer = new LocalWebSocketServer('accountActivity');
   let testError: Error | null = null;
 
   try {
@@ -576,8 +585,15 @@ export async function withFixtures(
     const mockServerResult = await createMockAPIServer(testSpecificMock);
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
+
+    // Step 4.5: Start WebSocket mock servers
+    await startResourceWithRetry(
+      ResourceType.ACCOUNT_ACTIVITY_WS,
+      accountActivityWsServer,
+    );
+    await setupAccountActivityMocks(accountActivityWsServer);
     // Resolve fixture after local nodes are started so dynamic ports are known
-    let resolvedFixture: FixtureBuilder;
+    let resolvedFixture: FixtureBuilder | Fixture;
     if (typeof fixtureOption === 'function') {
       resolvedFixture = await fixtureOption({ localNodes });
     } else {
@@ -619,6 +635,9 @@ export async function withFixtures(
           mockServerPort: isAndroid
             ? `${FALLBACK_MOCKSERVER_PORT}`
             : `${mockServerPort}`,
+          [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
+            ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
+            : `${accountActivityWsServer.getServerPort()}`,
           ...(launchArgs || {}),
         },
         languageAndLocale,
@@ -658,7 +677,22 @@ export async function withFixtures(
       }
     }
 
-    // Enter drain mode AFTER endTestfn so analytics events are still captured,
+    if (
+      mockServerInstance &&
+      shouldRunAnalyticsExpectations(analyticsExpectations)
+    ) {
+      try {
+        await runAnalyticsExpectations(
+          mockServerInstance.server,
+          analyticsExpectations,
+        );
+      } catch (analyticsError) {
+        logger.error('Error in analyticsExpectations:', analyticsError);
+        cleanupErrors.push(analyticsError as Error);
+      }
+    }
+
+    // Enter drain mode AFTER endTestfn / analyticsExpectations so analytics events are still captured,
     // but BEFORE stopping backends — prevents forwarding to dead Anvil/Ganache.
     if (mockServerInstance) {
       mockServerInstance.startDraining();
@@ -712,6 +746,15 @@ export async function withFixtures(
       }
     }
 
+    // Clean up WebSocket servers
+    try {
+      resetAccountActivityMockState();
+      await accountActivityWsServer.stop();
+    } catch (cleanupError) {
+      logger.error('Error during WebSocket cleanup:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
+    }
+
     // Clean up the mock server
     if (mockServerInstance?.isStarted()) {
       try {
@@ -749,9 +792,12 @@ export async function withFixtures(
 
     // Remove the abort filter AFTER all cleanup is complete so late async
     // "Aborted" rejections from destroyed sockets are still caught.
+    // removeAbortFilter() is async — it holds the filter active for an extra
+    // 500ms before restoring Jest's handlers to cover abort events that fire
+    // after all cleanup has completed (observed up to ~200ms on loaded CI).
     if (mockServerInstance) {
       logger.info('Removing abort filter after full cleanup');
-      mockServerInstance.removeAbortFilter();
+      await mockServerInstance.removeAbortFilter();
     }
 
     // Handle error reporting: prioritize test error over cleanup errors

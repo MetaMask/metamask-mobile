@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Text, {
   TextColor,
@@ -17,11 +17,21 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import {
-  parseCaipChainId,
   CaipChainId,
   Hex,
   isCaipChainId,
+  parseCaipChainId,
 } from '@metamask/utils';
+
+/**
+ * Converts CAIP chain ID to hex chain ID
+ */
+const caipChainIdToHex = (caipChainId: CaipChainId): Hex => {
+  const { namespace, reference } = parseCaipChainId(caipChainId);
+  return namespace === 'eip155'
+    ? (`0x${Number(reference).toString(16)}` as Hex)
+    : (caipChainId as Hex);
+};
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import {
   getDefaultNetworkByChainId,
@@ -50,16 +60,6 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
  */
 const getCaipChainIdFromAssetId = (assetId: string): CaipChainId =>
   assetId.split('/')[0] as CaipChainId;
-
-/**
- * Converts CAIP chain ID to hex chain ID
- */
-const caipChainIdToHex = (caipChainId: CaipChainId): Hex => {
-  const { namespace, reference } = parseCaipChainId(caipChainId);
-  return namespace === 'eip155'
-    ? (`0x${Number(reference).toString(16)}` as Hex)
-    : (caipChainId as Hex);
-};
 
 /**
  * Gets network badge image source for a given CAIP chain ID
@@ -131,12 +131,25 @@ interface TrendingTokenRowItemProps {
   position?: number;
   /** Filter context for analytics tracking */
   filterContext?: TrendingFilterContext;
+  /**
+   * Token Details `source` for MetaMetrics (e.g. Explore trending vs Swaps trending).
+   * @default TokenDetailsSource.Trending
+   */
+  tokenDetailsSource?: TokenDetailsSource;
+  /**
+   * Custom press handler. When provided, bypasses default navigation to the
+   * asset details screen (including network-add logic and analytics tracking).
+   */
+  onPress?: (token: TrendingAsset) => void;
 }
 
 /**
  * Converts a TrendingAsset to Asset navigation params
  */
-const getAssetNavigationParams = (token: TrendingAsset) => {
+const getAssetNavigationParams = (
+  token: TrendingAsset,
+  source: TokenDetailsSource,
+) => {
   const [caipChainId, assetIdentifier] = token.assetId.split('/');
   if (!isCaipChainId(caipChainId)) return null;
 
@@ -161,8 +174,9 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
     isNative: isNativeToken,
     isETH: isNativeToken && hexChainId === '0x1',
     isFromTrending: true,
-    source: TokenDetailsSource.Trending,
+    source,
     rwaData: token.rwaData,
+    securityData: token.securityData,
   };
 };
 
@@ -171,6 +185,8 @@ const TrendingTokenRowItem = ({
   selectedTimeOption = TimeOption.TwentyFourHours,
   position,
   filterContext,
+  tokenDetailsSource = TokenDetailsSource.Trending,
+  onPress,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -186,7 +202,10 @@ const TrendingTokenRowItem = ({
     [token.assetId],
   );
 
-  const assetParams = useMemo(() => getAssetNavigationParams(token), [token]);
+  const assetParams = useMemo(
+    () => getAssetNavigationParams(token, tokenDetailsSource),
+    [token, tokenDetailsSource],
+  );
 
   const networkBadgeImageSource = useMemo(
     () => getNetworkBadgeSource(caipChainId),
@@ -208,6 +227,11 @@ const TrendingTokenRowItem = ({
   const isPositiveChange = hasPercentageChange && pricePercentChange > 0;
 
   const handlePress = useCallback(async () => {
+    if (onPress) {
+      onPress(token);
+      return;
+    }
+
     if (!assetParams) return;
 
     // Track token click event BEFORE navigation to ensure capture
@@ -248,8 +272,12 @@ const TrendingTokenRowItem = ({
       }
     }
 
-    navigation.navigate('Asset', assetParams);
+    // Use push so we always open a new Asset screen for the tapped token.
+    // This prevents issues such as dismissing screens like Bridge instead
+    // of navigating forward to the new token.
+    navigation.dispatch(StackActions.push('Asset', assetParams));
   }, [
+    onPress,
     assetParams,
     caipChainId,
     navigation,

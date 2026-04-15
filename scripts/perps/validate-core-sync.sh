@@ -223,6 +223,38 @@ compute_source_checksum() {
 
 step_conflict_check() {
   local sync_state="$CORE_PATH/packages/perps-controller/.sync-state.json"
+
+  # Check freshness vs origin/main BEFORE looking at sync state.
+  # If someone else committed to packages/perps-controller on main while
+  # this branch was in review, we need to merge main first — otherwise
+  # the sync will silently overwrite their work. Hard-fail in that case.
+  (
+    cd "$CORE_PATH"
+    if git rev-parse --verify origin/main >/dev/null 2>&1; then
+      echo "OK: Fetching origin/main to check freshness..."
+      if git fetch origin main --quiet 2>/dev/null; then
+        local behind_count
+        behind_count=$(git rev-list --count HEAD..origin/main -- packages/perps-controller/ 2>/dev/null || echo "0")
+        if (( behind_count > 0 )); then
+          echo "FAIL: Current branch is behind origin/main by $behind_count commit(s) touching packages/perps-controller/"
+          echo "FAIL: Someone committed perps-controller changes to main after this branch started."
+          echo "FAIL: Merge or rebase origin/main before syncing, e.g.:"
+          echo "FAIL:   cd $CORE_PATH && git merge origin/main"
+          echo ""
+          echo "Offending commits:"
+          git log HEAD..origin/main --oneline -- packages/perps-controller/ | sed 's/^/  /'
+          exit 1
+        else
+          echo "OK: Current branch is current with origin/main for perps-controller"
+        fi
+      else
+        echo "WARN: Could not fetch origin/main (offline?) — skipping freshness check"
+      fi
+    else
+      echo "WARN: No origin/main ref in core repo — skipping freshness check"
+    fi
+  ) || return 1
+
   if [[ ! -f "$sync_state" ]]; then
     echo "OK: No previous sync state — first sync"
     return 0
@@ -327,22 +359,36 @@ step_verify_fixes() {
 step_eslint_fix() {
   cd "$CORE_PATH"
 
-  # Back up suppressions file so we don't leave dirty changes in Core
   local supp_file="$CORE_PATH/eslint-suppressions.json"
-  local supp_backup=""
+
+  # Snapshot the baseline per-file/per-rule suppression counts for
+  # packages/perps-controller BEFORE we touch anything, so we can tell the
+  # difference between pre-existing suppressions and new violations that the
+  # current sync is introducing.
+  local baseline_json="/tmp/perps-suppressions-baseline-$$.json"
   if [[ -f "$supp_file" ]]; then
-    supp_backup=$(mktemp)
-    cp "$supp_file" "$supp_backup"
+    jq '[to_entries[] | select(.key | startswith("packages/perps-controller/"))] | from_entries' \
+      "$supp_file" > "$baseline_json" 2>/dev/null || echo '{}' > "$baseline_json"
+  else
+    echo '{}' > "$baseline_json"
   fi
 
   progress "  ├─ Running --fix"
-  yarn eslint packages/perps-controller/src/ --ext .ts --fix || true
+  yarn eslint 'packages/perps-controller/src/**/*.ts' --fix || true
 
   progress "  ├─ Running --suppress-all"
-  yarn eslint packages/perps-controller/src/ --ext .ts --suppress-all || true
+  yarn eslint 'packages/perps-controller/src/**/*.ts' --suppress-all || true
 
-  progress "  └─ Running --prune-suppressions"
-  yarn eslint packages/perps-controller/src/ --ext .ts --prune-suppressions || true
+  progress "  ├─ Running --prune-suppressions"
+  yarn eslint 'packages/perps-controller/src/**/*.ts' --prune-suppressions || true
+
+  # Prettier formats eslint-suppressions.json differently than eslint
+  # writes it (trailing newline, key quoting), so run prettier afterwards
+  # to keep core's lint:misc:check happy.
+  if [[ -f "$supp_file" ]]; then
+    progress "  ├─ Running prettier on eslint-suppressions.json"
+    yarn prettier --write eslint-suppressions.json > /dev/null 2>&1 || true
+  fi
 
   # Count suppressions
   if [[ -f "$supp_file" ]]; then
@@ -350,18 +396,60 @@ step_eslint_fix() {
       '[to_entries[] | select(.key | startswith("packages/perps-controller/")) | .value | to_entries[].value.count] | add // 0' \
       "$supp_file" 2>/dev/null || echo "0")
     echo "Perps suppression count: $SUPPRESSION_COUNT"
-
-    if (( SUPPRESSION_COUNT > 20 )); then
-      echo "WARN: Suppression count ($SUPPRESSION_COUNT) is higher than expected (~7-15)"
-    fi
   else
     echo "WARN: eslint-suppressions.json not found"
     SUPPRESSION_COUNT=0
   fi
 
-  # Restore original suppressions file
-  if [[ -n "$supp_backup" ]]; then
-    mv "$supp_backup" "$supp_file"
+  # Per-file/per-rule delta check: hard-fail if any file's suppression count
+  # INCREASED compared to the baseline. Reducing counts is always allowed
+  # (that's what happens when a mobile fix removes a previously-suppressed
+  # violation). This is the canonical detection point for the problem that
+  # "it should have been detected locally!" — a new `'x' in y` use, a new
+  # `@typescript-eslint/*` violation, etc. will show up here BEFORE the
+  # core PR is opened.
+  progress "  └─ Checking per-file suppression delta"
+  local current_json="/tmp/perps-suppressions-current-$$.json"
+  if [[ -f "$supp_file" ]]; then
+    jq '[to_entries[] | select(.key | startswith("packages/perps-controller/"))] | from_entries' \
+      "$supp_file" > "$current_json" 2>/dev/null || echo '{}' > "$current_json"
+  else
+    echo '{}' > "$current_json"
+  fi
+
+  local delta_report
+  delta_report=$(jq -n \
+    --slurpfile baseline "$baseline_json" \
+    --slurpfile current "$current_json" \
+    '
+      ($baseline[0] // {}) as $b
+      | ($current[0] // {}) as $c
+      | [
+          ($c | to_entries[]) as $file
+          | ($file.value | to_entries[]) as $rule
+          | {
+              file: $file.key,
+              rule: $rule.key,
+              before: (($b[$file.key] // {})[$rule.key].count // 0),
+              after:  $rule.value.count
+            }
+          | select(.after > .before)
+        ]
+    ' 2>/dev/null || echo '[]')
+
+  rm -f "$baseline_json" "$current_json"
+
+  local delta_count
+  delta_count=$(echo "$delta_report" | jq 'length' 2>/dev/null || echo "0")
+  if (( delta_count > 0 )); then
+    echo "FAIL: $delta_count suppression(s) INCREASED vs baseline — this sync introduces new violations that must be fixed at source before syncing to core."
+    echo ""
+    echo "Offending entries:"
+    echo "$delta_report" | jq -r '.[] | "  - \(.file) [\(.rule)]: \(.before) → \(.after)"' 2>/dev/null || echo "$delta_report"
+    echo ""
+    echo "FAIL: Fix these violations in mobile (e.g. replace \`'x' in y\` with \`hasProperty(y, 'x')\` from \`@metamask/utils\`), then re-run the sync."
+    cd "$MOBILE_ROOT"
+    return 1
   fi
 
   cd "$MOBILE_ROOT"
@@ -378,7 +466,7 @@ step_lint() {
   cd "$CORE_PATH"
   # No workspace-level lint script exists; run eslint directly to verify
   # all violations are either fixed or suppressed (exit 0 = clean).
-  yarn eslint packages/perps-controller/src/ --ext .ts
+  yarn eslint 'packages/perps-controller/src/**/*.ts'
   cd "$MOBILE_ROOT"
 }
 

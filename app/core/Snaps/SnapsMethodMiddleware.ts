@@ -34,7 +34,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { Json } from '@metamask/utils';
-import { SchedulableBackgroundEvent } from '@metamask/snaps-controllers';
+import { CronjobControllerScheduleAction } from '@metamask/snaps-controllers';
 import { endTrace, trace } from '../../util/trace';
 import { AppState } from 'react-native';
 import { getVersion } from 'react-native-device-info';
@@ -133,10 +133,10 @@ const snapMethodMiddlewareBuilder = (
       ).context,
     getInterfaceState: (id: string) =>
       controllerMessenger.call(
-        'SnapInterfaceController:getInterface',
+        'SnapInterfaceController:getInterfaceState',
         origin as SnapId,
         id,
-      ).state,
+      ),
     resolveInterface: controllerMessenger.call.bind(
       controllerMessenger,
       SnapInterfaceControllerResolveInterfaceAction,
@@ -240,7 +240,9 @@ const snapMethodMiddlewareBuilder = (
       SnapControllerUpdateSnapStateAction,
       origin as SnapId,
     ),
-    scheduleBackgroundEvent: (event: SchedulableBackgroundEvent) =>
+    scheduleBackgroundEvent: (
+      event: Parameters<CronjobControllerScheduleAction['handler']>[0],
+    ) =>
       controllerMessenger.call('CronjobController:schedule', {
         ...event,
         snapId: origin as SnapId,

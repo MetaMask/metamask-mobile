@@ -3,11 +3,20 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { useCallback } from 'react';
+import { useCallback, useContext } from 'react';
 import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { ToastContext } from '../../../../component-library/components/Toast';
+import { ButtonIconVariant } from '../../../../component-library/components/Toast/Toast.types';
 import usePerpsToasts from './usePerpsToasts';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { usePerpsEventTracking } from './usePerpsEventTracking';
 
 /**
  * Hook to track deposit status for Perps order view
@@ -23,6 +32,8 @@ import usePerpsToasts from './usePerpsToasts';
  */
 export const usePerpsOrderDepositTracking = () => {
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { track } = usePerpsEventTracking();
+  const { toastRef } = useContext(ToastContext);
 
   const showProgressToast = useCallback(
     (transactionId: string) => {
@@ -37,10 +48,15 @@ export const usePerpsOrderDepositTracking = () => {
             isBold: true,
           },
         ],
-        hasNoTimeout: false,
+        hasNoTimeout: true,
+        closeButtonOptions: {
+          variant: ButtonIconVariant.Icon,
+          iconName: IconName.Close,
+          onPress: () => toastRef?.current?.closeToast(),
+        },
       });
     },
-    [showToast, PerpsToastOptions],
+    [showToast, PerpsToastOptions, toastRef],
   );
 
   // Callback to show toast when user confirms the deposit
@@ -57,11 +73,23 @@ export const usePerpsOrderDepositTracking = () => {
         PerpsToastOptions.accountManagement.deposit.takingLonger;
       const cancelTradeOnPress = () => {
         cancelTradeRequested = true;
+
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.CANCEL_TRADE_WITH_TOKEN,
+        });
+
         // Replace current toast with "Trade canceled" (don't close first to avoid race)
         showToast(PerpsToastOptions.accountManagement.deposit.tradeCanceled);
       };
       const depositLongerTimeoutId = setTimeout(() => {
         const baseClose = takingLongerToastOptions.closeButtonOptions;
+
+        track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.CANCEL_TRADE_WITH_TOKEN_TOAST,
+        });
+
         showToast({
           ...takingLongerToastOptions,
           closeButtonOptions: baseClose
@@ -111,7 +139,12 @@ export const usePerpsOrderDepositTracking = () => {
         handleTransactionStatusUpdated,
       );
     },
-    [showToast, showProgressToast, PerpsToastOptions.accountManagement.deposit],
+    [
+      showToast,
+      showProgressToast,
+      PerpsToastOptions.accountManagement.deposit,
+      track,
+    ],
   );
 
   return {

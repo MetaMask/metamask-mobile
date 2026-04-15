@@ -21,6 +21,8 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: jest.fn(), navigate: jest.fn() }),
 }));
 
+const URL_MOCK = 'test.com';
+
 const mockApprovalRequest = (approvalRequest?: unknown) => {
   (
     useApprovalRequest as jest.MockedFn<typeof useApprovalRequest>
@@ -33,8 +35,6 @@ const mockApprovalRequest = (approvalRequest?: unknown) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 };
-
-const URL_MOCK = 'test.com';
 
 const mockApprovalRequestData = {
   metadata: {

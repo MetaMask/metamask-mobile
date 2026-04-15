@@ -113,11 +113,7 @@ import Wallet, { useHomeDeepLinkEffects } from './';
 import renderWithProvider, {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
-import {
-  screen as RNScreen,
-  renderHook,
-  waitFor,
-} from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
@@ -281,6 +277,9 @@ jest.mock('../../../core/Engine', () => {
         setDisabledNetwork: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: jest.fn(),
+        listPopularEvmNetworks: jest.fn(() => ['0x1']),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       },
       PerpsController: {
         startMarketDataPreload: jest.fn(),
@@ -395,13 +394,6 @@ const mockInitialState = {
         activeAccount: null,
       },
       PreferencesController: {
-        selectedAddress: MOCK_ADDRESS,
-        identities: {
-          [MOCK_ADDRESS]: {
-            address: MOCK_ADDRESS,
-            name: 'Account 1',
-          },
-        },
         useTokenDetection: true,
         isTokenNetworkFilterEqualToAllNetworks: false,
         tokenNetworkFilter: {
@@ -500,6 +492,22 @@ jest.mock('../../../util/address', () => ({
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 
+// Mock core first so useIsFocused/useNavigation work when Wallet or children use them
+jest.mock('@react-navigation/core', () => {
+  const actualCore = jest.requireActual('@react-navigation/core');
+  return {
+    ...actualCore,
+    useNavigation: jest.fn(() => ({
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: () => true,
+      dangerouslyGetParent: jest.fn(),
+    })),
+    useIsFocused: jest.fn(() => true),
+  };
+});
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -523,6 +531,7 @@ jest.mock('@react-navigation/native', () => {
       params: {},
     })),
     useFocusEffect: jest.fn(),
+    useIsFocused: jest.fn(() => true),
   };
 });
 
@@ -606,31 +615,6 @@ describe('Wallet', () => {
 
     // Check if TabsList mock was called
     expect(mockTabsListComponent).toHaveBeenCalled();
-  });
-  it('should render the address copy button', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-    const addressCopyButton = RNScreen.getByTestId(
-      WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
-    );
-    expect(addressCopyButton).toBeDefined();
-  });
-  it('should render the account picker', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-    const accountPicker = RNScreen.getByTestId(
-      WalletViewSelectorsIDs.ACCOUNT_ICON,
-    );
-    expect(accountPicker).toBeDefined();
-  });
-
-  it('should render scan qr icon', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-    const scanButton = RNScreen.getByTestId(
-      WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
-    );
-    expect(scanButton).toBeDefined();
   });
 
   it('Should add tokens to state automatically when there are detected tokens', () => {
@@ -738,9 +722,8 @@ describe('Wallet', () => {
               },
             },
             AccountTreeController: {
-              accountTree: {
-                selectedAccountGroup: 'group-id-123',
-              },
+              accountTree: { wallets: {} },
+              selectedAccountGroup: 'keyring:wallet-1/ethereum',
             },
             NetworkController: {
               ...mockInitialState.engine.backgroundState.NetworkController,
@@ -780,9 +763,8 @@ describe('Wallet', () => {
           backgroundState: {
             ...mockInitialState.engine.backgroundState,
             AccountTreeController: {
-              accountTree: {
-                selectedAccountGroup: 'group-id-123',
-              },
+              accountTree: { wallets: {} },
+              selectedAccountGroup: 'keyring:wallet-1/ethereum',
             },
           },
         },

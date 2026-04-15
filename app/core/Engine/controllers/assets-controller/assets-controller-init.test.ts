@@ -5,7 +5,7 @@ import {
   type AssetsControllerInitMessenger,
   type AssetsControllerMessenger,
 } from '../../messengers/assets-controller';
-import type { ControllerInitRequest } from '../../types';
+import type { MessengerClientInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { assetsControllerInit } from './assets-controller-init';
 import { AssetsController } from '@metamask/assets-controller';
@@ -113,7 +113,7 @@ function getInitRequestMock(overrides?: {
   remoteFeatureFlagState?: RemoteFeatureFlagState;
   remoteFeatureFlagGetStateThrows?: boolean;
 }): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     AssetsControllerMessenger,
     AssetsControllerInitMessenger
   >
@@ -129,7 +129,7 @@ function getInitRequestMock(overrides?: {
     initMessenger,
     persistedState: {},
   } as jest.Mocked<
-    ControllerInitRequest<
+    MessengerClientInitRequest<
       AssetsControllerMessenger,
       AssetsControllerInitMessenger
     >
@@ -173,7 +173,7 @@ describe('assetsControllerInit', () => {
           pollInterval: 30_000,
           enabled: true,
         },
-        trackMetaMetricsEvent: expect.any(Function),
+        trace: expect.any(Function),
       }),
     );
   });

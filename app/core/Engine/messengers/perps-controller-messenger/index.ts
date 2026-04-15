@@ -32,6 +32,7 @@ export function getPerpsControllerMessenger(
   });
   rootExtendedMessenger.delegate({
     actions: [
+      'GeolocationController:getGeolocation',
       'NetworkController:getState',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',

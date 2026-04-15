@@ -32,6 +32,7 @@ import {
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
+import { selectShowFiatInTestnets } from '../../../selectors/settings';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import {
@@ -40,6 +41,7 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
+import AccountGroupBalancePerChain from '../Assets/components/Balance/AccountGroupBalancePerChain';
 
 // internal dependencies
 import createStyles from './CustomNetworkSelector.styles';
@@ -86,6 +88,8 @@ const CustomNetworkSelector = ({
   const { selectCustomNetwork } = useNetworkSelection({
     networks: networksToUse,
   });
+
+  const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
 
   const goToNetworkSettings = useCallback(() => {
     navigate(Routes.ADD_NETWORK, {
@@ -158,7 +162,11 @@ const CustomNetworkSelector = ({
               isSelected,
             )}
             style={styles.networkItem}
-          />
+          >
+            {(!isTestNet(chainId) || showFiatOnTestnets) && (
+              <AccountGroupBalancePerChain caipChainId={caipChainId} />
+            )}
+          </Cell>
         </View>
       );
     },
@@ -170,6 +178,7 @@ const CustomNetworkSelector = ({
       createAvatarProps,
       styles.networkItem,
       selectedChainIdCaip,
+      showFiatOnTestnets,
     ],
   );
 

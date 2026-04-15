@@ -10,8 +10,8 @@ import MainActionButton from './MainActionButton';
 import { MAINACTIONBUTTON_TEST_ID } from './MainActionButton.constants';
 
 describe('MainActionButton', () => {
-  it('should render correctly', () => {
-    const { toJSON } = render(
+  it('renders with required props', () => {
+    const { getByTestId } = render(
       <MainActionButton
         iconName={IconName.Add}
         label="Test Button"
@@ -19,22 +19,23 @@ describe('MainActionButton', () => {
         testID={MAINACTIONBUTTON_TEST_ID}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+
+    expect(getByTestId(MAINACTIONBUTTON_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('should render with custom label', () => {
-    const customLabel = 'Custom Label';
+  it('renders the label text', () => {
     const { getByText } = render(
       <MainActionButton
         iconName={IconName.Add}
-        label={customLabel}
+        label="Custom Label"
         onPress={jest.fn}
       />,
     );
-    expect(getByText(customLabel)).toBeTruthy();
+
+    expect(getByText('Custom Label')).toBeOnTheScreen();
   });
 
-  it('should be disabled when isDisabled is true', () => {
+  it('sets accessibilityState.disabled when isDisabled is true', () => {
     const { getByTestId } = render(
       <MainActionButton
         iconName={IconName.Add}
@@ -48,8 +49,9 @@ describe('MainActionButton', () => {
     expect(button).toBeDisabled();
   });
 
-  it('should call onPress when pressed', () => {
+  it('calls onPress when pressed', () => {
     const mockOnPress = jest.fn();
+
     const { getByTestId } = render(
       <MainActionButton
         iconName={IconName.Add}
@@ -60,12 +62,14 @@ describe('MainActionButton', () => {
     );
 
     fireEvent.press(getByTestId(MAINACTIONBUTTON_TEST_ID));
+
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  it('should call onPressIn and onPressOut when provided', () => {
+  it('fires onPressIn and onPressOut callbacks', () => {
     const mockOnPressIn = jest.fn();
     const mockOnPressOut = jest.fn();
+
     const { getByTestId } = render(
       <MainActionButton
         iconName={IconName.Add}
@@ -76,8 +80,8 @@ describe('MainActionButton', () => {
         testID={MAINACTIONBUTTON_TEST_ID}
       />,
     );
-
     const button = getByTestId(MAINACTIONBUTTON_TEST_ID);
+
     fireEvent(button, 'pressIn');
     fireEvent(button, 'pressOut');
 
@@ -85,8 +89,9 @@ describe('MainActionButton', () => {
     expect(mockOnPressOut).toHaveBeenCalledTimes(1);
   });
 
-  it('should not call onPress when disabled', () => {
+  it('does not call onPress when disabled', () => {
     const mockOnPress = jest.fn();
+
     const { getByTestId } = render(
       <MainActionButton
         iconName={IconName.Add}
@@ -98,11 +103,13 @@ describe('MainActionButton', () => {
     );
 
     fireEvent.press(getByTestId(MAINACTIONBUTTON_TEST_ID));
+
     expect(mockOnPress).not.toHaveBeenCalled();
   });
 
-  it('should not call onPressIn when disabled', () => {
+  it('does not fire onPressIn when disabled', () => {
     const mockOnPressIn = jest.fn();
+
     const { getByTestId } = render(
       <MainActionButton
         iconName={IconName.Add}
@@ -114,39 +121,14 @@ describe('MainActionButton', () => {
       />,
     );
 
-    const button = getByTestId(MAINACTIONBUTTON_TEST_ID);
-    fireEvent(button, 'pressIn');
+    fireEvent(getByTestId(MAINACTIONBUTTON_TEST_ID), 'pressIn');
 
     expect(mockOnPressIn).not.toHaveBeenCalled();
   });
 
-  it('should render with default props when not provided', () => {
-    const { getByText } = render(
-      <MainActionButton
-        iconName={IconName.Add}
-        label="Default Button"
-        onPress={jest.fn}
-      />,
-    );
-
-    expect(getByText('Default Button')).toBeTruthy();
-  });
-
-  it('should render with correct icon and text', () => {
-    const { getByText } = render(
-      <MainActionButton
-        iconName={IconName.BuySell}
-        label="Buy/Sell"
-        onPress={jest.fn}
-      />,
-    );
-
-    // Test that the label is rendered
-    expect(getByText('Buy/Sell')).toBeTruthy();
-  });
-
-  it('should apply custom style when provided', () => {
+  it('applies custom style', () => {
     const customStyle = { backgroundColor: 'red' };
+
     const { getByTestId } = render(
       <MainActionButton
         iconName={IconName.Add}
@@ -157,8 +139,7 @@ describe('MainActionButton', () => {
       />,
     );
 
-    const button = getByTestId(MAINACTIONBUTTON_TEST_ID);
-    expect(button.props.style).toContainEqual(
+    expect(getByTestId(MAINACTIONBUTTON_TEST_ID).props.style).toContainEqual(
       expect.objectContaining(customStyle),
     );
   });

@@ -1,5 +1,5 @@
 import SecureKeychain from './SecureKeychain';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
+import * as Keychain from 'react-native-keychain'; // eslint-disable-line import-x/no-namespace
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 import QuickCrypto from 'react-native-quick-crypto';

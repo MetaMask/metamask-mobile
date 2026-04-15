@@ -2,7 +2,7 @@ import React from 'react';
 import { default as Transactions, UnconnectedTransactions } from '.';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { render, cleanup , act } from '@testing-library/react-native';
+import { render, cleanup, act } from '@testing-library/react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -12,12 +12,18 @@ import {
   getBlockExplorerName,
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
+  findBlockExplorerUrlForChain,
+  getHexEvmChainId,
 } from '../../../util/networks';
+import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
+import { NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import { isHardwareAccount } from '../../../util/address';
 import NotificationManager from '../../../core/NotificationManager';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
+import { CancelSpeedupModal } from '../../../components/Views/confirmations/components/modals/cancel-speedup-modal';
+import { mockTheme } from '../../../util/theme';
 
 // Mock the navigation and other dependencies
 const mockNavigationPush = jest.fn();
@@ -31,14 +37,20 @@ const mockNavigation = {
 jest.mock('../../../core/Multichain/utils', () => ({
   ...jest.requireActual('../../../core/Multichain/utils'),
   isNonEvmChainId: jest.fn(),
+  getFormattedAddressFromInternalAccount: jest.fn(
+    (account) => account?.address ?? '0x123...456',
+  ),
 }));
 
 // Mock network utils
 jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
   getBlockExplorerAddressUrl: jest.fn(),
   getBlockExplorerName: jest.fn(),
   findBlockExplorerForNonEvmChainId: jest.fn(),
   findBlockExplorerForRpc: jest.fn(),
+  findBlockExplorerUrlForChain: jest.fn(),
+  getHexEvmChainId: jest.fn(),
   isMainnetByChainId: jest.fn(),
 }));
 
@@ -53,16 +65,26 @@ jest.mock('../../../core/NotificationManager', () => ({
 jest.mock('../../../util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn(),
   speedUpTransaction: jest.fn(),
+  getPreviousGasFromController: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../util/confirmation/gas', () => ({
+  getGasValuesForReplacement: jest.fn((gasValues) => gasValues),
+  getMediumGasPriceHex: jest.fn(() => '0x123'),
 }));
 
 jest.mock('../../../core/Engine', () => ({
   context: {
     ApprovalController: {
-      accept: jest.fn(),
-      reject: jest.fn(),
+      acceptRequest: jest.fn(),
+      rejectRequest: jest.fn(),
     },
     TransactionController: {
       stopTransaction: jest.fn(),
+    },
+    GasFeeController: {
+      startPolling: jest.fn().mockReturnValue('polling-token'),
+      stopPollingByPollingToken: jest.fn(),
     },
   },
 }));
@@ -78,14 +100,6 @@ jest.mock('../TransactionElement', () => ({
 }));
 
 // Mock other connected components
-jest.mock(
-  '../../Views/confirmations/legacy/components/UpdateEIP1559Tx',
-  () => ({
-    __esModule: true,
-    default: () => null,
-  }),
-);
-
 jest.mock('../TransactionActionModal', () => ({
   __esModule: true,
   default: () => null,
@@ -118,12 +132,6 @@ jest.mock('../../../component-library/components/Buttons/Button', () => ({
   default: () => null,
   ButtonVariants: { Link: 'link', Primary: 'primary' },
   ButtonSize: { Lg: 'lg', Md: 'md' },
-}));
-
-jest.mock('../../../util/accounts', () => ({
-  getFormattedAddressFromInternalAccount: jest.fn(
-    (account) => account?.address || '0x123...456',
-  ),
 }));
 
 // Mock React Native components and StyleSheet
@@ -160,6 +168,7 @@ jest.mock('../../../util/number', () => ({
 }));
 
 jest.mock('../../../util/conversions', () => ({
+  ...jest.requireActual('../../../util/conversions'),
   decGWEIToHexWEI: jest.fn(() => '0x123'),
 }));
 
@@ -198,6 +207,13 @@ const mockFindBlockExplorerForRpc =
   findBlockExplorerForRpc as jest.MockedFunction<
     typeof findBlockExplorerForRpc
   >;
+const mockFindBlockExplorerUrlForChain =
+  findBlockExplorerUrlForChain as jest.MockedFunction<
+    typeof findBlockExplorerUrlForChain
+  >;
+const mockGetHexEvmChainId = getHexEvmChainId as jest.MockedFunction<
+  typeof getHexEvmChainId
+>;
 const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
   typeof isHardwareAccount
 >;
@@ -272,6 +288,9 @@ describe('Transactions', () => {
             },
           ]}
           loading={false}
+          navigation={mockNavigation}
+          confirmedTransactions={[]}
+          submittedTransactions={[]}
         />
       </Provider>,
     );
@@ -636,7 +655,7 @@ describe('Transactions', () => {
     });
 
     it('should test Engine context methods', () => {
-      expect(Engine.context.ApprovalController.accept).toBeDefined();
+      expect(Engine.context.ApprovalController.acceptRequest).toBeDefined();
       expect(
         Engine.context.TransactionController.stopTransaction,
       ).toBeDefined();
@@ -1432,14 +1451,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     const key = instance.keyExtractor({ id: 'tx-123' });
     expect(key).toBe('tx-123');
 
-    // Test getGasPriceEstimate method directly
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: { medium: { suggestedMaxFeePerGas: '20' } },
-    };
-    const estimate = instance.getGasPriceEstimate();
-    expect(estimate).toBeDefined();
-
     // Test getCancelOrSpeedupValues (no arg; derives from existingTx)
     instance.existingTx = { txParams: { gasPrice: '0x0' } };
     const result = instance.getCancelOrSpeedupValues();
@@ -1552,37 +1563,25 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(instance.cancelTxId).toBe('tx-456');
     expect(instance.existingTx).toBe(tx);
     expect(instance.setState).toHaveBeenCalledWith({
-      cancelConfirmDisabled: false,
+      speedUpIsOpen: false,
       cancelIsOpen: true,
+      confirmDisabled: false,
     });
   });
 
-  it('should test onSpeedUpCompleted method directly', () => {
+  it('should test closeSpeedUpCancelModal method directly', () => {
     instance.setState = jest.fn();
     instance.speedUpTxId = 'tx-123';
+    instance.cancelTxId = 'tx-456';
     instance.existingTx = { id: 'tx-123' };
 
-    instance.onSpeedUpCompleted();
+    instance.closeSpeedUpCancelModal();
 
     expect(instance.setState).toHaveBeenCalledWith({
-      speedUp1559IsOpen: false,
       speedUpIsOpen: false,
-    });
-    expect(instance.speedUpTxId).toBeNull();
-    expect(instance.existingTx).toBeNull();
-  });
-
-  it('should test onCancelCompleted method directly', () => {
-    instance.setState = jest.fn();
-    instance.cancelTxId = 'tx-456';
-    instance.existingTx = { id: 'tx-456' };
-
-    instance.onCancelCompleted();
-
-    expect(instance.setState).toHaveBeenCalledWith({
-      cancel1559IsOpen: false,
       cancelIsOpen: false,
     });
+    expect(instance.speedUpTxId).toBeNull();
     expect(instance.cancelTxId).toBeNull();
     expect(instance.existingTx).toBeNull();
   });
@@ -1866,8 +1865,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test componentDidUpdate method directly', () => {
     instance.updateBlockExplorer = jest.fn();
-    instance.onSpeedUpCompleted = jest.fn();
-    instance.onCancelCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
     instance.existingTx = { id: 'tx-123' };
     instance.props = {
       ...defaultTestProps,
@@ -1877,8 +1875,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.componentDidUpdate();
 
     expect(instance.updateBlockExplorer).toHaveBeenCalled();
-    expect(instance.onSpeedUpCompleted).toHaveBeenCalled();
-    expect(instance.onCancelCompleted).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
   });
 
   it('should test init method directly', () => {
@@ -1948,7 +1945,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       maxFeePerGas: '0x123',
       maxPriorityFeePerGas: '0x456',
     });
-    instance.onSpeedUpCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     const transactionObject = {
       maxFeePerGas: '0x123',
@@ -1957,7 +1954,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
     await instance.speedUpTransaction(transactionObject);
 
-    expect(instance.onSpeedUpCompleted).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
   });
 
   it('should test cancelTransaction method directly', async () => {
@@ -1967,7 +1964,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       maxFeePerGas: '0x123',
       maxPriorityFeePerGas: '0x456',
     });
-    instance.onCancelCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     const transactionObject = {
       maxFeePerGas: '0x123',
@@ -1979,16 +1976,13 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(
       Engine.context.TransactionController.stopTransaction,
     ).toHaveBeenCalled();
-    expect(instance.onCancelCompleted).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
   });
 
   it('should test renderLoader method directly', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
 
     const result = instance.renderLoader();
@@ -1997,11 +1991,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test renderEmpty method directly', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
     instance.props = {
       ...defaultTestProps,
@@ -2032,13 +2023,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test renderList method directly', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-        primary: { default: '#037dd6' },
-        icon: { default: '#24272a' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
     instance.flatList = React.createRef();
     instance.state = { refreshing: false };
@@ -2061,25 +2047,70 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(result).toBeDefined();
   });
 
+  it('renders single CancelSpeedupModal with correct props when speed up or cancel is open', () => {
+    instance.context = {
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
+    };
+    instance.state = {
+      refreshing: false,
+      confirmDisabled: false,
+    };
+    instance.props = {
+      ...defaultTestProps,
+      submittedTransactions: [],
+      confirmedTransactions: [],
+      transactions: [{ id: 'tx-1' }],
+      isSigningQRObject: false,
+    };
+    instance.existingTx = { id: 'tx-1', chainId: '0x1' };
+
+    // When both closed: modal mounted but not visible (exit animation can run)
+    instance.state.speedUpIsOpen = false;
+    instance.state.cancelIsOpen = false;
+    let listResult = instance.renderList();
+    let { UNSAFE_getAllByType, unmount } = render(listResult);
+    let modals = UNSAFE_getAllByType(CancelSpeedupModal);
+    expect(modals).toHaveLength(1);
+    expect(modals[0].props.isVisible).toBe(false);
+    unmount();
+
+    // When speed up open: one modal, isVisible true, isCancel false
+    instance.state.speedUpIsOpen = true;
+    instance.state.cancelIsOpen = false;
+    listResult = instance.renderList();
+    ({ UNSAFE_getAllByType, unmount } = render(listResult));
+    modals = UNSAFE_getAllByType(CancelSpeedupModal);
+    expect(modals).toHaveLength(1);
+    expect(modals[0].props.isVisible).toBe(true);
+    expect(modals[0].props.isCancel).toBe(false);
+    unmount();
+
+    // When cancel open: one modal, isVisible true, isCancel true
+    instance.state.speedUpIsOpen = false;
+    instance.state.cancelIsOpen = true;
+    listResult = instance.renderList();
+    ({ UNSAFE_getAllByType, unmount } = render(listResult));
+    modals = UNSAFE_getAllByType(CancelSpeedupModal);
+    expect(modals).toHaveLength(1);
+    expect(modals[0].props.isVisible).toBe(true);
+    expect(modals[0].props.isCancel).toBe(true);
+    unmount();
+  });
+
   it('should test render method directly', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
     instance.state = {
       ready: true,
-      speedUp1559IsOpen: false,
-      cancel1559IsOpen: false,
       retryIsOpen: false,
       errorMsg: null,
     };
     instance.props = { ...defaultTestProps, loading: false };
     instance.renderLoader = jest.fn();
     instance.renderList = jest.fn();
-    instance.renderUpdateTxEIP1559Gas = jest.fn();
     instance.toggleRetry = jest.fn();
     instance.retry = jest.fn();
 
@@ -2150,53 +2181,10 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(result2?.gasPrice).toBeDefined();
   });
 
-  it('should test getGasPriceEstimate with different scenarios', () => {
-    // Test with medium.suggestedMaxFeePerGas
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {
-        medium: { suggestedMaxFeePerGas: '25' },
-      },
-    };
-    let result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-
-    // Test with medium value directly
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {
-        medium: '20',
-      },
-    };
-    result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-
-    // Test with gasPrice fallback
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {
-        gasPrice: '15',
-      },
-    };
-    result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-
-    // Test with no estimates (fallback to '0')
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {},
-    };
-    result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-  });
-
   it('should test renderEmpty with switch network scenarios', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
 
     // Test when tokenChainId is different from chainId
@@ -2311,7 +2299,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockIsHardwareAccount.mockReturnValue(true);
     instance.speedUpTxId = 'tx-123';
     instance.signLedgerTransaction = jest.fn().mockResolvedValue(undefined);
-    instance.onSpeedUpCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     const transactionObject = {
       suggestedMaxFeePerGasHex: '123',
@@ -2326,7 +2314,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockIsHardwareAccount.mockReturnValue(true);
     instance.cancelTxId = 'tx-456';
     instance.signLedgerTransaction = jest.fn().mockResolvedValue(undefined);
-    instance.onCancelCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     await instance.cancelTransaction(transactionObject);
 
@@ -2362,5 +2350,170 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.retry();
 
     expect(instance.setState).toHaveBeenCalled();
+  });
+
+  describe('asset-chain explorer (tokenChainId / AssetDetails)', () => {
+    beforeEach(() => {
+      mockFindBlockExplorerUrlForChain.mockReset();
+      mockGetHexEvmChainId.mockReset();
+    });
+
+    it('updateBlockExplorer resolves EVM asset chain via findBlockExplorerUrlForChain when tokenChainId is set', () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      mockFindBlockExplorerUrlForChain.mockReturnValue(
+        'https://polygonscan.com',
+      );
+      instance.setState = jest.fn();
+      instance.props = {
+        ...defaultTestProps,
+        tokenChainId: 'eip155:137',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        networkConfigurations: { '0x89': {} },
+        providerConfig: { type: 'mainnet' },
+      };
+
+      instance.updateBlockExplorer();
+
+      expect(mockFindBlockExplorerUrlForChain).toHaveBeenCalledWith(
+        'eip155:137',
+        instance.props.networkConfigurations,
+      );
+      expect(instance.setState).toHaveBeenCalledWith({
+        rpcBlockExplorer: 'https://polygonscan.com',
+      });
+    });
+
+    it('updateBlockExplorer sets no explorer when AssetDetails has no tokenChainId', () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      instance.setState = jest.fn();
+      instance.props = {
+        ...defaultTestProps,
+        location: TransactionDetailLocation.AssetDetails,
+        tokenChainId: undefined,
+        chainId: '0x1',
+        providerConfig: { type: 'mainnet' },
+      };
+
+      instance.updateBlockExplorer();
+
+      expect(mockFindBlockExplorerUrlForChain).not.toHaveBeenCalled();
+      expect(instance.setState).toHaveBeenCalledWith({
+        rpcBlockExplorer: undefined,
+      });
+    });
+
+    it('updateBlockExplorer uses tokenChainId for non-EVM when location is AssetDetails', () => {
+      mockIsNonEvmChainId.mockImplementation(
+        (id: string) => id?.startsWith('solana:') ?? false,
+      );
+      mockFindBlockExplorerForNonEvmChainId.mockReturnValue(
+        'https://solscan.io',
+      );
+      instance.setState = jest.fn();
+      instance.props = {
+        ...defaultTestProps,
+        location: TransactionDetailLocation.AssetDetails,
+        tokenChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        chainId: '0x1',
+        providerConfig: { type: 'mainnet' },
+      };
+
+      instance.updateBlockExplorer();
+
+      expect(mockFindBlockExplorerForNonEvmChainId).toHaveBeenCalledWith(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
+      expect(mockFindBlockExplorerUrlForChain).not.toHaveBeenCalled();
+    });
+
+    it('viewOnBlockExplore uses asset rpcBlockExplorer when tokenChainId is set', () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      mockGetBlockExplorerName.mockReturnValue('Polygonscan');
+      instance.props = {
+        ...defaultTestProps,
+        navigation: mockNavigation,
+        tokenChainId: '0x89',
+        chainId: '0x1',
+        providerConfig: { type: 'mainnet' },
+      };
+      instance.state = { rpcBlockExplorer: 'https://polygonscan.com' };
+
+      instance.viewOnBlockExplore();
+
+      expect(mockGetBlockExplorerAddressUrl).not.toHaveBeenCalled();
+      expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://polygonscan.com/address/0x123',
+          title: 'Polygonscan',
+        },
+      });
+    });
+
+    it('viewOnBlockExplore falls back to findBlockExplorerUrlForChain when state explorer is NO_RPC_BLOCK_EXPLORER', () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      mockGetBlockExplorerName.mockReturnValue('Polygonscan');
+      mockFindBlockExplorerUrlForChain.mockReturnValue(
+        'https://polygonscan.com',
+      );
+      instance.props = {
+        ...defaultTestProps,
+        navigation: mockNavigation,
+        tokenChainId: '0x89',
+        networkConfigurations: {},
+        providerConfig: { type: 'mainnet' },
+      };
+      instance.state = { rpcBlockExplorer: NO_RPC_BLOCK_EXPLORER };
+
+      instance.viewOnBlockExplore();
+
+      expect(mockFindBlockExplorerUrlForChain).toHaveBeenCalledWith('0x89', {});
+      expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://polygonscan.com/address/0x123',
+          title: 'Polygonscan',
+        },
+      });
+    });
+
+    it('viewOnBlockExplore logs when asset chain has no block explorer', () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      mockFindBlockExplorerUrlForChain.mockReturnValue(undefined);
+      instance.props = {
+        ...defaultTestProps,
+        navigation: mockNavigation,
+        tokenChainId: '0x999',
+        networkConfigurations: {},
+        providerConfig: { type: 'mainnet' },
+      };
+      instance.state = { rpcBlockExplorer: undefined };
+
+      instance.viewOnBlockExplore();
+
+      expect(Logger.error).toHaveBeenCalled();
+      expect(mockNavigation.push).not.toHaveBeenCalled();
+    });
+
+    it('footer passes omitGlobalProviderExplorerFallback and hex chainId from getHexEvmChainId for AssetDetails', () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      mockGetHexEvmChainId.mockReturnValue('0x89');
+      instance.props = {
+        ...defaultTestProps,
+        location: TransactionDetailLocation.AssetDetails,
+        tokenChainId: 'eip155:137',
+        chainId: '0x1',
+        providerConfig: { type: 'mainnet' },
+      };
+      instance.state = { rpcBlockExplorer: 'https://polygonscan.com' };
+      instance.viewOnBlockExplore = jest.fn();
+
+      const footer = instance.footer;
+
+      expect(mockGetHexEvmChainId).toHaveBeenCalledWith('eip155:137');
+      expect(footer.props.omitGlobalProviderExplorerFallback).toBe(true);
+      expect(footer.props.chainId).toBe('0x89');
+      expect(footer.props.isNonEvmChain).toBe(false);
+    });
   });
 });

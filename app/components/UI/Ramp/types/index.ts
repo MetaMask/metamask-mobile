@@ -35,6 +35,16 @@ export function isNativeProvider(quote: Quote): boolean {
 }
 
 /**
+ * Checks if a quote is for a custom action provider (e.g. PayPal).
+ *
+ * @param quote - The quote to check.
+ * @returns True if the quote has isCustomAction set, false otherwise.
+ */
+export function isCustomAction(quote: Quote): boolean {
+  return (quote.quote as { isCustomAction?: boolean })?.isCustomAction === true;
+}
+
+/**
  * Gets the display name for the quote's provider.
  * Uses only quote.providerInfo.name so Checkout and other UI show correct
  * branding. Never derives a label from quote.provider (the path/slug), since

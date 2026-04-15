@@ -11,7 +11,7 @@ import ImportSrpView from '../../page-objects/importSrp/ImportSrpView';
 
 import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
-import { SmokeWalletPlatform } from '../../tags';
+import { SmokeSeedlessOnboarding } from '../../tags';
 import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -19,7 +19,7 @@ import { completeGoogleNewUserOnboarding } from './utils';
 
 const IMPORTED_ACCOUNT_NAME = 'Account 1';
 
-describe(SmokeWalletPlatform('Google Login - Add New SRP'), () => {
+describe(SmokeSeedlessOnboarding('Google Login - Add New SRP'), () => {
   beforeAll(async () => {
     jest.setTimeout(300000);
   });
@@ -39,10 +39,13 @@ describe(SmokeWalletPlatform('Google Login - Add New SRP'), () => {
           oAuthMockttpService.configureGoogleNewUser();
           await oAuthMockttpService.setup(mockServer);
 
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
+            predictGtmOnboardingModalEnabled: {
+              enabled: false,
+              minimumVersion: '7.60.0',
+            },
+          });
         },
       },
       async () => {

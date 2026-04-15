@@ -91,6 +91,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
+    isFocused: jest.fn(() => true),
   }),
 }));
 
@@ -166,39 +167,45 @@ describe('AddFundsBottomSheet', () => {
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
   });
 
-  it('renders with both options enabled and matches snapshot', () => {
-    const { toJSON } = setupComponent();
+  it('renders with both options enabled', () => {
+    const { getByText } = setupComponent();
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Select method')).toBeOnTheScreen();
+    expect(getByText('Fund with cash')).toBeOnTheScreen();
+    expect(getByText('Fund with crypto')).toBeOnTheScreen();
   });
 
-  it('renders with only swap option when deposit is disabled and matches snapshot', () => {
+  it('renders with only swap option when deposit is disabled', () => {
     (useDepositEnabled as jest.Mock).mockReturnValue({
       isDepositEnabled: false,
     });
 
-    const { toJSON } = setupComponent();
+    const { getByText, queryByText } = setupComponent();
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Fund with crypto')).toBeOnTheScreen();
+    expect(queryByText('Fund with cash')).not.toBeOnTheScreen();
   });
 
-  it('renders with only deposit option when swaps are not allowed and matches snapshot', () => {
+  it('renders with only deposit option when swaps are not allowed', () => {
     (isBridgeAllowed as jest.Mock).mockReturnValue(false);
 
-    const { toJSON } = setupComponent();
+    const { getByText, queryByText } = setupComponent();
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Fund with cash')).toBeOnTheScreen();
+    expect(queryByText('Fund with crypto')).not.toBeOnTheScreen();
   });
 
-  it('renders with no options when both are disabled and matches snapshot', () => {
+  it('renders with no options when both are disabled', () => {
     (useDepositEnabled as jest.Mock).mockReturnValue({
       isDepositEnabled: false,
     });
     (isBridgeAllowed as jest.Mock).mockReturnValue(false);
 
-    const { toJSON } = setupComponent();
+    const { getByText, queryByText } = setupComponent();
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Select method')).toBeOnTheScreen();
+    expect(queryByText('Fund with cash')).not.toBeOnTheScreen();
+    expect(queryByText('Fund with crypto')).not.toBeOnTheScreen();
   });
 
   it('displays the correct header text', () => {
@@ -263,7 +270,7 @@ describe('AddFundsBottomSheet', () => {
       CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
     );
 
-    expect(swapOption).toBeNull();
+    expect(swapOption).not.toBeOnTheScreen();
   });
 
   it('renders correct descriptions for different tokens', () => {
@@ -323,8 +330,8 @@ describe('AddFundsBottomSheet', () => {
   });
 
   it('renders component correctly', () => {
-    const { toJSON } = setupComponent();
+    const { getByText } = setupComponent();
 
-    expect(toJSON()).toBeTruthy();
+    expect(getByText('Select method')).toBeOnTheScreen();
   });
 });

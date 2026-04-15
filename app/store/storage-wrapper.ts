@@ -1,8 +1,7 @@
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isE2E } from '../util/test/utils';
-import { createMMKV } from 'react-native-mmkv';
-import type { MMKV } from 'react-native-mmkv';
+import { createMMKV, type MMKV } from 'react-native-mmkv';
 import EventEmitter2 from 'eventemitter2';
 
 /**
@@ -57,6 +56,15 @@ class StorageWrapper extends EventEmitter2 {
    *   console.log('No value found for key: my_key');
    * }
    */
+  getItemSync(key: string): string | null {
+    try {
+      if (isE2E) return null;
+      return (this.storage as MMKV).getString(key) ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   async getItem(key: string) {
     try {
       // asyncStorage returns null for no value

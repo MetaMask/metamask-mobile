@@ -3,6 +3,7 @@ import { Interface } from '@ethersproject/abi';
 import {
   TransactionMeta,
   TransactionParams,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
@@ -15,6 +16,7 @@ import {
 import ppomUtil from '../../../../lib/ppom/ppom-util';
 import { addTransaction } from '../../../../util/transaction-controller';
 import { POST_QUOTE_TRANSACTION_TYPES } from '../constants/confirmations';
+import { Severity } from '../components/status-icon';
 
 const erc20Interface = new Interface(abiERC20);
 const erc721Interface = new Interface(abiERC721);
@@ -148,4 +150,53 @@ export function getPostQuoteTransactionType(
   return POST_QUOTE_TRANSACTION_TYPES.find((type) =>
     hasTransactionType(transactionMeta, [type as unknown as TransactionType]),
   );
+}
+
+/**
+ * Returns true if the user has selected a non-native token to pay for gas.
+ *
+ * @param transactionMeta - Transaction meta object
+ * @returns Whether a gas fee token is selected
+ */
+export function hasGasFeeTokenSelected(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  return Boolean(transactionMeta?.selectedGasFeeToken);
+}
+
+export function getSeverity(status: TransactionStatus): Severity {
+  switch (status) {
+    case TransactionStatus.confirmed:
+      return 'success';
+    case TransactionStatus.failed:
+    case TransactionStatus.dropped:
+      return 'error';
+    default:
+      return 'warning';
+  }
+}
+
+export function getErrorMessage(
+  transactionMeta: TransactionMeta,
+): string | undefined {
+  const { error } = transactionMeta;
+
+  if (!error) return undefined;
+
+  if (error.stack) {
+    try {
+      const start = error.stack.indexOf('{');
+      const end = error.stack.lastIndexOf('}');
+      const stackObject = JSON.parse(error.stack.substring(start, end + 1));
+      const stackMessage = stackObject?.data?.message;
+
+      if (stackMessage) {
+        return stackMessage;
+      }
+    } catch {
+      // Intentionally empty
+    }
+  }
+
+  return error.message;
 }

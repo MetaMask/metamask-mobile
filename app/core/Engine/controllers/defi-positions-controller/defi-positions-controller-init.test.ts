@@ -1,4 +1,4 @@
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import {
@@ -27,7 +27,7 @@ function getInitRequestMock(
     namespace: MOCK_ANY_NAMESPACE,
   }),
 ): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     DeFiPositionsControllerMessenger,
     DeFiPositionsControllerInitMessenger
   >

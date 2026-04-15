@@ -38,16 +38,45 @@ Documents/MetaMask/          # or wherever you keep these repos
         └── react-native-playground/
 ```
 
-### Build the Playground APK
+### Get the Playground APK
 
-You must build the release APK **manually** before running the test, and
-**rebuild** whenever you change the playground source code. The release variant
-is required because the debug variant expects a Metro dev server at runtime.
+The playground APK is published as a GitHub Release asset with every
+connect-monorepo release. You can download it automatically or build locally.
 
-#### First-time setup
+#### Option A — Download from GitHub Releases (recommended)
 
-Run all five steps below from your terminal. Each command is self-contained
-(no implicit working directory from a previous step).
+```bash
+# From the metamask-mobile root
+./scripts/fetch-rn-playground-apk.sh
+```
+
+This downloads the latest `rn-playground-<version>.apk` to `./tmp/rn-playground.apk`.
+The test's `beforeAll` hook automatically finds APKs in this location.
+
+To pin a specific version:
+
+```bash
+./scripts/fetch-rn-playground-apk.sh --version 17.0.0
+```
+
+Or set the environment variable:
+
+```bash
+export RN_PLAYGROUND_APK_VERSION=17.0.0
+./scripts/fetch-rn-playground-apk.sh
+```
+
+You can also point to any APK directly:
+
+```bash
+export RN_PLAYGROUND_APK_PATH=/path/to/your/playground.apk
+```
+
+#### Option B — Build locally
+
+Use this when you need to test local changes to the playground or its
+dependencies. The release variant is required because the debug variant
+expects a Metro dev server at runtime.
 
 **Step 1 — Install monorepo dependencies:**
 
@@ -123,6 +152,22 @@ yarn build
 ```
 
 Then run `./gradlew assembleRelease` as above.
+
+### CI / BrowserStack
+
+In CI, the playground APK is fetched from GitHub Releases and uploaded to
+BrowserStack before test execution. The relevant environment variables are:
+
+| Variable                         | Description                                     |
+| -------------------------------- | ----------------------------------------------- |
+| `RN_PLAYGROUND_APK_VERSION`      | Pin to a specific connect-monorepo release      |
+| `RN_PLAYGROUND_APK_PATH`         | Override APK path (skips download)              |
+| `BROWSERSTACK_RN_PLAYGROUND_URL` | BrowserStack `bs://` URL for the playground APK |
+
+The Appwright BrowserStack provider (via the patched `appwright` package) reads
+`BROWSERSTACK_RN_PLAYGROUND_URL` from the environment and passes it as
+`otherApps` in `bstack:options`, telling BrowserStack to pre-install the
+playground APK alongside the MetaMask wallet on the test device.
 
 ### Automatic Install on Each Test Run
 

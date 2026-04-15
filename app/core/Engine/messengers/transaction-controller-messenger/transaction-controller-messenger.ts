@@ -43,6 +43,7 @@ import {
   CurrencyRateControllerActions,
 } from '@metamask/assets-controllers';
 import {
+  TransactionPayControllerGetDelegationTransactionAction,
   TransactionPayControllerGetStateAction,
   TransactionPayControllerGetStrategyAction,
 } from '@metamask/transaction-pay-controller';
@@ -107,6 +108,7 @@ type InitMessengerActions =
   | TransactionControllerAddTransactionBatchAction
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
+  | TransactionPayControllerGetDelegationTransactionAction
   | TransactionPayControllerGetStateAction
   | TransactionPayControllerGetStrategyAction
   | AnalyticsControllerActions;
@@ -163,6 +165,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:addTransactionBatch',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
+      'TransactionPayController:getDelegationTransaction',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
       'AnalyticsController:trackEvent',

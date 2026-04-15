@@ -11,6 +11,7 @@ import OrderDetailsView from '../../page-objects/Ramps/OrderDetailsView';
 import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { getRegionLocationCode } from '../../framework/types';
 import { Mockttp } from 'mockttp';
 import {
   setupDepositOnRampMocks,
@@ -56,8 +57,8 @@ const returningUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
 const nativeDepositOrder = {
   token: 'ETH',
   tokenAmount: '0.02455',
-  totalFiat: '$100 USD',
-  feesFiat: '$23.33 USD',
+  totalFiat: '$100.00',
+  feesFiat: '$23.33',
   quoteDisplayAmount: '100 USD',
   provider: 'Transak (Staging)',
 };
@@ -65,8 +66,8 @@ const nativeDepositOrder = {
 const aggregatorBuyOrder = {
   token: 'ETH',
   tokenAmount: '0.00355',
-  totalFiat: '$15 USD',
-  feesFiat: '$3.5 USD',
+  totalFiat: '$15.00',
+  feesFiat: '$3.50',
   quoteDisplayAmount: '$15.00',
   provider: 'Transak (Staging)',
 };
@@ -82,6 +83,7 @@ const expectedEventNames = [
   expectedEvents.RampsButtonClicked,
   expectedEvents.RampsTokenSelected,
 ];
+
 describe(SmokeRamps('Onramp Unified Buy'), () => {
   beforeEach(async () => {
     await device.clearKeychain();
@@ -91,7 +93,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+          .withNetworkController(CustomNetworks.Tenderly.Mainnet.providerConfig)
           .withRampsSelectedRegion(selectedRegion)
           .withMetaMetricsOptIn()
           .build(),
@@ -164,7 +166,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+          .withNetworkController(CustomNetworks.Tenderly.Mainnet.providerConfig)
           .withRampsSelectedRegion(selectedRegion)
           .withMetaMetricsOptIn()
           .build(),
@@ -292,9 +294,9 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
     );
     const rampsButtonClickedRegion = rampsButtonClicked?.properties
       ?.region as string;
-    // The region property is a plain string (e.g. "us-ca") matching the
-    // geolocation endpoint response, not a JSON-serialized object.
-    const expectedRegionId = selectedRegion.id.replace('/regions/', '');
+    // The GeolocationController stores the ISO 3166-2 location code
+    // returned by the geolocation API (e.g. 'US-CA'), not the ramp region id.
+    const expectedRegionId = getRegionLocationCode(selectedRegion);
     await softAssert.checkAndCollect(
       async () =>
         await Assertions.checkIfTextMatches(

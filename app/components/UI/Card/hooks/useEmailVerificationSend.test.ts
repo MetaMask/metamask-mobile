@@ -134,7 +134,7 @@ describe('useEmailVerificationSend', () => {
       const { result } = renderHook(() => useEmailVerificationSend());
 
       await act(async () => {
-        await result.current.sendEmailVerification('test@example.com').catch(() => {});
+        await result.current.sendEmailVerification('test@example.com').catch(() => undefined);
       });
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(cardError);
@@ -151,7 +151,7 @@ describe('useEmailVerificationSend', () => {
       const { result } = renderHook(() => useEmailVerificationSend());
 
       await act(async () => {
-        await result.current.sendEmailVerification('test@example.com').catch(() => {});
+        await result.current.sendEmailVerification('test@example.com').catch(() => undefined);
       });
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(networkError);
@@ -168,7 +168,7 @@ describe('useEmailVerificationSend', () => {
       const { result } = renderHook(() => useEmailVerificationSend());
 
       await act(async () => {
-        await result.current.sendEmailVerification('test@example.com').catch(() => {});
+        await result.current.sendEmailVerification('test@example.com').catch(() => undefined);
       });
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(unknownError);
@@ -234,7 +234,7 @@ describe('useEmailVerificationSend', () => {
 
       // First send with error
       await act(async () => {
-        await result.current.sendEmailVerification('test@example.com').catch(() => {});
+        await result.current.sendEmailVerification('test@example.com').catch(() => undefined);
       });
 
       expect(result.current.isError).toBe(true);
@@ -262,7 +262,7 @@ describe('useEmailVerificationSend', () => {
 
       // Trigger error
       await act(async () => {
-        await result.current.sendEmailVerification('test@example.com').catch(() => {});
+        await result.current.sendEmailVerification('test@example.com').catch(() => undefined);
       });
 
       expect(result.current.isError).toBe(true);

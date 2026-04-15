@@ -34,6 +34,7 @@ export const PERPS_EVENT_PROPERTY = {
 
   // Position properties
   OPEN_POSITION: 'open_position',
+  OPEN_ORDER: 'open_order',
   OPEN_POSITION_SIZE: 'open_position_size',
   UNREALIZED_PNL_DOLLAR: 'unrealized_dollar_pnl',
   UNREALIZED_PNL_PERCENT: 'unrealized_percent_pnl',
@@ -136,6 +137,12 @@ export const PERPS_EVENT_PROPERTY = {
   // Scroll tracking properties
   SECTION_VIEWED: 'section_viewed',
 
+  // Order value (USD $ value of the order)
+  ORDER_VALUE: 'order_value',
+
+  // Market category filter (for market list screen)
+  MARKET_CATEGORY: 'market_category',
+
   // Pay with any token (PERPS_TRADE_TRANSACTION)
   TRADE_WITH_TOKEN: 'trade_with_token',
   MM_PAY_TOKEN_SELECTED: 'mm_pay_token_selected',
@@ -203,6 +210,8 @@ export const PERPS_EVENT_VALUE = {
     PERPS_HOME_EXPLORE_CRYPTO: 'perps_home_explore_crypto',
     PERPS_HOME_EXPLORE_STOCKS: 'perps_home_explore_stocks',
     PERPS_HOME_ACTIVITY: 'perps_home_activity',
+    // Explore/Trending page source
+    EXPLORE: 'explore',
     // Market list tab sources
     PERPS_MARKET_LIST_ALL: 'perps_market_list_all',
     PERPS_MARKET_LIST_CRYPTO: 'perps_market_list_crypto',
@@ -225,6 +234,7 @@ export const PERPS_EVENT_VALUE = {
     ADD_FUNDS_ACTION: 'add_funds_action',
     CANCEL_ORDER: 'cancel_order',
     ASSET_DETAIL_SCREEN: 'asset_detail_screen',
+    MARKET_INSIGHTS: 'market_insights',
     // TAT-2449: Geo-block sources for close/modify actions
     CLOSE_POSITION_ACTION: 'close_position_action',
     MODIFY_POSITION_ACTION: 'modify_position_action',
@@ -240,6 +250,7 @@ export const PERPS_EVENT_VALUE = {
     STOP_LOSS_PROMPT_SET_SL: 'stop_loss_prompt_set_sl',
     // Geo-block sources for bulk actions
     CLOSE_ALL_POSITIONS_BUTTON: 'close_all_positions_button',
+    CANCEL_ALL_ORDERS_BUTTON: 'cancel_all_orders_button',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',
@@ -305,6 +316,8 @@ export const PERPS_EVENT_VALUE = {
     // Pay-with interactions
     PAYMENT_TOKEN_SELECTOR: 'payment_token_selector',
     PAYMENT_METHOD_CHANGED: 'payment_method_changed',
+    // Deposit + order (pay-with token) cancel
+    CANCEL_TRADE_WITH_TOKEN: 'cancel_trade_with_token',
   },
   ACTION_TYPE: {
     START_TRADING: 'start_trading',
@@ -376,6 +389,9 @@ export const PERPS_EVENT_VALUE = {
     ADD_MARGIN: 'add_margin',
     REMOVE_MARGIN: 'remove_margin',
     GEO_BLOCK_NOTIF: 'geo_block_notif',
+    COMPLIANCE_BLOCK_NOTIF: 'compliance_block_notif',
+    // Deposit + order (pay-with token) cancel toast
+    CANCEL_TRADE_WITH_TOKEN_TOAST: 'cancel_trade_with_token_toast',
   },
   SETTING_TYPE: {
     LEVERAGE: 'leverage',
@@ -397,9 +413,16 @@ export const PERPS_EVENT_VALUE = {
     REMOVE_MARGIN: 'remove_margin',
     EDIT_TP_SL: 'edit_tp_sl',
     CREATE_TP_SL: 'create_tp_sl',
+    // TP/SL specific actions for risk management events
+    TP: 'tp',
+    SL: 'sl',
+    TPSL: 'tpsl',
     // Trade transaction actions - differentiates new position from adding to existing
     CREATE_POSITION: 'create_position',
     INCREASE_EXPOSURE: 'increase_exposure',
+    // Flip position actions with direction specificity
+    FLIP_LONG_TO_SHORT: 'flip_long_to_short',
+    FLIP_SHORT_TO_LONG: 'flip_short_to_long',
   },
   // Risk management sources
   RISK_MANAGEMENT_SOURCE: {
@@ -412,6 +435,10 @@ export const PERPS_EVENT_VALUE = {
     ORDERS: 'orders',
     FUNDING: 'funding',
     DEPOSITS: 'deposits',
+  },
+  /** Value for mm_pay_token_selected when user pays with Perps balance (not a token) */
+  MM_PAY_TOKEN: {
+    PERPS_BALANCE: 'Perps Balance',
   },
   // A/B testing values
   AB_TEST: {

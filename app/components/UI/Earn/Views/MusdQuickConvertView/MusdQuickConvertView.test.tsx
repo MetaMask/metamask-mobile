@@ -12,16 +12,32 @@ import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags'
 import {
   createTokenChainKey,
   selectHasInFlightMusdConversion,
+  selectHasUnapprovedMusdConversion,
   selectMusdConversionStatuses,
 } from '../../selectors/musdConversionStatus';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
 import AppConstants from '../../../../../core/AppConstants';
 import { Linking } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
 import { strings } from '../../../../../../locales/i18n';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import { ConvertTokenRowTestIds } from '../../components/Musd/ConvertTokenRow';
 import { useMusdBalance } from '../../hooks/useMusdBalance';
+import { IconName } from '@metamask/design-system-react-native';
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -42,6 +58,7 @@ jest.mock('../../selectors/featureFlags', () => ({
 jest.mock('../../selectors/musdConversionStatus', () => ({
   ...jest.requireActual('../../selectors/musdConversionStatus'),
   selectHasInFlightMusdConversion: jest.fn(),
+  selectHasUnapprovedMusdConversion: jest.fn(),
   selectMusdConversionStatuses: jest.fn(),
 }));
 const mockGetStakingNavbar = jest.fn<object, unknown[]>(() => ({}));
@@ -82,6 +99,10 @@ const mockUseMusdConversion = useMusdConversion as jest.MockedFunction<
 const mockUseMusdBalance = useMusdBalance as jest.MockedFunction<
   typeof useMusdBalance
 >;
+const mockSelectHasUnapprovedMusdConversion =
+  selectHasUnapprovedMusdConversion as jest.MockedFunction<
+    typeof selectHasUnapprovedMusdConversion
+  >;
 const mockSelectHasInFlightMusdConversion =
   selectHasInFlightMusdConversion as jest.MockedFunction<
     typeof selectHasInFlightMusdConversion
@@ -119,6 +140,14 @@ describe('MusdQuickConvertView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockBuild.mockReturnValue({ name: 'mock-built-event' });
+    mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    }));
+
     mockUseNavigation.mockReturnValue({
       navigate: jest.fn(),
       goBack: jest.fn(),
@@ -163,6 +192,7 @@ describe('MusdQuickConvertView', () => {
       fiatBalanceAggregatedFormatted: '$0.00',
     });
     mockSelectHasInFlightMusdConversion.mockReturnValue(false);
+    mockSelectHasUnapprovedMusdConversion.mockReturnValue(false);
     mockSelectMusdConversionStatuses.mockReturnValue({});
   });
 
@@ -303,7 +333,7 @@ describe('MusdQuickConvertView', () => {
       expect(
         getByText(
           strings('earn.musd_conversion.quick_convert.title', {
-            apy: MUSD_CONVERSION_APY,
+            percentage: MUSD_CONVERSION_APY,
           }),
         ),
       ).toBeOnTheScreen();
@@ -453,8 +483,8 @@ describe('MusdQuickConvertView', () => {
     });
   });
 
-  describe('in-flight conversion', () => {
-    it('does not call initiateMaxConversion or initiateCustomConversion when Max or Edit is pressed and hasInFlightMusdConversion is true', async () => {
+  describe('unapproved conversion', () => {
+    it('does not call initiateMaxConversion or initiateCustomConversion when Max or Edit is pressed and hasUnapprovedMusdConversion is true', async () => {
       const token = createMockToken();
       mockUseMusdConversionTokens.mockReturnValue({
         tokens: [token],
@@ -463,7 +493,7 @@ describe('MusdQuickConvertView', () => {
         isMusdSupportedOnChain: jest.fn(),
         hasConvertibleTokensByChainId: jest.fn(),
       });
-      mockSelectHasInFlightMusdConversion.mockReturnValue(true);
+      mockSelectHasUnapprovedMusdConversion.mockReturnValue(true);
 
       const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
         state: initialRootState,
@@ -501,6 +531,151 @@ describe('MusdQuickConvertView', () => {
       expect(Linking.openURL).toHaveBeenCalledWith(
         AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
       );
+    });
+  });
+
+  describe('MetaMetrics', () => {
+    it('tracks MUSD_BONUS_TERMS_OF_USE_PRESSED event when terms apply text is pressed', () => {
+      const { getByText } = renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      const termsApplyText = getByText(
+        strings('earn.musd_conversion.education.terms_apply'),
+      );
+
+      act(() => {
+        fireEvent.press(termsApplyText);
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location:
+          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
+        url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks MUSD_QUICK_CONVERT_SCREEN_VIEWED event on mount', () => {
+      renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_QUICK_CONVERT_SCREEN_VIEWED,
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('does not track MUSD_QUICK_CONVERT_SCREEN_VIEWED when feature flag is disabled', () => {
+      mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(false);
+
+      renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_QUICK_CONVERT_SCREEN_VIEWED,
+      );
+    });
+
+    it('tracks MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED event when Max button is pressed', async () => {
+      const token = createMockToken();
+      mockUseMusdConversionTokens.mockReturnValue({
+        tokens: [token],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn(),
+        hasConvertibleTokensByChainId: jest.fn(),
+      });
+      mockInitiateMaxConversion.mockResolvedValue({
+        transactionId: 'tx-max-123',
+      });
+
+      const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      const maxButton = getAllByTestId(ConvertTokenRowTestIds.MAX_BUTTON)[0];
+
+      await act(async () => {
+        fireEvent.press(maxButton);
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location:
+          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
+        button_type: 'text_button',
+        button_action: 'max',
+        button_text: strings('earn.musd_conversion.max'),
+        redirects_to:
+          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS
+            .QUICK_CONVERT_MAX_BOTTOM_SHEET_CONFIRMATION_SCREEN,
+        asset_symbol: token.symbol,
+        network_chain_id: token.chainId,
+        network_name: 'Ethereum',
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED event when Edit button is pressed', async () => {
+      const token = createMockToken();
+      mockUseMusdConversionTokens.mockReturnValue({
+        tokens: [token],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn(),
+        hasConvertibleTokensByChainId: jest.fn(),
+      });
+      mockInitiateCustomConversion.mockResolvedValue('tx-edit-789');
+
+      const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      const editButton = getAllByTestId(ConvertTokenRowTestIds.EDIT_BUTTON)[0];
+
+      await act(async () => {
+        fireEvent.press(editButton);
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location:
+          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
+        button_type: 'icon_button',
+        icon: IconName.Edit,
+        button_action: 'custom',
+        redirects_to:
+          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+        asset_symbol: token.symbol,
+        network_chain_id: token.chainId,
+        network_name: 'Ethereum',
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
   });
 });

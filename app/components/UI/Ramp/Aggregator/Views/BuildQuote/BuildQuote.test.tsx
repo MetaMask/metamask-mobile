@@ -102,7 +102,7 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       reset: mockReset,
       pop: mockPop,
-      dangerouslyGetParent: () => ({
+      getParent: () => ({
         pop: mockPop,
       }),
     }),
@@ -370,12 +370,16 @@ describe('BuildQuote View', () => {
   //
   it('renders correctly', () => {
     render(BuildQuote);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByRole('button', { name: 'Get quotes' }),
+    ).toBeOnTheScreen();
 
     mockUseRampSDKValues.isBuy = false;
     mockUseRampSDKValues.isSell = true;
     render(BuildQuote);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByRole('button', { name: 'Get quotes' }),
+    ).toBeOnTheScreen();
   });
 
   it('renders correctly when sdkError is present', () => {
@@ -384,7 +388,9 @@ describe('BuildQuote View', () => {
       sdkError: new Error('sdkError'),
     };
     render(BuildQuote);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByRole('button', { name: 'Return to home screen' }),
+    ).toBeOnTheScreen();
 
     mockUseRampSDKValues = {
       ...mockUseRampSDKInitialValues,
@@ -393,7 +399,9 @@ describe('BuildQuote View', () => {
       sdkError: new Error('sdkError in sell'),
     };
     render(BuildQuote);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByRole('button', { name: 'Return to home screen' }),
+    ).toBeOnTheScreen();
   });
 
   it('navigates to home when clicking sdKError button', () => {
@@ -502,7 +510,8 @@ describe('BuildQuote View', () => {
         'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
       mockUseBalanceValues.balance = '1.5';
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByText(/Current balance/)).toBeOnTheScreen();
+      expect(screen.getByText(/1\.5/)).toBeOnTheScreen();
     });
   });
 
@@ -513,7 +522,13 @@ describe('BuildQuote View', () => {
         isFetching: true,
       };
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
+        'disabled',
+        true,
+      );
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders an error page when there is a region error', () => {
@@ -522,7 +537,9 @@ describe('BuildQuote View', () => {
         error: 'Test error',
       };
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(
+        screen.getByRole('button', { name: 'Try again' }),
+      ).toBeOnTheScreen();
     });
 
     it('queries region data when error CTA is clicked', () => {
@@ -558,7 +575,16 @@ describe('BuildQuote View', () => {
         isFetchingCryptoCurrencies: true,
       };
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
+        'disabled',
+        true,
+      );
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
+      ).toBeOnTheScreen();
     });
 
     it('renders a special error page if crypto currencies are not available', () => {
@@ -567,13 +593,19 @@ describe('BuildQuote View', () => {
         cryptoCurrencies: [],
       };
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByText('No tokens available')).toBeOnTheScreen();
+      expect(
+        screen.getByRole('button', { name: 'Change payment method' }),
+      ).toBeOnTheScreen();
 
       mockUseRampSDKValues.isBuy = false;
       mockUseRampSDKValues.isSell = true;
       mockUseRampSDKValues.rampType = RampType.SELL;
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getAllByText('No tokens available')[0]).toBeOnTheScreen();
+      expect(
+        screen.getByRole('button', { name: 'Change cash destination' }),
+      ).toBeOnTheScreen();
     });
 
     it('renders an error page when there is a cryptos error', () => {
@@ -582,7 +614,9 @@ describe('BuildQuote View', () => {
         errorCryptoCurrencies: 'Test error',
       };
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(
+        screen.getByRole('button', { name: 'Try again' }),
+      ).toBeOnTheScreen();
     });
 
     it('queries crypto data when error CTA is clicked', () => {
@@ -613,7 +647,16 @@ describe('BuildQuote View', () => {
         isFetching: true,
       };
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
+        'disabled',
+        true,
+      );
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
+      ).toBeOnTheScreen();
     });
 
     it('renders no icons if there are no payment methods', () => {
@@ -622,7 +665,9 @@ describe('BuildQuote View', () => {
         data: null,
       };
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(
+        screen.getByRole('button', { name: 'Get quotes' }),
+      ).toBeOnTheScreen();
     });
 
     it('renders an error page when there is a payment method error', () => {
@@ -631,7 +676,9 @@ describe('BuildQuote View', () => {
         error: 'Test error',
       };
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(
+        screen.getByRole('button', { name: 'Try again' }),
+      ).toBeOnTheScreen();
     });
 
     it('queries for payment methods when error CTA is clicked', () => {
@@ -667,7 +714,13 @@ describe('BuildQuote View', () => {
         isFetchingFiatCurrency: true,
       };
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
+        'disabled',
+        true,
+      );
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
+      ).toBeOnTheScreen();
     });
 
     it('renders an error page when there is a fiat error', () => {
@@ -676,7 +729,9 @@ describe('BuildQuote View', () => {
         errorFiatCurrency: 'Test error',
       };
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(
+        screen.getByRole('button', { name: 'Try again' }),
+      ).toBeOnTheScreen();
     });
 
     it('queries for fiats when error CTA is clicked', () => {
@@ -774,6 +829,24 @@ describe('BuildQuote View', () => {
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
       ).toHaveTextContent(`${denomSymbol}2`);
     });
+
+    it('shows and hides the live input cursor based on focus', () => {
+      render(BuildQuote);
+
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByRoleButton('Done'));
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   describe('Amount to sell input', () => {
@@ -853,7 +926,7 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       expect(
         screen.queryByText('This amount is higher than your balance'),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('updates the amount input with quick amount buttons', () => {

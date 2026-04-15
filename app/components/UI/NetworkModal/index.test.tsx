@@ -9,6 +9,8 @@ import { selectUseSafeChainsListValidation } from '../../../selectors/preference
 import { NetworkApprovalBottomSheetSelectorsIDs } from './NetworkApprovalBottomSheet.testIds';
 import { NetworkAddedBottomSheetSelectorsIDs } from './NetworkAddedBottomSheet.testIds';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
@@ -45,17 +47,11 @@ const mockNetworkControllerAddNetwork = jest.mocked(
   Engine.context.NetworkController.addNetwork,
 );
 
-const mockAddTraitsToUser = jest.fn();
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn().mockReturnValue({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnThis(),
-    }),
-    addTraitsToUser: mockAddTraitsToUser,
-  }),
-}));
+const mockIdentify = jest.fn();
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
+jest
+  .mocked(useAnalytics)
+  .mockReturnValue(createMockUseAnalyticsHook({ identify: mockIdentify }));
 
 interface NetworkProps {
   isVisible: boolean;
@@ -118,6 +114,9 @@ describe('NetworkDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(useAnalytics)
+      .mockReturnValue(createMockUseAnalyticsHook({ identify: mockIdentify }));
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return 'Ethereum Main Network';
       if (selector === selectUseSafeChainsListValidation) return true;
@@ -258,7 +257,7 @@ describe('NetworkDetails', () => {
     ).toHaveBeenCalledWith('test-network-id');
   });
 
-  it('should call addTraitsToUser with chain ID list when adding a new network', async () => {
+  it('should call identify with chain ID list when adding a new network', async () => {
     const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
 
     const approveButton = getByTestId(
@@ -281,12 +280,12 @@ describe('NetworkDetails', () => {
       fireEvent.press(switchButton);
     });
 
-    expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+    expect(mockIdentify).toHaveBeenCalledWith({
       chain_id_list: ['eip155:1', 'eip155:137'],
     });
   });
 
-  it('should call addTraitsToUser with chain ID list when updating an existing network', async () => {
+  it('should call identify with chain ID list when updating an existing network', async () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return 'Ethereum Main Network';
       if (selector === selectUseSafeChainsListValidation) return true;
@@ -321,7 +320,7 @@ describe('NetworkDetails', () => {
       fireEvent.press(switchButton);
     });
 
-    expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+    expect(mockIdentify).toHaveBeenCalledWith({
       chain_id_list: ['eip155:1', 'eip155:137'],
     });
   });
@@ -329,6 +328,11 @@ describe('NetworkDetails', () => {
   describe('closeModal', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      jest
+        .mocked(useAnalytics)
+        .mockReturnValue(
+          createMockUseAnalyticsHook({ identify: mockIdentify }),
+        );
     });
 
     it('should handle adding new network correctly', async () => {
@@ -388,6 +392,11 @@ describe('NetworkDetails', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
+      jest
+        .mocked(useAnalytics)
+        .mockReturnValue(
+          createMockUseAnalyticsHook({ identify: mockIdentify }),
+        );
 
       mockSelectNetwork = jest.fn();
       const useNetworkSelectionModule = jest.requireMock(

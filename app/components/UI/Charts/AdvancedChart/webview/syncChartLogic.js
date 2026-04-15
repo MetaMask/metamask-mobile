@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* eslint-disable import/no-commonjs, import/no-nodejs-modules, no-console */
+/* eslint-disable import-x/no-commonjs, import-x/no-nodejs-modules, no-console */
 /**
  * Sync script that reads chartLogic.js and exports it as a string in chartLogicString.ts
  *
@@ -23,7 +23,7 @@ const tsContent = `/**
  *   node app/components/UI/Charts/AdvancedChart/webview/syncChartLogic.js
  */
 
-// eslint-disable-next-line import/no-default-export
+// eslint-disable-next-line import-x/no-default-export
 export default \`${jsContent.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\${/g, '\\${')}\`;
 `;
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { act } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import DeFiPositionsList from './DeFiPositionsList';
@@ -27,6 +28,25 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+}));
+
+const mockDeFiExecutePoll = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    NetworkEnablementController: {
+      listPopularEvmNetworks: jest.fn(() => ['0x1']),
+      listPopularMultichainNetworks: jest.fn(() => []),
+      listPopularNetworks: jest.fn(() => []),
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+      enableNetworkInNamespace: jest.fn(),
+      enableAllPopularNetworks: jest.fn(),
+    },
+    DeFiPositionsController: {
+      _executePoll: (...args: unknown[]) => mockDeFiExecutePoll(...args),
+    },
+  },
 }));
 
 const MOCK_ADDRESS_1 = '0x0000000000000000000000000000000000000001';
@@ -658,6 +678,31 @@ describe('DeFiPositionsList', () => {
       expect(mockAddProperties).not.toHaveBeenCalledWith(
         expect.objectContaining({ screen_type: 'defi', location: 'homepage' }),
       );
+    });
+  });
+
+  describe('Pull to refresh (full view)', () => {
+    beforeEach(() => {
+      mockDeFiExecutePoll.mockClear();
+    });
+
+    it('calls DeFiPositionsController._executePoll when refresh control fires', async () => {
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" isFullView />,
+        { state: mockInitialState },
+      );
+
+      const scrollView = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+      );
+      const { refreshControl } = scrollView.props;
+      expect(refreshControl).toBeTruthy();
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      expect(mockDeFiExecutePoll).toHaveBeenCalledTimes(1);
     });
   });
 

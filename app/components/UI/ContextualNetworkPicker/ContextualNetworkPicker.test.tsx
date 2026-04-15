@@ -6,22 +6,15 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import createStyles from './ContextualNetworkPicker.styles';
 import ContextualNetworkPicker from './ContextualNetworkPicker';
 import { BASE_DISPLAY_NAME } from '../../../core/Engine/constants';
+import { mockTheme } from '../../../util/theme';
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        default: '#ffffff',
-      },
-      border: {
-        muted: '#cccccc',
-      },
-      text: {
-        default: '#000000',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const actual = jest.requireActual('../../../util/theme');
+  return {
+    ...actual,
+    useTheme: () => actual.mockTheme,
+  };
+});
 
 describe('ContextualNetworkPicker', () => {
   const defaultProps = {
@@ -302,40 +295,27 @@ describe('ContextualNetworkPicker', () => {
   });
 
   describe('Styles', () => {
-    const mockColors = {
-      background: {
-        default: '#ffffff',
-        alternative: '#f2f3f4',
-      },
-      border: {
-        default: '#d6d9dc',
-        muted: '#bbc0c5',
-      },
-      text: {
-        default: '#24272a',
-        alternative: '#535a61',
-      },
-    } as unknown as ThemeColors;
+    const colors = mockTheme.colors as unknown as ThemeColors;
 
     it('should create styles with enabled state (disabled=false)', () => {
-      const styles = createStyles(mockColors, false);
+      const styles = createStyles(colors, false);
 
-      expect(styles.base.borderColor).toBe(mockColors.border.default);
+      expect(styles.base.borderColor).toBe(colors.border.default);
       expect(styles.avatar.opacity).toBe(1);
       expect(styles.networkName.opacity).toBe(1);
     });
 
     it('should create styles with disabled state (disabled=true)', () => {
-      const styles = createStyles(mockColors, true);
+      const styles = createStyles(colors, true);
 
-      expect(styles.base.borderColor).toBe(mockColors.border.muted);
+      expect(styles.base.borderColor).toBe(colors.border.muted);
       expect(styles.avatar.opacity).toBe(0.5);
       expect(styles.networkName.opacity).toBe(0.5);
     });
 
     it('should create consistent static styles regardless of disabled state', () => {
-      const enabledStyles = createStyles(mockColors, false);
-      const disabledStyles = createStyles(mockColors, true);
+      const enabledStyles = createStyles(colors, false);
+      const disabledStyles = createStyles(colors, true);
 
       // These styles should be identical regardless of disabled state
       expect(enabledStyles.accountSelectorWrapper).toEqual(
@@ -346,7 +326,7 @@ describe('ContextualNetworkPicker', () => {
     });
 
     it('should return valid StyleSheet objects with all expected properties', () => {
-      const styles = createStyles(mockColors, false);
+      const styles = createStyles(colors, false);
 
       expect(styles).toHaveProperty('base');
       expect(styles).toHaveProperty('accountSelectorWrapper');

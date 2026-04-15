@@ -28,6 +28,7 @@ import {
 import { useDepositSDK } from '../../sdk';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { endTrace, TraceName } from '../../../../../../util/trace';
+import { VERIFY_IDENTITY_TEST_IDS } from './VerifyIdentity.testIds';
 
 export const createVerifyIdentityNavDetails = createNavigationDetails(
   Routes.DEPOSIT.VERIFY_IDENTITY,
@@ -118,7 +119,7 @@ const VerifyIdentity = () => {
               <Text
                 style={styles.linkText}
                 onPress={handlePrivacyPolicyLink}
-                testID="privacy-policy-link-1"
+                testID={VERIFY_IDENTITY_TEST_IDS.PRIVACY_POLICY_LINK_1}
               >
                 {strings(
                   'deposit.verify_identity.description_3_privacy_policy',
@@ -151,7 +152,7 @@ const VerifyIdentity = () => {
               color={TextColor.Muted}
               style={styles.linkText}
               onPress={handlePrivacyPolicyLink}
-              testID="privacy-policy-link-2"
+              testID={VERIFY_IDENTITY_TEST_IDS.PRIVACY_POLICY_LINK_2}
             >
               {strings('deposit.verify_identity.agreement_text_privacy_policy')}
             </Text>

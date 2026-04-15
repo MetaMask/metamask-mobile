@@ -1,5 +1,5 @@
 import { IKeyManager, KeyPair } from '@metamask/mobile-wallet-protocol-core';
-import { PrivateKey, encrypt, decrypt } from 'eciesjs';
+import { PrivateKey, PublicKey, encrypt, decrypt } from 'eciesjs';
 
 export class KeyManager implements IKeyManager {
   generateKeyPair(): KeyPair {
@@ -8,6 +8,10 @@ export class KeyManager implements IKeyManager {
       privateKey: new Uint8Array(privateKey.secret),
       publicKey: new Uint8Array(privateKey.publicKey.compressed),
     };
+  }
+
+  validatePeerKey(key: Uint8Array): void {
+    PublicKey.fromHex(Buffer.from(key).toString('hex'));
   }
 
   async encrypt(

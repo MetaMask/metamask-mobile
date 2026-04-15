@@ -1,32 +1,32 @@
 import React, { useCallback, useEffect } from 'react';
-import { View, Image, Linking, SafeAreaView } from 'react-native';
+import { Image, Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import Text, {
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
+  Button,
   ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
-import Icon, {
+  ButtonVariant,
+  Icon,
   IconName,
   IconSize,
   IconColor,
-} from '../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
+
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import { useStyles } from '../../../component-library/hooks/useStyles';
 import AppConstants from '../../../core/AppConstants';
 import { Authentication } from '../../../core';
-import styleSheet from './SocialLoginErrorSheet.styles';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const FOX_LOGO = require('../../../images/branding/fox.png');
 
 interface SocialLoginErrorSheetProps {
@@ -35,10 +35,9 @@ interface SocialLoginErrorSheetProps {
 
 const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
   const navigation = useNavigation();
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  // Track screen viewed event
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_VIEWED)
@@ -60,7 +59,6 @@ const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
         .build(),
     );
 
-    // Delete wallet
     await Authentication.deleteWallet();
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
@@ -81,30 +79,34 @@ const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
   }, [trackEvent, createEventBuilder]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.foxContainer}>
-        <Image source={FOX_LOGO} style={styles.foxLogo} resizeMode="contain" />
-      </View>
+    <SafeAreaView style={tw.style('flex-1 bg-alternative justify-end')}>
+      <Box twClassName="flex-1 justify-center items-center">
+        <Image
+          source={FOX_LOGO}
+          style={tw.style('w-[120px] h-[120px]')}
+          resizeMode="contain"
+        />
+      </Box>
 
-      <View style={styles.sheetContent}>
-        <View style={styles.handleBar} />
+      <Box twClassName="bg-default rounded-t-2xl p-4 pb-10 items-center">
+        <Box twClassName="w-10 h-1 bg-border-muted rounded-full self-center mb-4" />
 
         <Icon
           name={IconName.Danger}
           size={IconSize.Xl}
-          color={IconColor.Error}
-          style={styles.warningIcon}
+          color={IconColor.ErrorDefault}
+          twClassName="mb-4"
         />
 
-        <Text variant={TextVariant.HeadingMD} style={styles.title}>
+        <Text variant={TextVariant.HeadingMd} twClassName="text-center mb-2">
           {strings('wallet_creation_error.title')}
         </Text>
 
-        <Text variant={TextVariant.BodyMD} style={styles.description}>
+        <Text variant={TextVariant.BodyMd} twClassName="text-left mb-6 w-full">
           {strings('wallet_creation_error.social_login_description_part1')}{' '}
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Primary}
+            variant={TextVariant.BodyMd}
+            color={TextColor.PrimaryDefault}
             onPress={handleContactSupport}
           >
             {strings('wallet_creation_error.metamask_support')}
@@ -113,14 +115,14 @@ const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
         </Text>
 
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('wallet_creation_error.try_again')}
+          isFullWidth
           onPress={handleTryAgain}
-          style={styles.button}
-        />
-      </View>
+        >
+          {strings('wallet_creation_error.try_again')}
+        </Button>
+      </Box>
     </SafeAreaView>
   );
 };

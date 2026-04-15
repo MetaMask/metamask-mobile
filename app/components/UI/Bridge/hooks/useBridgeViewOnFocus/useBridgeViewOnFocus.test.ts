@@ -33,7 +33,7 @@ describe('useBridgeViewOnFocus', () => {
     focusCallback = undefined;
   });
 
-  it('focuses input and opens keypad on initial focus', () => {
+  it('does not focus input or open keypad on initial focus', () => {
     // Arrange
     const inputRef = createMockInputRef();
     const keypadRef = createMockKeypadRef();
@@ -44,8 +44,8 @@ describe('useBridgeViewOnFocus', () => {
     const cleanup = focusCallback?.();
 
     // Assert
-    expect(inputRef.current.focus).toHaveBeenCalledTimes(1);
-    expect(keypadRef.current.open).toHaveBeenCalledTimes(1);
+    expect(inputRef.current.focus).not.toHaveBeenCalled();
+    expect(keypadRef.current.open).not.toHaveBeenCalled();
 
     // Cleanup should exist
     expect(typeof cleanup).toBe('function');

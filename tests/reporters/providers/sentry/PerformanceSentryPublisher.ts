@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import { randomUUID } from 'node:crypto';
 import { createLogger } from '../../../framework/logger';
 import type { MetricsOutput } from '../../PerformanceTracker';
@@ -12,6 +12,11 @@ const ENV_SENTRY_ENABLED = 'E2E_PERFORMANCE_SENTRY_ENABLED';
 const ENV_SENTRY_SAMPLE_RATE = 'E2E_PERFORMANCE_SENTRY_SAMPLE_RATE';
 const ENV_SENTRY_ENVIRONMENT = 'E2E_PERFORMANCE_SENTRY_ENVIRONMENT';
 const ENV_SENTRY_RELEASE = 'E2E_PERFORMANCE_SENTRY_RELEASE';
+const ENV_SENTRY_BUILD_VARIANT = 'E2E_PERFORMANCE_BUILD_VARIANT';
+const ENV_GITHUB_SERVER_URL = 'GITHUB_SERVER_URL';
+const ENV_GITHUB_REPOSITORY = 'GITHUB_REPOSITORY';
+const ENV_GITHUB_RUN_ID = 'GITHUB_RUN_ID';
+const ENV_GITHUB_JOB = 'GITHUB_JOB';
 const MAX_MEASUREMENT_KEY_LENGTH = 64;
 const RESERVED_MEASUREMENT_KEYS = [
   'scenario_total_time_ms',
@@ -27,6 +32,7 @@ interface PublishPerformanceScenarioOptions {
   status?: string;
   retry?: number;
   workerIndex?: number;
+  videoRecordingUrl?: string | null;
 }
 
 interface ParsedSentryDsn {
@@ -52,6 +58,24 @@ interface SentryMeasurement {
   unit: 'millisecond';
 }
 
+interface MirroredScenarioAttributes {
+  project_name: string;
+  test_team: string;
+  provider: string;
+  team_id: string;
+  team_name: string;
+  test_status: string;
+  retry: number;
+  worker_index: number;
+  build_variant: 'rc' | 'exp' | 'unknown';
+  device_name: string;
+  device_os_version: string;
+  test_file_path: string;
+  recording_url: string | null;
+  github_job_url: string | null;
+  github_job_name: string | null;
+}
+
 function getEnvValue(key: string): string | undefined {
   return Reflect.get(process.env, key) as string | undefined;
 }
@@ -73,6 +97,14 @@ function normalizeSpanStatus(status?: string): string {
     default:
       return 'unknown_error';
   }
+}
+
+function normalizeBuildVariant(variant?: string): 'rc' | 'exp' | 'unknown' {
+  if (variant === 'rc' || variant === 'exp') {
+    return variant;
+  }
+
+  return 'unknown';
 }
 
 function sanitizeMeasurementKey(name: string): string {
@@ -169,6 +201,17 @@ function parseSampleRate(rawSampleRate: string | undefined): number | null {
   return sampleRate;
 }
 
+function getGithubJobUrl(): string | null {
+  const serverUrl = getEnvValue(ENV_GITHUB_SERVER_URL);
+  const repository = getEnvValue(ENV_GITHUB_REPOSITORY);
+  const runId = getEnvValue(ENV_GITHUB_RUN_ID);
+  if (!serverUrl || !repository || !runId) {
+    return null;
+  }
+
+  return `${serverUrl}/${repository}/actions/runs/${runId}`;
+}
+
 export async function publishPerformanceScenarioToSentry(
   options: PublishPerformanceScenarioOptions,
 ): Promise<boolean> {
@@ -246,6 +289,35 @@ export async function publishPerformanceScenarioToSentry(
     };
   }
 
+  const provider = options.metrics.device.provider || 'unknown';
+  const teamId = options.metrics.team?.teamId || 'unknown';
+  const teamName = options.metrics.team?.teamName || 'unknown';
+  const testStatus = options.status || 'unknown';
+  const retry = options.retry ?? 0;
+  const workerIndex = options.workerIndex ?? 0;
+  const buildVariant = normalizeBuildVariant(
+    getEnvValue(ENV_SENTRY_BUILD_VARIANT),
+  );
+  const testFilePath = options.testFilePath || '';
+
+  const mirroredScenarioAttributes: MirroredScenarioAttributes = {
+    project_name: options.projectName,
+    test_team: teamId,
+    provider,
+    team_id: teamId,
+    team_name: teamName,
+    test_status: testStatus,
+    retry,
+    worker_index: workerIndex,
+    build_variant: buildVariant,
+    device_name: options.metrics.device.name,
+    device_os_version: options.metrics.device.osVersion,
+    test_file_path: testFilePath,
+    recording_url: options.videoRecordingUrl ?? null,
+    github_job_url: getGithubJobUrl(),
+    github_job_name: getEnvValue(ENV_GITHUB_JOB) ?? null,
+  };
+
   let cursor = startTimestamp;
   const spans = timerMeasurements.map((timerMeasurement) => {
     const spanStart = cursor;
@@ -267,6 +339,7 @@ export async function publishPerformanceScenarioToSentry(
         base_threshold_ms: timerMeasurement.baseThreshold,
         exceeded_ms: timerMeasurement.exceeded,
         percent_over: timerMeasurement.percentOver,
+        ...mirroredScenarioAttributes,
       },
     };
   });
@@ -301,18 +374,23 @@ export async function publishPerformanceScenarioToSentry(
     },
     tags: {
       source: 'appwright-e2e-performance',
-      project_name: options.projectName,
-      provider: options.metrics.device.provider || 'unknown',
-      team_id: options.metrics.team?.teamId || 'unknown',
-      team_name: options.metrics.team?.teamName || 'unknown',
-      test_status: options.status || 'unknown',
-      retry: String(options.retry ?? 0),
-      worker_index: String(options.workerIndex ?? 0),
+      project_name: mirroredScenarioAttributes.project_name,
+      provider: mirroredScenarioAttributes.provider,
+      team_id: mirroredScenarioAttributes.team_id,
+      team_name: mirroredScenarioAttributes.team_name,
+      test_team: mirroredScenarioAttributes.test_team,
+      test_status: mirroredScenarioAttributes.test_status,
+      retry: String(mirroredScenarioAttributes.retry),
+      worker_index: String(mirroredScenarioAttributes.worker_index),
+      build_variant: mirroredScenarioAttributes.build_variant,
     },
     measurements,
     spans,
     extra: {
-      test_file_path: options.testFilePath || '',
+      test_file_path: mirroredScenarioAttributes.test_file_path,
+      recording_url: mirroredScenarioAttributes.recording_url,
+      github_job_url: mirroredScenarioAttributes.github_job_url,
+      github_job_name: mirroredScenarioAttributes.github_job_name,
       test_tags: options.tags,
       threshold_margin_percent: options.metrics.thresholdMarginPercent,
       has_thresholds: options.metrics.hasThresholds,

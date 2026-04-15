@@ -25,6 +25,7 @@ import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import Authentication from '../../core/Authentication';
 import AppConstants from '../../core/AppConstants';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { providerErrors } from '@metamask/rpc-errors';
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
@@ -74,6 +75,9 @@ jest.mock('../../core/Engine', () => ({
     },
     AccountsController: {
       updateAccounts: jest.fn(),
+    },
+    ApprovalController: {
+      clearRequests: jest.fn(),
     },
     RemoteFeatureFlagController: {
       state: {
@@ -157,7 +161,10 @@ jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
 );
 
 const defaultMockState = {
-  onboarding: { completedOnboarding: false },
+  onboarding: {
+    completedOnboarding: false,
+    pendingSocialLoginMarketingConsentBackfill: null,
+  },
   user: { existingUser: true },
   engine: { backgroundState: {} },
   confirmation: {},
@@ -344,9 +351,13 @@ describe('appStateListenerTask', () => {
 });
 
 describe('appLockStateMachine', () => {
+  const mockApprovalControllerClear = Engine.context.ApprovalController
+    .clearRequests as jest.Mock;
+
   beforeEach(() => {
     mockNavigate.mockClear();
     mockReset.mockClear();
+    mockApprovalControllerClear.mockClear();
   });
 
   it('forks appStateListenerTask and navigates to LockScreen when app is locked', async () => {
@@ -357,6 +368,29 @@ describe('appLockStateMachine', () => {
       .run();
 
     // Verify navigation to LockScreen
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
+  });
+
+  it('clears pending approvals via ApprovalController.clearRequests when app is locked', async () => {
+    await expectSaga(appLockStateMachine)
+      .dispatch({ type: UserActionType.LOCKED_APP })
+      .run();
+
+    expect(mockApprovalControllerClear).toHaveBeenCalledWith(
+      providerErrors.userRejectedRequest(),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
+  });
+
+  it('navigates to LockScreen even when ApprovalController.clearRequests throws', async () => {
+    mockApprovalControllerClear.mockImplementationOnce(() => {
+      throw new Error('clear failed');
+    });
+
+    await expectSaga(appLockStateMachine)
+      .dispatch({ type: UserActionType.LOCKED_APP })
+      .run();
+
     expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
   });
 });

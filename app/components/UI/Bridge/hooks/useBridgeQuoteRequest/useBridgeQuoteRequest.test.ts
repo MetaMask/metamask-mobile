@@ -484,6 +484,50 @@ describe('useBridgeQuoteRequest', () => {
     });
   });
 
+  describe('hardware wallet accounts', () => {
+    it('sends gasIncluded and gasIncluded7702 false when useIsGasIncluded7702Supported dispatches false for hardware wallet', async () => {
+      // useIsGasIncluded7702Supported now incorporates the HW wallet check and
+      // dispatches isGasIncluded7702Supported=false for hardware wallets.
+      // useIsGasIncludedSTXSendBundleSupported already dispatches false for HW
+      // wallets via selectShouldUseSmartTransaction.
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: false,
+          sourceToken: {
+            address: '0xSourceToken',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'SRC',
+          },
+          destToken: {
+            address: '0xDestToken',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'DEST',
+          },
+        },
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded: false,
+          gasIncluded7702: false,
+        }),
+        undefined,
+      );
+    });
+  });
+
   describe('insufficientBal parameter', () => {
     it('includes insufficientBal false when balance is sufficient', async () => {
       mockUseIsInsufficientBalance.mockReturnValue(false);

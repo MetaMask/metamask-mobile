@@ -28,13 +28,11 @@ describe(SmokeConfirmations('Send native asset'), () => {
         ],
         fixture: new FixtureBuilder()
           .withNetworkController({
-            providerConfig: {
-              chainId: '0x539',
-              rpcUrl: LOCAL_NODE_RPC_URL,
-              type: 'custom',
-              nickname: 'Local RPC',
-              ticker: 'ETH',
-            },
+            chainId: '0x539',
+            rpcUrl: LOCAL_NODE_RPC_URL,
+            type: 'custom',
+            nickname: 'Local RPC',
+            ticker: 'ETH',
           })
           .withMetaMetricsOptIn()
           .withPreferencesController({})

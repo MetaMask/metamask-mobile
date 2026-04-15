@@ -77,6 +77,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockedNavigate,
       goBack: mockedGoBack,
+      isFocused: () => true,
     }),
   };
 });
@@ -89,25 +90,12 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
   ),
 }));
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockedTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
 
 jest.mock('../../../core/Engine', () => {
   const {
@@ -1025,6 +1013,7 @@ describe('AccountConnect', () => {
       const mockStateWithoutWC2 = {
         ...mockInitialState,
         sdk: {
+          v2Connections: {},
           wc2Metadata: { id: '' }, // Empty to avoid WalletConnect branch
         },
       };
@@ -1071,6 +1060,7 @@ describe('AccountConnect', () => {
       const mockStateWithWC2 = {
         ...mockInitialState,
         sdk: {
+          v2Connections: {},
           wc2Metadata: { id: 'mock-wc2-id' }, // Non-empty to trigger WalletConnect branch
         },
       };
@@ -1117,6 +1107,7 @@ describe('AccountConnect', () => {
       const mockStateWithoutWC2 = {
         ...mockInitialState,
         sdk: {
+          v2Connections: {},
           wc2Metadata: { id: '' }, // Empty to avoid WalletConnect branch
         },
       };
@@ -1157,6 +1148,7 @@ describe('AccountConnect', () => {
     const mockMaliciousState = {
       ...mockInitialState,
       sdk: {
+        v2Connections: {},
         wc2Metadata: {
           id: 'mock-wc2-id',
           url: 'https://malicious-dapp.com',
@@ -1277,6 +1269,7 @@ describe('AccountConnect', () => {
       const cleanState = {
         ...mockInitialState,
         sdk: {
+          v2Connections: {},
           wc2Metadata: {
             id: 'mock-wc2-id',
             url: 'https://clean-dapp.com',
@@ -1324,6 +1317,7 @@ describe('AccountConnect', () => {
       const verifiedState = {
         ...mockInitialState,
         sdk: {
+          v2Connections: {},
           wc2Metadata: {
             id: 'mock-wc2-id',
             url: 'https://safe-dapp.com',
@@ -1353,6 +1347,7 @@ describe('AccountConnect', () => {
       const nonWcState = {
         ...mockInitialState,
         sdk: {
+          v2Connections: {},
           wc2Metadata: {
             id: '',
             url: '',

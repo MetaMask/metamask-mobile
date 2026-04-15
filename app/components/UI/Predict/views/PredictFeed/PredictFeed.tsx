@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
+import { useSelector } from 'react-redux';
 import {
   View,
   Pressable,
@@ -47,9 +48,14 @@ import {
 } from '@react-navigation/native';
 import {
   PredictMarketListSelectorsIDs,
+  PredictSearchSelectorsIDs,
+  PredictFeedSelectorsIDs,
   getPredictMarketListSelector,
+  getPredictFeedSelector,
+  getPredictSearchSelector,
 } from '../../Predict.testIds';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
+import { deduplicateSeriesMarkets } from '../../utils/feed';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
 import { usePredictTabs, type FeedTab } from '../../hooks/usePredictTabs';
@@ -67,6 +73,11 @@ import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import { PredictBalance } from '../../components/PredictBalance';
 import PredictOffline from '../../components/PredictOffline';
+import FeaturedCarousel from '../../components/FeaturedCarousel';
+import {
+  selectPredictFeaturedCarouselEnabledFlag,
+  selectPredictUpDownEnabledFlag,
+} from '../../selectors/featureFlags';
 import PredictFeedSessionManager from '../../services/PredictFeedSessionManager';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { strings } from '../../../../../../locales/i18n';
@@ -120,7 +131,7 @@ const PredictFeedTabBar: React.FC<PredictFeedTabBarProps> = ({
       tabs={tabItems}
       activeIndex={activeIndex}
       onTabPress={onTabPress}
-      testID="predict-feed-tabs"
+      testID={PredictFeedSelectorsIDs.TABS}
     />
   );
 };
@@ -150,6 +161,9 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
+  const isFeaturedCarouselEnabled = useSelector(
+    selectPredictFeaturedCarouselEnabledFlag,
+  );
 
   const animatedContainerStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: headerTranslateY.value }],
@@ -181,6 +195,11 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
         onLayout={onHeaderLayout}
       >
         <PredictFeedHeader />
+        {isFeaturedCarouselEnabled && (
+          <Box twClassName="pb-3">
+            <FeaturedCarousel />
+          </Box>
+        )}
       </Animated.View>
       <View ref={tabBarRef} onLayout={onTabBarLayout}>
         <PredictFeedTabBar
@@ -234,6 +253,9 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     }
   }, [isActive, hasEverBeenActive]);
 
+  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+  const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
+
   const {
     marketData,
     isFetching,
@@ -242,7 +264,12 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     refetch,
     fetchMore,
     isFetchingMore,
-  } = usePredictMarketData({ category, pageSize: 20, customQueryParams });
+  } = usePredictMarketData({
+    category,
+    pageSize: 20,
+    customQueryParams,
+    refine,
+  });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -294,8 +321,12 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     if (!isFetchingMore) return null;
     return (
       <Box twClassName="py-2">
-        <PredictMarketSkeleton testID={`skeleton-footer-${category}-1`} />
-        <PredictMarketSkeleton testID={`skeleton-footer-${category}-2`} />
+        <PredictMarketSkeleton
+          testID={getPredictFeedSelector.skeletonFooter(category, 1)}
+        />
+        <PredictMarketSkeleton
+          testID={getPredictFeedSelector.skeletonFooter(category, 2)}
+        />
       </Box>
     );
   }, [isFetchingMore, category]);
@@ -318,10 +349,18 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   if (!hasEverBeenActive || (isFetching && !isRefreshing && !isFetchingMore)) {
     return (
       <Box twClassName="flex-1 px-4" style={{ paddingTop: currentPaddingTop }}>
-        <PredictMarketSkeleton testID={`skeleton-loading-${category}-1`} />
-        <PredictMarketSkeleton testID={`skeleton-loading-${category}-2`} />
-        <PredictMarketSkeleton testID={`skeleton-loading-${category}-3`} />
-        <PredictMarketSkeleton testID={`skeleton-loading-${category}-4`} />
+        <PredictMarketSkeleton
+          testID={getPredictFeedSelector.skeletonLoading(category, 1)}
+        />
+        <PredictMarketSkeleton
+          testID={getPredictFeedSelector.skeletonLoading(category, 2)}
+        />
+        <PredictMarketSkeleton
+          testID={getPredictFeedSelector.skeletonLoading(category, 3)}
+        />
+        <PredictMarketSkeleton
+          testID={getPredictFeedSelector.skeletonLoading(category, 4)}
+        />
       </Box>
     );
   }
@@ -337,7 +376,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   if (!marketData || marketData.length === 0) {
     return (
       <Box
-        testID={`predict-empty-state-${category}`}
+        testID={getPredictFeedSelector.emptyState(category)}
         twClassName="flex-1 justify-center items-center p-8"
         style={{ paddingTop: currentPaddingTop }}
       >
@@ -351,7 +390,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   return (
     <AnimatedFlashList
       ref={listRef}
-      testID={`predict-market-list-${category}`}
+      testID={getPredictFeedSelector.marketList(category)}
       data={marketData}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
@@ -420,13 +459,13 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
       style={tw.style('flex-1')}
       initialPage={initialPage}
       onPageSelected={handlePageSelected}
-      testID="predict-feed-pager"
+      testID={PredictFeedSelectorsIDs.PAGER}
     >
       {tabs.map((tab, index) => (
         <View
           key={tab.key}
           style={tw.style('flex-1')}
-          testID={`predict-feed-tab-page-${tab.key}`}
+          testID={getPredictFeedSelector.tabPage(tab.key)}
           collapsable={false}
         >
           <PredictTabContent
@@ -470,10 +509,14 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   );
   const isDebouncing = searchQuery !== debouncedSearchQuery;
 
+  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+  const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
+
   const { marketData, isFetching, error, refetch } = usePredictMarketData({
     category: 'trending',
     q: debouncedSearchQuery,
     pageSize: 20,
+    refine,
   });
 
   const isSearchLoading = isDebouncing || isFetching;
@@ -483,7 +526,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
       <PredictMarketListItem
         market={info.item}
         entryPoint={PredictEventValues.ENTRY_POINT.SEARCH}
-        testID={`predict-search-result-${info.index}`}
+        testID={getPredictSearchSelector.resultCard(info.index)}
       />
     ),
     [],
@@ -513,7 +556,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
           twClassName="flex-1 bg-muted rounded-lg px-3 py-2"
         >
           <Icon
-            testID="search-icon"
+            testID={PredictFeedSelectorsIDs.SEARCH_ICON}
             name={IconName.Search}
             size={IconSize.Sm}
             color={IconColor.IconMuted}
@@ -528,7 +571,10 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
             autoFocus
           />
           {searchQuery.length > 0 && (
-            <Pressable testID="clear-button" onPress={() => onSearchChange('')}>
+            <Pressable
+              testID={PredictSearchSelectorsIDs.CLEAR_BUTTON}
+              onPress={() => onSearchChange('')}
+            >
               <Icon
                 name={IconName.CircleX}
                 size={IconSize.Md}
@@ -547,9 +593,15 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
       <Box twClassName="flex-1">
         {isSearchLoading ? (
           <Box twClassName="px-4 pt-4">
-            <PredictMarketSkeleton testID="search-skeleton-1" />
-            <PredictMarketSkeleton testID="search-skeleton-2" />
-            <PredictMarketSkeleton testID="search-skeleton-3" />
+            <PredictMarketSkeleton
+              testID={getPredictFeedSelector.searchSkeleton(1)}
+            />
+            <PredictMarketSkeleton
+              testID={getPredictFeedSelector.searchSkeleton(2)}
+            />
+            <PredictMarketSkeleton
+              testID={getPredictFeedSelector.searchSkeleton(3)}
+            />
           </Box>
         ) : error ? (
           <PredictOffline onRetry={refetch} />
@@ -606,15 +658,12 @@ const PredictFeed: React.FC = () => {
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
-      navigation.navigate(
-        Routes.WALLET.HOME as never,
-        {
-          screen: Routes.WALLET.TAB_STACK_FLOW,
-          params: {
-            screen: Routes.WALLET_VIEW,
-          },
-        } as never,
-      );
+      navigation.navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
     }
   }, [navigation]);
 
@@ -705,7 +754,7 @@ const PredictFeed: React.FC = () => {
               {
                 iconName: IconName.Search,
                 onPress: showSearch,
-                testID: 'predict-search-button',
+                testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
               },
             ]}
           />

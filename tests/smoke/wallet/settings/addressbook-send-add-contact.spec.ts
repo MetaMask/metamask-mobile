@@ -1,7 +1,7 @@
 import { RegressionWalletPlatform } from '../../../tags';
 import WalletView from '../../../page-objects/wallet/WalletView';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
-import SettingsView from '../../../page-objects/Settings/SettingsView';
+import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
 import ContactsView from '../../../page-objects/Settings/Contacts/ContactsView';
 import { loginToApp } from '../../../flows/wallet.flow';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
@@ -82,13 +82,11 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
+              chainId: '0x539',
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
             })
             .withNetworkEnabledMap({
               eip155: { '0x539': true },
@@ -101,8 +99,8 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapContacts();
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapContacts();
         await ContactsView.tapAddContactButton();
         await Assertions.expectElementToBeVisible(AddContactView.container);
         await AddContactView.typeInName(TEST_CONTACT.name);
@@ -136,8 +134,8 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
 
         // should remove a contact
         // Tap on Moon address
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapContacts();
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapContacts();
         await ContactsView.tapOnAlias(TEST_CONTACT.editedName);
 
         // Tap on edit
@@ -147,8 +145,8 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
           DeleteContactBottomSheet.title,
         );
         await DeleteContactBottomSheet.tapDeleteButton();
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapContacts();
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapContacts();
         await ContactsView.expectContactIsNotVisible(TEST_CONTACT.editedName);
       },
     );

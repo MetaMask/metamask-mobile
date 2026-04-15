@@ -1,4 +1,4 @@
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   selectBridgeControllerState,
   selectSourceToken,
@@ -10,6 +10,9 @@ import {
   selectBridgeFeatureFlags,
   selectIsSolanaSwap,
   selectIsSolanaToNonSolana,
+  selectSelectedQuoteRequestId,
+  setSelectedQuoteRequestId,
+  selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus, isNonEvmChainId } from '@metamask/bridge-controller';
 import { areAddressesEqual } from '../../../../../util/address';
@@ -26,6 +29,8 @@ import { BigNumber as EthersBigNumber } from 'ethers';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
+import AppConstants from '../../../../../core/AppConstants';
+import { usePriceImpactFiat } from '../usePriceImpactFiat';
 
 interface UseBridgeQuoteDataParams {
   latestSourceAtomicBalance?: EthersBigNumber;
@@ -37,6 +42,7 @@ interface UseBridgeQuoteDataParams {
 export const useBridgeQuoteData = ({
   latestSourceAtomicBalance,
 }: UseBridgeQuoteDataParams = {}) => {
+  const dispatch = useDispatch();
   const bridgeControllerState = useSelector(selectBridgeControllerState);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -48,6 +54,8 @@ export const useBridgeQuoteData = ({
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
   const isSolanaToNonSolana = useSelector(selectIsSolanaToNonSolana);
+  const selectedQuoteRequestId = useSelector(selectSelectedQuoteRequestId);
+  const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const { validateBridgeTx } = useValidateBridgeTx();
 
   const [blockaidError, setBlockaidError] = useState<string | null>(null);
@@ -84,8 +92,39 @@ export const useBridgeQuoteData = ({
     [quotes?.sortedQuotes],
   );
 
-  const activeQuote =
-    isExpired && !willRefresh && !isSubmittingTx ? undefined : bestQuote;
+  // Determine the active quote:
+  // 1. If user manually selected a quote, use that
+  // 2. Otherwise, use the best quote
+  // 3. If expired and not refreshing, use undefined
+  const manuallySelectedQuote = selectedQuoteRequestId
+    ? allQuotes.find(
+        (quote) => quote.quote.requestId === selectedQuoteRequestId,
+      )
+    : undefined;
+
+  const rawActiveQuote =
+    isExpired && !willRefresh && !isSubmittingTx
+      ? undefined
+      : (manuallySelectedQuote ?? bestQuote);
+
+  // When quotes are expired but the user hasn't yet triggered a new fetch,
+  // keep showing the last quotes that are still present in Redux. They are NOT
+  // cleared from the store on expiry — only BridgeController.resetState()
+  // (called on "Get new quote") removes them. Reading from Redux directly means
+  // every consumer of this hook (BridgeView, QuoteSelectorView, …) sees the
+  // same cached data without needing per-instance refs.
+  const isShowingCachedQuote =
+    isExpired &&
+    !willRefresh &&
+    !isSubmittingTx &&
+    quotesLoadingStatus !== RequestStatus.LOADING &&
+    !!(manuallySelectedQuote ?? bestQuote);
+
+  const activeQuote = isShowingCachedQuote
+    ? (manuallySelectedQuote ?? bestQuote)
+    : rawActiveQuote;
+
+  const priceImpactFiat = usePriceImpactFiat(activeQuote);
 
   // Validate that the quote's source asset matches the selected source token
   // This prevents showing stale quote data when user changes source token on the same chain
@@ -127,16 +166,19 @@ export const useBridgeQuoteData = ({
 
   const isQuoteDestTokenMatch = isQuoteDestTokenMatchForQuote(activeQuote);
 
-  // Filter all quotes to only include valid ones (not expired and matching dest token)
+  // Filter all quotes to only include valid ones (not expired and matching dest token).
+  // When showing cached data the expiry guard is bypassed so the Redux quotes
+  // that are still in the store remain visible until the user requests new ones.
   const validQuotes = useMemo(
     () =>
-      isExpired && !willRefresh && !isSubmittingTx
+      isExpired && !willRefresh && !isSubmittingTx && !isShowingCachedQuote
         ? []
         : allQuotes.filter((quote) => isQuoteDestTokenMatchForQuote(quote)),
     [
       isExpired,
       willRefresh,
       isSubmittingTx,
+      isShowingCachedQuote,
       allQuotes,
       isQuoteDestTokenMatchForQuote,
     ],
@@ -194,6 +236,7 @@ export const useBridgeQuoteData = ({
             }`,
       rate,
       priceImpact: priceImpactPercentage,
+      priceImpactFiat,
       slippage: slippage ? `${slippage}%` : 'Auto',
     };
   }, [
@@ -204,26 +247,26 @@ export const useBridgeQuoteData = ({
     slippage,
     locale,
     networkFee,
+    priceImpactFiat,
   ]);
 
   const isLoading = quotesLoadingStatus === RequestStatus.LOADING;
 
-  const isNoQuotesAvailable = Boolean(
-    !bestQuote && quotesLastFetched && !isLoading,
-  );
+  const isNoQuotesAvailable = quoteStreamComplete?.hasQuotes === false;
 
-  // Check if price impact warning should be shown
-  const isGasless =
-    activeQuote?.quote.gasIncluded || activeQuote?.quote.gasIncluded7702;
+  // The quote expired and no fetch is in progress — offer to get a new one.
+  // Also treat the edge-case where a fetch IS running but there is no active
+  // quote to fall back on — the user would otherwise be stuck on a spinner
+  // with no way to retry ("escape hatch").
+  const needsNewQuote =
+    isExpired && !isSubmittingTx && (!isLoading || !activeQuote);
+
   const shouldShowPriceImpactWarning = Boolean(
     activeQuote?.quote.priceData?.priceImpact !== undefined &&
       bridgeFeatureFlags?.priceImpactThreshold &&
-      ((isGasless &&
-        Number(activeQuote?.quote.priceData?.priceImpact) >=
-          bridgeFeatureFlags.priceImpactThreshold.gasless) ||
-        (!isGasless &&
-          Number(activeQuote?.quote.priceData?.priceImpact) >=
-            bridgeFeatureFlags.priceImpactThreshold.normal)),
+      Number(activeQuote?.quote.priceData?.priceImpact) >=
+        (bridgeFeatureFlags.priceImpactThreshold.warning ??
+          AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD),
   );
 
   const abortController = useRef<AbortController | null>(new AbortController());
@@ -287,6 +330,12 @@ export const useBridgeQuoteData = ({
     validateQuote();
   }, [validateQuote]);
 
+  useEffect(() => {
+    if (!manuallySelectedQuote) {
+      dispatch(setSelectedQuoteRequestId(undefined));
+    }
+  }, [manuallySelectedQuote, dispatch]);
+
   return {
     bestQuote,
     quoteFetchError,
@@ -301,5 +350,6 @@ export const useBridgeQuoteData = ({
     blockaidError,
     shouldShowPriceImpactWarning,
     validQuotes,
+    needsNewQuote,
   };
 };

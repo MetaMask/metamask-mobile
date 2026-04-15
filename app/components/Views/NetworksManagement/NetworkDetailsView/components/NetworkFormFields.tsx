@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { Linking } from 'react-native';
 import {
   Box,
+  Label,
   Text,
   TextVariant,
   Icon,
@@ -10,7 +11,6 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import Label from '../../../../../component-library/components/Form/Label';
 import { strings } from '../../../../../../locales/i18n';
 import { NetworkDetailsViewSelectorsIDs } from '../NetworkDetailsView.testIds';
 import { CHAIN_LIST_URL } from '../NetworkDetailsView.constants';
@@ -131,6 +131,8 @@ const NetworkNameField: React.FC<NetworkNameFieldProps> = ({
   } = formHook;
 
   const { warningName } = validation;
+  const isRequiredNameWarning =
+    warningName === strings('app_settings.required');
 
   const handleNameBlur = useCallback(() => {
     onValidateName();
@@ -146,7 +148,7 @@ const NetworkNameField: React.FC<NetworkNameFieldProps> = ({
         value={nickname}
         isDisabled={isAnyModalVisible || editable === false}
         onChangeText={onNicknameChange}
-        placeholder={strings('app_settings.network_name_placeholder')}
+        placeholder={strings('app_settings.network_name_label')}
         placeholderTextColor={placeholderTextColor}
         onBlur={handleNameBlur}
         onFocus={onNameFocused}
@@ -157,19 +159,33 @@ const NetworkNameField: React.FC<NetworkNameFieldProps> = ({
       />
       {warningName ? (
         <Box>
-          <Text variant={TextVariant.BodySm} twClassName="text-warning-default">
-            {strings('wallet.incorrect_network_name_warning')}
-          </Text>
-          <Text variant={TextVariant.BodySm} twClassName="text-warning-default">
-            {strings('wallet.suggested_name')}{' '}
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-info-default"
-              onPress={() => autoFillNameField(warningName)}
-            >
+          {isRequiredNameWarning ? (
+            <Text variant={TextVariant.BodySm} twClassName="text-error-default">
               {warningName}
             </Text>
-          </Text>
+          ) : (
+            <>
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-warning-default"
+              >
+                {strings('wallet.incorrect_network_name_warning')}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-warning-default"
+              >
+                {strings('wallet.suggested_name')}{' '}
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-info-default"
+                  onPress={() => autoFillNameField(warningName)}
+                >
+                  {warningName}
+                </Text>
+              </Text>
+            </>
+          )}
         </Box>
       ) : null}
     </Box>

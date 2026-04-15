@@ -9,23 +9,16 @@ import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
+import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
-
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
 
 const EarnScreenStack = () => {
   const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
   return (
-    <Stack.Navigator headerMode="screen">
+    <Stack.Navigator>
       <Stack.Screen
         name={Routes.EARN.LENDING_DEPOSIT_CONFIRMATION}
         component={EarnLendingDepositConfirmationView}
@@ -53,7 +46,12 @@ const EarnScreenStack = () => {
 };
 
 const EarnModalStack = () => (
-  <ModalStack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
+  <ModalStack.Navigator
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
+  >
     <ModalStack.Screen
       name={Routes.EARN.MODALS.LENDING_MAX_WITHDRAWAL}
       component={EarnLendingMaxWithdrawalModal}

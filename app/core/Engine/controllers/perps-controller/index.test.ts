@@ -1,6 +1,6 @@
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import {
   PerpsController,
   PerpsControllerMessenger,
@@ -17,6 +17,7 @@ jest.mock(
   '../../../../components/UI/Perps/adapters/mobileInfrastructure',
   () => ({
     createMobileInfrastructure: jest.fn(() => ({})),
+    createMobileClientConfig: jest.fn(() => ({})),
   }),
 );
 jest.mock('../../../../components/UI/Perps/utils/e2eBridgePerps', () => ({
@@ -46,7 +47,7 @@ jest.mock('@metamask/perps-controller', () => {
 describe('perps controller init', () => {
   const perpsControllerClassMock = jest.mocked(PerpsController);
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<PerpsControllerMessenger>
+    MessengerClientInitRequest<PerpsControllerMessenger>
   >;
 
   beforeEach(() => {
@@ -129,6 +130,8 @@ describe('perps controller init', () => {
       hip3ConfigVersion: 0,
       withdrawInProgress: false,
       lastWithdrawResult: null,
+      lastCompletedWithdrawalTimestamp: null,
+      lastCompletedWithdrawalTxHashes: [],
       withdrawalRequests: [],
       withdrawalProgress: {
         progress: 0,

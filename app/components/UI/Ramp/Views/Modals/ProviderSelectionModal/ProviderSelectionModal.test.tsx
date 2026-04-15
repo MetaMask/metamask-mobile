@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import ProviderSelectionModal, {
   type ProviderSelectionModalParams,
 } from './ProviderSelectionModal';
@@ -29,9 +29,11 @@ const mockNavigationState = {
   stale: false as const,
 };
 
+const mockNavigate = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   useNavigationState: (
     selector: (state: typeof mockNavigationState) => unknown,
   ) => selector(mockNavigationState),
@@ -61,6 +63,8 @@ jest.mock('react-native', () => {
   };
 });
 
+const defaultTestAssetId = 'eip155:1/slip44:60';
+
 const mockProviders = [
   {
     id: '/providers/transak',
@@ -75,6 +79,7 @@ const mockProviders = [
       height: 24,
       width: 90,
     },
+    supportedCryptoCurrencies: { [defaultTestAssetId]: true },
   },
   {
     id: '/providers/moonpay',
@@ -89,6 +94,7 @@ const mockProviders = [
       height: 24,
       width: 90,
     },
+    supportedCryptoCurrencies: { [defaultTestAssetId]: true },
   },
 ];
 
@@ -125,15 +131,40 @@ jest.mock('../../../hooks/useRampAccountAddress', () => ({
   default: () => '0x123',
 }));
 
+const mockUseRampsQuotes = jest.fn((_opts?: unknown) => ({
+  data: null,
+  loading: false,
+  status: 'idle' as const,
+  isSuccess: false,
+  error: null,
+  getQuotes: mockGetQuotes,
+  getBuyWidgetData: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useRampsQuotes', () => ({
+  useRampsQuotes: (opts: unknown) => mockUseRampsQuotes(opts),
+}));
+
+let capturedOnClose: ((hasPendingAction?: boolean) => void) | undefined;
+
 jest.mock(
   '../../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
     const ReactActual = jest.requireActual('react');
     return ReactActual.forwardRef(
       (
-        { children }: { children: React.ReactNode },
+        {
+          children,
+          onClose,
+        }: {
+          children: React.ReactNode;
+          onClose?: (hasPendingAction?: boolean) => void;
+        },
         _ref: React.Ref<unknown>,
-      ) => <>{children}</>,
+      ) => {
+        capturedOnClose = onClose;
+        return <>{children}</>;
+      },
     );
   },
 );
@@ -157,45 +188,40 @@ function renderWithProvider(component: React.ComponentType) {
 describe('ProviderSelectionModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetQuotes.mockResolvedValue({
-      success: [],
-      error: [],
-      sorted: [],
-      customActions: [],
+    mockUseRampsQuotes.mockReturnValue({
+      data: null,
+      loading: false,
+      status: 'idle' as const,
+      isSuccess: false,
+      error: null,
+      getQuotes: mockGetQuotes,
+      getBuyWidgetData: jest.fn(),
     });
     mockUseRampsController.mockImplementation(() => defaultControllerReturn);
     mockUseParams.mockReturnValue({ amount: 100 });
   });
 
-  it('matches snapshot', async () => {
-    const { toJSON } = renderWithProvider(ProviderSelectionModal);
-    await waitFor(() => {
-      expect(mockGetQuotes).toHaveBeenCalled();
-    });
-    expect(toJSON()).toMatchSnapshot();
+  it('renders provider selection modal with providers list', () => {
+    const { getByText } = renderWithProvider(ProviderSelectionModal);
+    expect(getByText('Transak')).toBeOnTheScreen();
   });
 
-  it('calls getQuotes with provider params on mount', async () => {
+  it('calls useRampsQuotes with provider params on mount', () => {
     renderWithProvider(ProviderSelectionModal);
 
-    await waitFor(() => {
-      expect(mockGetQuotes).toHaveBeenCalledWith({
+    expect(mockUseRampsQuotes).toHaveBeenCalledWith(
+      expect.objectContaining({
         amount: 100,
         walletAddress: '0x123',
         assetId: 'eip155:1/slip44:60',
         providers: ['/providers/transak', '/providers/moonpay'],
         paymentMethods: ['/payments/debit-credit-card-1'],
-        forceRefresh: true,
-      });
-    });
+      }),
+    );
   });
 
-  it('calls setSelectedProvider and goBack when provider is selected', async () => {
+  it('calls setSelectedProvider and goBack when provider is selected', () => {
     const { getByText } = renderWithProvider(ProviderSelectionModal);
-
-    await waitFor(() => {
-      expect(mockGetQuotes).toHaveBeenCalled();
-    });
 
     fireEvent.press(getByText('Transak'));
 
@@ -205,12 +231,8 @@ describe('ProviderSelectionModal', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('calls goBack when back button is pressed', async () => {
+  it('calls goBack when back button is pressed', () => {
     const { getByTestId } = renderWithProvider(ProviderSelectionModal);
-
-    await waitFor(() => {
-      expect(mockGetQuotes).toHaveBeenCalled();
-    });
 
     fireEvent.press(getByTestId('button-icon'));
 
@@ -224,7 +246,30 @@ describe('ProviderSelectionModal', () => {
     });
     renderWithProvider(ProviderSelectionModal);
 
-    expect(mockGetQuotes).not.toHaveBeenCalled();
+    expect(mockUseRampsQuotes).toHaveBeenCalledWith(null);
+  });
+
+  it('filters providers by selectedToken.assetId when route assetId is omitted', () => {
+    mockUseParams.mockReturnValue({ amount: 100, skipQuotes: true });
+    mockUseRampsController.mockImplementation(() => ({
+      ...defaultControllerReturn,
+      providers: [
+        {
+          ...mockProviders[0],
+          supportedCryptoCurrencies: { [defaultTestAssetId]: true },
+        },
+        {
+          ...mockProviders[1],
+          supportedCryptoCurrencies: { [defaultTestAssetId]: false },
+        },
+      ],
+    }));
+    const { getByText, queryByText } = renderWithProvider(
+      ProviderSelectionModal,
+    );
+
+    expect(getByText('Transak')).toBeOnTheScreen();
+    expect(queryByText('MoonPay')).not.toBeOnTheScreen();
   });
 
   it('filters providers by assetId when provided', () => {
@@ -235,16 +280,25 @@ describe('ProviderSelectionModal', () => {
       providers: [
         {
           ...mockProviders[0],
-          supportedCryptoCurrencies: { [assetId]: true },
+          supportedCryptoCurrencies: {
+            [assetId]: true,
+            [defaultTestAssetId]: false,
+          },
         },
         {
           ...mockProviders[1],
-          supportedCryptoCurrencies: { [assetId]: true },
+          supportedCryptoCurrencies: {
+            [assetId]: true,
+            [defaultTestAssetId]: false,
+          },
         },
         {
           id: '/providers/other',
           name: 'Other',
-          supportedCryptoCurrencies: { 'eip155:1/slip44:60': true },
+          supportedCryptoCurrencies: {
+            [defaultTestAssetId]: true,
+            [assetId]: false,
+          },
           environmentType: 'PRODUCTION',
           description: '',
           hqAddress: '',
@@ -259,6 +313,52 @@ describe('ProviderSelectionModal', () => {
 
     expect(getByText('Transak')).toBeOnTheScreen();
     expect(getByText('MoonPay')).toBeOnTheScreen();
-    expect(queryByText('Other')).toBeNull();
+    expect(queryByText('Other')).not.toBeOnTheScreen();
+  });
+
+  it('navigates to token selection when dismissed without action and skipQuotes is true', () => {
+    mockUseParams.mockReturnValue({
+      assetId: 'eip155:1/slip44:60',
+      skipQuotes: true,
+    });
+    renderWithProvider(ProviderSelectionModal);
+
+    capturedOnClose?.(false);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
+      screen: Routes.RAMP.TOKEN_SELECTION,
+    });
+  });
+
+  it('does not fetch quotes when selectedPaymentMethod is null', () => {
+    mockUseRampsController.mockReturnValue({
+      ...defaultControllerReturn,
+      selectedPaymentMethod: null as never,
+    });
+    renderWithProvider(ProviderSelectionModal);
+
+    expect(mockUseRampsQuotes).toHaveBeenCalledWith(null);
+  });
+
+  it('passes showQuotes as false when selectedPaymentMethod is null', () => {
+    mockUseRampsController.mockReturnValue({
+      ...defaultControllerReturn,
+      selectedPaymentMethod: null as never,
+    });
+    const { queryByText } = renderWithProvider(ProviderSelectionModal);
+
+    // Should not show "no quotes available" error since showQuotes is false
+    expect(
+      queryByText('fiat_on_ramp.no_quotes_available'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('does not navigate to token selection when dismissed without action and skipQuotes is false', () => {
+    mockUseParams.mockReturnValue({ amount: 100 });
+    renderWithProvider(ProviderSelectionModal);
+
+    capturedOnClose?.(false);
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

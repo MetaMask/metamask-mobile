@@ -1,13 +1,11 @@
 import React, { useRef } from 'react';
 import { View } from 'react-native';
 
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './UnsupportedTokenModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -26,15 +24,14 @@ function UnsupportedTokenModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader
+      <HeaderCompactStandard
+        title={strings('deposit.token_modal.unsupported_token_title')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
         closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
-      >
-        {strings('deposit.token_modal.unsupported_token_title')}
-      </BottomSheetHeader>
+      />
 
       <View style={styles.content}>
-        <Text variant={TextVariant.BodyMD}>
+        <Text variant={TextVariant.BodyMd}>
           {strings('deposit.token_modal.unsupported_token_description')}
         </Text>
       </View>

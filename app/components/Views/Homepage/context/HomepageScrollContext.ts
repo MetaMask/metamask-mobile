@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react';
+import type { HomeSectionName } from '../hooks/useHomeViewedEvent';
 
 export const HomepageEntryPoints = {
   APP_OPENED: 'app_opened',
@@ -36,6 +37,16 @@ interface HomepageScrollContextValue {
    * this to reset their "has fired" state and re-fire on every visit.
    */
   visitId: number;
+  /**
+   * Called by each section immediately after its section_viewed event fires.
+   * Used to aggregate the total number of distinct sections viewed this visit.
+   */
+  notifySectionViewed: (sectionName: HomeSectionName) => void;
+  /**
+   * Returns the number of distinct sections viewed during the current visit.
+   * Intended for use in the session_summary event fired on blur.
+   */
+  getViewedSectionCount: () => number;
 }
 
 const noop = () => () => {
@@ -48,6 +59,8 @@ const defaultValue: HomepageScrollContextValue = {
   containerScreenY: 0,
   entryPoint: HomepageEntryPoints.APP_OPENED,
   visitId: 0,
+  notifySectionViewed: () => undefined,
+  getViewedSectionCount: () => 0,
 };
 
 export const HomepageScrollContext =

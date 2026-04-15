@@ -11,14 +11,12 @@ const defaultState = {
   },
 };
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn().mockReturnValue({
-    colors: {
-      icon: { default: '#000' },
-      border: { muted: '#ccc' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn().mockReturnValue(mockTheme),
+  };
+});
 
 const mockProps = {
   name: 'Debit or Credit',
@@ -35,7 +33,7 @@ describe('PaymentMethodSelector', () => {
     renderWithProvider(<PaymentMethodSelector {...mockProps} />, {
       state: defaultState,
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Debit or Credit')).toBeOnTheScreen();
   });
 
   it('renders correctly if there are no icons', () => {
@@ -45,7 +43,7 @@ describe('PaymentMethodSelector', () => {
         state: defaultState,
       },
     );
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Debit or Credit')).toBeOnTheScreen();
   });
 
   it('calls onPress when pressed', () => {
@@ -64,7 +62,7 @@ describe('PaymentMethodSelector', () => {
     renderWithProvider(<PaymentMethodSelector {...mockProps} loading />, {
       state: defaultState,
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.queryByText('Debit or Credit')).not.toBeOnTheScreen();
   });
 
   it('does not call onPress when loading', () => {

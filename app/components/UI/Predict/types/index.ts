@@ -9,6 +9,14 @@ export enum Side {
 
 export type PredictOrderType = 'FOK' | 'FAK';
 
+export enum ActiveOrderState {
+  PREVIEW = 'preview',
+  PAY_WITH_ANY_TOKEN = 'pay_with_any_token',
+  DEPOSITING = 'depositing',
+  PLACING_ORDER = 'placing_order',
+  SUCCESS = 'success',
+}
+
 export enum PredictPriceHistoryInterval {
   ONE_HOUR = '1h',
   SIX_HOUR = '6h',
@@ -105,11 +113,22 @@ export type PredictMarket = {
   liquidity: number;
   volume: number;
   game?: PredictMarketGame;
+  series?: PredictSeries;
 };
 
 export type PredictSeries = {
+  id: string;
+  slug: string;
+  title: string;
   recurrence: string;
 };
+
+export interface GetSeriesParams {
+  seriesId: string;
+  endDateMin: string; // ISO 8601
+  endDateMax: string; // ISO 8601
+  limit?: number; // Default: 50
+}
 
 export type PredictCategory =
   | 'trending'
@@ -121,27 +140,67 @@ export type PredictCategory =
   | 'hot';
 
 // Sports league types
-export type PredictSportsLeague = 'nfl' | 'nba';
+export type PredictSportsLeague =
+  | 'nfl'
+  | 'nba'
+  | 'ucl'
+  | 'fif'
+  | 'lal'
+  | 'uef'
+  | 'bra2'
+  | 'tur'
+  | 'col1'
+  | 'mls'
+  | 'mex'
+  | 'bun'
+  | 'chi'
+  | 'epl'
+  | 'cze1'
+  | 'j1100'
+  | 'j2100'
+  | 'fl1'
+  | 'nor'
+  | 'aus'
+  | 'den'
+  | 'sea'
+  | 'kor'
+  | 'ere'
+  | 'spl'
+  | 'bra'
+  | 'por'
+  | 'chi1'
+  | 'per1'
+  | 'lib'
+  | 'cdr'
+  | 'sud'
+  | 'egy1'
+  | 'uel'
+  | 'rou1'
+  | 'col'
+  | 'bol1'
+  | 'itc'
+  | 'dfb'
+  | 'cde';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
 
 // Team data
-export interface PredictSportTeam {
+export type PredictSportTeam = {
   id: string;
   name: string;
   logo: string;
   abbreviation: string; // e.g., "SEA", "DEN"
   color: string; // Team primary color (hex)
   alias: string; // Team alias (e.g., "Seahawks")
-}
+};
 
 // Parsed score data
-export interface PredictGameScore {
+export type PredictGameScore = {
   away: number;
   home: number;
   raw: string; // Original "away-home" format (e.g., "21-14")
-}
+};
 
 export type PredictGamePeriod =
   | 'NS' // Not Started
@@ -155,10 +214,15 @@ export type PredictGamePeriod =
   | 'End Q4' // End of Fourth Quarter
   | 'OT' // Overtime
   | 'FT' // Final
-  | 'VFT'; // Verified fulltime (when closed=true)
+  | 'VFT' // Verified fulltime (when closed=true)
+  | '1H' // First Half (soccer)
+  | '2H' // Second Half (soccer)
+  | 'ET' // Extra Time (soccer)
+  | 'PK' // Penalties (soccer)
+  | (string & {}); // Escape hatch for future sports with different period formats
 
 // Game data attached to market
-export interface PredictMarketGame {
+export type PredictMarketGame = {
   id: string;
   startTime: string;
   endTime?: string; // ISO date when game ended, available for ended games
@@ -170,7 +234,7 @@ export interface PredictMarketGame {
   homeTeam: PredictSportTeam;
   awayTeam: PredictSportTeam;
   turn?: string; // Team abbreviation with possession
-}
+};
 
 // Live update types for WebSocket data
 export interface GameUpdate {
@@ -189,6 +253,12 @@ export interface PriceUpdate {
   bestAsk: number;
 }
 
+export interface CryptoPriceUpdate {
+  symbol: string;
+  price: number;
+  timestamp: number;
+}
+
 export type PredictOutcome = {
   id: string;
   providerId: string;
@@ -200,6 +270,7 @@ export type PredictOutcome = {
   tokens: PredictOutcomeToken[];
   volume: number;
   groupItemTitle: string;
+  groupItemThreshold?: number;
   negRisk?: boolean;
   tickSize?: string;
   resolvedBy?: string;
@@ -484,6 +555,8 @@ export type OrderResult = Result<{
 
 export interface PlaceOrderParams {
   preview: OrderPreview;
+  address?: string;
+  transactionId?: string;
   analyticsProperties?: {
     marketId?: string;
     marketTitle?: string;
@@ -531,10 +604,12 @@ export interface GeoBlockResponse {
 export interface ConnectionStatus {
   sportsConnected: boolean;
   marketConnected: boolean;
+  rtdsConnected: boolean;
 }
 
 export type GameUpdateCallback = (update: GameUpdate) => void;
 export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
+export type CryptoPriceUpdateCallback = (update: CryptoPriceUpdate) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareDepositParams {}

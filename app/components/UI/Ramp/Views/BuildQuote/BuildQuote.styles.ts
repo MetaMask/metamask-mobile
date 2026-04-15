@@ -13,15 +13,19 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 16,
       flex: 1,
     },
-    mainAmount: {
-      textAlign: 'center',
-      fontSize: 64,
-      lineHeight: 64 + 8,
-      fontWeight: '400',
-    },
     amountContainer: {
       alignItems: 'center',
       gap: 16,
+    },
+    amountRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    cursor: {
+      width: 2,
+      marginHorizontal: 1,
+      alignSelf: 'center',
+      backgroundColor: theme.colors.primary.default,
     },
     actionSection: {
       paddingBottom: 16,

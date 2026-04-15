@@ -57,7 +57,7 @@ describe('useHomepageSparklines', () => {
     );
   });
 
-  it('returns downsampled close prices when callback fires', () => {
+  it('returns downsampled close prices when callback fires', async () => {
     mockSubscribe.mockImplementation(
       (params: { callback: (candleData: CandleData) => void }) => {
         params.callback({
@@ -70,6 +70,9 @@ describe('useHomepageSparklines', () => {
     );
 
     const { result } = renderHook(() => useHomepageSparklines(['BTC']));
+
+    // Sparkline updates are batched via queueMicrotask — flush with async act.
+    await act(async () => null);
 
     expect(result.current.sparklines.BTC).toBeDefined();
     expect(result.current.sparklines.BTC.length).toBe(50);
@@ -109,7 +112,7 @@ describe('useHomepageSparklines', () => {
     expect(mockSubscribe).not.toHaveBeenCalled();
   });
 
-  it('accumulates sparklines from multiple symbol callbacks', () => {
+  it('accumulates sparklines from multiple symbol callbacks', async () => {
     const callbacks: Record<string, (candleData: CandleData) => void> = {};
     mockSubscribe.mockImplementation(
       (params: {
@@ -123,7 +126,7 @@ describe('useHomepageSparklines', () => {
 
     const { result } = renderHook(() => useHomepageSparklines(['BTC', 'ETH']));
 
-    act(() => {
+    await act(async () => {
       callbacks.BTC({
         symbol: 'BTC',
         interval: CandlePeriod.FifteenMinutes,
@@ -134,7 +137,7 @@ describe('useHomepageSparklines', () => {
     expect(result.current.sparklines.BTC).toBeDefined();
     expect(result.current.sparklines.ETH).toBeUndefined();
 
-    act(() => {
+    await act(async () => {
       callbacks.ETH({
         symbol: 'ETH',
         interval: CandlePeriod.FifteenMinutes,
@@ -146,7 +149,7 @@ describe('useHomepageSparklines', () => {
     expect(result.current.sparklines.ETH).toBeDefined();
   });
 
-  it('refresh clears data and resubscribes', () => {
+  it('refresh clears data and resubscribes', async () => {
     const callbacks: Record<string, (candleData: CandleData) => void> = {};
     mockSubscribe.mockImplementation(
       (params: {
@@ -160,7 +163,7 @@ describe('useHomepageSparklines', () => {
 
     const { result } = renderHook(() => useHomepageSparklines(['BTC']));
 
-    act(() => {
+    await act(async () => {
       callbacks.BTC({
         symbol: 'BTC',
         interval: CandlePeriod.FifteenMinutes,
@@ -170,7 +173,7 @@ describe('useHomepageSparklines', () => {
 
     expect(result.current.sparklines.BTC).toBeDefined();
 
-    act(() => {
+    await act(async () => {
       result.current.refresh();
     });
 

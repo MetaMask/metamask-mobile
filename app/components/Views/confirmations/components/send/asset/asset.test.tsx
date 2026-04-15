@@ -248,7 +248,7 @@ describe('Asset', () => {
     jest.clearAllMocks();
 
     mockUseSendTokens.mockReturnValue(mockTokens);
-    mockUseEVMNfts.mockReturnValue(mockNfts);
+    mockUseEVMNfts.mockReturnValue({ nfts: mockNfts, isLoading: false });
 
     mockUseTokenSearch.mockReturnValue({
       searchQuery: '',
@@ -699,7 +699,7 @@ describe('Asset', () => {
   });
 
   it('works correctly with empty nfts from useEVMNfts', () => {
-    mockUseEVMNfts.mockReturnValue([]);
+    mockUseEVMNfts.mockReturnValue({ nfts: [], isLoading: false });
     mockUseTokenSearch.mockReturnValue({
       searchQuery: '',
       setSearchQuery: mockSetSearchQuery,

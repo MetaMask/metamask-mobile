@@ -2,6 +2,7 @@ import { toHex } from '@metamask/controller-utils';
 import { parseCaipAssetId } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
 
+import { DEPOSIT_CONFIG } from '../constants/hyperLiquidConfig';
 import type {
   PerpsProvider,
   PerpsPlatformDependencies,
@@ -13,7 +14,7 @@ import { generateDepositId } from '../utils/idUtils';
 import { generateERC20TransferData } from '../utils/transferData';
 
 // Temporary to avoid estimation failures due to insufficient balance
-const DEPOSIT_GAS_LIMIT = toHex(100000);
+const DEPOSIT_GAS_LIMIT = toHex(DEPOSIT_CONFIG.EstimatedGasLimit);
 
 /**
  * DepositService

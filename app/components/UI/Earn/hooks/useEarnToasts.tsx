@@ -13,8 +13,13 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
-import { IconSize as ReactNativeDsIconSize } from '@metamask/design-system-react-native';
+import { Spinner } from '@metamask/design-system-react-native/spinner';
+import {
+  IconSize as ReactNativeDsIconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 export type EarnToastOptions = Omit<
   Extract<ToastOptions, { variant: ToastVariants.Icon }>,
@@ -42,6 +47,9 @@ export interface EarnToastOptionsConfig {
     inProgress: EarnToastOptions;
     success: EarnToastOptions;
     failed: EarnToastOptions;
+  };
+  tronWithdrawal: {
+    failed: (errors: string[]) => EarnToastOptions;
   };
 }
 
@@ -150,7 +158,7 @@ const useEarnToasts = (): {
             <Icon
               name={IconName.CircleX}
               color={theme.colors.error.default}
-              size={IconSize.Xl}
+              size={IconSize.Lg}
             />
           </View>
         ),
@@ -185,6 +193,14 @@ const useEarnToasts = (): {
           ...earnBaseToastOptions.success,
           labelOptions: getEarnToastLabels({
             primary: strings('earn.musd_conversion.toasts.delivered'),
+            secondary: (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('earn.musd_conversion.toasts.delivered_description')}
+              </Text>
+            ),
           }),
           closeButtonOptions,
         },
@@ -219,6 +235,26 @@ const useEarnToasts = (): {
           }),
           closeButtonOptions,
         },
+      },
+      tronWithdrawal: {
+        failed: (errors: string[]) => ({
+          ...earnBaseToastOptions.error,
+          labelOptions: getEarnToastLabels({
+            primary: strings('stake.tron.unstaked_banner.error'),
+            primaryIsBold: true,
+            ...(errors.length > 0 && {
+              secondary: (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {errors.map((err) => `\u2022 ${err}`).join('\n')}
+                </Text>
+              ),
+            }),
+          }),
+          closeButtonOptions,
+        }),
       },
     }),
     [

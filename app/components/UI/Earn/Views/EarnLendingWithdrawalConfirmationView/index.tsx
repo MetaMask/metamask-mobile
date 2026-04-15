@@ -117,7 +117,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
         theme.colors,
         {
           hasCancelButton: false,
-          backgroundColor: theme.colors.background.alternative,
+          backgroundColor: theme.colors.background.default,
         },
         {
           backButtonEvent: {

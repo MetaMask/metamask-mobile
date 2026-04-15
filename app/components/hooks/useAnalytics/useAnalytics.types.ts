@@ -1,10 +1,12 @@
 import {
-  DataDeleteDate,
-  IDeleteRegulationResponse,
-  IDeleteRegulationStatus,
-  type IMetaMetricsEvent,
-  type ITrackingEvent,
-} from '../../../core/Analytics/MetaMetrics.types';
+  type DataDeleteDate,
+  type IDeleteRegulationResponse,
+  type IDeleteRegulationStatus,
+} from '../../../util/analytics/analyticsDataDeletion.types';
+import type {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+} from '../../../util/analytics/analytics.types';
 import {
   AnalyticsEventBuilder,
   type AnalyticsTrackingEvent,
@@ -20,7 +22,7 @@ type AnalyticsEventBuilderType = ReturnType<
  */
 export const SourceType = {
   SDK: 'sdk',
-  SDK_CONNECT_V2: 'sdk_connect_v2',
+  MM_CONNECT: 'mm_connect',
   WALLET_CONNECT: 'walletconnect',
   IN_APP_BROWSER: 'in-app browser',
   PERMISSION_SYSTEM: 'permission system',

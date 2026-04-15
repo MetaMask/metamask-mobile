@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { TokenOverviewSelectorsIDs } from '../AssetOverview/TokenOverview.testIds';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -48,6 +48,7 @@ const initialState = {
                 favorite: false,
                 image: 'https://image.com/113',
                 isCurrentlyOwned: true,
+                // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- false positive: '#113' is part of the NFT name, not a color literal
                 name: 'My Nft #113',
                 standard: 'ERC721',
                 tokenId: '113',
@@ -109,6 +110,7 @@ describe('CollectibleContractOverview', () => {
       favorite: false,
       image: 'https://image.com/113',
       isCurrentlyOwned: true,
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- false positive: '#113' is part of the NFT name, not a color literal
       name: 'My Nft #113',
       standard: 'ERC721',
       tokenId: '113',

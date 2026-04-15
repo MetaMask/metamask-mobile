@@ -1,7 +1,7 @@
 import type { SecurityAlertResponse } from '@metamask/transaction-controller';
 
 import { ResultType } from '../../../../../components/Views/confirmations/constants/signatures';
-import type { JsonMap } from '../../../../Analytics/MetaMetrics.types';
+import type { JsonMap } from '../../../../../util/analytics/analytics.types';
 import type {
   TransactionMetrics,
   TransactionMetricsBuilderRequest,

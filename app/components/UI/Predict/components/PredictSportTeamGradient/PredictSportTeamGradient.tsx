@@ -23,7 +23,7 @@ interface PredictSportTeamGradientProps {
  * Self-contained component that wraps children with a gradient background.
  * No need to set position: 'relative' on parent - it's handled internally.
  *
- * Used in NFL game cards to display team colors as a subtle background.
+ * Used in sports game cards to display team colors as a subtle background.
  *
  * Supports multiple color formats:
  * - 6-char hex: #FF0000

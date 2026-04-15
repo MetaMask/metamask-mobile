@@ -1,5 +1,5 @@
 import { ContentfulClientApi, createClient } from 'contentful';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as DeviceInfoModule from 'react-native-device-info';
 import {
   fetchCarouselSlidesFromContentful,

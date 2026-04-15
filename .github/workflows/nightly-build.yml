@@ -1,42 +1,105 @@
 name: Nightly Build
 
-# Triggered by every push to chore/temp-nightly (which nightly-temp-branch-sync.yml
-# force-pushes daily at 4 AM UTC to match main).
+# Runs on a schedule (4 AM UTC) like the old nightly-branch-sync.
+# Each build creates its own ephemeral branch via create-build-branch.yml,
+# so the persistent chore/temp-nightly branch is no longer needed.
 #
-# [skip ci] commits (e.g. version bumps pushed by Bitrise's bump_version_code job via
-# update-latest-build-version.yml) are automatically skipped by GitHub Actions, so
-# this workflow will NOT double-trigger on those commits.
+# iOS builds use build-and-upload-to-testflight.yml (temp branch, build.yml, TestFlight upload).
+# Android builds use create-build-branch.yml + build.yml (build artifacts only).
 #
-# skip_version_bump=true is passed to build.yml because Bitrise already owns the
-# version bump for chore/temp-nightly during the parallel transition period.
-# When Bitrise is deprecated, remove skip_version_bump: true and the version bump
-# will be handled by build.yml as normal.
+# rc depends on exp within each platform stream to ensure the external version
+# service produces sequential numbers (N for exp, N+1 for rc).
+# iOS and Android streams run in parallel; their version numbers will differ
+# but remain unique, which is all TestFlight / Play Store require.
 
 on:
-  push:
-    branches:
-      - chore/temp-nightly
+  schedule:
+    # NOTE: Scheduled workflows ALWAYS run from the default branch (main)
+    - cron: '0 4 * * *'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
-  build-exp:
-    name: Nightly exp build (main-exp)
+  # ── iOS exp: build + TestFlight upload ─────────────────────────────────
+  ios-exp:
+    name: Nightly iOS exp
+    uses: ./.github/workflows/build-and-upload-to-testflight.yml
+    with:
+      source_branch: main
+      environment: exp
+      testflight_group: 'MetaMask BETA & Release Candidates'
+    secrets: inherit
+
+  # ── iOS rc: build + TestFlight upload (after exp for sequential versions) ─
+  ios-rc:
+    name: Nightly iOS rc
+    needs: [ios-exp]
+    uses: ./.github/workflows/build-and-upload-to-testflight.yml
+    with:
+      source_branch: main
+      environment: rc
+      testflight_group: 'MetaMask BETA & Release Candidates'
+    secrets: inherit
+
+  # ── Android exp: ephemeral branch + build ──────────────────────────────
+  android-exp-branch:
+    uses: ./.github/workflows/create-build-branch.yml
+    with:
+      source_branch: main
+    secrets: inherit
+
+  android-exp:
+    name: Nightly Android exp
+    needs: [android-exp-branch]
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-exp
-      platform: both
-      skip_version_bump: true
+      platform: android
+      skip_version_bump: false
+      source_branch: ${{ needs.android-exp-branch.outputs.build_branch }}
     secrets: inherit
 
-  build-rc:
-    name: Nightly RC build (main-rc)
+  # ── Android rc: ephemeral branch + build (after exp for sequential versions) ─
+  android-rc-branch:
+    needs: [android-exp]
+    uses: ./.github/workflows/create-build-branch.yml
+    with:
+      source_branch: main
+    secrets: inherit
+
+  android-rc:
+    name: Nightly Android rc
+    needs: [android-rc-branch]
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-rc
-      platform: both
-      skip_version_bump: true
+      platform: android
+      skip_version_bump: false
+      source_branch: ${{ needs.android-rc-branch.outputs.build_branch }}
     secrets: inherit
+
+  # ── Cleanup Android ephemeral branches ─────────────────────────────────
+  # iOS ephemeral branches are cleaned up by build-and-upload-to-testflight.yml.
+  cleanup:
+    name: Cleanup Android build branches
+    needs: [android-exp-branch, android-rc-branch, android-exp, android-rc]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PR_TOKEN || github.token }}
+      - name: Delete ephemeral branches
+        env:
+          EXP_BRANCH: ${{ needs.android-exp-branch.outputs.build_branch }}
+          RC_BRANCH: ${{ needs.android-rc-branch.outputs.build_branch }}
+        run: |
+          for branch in "$EXP_BRANCH" "$RC_BRANCH"; do
+            if [ -n "$branch" ]; then
+              git push origin --delete "$branch" || true
+              echo "🧹 Deleted: $branch"
+            fi
+          done

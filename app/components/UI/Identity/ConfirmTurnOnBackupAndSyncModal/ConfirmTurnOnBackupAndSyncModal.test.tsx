@@ -7,24 +7,12 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
+import { strings } from '../../../../../locales/i18n';
 
 jest.mock('../../../../actions/settings', () => ({
   ...jest.requireActual('../../../../actions/settings'),
   toggleBasicFunctionality: jest.fn(() => jest.fn()),
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -60,21 +48,26 @@ jest.mock('@react-navigation/native', () => {
       setOptions: jest.fn(),
       goBack: jest.fn(),
       reset: jest.fn(),
-      dangerouslyGetParent: () => ({
+      getParent: () => ({
         pop: jest.fn(),
       }),
+      isFocused: jest.fn(() => true),
     }),
   };
 });
 
 describe('ConfirmTurnOnBackupAndSyncModal', () => {
-  it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders the title and confirm button', () => {
+    const { getByText } = renderWithProvider(
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       <ConfirmTurnOnBackupAndSyncModal navigation={useNavigation()} />,
     );
-    expect(toJSON()).toMatchSnapshot();
+
+    expect(getByText(strings('backupAndSync.enable.title'))).toBeOnTheScreen();
+    expect(
+      getByText(strings('default_settings.sheet.buttons.turn_on')),
+    ).toBeOnTheScreen();
   });
 
   it('enables basic functionality, then backup and sync', async () => {

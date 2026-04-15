@@ -22,29 +22,13 @@ jest.mock('react-native-gesture-handler', () => ({
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = jest.requireActual('react-native');
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    SafeAreaView: jest
-      .fn()
-      .mockImplementation(({ children, ...props }) => (
-        <View {...props}>{children}</View>
-      )),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
 const mockUseTheme = jest.fn();
 jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
+const { mockTheme: baseMockTheme } = jest.requireActual(
+  '../../../../../util/theme',
+);
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})),
@@ -128,16 +112,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 describe('PerpsTPSLView', () => {
-  const mockTheme = {
-    colors: {
-      background: { alternative: '#f0f0f0' },
-      text: { default: '#000', muted: '#666', alternative: '#888' },
-      border: { muted: '#e1e1e1' },
-      primary: { default: '#0376c9' },
-      error: { default: '#d73847' },
-    },
-  };
-
   const defaultMockReturn = {
     formState: {
       takeProfitPrice: '',
@@ -197,7 +171,7 @@ describe('PerpsTPSLView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue(mockTheme);
+    mockUseTheme.mockReturnValue(baseMockTheme);
     mockUsePerpsTPSLForm.mockReturnValue(defaultMockReturn);
     mockRouteParams = { ...defaultRouteParams };
   });
@@ -272,8 +246,8 @@ describe('PerpsTPSLView', () => {
 
       const clearButtons = screen.getAllByText('perps.tpsl.clear');
       await act(async () => {
-      fireEvent.press(clearButtons[0]);
-    });
+        fireEvent.press(clearButtons[0]);
+      });
 
       expect(mockHandler).toHaveBeenCalled();
     });
@@ -298,8 +272,8 @@ describe('PerpsTPSLView', () => {
       // Now press clear
       const clearButtons = screen.getAllByText('perps.tpsl.clear');
       await act(async () => {
-      fireEvent.press(clearButtons[0]);
-    });
+        fireEvent.press(clearButtons[0]);
+      });
 
       expect(mockHandler).toHaveBeenCalled();
     });
@@ -324,8 +298,8 @@ describe('PerpsTPSLView', () => {
       // Now press clear
       const clearButtons = screen.getAllByText('perps.tpsl.clear');
       await act(async () => {
-      fireEvent.press(clearButtons[0]);
-    });
+        fireEvent.press(clearButtons[0]);
+      });
 
       expect(mockHandler).toHaveBeenCalled();
     });
@@ -483,8 +457,8 @@ describe('PerpsTPSLView', () => {
 
       const backButton = screen.getByTestId('back-button');
       await act(async () => {
-      fireEvent.press(backButton);
-    });
+        fireEvent.press(backButton);
+      });
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
@@ -506,18 +480,23 @@ describe('PerpsTPSLView', () => {
 
       const setButton = screen.getByText('perps.tpsl.set');
       await act(async () => {
-      fireEvent.press(setButton);
-    });
-
-      expect(mockOnConfirm).toHaveBeenCalledWith('3150.00', '2850.00', {
-        direction: 'long',
-        source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
-        positionSize: 0,
-        takeProfitPercentage: undefined,
-        stopLossPercentage: undefined,
-        isEditingExistingPosition: false,
-        entryPrice: 3000,
+        fireEvent.press(setButton);
       });
+
+      expect(mockOnConfirm).toHaveBeenCalledWith(
+        undefined,
+        '3150.00',
+        '2850.00',
+        {
+          direction: 'long',
+          source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+          positionSize: 0,
+          takeProfitPercentage: undefined,
+          stopLossPercentage: undefined,
+          isEditingExistingPosition: false,
+          entryPrice: 3000,
+        },
+      );
     });
 
     it('calls onConfirm with undefined when values are empty', async () => {
@@ -532,18 +511,23 @@ describe('PerpsTPSLView', () => {
 
       const setButton = screen.getByText('perps.tpsl.set');
       await act(async () => {
-      fireEvent.press(setButton);
-    });
-
-      expect(mockOnConfirm).toHaveBeenCalledWith(undefined, undefined, {
-        direction: 'long',
-        source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
-        positionSize: 0,
-        takeProfitPercentage: undefined,
-        stopLossPercentage: undefined,
-        isEditingExistingPosition: false,
-        entryPrice: 3000,
+        fireEvent.press(setButton);
       });
+
+      expect(mockOnConfirm).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+        undefined,
+        {
+          direction: 'long',
+          source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+          positionSize: 0,
+          takeProfitPercentage: undefined,
+          stopLossPercentage: undefined,
+          isEditingExistingPosition: false,
+          entryPrice: 3000,
+        },
+      );
     });
 
     it('dismisses keypad before confirming when input is focused', async () => {
@@ -564,13 +548,13 @@ describe('PerpsTPSLView', () => {
 
       const doneButton = screen.getByText('perps.tpsl.done');
       await act(async () => {
-      fireEvent.press(doneButton);
-    });
+        fireEvent.press(doneButton);
+      });
 
       const setButton = screen.getByText('perps.tpsl.set');
       await act(async () => {
-      fireEvent.press(setButton);
-    });
+        fireEvent.press(setButton);
+      });
 
       expect(mockOnConfirm).toHaveBeenCalled();
     });

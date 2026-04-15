@@ -20,15 +20,19 @@ import {
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
 import PredictGameChart from '../PredictGameChart';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
 import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutSheet';
-import PredictPicks from '../PredictPicks/PredictPicks';
 import PredictShareButton from '../PredictShareButton/PredictShareButton';
 import PredictSportScoreboard from '../PredictSportScoreboard';
+import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
+import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
+import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
+import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   market,
@@ -39,6 +43,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   onClaimPress,
   claimableAmount = 0,
   isLoading = false,
+  isClaimPending = false,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -56,6 +61,36 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
   const game = market.game;
 
+  const { data: activePositions = [] } = usePredictPositions({
+    marketId: market.id,
+    claimable: false,
+    refetchInterval: 10000,
+  });
+  const { data: claimablePositions = [] } = usePredictPositions({
+    marketId: market.id,
+    claimable: true,
+  });
+
+  const {
+    enabled: tabsEnabled,
+    showTabBar,
+    tabs,
+    activeTab,
+    handleTabPress,
+  } = useGameDetailsTabs({
+    activePositions,
+    claimablePositions,
+    league: game?.league,
+  });
+
+  // Index of the tab bar in the ScrollView children:
+  // [0] Scoreboard, [1] Chart, [2] TabBar (when visible)
+  const TAB_BAR_CHILD_INDEX = 2;
+  const stickyHeaderIndices = useMemo(
+    () => (showTabBar ? [TAB_BAR_CHILD_INDEX] : undefined),
+    [showTabBar],
+  );
+
   if (!outcome || !game) {
     return null;
   }
@@ -63,7 +98,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   return (
     <SafeAreaView
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
-      style={tw.style('flex-1')}
+      style={tw.style('flex-1 bg-default')}
       edges={['left', 'right']}
     >
       <Box
@@ -103,6 +138,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
       <ScrollView
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-4')}
+        stickyHeaderIndices={stickyHeaderIndices}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -113,16 +149,37 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
         }
       >
         <Box twClassName="px-4 py-2">
-          <PredictSportScoreboard game={game} testID="game-scoreboard" />
+          <PredictSportScoreboard
+            game={game}
+            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_SCOREBOARD}
+          />
         </Box>
 
         <Box twClassName="mt-4">
-          <PredictGameChart market={market} testID="game-chart" />
+          <PredictGameChart
+            market={market}
+            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_CHART}
+          />
         </Box>
 
-        <Box twClassName="px-4 py-2">
-          <PredictPicks market={market} testID="game-picks" />
-        </Box>
+        {showTabBar && (
+          <PredictMarketDetailsTabBar
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabPress={handleTabPress}
+            tabTwStyle="flex-1"
+          />
+        )}
+
+        <PredictGameDetailsTabsContent
+          market={market}
+          activeTab={activeTab}
+          tabs={tabs}
+          enabled={tabsEnabled}
+          showTabBar={showTabBar}
+          activePositions={activePositions}
+          claimablePositions={claimablePositions}
+        />
       </ScrollView>
 
       <PredictGameDetailsFooter
@@ -133,6 +190,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
         onInfoPress={handleInfoPress}
         claimableAmount={claimableAmount}
         isLoading={isLoading}
+        isClaimPending={isClaimPending}
       />
 
       {isVisible && (

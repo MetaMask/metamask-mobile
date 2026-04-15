@@ -1,7 +1,20 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { PaymentType } from '@consensys/on-ramp-sdk';
 import PaymentMethodPill from './PaymentMethodPill';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
+
+jest.mock('../../Aggregator/components/PaymentMethodIcon', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  const Mock = (props: { paymentMethodType?: string }) =>
+    ReactActual.createElement(
+      View,
+      { testID: 'mock-payment-method-icon' },
+      ReactActual.createElement(Text, null, props.paymentMethodType ?? ''),
+    );
+  return { __esModule: true, default: Mock };
+});
 
 const renderWithTheme = (component: React.ReactElement) =>
   render(
@@ -50,21 +63,39 @@ describe('PaymentMethodPill', () => {
     expect(getByTestId('payment-method-pill')).toBeOnTheScreen();
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(
-      <PaymentMethodPill label="Debit card" />,
+  it('renders PaymentMethodIcon for any non-empty paymentType like the payment list', () => {
+    const { getByTestId, getByText } = renderWithTheme(
+      <PaymentMethodPill
+        label="Pay"
+        paymentMethod={{
+          paymentType: 'future-payment-method',
+        }}
+      />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('mock-payment-method-icon')).toBeOnTheScreen();
+    expect(getByText('future-payment-method')).toBeOnTheScreen();
+  });
+
+  it('renders PaymentMethodIcon when paymentMethod has paymentType', () => {
+    const { getByText, getByTestId } = renderWithTheme(
+      <PaymentMethodPill
+        label="Apple Pay"
+        paymentMethod={{
+          paymentType: PaymentType.ApplePay,
+        }}
+      />,
+    );
+
+    expect(getByText('Apple Pay')).toBeOnTheScreen();
+    expect(getByTestId('mock-payment-method-icon')).toBeOnTheScreen();
+    expect(getByText(PaymentType.ApplePay)).toBeOnTheScreen();
   });
 
   describe('when isLoading is true', () => {
     it('renders a non-interactive View instead of TouchableOpacity', () => {
       const { getByTestId } = renderWithTheme(
-        <PaymentMethodPill
-          label="Select payment method"
-          isLoading
-        />,
+        <PaymentMethodPill label="Select payment method" isLoading />,
       );
 
       const pill = getByTestId('payment-method-pill');
@@ -78,7 +109,7 @@ describe('PaymentMethodPill', () => {
         <PaymentMethodPill label="Select payment method" isLoading />,
       );
 
-      expect(queryByText('Select payment method')).toBeNull();
+      expect(queryByText('Select payment method')).not.toBeOnTheScreen();
     });
 
     it('does not render arrow icon', () => {
@@ -106,12 +137,12 @@ describe('PaymentMethodPill', () => {
       );
     });
 
-    it('matches snapshot when loading', () => {
-      const { toJSON } = renderWithTheme(
+    it('renders the pill container when loading', () => {
+      const { getByTestId } = renderWithTheme(
         <PaymentMethodPill label="Select payment method" isLoading />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('payment-method-pill')).toBeOnTheScreen();
     });
   });
 });

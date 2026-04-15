@@ -1,22 +1,26 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useIsSwapEnabledForPriorityToken } from './useIsSwapEnabledForPriorityToken';
-import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
+
+// Solana mainnet chain ID used in cardNetworkInfos
+const SOLANA_CAIP_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../Ramp/Deposit/constants/networks', () => ({
-  SOLANA_MAINNET: {
-    chainId: 'solana:mainnet',
+jest.mock('../constants', () => ({
+  cardNetworkInfos: {
+    solana: {
+      caipChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    },
   },
 }));
 
-jest.mock('../../../../core/redux/slices/card', () => ({
-  selectIsAuthenticatedCard: jest.fn(),
+jest.mock('../../../../selectors/cardController', () => ({
+  selectIsCardAuthenticated: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
@@ -39,7 +43,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
 
     // Default setup: user is authenticated
     (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectIsAuthenticatedCard) {
+      if (selector === selectIsCardAuthenticated) {
         return true; // Default: authenticated
       }
       if (selector === selectSelectedInternalAccountByScope) {
@@ -59,7 +63,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
       });
 
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectIsAuthenticatedCard) {
+        if (selector === selectIsCardAuthenticated) {
           return false; // Not authenticated
         }
         if (selector === selectSelectedInternalAccountByScope) {
@@ -79,7 +83,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
 
     it('returns true when user is not authenticated even with undefined priority token', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectIsAuthenticatedCard) {
+        if (selector === selectIsCardAuthenticated) {
           return false; // Not authenticated
         }
         if (selector === selectSelectedInternalAccountByScope) {
@@ -104,7 +108,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
       });
 
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectIsAuthenticatedCard) {
+        if (selector === selectIsCardAuthenticated) {
           return true; // Authenticated
         }
         if (selector === selectSelectedInternalAccountByScope) {
@@ -183,7 +187,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
   describe('Solana Account Matching', () => {
     it('returns true when priority token address matches Solana account address', () => {
       mockSelectSelectedInternalAccount.mockImplementation((scope) => {
-        if (scope === SOLANA_MAINNET.chainId) {
+        if (scope === SOLANA_CAIP_CHAIN_ID) {
           return mockSolanaAccount;
         }
         return undefined;
@@ -198,7 +202,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
 
     it('returns false when priority token address does not match Solana account address', () => {
       mockSelectSelectedInternalAccount.mockImplementation((scope) => {
-        if (scope === SOLANA_MAINNET.chainId) {
+        if (scope === SOLANA_CAIP_CHAIN_ID) {
           return mockSolanaAccount;
         }
         return undefined;
@@ -219,7 +223,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
       };
 
       mockSelectSelectedInternalAccount.mockImplementation((scope) => {
-        if (scope === SOLANA_MAINNET.chainId) {
+        if (scope === SOLANA_CAIP_CHAIN_ID) {
           return solanaAccountUpperCase;
         }
         return undefined;
@@ -239,7 +243,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
         if (scope === 'eip155:0') {
           return mockEvmAccount;
         }
-        if (scope === SOLANA_MAINNET.chainId) {
+        if (scope === SOLANA_CAIP_CHAIN_ID) {
           return mockSolanaAccount;
         }
         return undefined;

@@ -20,11 +20,10 @@ jest.mock('@react-navigation/native', () => {
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    const ReactMock = require('react');
-    const MockBottomSheet = ReactMock.forwardRef(
-      ({ children }: { children: React.ReactNode }, _ref: React.Ref<unknown>) => (
-        <>{children}</>
-      ),
+    const ReactRuntime = jest.requireActual('react') as typeof import('react');
+    const MockBottomSheet = ReactRuntime.forwardRef(
+      ({ children }: { children: React.ReactNode }, _ref: React.Ref<unknown>) =>
+        ReactRuntime.createElement(ReactRuntime.Fragment, null, children),
     );
     MockBottomSheet.displayName = 'MockBottomSheet';
     return {

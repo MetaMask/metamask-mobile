@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import fs from 'fs';
 import { $ } from 'execa';
 import { Listr } from 'listr2';

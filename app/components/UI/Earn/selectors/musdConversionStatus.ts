@@ -22,7 +22,6 @@ interface ConversionStatusInfo {
  * Transaction statuses that indicate an in-flight conversion.
  */
 const IN_FLIGHT_STATUSES: TransactionStatus[] = [
-  TransactionStatus.unapproved,
   TransactionStatus.approved,
   TransactionStatus.signed,
   TransactionStatus.submitted,
@@ -38,24 +37,25 @@ export const selectMusdConversions = createSelector(
 );
 
 /**
- * Selects in-flight mUSD conversions (for loading states).
- * These are conversions that have been submitted/approved and not yet terminal.
+ * Selects unapproved mUSD conversion transactions.
  */
-const selectInFlightMusdConversions = createSelector(
+export const selectUnapprovedMusdConversions = createSelector(
   [selectMusdConversions],
   (conversions): TransactionMeta[] =>
-    conversions.filter((tx) =>
-      IN_FLIGHT_STATUSES.includes(tx.status as TransactionStatus),
+    conversions.filter(
+      (transactionMeta) =>
+        transactionMeta.status === TransactionStatus.unapproved,
     ),
 );
 
 /**
- * True when any in-flight mUSD conversion exists.
- * Used to globally disable quick-convert actions.
+ * True when any mUSD conversion is awaiting user approval.
+ * Used to disable quick-convert actions while approval is pending.
  */
-export const selectHasInFlightMusdConversion = createSelector(
-  [selectInFlightMusdConversions],
-  (inFlight): boolean => inFlight.length > 0,
+export const selectHasUnapprovedMusdConversion = createSelector(
+  [selectUnapprovedMusdConversions],
+  (pendingUnapprovedConversions): boolean =>
+    pendingUnapprovedConversions.length > 0,
 );
 
 /**
@@ -113,4 +113,16 @@ export const selectMusdConversionStatuses = createSelector(
 
     return statusMap;
   },
+);
+
+/**
+ * True when any mUSD conversion is currently in-flight.
+ * Used to guard conversion entry points while a conversion is active.
+ */
+export const selectHasInFlightMusdConversion = createSelector(
+  [selectMusdConversionStatuses],
+  (conversionStatuses): boolean =>
+    Object.values(conversionStatuses).some(
+      (conversionStatus) => conversionStatus.isPending,
+    ),
 );

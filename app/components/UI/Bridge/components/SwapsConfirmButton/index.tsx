@@ -1,49 +1,62 @@
 import React, { useMemo, useEffect, useRef } from 'react';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import {
+  selectBridgeFeatureFlags,
   selectIsSolanaSourced,
   selectIsSubmittingTx,
   selectSourceAmount,
   selectSourceToken,
-  setIsSubmittingTx,
+  selectDestTokenWarning,
 } from '../../../../../core/redux/slices/bridge';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
-import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
-import { BridgeQuoteResponse } from '../../types';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
-import { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { calcTokenValue } from '../../../../../util/transactions';
+import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import Routes from '../../../../../constants/navigation/Routes';
+import { PriceImpactModalType } from '../PriceImpactModal/constants';
+import { useNavigation } from '@react-navigation/native';
+import {
+  exceedsPriceImpactErrorThreshold,
+  parsePriceImpact,
+} from '../../utils/getPriceImpactViewData';
+import type { TokenWarningModalParams } from '../TokenWarningModal';
+import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
   /** Optional testID override (e.g. when rendered inside keypad to avoid duplicate IDs in E2E) */
   testID?: string;
+  location: MetaMetricsSwapsEventSource;
 }
 
-export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
-  const dispatch = useDispatch();
+export const SwapsConfirmButton = ({
+  latestSourceBalance,
+  testID,
+  location,
+}: Props) => {
   const navigation = useNavigation();
-  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
-  /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
-  const location = route.params?.location;
+  const handleConfirm = useBridgeConfirm({
+    latestSourceBalance,
+    location,
+  });
 
-  const { submitBridgeTx } = useSubmitBridgeTx();
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const tokenWarning = useSelector(selectDestTokenWarning);
   const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -66,7 +79,7 @@ export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
   const {
     activeQuote,
     isLoading,
-    isExpired,
+    needsNewQuote,
     blockaidError,
     quoteFetchError,
     isNoQuotesAvailable,
@@ -75,13 +88,6 @@ export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
   });
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
-
-  // The quote expired and no fetch is in progress — offer to get a new one.
-  // Also treat the edge-case where a fetch IS running but there is no active
-  // quote to fall back on — the user would otherwise be stuck on a spinner
-  // with no way to retry ("escape hatch").
-  const needsNewQuote =
-    isExpired && !isSubmittingTx && (!isLoading || !activeQuote);
 
   // Check both the display amount and the atomic amount are non-zero.
   // An amount like 0.000000001 BTC (8 decimals) is non-zero as a number but
@@ -147,27 +153,47 @@ export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
     !walletAddress;
 
   const handleContinue = async () => {
-    try {
-      if (activeQuote && walletAddress) {
-        dispatch(setIsSubmittingTx(true));
-
-        const quoteResponse: BridgeQuoteResponse = {
-          ...activeQuote,
-          aggregator: activeQuote.quote.bridgeId,
-          walletAddress,
-        };
-
-        await submitBridgeTx({
-          quoteResponse,
-          location,
-        });
-      }
-    } catch (error) {
-      console.error('Error submitting bridge tx', error);
-    } finally {
-      dispatch(setIsSubmittingTx(false));
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    if (tokenWarning) {
+      const params: TokenWarningModalParams = {
+        warningType:
+          tokenWarning.type as TokenWarningModalParams['warningType'],
+        description: tokenWarning.description,
+        mode: TokenWarningModalMode.Execution,
+        location,
+      };
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params,
+      });
+      return;
     }
+
+    // Default to zero to bypass swap friction.
+    // This callback is always called when active quote exists,
+    // thus this check is not expected to be used, but we introduce
+    // it regardless as a defensive mechanism.
+    const priceImpact = parsePriceImpact(
+      activeQuote?.quote.priceData?.priceImpact,
+    );
+
+    if (
+      exceedsPriceImpactErrorThreshold(
+        priceImpact,
+        bridgeFeatureFlags?.priceImpactThreshold?.error,
+      )
+    ) {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
+        params: {
+          type: PriceImpactModalType.Execution,
+          token: sourceToken,
+          location,
+        },
+      });
+      return;
+    }
+
+    await handleConfirm();
   };
 
   const handleGetNewQuote = () => {
@@ -209,14 +235,15 @@ export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
 
   return (
     <Button
-      variant={ButtonVariants.Primary}
-      size={ButtonSize.Lg}
-      loading={buttonIsInLoadingState}
-      label={label}
+      variant={ButtonVariant.Primary}
+      size={ButtonBaseSize.Lg}
+      isLoading={buttonIsInLoadingState}
       onPress={needsNewQuote ? handleGetNewQuote : handleContinue}
-      width={ButtonWidthTypes.Full}
+      isFullWidth
       testID={testID ?? BridgeViewSelectorsIDs.CONFIRM_BUTTON}
       isDisabled={needsNewQuote ? false : isSubmitDisabled}
-    />
+    >
+      {label}
+    </Button>
   );
 };

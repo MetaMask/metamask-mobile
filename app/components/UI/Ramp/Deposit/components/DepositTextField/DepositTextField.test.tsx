@@ -1,16 +1,12 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import DepositTextField from './DepositTextField';
+import { mockTheme } from '../../../../../../util/theme';
+import { AppThemeKey, Theme } from '../../../../../../util/theme/models';
 
 const DEPOSIT_FIELD_TEST_ID = 'deposit-field-test-id';
 
-const mockTheme = {
-  colors: {
-    text: { muted: '#888888' },
-    error: { default: '#FF0000' },
-  },
-  themeAppearance: 'light',
-};
+let mockCurrentTheme: Theme = mockTheme;
 
 const defaultProps = {
   label: 'Test Label',
@@ -24,7 +20,7 @@ jest.mock('../../../../../hooks/useStyles', () => ({
       label: {},
       error: {},
     },
-    theme: mockTheme,
+    theme: mockCurrentTheme,
   }),
 }));
 
@@ -44,11 +40,24 @@ describe('DepositTextField', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render error text when error prop is provided', () => {
+  it('uses dark keyboard appearance in dark theme', () => {
+    mockCurrentTheme = {
+      ...mockTheme,
+      themeAppearance: AppThemeKey.dark,
+    };
+
+    render(<DepositTextField {...defaultProps} />);
+
+    expect(
+      screen.getByTestId(DEPOSIT_FIELD_TEST_ID).props.keyboardAppearance,
+    ).toBe(AppThemeKey.dark);
+
+    mockCurrentTheme = mockTheme;
+  });
+
+  it('renders error text when error prop is provided', () => {
     const errorMessage = 'This is an error message';
-    render(
-      <DepositTextField {...defaultProps} error={errorMessage} />,
-    );
+    render(<DepositTextField {...defaultProps} error={errorMessage} />);
     expect(screen.getByText(errorMessage)).toBeDefined();
   });
 
@@ -64,7 +73,7 @@ describe('DepositTextField', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should pass additional props to TextField', () => {
+  it('passes additional props to TextField', () => {
     const placeholder = 'Enter your text here';
     const maxLength = 50;
     const { toJSON } = render(

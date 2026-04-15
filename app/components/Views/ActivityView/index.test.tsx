@@ -4,7 +4,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { fireEvent } from '@testing-library/react-native';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as networkManagerUtils from '../../UI/NetworkManager';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
@@ -27,11 +27,14 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
 
 // Track which tabs are rendered - populated by mock
 let renderedTabs: string[] = [];
+let lastInitialActiveIndex: number | undefined;
 
 // Helper to get rendered tabs for assertions
 const getRenderedTabs = () => renderedTabs;
+const getLastInitialActiveIndex = () => lastInitialActiveIndex;
 const clearRenderedTabs = () => {
   renderedTabs = [];
+  lastInitialActiveIndex = undefined;
 };
 
 jest.mock('../../../component-library/components-temp/Tabs', () => {
@@ -42,10 +45,11 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
     (
       props: {
         children?: React.ReactElement[];
+        initialActiveIndex?: number;
         onChangeTab?: (params: { i: number }) => void;
         [key: string]: unknown;
       },
-      ref: React.Ref<{ goToTabIndex: (index: number) => void }>,
+      _ref: React.Ref<{ goToTabIndex: (index: number) => void }>,
     ) => {
       const children = Array.isArray(props.children) ? props.children : [];
 
@@ -62,13 +66,8 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
         });
         // Update module-level variable for test assertions
         renderedTabs = tabKeys;
-      }, [children]);
-
-      ReactActual.useImperativeHandle(ref, () => ({
-        goToTabIndex: (index: number) => {
-          props.onChangeTab?.({ i: index });
-        },
-      }));
+        lastInitialActiveIndex = props.initialActiveIndex;
+      }, [children, props.initialActiveIndex]);
 
       return ReactActual.createElement(
         View,
@@ -100,11 +99,12 @@ const Stack = createStackNavigator();
 
 const mockNavigation = {
   navigate: jest.fn(),
+  setParams: jest.fn(),
   setOptions: jest.fn(),
   goBack: jest.fn(),
   canGoBack: jest.fn(() => true),
   reset: jest.fn(),
-  dangerouslyGetParent: () => ({
+  getParent: () => ({
     pop: jest.fn(),
   }),
 };
@@ -264,6 +264,7 @@ describe('ActivityView', () => {
     mockPerpsEnabled = false;
     mockPredictEnabled = false;
     clearRenderedTabs();
+    mockRoute.params = {};
   });
 
   it('matches snapshot', () => {
@@ -472,9 +473,10 @@ describe('ActivityView', () => {
       mockPerpsEnabled = true;
       mockIsEvmSelected = true;
 
-      const { getByTestId } = renderComponent(mockInitialState);
+      const { getByTestId, queryByTestId } = renderComponent(mockInitialState);
 
       expect(getByTestId('tab-perps')).toBeTruthy();
+      expect(queryByTestId('perps-transactions-view')).toBeNull();
       expect(getRenderedTabs()).toContain('perps');
     });
 
@@ -494,6 +496,45 @@ describe('ActivityView', () => {
       renderComponent(mockInitialState);
 
       expect(getRenderedTabs()).not.toContain('perps');
+    });
+
+    it('uses Perps as initial tab when redirected to Perps transactions', () => {
+      mockPerpsEnabled = true;
+      mockIsEvmSelected = true;
+      mockRoute.params = {
+        redirectToPerpsTransactions: true,
+        showBackButton: true,
+      };
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(getByTestId('perps-transactions-view')).toBeTruthy();
+      expect(getLastInitialActiveIndex()).toBe(2);
+      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+        redirectToPerpsTransactions: false,
+      });
+    });
+  });
+
+  describe('Orders tab', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockRoute.params = {};
+    });
+
+    it('renders orders list and clears redirect param when redirected to orders', () => {
+      mockRoute.params = {
+        redirectToOrders: true,
+        showBackButton: true,
+      };
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(getByTestId('ramp-orders-list')).toBeTruthy();
+      expect(getLastInitialActiveIndex()).toBe(1);
+      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+        redirectToOrders: false,
+      });
     });
   });
 

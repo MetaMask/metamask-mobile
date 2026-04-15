@@ -1,21 +1,27 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { Component } from 'react';
-import { View, NativeSyntheticEvent } from 'react-native';
+import { View } from 'react-native';
 import { WebViewMessageEvent, WebView } from '@metamask/react-native-webview';
 import { createStyles } from './styles';
 import { WebViewInterface } from '@metamask/snaps-controllers/react-native';
-import { WebViewError } from '@metamask/react-native-webview/src/WebViewTypes';
+import {
+  WebViewNavigationEvent,
+  WebViewErrorEvent,
+} from '@metamask/react-native-webview/src/WebViewTypes';
 import { PostMessageEvent } from '@metamask/post-message-stream';
 // @ts-expect-error Types are currently broken for this.
+// eslint-disable-next-line import-x/no-unresolved
 import WebViewHTML from '@metamask/snaps-execution-environments/dist/webpack/webview/index.html';
 import { EmptyObject } from '@metamask/snaps-sdk';
+import { assert, hasProperty } from '@metamask/utils';
+import Logger from '../../util/Logger';
 
 const styles = createStyles();
 
 // This is a hack to allow us to asynchronously await the creation of the WebView.
-// eslint-disable-next-line import/no-mutable-exports
+// eslint-disable-next-line import-x/no-mutable-exports
 export let createWebView: (jobId: string) => Promise<WebViewInterface>;
-// eslint-disable-next-line import/no-mutable-exports
+// eslint-disable-next-line import-x/no-mutable-exports
 export let removeWebView: (jobId: string) => void;
 
 interface WebViewState {
@@ -23,8 +29,7 @@ interface WebViewState {
   listener?: (event: PostMessageEvent) => void;
   props: {
     onWebViewMessage: (data: WebViewMessageEvent) => void;
-    onWebViewLoad: () => void;
-    onWebViewError: (error: NativeSyntheticEvent<WebViewError>) => void;
+    onWebViewLoad: (event: WebViewNavigationEvent | WebViewErrorEvent) => void;
     ref: (ref: WebView) => void;
   };
 }
@@ -42,39 +47,55 @@ export class SnapsExecutionWebView extends Component {
 
   createWebView(jobId: string) {
     const promise = new Promise<WebViewInterface>((resolve, reject) => {
-      const onWebViewLoad = () => {
-        const api = {
-          injectJavaScript: (js: string) => {
-            this.webViews[jobId]?.ref?.injectJavaScript(js);
-          },
-          registerMessageListener: (
-            listener: (event: PostMessageEvent) => void,
-          ) => {
-            if (this.webViews[jobId]) {
-              this.webViews[jobId].listener = listener;
-            }
-          },
-          unregisterMessageListener: (
-            _listener: (event: PostMessageEvent) => void,
-          ) => {
-            if (this.webViews[jobId]) {
-              this.webViews[jobId].listener = undefined;
-            }
-          },
-        };
-        resolve(api);
+      const api = {
+        injectJavaScript: (js: string) => {
+          assert(
+            this.webViews[jobId]?.ref,
+            'Snaps execution webview reference not found.',
+          );
+          this.webViews[jobId].ref?.injectJavaScript(js);
+        },
+        registerMessageListener: (
+          listener: (event: PostMessageEvent) => void,
+        ) => {
+          if (this.webViews[jobId]) {
+            this.webViews[jobId].listener = listener;
+          }
+        },
+        unregisterMessageListener: (
+          _listener: (event: PostMessageEvent) => void,
+        ) => {
+          if (this.webViews[jobId]) {
+            this.webViews[jobId].listener = undefined;
+          }
+        },
       };
 
-      const onWebViewMessage = (data: WebViewMessageEvent) => {
-        if (this.webViews[jobId]?.listener) {
-          this.webViews[jobId].listener?.(
-            data.nativeEvent as unknown as PostMessageEvent,
+      const onWebViewLoad = (
+        event: WebViewNavigationEvent | WebViewErrorEvent,
+      ) => {
+        if (hasProperty(event.nativeEvent, 'code')) {
+          reject(
+            new Error(
+              `Snaps execution webview failed to load with error code: ${event.nativeEvent.code}`,
+            ),
           );
         }
       };
 
-      const onWebViewError = (error: NativeSyntheticEvent<WebViewError>) => {
-        reject(error);
+      const onWebViewMessage = (data: WebViewMessageEvent) => {
+        // We resolve the promise on the first message received
+        resolve(api);
+
+        if (this.webViews[jobId]?.listener) {
+          try {
+            this.webViews[jobId].listener?.(
+              data.nativeEvent as unknown as PostMessageEvent,
+            );
+          } catch (error) {
+            Logger.log('Snaps execution webview failure:', error);
+          }
+        }
       };
 
       const setWebViewRef = (ref: WebView) => {
@@ -86,7 +107,6 @@ export class SnapsExecutionWebView extends Component {
       this.webViews[jobId] = {
         props: {
           onWebViewLoad,
-          onWebViewError,
           onWebViewMessage,
           ref: setWebViewRef,
         },
@@ -116,7 +136,6 @@ export class SnapsExecutionWebView extends Component {
             ref={props.ref}
             source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
             onMessage={props.onWebViewMessage}
-            onError={props.onWebViewError}
             onLoadEnd={props.onWebViewLoad}
             originWhitelist={['*']}
             javaScriptEnabled

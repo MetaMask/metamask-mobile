@@ -6,7 +6,7 @@ import {
 } from './useTrendingRequest';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { act, waitFor } from '@testing-library/react-native';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as assetsControllers from '@metamask/assets-controllers';
 import { CaipChainId } from '@metamask/utils';
 import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
@@ -86,9 +86,9 @@ describe('useTrendingRequest', () => {
 
     await waitFor(() => {
       expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
-    expect(result.current.results).toEqual(mockResults);
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBe(null);
+      expect(result.current.results).toEqual(mockResults);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(null);
     });
 
     spyGetTrendingTokens.mockRestore();
@@ -146,8 +146,8 @@ describe('useTrendingRequest', () => {
 
     await waitFor(() => {
       expect(result.current.error).toEqual(mockError);
-    expect(result.current.results).toEqual([]);
-    expect(result.current.isLoading).toBe(false);
+      expect(result.current.results).toEqual([]);
+      expect(result.current.isLoading).toBe(false);
     });
 
     spyGetTrendingTokens.mockRestore();
@@ -192,8 +192,8 @@ describe('useTrendingRequest', () => {
 
     await waitFor(() => {
       expect(result.current.error).toBe(null);
-    expect(result.current.results).toEqual(mockResults);
-    expect(result.current.isLoading).toBe(false);
+      expect(result.current.results).toEqual(mockResults);
+      expect(result.current.isLoading).toBe(false);
     });
 
     spyGetTrendingTokens.mockRestore();
@@ -332,7 +332,7 @@ describe('useTrendingRequest', () => {
       if (resolveFirstRequest) {
         resolveFirstRequest(mockResults1);
       }
-        expect(result.current.results).toEqual(mockResults2);
+      expect(result.current.results).toEqual(mockResults2);
     });
 
     spyGetTrendingTokens.mockRestore();

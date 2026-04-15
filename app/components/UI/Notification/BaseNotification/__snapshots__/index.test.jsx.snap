@@ -159,7 +159,7 @@ exports[`BaseNotification gets icon correctly for each status 1`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "lineHeight": 18,
                 "marginBottom": 2,
@@ -379,7 +379,7 @@ exports[`BaseNotification gets icon correctly for each status 2`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "lineHeight": 18,
                 "marginBottom": 2,
@@ -599,7 +599,7 @@ exports[`BaseNotification gets icon correctly for each status 3`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "lineHeight": 18,
                 "marginBottom": 2,
@@ -789,7 +789,7 @@ exports[`BaseNotification gets icon correctly for each status 4`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "lineHeight": 18,
                 "marginBottom": 2,
@@ -979,7 +979,7 @@ exports[`BaseNotification gets icon correctly for each status 5`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "lineHeight": 18,
                 "marginBottom": 2,
@@ -1169,7 +1169,7 @@ exports[`BaseNotification gets icon correctly for each status 6`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "lineHeight": 18,
                 "marginBottom": 2,
@@ -1359,7 +1359,7 @@ exports[`BaseNotification gets icon correctly for each status 7`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "lineHeight": 18,
                 "marginBottom": 2,
@@ -1549,7 +1549,7 @@ exports[`BaseNotification gets icon correctly for each status 8`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "lineHeight": 18,
                 "marginBottom": 2,
@@ -1739,7 +1739,7 @@ exports[`BaseNotification gets icon correctly for each status 9`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "lineHeight": 18,
                 "marginBottom": 2,

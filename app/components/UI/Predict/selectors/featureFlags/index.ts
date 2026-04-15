@@ -1,5 +1,9 @@
 import { createSelector } from 'reselect';
-import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
+import {
+  selectLocalOverrides,
+  selectRawFeatureFlags,
+  selectRemoteFeatureFlags,
+} from '../../../../../selectors/featureFlagController';
 import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
@@ -7,6 +11,7 @@ import {
 import { PredictHotTabFlag } from '../../types/flags';
 import { DEFAULT_HOT_TAB_FLAG } from '../../constants/flags';
 import { unwrapRemoteFeatureFlag } from '../../utils/flags';
+import { resolvePredictFeatureFlags } from '../../utils/resolvePredictFeatureFlags';
 
 /**
  * Selector for Predict trading feature enablement
@@ -108,4 +113,46 @@ export const selectPredictHotTabFlag = createSelector(
 
     return flag;
   },
+);
+
+export const selectPredictFeatureFlags = createSelector(
+  selectRawFeatureFlags,
+  selectLocalOverrides,
+  (remoteFeatureFlags, localOverrides) =>
+    resolvePredictFeatureFlags({ remoteFeatureFlags, localOverrides }),
+);
+
+export const selectExtendedSportsMarketsLeagues = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.extendedSportsMarketsLeagues,
+);
+
+export const selectPredictFeeCollectionFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.feeCollection,
+);
+
+export const selectPredictFakOrdersEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.fakOrdersEnabled,
+);
+
+export const selectPredictWithAnyTokenEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictWithAnyTokenEnabled,
+);
+
+export const selectPredictUpDownEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictUpDownEnabled,
+);
+
+export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    validatedVersionGatedFeatureFlag(
+      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+        remoteFeatureFlags?.predictTabFeaturedCarousel,
+      ),
+    ) ?? false,
 );

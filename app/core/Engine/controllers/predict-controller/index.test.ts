@@ -1,6 +1,6 @@
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import {
   PredictController,
   PredictControllerMessenger,
@@ -8,6 +8,7 @@ import {
 } from '../../../../components/UI/Predict/controllers/PredictController';
 import { predictControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { ActiveOrderState } from '../../../../components/UI/Predict';
 
 jest.mock(
   '../../../../components/UI/Predict/controllers/PredictController',
@@ -28,7 +29,7 @@ jest.mock(
 describe('predict controller init', () => {
   const predictControllerClassMock = jest.mocked(PredictController);
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<PredictControllerMessenger>
+    MessengerClientInitRequest<PredictControllerMessenger>
   >;
 
   beforeEach(() => {
@@ -69,8 +70,11 @@ describe('predict controller init', () => {
       balances: {},
       claimablePositions: {},
       pendingDeposits: {},
+      pendingClaims: {},
       withdrawTransaction: null,
+      selectedPaymentToken: null,
       accountMeta: {},
+      activeBuyOrders: {},
     };
 
     initRequestMock.persistedState = {

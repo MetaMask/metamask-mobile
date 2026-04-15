@@ -8,9 +8,27 @@ import {
   internalAccount1,
   internalAccount2,
 } from '../../util/test/accountsControllerTestUtils';
-import { RootState } from '../../reducers';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { Identity } from './036';
+
+interface MigrationState {
+  engine: {
+    backgroundState: {
+      PreferencesController: {
+        identities: Record<string, Identity>;
+      };
+      AccountsController: {
+        internalAccounts: {
+          accounts: Record<
+            string,
+            { address: string; metadata: { name: string } }
+          >;
+          selectedAccount: Record<string, unknown>;
+        };
+      };
+    };
+  };
+}
 
 const mockChecksummedInternalAcc1 = toChecksumHexAddress(
   internalAccount1.address,
@@ -215,10 +233,7 @@ describe('Migration #44', () => {
   }
 
   it('should set name property of accounts of accounts controller to name property of identities of Preferences Controller', () => {
-    const newState: Pick<RootState, 'engine'> = migration(oldState) as Pick<
-      RootState,
-      'engine'
-    >;
+    const newState = migration(oldState) as MigrationState;
 
     Object.keys(
       newState.engine.backgroundState.AccountsController.internalAccounts
@@ -276,10 +291,7 @@ describe('Migration #44', () => {
         },
       },
     };
-    const newState = migration(cloneDeep(oldState2)) as Pick<
-      RootState,
-      'engine'
-    >;
+    const newState = migration(cloneDeep(oldState2)) as MigrationState;
     Object.keys(
       newState.engine.backgroundState.AccountsController.internalAccounts
         .accounts,

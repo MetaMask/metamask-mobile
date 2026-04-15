@@ -142,7 +142,10 @@ By default, you can execute tests for both platforms using the platform helpers.
 Import helpers and define tests parameterized by platform:
 
 ```ts
-import { itForPlatforms, describeForPlatforms } from '../../platform';
+import {
+  itForPlatforms,
+  describeForPlatforms,
+} from '../../tests/component-view/platform';
 import { renderBridgeView } from './renderers/bridge';
 
 describeForPlatforms('BridgeView', ({ os }) => {

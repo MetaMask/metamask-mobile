@@ -7,6 +7,8 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 
+const mockReact = React;
+
 // Mock hooks - must be hoisted before imports
 const mockUseParams = jest.fn();
 const mockGoBack = jest.fn();
@@ -44,11 +46,9 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    const ReactMock = require('react');
-    const MockBottomSheet = ReactMock.forwardRef(
-      ({ children }: { children: React.ReactNode }, _ref: React.Ref<unknown>) => (
-        <>{children}</>
-      ),
+    const MockBottomSheet = mockReact.forwardRef(
+      ({ children }: { children: React.ReactNode }, _ref: React.Ref<unknown>) =>
+        mockReact.createElement(mockReact.Fragment, null, children),
     );
     MockBottomSheet.displayName = 'MockBottomSheet';
     return {
@@ -109,10 +109,10 @@ describe('PasswordBottomSheet', () => {
     jest.resetAllMocks();
   });
 
-  it('renders correctly and matches snapshot', () => {
-    const { toJSON } = setupComponent();
+  it('renders correctly', () => {
+    const { getByText } = setupComponent();
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Enter password')).toBeOnTheScreen();
   });
 
   it('displays title and default description text', () => {
@@ -140,7 +140,7 @@ describe('PasswordBottomSheet', () => {
     ).toBeTruthy();
     expect(
       queryByText('Enter your wallet password to view card details.'),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('displays password input field', () => {
@@ -232,7 +232,9 @@ describe('PasswordBottomSheet', () => {
     fireEvent.changeText(passwordInput, 'a');
 
     await waitFor(() => {
-      expect(queryByTestId(CardHomeSelectors.PASSWORD_ERROR)).toBeNull();
+      expect(
+        queryByTestId(CardHomeSelectors.PASSWORD_ERROR),
+      ).not.toBeOnTheScreen();
     });
   });
 

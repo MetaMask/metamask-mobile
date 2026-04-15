@@ -171,65 +171,6 @@ describe('PredictKeypad', () => {
     });
   });
 
-  describe('Add Funds Button', () => {
-    it('renders Add Funds button when hasInsufficientFunds is true and onAddFunds is provided', () => {
-      const onAddFundsMock = jest.fn();
-      const props = {
-        ...defaultProps,
-        hasInsufficientFunds: true,
-        onAddFunds: onAddFundsMock,
-      };
-
-      const { getByText, queryByText } = render(<PredictKeypad {...props} />);
-
-      expect(getByText('Add funds')).toBeOnTheScreen();
-      expect(queryByText('$20')).toBeNull();
-      expect(queryByText('$50')).toBeNull();
-      expect(queryByText('$100')).toBeNull();
-    });
-
-    it('calls onAddFunds when Add Funds button is pressed', () => {
-      const onAddFundsMock = jest.fn();
-      const props = {
-        ...defaultProps,
-        hasInsufficientFunds: true,
-        onAddFunds: onAddFundsMock,
-      };
-
-      const { getByText } = render(<PredictKeypad {...props} />);
-      fireEvent.press(getByText('Add funds'));
-
-      expect(onAddFundsMock).toHaveBeenCalledTimes(1);
-    });
-
-    it('renders quick amount buttons when hasInsufficientFunds is false', () => {
-      const props = {
-        ...defaultProps,
-        hasInsufficientFunds: false,
-      };
-
-      const { getByText, queryByText } = render(<PredictKeypad {...props} />);
-
-      expect(getByText('$20')).toBeOnTheScreen();
-      expect(getByText('$50')).toBeOnTheScreen();
-      expect(getByText('$100')).toBeOnTheScreen();
-      expect(queryByText('predict.deposit.add_funds')).toBeNull();
-    });
-
-    it('renders quick amount buttons when onAddFunds is not provided', () => {
-      const props = {
-        ...defaultProps,
-        hasInsufficientFunds: true,
-        onAddFunds: undefined,
-      };
-
-      const { getByText, queryByText } = render(<PredictKeypad {...props} />);
-
-      expect(getByText('$20')).toBeOnTheScreen();
-      expect(queryByText('predict.deposit.add_funds')).toBeNull();
-    });
-  });
-
   describe('handleDonePress', () => {
     it('removes trailing decimal point when Done is pressed', () => {
       const props = {

@@ -186,15 +186,16 @@ describe('BuildQuote Component', () => {
     (endTrace as jest.MockedFunction<typeof endTrace>).mockClear();
   });
 
-  it('render matches snapshot', () => {
+  it('renders initial state with Continue button and US region', () => {
     render(BuildQuote);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('US')).toBeOnTheScreen();
+    expect(screen.getByText('Continue')).toBeOnTheScreen();
   });
 
   describe('Region Selection', () => {
     it('displays default US region on initial render', () => {
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByText('US')).toBeOnTheScreen();
     });
 
     it('opens region modal when region button is pressed', () => {
@@ -225,7 +226,7 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByText('DE')).toBeOnTheScreen();
     });
 
     it('navigates to unsupported region modal when selectedRegion is not supported', async () => {
@@ -259,7 +260,9 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(
+        screen.getByText('There was an issue fetching the regions.'),
+      ).toBeOnTheScreen();
 
       expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
@@ -272,7 +275,7 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByText('Continue')).toBeOnTheScreen();
 
       expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
@@ -308,7 +311,7 @@ describe('BuildQuote Component', () => {
         }),
       );
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByText('1 to 2 days')).toBeOnTheScreen();
     });
 
     it('does not show the duration when selected payment method is null', () => {
@@ -318,7 +321,8 @@ describe('BuildQuote Component', () => {
         }),
       );
       render(BuildQuote);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.queryByText('1 to 2 days')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Instant')).not.toBeOnTheScreen();
     });
 
     it('navigates to payment method selection when payment button is pressed', () => {
@@ -340,7 +344,9 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(
+        screen.getByText('There was an issue fetching the payment methods.'),
+      ).toBeOnTheScreen();
 
       expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositPaymentMethodSelectorModal',
@@ -355,7 +361,7 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByText('Pay with')).toBeOnTheScreen();
 
       expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositPaymentMethodSelectorModal',
@@ -426,7 +432,9 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(
+        screen.getByText('There was an issue fetching the tokens.'),
+      ).toBeOnTheScreen();
 
       expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositTokenSelectorModal',
@@ -441,7 +449,7 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByText('Continue')).toBeOnTheScreen();
 
       expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositTokenSelectorModal',
@@ -546,7 +554,7 @@ describe('BuildQuote Component', () => {
       const oneButton = screen.getByText('1');
       fireEvent.press(oneButton);
 
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByText('$1')).toBeOnTheScreen();
     });
 
     it('displays converted token amount', () => {
@@ -556,7 +564,7 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByText('1.5 USDC')).toBeOnTheScreen();
     });
   });
 
@@ -566,7 +574,9 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(
+        screen.getByText('There was an issue fetching the user details.'),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -771,7 +781,7 @@ describe('BuildQuote Component', () => {
       });
 
       await waitFor(() => {
-        expect(screen.toJSON()).toMatchSnapshot();
+        expect(screen.getByText('Failed to fetch quote')).toBeOnTheScreen();
       });
     });
 
@@ -818,7 +828,7 @@ describe('BuildQuote Component', () => {
       });
 
       await waitFor(() => {
-        expect(screen.toJSON()).toMatchSnapshot();
+        expect(screen.getByText('Failed to fetch quote.')).toBeOnTheScreen();
       });
     });
 
@@ -872,7 +882,7 @@ describe('BuildQuote Component', () => {
       });
 
       await waitFor(() => {
-        expect(screen.toJSON()).toMatchSnapshot();
+        expect(screen.getByText('Routing failed')).toBeOnTheScreen();
       });
     });
 
@@ -1070,7 +1080,7 @@ describe('BuildQuote Component', () => {
       mockTrace.mockClear();
     });
 
-    it('should call endTrace for LoadDepositExperience when component mounts', () => {
+    it('calls endTrace for LoadDepositExperience when component mounts', () => {
       const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
       render(BuildQuote);
@@ -1083,7 +1093,7 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('should call trace for DepositContinueFlow when continue is pressed normally', async () => {
+    it('calls trace for DepositContinueFlow when continue is pressed normally', async () => {
       const mockTrace = trace as jest.MockedFunction<typeof trace>;
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
 
@@ -1111,7 +1121,7 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('should NOT call trace for DepositContinueFlow when shouldRouteImmediately is true', async () => {
+    it('does not call trace for DepositContinueFlow when shouldRouteImmediately is true', async () => {
       const mockTrace = trace as jest.MockedFunction<typeof trace>;
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
 
@@ -1133,7 +1143,7 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('should call endTrace for DepositContinueFlow with error when quote fetch fails', async () => {
+    it('calls endTrace for DepositContinueFlow with error when quote fetch fails', async () => {
       const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
       const mockTrace = trace as jest.MockedFunction<typeof trace>;
 

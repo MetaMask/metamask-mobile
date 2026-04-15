@@ -228,7 +228,7 @@ const EarnLendingDepositConfirmationView = () => {
     navigation.setOptions(
       getStakingNavbar(title, navigation, theme.colors, {
         hasCancelButton: false,
-        backgroundColor: theme.colors.background.alternative,
+        backgroundColor: theme.colors.background.default,
       }),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps

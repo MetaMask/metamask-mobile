@@ -109,7 +109,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
             null,
             [
               {
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "textAlign": "center",
               },
@@ -188,7 +188,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
             },
             [
               {
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "textAlign": "center",
               },
@@ -897,7 +897,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
             null,
             [
               {
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "textAlign": "center",
               },
@@ -974,7 +974,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
             null,
             [
               {
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "textAlign": "center",
               },

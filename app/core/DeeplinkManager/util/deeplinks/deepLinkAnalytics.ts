@@ -191,43 +191,6 @@ const extractPerpsProperties = (
 };
 
 /**
- * Extract properties specific to DEPOSIT route
- * @param urlParams - URL parameters
- * @param sensitiveProps - Object to add properties to
- */
-const extractDepositProperties = (
-  urlParams: UrlParamValues,
-  sensitiveProps: Record<string, string>,
-): void => {
-  extractCommonProperties(urlParams, sensitiveProps);
-  addPropertyIfExists(
-    sensitiveProps,
-    'provider',
-    getStringValue(urlParams, 'provider'),
-  );
-  addPropertyIfExists(
-    sensitiveProps,
-    'payment_method',
-    getStringValue(urlParams, 'payment_method'),
-  );
-  addPropertyIfExists(
-    sensitiveProps,
-    'sub_payment_method',
-    getStringValue(urlParams, 'sub_payment_method'),
-  );
-  addPropertyIfExists(
-    sensitiveProps,
-    'fiat_currency',
-    getStringValue(urlParams, 'fiat_currency'),
-  );
-  addPropertyIfExists(
-    sensitiveProps,
-    'fiat_quantity',
-    getStringValue(urlParams, 'fiat_quantity'),
-  );
-};
-
-/**
  * Extract properties specific to TRANSACTION route
  * @param urlParams - URL parameters
  * @param sensitiveProps - Object to add properties to
@@ -409,18 +372,6 @@ const extractTrendingProperties = (
 };
 
 /**
- * Extract properties for ENABLE_CARD_BUTTON route
- * @param urlParams - URL parameters
- * @param sensitiveProps - Object to add properties to
- */
-const extractEnableCardButtonProperties = (
-  _urlParams: UrlParamValues,
-  _sensitiveProps: Record<string, string>,
-): void => {
-  // ENABLE_CARD_BUTTON route doesn't have sensitive parameters to extract
-};
-
-/**
  * Extract properties for CARD_ONBOARDING route
  * @param urlParams - URL parameters
  * @param sensitiveProps - Object to add properties to
@@ -491,7 +442,6 @@ const routeExtractors: Record<
 > = {
   [DeepLinkRoute.SWAP]: extractSwapProperties,
   [DeepLinkRoute.PERPS]: extractPerpsProperties,
-  [DeepLinkRoute.DEPOSIT]: extractDepositProperties,
   [DeepLinkRoute.TRANSACTION]: extractTransactionProperties,
   [DeepLinkRoute.BUY]: extractBuyProperties,
   [DeepLinkRoute.SELL]: extractSellProperties,
@@ -505,7 +455,6 @@ const routeExtractors: Record<
   [DeepLinkRoute.PREDICT]: extractPredictProperties,
   [DeepLinkRoute.SHIELD]: extractShieldProperties,
   [DeepLinkRoute.TRENDING]: extractTrendingProperties,
-  [DeepLinkRoute.ENABLE_CARD_BUTTON]: extractEnableCardButtonProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.NFT]: extractNftProperties,
@@ -607,8 +556,6 @@ export const mapSupportedActionToRoute = (
     case ACTIONS.PERPS_MARKETS:
     case ACTIONS.PERPS_ASSET:
       return DeepLinkRoute.PERPS;
-    case ACTIONS.DEPOSIT:
-      return DeepLinkRoute.DEPOSIT;
     case ACTIONS.SEND:
       return DeepLinkRoute.TRANSACTION;
     case ACTIONS.BUY:
@@ -637,8 +584,6 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SHIELD;
     case ACTIONS.TRENDING:
       return DeepLinkRoute.TRENDING;
-    case ACTIONS.ENABLE_CARD_BUTTON:
-      return DeepLinkRoute.ENABLE_CARD_BUTTON;
     case ACTIONS.CARD_ONBOARDING:
       return DeepLinkRoute.CARD_ONBOARDING;
     case ACTIONS.CARD_HOME:
@@ -666,7 +611,7 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
       case 'perps':
         return DeepLinkRoute.PERPS;
       case 'deposit':
-        return DeepLinkRoute.DEPOSIT;
+        return DeepLinkRoute.INVALID;
       case 'transaction':
         return DeepLinkRoute.TRANSACTION;
       case 'buy':
@@ -693,8 +638,6 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.SHIELD;
       case 'trending':
         return DeepLinkRoute.TRENDING;
-      case 'enable-card-button':
-        return DeepLinkRoute.ENABLE_CARD_BUTTON;
       case 'card-onboarding':
         return DeepLinkRoute.CARD_ONBOARDING;
       case 'card-home':

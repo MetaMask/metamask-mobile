@@ -15,10 +15,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
-import {
-  Gesture,
-  GestureDetector,
-} from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -46,6 +43,12 @@ import {
   BottomSheetDialogProps,
 } from './BottomSheetDialog.types';
 
+/**
+ * @deprecated Please update your code to use `BottomSheetDialog` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BottomSheetDialog/README.md}
+ * @since @metamask/design-system-react-native@0.11.0
+ */
 const BottomSheetDialog = forwardRef<
   BottomSheetDialogRef,
   BottomSheetDialogProps
@@ -58,6 +61,7 @@ const BottomSheetDialog = forwardRef<
       keyboardAvoidingViewEnabled = true,
       onClose,
       onOpen,
+      panGestureHandlerProps,
       style,
       ...props
     },

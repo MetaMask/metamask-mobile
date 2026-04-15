@@ -11,7 +11,7 @@ import {
   SAMPLE_ACCORDION_TITLE,
 } from './Accordion.constants';
 
-describe('Accordion - Snapshot', () => {
+describe('Accordion - Rendering', () => {
   it('should render default settings correctly', () => {
     const { toJSON } = render(
       <Accordion title={SAMPLE_ACCORDION_TITLE}>

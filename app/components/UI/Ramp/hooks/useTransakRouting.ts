@@ -5,13 +5,15 @@ import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import { type TransakBuyQuote } from '@metamask/ramps-controller';
+import {
+  normalizeProviderCode,
+  type TransakBuyQuote,
+} from '@metamask/ramps-controller';
 import { REDIRECTION_URL } from '../Deposit/constants';
 import { generateThemeParameters } from '../Deposit/utils';
 import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
 import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
 import { createCheckoutNavDetails } from '../Views/Checkout';
-import { registerCheckoutCallback } from '../utils/checkoutCallbackRegistry';
 import useAnalytics from './useAnalytics';
 import { showV2OrderToast } from '../utils/v2OrderToast';
 import Logger from '../../../../util/Logger';
@@ -37,6 +39,8 @@ interface RampStackParamList {
     quote: TransakBuyQuote;
     kycUrl: string;
     workFlowRunId: string;
+    /** User-entered fiat from BuildQuote; used when resetting stack so amount screen keeps the typed value. */
+    amount?: number;
   };
   RampKycProcessing: { quote: TransakBuyQuote };
   RampEnterEmail: undefined;
@@ -44,7 +48,7 @@ interface RampStackParamList {
     url: string;
     providerName: string;
     userAgent?: string;
-    callbackKey?: string;
+    onNavigationStateChange?: (navState: { url: string }) => void;
   };
   [key: string]: object | undefined;
 }
@@ -156,11 +160,14 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const navigateToVerifyIdentityCallback = useCallback(
-    ({ quote }: { quote: TransakBuyQuote }) => {
+    ({ quote, amount }: { quote: TransakBuyQuote; amount?: number }) => {
       navigation.reset({
         index: 1,
         routes: [
-          { name: Routes.RAMP.AMOUNT_INPUT },
+          {
+            name: Routes.RAMP.AMOUNT_INPUT,
+            params: { amount },
+          },
           { name: Routes.RAMP.VERIFY_IDENTITY, params: { quote } },
         ],
       });
@@ -172,14 +179,19 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
     ({
       quote,
       previousFormData,
+      amount,
     }: {
       quote: TransakBuyQuote;
       previousFormData?: BasicInfoFormData & AddressFormData;
+      amount?: number;
     }) => {
       navigation.reset({
         index: 1,
         routes: [
-          { name: Routes.RAMP.AMOUNT_INPUT },
+          {
+            name: Routes.RAMP.AMOUNT_INPUT,
+            params: { amount },
+          },
           {
             name: Routes.RAMP.BASIC_INFO,
             params: { quote, previousFormData },
@@ -231,18 +243,23 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       quote,
       kycUrl,
       workFlowRunId,
+      amount,
     }: {
       quote: TransakBuyQuote;
       kycUrl: string;
       workFlowRunId: string;
+      amount?: number;
     }) => {
       navigation.reset({
         index: 1,
         routes: [
-          { name: Routes.RAMP.AMOUNT_INPUT },
+          {
+            name: Routes.RAMP.AMOUNT_INPUT,
+            params: { amount },
+          },
           {
             name: Routes.RAMP.ADDITIONAL_VERIFICATION,
-            params: { quote, kycUrl, workFlowRunId },
+            params: { quote, kycUrl, workFlowRunId, amount },
           },
         ],
       });
@@ -276,9 +293,9 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
           throw new Error('Missing order');
         }
 
-        const providerCode = (
-          depositOrder.provider || 'transak-native'
-        ).replace('/providers/', '');
+        const providerCode = normalizeProviderCode(
+          String(depositOrder.provider ?? 'transak-native'),
+        );
         const rampsOrder = await refreshOrder(
           providerCode,
           depositOrder.providerOrderId,
@@ -338,17 +355,19 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const navigateToWebviewModalCallback = useCallback(
-    ({ paymentUrl }: { paymentUrl: string }) => {
-      const callbackKey = registerCheckoutCallback(handleNavigationStateChange);
+    ({ paymentUrl, amount }: { paymentUrl: string; amount?: number }) => {
       const [routeName, routeParams] = createCheckoutNavDetails({
         url: paymentUrl,
         providerName: 'Transak',
-        callbackKey,
+        onNavigationStateChange: handleNavigationStateChange,
       });
       navigation.reset({
         index: 1,
         routes: [
-          { name: Routes.RAMP.AMOUNT_INPUT },
+          {
+            name: Routes.RAMP.AMOUNT_INPUT,
+            params: { amount },
+          },
           { name: routeName, params: routeParams },
         ],
       });
@@ -357,11 +376,14 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const navigateToKycProcessingCallback = useCallback(
-    ({ quote }: { quote: TransakBuyQuote }) => {
+    ({ quote, amount }: { quote: TransakBuyQuote; amount?: number }) => {
       navigation.reset({
         index: 1,
         routes: [
-          { name: Routes.RAMP.AMOUNT_INPUT },
+          {
+            name: Routes.RAMP.AMOUNT_INPUT,
+            params: { amount },
+          },
           { name: Routes.RAMP.KYC_PROCESSING, params: { quote } },
         ],
       });
@@ -370,7 +392,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const navigateToKycWebviewCallback = useCallback(
-    ({ kycUrl }: { kycUrl: string }) => {
+    ({ kycUrl, amount }: { kycUrl: string; amount?: number }) => {
       const [routeName, routeParams] = createCheckoutNavDetails({
         url: kycUrl,
         providerName: 'Transak',
@@ -378,7 +400,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       navigation.reset({
         index: 1,
         routes: [
-          { name: Routes.RAMP.AMOUNT_INPUT },
+          {
+            name: Routes.RAMP.AMOUNT_INPUT,
+            params: { amount },
+          },
           { name: routeName, params: routeParams },
         ],
       });
@@ -387,7 +412,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const routeAfterAuthentication = useCallback(
-    async (quote: TransakBuyQuote, depth = 0) => {
+    async (quote: TransakBuyQuote, amount?: number, depth = 0) => {
       try {
         const userDetails = await getUserDetails();
         const previousFormData = {
@@ -427,9 +452,9 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                   throw new Error('Missing order');
                 }
 
-                const providerCode = (
-                  depositOrder.provider || 'transak-native'
-                ).replace('/providers/', '');
+                const providerCode = normalizeProviderCode(
+                  String(depositOrder.provider ?? 'transak-native'),
+                );
                 const rampsOrder = await refreshOrder(
                   providerCode,
                   depositOrder.providerOrderId,
@@ -470,7 +495,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                   throw new Error('Failed to generate payment URL');
                 }
 
-                navigateToWebviewModalCallback({ paymentUrl });
+                navigateToWebviewModalCallback({
+                  paymentUrl,
+                  amount,
+                });
               }
               return true;
             } catch (error) {
@@ -490,7 +518,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
               region: regionIsoCode,
             });
 
-            navigateToBasicInfoCallback({ quote, previousFormData });
+            navigateToBasicInfoCallback({ quote, previousFormData, amount });
             return;
 
           case 'ADDITIONAL_FORMS_REQUIRED': {
@@ -508,7 +536,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                 await submitPurposeOfUsageForm([
                   'Buying/selling crypto for investments',
                 ]);
-                await routeAfterAuthentication(quote, depth + 1);
+                await routeAfterAuthentication(quote, amount, depth + 1);
               } else {
                 Logger.error(
                   new Error(`Submit of purpose depth exceeded: ${depth}`),
@@ -535,16 +563,17 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                 quote,
                 kycUrl: metadata.kycUrl,
                 workFlowRunId: metadata.workFlowRunId,
+                amount,
               });
               return;
             }
 
-            navigateToKycProcessingCallback({ quote });
+            navigateToKycProcessingCallback({ quote, amount });
             return;
           }
 
           case 'SUBMITTED': {
-            navigateToKycProcessingCallback({ quote });
+            navigateToKycProcessingCallback({ quote, amount });
             return;
           }
 

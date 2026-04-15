@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import { createSelector, weakMapMemoize } from 'reselect';
 import { TokenRatesControllerState } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';

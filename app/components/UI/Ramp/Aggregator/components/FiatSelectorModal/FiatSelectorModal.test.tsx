@@ -99,8 +99,10 @@ describe('FiatSelectorModal', () => {
   });
 
   it('renders the modal with currency list', () => {
-    const { toJSON } = render(FiatSelectorModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = render(FiatSelectorModal);
+    expect(getByText('USD')).toBeOnTheScreen();
+    expect(getByText('EUR')).toBeOnTheScreen();
+    expect(getByText('GBP')).toBeOnTheScreen();
   });
 
   describe('search', () => {

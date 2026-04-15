@@ -11,14 +11,13 @@ import {
 } from './AvatarToken.constants';
 
 jest.mock('react-native-svg', () => {
-  const React = require('react');
-  const { View } = require('react-native');
+  const { View } = jest.requireActual('react-native');
   const actual = jest.requireActual('react-native-svg');
   return {
     ...actual,
-    SvgUri: jest.fn((props) =>
-      React.createElement(View, { testID: props.testID, uri: props.uri }),
-    ),
+    SvgUri: jest.fn((props) => (
+      <View testID={props.testID} uri={props.uri} />
+    )),
   };
 });
 

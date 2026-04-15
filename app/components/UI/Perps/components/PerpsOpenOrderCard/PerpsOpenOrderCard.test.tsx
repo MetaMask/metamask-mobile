@@ -43,6 +43,15 @@ jest.mock('../PerpsTokenLogo', () => ({
   },
 }));
 
+jest.mock('../../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: (action: () => Promise<unknown>) => action(),
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
+}));
+
 describe('PerpsOpenOrderCard', () => {
   const mockOrder: Order = {
     orderId: 'order-123',

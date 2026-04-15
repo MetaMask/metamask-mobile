@@ -1,26 +1,41 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useDeFiPositionsForHomepage } from './useDeFiPositionsForHomepage';
 
-const mockSelectDeFiPositionsByAddress = jest.fn();
-const mockSelectDefiPositionsByEnabledNetworks = jest.fn();
-const mockSelectTokenSortConfig = jest.fn();
+const mockSelectDefiPositionsByChainIds = jest.fn();
 
 jest.mock('../../../../../../selectors/defiPositionsController', () => ({
-  selectDeFiPositionsByAddress: () => mockSelectDeFiPositionsByAddress(),
-  selectDefiPositionsByEnabledNetworks: () =>
-    mockSelectDefiPositionsByEnabledNetworks(),
+  selectDefiPositionsByChainIds: (_state: unknown, _chainIds: unknown) =>
+    mockSelectDefiPositionsByChainIds(),
 }));
 
-jest.mock('../../../../../../selectors/preferencesController', () => ({
-  selectTokenSortConfig: () => mockSelectTokenSortConfig(),
+jest.mock('../../../../../../selectors/networkEnablementController', () => ({
+  selectEVMEnabledNetworks: () => [],
 }));
+
+jest.mock('../../../../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageSectionsV1Enabled: () => false,
+}));
+
+jest.mock(
+  '../../../../../hooks/useNetworkEnablement/useNetworkEnablement',
+  () => ({
+    useNetworkEnablement: () => ({ popularEvmNetworks: [] }),
+  }),
+);
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
 }));
 
+const mockSortAssets = jest.fn(
+  (assets: unknown[], _config?: unknown): unknown[] => assets,
+);
+
 jest.mock('../../../../../UI/Tokens/util', () => ({
-  sortAssets: jest.fn((assets) => assets),
+  sortAssets: (assets: unknown[], config: unknown) => {
+    mockSortAssets(assets, config);
+    return assets;
+  },
 }));
 
 const createMockProtocolAggregate = (name: string, marketValue: number) => ({
@@ -35,15 +50,10 @@ const createMockProtocolAggregate = (name: string, marketValue: number) => ({
 describe('useDeFiPositionsForHomepage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectTokenSortConfig.mockReturnValue({
-      key: 'tokenFiatAmount',
-      order: 'dsc',
-    });
   });
 
-  it('returns loading state when defiPositions is undefined', () => {
-    mockSelectDeFiPositionsByAddress.mockReturnValue(undefined);
-    mockSelectDefiPositionsByEnabledNetworks.mockReturnValue(undefined);
+  it('returns loading state when defiPositionsByChainIds is undefined', () => {
+    mockSelectDefiPositionsByChainIds.mockReturnValue(undefined);
 
     const { result } = renderHook(() => useDeFiPositionsForHomepage());
 
@@ -53,9 +63,8 @@ describe('useDeFiPositionsForHomepage', () => {
     expect(result.current.positions).toEqual([]);
   });
 
-  it('returns error state when defiPositions is null', () => {
-    mockSelectDeFiPositionsByAddress.mockReturnValue(null);
-    mockSelectDefiPositionsByEnabledNetworks.mockReturnValue(null);
+  it('returns error state when defiPositionsByChainIds is null', () => {
+    mockSelectDefiPositionsByChainIds.mockReturnValue(null);
 
     const { result } = renderHook(() => useDeFiPositionsForHomepage());
 
@@ -65,9 +74,8 @@ describe('useDeFiPositionsForHomepage', () => {
     expect(result.current.positions).toEqual([]);
   });
 
-  it('returns empty state when defiPositions is empty object', () => {
-    mockSelectDeFiPositionsByAddress.mockReturnValue({});
-    mockSelectDefiPositionsByEnabledNetworks.mockReturnValue({});
+  it('returns empty state when defiPositionsByChainIds is empty object', () => {
+    mockSelectDefiPositionsByChainIds.mockReturnValue({});
 
     const { result } = renderHook(() => useDeFiPositionsForHomepage());
 
@@ -92,8 +100,7 @@ describe('useDeFiPositionsForHomepage', () => {
       },
     };
 
-    mockSelectDeFiPositionsByAddress.mockReturnValue(mockPositions);
-    mockSelectDefiPositionsByEnabledNetworks.mockReturnValue(mockPositions);
+    mockSelectDefiPositionsByChainIds.mockReturnValue(mockPositions);
 
     const { result } = renderHook(() => useDeFiPositionsForHomepage());
 
@@ -115,11 +122,34 @@ describe('useDeFiPositionsForHomepage', () => {
       },
     };
 
-    mockSelectDeFiPositionsByAddress.mockReturnValue(mockPositions);
-    mockSelectDefiPositionsByEnabledNetworks.mockReturnValue(mockPositions);
+    mockSelectDefiPositionsByChainIds.mockReturnValue(mockPositions);
 
     const { result } = renderHook(() => useDeFiPositionsForHomepage(2));
 
     expect(result.current.positions).toHaveLength(2);
+  });
+
+  it('sorts positions by market value using homepage sort config (not user preference)', () => {
+    const mockPositions = {
+      '0x1': {
+        protocols: {
+          aave: createMockProtocolAggregate('Aave', 1000),
+          uniswap: createMockProtocolAggregate('Uniswap', 500),
+        },
+      },
+    };
+
+    mockSelectDefiPositionsByChainIds.mockReturnValue(mockPositions);
+
+    renderHook(() => useDeFiPositionsForHomepage());
+
+    expect(mockSortAssets).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({
+        key: 'protocolAggregate.aggregatedMarketValue',
+        order: 'dsc',
+        sortCallback: 'stringNumeric',
+      }),
+    );
   });
 });

@@ -12,7 +12,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 
-/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
@@ -390,6 +390,7 @@ export const NETWORK_CHAIN_ID: {
   readonly TEMPO_TESTNET: '0xa5bf';
   readonly TEMPO_MAINNET: '0x1079';
   readonly CHILIZ: '0x15b38';
+  readonly STABLE_MAINNET: '0x3dc';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -435,10 +436,11 @@ export const NETWORK_CHAIN_ID: {
   TEMPO_TESTNET: '0xa5bf',
   TEMPO_MAINNET: '0x1079',
   CHILIZ: '0x15b38',
+  STABLE_MAINNET: '0x3dc',
   ...CHAIN_IDS,
 };
 
-/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
 export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.FLARE_MAINNET]: require('../../images/flare-mainnet.png'),
   [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: require('../../images/songbird.png'),
@@ -485,4 +487,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.TEMPO_TESTNET]: require('../../images/tempo.png'),
   [NETWORK_CHAIN_ID.TEMPO_MAINNET]: require('../../images/tempo.png'),
   [NETWORK_CHAIN_ID.CHILIZ]: require('../../images/chiliz.png'),
+  [NETWORK_CHAIN_ID.STABLE_MAINNET]: require('../../images/stable.png'),
 };

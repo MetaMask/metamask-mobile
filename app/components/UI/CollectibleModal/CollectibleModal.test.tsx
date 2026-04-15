@@ -94,11 +94,11 @@ describe('CollectibleModal', () => {
       if (selector === selectChainId) return '0x1';
       return undefined;
     });
-    const { toJSON } = renderWithProvider(<CollectibleModal />, {
+    const { getByText } = renderWithProvider(<CollectibleModal />, {
       state: mockInitialState,
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Leopard')).toBeOnTheScreen();
   });
 
   it('renders the correct token name and ID', async () => {
@@ -114,6 +114,7 @@ describe('CollectibleModal', () => {
       state: mockInitialState,
     });
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- false positive: '#6904' is the NFT token ID text, not a color literal
     expect(await findAllByText('#6904')).toBeDefined();
     expect(await findAllByText('Leopard')).toBeDefined();
   });

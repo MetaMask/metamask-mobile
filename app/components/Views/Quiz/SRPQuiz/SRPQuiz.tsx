@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import-x/no-commonjs */
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Linking, AppState } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -34,22 +34,15 @@ import { useSelector } from 'react-redux';
 
 const introductionImg = require('../../../../images/reveal_srp.png');
 
-export interface SRPQuizProps {
-  route: {
-    params: {
-      keyringId?: string;
-    };
-  };
+interface SRPQuizRouteParams {
+  keyringId?: string;
 }
 
-const SRPQuiz = (props: SRPQuizProps) => {
-  // It has be destructured like this because of prettier
-  // shifting the fence to the ending curly brace.
+const SRPQuiz = () => {
+  const route = useRoute<RouteProp<{ params: SRPQuizRouteParams }, 'params'>>();
   const {
-    route: {
-      params: { keyringId },
-    },
-  } = props;
+    params: { keyringId },
+  } = route;
   const modalRef = useRef<BottomSheetRef>(null);
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
   const { styles, theme } = useStyles(stylesheet, {});

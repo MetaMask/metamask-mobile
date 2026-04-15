@@ -5,10 +5,15 @@ import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
 import AppConstants from '../../../../../core/AppConstants';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
+  getAppStateForConfirmation,
   personalSignatureConfirmationState,
   stakingDepositConfirmationState,
 } from '../../../../../util/test/confirm-data-helpers';
-// eslint-disable-next-line import/no-namespace
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+// eslint-disable-next-line import-x/no-namespace
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import { Footer } from './footer';
 import { useAlerts } from '../../context/alert-system-context';
@@ -160,7 +165,8 @@ describe('Footer', () => {
       state: personalSignatureConfirmationState,
     });
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.accessibilityState?.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
     ).toBe(true);
   });
 
@@ -194,7 +200,8 @@ describe('Footer', () => {
       state: personalSignatureConfirmationState,
     });
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.accessibilityState?.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
     ).toBe(true);
   });
 
@@ -211,7 +218,8 @@ describe('Footer', () => {
       state: personalSignatureConfirmationState,
     });
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.accessibilityState?.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
     ).toBe(true);
   });
 
@@ -231,8 +239,73 @@ describe('Footer', () => {
     });
 
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.accessibilityState?.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
     ).toBe(true);
+  });
+
+  it('hides footer by default for moneyAccountDeposit transaction type', () => {
+    mockUseConfirmationContext.mockReturnValue({
+      isFooterVisible: undefined,
+      isTransactionDataUpdating: false,
+      isTransactionValueUpdating: false,
+      setIsFooterVisible: jest.fn(),
+      setIsTransactionDataUpdating: jest.fn(),
+      setIsTransactionValueUpdating: jest.fn(),
+    });
+
+    const moneyAccountDepositConfirmation = {
+      chainId: '0x89',
+      id: 'money-account-deposit-id',
+      networkClientId: 'polygon',
+      origin: 'metamask',
+      txParams: {
+        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        value: '0x0',
+      },
+      type: TransactionType.moneyAccountDeposit,
+    } as unknown as TransactionMeta;
+
+    const { queryByTestId } = renderWithProvider(<Footer />, {
+      state: getAppStateForConfirmation(moneyAccountDepositConfirmation),
+    });
+
+    expect(
+      queryByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeNull();
+  });
+
+  it('hides footer by default for moneyAccountWithdraw transaction type', () => {
+    mockUseConfirmationContext.mockReturnValue({
+      isFooterVisible: undefined,
+      isTransactionDataUpdating: false,
+      isTransactionValueUpdating: false,
+      setIsFooterVisible: jest.fn(),
+      setIsTransactionDataUpdating: jest.fn(),
+      setIsTransactionValueUpdating: jest.fn(),
+    });
+
+    const moneyAccountWithdrawConfirmation = {
+      chainId: '0x89',
+      id: 'money-account-withdraw-id',
+      networkClientId: 'polygon',
+      origin: 'metamask',
+      txParams: {
+        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        value: '0x0',
+      },
+      type: TransactionType.moneyAccountWithdraw,
+    } as unknown as TransactionMeta;
+
+    const { queryByTestId } = renderWithProvider(<Footer />, {
+      state: getAppStateForConfirmation(moneyAccountWithdrawConfirmation),
+    });
+
+    expect(
+      queryByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeNull();
   });
 
   it('hides footer when isFooterVisible is false', () => {

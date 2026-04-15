@@ -43,15 +43,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 // Mock theme
-jest.mock('../../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        muted: '#f5f5f5',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 // Mock strings
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -82,10 +79,6 @@ jest.mock('../../RewardsErrorBanner', () => {
 jest.mock(
   '../../../../../images/rewards/rewards-onboarding-step4.png',
   () => 'step4Img',
-);
-jest.mock(
-  '../../../../../images/rewards/rewards-onboarding-step4-bg.svg',
-  () => 'Step4BgImg',
 );
 
 // Mock design system components

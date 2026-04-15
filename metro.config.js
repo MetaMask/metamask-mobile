@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 /**
  * Metro configuration for React Native
  * https://github.com/facebook/react-native
@@ -10,9 +10,9 @@ const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const { parseArgs } = require('node:util');
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const os = require('node:os');
 
 const parsedArgs = parseArgs({
@@ -26,18 +26,17 @@ const parsedArgs = parseArgs({
 });
 
 const getPolyfills = () => [
-  // eslint-disable-next-line import/no-extraneous-dependencies
+  // eslint-disable-next-line import-x/no-extraneous-dependencies
   ...require('@react-native/js-polyfills')(),
   require.resolve('reflect-metadata'),
 ];
 
 // We should replace path for react-native-fs
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const path = require('path');
 const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
-const { truncate } = require('node:fs');
 
 module.exports = function (baseConfig) {
   const defaultConfig = mergeConfig(baseConfig, getDefaultConfig(__dirname));
@@ -47,6 +46,15 @@ module.exports = function (baseConfig) {
   const isE2E =
     process.env.IS_TEST === 'true' ||
     process.env.METAMASK_ENVIRONMENT === 'e2e';
+
+  /**
+   * E2E Metro redirects under tests/module-mocking.
+   * Enables both: seedless-onboarding-controller + OAuthLoginHandlers mocks.
+   * True when IS_TEST / METAMASK_ENVIRONMENT=e2e OR E2E_MOCK_OAUTH.
+   */
+  const isE2EMockOAuth = process.env.E2E_MOCK_OAUTH === 'true';
+
+  const e2eAllowsSeedlessOAuthMetroMocks = isE2E || isE2EMockOAuth;
 
   // For less powerful machines, leave room to do other tasks. For instance,
   // if you have 10 cores but only 16GB, only 3 workers would get used.
@@ -107,7 +115,9 @@ module.exports = function (baseConfig) {
           // @ledgerhq packages use exports field subpath mapping (e.g. ./signers/index -> ./lib/signers/index.js)
           // which doesn't work with unstable_enablePackageExports: false — manually replicate the lib/ mapping
           // Affected: domain-service, evm-tools, devices, cryptoassets-evm-signatures
-          const ledgerhqSubpathMatch = moduleName.match(/^(@ledgerhq\/[^/]+)\/(.+)$/);
+          const ledgerhqSubpathMatch = moduleName.match(
+            /^(@ledgerhq\/[^/]+)\/(.+)$/,
+          );
           if (ledgerhqSubpathMatch) {
             const [, pkgName, subpath] = ledgerhqSubpathMatch;
             try {

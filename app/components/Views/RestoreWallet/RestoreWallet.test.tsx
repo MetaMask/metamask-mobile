@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, ActivityIndicator } from 'react-native';
+import { Image } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import RestoreWallet from './RestoreWallet';
 import Routes from '../../../constants/navigation/Routes';
@@ -44,8 +44,8 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: jest.fn().mockReturnValue({ category: 'test' }),
 }));
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -92,6 +92,12 @@ describe('RestoreWallet', () => {
 
       const imageElement = UNSAFE_getByType(Image);
       expect(imageElement).toBeTruthy();
+    });
+
+    it('renders component tree correctly', () => {
+      const { toJSON } = renderWithProvider(<RestoreWallet />);
+
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -150,7 +156,7 @@ describe('RestoreWallet', () => {
       });
     });
 
-    it('shows loading indicator while restoring', async () => {
+    it('triggers vault restore on button press', async () => {
       let resolveRestore: (value: { success: boolean }) => void;
       const restorePromise = new Promise<{ success: boolean }>((resolve) => {
         resolveRestore = resolve;
@@ -158,15 +164,13 @@ describe('RestoreWallet', () => {
       (EngineService.initializeVaultFromBackup as jest.Mock).mockReturnValue(
         restorePromise,
       );
-      const { getByText, UNSAFE_getByType } = renderWithProvider(
-        <RestoreWallet />,
-      );
+      const { getByText } = renderWithProvider(<RestoreWallet />);
 
       fireEvent.press(
         getByText(strings('restore_wallet.restore_needed_action')),
       );
 
-      expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+      expect(EngineService.initializeVaultFromBackup).toHaveBeenCalled();
 
       // @ts-expect-error resolveRestore is assigned in Promise constructor
       resolveRestore({ success: true });

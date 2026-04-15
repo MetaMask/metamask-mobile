@@ -12,7 +12,7 @@ import {
   IconColor,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon/Icon.types';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 
 interface CopyableFieldProps {
   label: string;

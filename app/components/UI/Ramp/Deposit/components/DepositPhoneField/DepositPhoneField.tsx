@@ -11,6 +11,7 @@ import { useDepositSDK } from '../../sdk';
 import { createRegionSelectorModalNavigationDetails } from '../../Views/Modals/RegionSelectorModal';
 import DepositTextField from '../DepositTextField/DepositTextField';
 import { strings } from '../../../../../../../locales/i18n';
+import { DEPOSIT_PHONE_FIELD_TEST_IDS } from './DepositPhoneField.testIds';
 
 interface PhoneFieldProps {
   label: string;
@@ -121,7 +122,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
         startAccessory={countryPrefixAccessory}
         onSubmitEditing={onSubmitEditing}
         ref={ref}
-        testID="deposit-phone-field-test-id"
+        testID={DEPOSIT_PHONE_FIELD_TEST_IDS.INPUT}
       />
     );
   },

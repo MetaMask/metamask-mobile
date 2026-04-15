@@ -1,4 +1,4 @@
-/* eslint-disable no-console, import/no-nodejs-modules */
+/* eslint-disable no-console, import-x/no-nodejs-modules */
 import fs from 'fs';
 import path from 'path';
 

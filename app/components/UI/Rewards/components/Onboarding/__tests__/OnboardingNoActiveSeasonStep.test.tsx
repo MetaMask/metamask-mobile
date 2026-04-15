@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent , act } from '@testing-library/react-native';
+import { screen, fireEvent, act } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import { renderWithProviders, createMockDispatch } from '../testUtils';
 import OnboardingNoActiveSeasonStep from '../OnboardingNoActiveSeasonStep';
@@ -48,15 +48,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 // Mock theme
-jest.mock('../../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        muted: '#f5f5f5',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 // Mock strings
 jest.mock('../../../../../../../locales/i18n', () => ({

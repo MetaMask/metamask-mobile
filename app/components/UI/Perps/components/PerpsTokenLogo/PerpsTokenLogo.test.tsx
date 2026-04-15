@@ -1,17 +1,14 @@
 import React from 'react';
-import { render, act , fireEvent } from '@testing-library/react-native';
+import { render, act, fireEvent } from '@testing-library/react-native';
 import { Image } from 'expo-image';
 import PerpsTokenLogo from './PerpsTokenLogo';
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        default: '#FFFFFF',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 // Note: Avatar component is no longer used in PerpsTokenLogo
 // The component now uses a simple text-based fallback instead
@@ -109,7 +106,7 @@ describe('PerpsTokenLogo', () => {
 
     // Simulate primary URL error
     await act(async () => {
-      fireEvent(image, 'error', );
+      fireEvent(image, 'error');
     });
 
     // Get updated image after error
@@ -130,7 +127,7 @@ describe('PerpsTokenLogo', () => {
 
     // First error - switches to fallback URL
     await act(async () => {
-      fireEvent(image, 'error', );
+      fireEvent(image, 'error');
     });
 
     // Get image with fallback URL
@@ -138,7 +135,7 @@ describe('PerpsTokenLogo', () => {
 
     // Second error - both URLs failed, show text fallback
     await act(async () => {
-      fireEvent(fallbackImage, 'error', );
+      fireEvent(fallbackImage, 'error');
     });
 
     // Verify text fallback is shown
@@ -222,7 +219,7 @@ describe('PerpsTokenLogo', () => {
 
     // Trigger error to switch to fallback
     await act(async () => {
-      fireEvent(image, 'error', );
+      fireEvent(image, 'error');
     });
 
     // Verify fallback is being used

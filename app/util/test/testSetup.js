@@ -1,7 +1,7 @@
 import { NativeModules, Linking, Keyboard } from 'react-native';
 import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import { mockTheme } from '../theme';
 import base64js from 'base64-js';
 
@@ -16,10 +16,14 @@ Linking.openURL = jest.fn().mockResolvedValue(undefined);
 // Keyboard.addListener must return a subscription with .remove() for KeyboardAvoidingView
 // We need to patch the prototype/instance method that KeyboardAvoidingView uses
 const RNKeyboard = require('react-native/Libraries/Components/Keyboard/Keyboard');
-const origAddListener = RNKeyboard.default?.addListener || RNKeyboard.addListener;
+const origAddListener =
+  RNKeyboard.default?.addListener || RNKeyboard.addListener;
 const patchedAddListener = jest.fn((...args) => {
   try {
-    const sub = origAddListener?.call(RNKeyboard.default || RNKeyboard, ...args);
+    const sub = origAddListener?.call(
+      RNKeyboard.default || RNKeyboard,
+      ...args,
+    );
     if (sub && typeof sub.remove === 'function') return sub;
     return { remove: jest.fn() };
   } catch {
@@ -237,10 +241,6 @@ jest.mock('../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(() => mockUseAnalytics),
 }));
 
-jest.mock('../../components/hooks/useAnalytics/withAnalyticsAwareness', () => ({
-  withAnalyticsAwareness: jest.fn((Component) => Component),
-}));
-
 let mockState = {};
 
 jest.mock('../../store', () => ({
@@ -279,22 +279,19 @@ jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter', () => {
   return { __esModule: true, default: NativeEventEmitter };
 });
 
-jest.mock(
-  'react-native/Libraries/Utilities/NativePlatformConstantsIOS',
-  () => {
-    const mock = {
-      getConstants: () => ({
-        forceTouchAvailable: false,
-        interfaceIdiom: 'en',
-        isTesting: false,
-        osVersion: 'ios',
-        reactNativeVersion: { major: 60, minor: 1, patch: 0 },
-        systemName: 'ios',
-      }),
-    };
-    return { __esModule: true, default: mock };
-  },
-);
+jest.mock('react-native/Libraries/Utilities/NativePlatformConstantsIOS', () => {
+  const mock = {
+    getConstants: () => ({
+      forceTouchAvailable: false,
+      interfaceIdiom: 'en',
+      isTesting: false,
+      osVersion: 'ios',
+      reactNativeVersion: { major: 60, minor: 1, patch: 0 },
+      systemName: 'ios',
+    }),
+  };
+  return { __esModule: true, default: mock };
+});
 
 jest.mock('react-native-keychain', () => ({
   // Security Level enum
@@ -577,6 +574,16 @@ jest.mock('@notifee/react-native', () =>
   require('@notifee/react-native/jest-mock'),
 );
 
+// ESM-only package; Jest must not load node_modules source (transformIgnorePatterns)
+jest.mock('@braze/react-native-sdk', () => ({
+  __esModule: true,
+  default: {
+    changeUser: jest.fn(),
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    Events: { PUSH_NOTIFICATION_EVENT: 'push_notification_event' },
+  },
+}));
+
 jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
   __esModule: true,
   default: (source) => {
@@ -624,7 +631,7 @@ try {
         mutable.toJSON = () => {
           try {
             const seen = new WeakSet();
-            return JSON.stringify(value, function(_key, val) {
+            return JSON.stringify(value, function (_key, val) {
               if (typeof val === 'object' && val !== null) {
                 if (seen.has(val)) return '[Circular]';
                 seen.add(val);
@@ -668,17 +675,18 @@ expect.addSnapshotSerializer({
   },
 });
 
-
 // Mock the component-library BottomSheet to render children immediately
 // and handle close/open callbacks synchronously (bypasses reanimated animations).
 // Note: This mock can be overridden by individual test files if needed.
-jest.mock(
-  '../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const React = require('react');
-    const { View } = require('react-native');
+jest.mock('../../component-library/components/BottomSheets/BottomSheet', () => {
+  const React = require('react');
+  const { View } = require('react-native');
 
-    const BottomSheet = React.forwardRef(({ children, onClose, onOpen, shouldNavigateBack = true, ...props }, ref) => {
+  const BottomSheet = React.forwardRef(
+    (
+      { children, onClose, onOpen, shouldNavigateBack = true, ...props },
+      ref,
+    ) => {
       // Mimic real BottomSheet: call navigation.goBack() when shouldNavigateBack is true
       let navigation;
       try {
@@ -701,16 +709,24 @@ jest.mock(
         },
       }));
       const { testID, style: sheetStyle, accessibilityLabel } = props;
-      return React.createElement(View, { testID: testID || 'bottom-sheet-mock', style: sheetStyle, accessibilityLabel }, children);
-    });
-    BottomSheet.displayName = 'BottomSheet';
+      return React.createElement(
+        View,
+        {
+          testID: testID || 'bottom-sheet-mock',
+          style: sheetStyle,
+          accessibilityLabel,
+        },
+        children,
+      );
+    },
+  );
+  BottomSheet.displayName = 'BottomSheet';
 
-    return {
-      __esModule: true,
-      default: BottomSheet,
-    };
-  },
-);
+  return {
+    __esModule: true,
+    default: BottomSheet,
+  };
+});
 
 // Mock react-native-modal to render children immediately (bypasses animation)
 jest.mock('react-native-modal', () => {
@@ -718,7 +734,11 @@ jest.mock('react-native-modal', () => {
   const { View } = require('react-native');
   const Modal = ({ children, isVisible, testID, ...props }) => {
     if (isVisible === false) return null;
-    return React.createElement(View, { testID: testID || 'modal-mock' }, children);
+    return React.createElement(
+      View,
+      { testID: testID || 'modal-mock' },
+      children,
+    );
   };
   Modal.displayName = 'Modal';
   return { __esModule: true, default: Modal };
@@ -743,7 +763,9 @@ jest.mock('react-native-modal', () => {
       configurable: true,
       enumerable: true,
     });
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 jest.mock('../../core/Engine', () =>
@@ -915,7 +937,7 @@ jest.mock('../../core/Analytics/MetaMetricsTestUtils', () => {
 // Mock whenEngineReady to prevent async Engine access after Jest teardown.
 // Components that trigger analytics (trackView/trackEvent) cause the queue to call
 // whenEngineReady(), which uses setTimeout and can run after tests finish.
-jest.mock('../../core/Analytics/whenEngineReady', () => ({
+jest.mock('../analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 

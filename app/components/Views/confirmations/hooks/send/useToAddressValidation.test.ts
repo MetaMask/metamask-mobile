@@ -46,6 +46,7 @@ describe('useToAddressValidation', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -63,6 +64,7 @@ describe('useToAddressValidation', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -90,6 +92,7 @@ describe('useToAddressValidation', () => {
         loading: false,
         resolvedAddress: undefined,
         toAddressError: 'Invalid address',
+        toAddressErrorAllowAcknowledge: false,
         toAddressValidated: '0x123',
         toAddressWarning: undefined,
       });
@@ -111,6 +114,7 @@ describe('useToAddressValidation', () => {
         loading: false,
         resolvedAddress: undefined,
         toAddressError: 'Invalid address',
+        toAddressErrorAllowAcknowledge: false,
         toAddressValidated: 'dummy',
         toAddressWarning: undefined,
       });
@@ -139,9 +143,101 @@ describe('useToAddressValidation', () => {
         loading: false,
         resolvedAddress: undefined,
         toAddressError: 'Invalid address',
+        toAddressErrorAllowAcknowledge: false,
         toAddressValidated: 'dummy',
         toAddressWarning: undefined,
       });
+    });
+  });
+
+  it('validate valid evm hex address through validateHexAddress', async () => {
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        name: 'Ethereum',
+        address: ETHEREUM_ADDRESS,
+        isNative: true,
+        chainId: '0x1',
+        symbol: 'ETH',
+        decimals: 18,
+      },
+      to: '0xdB055877e6c13b6A6B25aBcAA29B393777dD0a73',
+      chainId: '0x1',
+    } as unknown as ReturnType<typeof useSendContext>);
+    const { result } = renderHookWithProvider(
+      () => useToAddressValidation(),
+      mockState,
+    );
+    await waitFor(() => {
+      expect(result.current.toAddressValidated).toBe(
+        '0xdB055877e6c13b6A6B25aBcAA29B393777dD0a73',
+      );
+      expect(result.current.loading).toBe(false);
+    });
+  });
+
+  it('validate valid solana address through validateSolanaAddress', async () => {
+    mockUseSendContext.mockReturnValue({
+      asset: SOLANA_ASSET,
+      to: '14grJpemFaf88c8tiVb77W7TYg2W3ir6pfkKz3YjhhZ5',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    } as unknown as ReturnType<typeof useSendContext>);
+    const { result } = renderHookWithProvider(
+      () => useToAddressValidation(),
+      mockState,
+    );
+    await waitFor(() => {
+      expect(result.current.toAddressValidated).toBe(
+        '14grJpemFaf88c8tiVb77W7TYg2W3ir6pfkKz3YjhhZ5',
+      );
+      expect(result.current.loading).toBe(false);
+    });
+  });
+
+  it('validate ENS name through validateName', async () => {
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        name: 'Ethereum',
+        address: ETHEREUM_ADDRESS,
+        isNative: true,
+        chainId: '0x1',
+        symbol: 'ETH',
+        decimals: 18,
+      },
+      to: 'test.eth',
+      chainId: '0x1',
+    } as unknown as ReturnType<typeof useSendContext>);
+    const { result } = renderHookWithProvider(
+      () => useToAddressValidation(),
+      mockState,
+    );
+    await waitFor(() => {
+      expect(result.current.toAddressValidated).toBe('test.eth');
+      expect(result.current.loading).toBe(false);
+    });
+  });
+
+  it('returns no validation when chainId is missing', async () => {
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        name: 'Ethereum',
+        address: ETHEREUM_ADDRESS,
+        isNative: true,
+        chainId: '0x1',
+        symbol: 'ETH',
+        decimals: 18,
+      },
+      to: '0xdB055877e6c13b6A6B25aBcAA29B393777dD0a73',
+      chainId: undefined,
+    } as unknown as ReturnType<typeof useSendContext>);
+    const { result } = renderHookWithProvider(
+      () => useToAddressValidation(),
+      mockState,
+    );
+    await waitFor(() => {
+      expect(result.current.toAddressValidated).toBe(
+        '0xdB055877e6c13b6A6B25aBcAA29B393777dD0a73',
+      );
+      expect(result.current.toAddressError).toBeUndefined();
     });
   });
 });

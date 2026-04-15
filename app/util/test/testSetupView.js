@@ -4,12 +4,12 @@
  * Does NOT import the legacy testSetup.js to avoid pollution.
  */
 
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 /* eslint-disable react/prop-types */
 /* eslint-disable react/display-name */
 
 const { NativeModules } = require('react-native');
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const nodeCrypto = require('crypto');
 
 // Secure random helper to avoid duplication
@@ -119,7 +119,7 @@ jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter', () => {
 
 // Mock react-native-quick-crypto
 jest.mock('react-native-quick-crypto', () => {
-  // eslint-disable-next-line import/no-nodejs-modules
+  // eslint-disable-next-line import-x/no-nodejs-modules
   const mockNodeCrypto = require('crypto');
   const getRandomValuesCompatLocal = (arr) =>
     mockNodeCrypto?.webcrypto?.getRandomValues
@@ -616,3 +616,20 @@ jest.mock('../../components/Base/RemoteImage', () => {
   const { View } = require('react-native');
   return (props) => <View {...props} testID="mock-remote-image" />;
 });
+
+// Mock Braze SDK (ESM-only package; must be transformed via transformIgnorePatterns)
+jest.mock('@braze/react-native-sdk', () => ({
+  __esModule: true,
+  default: {
+    changeUser: jest.fn(),
+    getInitialPushPayload: jest.fn((callback) => {
+      // Call callback with null payload (no initial push)
+      if (typeof callback === 'function') {
+        callback(null);
+      }
+    }),
+    addListener: jest.fn(() => ({
+      remove: jest.fn(),
+    })),
+  },
+}));

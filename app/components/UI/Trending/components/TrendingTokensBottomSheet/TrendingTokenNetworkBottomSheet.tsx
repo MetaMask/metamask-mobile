@@ -55,13 +55,6 @@ const TrendingTokenNetworkBottomSheet: React.FC<
     }
   }, [initialSelectedNetwork]);
 
-  // Open bottom sheet when isVisible becomes true
-  useEffect(() => {
-    if (isVisible) {
-      sheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isVisible]);
-
   const optionStyles = StyleSheet.create({
     optionsList: {
       paddingBottom: 16,

@@ -42,7 +42,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
 }));
 
 jest.mock(
-  '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs',
+  '@metamask/design-system-react-native/spinner',
   () => ({
     Spinner: () => null,
   }),

@@ -2,9 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "commonjs",
-    "lib": [
-      "es2017"
-    ],
+    "lib": ["es2017"],
     "allowJs": true,
     "jsx": "react-native",
     "noEmit": true,
@@ -14,20 +12,23 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "images/*": [
-        "./app/images/*"
-      ],
+      "images/*": ["./app/images/*"],
       "@keystonehq/ur-decoder": [
         "app/declarations/@keystonehq/ur-decoder.d.ts"
       ],
-      "@metamask/perps-controller": [
-        "./app/controllers/perps"
-      ],
-      "@metamask/perps-controller/*": [
-        "./app/controllers/perps/*"
-      ],
+      "@metamask/perps-controller": ["./app/controllers/perps"],
+      "@metamask/perps-controller/*": ["./app/controllers/perps/*"],
       "@metamask/json-rpc-engine/v2": [
         "node_modules/@metamask/json-rpc-engine/dist/v2/index.d.cts"
+      ],
+      "@metamask/design-system-react-native/spinner": [
+        "node_modules/@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs"
+      ],
+      "@metamask/delegation-controller/types": [
+        "node_modules/@metamask/delegation-controller/dist/types.cjs"
+      ],
+      "@metamask/transaction-pay-controller/types": [
+        "node_modules/@metamask/transaction-pay-controller/dist/types.cjs"
       ]
     },
     "allowSyntheticDefaultImports": true,
@@ -41,7 +42,8 @@
     "node_modules/expect-webdriverio",
     "node_modules/expect-webdriverio/jest",
     "tests/**/*",
-    "appwright/**/*"
+    "appwright/**/*",
+    "scripts/**/*"
   ],
   "exclude": [
     "node_modules",

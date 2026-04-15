@@ -24,7 +24,7 @@ import {
 } from '@metamask/transaction-controller';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as NavbarUtils from '../../../Navbar';
 import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
 import useEarnToken from '../../hooks/useEarnToken';
@@ -165,7 +165,6 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
         AccountTreeController: {
           accountTree: {
-            selectedAccountGroup: 'keyring:test-wallet/ethereum',
             wallets: {
               'keyring:test-wallet': {
                 id: 'keyring:test-wallet',
@@ -180,6 +179,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
               },
             },
           },
+          selectedAccountGroup: 'keyring:test-wallet/ethereum',
         },
       },
     },
@@ -235,7 +235,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       expect.any(Object), // theme.colors
       {
         hasCancelButton: false,
-        backgroundColor: mockTheme.colors.background.alternative,
+        backgroundColor: mockTheme.colors.background.default,
       },
       {
         backButtonEvent: {
@@ -740,8 +740,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       );
 
       await act(async () => {
-      fireEvent.press(confirmButton);
-    });
+        fireEvent.press(confirmButton);
+      });
 
       // Check that EARN_ACTION_SUBMITTED was tracked
       expect(mockTrackEvent).toHaveBeenNthCalledWith(
@@ -817,8 +817,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       );
 
       await act(async () => {
-      fireEvent.press(confirmButton);
-    });
+        fireEvent.press(confirmButton);
+      });
 
       // Clear previous tracking calls
       mockTrackEvent.mockClear();
@@ -925,8 +925,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       );
 
       await act(async () => {
-      fireEvent.press(confirmButton);
-    });
+        fireEvent.press(confirmButton);
+      });
 
       // Clear previous tracking calls
       mockTrackEvent.mockClear();
@@ -1068,7 +1068,6 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
             AccountTreeController: {
               accountTree: {
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
                 wallets: {
                   'keyring:test-wallet': {
                     id: 'keyring:test-wallet',
@@ -1081,6 +1080,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
                   },
                 },
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
           },
         },
@@ -1122,8 +1122,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       );
 
       await act(async () => {
-      fireEvent.press(confirmButton);
-    });
+        fireEvent.press(confirmButton);
+      });
 
       expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.EarnWithdrawConfirmationScreen,
@@ -1177,8 +1177,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       );
 
       await act(async () => {
-      fireEvent.press(confirmButton);
-    });
+        fireEvent.press(confirmButton);
+      });
 
       mockTrace.mockClear();
 
@@ -1250,8 +1250,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       );
 
       await act(async () => {
-      fireEvent.press(confirmButton);
-    });
+        fireEvent.press(confirmButton);
+      });
 
       mockEndTrace.mockClear();
 

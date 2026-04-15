@@ -1,6 +1,11 @@
 // Third party dependencies.
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react-native';
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+} from '@testing-library/react-native';
 
 // Internal dependencies.
 import AvatarFavicon from './AvatarFavicon';
@@ -18,7 +23,9 @@ describe('AvatarFavicon', () => {
   });
 
   it('should match the snapshot', () => {
-    const { toJSON } = render(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
+    const { toJSON } = render(
+      <AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />,
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -54,15 +61,15 @@ describe('AvatarFavicon', () => {
     await waitFor(() =>
       expect(getByTestId(AVATARFAVICON_IMAGE_SVG_TESTID)).toBeDefined(),
     );
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render fallback', () => {
     render(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
     const prevImageComponent = screen.getByTestId(AVATARFAVICON_IMAGE_TESTID);
     // Simulate onError on Image component
-    fireEvent(prevImageComponent, 'error', { nativeEvent: { error: 'ERROR!' } });
+    fireEvent(prevImageComponent, 'error', {
+      nativeEvent: { error: 'ERROR!' },
+    });
     expect(screen.queryByTestId(AVATARFAVICON_IMAGE_TESTID)).toBeNull();
   });
 

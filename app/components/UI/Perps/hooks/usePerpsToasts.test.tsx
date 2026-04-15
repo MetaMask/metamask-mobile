@@ -29,19 +29,12 @@ jest.mock('expo-haptics', () => ({
   },
 }));
 
-jest.mock('../../../../util/theme', () => ({
-  useAppThemeFromContext: () => ({
-    colors: {
-      icon: { default: '#000000' },
-      primary: { default: '#0376C9' },
-      background: { default: '#FFFFFF' },
-      error: { default: '#D73A49' },
-      accent03: { dark: '#000000', normal: '#FFFFFF' },
-      accent04: { dark: '#000000', normal: '#FFFFFF' },
-      accent01: { dark: '#000000', light: '#FFFFFF' },
-    },
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useAppThemeFromContext: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('@metamask/design-system-react-native', () => ({
   IconSize: {

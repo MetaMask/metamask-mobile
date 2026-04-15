@@ -2,6 +2,7 @@ import { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { numberToHex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
@@ -9,6 +10,7 @@ import { RefreshControl, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { RPC } from '../../../constants/network';
 import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
@@ -305,9 +307,21 @@ const UnifiedTransactionsView = ({
     const evmConfirmedDeduped =
       filterDuplicateOutgoingTransactions(allConfirmedFiltered);
 
-    // Non-EVM: filter by enabled chains
+    // Non-EVM: filter by enabled chains, also include bridge txs
+    // whose destination chain is enabled (e.g. Solana→Optimism bridge
+    // should appear when viewing Optimism activity)
+    const bridgeHistoryValues = Object.values(bridgeHistory ?? {});
     const filteredNonEvmTransactionsForSelectedChain = nonEvmTransactions
-      .filter((tx) => enabledNonEVMChainIds.includes(tx.chain))
+      .filter((tx) => {
+        if (enabledNonEVMChainIds.includes(tx.chain)) return true;
+        const bridge = bridgeHistoryValues.find(
+          (item) => item.status?.srcChain?.txHash === tx.id,
+        );
+        return (
+          bridge?.quote?.destChainId !== undefined &&
+          enabledEVMChainIds.includes(numberToHex(bridge.quote.destChainId))
+        );
+      })
       // deduplicate by id
       .filter(
         (tx, index, self) => index === self.findIndex((t) => t.id === tx.id),
@@ -410,7 +424,7 @@ const UnifiedTransactionsView = ({
     let title;
     if (configBlockExplorerUrl) {
       const result = getBlockExplorerAddressUrl(
-        providerType,
+        RPC,
         selectedAccountGroupEvmAddress,
         blockExplorerUrl,
       );
@@ -436,7 +450,6 @@ const UnifiedTransactionsView = ({
     });
   }, [
     navigation,
-    providerType,
     blockExplorerUrl,
     selectedAccountGroupEvmAddress,
     popularListBlockExplorer,
@@ -536,16 +549,14 @@ const UnifiedTransactionsView = ({
     retryErrorMsg,
     speedUpIsOpen,
     cancelIsOpen,
-    speedUpConfirmDisabled,
-    cancelConfirmDisabled,
+    confirmDisabled,
     existingTx,
     speedUpTxId,
     cancelTxId,
     toggleRetry,
     onSpeedUpAction,
     onCancelAction,
-    onSpeedUpCompleted,
-    onCancelCompleted,
+    onSpeedUpCancelCompleted,
     speedUpTransaction,
     cancelTransaction,
     signQRTransaction,
@@ -629,6 +640,9 @@ const UnifiedTransactionsView = ({
         navigation={navigation}
         index={index}
         location={location}
+        showDestinationPerspective={
+          !enabledNonEVMChainIds.includes(item.tx.chain)
+        }
       />
     ) : (
       <MultichainTransactionListItem
@@ -678,22 +692,14 @@ const UnifiedTransactionsView = ({
             />
           )}
         </PriceChartContext.Consumer>
-        {/* Speed up / Cancel modals */}
+        {/* Speed up / Cancel modals*/}
         <CancelSpeedupModal
-          isVisible={speedUpIsOpen}
-          isCancel={false}
+          isVisible={speedUpIsOpen || cancelIsOpen}
+          isCancel={cancelIsOpen}
           tx={existingTx}
-          onConfirm={speedUpTransaction}
-          onClose={onSpeedUpCompleted}
-          confirmDisabled={speedUpConfirmDisabled}
-        />
-        <CancelSpeedupModal
-          isVisible={cancelIsOpen}
-          isCancel
-          tx={existingTx}
-          onConfirm={cancelTransaction}
-          onClose={onCancelCompleted}
-          confirmDisabled={cancelConfirmDisabled}
+          onConfirm={cancelIsOpen ? cancelTransaction : speedUpTransaction}
+          onClose={onSpeedUpCancelCompleted}
+          confirmDisabled={confirmDisabled}
         />
         <RetryModal
           onCancelPress={() => toggleRetry(undefined)}

@@ -4,7 +4,7 @@ import {
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
+import { Spinner } from '@metamask/design-system-react-native/spinner';
 import { lightTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -60,6 +60,7 @@ export function buildV2OrderToastOptions(
       return {
         variant: ToastVariants.Plain,
         hasNoTimeout: false,
+        customBottomOffset: 32,
         startAccessory: React.createElement(
           View,
           { style: toastStyles.spinnerContainer },

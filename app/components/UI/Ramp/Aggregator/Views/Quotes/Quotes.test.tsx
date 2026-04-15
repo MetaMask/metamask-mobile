@@ -69,7 +69,8 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       reset: mockReset,
       pop: mockPop,
-      dangerouslyGetParent: () => ({
+      isFocused: () => true,
+      getParent: () => ({
         pop: mockPop,
       }),
     }),
@@ -194,33 +195,6 @@ jest.mock('../../../../../../util/trace', () => ({
   },
 }));
 
-// Mock LoadingAnimation to immediately call onAnimationEnd when finish is true.
-// In React 19, Reanimated's withTiming callback (runOnJS) doesn't fire in the mock,
-// so the real LoadingAnimation never transitions out of loading state.
-jest.mock('../../components/LoadingAnimation', () => {
-  const ReactMock = require('react');
-  const { View, Text: RNText } = require('react-native');
-  return function MockLoadingAnimation({
-    title,
-    finish,
-    onAnimationEnd,
-  }: {
-    title: string;
-    finish: boolean;
-    onAnimationEnd?: () => void;
-    asScreen?: boolean;
-  }) {
-    ReactMock.useEffect(() => {
-      if (finish && onAnimationEnd) {
-        onAnimationEnd();
-      }
-    }, [finish, onAnimationEnd]);
-    return ReactMock.createElement(View, null,
-      ReactMock.createElement(RNText, null, title),
-    );
-  };
-});
-
 describe('Quotes', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -243,7 +217,7 @@ describe('Quotes', () => {
     };
   });
 
-  it('calls setOptions when rendering', () => {
+  it('calls setOptions when rendering', async () => {
     mockUseQuotesAndCustomActionsValues = {
       ...mockUseQuotesAndCustomActionsInitialValues,
       isFetching: true,
@@ -258,7 +232,7 @@ describe('Quotes', () => {
     expect(mockSetOptions).toHaveBeenCalled();
   });
 
-  it('navigates and tracks event on back button press', () => {
+  it('navigates and tracks event on back button press', async () => {
     render(Quotes);
     fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
@@ -274,7 +248,7 @@ describe('Quotes', () => {
     });
   });
 
-  it('navigates and tracks event on SELL back button press', () => {
+  it('navigates and tracks event on SELL back button press', async () => {
     mockUseRampSDKValues.rampType = RampType.SELL;
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.isBuy = false;
@@ -292,7 +266,7 @@ describe('Quotes', () => {
     });
   });
 
-  it('renders animation on first fetching', () => {
+  it('renders animation on first fetching', async () => {
     jest.useFakeTimers({ legacyFakeTimers: true });
     mockUseQuotesAndCustomActionsValues = {
       ...mockUseQuotesAndCustomActionsInitialValues,
@@ -302,7 +276,6 @@ describe('Quotes', () => {
     render(Quotes);
     const fetchingQuotesText = screen.getByText('Fetching quotes');
     expect(fetchingQuotesText).toBeTruthy();
-    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly after animation without quotes', async () => {
@@ -315,30 +288,31 @@ describe('Quotes', () => {
       recommendedQuote: undefined,
     };
     render(Quotes);
-    await act(async () => {
+    act(() => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
     });
-    expect(screen.toJSON()).toMatchSnapshot();
     expect(screen.getByText('No providers available')).toBeTruthy();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
-  it('renders correctly after animation with the recommended quote', () => {
+  it('renders correctly after animation with the recommended quote', async () => {
     render(Quotes);
     act(() => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByRole('button', { name: 'Explore more options' }),
+    ).toBeOnTheScreen();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
-  it('renders correctly after animation with expanded quotes', () => {
+  it('renders correctly after animation with expanded quotes', async () => {
     render(Quotes);
     fireEvent.press(
       screen.getByRole('button', { name: 'Explore more options' }),
@@ -370,13 +344,52 @@ describe('Quotes', () => {
         },
       ]
     `);
-    expect(screen.toJSON()).toMatchSnapshot();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
-  it('calls hardware back handler ', () => {
+  it('tracks OFFRAMP_QUOTES_EXPANDED when expanding quotes in sell mode', async () => {
+    mockUseRampSDKValues.rampType = RampType.SELL;
+    mockUseRampSDKValues.isSell = true;
+    mockUseRampSDKValues.isBuy = false;
+    render(Quotes);
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Explore more options' }),
+    );
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      [
+        "OFFRAMP_QUOTES_EXPANDED",
+        {
+          "amount": 50,
+          "chain_id_source": "1",
+          "currency_destination": "USD",
+          "currency_source": "ETH",
+          "currency_source_network": "ETH",
+          "currency_source_symbol": "ETH",
+          "payment_method_id": "/payment-methods/test-payment-method",
+          "previously_used_count": 0,
+          "provider_onramp_first": "Banxa (Staging)",
+          "provider_onramp_list": [
+            "Banxa (Staging)",
+            "MoonPay (Staging)",
+            "Transak (Staging)",
+          ],
+          "refresh_count": 1,
+          "results_count": 3,
+        },
+      ]
+    `);
+    act(() => {
+      jest.useFakeTimers({ legacyFakeTimers: true });
+    });
+  });
+
+  it('calls hardware back handler ', async () => {
     const backHandlerMock = jest.spyOn(BackHandler, 'addEventListener');
     const removeMock = jest.fn();
 
@@ -436,9 +449,7 @@ describe('Quotes', () => {
     });
 
     const quoteToSelect = screen.getByLabelText(mockQuoteProviderName);
-    await act(async () => {
-      fireEvent.press(quoteToSelect);
-    });
+    fireEvent.press(quoteToSelect);
 
     const quoteContinueButton = screen.getByRole('button', {
       name: `Continue with ${mockQuoteProviderName}`,
@@ -501,20 +512,18 @@ describe('Quotes', () => {
         mockCustomActionProviderName,
       );
 
-      await act(async () => {
       fireEvent.press(customActionToSelect);
-    });
 
       const customActionContinueButton = screen.getByRole('button', {
         name: `Continue with ${mockCustomActionProviderName}`,
       });
 
       await act(async () => {
-      fireEvent.press(customActionContinueButton);
-    });
+        fireEvent.press(customActionContinueButton);
+      });
     };
 
-    it('renders correctly after animation with the recommended custom action', () => {
+    it('renders correctly after animation with the recommended custom action', async () => {
       mockUseQuotesAndCustomActionsValues = {
         ...mockUseQuotesAndCustomActionsInitialValues,
         recommendedCustomAction: mockCustomAction,
@@ -525,7 +534,7 @@ describe('Quotes', () => {
         jest.advanceTimersByTime(3000);
         jest.clearAllTimers();
       });
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByLabelText('Paypal (Staging)')).toBeOnTheScreen();
       act(() => {
         jest.useFakeTimers({ legacyFakeTimers: true });
       });
@@ -848,9 +857,7 @@ describe('Quotes', () => {
       `${mockRecommendedProvider.name} logo`,
     );
 
-    await act(async () => {
-      fireEvent.press(quoteProviderLogo);
-    });
+    fireEvent.press(quoteProviderLogo);
 
     const description = screen.queryByText(mockRecommendedProvider.description);
     expect(description).toBeTruthy();
@@ -860,7 +867,7 @@ describe('Quotes', () => {
     });
   });
 
-  it('calls fetch quotes after quotes expire', () => {
+  it('calls fetch quotes after quotes expire', async () => {
     render(Quotes);
     act(() => {
       jest.advanceTimersByTime(15000);
@@ -872,7 +879,7 @@ describe('Quotes', () => {
     });
   });
 
-  it('renders "quotes expire" text in the last cycle', () => {
+  it('renders "quotes expire" text in the last cycle', async () => {
     render(Quotes);
     act(() => {
       jest.advanceTimersByTime(15000);
@@ -884,7 +891,7 @@ describe('Quotes', () => {
     });
   });
 
-  it('renders quotes expired screen', () => {
+  it('renders quotes expired screen', async () => {
     mockUseRampSDKValues = {
       ...mockUseRampSDKInitialValues,
       appConfig: {
@@ -893,7 +900,6 @@ describe('Quotes', () => {
       },
     };
     render(Quotes);
-    expect(screen.toJSON()).toMatchSnapshot();
     expect(screen.getByText('Quotes timeout', { exact: false })).toBeTruthy();
     fireEvent.press(screen.getByRole('button', { name: 'Get new quotes' }));
     expect(mockQueryGetQuotes).toHaveBeenCalledTimes(1);
@@ -902,7 +908,7 @@ describe('Quotes', () => {
     });
   });
 
-  it('calls endTrace and track event on quotes received and quote error', () => {
+  it('calls endTrace and track event on quotes received and quote error', async () => {
     render(Quotes);
     act(() => {
       jest.advanceTimersByTime(3000);
@@ -955,7 +961,7 @@ describe('Quotes', () => {
     });
   });
 
-  it('calls track event on sell quotes received and sell quote error', () => {
+  it('calls track event on sell quotes received and sell quote error', async () => {
     mockUseRampSDKValues.rampType = RampType.SELL;
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.isBuy = false;
@@ -1011,20 +1017,57 @@ describe('Quotes', () => {
     });
   });
 
-  it('renders correctly with sdkError', () => {
+  it('tracks OFFRAMP_QUOTE_ERROR for sell quotes with errors', async () => {
+    const mockQuoteError = {
+      provider: {
+        id: '/providers/transak-staging',
+        name: 'Transak (Staging)',
+      },
+      message: 'Sell not available for this pair',
+      error: true,
+    };
+
+    mockUseRampSDKValues.rampType = RampType.SELL;
+    mockUseRampSDKValues.isSell = true;
+    mockUseRampSDKValues.isBuy = false;
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
+      quotesWithError: [mockQuoteError] as unknown as QuoteError[],
+    };
+    render(Quotes);
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_QUOTE_ERROR', {
+      amount: 50,
+      payment_method_id: '/payment-methods/test-payment-method',
+      error_message: 'Sell not available for this pair',
+      currency_destination: 'USD',
+      currency_source: 'ETH',
+      currency_source_symbol: 'ETH',
+      currency_source_network: 'ETH',
+      provider_offramp: 'Transak (Staging)',
+      chain_id_source: '1',
+    });
+    act(() => {
+      jest.useFakeTimers({ legacyFakeTimers: true });
+    });
+  });
+
+  it('renders correctly with sdkError', async () => {
     mockUseRampSDKValues = {
       ...mockUseRampSDKInitialValues,
       sdkError: new Error('Example SDK Error'),
     };
     render(Quotes);
-    expect(screen.toJSON()).toMatchSnapshot();
     expect(screen.getByText('Example SDK Error')).toBeTruthy();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
-  it('navigates to home when clicking sdKError button', () => {
+  it('navigates to home when clicking sdKError button', async () => {
     mockUseRampSDKValues = {
       ...mockUseRampSDKInitialValues,
       sdkError: new Error('Example SDK Error'),
@@ -1039,19 +1082,19 @@ describe('Quotes', () => {
     });
   });
 
-  it('renders correctly when fetching quotes errors', () => {
+  it('renders correctly when fetching quotes errors', async () => {
     mockUseQuotesAndCustomActionsValues = {
       ...mockUseQuotesAndCustomActionsInitialValues,
       error: 'Test Error',
     };
     render(Quotes);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeOnTheScreen();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
-  it('fetches quotes again when pressing button after fetching quotes errors', () => {
+  it('fetches quotes again when pressing button after fetching quotes errors', async () => {
     mockUseQuotesAndCustomActionsValues = {
       ...mockUseQuotesAndCustomActionsInitialValues,
       error: 'Test Error',
@@ -1067,8 +1110,7 @@ describe('Quotes', () => {
 
 describe('LoadingQuotes component', () => {
   it('renders correctly', () => {
-    renderComponent(<LoadingQuotes />);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(() => renderComponent(<LoadingQuotes />)).not.toThrow();
   });
 });
 
@@ -1102,7 +1144,17 @@ describe('Timer component', () => {
           remainingTime={remainingTime}
         />,
       );
-      expect(screen.toJSON()).toMatchSnapshot();
+      if (isFetchingQuotes) {
+        expect(screen.getByText(/Fetching new quotes/)).toBeOnTheScreen();
+      } else if (pollingCyclesLeft > 0) {
+        expect(
+          screen.getByText(/New quotes in/, { exact: false }),
+        ).toBeOnTheScreen();
+      } else {
+        expect(
+          screen.getByText(/Quotes expire in/, { exact: false }),
+        ).toBeOnTheScreen();
+      }
     },
   );
 });

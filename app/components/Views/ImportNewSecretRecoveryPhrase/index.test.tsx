@@ -144,14 +144,6 @@ const initialState = {
   },
 };
 
-// Mock the feature flag selector to return true
-jest.mock(
-  '../../../selectors/featureFlagController/importSrpWordSuggestion',
-  () => ({
-    selectImportSrpWordSuggestionEnabledFlag: () => true,
-  }),
-);
-
 describe('ImportNewSecretRecoveryPhrase', () => {
   afterEach(() => {
     jest.clearAllMocks();

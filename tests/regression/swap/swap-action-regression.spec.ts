@@ -12,7 +12,8 @@ import { loginToApp } from '../../flows/wallet.flow';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks';
+import { AnvilManager, DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
 
 describe(RegressionTrade('Swap ETH <-> WETH from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {
@@ -31,15 +32,12 @@ describe(RegressionTrade('Swap ETH <-> WETH from Actions'), (): void => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: '0x1',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Localhost',
-                ticker: 'ETH',
-              },
+              chainId: '0x1',
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Localhost',
+              ticker: 'ETH',
             })
-            .withDisabledSmartTransactions()
             .build();
         },
         localNodeOptions: [
@@ -51,7 +49,10 @@ describe(RegressionTrade('Swap ETH <-> WETH from Actions'), (): void => {
             },
           },
         ],
-        testSpecificMock,
+        testSpecificMock: async (mockServer) => {
+          await testSpecificMock(mockServer);
+          await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
+        },
         restartDevice: true,
       },
       async () => {

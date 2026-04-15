@@ -1,8 +1,11 @@
-import { AbstractExecutionService } from '@metamask/snaps-controllers';
-// eslint-disable-next-line import/no-nodejs-modules
+import {
+  ExecutionService,
+  ExecutionServiceMessenger,
+  AbstractExecutionService
+} from '@metamask/snaps-controllers';
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
-import { ControllerInitFunction } from '../../types';
-import { ExecutionServiceMessenger } from '../../messengers/snaps';
+import { MessengerClientInitFunction } from '../../types';
 import { createWebView, removeWebView } from '../../../../lib/snaps';
 import Logger from '../../../../util/Logger';
 import { SnapBridge } from '../../../Snaps';
@@ -99,8 +102,8 @@ const getWebViewExecutionServiceCtor = (): WebViewExecutionServiceCtor => {
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized controller.
  */
-export const executionServiceInit: ControllerInitFunction<
-  AbstractExecutionService<unknown>,
+export const executionServiceInit: MessengerClientInitFunction<
+  ExecutionService,
   ExecutionServiceMessenger
 > = ({ controllerMessenger }) => {
   const WebViewExecutionService = getWebViewExecutionServiceCtor();
@@ -145,7 +148,6 @@ export const executionServiceInit: ControllerInitFunction<
   return {
     controller: new WebViewExecutionService({
       messenger: controllerMessenger,
-      // @ts-expect-error The stream type doesn't match because of a version mismatch.
       setupSnapProvider,
       createWebView,
       removeWebView,

@@ -3,17 +3,36 @@
 exports[`FoxRiveLoaderAnimation displays Rive animation and ActivityIndicator 1`] = `
 <View
   style={
-    {
-      "testID": "animation-container",
-    }
+    [
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "display": "flex",
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
+        "justifyContent": "flex-start",
+        "paddingTop": 30,
+      },
+      undefined,
+    ]
   }
   testID="fox-rive-loader-animation"
 >
   <View
     style={
-      {
-        "testID": "animation-wrapper",
-      }
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "display": "flex",
+          "justifyContent": "center",
+        },
+        {
+          "height": 406,
+          "width": 375,
+        },
+      ]
     }
   >
     <RiveView
@@ -27,16 +46,27 @@ exports[`FoxRiveLoaderAnimation displays Rive animation and ActivityIndicator 1`
       source="mock-rive-file"
       style={
         {
-          "testID": "rive-animation",
+          "alignSelf": "center",
+          "backgroundColor": "#ffffff",
+          "height": 406,
+          "width": 150,
         }
       }
     />
   </View>
   <View
     style={
-      {
-        "testID": "text-wrapper",
-      }
+      [
+        {
+          "display": "flex",
+          "justifyContent": "flex-end",
+          "paddingLeft": 20,
+          "paddingRight": 20,
+        },
+        {
+          "width": 375,
+        },
+      ]
     }
   >
     <ActivityIndicator

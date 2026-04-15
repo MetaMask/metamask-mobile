@@ -20,11 +20,39 @@ import {
   type Funding,
   type UpdatePositionTPSLParams,
   type PerpsControllerState,
+  type GetMarketsParams,
+  type MarketInfo,
+  WebSocketConnectionState,
 } from '@metamask/perps-controller';
 
 // Interface for controller with update method access
 interface ControllerWithUpdate {
   update: (fn: (state: PerpsControllerState) => void) => void;
+}
+
+type PerpsDepositTransactionType = 'perpsDepositAndOrder' | 'perpsDeposit';
+
+type AddTransactionMessengerResult =
+  | {
+      result?: Promise<string>;
+      transactionMeta?: { id?: string };
+      transactionMetaId?: string;
+      id?: string;
+    }
+  | undefined;
+
+const PERPS_DEPOSIT_ADD_TRANSACTION_TIMEOUT_MS = 1200;
+
+/** Size decimals aligned with typical HyperLiquid main-DEX markets (used by order form). */
+const E2E_MARKET_SZ_DECIMALS: Record<string, number> = {
+  BTC: 3,
+  ETH: 4,
+  SOL: 2,
+};
+
+function parseMockMaxLeverageFormatted(maxLeverage: string): number {
+  const match = /^(\d+)/.exec(maxLeverage.trim());
+  return match ? Number.parseInt(match[1], 10) : 40;
 }
 
 /**
@@ -56,6 +84,136 @@ export class E2EControllerOverrides {
     );
 
     return result;
+  }
+
+  /**
+   * Best effort: if messenger returns a real transaction id, use it.
+   * Never throw here; fallback keeps E2E stable.
+   */
+  private async mockPerpsDepositTransaction(params: {
+    fallbackTxId: string;
+    transactionType: PerpsDepositTransactionType;
+  }): Promise<{ result: Promise<string> }> {
+    const { fallbackTxId, transactionType } = params;
+    const controllerRecord = this.controller as Record<string, unknown>;
+    const messenger = controllerRecord.messenger as
+      | { call: (...args: unknown[]) => unknown }
+      | undefined;
+
+    let resolvedTxId = fallbackTxId;
+
+    if (messenger) {
+      try {
+        const selectedAccounts = messenger.call(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        ) as { address?: string }[];
+        const fromAddress = selectedAccounts?.[0]?.address;
+        const networkClientId = messenger.call(
+          'NetworkController:findNetworkClientIdByChainId',
+          '0xa4b1',
+        ) as string | undefined;
+
+        if (fromAddress && networkClientId) {
+          const recipientPadded = fromAddress
+            .toLowerCase()
+            .replace('0x', '')
+            .padStart(64, '0');
+          const amountPadded = '0'.padStart(64, '0');
+          const transferData = `0xa9059cbb${recipientPadded}${amountPadded}`;
+
+          const addTransactionCall = Promise.resolve(
+            messenger.call(
+              'TransactionController:addTransaction',
+              {
+                from: fromAddress,
+                to: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+                value: '0x0',
+                data: transferData,
+                gas: '0x493e0',
+              },
+              {
+                networkClientId,
+                origin: 'metamask',
+                skipInitialGasEstimate: true,
+                type: transactionType,
+              },
+            ),
+          ) as Promise<AddTransactionMessengerResult>;
+
+          const addTransactionSafe = addTransactionCall.catch(
+            (): AddTransactionMessengerResult => undefined,
+          );
+
+          const timeout = new Promise<undefined>((resolve) =>
+            setTimeout(
+              () => resolve(undefined),
+              PERPS_DEPOSIT_ADD_TRANSACTION_TIMEOUT_MS,
+            ),
+          );
+          const maybeAddResult = await Promise.race([
+            addTransactionSafe,
+            timeout,
+          ]);
+
+          resolvedTxId =
+            maybeAddResult?.transactionMeta?.id ??
+            maybeAddResult?.transactionMetaId ??
+            maybeAddResult?.id ??
+            fallbackTxId;
+        }
+      } catch {
+        resolvedTxId = fallbackTxId;
+      }
+    }
+
+    (this.controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.lastDepositTransactionId = resolvedTxId;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      },
+    );
+
+    return { result: Promise.resolve(resolvedTxId) };
+  }
+
+  /**
+   * Return MarketInfo for mock markets so usePerpsMarketData finds the asset by symbol
+   * (MarketInfo.name is the universe / ticker, e.g. ETH). Without this, default HyperLiquid
+   * HTTP mocks return empty meta and the order form shows "Invalid asset" before placing a trade.
+   */
+  async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
+    const mockMarkets = this.mockService.getMockMarkets();
+    const marketInfos: MarketInfo[] = mockMarkets.map((m) => ({
+      name: m.symbol,
+      szDecimals: E2E_MARKET_SZ_DECIMALS[m.symbol] ?? 4,
+      maxLeverage: parseMockMaxLeverageFormatted(m.maxLeverage),
+      marginTableId: 1,
+    }));
+
+    const symbols = params?.symbols;
+    if (symbols?.length) {
+      const wanted = new Set(symbols.map((s) => s.toUpperCase()));
+      return marketInfos.filter((mi) => wanted.has(mi.name.toUpperCase()));
+    }
+
+    return marketInfos;
+  }
+
+  // Mock one-click trade deposit initialization used by navigateToOrder()
+  async depositWithOrder(): Promise<{ result: Promise<string> }> {
+    return this.mockPerpsDepositTransaction({
+      fallbackTxId: `0xmock_perps_deposit_with_order_${Date.now()}`,
+      transactionType: 'perpsDepositAndOrder',
+    });
+  }
+
+  // Mock generic deposit initialization used by add-funds flows
+  async depositWithConfirmation(): Promise<{ result: Promise<string> }> {
+    return this.mockPerpsDepositTransaction({
+      fallbackTxId: `0xmock_perps_deposit_with_confirmation_${Date.now()}`,
+      transactionType: 'perpsDeposit',
+    });
   }
 
   // Mock liquidation price calculation: return entry price (0% distance scenario)
@@ -254,9 +412,12 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
   // Override key methods with E2E mocks
   const methodsToOverride = [
     'placeOrder',
+    'depositWithOrder',
+    'depositWithConfirmation',
     'cancelOrder',
     'getAccountState',
     'getPositions',
+    'getMarkets',
     'closePosition',
     'updatePositionTPSL',
     'calculateLiquidationPrice',
@@ -298,6 +459,17 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
       : {};
     const providerRecord = provider as Record<string, unknown>;
 
+    // Keep connection manager healthy in E2E by forcing provider health/status to connected.
+    providerRecord.ping = async () => undefined;
+    providerRecord.getWebSocketConnectionState = () =>
+      WebSocketConnectionState.Connected;
+    providerRecord.subscribeToConnectionState = (
+      listener: (state: WebSocketConnectionState, attempt: number) => void,
+    ) => {
+      setTimeout(() => listener(WebSocketConnectionState.Connected, 0), 0);
+      return () => undefined;
+    };
+
     // Patch only the methods we need for Activity history
     providerRecord.getOrders = (
       overrides.getOrders as (...args: unknown[]) => unknown
@@ -307,6 +479,9 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
     ).bind(overrides);
     providerRecord.getFunding = (
       overrides.getFunding as (...args: unknown[]) => unknown
+    ).bind(overrides);
+    providerRecord.getMarkets = (
+      overrides.getMarkets as (...args: unknown[]) => unknown
     ).bind(overrides);
     providerRecord.getUserHistory = () => {
       const service = PerpsE2EMockService.getInstance();
@@ -365,8 +540,15 @@ export function createE2EMockStreamManager(): unknown {
   const mockMarkets = mockService.getMockMarkets();
   const mockPrices = mockService.getMockPrices();
 
+  /**
+   * Production stream channels expose sync `getSnapshot()` for cold-start reads.
+   * Hooks (e.g. usePerpsMarkets, usePerpsLivePositions) call it on every render.
+   * Without these methods the E2E mock throws: TypeError: undefined is not a function
+   * when the wallet home mounts after login.
+   */
   return {
     prices: {
+      getSnapshot: (): Record<string, PriceUpdate> => mockPrices,
       subscribe: (params: {
         callback: (data: Record<string, PriceUpdate>) => void;
       }) => {
@@ -387,6 +569,10 @@ export function createE2EMockStreamManager(): unknown {
       },
     },
     marketData: {
+      getSnapshot: () => mockService.getMockMarkets(),
+      refresh: async (): Promise<void> => {
+        await Promise.resolve();
+      },
       subscribe: (params: { callback: (data: unknown[]) => void }) => {
         console.log('E2E Mock: marketData.subscribe called');
         console.log(
@@ -410,6 +596,7 @@ export function createE2EMockStreamManager(): unknown {
       },
     },
     account: {
+      getSnapshot: () => mockService.getMockAccountState(),
       subscribe: (params: {
         callback: (data: AccountState | null) => void;
       }) => {
@@ -421,6 +608,7 @@ export function createE2EMockStreamManager(): unknown {
       },
     },
     orders: {
+      getSnapshot: () => mockService.getMockOrders(),
       subscribe: (params: { callback: (data: Order[]) => void }) => {
         // Register for live updates
         mockService.registerOrderCallback(params.callback);
@@ -430,6 +618,7 @@ export function createE2EMockStreamManager(): unknown {
       },
     },
     positions: {
+      getSnapshot: () => mockService.getMockPositions(),
       subscribe: (params: { callback: (data: Position[]) => void }) => {
         // Register callback for live updates when positions change
         mockService.registerPositionCallback(params.callback);
@@ -466,9 +655,10 @@ export function createE2EMockStreamManager(): unknown {
       },
     },
     candles: {
-      subscribe: (params: { callback: (data: unknown[]) => void }) => {
-        // Return empty array - no candle data in E2E tests by default
-        setTimeout(() => params.callback([]), 0);
+      subscribe: (params: { callback: (data: unknown) => void }) => {
+        // Return CandleData-like payload to match consumers that access
+        // candleData.candles on homepage sparklines.
+        setTimeout(() => params.callback({ candles: [] }), 0);
         return () => undefined;
       },
     },

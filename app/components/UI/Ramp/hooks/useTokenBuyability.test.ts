@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as tokenBuyabilityModule from './useTokenBuyability';
 import {
   useRampTokens,

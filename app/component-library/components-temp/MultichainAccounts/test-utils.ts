@@ -160,8 +160,8 @@ export const createMockState = (
         AccountTreeController: {
           accountTree: {
             wallets: walletMap,
-            selectedAccountGroup: firstGroupId ?? '',
           },
+          selectedAccountGroup: firstGroupId ?? '',
         },
         AccountsController: {
           internalAccounts: {

@@ -8,6 +8,7 @@ import { Hex } from '@metamask/utils';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './SmartAccountNetworkList.styles';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { SMART_ACCOUNT_NETWORK_LIST_TEST_IDS } from './SmartAccountNetworkList.testIds';
 
 interface SmartAccountNetworkListProps {
   address: string;
@@ -54,7 +55,7 @@ const SmartAccountNetworkList = ({ address }: SmartAccountNetworkListProps) => {
   }
 
   return (
-    <Box testID="network-flat-list">
+    <Box testID={SMART_ACCOUNT_NETWORK_LIST_TEST_IDS.NETWORK_FLAT_LIST}>
       {network7702List.map((network) => (
         <AccountNetworkRow
           key={network.chainId}

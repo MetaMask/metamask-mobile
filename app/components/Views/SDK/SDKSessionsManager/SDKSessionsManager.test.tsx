@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent , act } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -10,16 +10,12 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(() => ({ params: {} })),
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(() => ({ top: 0, bottom: 0, left: 0, right: 0 })),
-}));
-
-jest.mock('../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: { background: { default: '#FFF' } },
-    typography: {},
-  })),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
@@ -180,8 +176,8 @@ describe('SDKSessionsManager', () => {
           trigger: 123,
           connection: { id: 'conn1', name: 'Connection 1' },
         }),
-      undefined,
-    );
+        undefined,
+      );
     });
   });
 
@@ -209,8 +205,8 @@ describe('SDKSessionsManager', () => {
         expect.objectContaining({
           trigger: undefined,
         }),
-      undefined,
-    );
+        undefined,
+      );
     });
 
     it('handles multiple connections correctly', () => {

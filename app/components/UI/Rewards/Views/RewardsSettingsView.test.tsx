@@ -7,6 +7,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import RewardsSettingsView, {
   REWARDS_SETTINGS_SAFE_AREA_TEST_ID,
 } from './RewardsSettingsView';
+import type { OffDeviceAccount } from '../hooks/useLinkedOffDeviceAccounts';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -26,29 +27,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 // Mock react-native-safe-area-context (override SafeAreaView only; keep SafeAreaProvider etc. for stack)
-jest.mock('react-native-safe-area-context', () => {
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const actual = jest.requireActual('react-native-safe-area-context');
-  return {
-    ...actual,
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    SafeAreaView: ({
-      children,
-      testID,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) => React.createElement(View, { ...props, testID }, children),
-  };
-});
-
 // Mock useTailwind hook
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const twFn = () => ({});
@@ -97,23 +75,67 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
   },
 }));
 
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  build: jest.fn(() => ({})),
-}));
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockUseAnalyticsHook,
+  createMockEventBuilder,
+} from '../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-  MetaMetricsEvents: {
-    REWARDS_SETTINGS_VIEWED: 'REWARDS_SETTINGS_VIEWED',
-  },
-}));
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 // Mock selectors
 jest.mock('../../../../selectors/rewards', () => ({}));
+
+// Mock useLinkedOffDeviceAccounts hook
+const mockUseLinkedOffDeviceAccounts = jest.fn<OffDeviceAccount[], []>(
+  () => [],
+);
+jest.mock('../hooks/useLinkedOffDeviceAccounts', () => ({
+  useLinkedOffDeviceAccounts: () => mockUseLinkedOffDeviceAccounts(),
+}));
+
+// Mock RewardsInfoBanner — pressable element that calls onConfirm
+jest.mock('../components/RewardsInfoBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      onConfirm,
+      testID,
+    }: {
+      onConfirm?: () => void;
+      testID?: string;
+      [key: string]: unknown;
+    }) =>
+      ReactActual.createElement(TouchableOpacity, {
+        testID: testID ?? 'rewards-info-banner',
+        onPress: onConfirm,
+      }),
+  };
+});
+
+// Mock LinkedOffDeviceAccountsSheet — renders with a close button for interaction tests
+jest.mock('../components/Settings/LinkedOffDeviceAccountsSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ onClose }: { accounts?: unknown[]; onClose?: () => void }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'linked-off-device-accounts-sheet' },
+        ReactActual.createElement(TouchableOpacity, {
+          testID: 'close-sheet-button',
+          onPress: onClose,
+        }),
+      ),
+  };
+});
 
 describe('RewardsSettingsView', () => {
   let store: ReturnType<typeof configureStore>;
@@ -155,11 +177,20 @@ describe('RewardsSettingsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     store = createMockStore();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     // Set default mock return values
     mockUseRoute.mockReturnValue({
       params: {},
     });
+
+    // Default: no off-device accounts
+    mockUseLinkedOffDeviceAccounts.mockReturnValue([]);
   });
 
   const renderWithNavigation = (component: React.ReactElement) =>
@@ -252,8 +283,127 @@ describe('RewardsSettingsView', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'REWARDS_SETTINGS_VIEWED',
+        MetaMetricsEvents.REWARDS_SETTINGS_VIEWED,
       );
+    });
+  });
+
+  describe('Off-device accounts banner', () => {
+    it('does not render the banner when there are no off-device accounts', () => {
+      // Arrange
+      mockUseLinkedOffDeviceAccounts.mockReturnValue([]);
+
+      // Act
+      const { queryByTestId } = renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(queryByTestId('rewards-info-banner')).toBeNull();
+    });
+
+    it('renders the banner when off-device accounts exist', () => {
+      // Arrange
+      mockUseLinkedOffDeviceAccounts.mockReturnValue([
+        {
+          caip10: 'eip155:1:0x1234567890123456789012345678901234567890',
+          caipChainId: 'eip155:1',
+          address: '0x1234567890123456789012345678901234567890',
+        },
+      ]);
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(getByTestId('rewards-info-banner')).toBeOnTheScreen();
+    });
+
+    it('renders the banner for multiple off-device accounts', () => {
+      // Arrange
+      mockUseLinkedOffDeviceAccounts.mockReturnValue([
+        {
+          caip10: 'eip155:1:0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+          caipChainId: 'eip155:1',
+          address: '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+        },
+        {
+          caip10: 'eip155:1:0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+          caipChainId: 'eip155:1',
+          address: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+        },
+      ]);
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(getByTestId('rewards-info-banner')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Off-device accounts sheet', () => {
+    const singleOffDeviceAccount = [
+      {
+        caip10: 'eip155:1:0x1234567890123456789012345678901234567890',
+        caipChainId: 'eip155:1',
+        address: '0x1234567890123456789012345678901234567890',
+      },
+    ];
+
+    it('does not render the sheet on initial mount', () => {
+      // Arrange
+      mockUseLinkedOffDeviceAccounts.mockReturnValue(singleOffDeviceAccount);
+
+      // Act
+      const { queryByTestId } = renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(queryByTestId('linked-off-device-accounts-sheet')).toBeNull();
+    });
+
+    it('opens the sheet when the banner confirm button is pressed', () => {
+      // Arrange
+      mockUseLinkedOffDeviceAccounts.mockReturnValue(singleOffDeviceAccount);
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+      fireEvent.press(getByTestId('rewards-info-banner'));
+
+      // Assert
+      expect(getByTestId('linked-off-device-accounts-sheet')).toBeOnTheScreen();
+    });
+
+    it('closes the sheet when onClose is called', () => {
+      // Arrange
+      mockUseLinkedOffDeviceAccounts.mockReturnValue(singleOffDeviceAccount);
+      const { getByTestId, queryByTestId } = renderWithNavigation(
+        <RewardsSettingsView />,
+      );
+
+      // Open the sheet
+      fireEvent.press(getByTestId('rewards-info-banner'));
+      expect(getByTestId('linked-off-device-accounts-sheet')).toBeOnTheScreen();
+
+      // Act — close via the sheet's onClose callback
+      fireEvent.press(getByTestId('close-sheet-button'));
+
+      // Assert
+      expect(queryByTestId('linked-off-device-accounts-sheet')).toBeNull();
+    });
+
+    it('can reopen the sheet after closing', () => {
+      // Arrange
+      mockUseLinkedOffDeviceAccounts.mockReturnValue(singleOffDeviceAccount);
+      const { getByTestId, queryByTestId } = renderWithNavigation(
+        <RewardsSettingsView />,
+      );
+
+      // Open → close → reopen
+      fireEvent.press(getByTestId('rewards-info-banner'));
+      fireEvent.press(getByTestId('close-sheet-button'));
+      expect(queryByTestId('linked-off-device-accounts-sheet')).toBeNull();
+
+      fireEvent.press(getByTestId('rewards-info-banner'));
+      expect(getByTestId('linked-off-device-accounts-sheet')).toBeOnTheScreen();
     });
   });
 });

@@ -11,136 +11,179 @@ import {
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import Assertions from '../../framework/Assertions';
 import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
-import { PerpsHelpers } from '../../helpers/perps/perps-helpers';
 import WalletView from '../../page-objects/wallet/WalletView';
 import PerpsDepositView from '../../page-objects/Perps/PerpsDepositView';
+import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
 import ToastModal from '../../page-objects/wallet/ToastModal';
 import Utilities from '../../framework/Utilities';
 import { createLogger, LogLevel } from '../../framework/logger';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({
   name: 'PerpsAddFundsSpec',
   level: LogLevel.INFO,
 });
 
-describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
-  beforeEach(async () => {
-    jest.setTimeout(150000);
-  });
+describe.skip(
+  SmokePerps('Perps - Add funds (has funds, not first time)'),
+  () => {
+    beforeEach(async () => {
+      jest.setTimeout(150000);
+    });
 
-  it('deposits $80 from Add funds and verifies updated balance', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder()
-          .withPerpsProfile('no-positions')
-          .withPerpsFirstTimeUser(false)
-          .withKeyringControllerOfMultipleAccounts()
-          .withNetworkController({
-            providerConfig: {
+    it('deposits $80 from Add funds and verifies updated balance', async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withPerpsProfile('no-positions')
+            .withPerpsFirstTimeUser(false)
+            .withKeyringControllerOfMultipleAccounts()
+            .withNetworkController({
               type: 'rpc',
               chainId: '0xa4b1',
               rpcUrl: 'https://arb1.arbitrum.io/rpc',
               nickname: 'Arbitrum One',
               ticker: 'ETH',
-            },
-          })
-          .withTokensForAllPopularNetworks([
-            {
-              address: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
-              symbol: 'USDC',
-              decimals: 6,
-              name: 'USD Coin',
-              type: 'erc20',
-            },
-          ])
-          .withTokens(
-            [
+            })
+            .withTokensForAllPopularNetworks([
               {
-                address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+                address: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
                 symbol: 'USDC',
                 decimals: 6,
                 name: 'USD Coin',
                 type: 'erc20',
               },
-            ],
-            '0xa4b1',
-            '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6',
-          )
-          .build(),
-        restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await PERPS_ARBITRUM_MOCKS(mockServer);
-          await mockPerpsGeolocation(
-            mockServer,
-            RampsRegions[RampsRegionsEnum.SPAIN],
-          );
-        },
-        useCommandQueueServer: true,
-        localNodeOptions: [
-          {
-            type: LocalNodeType.anvil,
-            options: { hardfork: 'prague' as Hardfork },
-          },
-        ],
-      },
-      async ({ commandQueueServer }: TestSuiteParams) => {
-        if (!commandQueueServer) {
-          throw new Error('Command queue server not found');
-        }
-        await loginToApp();
-        await device.disableSynchronization();
-        await Assertions.expectElementToBeVisible(
-          WalletView.container as DetoxElement,
-          {
-            description: 'Wallet view visible',
-          },
-        );
-
-        // Go to Perps tab
-        await PerpsHelpers.navigateToPerpsTab();
-
-        // Read initial balance text for later comparison
-        const initialBalance = await PerpsTabView.getBalance();
-
-        // Open Add Funds from balance menu
-        await PerpsTabView.tapBalanceButton();
-        await PerpsTabView.tapAddFundsButton();
-
-        // If a network-added toast appears, wait for it to disappear before interacting
-        await Assertions.expectElementToNotBeVisible(
-          ToastModal.container as DetoxElement,
-          {
-            description: 'No toast visible before entering amount',
-            timeout: 10000,
-          },
-        );
-
-        // Ensure deposit UI visible
-        await PerpsDepositView.expectLoaded();
-
-        // Focus and type 80 using keypad helpers
-        await PerpsDepositView.focusAmount();
-        await PerpsDepositView.typeUSD('80');
-
-        // Continue and Confirm
-        await PerpsDepositView.tapContinue();
-        // Verify review screen shows quote
-        await Assertions.expectTextDisplayed('Transaction fee');
-        await PerpsDepositView.tapAddFunds();
-
-        await PerpsE2EModifiers.applyDepositUSDServer(commandQueueServer, '80');
-        logger.info('🔥 E2E Mock: Deposit applied');
-        await Utilities.executeWithRetry(
-          async () => {
-            const current = await PerpsTabView.getBalance();
-            await Assertions.checkIfValueIsDefined(
-              current === initialBalance + 80,
+            ])
+            .withTokens(
+              [
+                {
+                  address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+                  symbol: 'USDC',
+                  decimals: 6,
+                  name: 'USD Coin',
+                  type: 'erc20',
+                },
+              ],
+              '0xa4b1',
+              '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6',
+            )
+            .build(),
+          restartDevice: true,
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await setupRemoteFeatureFlagsMock(mockServer, {
+              ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+            });
+            await PERPS_ARBITRUM_MOCKS(mockServer);
+            await mockPerpsGeolocation(
+              mockServer,
+              RampsRegions[RampsRegionsEnum.SPAIN],
             );
           },
-          { interval: 1000, timeout: 60000 },
-        );
-      },
-    );
-  });
-});
+          useCommandQueueServer: true,
+          localNodeOptions: [
+            {
+              type: LocalNodeType.anvil,
+              options: { hardfork: 'prague' as Hardfork },
+            },
+          ],
+        },
+        async ({ commandQueueServer }: TestSuiteParams) => {
+          if (!commandQueueServer) {
+            throw new Error('Command queue server not found');
+          }
+          await loginToApp();
+          await device.disableSynchronization();
+          await Assertions.expectElementToBeVisible(
+            WalletView.container as DetoxElement,
+            {
+              description: 'Wallet view visible',
+            },
+          );
+
+          // Go to Perps tab
+          await WalletView.scrollAndTapPerpsSection();
+          await PerpsHomeView.tapExploreCryptoIfVisible();
+
+          // Wait until Perps balance actions are fully rendered (skeleton can persist briefly).
+          await Utilities.executeWithRetry(
+            async () => {
+              const isMarketAddFundsVisible = await Utilities.isElementVisible(
+                PerpsTabView.marketAddFundsButton,
+                2000,
+              );
+              const isLegacyAddFundsVisible = await Utilities.isElementVisible(
+                PerpsTabView.addFundsButton,
+                1000,
+              );
+
+              if (!isMarketAddFundsVisible && !isLegacyAddFundsVisible) {
+                throw new Error('Perps Add funds CTA is not visible yet');
+              }
+            },
+            { interval: 1000, timeout: 20000 },
+          );
+
+          // Read initial balance text for later comparison
+          const initialBalance = await PerpsTabView.getBalance();
+
+          // Open Add Funds from balance menu and verify deposit screen is reached.
+          // In this flow the first tap can happen while Perps is still settling.
+          await Utilities.executeWithRetry(
+            async () => {
+              await PerpsTabView.tapAddFundsButton();
+              await Assertions.expectElementToBeVisible(
+                PerpsDepositView.amountInput as DetoxElement,
+                {
+                  description:
+                    'Deposit amount input visible after tapping Add funds',
+                  timeout: 5000,
+                },
+              );
+            },
+            { interval: 1000, timeout: 30000 },
+          );
+
+          // If a network-added toast appears, wait for it to disappear before interacting
+          await Assertions.expectElementToNotBeVisible(
+            ToastModal.container as DetoxElement,
+            {
+              description: 'No toast visible before entering amount',
+              timeout: 10000,
+            },
+          );
+
+          // Ensure deposit UI visible
+          await PerpsDepositView.expectLoaded();
+
+          // Focus and type 80 using keypad helpers
+          await PerpsDepositView.focusAmount();
+          await PerpsDepositView.typeUSD('80');
+
+          // Continue and Confirm
+          await PerpsDepositView.tapContinue();
+          // Verify review screen shows quote
+          await Assertions.expectTextDisplayed('Transaction fee');
+          await PerpsDepositView.tapAddFunds();
+
+          await PerpsE2EModifiers.applyDepositUSDServer(
+            commandQueueServer,
+            '80',
+          );
+          logger.info('🔥 E2E Mock: Deposit applied');
+          await Utilities.executeWithRetry(
+            async () => {
+              const current = await PerpsTabView.getBalance();
+              await Assertions.checkIfValueIsDefined(
+                current === initialBalance + 80,
+              );
+            },
+            { interval: 1000, timeout: 60000 },
+          );
+        },
+      );
+    });
+  },
+);

@@ -27,6 +27,10 @@ import {
   mapApiTeamToPredictTeam,
   type TeamLookup,
 } from '../../utils/gameParser';
+import {
+  isDrawCapableLeague,
+  SUPPORTED_SPORTS_LEAGUES,
+} from '../../constants/sports';
 import type {
   GetMarketsParams,
   OrderPreview,
@@ -61,7 +65,6 @@ import {
   PolymarketApiMarket,
   PolymarketApiTeam,
   PolymarketPosition,
-  SignatureType,
   TickSize,
   OrderBook,
 } from './types';
@@ -73,6 +76,7 @@ export const getPolymarketEndpoints = () => ({
   CLOB_ENDPOINT: 'https://clob.polymarket.com',
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
+  HOMEPAGE_CAROUSEL_ENDPOINT: 'https://polymarket.com/api/homepage/carousel',
   CLOB_RELAYER:
     process.env.METAMASK_ENVIRONMENT === 'dev'
       ? 'https://predict.dev-api.cx.metamask.io'
@@ -186,76 +190,6 @@ export const getL2Headers = async ({
   };
 
   return headers;
-};
-
-/**
- * TEMPORARY WORKAROUND for Polymarket infrastructure issue.
- *
- * Polymarket's CLOB infrastructure intermittently returns 400 errors with
- * "not enough balance / allowance" when placing orders at high request rates.
- * Calling this endpoint before each order refreshes the balance/allowance state
- * on their end and prevents most of these spurious failures.
- *
- * For BUY orders: refreshes COLLATERAL (USDC) balance/allowance.
- * For SELL orders: refreshes CONDITIONAL token balance/allowance.
- *
- * TODO: Remove this workaround once Polymarket resolves the underlying
- * infrastructure issue. Track removal in a follow-up ticket.
- */
-export const refreshBalanceAllowance = async ({
-  address,
-  apiKey,
-  side,
-  outcomeTokenId,
-  signatureType = SignatureType.POLY_GNOSIS_SAFE,
-}: {
-  address: string;
-  apiKey: ApiKeyCreds;
-  side: Side;
-  outcomeTokenId: string;
-  signatureType?: SignatureType;
-}): Promise<void> => {
-  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
-
-  const queryParams = new URLSearchParams({
-    signature_type: String(signatureType),
-  });
-
-  if (side === Side.BUY) {
-    queryParams.set('asset_type', 'COLLATERAL');
-  } else {
-    queryParams.set('asset_type', 'CONDITIONAL');
-    queryParams.set('token_id', outcomeTokenId);
-  }
-
-  const requestPath = `/balance-allowance/update`;
-
-  const headers = await getL2Headers({
-    l2HeaderArgs: {
-      method: 'GET',
-      requestPath,
-    },
-    address,
-    apiKey,
-  });
-
-  const response = await fetch(
-    `${CLOB_ENDPOINT}${requestPath}?${queryParams.toString()}`,
-    {
-      method: 'GET',
-      headers,
-    },
-  );
-
-  if (!response.ok) {
-    DevLogger.log(
-      'refreshBalanceAllowance: Pre-order balance/allowance refresh failed',
-      {
-        status: response.status,
-        side,
-      },
-    );
-  }
 };
 
 export const deriveApiKey = async ({ address }: { address: string }) => {
@@ -618,6 +552,17 @@ const sortOutcomeTokens = (
   return outcomeTokens;
 };
 
+const getNegRiskYesTokenTitle = (
+  market: PolymarketApiMarket,
+): string | undefined => {
+  if (!market.negRisk || !isMoneylineMarket(market) || !market.groupItemTitle) {
+    return undefined;
+  }
+  return market.groupItemTitle.toLowerCase().startsWith('draw')
+    ? 'Draw'
+    : market.groupItemTitle;
+};
+
 const parsePolymarketMarketOutcomes = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
@@ -629,10 +574,16 @@ const parsePolymarketMarketOutcomes = (
   const outcomePrices = market.outcomePrices
     ? JSON.parse(market.outcomePrices)
     : [];
+
+  const negRiskYesTitle = getNegRiskYesTokenTitle(market);
+
   const outcomeTokens = outcomeTokensIds.map(
     (tokenId: string, index: number) => ({
       id: tokenId,
-      title: outcomes[index],
+      title:
+        negRiskYesTitle && outcomes[index] === 'Yes'
+          ? negRiskYesTitle
+          : outcomes[index],
       price: parseFloat(outcomePrices[index]),
     }),
   );
@@ -719,16 +670,16 @@ export const sortMarkets = (
   const markets = Array.isArray(event.markets) ? event.markets : [];
   const eventSortBy = event.sortBy;
 
+  if (isSportEvent(event)) {
+    return sortSportMarkets(markets);
+  }
+
   if (sortBy) {
     return sortMarketsByField(markets, sortBy);
   }
 
   if (eventSortBy) {
     return sortMarketsByField(markets, eventSortBy);
-  }
-
-  if (isSportEvent(event)) {
-    return sortSportMarkets(markets);
   }
 
   return markets;
@@ -745,6 +696,10 @@ export const parsePolymarketMarket = (
   description: market.description,
   image: market.icon ?? market.image,
   groupItemTitle: formatMarketGroupItemTitle(market),
+  groupItemThreshold:
+    market.groupItemThreshold != null
+      ? Number(market.groupItemThreshold)
+      : undefined,
   status: market.closed ? PredictMarketStatus.CLOSED : PredictMarketStatus.OPEN,
   volume: market.volumeNum ?? 0,
   tokens: parsePolymarketMarketOutcomes(market, event),
@@ -799,15 +754,31 @@ export const parsePolymarketEvents = (
           ? (buildGameData(event, eventLeague, predictTeamLookup) ?? undefined)
           : undefined;
 
+      // As per Polymarket's team, we should use the first market's description
+      // rather than the event's description. The event's description is not
+      // guaranteed to be accurate. They also do this on their webbsite.
+      //
+      // However, we noticed that the above statement is not correct, at least for game events.
+      const description = game
+        ? event.description
+        : (event.markets?.[0]?.description ?? event.description);
+
+      const seriesData =
+        event.series?.length > 0
+          ? {
+              id: event.series[0].id,
+              slug: event.series[0].slug,
+              title: event.series[0].title,
+              recurrence: event.series[0].recurrence,
+            }
+          : undefined;
+
       return {
         id: event.id,
         slug: event.slug,
         providerId: POLYMARKET_PROVIDER_ID,
         title: event.title,
-        // As per Polymarket's team, we should use the first market's description
-        // rather than the event's description. The event's description is not
-        // guaranteed to be accurate. They also do this on their webbsite.
-        description: event.markets?.[0]?.description ?? event.description,
+        description,
         image: event.icon,
         status: event.closed
           ? PredictMarketStatus.CLOSED
@@ -815,13 +786,14 @@ export const parsePolymarketEvents = (
         recurrence: getRecurrence(event.series),
         endDate: event.endDate,
         category,
-        tags: tags.map((t) => t.label),
+        tags: tags.map((t) => t.slug),
         outcomes: markets.map((market: PolymarketApiMarket) =>
           parsePolymarketMarket(market, event),
         ),
         liquidity: event.liquidity,
         volume: event.volume,
         game,
+        ...(seriesData && { series: seriesData }),
       };
     },
   );
@@ -899,9 +871,15 @@ export interface GetParsedMarketsOptions extends GetMarketsParams {
   teamLookup?: PolymarketTeamLookupFn;
 }
 
-export const getParsedMarketsFromPolymarketApi = async (
+export interface FetchEventsResult {
+  events: PolymarketApiEvent[];
+  category: PredictCategory;
+  isSearch: boolean;
+}
+
+export const fetchEventsFromPolymarketApi = async (
   params?: GetParsedMarketsOptions,
-): Promise<PredictMarket[]> => {
+): Promise<FetchEventsResult> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
 
   const {
@@ -909,7 +887,6 @@ export const getParsedMarketsFromPolymarketApi = async (
     q,
     limit = 20,
     offset = 0,
-    teamLookup,
     customQueryParams,
   } = params || {};
   DevLogger.log(
@@ -982,13 +959,68 @@ export const getParsedMarketsFromPolymarketApi = async (
     ? eventsData
     : [];
 
+  return { events, category, isSearch: !!q };
+};
+
+export interface PolymarketCarouselItem {
+  event: PolymarketApiEvent;
+  type: string;
+  shortName: string;
+  options: PolymarketApiMarket[];
+}
+
+export const fetchCarouselFromPolymarketApi = async (): Promise<
+  PolymarketCarouselItem[]
+> => {
+  const { HOMEPAGE_CAROUSEL_ENDPOINT } = getPolymarketEndpoints();
+
+  DevLogger.log('Fetching carousel data from:', HOMEPAGE_CAROUSEL_ENDPOINT);
+
+  const response = await fetch(HOMEPAGE_CAROUSEL_ENDPOINT);
+  if (!response.ok) {
+    throw new Error('Failed to fetch carousel data');
+  }
+  const data = await response.json();
+  const rawItems: PolymarketCarouselItem[] = Array.isArray(data) ? data : [];
+
+  const items = rawItems.map((item) => ({
+    ...item,
+    event: {
+      ...item.event,
+      markets: item.event.markets?.map((market) => ({
+        ...market,
+        outcomes: Array.isArray(market.outcomes)
+          ? JSON.stringify(market.outcomes)
+          : market.outcomes,
+        outcomePrices: Array.isArray(market.outcomePrices)
+          ? JSON.stringify(market.outcomePrices)
+          : market.outcomePrices,
+        clobTokenIds: Array.isArray(market.clobTokenIds)
+          ? JSON.stringify(market.clobTokenIds)
+          : market.clobTokenIds,
+      })),
+    },
+  }));
+
+  DevLogger.log('Carousel data received:', items.length, 'items');
+
+  return items;
+};
+
+export const getParsedMarketsFromPolymarketApi = async (
+  params?: GetParsedMarketsOptions,
+): Promise<PredictMarket[]> => {
+  const { teamLookup } = params || {};
+  const { events, category, isSearch } =
+    await fetchEventsFromPolymarketApi(params);
+
   const parsedMarkets: PredictMarket[] = parsePolymarketEvents(events, {
     category,
     sortMarketsBy: 'price',
     teamLookup,
   });
 
-  if (q) {
+  if (isSearch) {
     return parsedMarkets.filter((m) => m.outcomes.length > 0);
   }
 
@@ -1043,10 +1075,49 @@ export const getPredictPositionStatus = ({
   return PredictPositionStatus.LOST;
 };
 
+const resolveNegRiskOutcomeLabel = (
+  position: PolymarketPosition,
+  teamLookup?: TeamLookup,
+): string | undefined => {
+  if (!position.negativeRisk || !position.eventSlug) {
+    return undefined;
+  }
+
+  const league = SUPPORTED_SPORTS_LEAGUES.find(
+    (l) => isDrawCapableLeague(l) && position.eventSlug?.startsWith(`${l}-`),
+  );
+
+  if (!league) {
+    return undefined;
+  }
+
+  const prefix = position.eventSlug + '-';
+  if (!position.slug.startsWith(prefix)) {
+    return undefined;
+  }
+
+  const outcomeToken = position.slug.slice(prefix.length);
+  if (!outcomeToken) {
+    return undefined;
+  }
+
+  if (outcomeToken === 'draw') {
+    return 'Draw';
+  }
+
+  if (!teamLookup) {
+    return outcomeToken.toUpperCase();
+  }
+
+  return teamLookup(league, outcomeToken)?.name ?? outcomeToken.toUpperCase();
+};
+
 export const parsePolymarketPositions = async ({
   positions,
+  teamLookup,
 }: {
   positions: PolymarketPosition[];
+  teamLookup?: TeamLookup;
 }) => {
   const parsedPositions: PredictPosition[] = positions.map(
     (position: PolymarketPosition) => ({
@@ -1054,7 +1125,8 @@ export const parsePolymarketPositions = async ({
       providerId: POLYMARKET_PROVIDER_ID,
       marketId: position.eventId,
       outcomeId: position.conditionId,
-      outcome: position.outcome,
+      outcome:
+        resolveNegRiskOutcomeLabel(position, teamLookup) ?? position.outcome,
       outcomeTokenId: position.asset,
       outcomeIndex: position.outcomeIndex,
       negRisk: position.negativeRisk,
@@ -1150,7 +1222,7 @@ async function waiveFees({
   const market = await getMarketDetailsFromGammaApi({ marketId });
   const { tags } = market;
   const slugs = tags?.map((t) => t.slug);
-  return slugs?.some((slug) => waiveList.includes(slug)) ?? false;
+  return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
 }
 
 export async function calculateFees({
@@ -1180,15 +1252,11 @@ export async function calculateFees({
   const totalFeePercentage =
     (feeCollection.metamaskFee + feeCollection.providerFee) * 100;
 
-  let metamaskFee = userBetAmount * feeCollection.metamaskFee;
-  let providerFee = userBetAmount * feeCollection.providerFee;
+  const metamaskFee = userBetAmount * feeCollection.metamaskFee;
+  const providerFee = userBetAmount * feeCollection.providerFee;
 
-  // Round to 3 decimals
-  metamaskFee = Math.round(metamaskFee * 1000) / 1000;
-  providerFee = Math.round(providerFee * 1000) / 1000;
-
-  // Rounded to 4 decimals
-  const totalFee = metamaskFee + providerFee;
+  // Rounded to 6 decimals
+  const totalFee = Math.round((metamaskFee + providerFee) * 1000000) / 1000000;
 
   return {
     metamaskFee,
@@ -1591,7 +1659,7 @@ export const previewOrder = async (
       fees: await calculateFees({
         feeCollection,
         marketId,
-        userBetAmount: size,
+        userBetAmount: makerAmount,
       }),
     };
   }

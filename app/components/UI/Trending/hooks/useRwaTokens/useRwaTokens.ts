@@ -12,19 +12,7 @@ import {
 import { RWA_CHAIN_IDS } from '../../utils/trendingNetworksList';
 import { isEqual } from 'lodash';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
-
-// prettier-ignore
-const ONDO_RESTRICTED_COUNTRIES = new Set([
-  'AF', 'DZ', 'BY', 'CA', 'CN', 'CU', 'KP',
-  'ER', 'IR', 'LY', 'MM', 'MA', 'NP', 'RU',
-  'SO', 'SS', 'SD', 'SY', 'US', 'VE',
-  'BR', 'HK', 'MY', 'SG', 'CH', 'GB',
-  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK',
-  'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE',
-  'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL',
-  'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS',
-  'LI', 'NO', 'UA',
-]);
+import { ONDO_RESTRICTED_COUNTRIES } from '../../../../../util/ondoGeoRestrictions';
 
 const useStableReference = <T>(value: T) => {
   const [stableValue, setStableValue] = useState(value);
@@ -130,6 +118,7 @@ export const useRwaTokens = (opts?: {
         rwaData: asset.rwaData as unknown as
           | TrendingAsset['rwaData']
           | undefined,
+        securityData: asset.securityData,
       }));
 
     if (searchQuery?.trim()) {

@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { useABTest } from '../../../../../hooks';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../../util/networks';
@@ -9,20 +8,12 @@ import {
   selectSourceToken,
   selectAbTestContext,
 } from '../../../../../core/redux/slices/bridge';
-import {
-  NUMPAD_QUICK_ACTIONS_AB_KEY,
-  NUMPAD_QUICK_ACTIONS_VARIANTS,
-} from '../../components/GaslessQuickPickOptions/abTestConfig';
 
 export const useTrackSwapPageViewed = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const abTestContext = useSelector(selectAbTestContext);
-  const { variantName, isActive } = useABTest(
-    NUMPAD_QUICK_ACTIONS_AB_KEY,
-    NUMPAD_QUICK_ACTIONS_VARIANTS,
-  );
 
   const hasTrackedPageView = useRef(false);
 
@@ -44,14 +35,6 @@ export const useTrackSwapPageViewed = () => {
               abTestContext.assetsASSETS2493AbtestTokenDetailsLayout,
           },
         }),
-        ...(isActive && {
-          active_ab_tests: [
-            {
-              key: NUMPAD_QUICK_ACTIONS_AB_KEY,
-              value: variantName,
-            },
-          ],
-        }),
       };
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_PAGE_VIEWED)
@@ -59,13 +42,5 @@ export const useTrackSwapPageViewed = () => {
           .build(),
       );
     }
-  }, [
-    sourceToken,
-    destToken,
-    trackEvent,
-    createEventBuilder,
-    isActive,
-    variantName,
-    abTestContext,
-  ]);
+  }, [sourceToken, destToken, trackEvent, createEventBuilder, abTestContext]);
 };
