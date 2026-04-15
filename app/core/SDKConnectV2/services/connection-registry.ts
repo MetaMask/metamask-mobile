@@ -22,6 +22,7 @@ import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import type { IMetaMetricsEvent } from '../../Analytics/MetaMetrics.types';
 import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
+import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
 
 /**
  * Fire-and-forget analytics helper. Never throws — a broken analytics
@@ -177,7 +178,7 @@ export class ConnectionRegistry {
       trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
         remote_session_id: conn.metadata?.analytics?.remote_session_id ?? id,
         platform: 'mobile',
-        transport_type: 'mwp',
+        transport_type: TransportType.MWP,
         sdk_version: conn.metadata?.sdk?.version,
         sdk_platform: conn.metadata?.sdk?.platform,
         found_in_store: true,
@@ -188,7 +189,7 @@ export class ConnectionRegistry {
     trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
       remote_session_id: id,
       platform: 'mobile',
-      transport_type: 'mwp',
+      transport_type: TransportType.MWP,
       found_in_store: false,
     });
 
@@ -254,7 +255,7 @@ export class ConnectionRegistry {
           connReq.metadata.analytics?.remote_session_id ??
           connReq.sessionRequest.id,
         platform: 'mobile',
-        transport_type: 'mwp',
+        transport_type: TransportType.MWP,
         sdk_version: connReq.metadata.sdk.version,
         sdk_platform: connReq.metadata.sdk.platform,
       });
@@ -302,7 +303,7 @@ export class ConnectionRegistry {
           connReq?.sessionRequest?.id ??
           'unknown',
         platform: 'mobile',
-        transport_type: 'mwp',
+        transport_type: TransportType.MWP,
         sdk_version: connReq?.metadata?.sdk?.version,
         sdk_platform: connReq?.metadata?.sdk?.platform,
         failure_reason: error instanceof Error ? error.message : String(error),

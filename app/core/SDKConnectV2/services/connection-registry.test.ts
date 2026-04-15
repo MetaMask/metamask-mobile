@@ -9,6 +9,7 @@ import { ConnectionInfo } from '../types/connection-info';
 import Engine from '../../Engine';
 import { analytics } from '../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../Analytics';
+import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
 
 jest.mock('../adapters/host-application-adapter');
 jest.mock('../store/connection-store');
@@ -302,7 +303,7 @@ describe('ConnectionRegistry', () => {
         expect.objectContaining({
           remote_session_id: 'mock-conn-id',
           platform: 'mobile',
-          transport_type: 'mwp',
+          transport_type: TransportType.MWP,
           found_in_store: true,
         }),
       );
@@ -332,7 +333,7 @@ describe('ConnectionRegistry', () => {
           expect.objectContaining({
             remote_session_id: 'mock-conn-id',
             platform: 'mobile',
-            transport_type: 'mwp',
+            transport_type: TransportType.MWP,
             found_in_store: false,
           }),
         );
@@ -441,7 +442,7 @@ describe('ConnectionRegistry', () => {
         expect.objectContaining({
           remote_session_id: mockConnectionRequest.sessionRequest.id,
           platform: 'mobile',
-          transport_type: 'mwp',
+          transport_type: TransportType.MWP,
           sdk_version: '2.0.0',
           sdk_platform: 'JavaScript',
         }),
@@ -585,7 +586,7 @@ describe('ConnectionRegistry', () => {
         expect.objectContaining({
           remote_session_id: mockConnectionRequest.sessionRequest.id,
           platform: 'mobile',
-          transport_type: 'mwp',
+          transport_type: TransportType.MWP,
           failure_reason: 'Connection failed',
         }),
       );
