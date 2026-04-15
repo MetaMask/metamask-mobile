@@ -8,10 +8,13 @@ name: "[TEMP] Bitrise iOS E2E POC"
 
 on:
   pull_request:
-  push:
-    branches: [main]
+    types: [labeled, synchronize]
   schedule:
-    - cron: '0 2-6 * * *'
+    - cron: '0 * * * *'
+
+concurrency:
+  group: bitrise-ios-e2e-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -20,6 +23,10 @@ permissions:
 jobs:
   build-ios-on-bitrise:
     name: Build iOS E2E App (Bitrise Runners)
+    if: >-
+      (github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'bitrise-poc')) &&
+      !github.event.pull_request.head.repo.fork
     runs-on:
       group: temp-bitrise-runners
     timeout-minutes: 60
