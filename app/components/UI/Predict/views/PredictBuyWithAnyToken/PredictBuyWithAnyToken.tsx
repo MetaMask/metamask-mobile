@@ -111,7 +111,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const handleQuickAmount = useCallback(
     (amount: number) => {
       setCurrentValue(amount);
-      setCurrentValueUSDString(amount.toFixed(2));
+      setCurrentValueUSDString(amount.toString());
       setIsInputFocused(false);
     },
     [setCurrentValue, setCurrentValueUSDString, setIsInputFocused],

@@ -200,7 +200,10 @@ export const usePredictBuyActions = ({
     return handlePlaceOrder({
       analyticsProperties,
       preview,
-      transactionId: approvalRequest?.id,
+      transactionId:
+        currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
+          ? approvalRequest?.id
+          : undefined,
     });
   }, [
     setIsConfirming,
