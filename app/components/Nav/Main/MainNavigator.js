@@ -122,6 +122,7 @@ import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlag
 import {
   TopTradersView,
   TraderProfileView,
+  TraderPositionView,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -1292,6 +1293,13 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SOCIAL_LEADERBOARD.PROFILE}
           component={TraderProfileView}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <Stack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.POSITION}
+          component={TraderPositionView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
       )}
