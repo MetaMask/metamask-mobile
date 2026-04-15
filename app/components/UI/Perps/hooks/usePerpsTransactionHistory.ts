@@ -322,12 +322,14 @@ export const usePerpsTransactionHistory = ({
         hasMore: olderFunding.length > 0,
       });
 
+      // Advance cursor even when the window is empty so pagination skips
+      // gaps in activity (e.g. no open positions for 30+ days) instead of
+      // stopping permanently.
+      fundingCursorRef.current = cursorStartTime;
+
       if (olderFunding.length === 0) {
-        setHasFundingMore(false);
         return;
       }
-
-      fundingCursorRef.current = cursorStartTime;
 
       const olderFundingTxs = transformFundingToTransactions(olderFunding);
       // Dedup only — final sort happens in mergedTransactions memo

@@ -1423,7 +1423,7 @@ describe('usePerpsTransactionHistory', () => {
       expect(result.current.isFetchingMoreFunding).toBe(false);
     });
 
-    it('sets hasFundingMore to false when older window returns empty', async () => {
+    it('skips empty windows and keeps hasFundingMore true', async () => {
       // Arrange
       const { result } = await renderAndWaitForInitialFetch();
       mockProvider.getFunding.mockResolvedValueOnce([]);
@@ -1433,8 +1433,8 @@ describe('usePerpsTransactionHistory', () => {
         await result.current.loadMoreFunding();
       });
 
-      // Assert
-      expect(result.current.hasFundingMore).toBe(false);
+      // Assert — cursor advances but pagination continues
+      expect(result.current.hasFundingMore).toBe(true);
     });
 
     it('sets hasFundingMore to false on fetch error', async () => {
@@ -1455,8 +1455,8 @@ describe('usePerpsTransactionHistory', () => {
     it('does not fetch when hasFundingMore is false', async () => {
       // Arrange
       const { result } = await renderAndWaitForInitialFetch();
-      // Force hasFundingMore to false by returning empty
-      mockProvider.getFunding.mockResolvedValueOnce([]);
+      // Force hasFundingMore to false via error (errors still stop pagination)
+      mockProvider.getFunding.mockRejectedValueOnce(new Error('API error'));
       await act(async () => {
         await result.current.loadMoreFunding();
       });
