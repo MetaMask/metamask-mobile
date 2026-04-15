@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeReadFile": [
+      {
+        "command": "yarn tsx scripts/tooling/cursor-hook-skill-tracking.ts"
+      }
+    ]
+  }
+}

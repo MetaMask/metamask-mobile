@@ -88,9 +88,12 @@ module.exports = {
           try {
             exitCode = await executor();
           } finally {
-            track(scriptName, 'end', {
-              // exitCode is undefined if executor threw — treat as failure
-              success: exitCode === 0,
+            // exitCode 129 = SIGHUP (Yarn terminates the child via SIGHUP when
+            // the user presses Ctrl+C). Record as 'interrupted' so the report can
+            // distinguish abandoned sessions from genuine failures (success=0).
+            const eventType = exitCode === 129 ? 'interrupted' : 'end';
+            track(scriptName, eventType, {
+              success: exitCode === 129 ? undefined : exitCode === 0,
               duration_ms: Date.now() - start,
             });
           }

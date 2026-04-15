@@ -1,12 +1,6 @@
 ---
 name: worktree-create
 description: Creates or removes a git worktree using the project scripts and shared config. Use when the user asks to create a worktree, add a worktree, remove a worktree, delete a worktree, or work on a parallel branch in a separate directory.
-hooks:
-  SessionStart:
-    - type: command
-      once: true
-      async: true
-      command: 'yarn tsx scripts/tooling/tool-usage-collection.ts --tool skill:worktree-create --type skill --event start --agent claude'
 ---
 
 # Worktree create and remove

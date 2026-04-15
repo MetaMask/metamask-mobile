@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import type Database from 'better-sqlite3';
 import { openDb } from './db';
 
-export type EventType = 'start' | 'end';
+export type EventType = 'start' | 'end' | 'interrupted';
 
 export interface TrackEventParams {
   /** Correlates start/end rows for abandonment and duration analytics. */

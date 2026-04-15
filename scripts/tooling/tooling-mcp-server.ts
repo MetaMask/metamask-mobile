@@ -32,7 +32,7 @@ server.setRequestHandler(ListToolsRequestSchema, () => ({
           },
           event: {
             type: 'string',
-            enum: ['start', 'end'],
+            enum: ['start', 'end', 'interrupted'],
             description: 'Event phase',
           },
           agent: {
