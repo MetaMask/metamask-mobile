@@ -58,6 +58,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  TextField,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
@@ -78,7 +79,6 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
-import TextField from '../../../component-library/components/Form/TextField/TextField';
 import { CommonActions } from '@react-navigation/native';
 import { SRP_LENGTHS, SPACE_CHAR, PASSCODE_NOT_SET_ERROR } from './constant';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
