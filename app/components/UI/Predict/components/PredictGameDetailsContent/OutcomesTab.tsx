@@ -1,15 +1,19 @@
 import React, { memo, useMemo, useState } from 'react';
+import { Box } from '@metamask/design-system-react-native';
 import type {
   PredictMarketGame,
   PredictOutcome,
   PredictOutcomeGroup,
+  PredictOutcomeToken,
 } from '../../types';
 import type { PredictBetButtonVariant } from '../PredictActionButtons/PredictActionButtons.types';
 import PredictSportOutcomeCard, {
   type PredictSportOutcomeButton,
 } from '../PredictSportOutcomeCard';
+import PredictChipList, { type PredictChipItem } from '../PredictChipList';
 import { formatVolume } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
+import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 
 const I18N_PREFIX = 'predict.sports_market_types';
 
@@ -19,7 +23,7 @@ export const getSportsMarketTypeLabel = (type: string): string => {
   return label;
 };
 
-const noop = () => undefined;
+type BuyHandler = (outcome: PredictOutcome, token: PredictOutcomeToken) => void;
 
 const isMoneylineType = (type?: string): boolean =>
   type === 'moneyline' || type === 'first_half_moneyline';
@@ -46,6 +50,7 @@ const getButtonVariant = (
 
 const buildButtons = (
   outcome: PredictOutcome,
+  onBuyPress?: BuyHandler,
   game?: PredictMarketGame,
   sportsMarketType?: string,
 ): PredictSportOutcomeButton[] => {
@@ -53,7 +58,7 @@ const buildButtons = (
   return outcome.tokens.map((token, index) => ({
     label: token.shortTitle ?? token.title,
     price: Math.round(token.price * 100),
-    onPress: noop,
+    onPress: onBuyPress ? () => onBuyPress(outcome, token) : () => undefined,
     variant: getButtonVariant(index, outcome.tokens.length, moneyline),
     teamColor: moneyline ? getTeamColor(token.title, game) : undefined,
   }));
@@ -66,12 +71,14 @@ const SimpleOutcomeCard = memo(
   ({
     outcome,
     title,
+    onBuyPress,
     game,
     sportsMarketType,
     testID,
   }: {
     outcome: PredictOutcome;
     title: string;
+    onBuyPress?: BuyHandler;
     game?: PredictMarketGame;
     sportsMarketType?: string;
     testID: string;
@@ -79,7 +86,7 @@ const SimpleOutcomeCard = memo(
     <PredictSportOutcomeCard
       title={title}
       subtitle={buildSubtitle(outcome)}
-      buttons={buildButtons(outcome, game, sportsMarketType)}
+      buttons={buildButtons(outcome, onBuyPress, game, sportsMarketType)}
       testID={testID}
     />
   ),
@@ -91,12 +98,14 @@ const LineOutcomeCard = memo(
   ({
     outcomes,
     title,
+    onBuyPress,
     game,
     sportsMarketType,
     testID,
   }: {
     outcomes: PredictOutcome[];
     title: string;
+    onBuyPress?: BuyHandler;
     game?: PredictMarketGame;
     sportsMarketType?: string;
     testID: string;
@@ -121,7 +130,12 @@ const LineOutcomeCard = memo(
       <PredictSportOutcomeCard
         title={title}
         subtitle={buildSubtitle(selectedOutcome)}
-        buttons={buildButtons(selectedOutcome, game, sportsMarketType)}
+        buttons={buildButtons(
+          selectedOutcome,
+          onBuyPress,
+          game,
+          sportsMarketType,
+        )}
         lines={lines}
         selectedLine={selectedLine}
         onSelectLine={setSelectedLine}
@@ -136,11 +150,13 @@ LineOutcomeCard.displayName = 'LineOutcomeCard';
 const SubgroupCards = memo(
   ({
     subgroup,
+    onBuyPress,
     game,
     groupKey,
     index,
   }: {
     subgroup: PredictOutcomeGroup;
+    onBuyPress?: BuyHandler;
     game?: PredictMarketGame;
     groupKey: string;
     index: number;
@@ -153,6 +169,7 @@ const SubgroupCards = memo(
         <SimpleOutcomeCard
           outcome={subgroup.outcomes[0]}
           title={title}
+          onBuyPress={onBuyPress}
           game={game}
           sportsMarketType={subgroup.key}
           testID={testID}
@@ -164,6 +181,7 @@ const SubgroupCards = memo(
       <LineOutcomeCard
         outcomes={subgroup.outcomes}
         title={title}
+        onBuyPress={onBuyPress}
         game={game}
         sportsMarketType={subgroup.key}
         testID={testID}
@@ -177,9 +195,11 @@ SubgroupCards.displayName = 'SubgroupCards';
 const OutcomesContent = memo(
   ({
     group,
+    onBuyPress,
     game,
   }: {
     group: PredictOutcomeGroup;
+    onBuyPress?: BuyHandler;
     game?: PredictMarketGame;
   }) => {
     if (group.subgroups && group.subgroups.length > 0) {
@@ -189,6 +209,7 @@ const OutcomesContent = memo(
             <SubgroupCards
               key={subgroup.key}
               subgroup={subgroup}
+              onBuyPress={onBuyPress}
               game={game}
               groupKey={group.key}
               index={index}
@@ -205,6 +226,7 @@ const OutcomesContent = memo(
             key={outcome.id}
             outcome={outcome}
             title={outcome.groupItemTitle || outcome.title}
+            onBuyPress={onBuyPress}
             game={game}
             sportsMarketType={outcome.sportsMarketType}
             testID={`${group.key}-outcome-${index}`}
@@ -217,4 +239,50 @@ const OutcomesContent = memo(
 
 OutcomesContent.displayName = 'OutcomesContent';
 
-export default OutcomesContent;
+export interface OutcomesTabProps {
+  outcomeGroups: PredictOutcomeGroup[];
+  game?: PredictMarketGame;
+  chips: PredictChipItem[];
+  activeChipKey: string;
+  onChipSelect: (key: string) => void;
+  onBuyPress: (outcome: PredictOutcome, token: PredictOutcomeToken) => void;
+}
+
+const OutcomesTab = memo(
+  ({
+    outcomeGroups,
+    game,
+    chips,
+    activeChipKey,
+    onChipSelect,
+    onBuyPress,
+  }: OutcomesTabProps) => {
+    const selectedGroup = useMemo(
+      () => outcomeGroups.find((g) => g.key === activeChipKey),
+      [outcomeGroups, activeChipKey],
+    );
+
+    return (
+      <Box testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT}>
+        <PredictChipList
+          chips={chips}
+          activeChipKey={activeChipKey}
+          onChipSelect={onChipSelect}
+        />
+        {selectedGroup && (
+          <Box twClassName="px-4 pt-3">
+            <OutcomesContent
+              group={selectedGroup}
+              onBuyPress={onBuyPress}
+              game={game}
+            />
+          </Box>
+        )}
+      </Box>
+    );
+  },
+);
+
+OutcomesTab.displayName = 'OutcomesTab';
+
+export default OutcomesTab;

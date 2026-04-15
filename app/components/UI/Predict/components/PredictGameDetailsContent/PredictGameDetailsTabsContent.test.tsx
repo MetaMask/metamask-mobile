@@ -11,6 +11,23 @@ import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsConte
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import type { PredictMarketDetailsTabKey } from '../../Predict.testIds';
 
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: jest.fn() }),
+}));
+
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: (action: () => void) => action(),
+    isEligible: true,
+  }),
+}));
+
+jest.mock('../../hooks/usePredictNavigation', () => ({
+  usePredictNavigation: () => ({
+    navigateToBuyPreview: jest.fn(),
+  }),
+}));
+
 jest.mock('../PredictPicks/PredictPicks', () => {
   const { View } = jest.requireActual('react-native');
   return function MockPredictPicks({

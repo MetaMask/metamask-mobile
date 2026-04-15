@@ -607,12 +607,25 @@ const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
   return market.groupItemTitle;
 };
 
+const YES_NO_TO_OVER_UNDER: Record<string, string> = {
+  Yes: 'Over',
+  No: 'Under',
+};
+
+const isOverUnderMarket = (market: PolymarketApiMarket): boolean =>
+  market.groupItemTitle?.includes('O/U') ?? false;
+
 const formatOutcomeTitles = (market: PolymarketApiMarket): string[] => {
   const outcomes = market.outcomes ? JSON.parse(market.outcomes) : [];
   if (isSpreadMarket(market)) {
     const line = market.line ? Math.abs(market.line) : 0;
     return outcomes.map((outcome: string, index: number) =>
       line ? `${outcome} ${index > 0 ? `+${line}` : `-${line}`}` : outcome,
+    );
+  }
+  if (isOverUnderMarket(market)) {
+    return outcomes.map(
+      (outcome: string) => YES_NO_TO_OVER_UNDER[outcome] ?? outcome,
     );
   }
   return outcomes;

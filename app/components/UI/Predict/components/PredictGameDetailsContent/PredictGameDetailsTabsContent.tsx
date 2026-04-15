@@ -1,18 +1,24 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import type {
   PredictMarket,
-  PredictMarketGame,
+  PredictOutcome,
   PredictOutcomeGroup,
+  PredictOutcomeToken,
   PredictPosition,
 } from '../../types';
+import type { PredictNavigationParamList } from '../../types/navigation';
 import type { PredictMarketDetailsTabKey } from '../../Predict.testIds';
-import PredictChipList, { type PredictChipItem } from '../PredictChipList';
+import type { PredictChipItem } from '../PredictChipList';
 import PredictPicks from '../PredictPicks/PredictPicks';
 import { getOutcomeGroupLabel } from '../../utils/outcomeGroupLabel';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { usePredictNavigation } from '../../hooks/usePredictNavigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
-import OutcomesContent from './OutcomesContent';
+import OutcomesTab from './OutcomesTab';
 
 interface PredictGameDetailsTabsContentProps {
   market: PredictMarket;
@@ -27,44 +33,6 @@ interface PredictGameDetailsTabsContentProps {
 const toChips = (groups: PredictOutcomeGroup[]): PredictChipItem[] =>
   groups.map((g) => ({ key: g.key, label: getOutcomeGroupLabel(g.key) }));
 
-const OutcomesTab = memo(
-  ({
-    outcomeGroups,
-    game,
-    chips,
-    activeChipKey,
-    onChipSelect,
-  }: {
-    outcomeGroups: PredictOutcomeGroup[];
-    game?: PredictMarketGame;
-    chips: PredictChipItem[];
-    activeChipKey: string;
-    onChipSelect: (key: string) => void;
-  }) => {
-    const selectedGroup = useMemo(
-      () => outcomeGroups.find((g) => g.key === activeChipKey),
-      [outcomeGroups, activeChipKey],
-    );
-
-    return (
-      <Box testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT}>
-        <PredictChipList
-          chips={chips}
-          activeChipKey={activeChipKey}
-          onChipSelect={onChipSelect}
-        />
-        {selectedGroup && (
-          <Box twClassName="px-4 pt-3">
-            <OutcomesContent group={selectedGroup} game={game} />
-          </Box>
-        )}
-      </Box>
-    );
-  },
-);
-
-OutcomesTab.displayName = 'OutcomesTab';
-
 const PredictGameDetailsTabsContent = memo(
   ({
     market,
@@ -75,6 +43,11 @@ const PredictGameDetailsTabsContent = memo(
     activePositions,
     claimablePositions,
   }: PredictGameDetailsTabsContentProps) => {
+    const navigation =
+      useNavigation<NavigationProp<PredictNavigationParamList>>();
+    const { executeGuardedAction } = usePredictActionGuard({ navigation });
+    const { navigateToBuyPreview } = usePredictNavigation();
+
     const outcomeGroups = useMemo(
       () => market.outcomeGroups ?? [],
       [market.outcomeGroups],
@@ -89,6 +62,25 @@ const PredictGameDetailsTabsContent = memo(
     const handleChipSelect = useCallback((key: string) => {
       setActiveChipKey(key);
     }, []);
+
+    const handleBuyPress = useCallback(
+      (outcome: PredictOutcome, token: PredictOutcomeToken) => {
+        executeGuardedAction(
+          () => {
+            navigateToBuyPreview({
+              market,
+              outcome,
+              outcomeToken: token,
+              entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+            });
+          },
+          {
+            attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+          },
+        );
+      },
+      [market, executeGuardedAction, navigateToBuyPreview],
+    );
 
     const hasPositions =
       activePositions.length > 0 || claimablePositions.length > 0;
@@ -120,6 +112,7 @@ const PredictGameDetailsTabsContent = memo(
           chips={chips}
           activeChipKey={activeChipKey}
           onChipSelect={handleChipSelect}
+          onBuyPress={handleBuyPress}
         />
       );
     }
@@ -148,6 +141,7 @@ const PredictGameDetailsTabsContent = memo(
             chips={chips}
             activeChipKey={activeChipKey}
             onChipSelect={handleChipSelect}
+            onBuyPress={handleBuyPress}
           />
         )}
       </>
