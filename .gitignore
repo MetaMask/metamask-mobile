@@ -196,3 +196,6 @@ runway-artifacts/
 release-test-plan.json
 release-delta.json
 release-signoffs.json
+
+# Messenger docs
+.messenger-docs/
