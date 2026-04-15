@@ -507,60 +507,6 @@ describe('usePredictBuyConditions', () => {
     });
   });
 
-  describe('canSelectToken', () => {
-    it('returns true when totalPayForPredictBalance exceeds predictBalance', () => {
-      mockPredictBalance = 10;
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          totalPayForPredictBalance: 20,
-        }),
-      );
-
-      expect(result.current.canSelectToken).toBe(true);
-    });
-
-    it('returns false when predictBalance covers totalPayForPredictBalance and balance meets minimum', () => {
-      mockPredictBalance = 20;
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          totalPayForPredictBalance: 10,
-        }),
-      );
-
-      expect(result.current.canSelectToken).toBe(false);
-    });
-
-    it('returns true when predictBalance is below MINIMUM_BET regardless of totalPay', () => {
-      mockPredictBalance = 0.5;
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          totalPayForPredictBalance: 0,
-        }),
-      );
-
-      expect(result.current.canSelectToken).toBe(true);
-    });
-
-    it('returns false when predictBalance equals totalPayForPredictBalance and meets minimum', () => {
-      mockPredictBalance = 5;
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          totalPayForPredictBalance: 5,
-        }),
-      );
-
-      expect(result.current.canSelectToken).toBe(false);
-    });
-  });
-
   describe('selected payment token reset effect', () => {
     it('resets the selected token when predict balance covers the total and input is not focused', () => {
       mockPredictBalance = 20;

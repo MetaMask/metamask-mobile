@@ -21,7 +21,6 @@ let mockPayWithAnyTokenEnabled = true;
 let mockFakOrdersEnabled = false;
 let mockIsPreviewCalculating = false;
 let mockIsPlacingOrder = false;
-let mockCanSelectToken = true;
 let mockErrorMessage: string | undefined;
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -145,7 +144,6 @@ jest.mock('./hooks/usePredictBuyConditions', () => ({
     isBelowMinimum: false,
     isInsufficientBalance: false,
     maxBetAmount: 50,
-    canSelectToken: mockCanSelectToken,
   }),
 }));
 
@@ -346,7 +344,6 @@ describe('PredictBuyWithAnyToken', () => {
     mockFakOrdersEnabled = false;
     mockIsPreviewCalculating = false;
     mockIsPlacingOrder = false;
-    mockCanSelectToken = true;
     mockErrorMessage = undefined;
     mockUseSelector.mockImplementation((selector) => {
       if (typeof selector === 'function') {
