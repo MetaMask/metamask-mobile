@@ -1,6 +1,7 @@
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 import { AccountType } from '../../constants/onboarding';
 import { AuthConnection } from '../../core/OAuthService/OAuthInterface';
+import type { WalletHomeOnboardingStepsSuppressedReason } from '../../constants/walletHomeOnboardingSteps';
 
 export const SAVE_EVENT = 'SAVE_EVENT';
 export const CLEAR_EVENTS = 'CLEAR_EVENTS';
@@ -14,6 +15,14 @@ export const CLEAR_SEEDLESS_ONBOARDING = 'CLEAR_SEEDLESS_ONBOARDING';
 export const SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT =
   'SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT';
 export const CLEAR_ONBOARDING = 'CLEAR_ONBOARDING';
+export const SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE =
+  'SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE';
+export const RESET_WALLET_HOME_ONBOARDING_STEPS =
+  'RESET_WALLET_HOME_ONBOARDING_STEPS';
+export const SET_WALLET_HOME_ONBOARDING_STEPS_STEP =
+  'SET_WALLET_HOME_ONBOARDING_STEPS_STEP';
+export const SUPPRESS_WALLET_HOME_ONBOARDING_STEPS =
+  'SUPPRESS_WALLET_HOME_ONBOARDING_STEPS';
 
 interface SaveEventAction {
   type: typeof SAVE_EVENT;
@@ -63,6 +72,25 @@ export interface ClearOnboardingAction {
   type: typeof CLEAR_ONBOARDING;
 }
 
+export interface SetWalletHomeOnboardingStepsEligibleAction {
+  type: typeof SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE;
+  eligible: boolean;
+}
+
+export interface ResetWalletHomeOnboardingStepsAction {
+  type: typeof RESET_WALLET_HOME_ONBOARDING_STEPS;
+}
+
+export interface SetWalletHomeOnboardingStepsStepAction {
+  type: typeof SET_WALLET_HOME_ONBOARDING_STEPS_STEP;
+  stepIndex: number;
+}
+
+export interface SuppressWalletHomeOnboardingStepsAction {
+  type: typeof SUPPRESS_WALLET_HOME_ONBOARDING_STEPS;
+  reason: WalletHomeOnboardingStepsSuppressedReason;
+}
+
 export type OnboardingActionTypes =
   | SaveEventAction
   | ClearEventsAction
@@ -73,7 +101,11 @@ export type OnboardingActionTypes =
   | SetSeedlessOnboardingAction
   | ClearSeedlessOnboardingAction
   | SetIosGoogleWarningSheetLastDismissedAtAction
-  | ClearOnboardingAction;
+  | ClearOnboardingAction
+  | SetWalletHomeOnboardingStepsEligibleAction
+  | ResetWalletHomeOnboardingStepsAction
+  | SetWalletHomeOnboardingStepsStepAction
+  | SuppressWalletHomeOnboardingStepsAction;
 
 export function saveOnboardingEvent(
   eventArgs: [ITrackingEvent],
@@ -154,5 +186,38 @@ export function setIosGoogleWarningSheetLastDismissedAt(
 export function clearOnboarding(): ClearOnboardingAction {
   return {
     type: CLEAR_ONBOARDING,
+  };
+}
+
+export function setWalletHomeOnboardingStepsEligible(
+  eligible: boolean,
+): SetWalletHomeOnboardingStepsEligibleAction {
+  return {
+    type: SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
+    eligible,
+  };
+}
+
+export function resetWalletHomeOnboardingSteps(): ResetWalletHomeOnboardingStepsAction {
+  return {
+    type: RESET_WALLET_HOME_ONBOARDING_STEPS,
+  };
+}
+
+export function setWalletHomeOnboardingStepsStep(
+  stepIndex: number,
+): SetWalletHomeOnboardingStepsStepAction {
+  return {
+    type: SET_WALLET_HOME_ONBOARDING_STEPS_STEP,
+    stepIndex,
+  };
+}
+
+export function suppressWalletHomeOnboardingSteps(
+  reason: WalletHomeOnboardingStepsSuppressedReason,
+): SuppressWalletHomeOnboardingStepsAction {
+  return {
+    type: SUPPRESS_WALLET_HOME_ONBOARDING_STEPS,
+    reason,
   };
 }
