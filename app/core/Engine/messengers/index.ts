@@ -111,10 +111,7 @@ import {
   getUserStorageControllerInitMessenger,
 } from './identity/user-storage-controller-messenger';
 import { getAuthenticationControllerMessenger } from './identity/authentication-controller-messenger';
-import {
-  getEarnControllerInitMessenger,
-  getEarnControllerMessenger,
-} from './earn-controller-messenger';
+import { getEarnControllerMessenger } from './earn-controller-messenger';
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
@@ -194,7 +191,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   EarnController: {
     getMessenger: getEarnControllerMessenger,
-    getInitMessenger: getEarnControllerInitMessenger,
+    getInitMessenger: noop,
   },
   GeolocationApiService: {
     getMessenger: getGeolocationApiServiceMessenger,

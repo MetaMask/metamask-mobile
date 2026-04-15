@@ -8,8 +8,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -411,7 +410,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -425,7 +424,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -833,7 +832,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -845,8 +844,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1248,7 +1246,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -1262,7 +1260,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -1448,7 +1446,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1460,8 +1458,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1863,7 +1860,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -1877,7 +1874,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -2174,7 +2171,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2186,8 +2183,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2589,7 +2585,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -2603,7 +2599,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -2900,6 +2896,6 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

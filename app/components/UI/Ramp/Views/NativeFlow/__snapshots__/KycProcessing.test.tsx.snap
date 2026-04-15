@@ -1,14 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`V2KycProcessing matches snapshot in loading state 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "off",
-    }
+    [
+      "right",
+      "bottom",
+      "left",
+    ]
   }
   style={
     {
@@ -231,5 +230,5 @@ exports[`V2KycProcessing matches snapshot in loading state 1`] = `
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;

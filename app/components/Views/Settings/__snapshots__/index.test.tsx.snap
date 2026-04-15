@@ -1,13 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Settings renders settings component with all sections 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -1114,5 +1111,5 @@ exports[`Settings renders settings component with all sections 1`] = `
       </TouchableOpacity>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;

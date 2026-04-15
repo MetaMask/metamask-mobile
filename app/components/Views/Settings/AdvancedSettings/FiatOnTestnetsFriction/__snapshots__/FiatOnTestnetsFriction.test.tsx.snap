@@ -77,9 +77,9 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             "borderTopLeftRadius": 24,
             "borderTopRightRadius": 24,
             "borderWidth": 1,
-            "maxHeight": NaN,
+            "maxHeight": 0,
             "overflow": "hidden",
-            "paddingBottom": undefined,
+            "paddingBottom": 0,
             "shadowColor": "#0000001a",
             "shadowOffset": {
               "height": 2,
@@ -91,7 +91,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
           {
             "transform": [
               {
-                "translateY": undefined,
+                "translateY": 0,
               },
             ],
           },

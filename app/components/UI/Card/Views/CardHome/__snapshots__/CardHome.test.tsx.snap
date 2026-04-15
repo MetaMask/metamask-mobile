@@ -8,8 +8,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1483,7 +1482,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1495,8 +1494,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2970,6 +2968,6 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

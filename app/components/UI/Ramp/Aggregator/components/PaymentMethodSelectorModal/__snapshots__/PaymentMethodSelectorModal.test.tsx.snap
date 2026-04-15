@@ -8,8 +8,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -410,7 +409,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -424,7 +423,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -1217,7 +1216,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1229,8 +1228,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1631,7 +1629,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -1645,7 +1643,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -2438,7 +2436,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2450,8 +2448,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2852,7 +2849,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -2866,7 +2863,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -3635,6 +3632,6 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

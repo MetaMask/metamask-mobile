@@ -141,6 +141,7 @@ import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeason
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
+import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -1147,7 +1148,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.EARN.MODALS.ROOT}
         component={EarnModalStack}
-        options={clearStackNavigatorOptionsWithTransitionAnimation}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
       />
       {isMoneyHomeScreenEnabled && (
         <Stack.Screen
@@ -1181,7 +1185,10 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}
-            options={clearStackNavigatorOptionsWithTransitionAnimation}
+            options={{
+              ...clearStackNavigatorOptionsWithTransitionAnimation,
+              presentation: 'transparentModal',
+            }}
           />
         </>
       )}
@@ -1224,8 +1231,8 @@ const MainNavigator = () => {
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
             options={{
-              presentation: 'transparentModal',
               ...clearStackNavigatorOptionsWithTransitionAnimation,
+              presentation: 'transparentModal',
             }}
           />
         </>
@@ -1300,7 +1307,15 @@ const MainNavigator = () => {
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
-        options={{ headerShown: true, ...slideFromRightAnimation }}
+        options={({ navigation }) => ({
+          ...slideFromRightAnimation,
+          ...getDeFiProtocolPositionDetailsNavbarOptions(navigation),
+          headerStyle: {
+            backgroundColor: colors.background.default,
+            shadowColor: importedColors.transparent,
+            elevation: 0,
+          },
+        })}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)

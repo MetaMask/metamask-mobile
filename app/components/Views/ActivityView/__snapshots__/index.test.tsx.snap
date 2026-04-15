@@ -8,8 +8,7 @@ exports[`ActivityView matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,12 +333,9 @@ exports[`ActivityView matches snapshot 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
                           {
-                            "bottom": "off",
-                            "left": "off",
-                            "right": "off",
                             "top": "additive",
                           }
                         }
@@ -584,7 +580,7 @@ exports[`ActivityView matches snapshot 1`] = `
                             />
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -594,6 +590,6 @@ exports[`ActivityView matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

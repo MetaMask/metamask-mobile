@@ -8,8 +8,7 @@ exports[`CardButton Component renders with badge (not yet viewed) and matches sn
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -479,7 +478,7 @@ exports[`CardButton Component renders with badge (not yet viewed) and matches sn
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -491,8 +490,7 @@ exports[`CardButton Component renders without badge when already viewed 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -932,6 +930,6 @@ exports[`CardButton Component renders without badge when already viewed 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

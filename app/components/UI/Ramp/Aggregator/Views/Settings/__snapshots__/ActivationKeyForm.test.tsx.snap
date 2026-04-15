@@ -8,8 +8,7 @@ exports[`AddActivationKey renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,14 +333,11 @@ exports[`AddActivationKey renders correctly 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
+                      <View
                         edges={
-                          {
-                            "bottom": "off",
-                            "left": "off",
-                            "right": "off",
-                            "top": "additive",
-                          }
+                          [
+                            "top",
+                          ]
                         }
                         style={
                           {
@@ -491,14 +487,13 @@ exports[`AddActivationKey renders correctly 1`] = `
                             />
                           </View>
                         </View>
-                        <RNCSafeAreaView
+                        <View
                           edges={
-                            {
-                              "bottom": "additive",
-                              "left": "additive",
-                              "right": "additive",
-                              "top": "off",
-                            }
+                            [
+                              "right",
+                              "bottom",
+                              "left",
+                            ]
                           }
                           style={
                             {
@@ -868,8 +863,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                               </View>
                             </View>
                           </View>
-                        </RNCSafeAreaView>
-                      </RNCSafeAreaView>
+                        </View>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -879,6 +874,6 @@ exports[`AddActivationKey renders correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

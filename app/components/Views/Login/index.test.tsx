@@ -223,14 +223,6 @@ jest.mock('../../UI/ScreenshotDeterrent', () => ({
   ScreenshotDeterrent: () => null,
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
-}));
-
 jest.mock('react-native-keyboard-aware-scroll-view', () => ({
   KeyboardAwareScrollView: ({ children }: { children: React.ReactNode }) =>
     children,

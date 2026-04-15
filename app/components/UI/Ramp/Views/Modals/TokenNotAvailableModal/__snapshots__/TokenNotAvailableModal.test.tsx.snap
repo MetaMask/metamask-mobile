@@ -8,8 +8,7 @@ exports[`TokenNotAvailableModal matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -711,7 +710,7 @@ exports[`TokenNotAvailableModal matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -723,8 +722,7 @@ exports[`TokenNotAvailableModal matches snapshot with missing provider and token
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1426,6 +1424,6 @@ exports[`TokenNotAvailableModal matches snapshot with missing provider and token
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

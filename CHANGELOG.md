@@ -9,31 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.73.0]
 
-### Uncategorized
-
-- chore:cherry pick 28490 (#28556)
-- chore: cherry pick 28423 (#28540)
-- cherry pick 28368 (#28535)
-- chore: use push EAS directly (#28362)
-- Null (#28510)
-
----
-
-- chore/modify runway ota build core workflow (#28310)
-- Chore/abstract build from upload to testflight (#28309)
-- chore: display OTA push platform in summary (#28059)
-- chore(release): sync stable to main for version 7.71.1 (#28154)
-- chore(release): sync stable to main for version 7.71.0 (#28023)
-
 ### Added
 
 - Added runway production workflows (#27887)
-- Update Earn team name to @MetaMask/earn in codeowners (#28062)
 - Added feature-flagged "withdraw to any token" flow for Perps, allowing users to withdraw Perps funds to any supported token via MetaMask Pay (#28265)
 - Added a token safety banner and warning modal in Swaps that alerts users when the destination token is flagged as suspicious or malicious before proceeding with a swap (#27834)
 - Added trending stocks deep link routing (#27869)
 - Added Perps withdraw confirmation flow (#28236)
-- Added Perps withdraw confirmation flow (#28046)
 - Added UCL soccer league support with 3-way draw predictions (#28121)
 - Added Google Wallet in-app provisioning for MetaMask Card on Android (#25742)
 - Added a Claim bonus action on the home Cash section when users have no mUSD but have a claimable Merkl bonus, with the amount shown in the selected fiat currency (#27909)
@@ -51,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Derive mm*pay*\* metrics from controller state for reliable Transaction Finalized tracking (#28164)
+- Fixed Transaction Finalized tracking by deriving mm_pay metrics from controller state (#28164)
 - Fixed Bitcoin PSBT build errors to include the underlying cause for better diagnostics (#28282)
 - Fixed stuck pending withdraw (#26537)
 - Fixed duplicate WalletConnect relay messages when switching chains (#27978)
@@ -78,6 +60,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed limit price preset buttons (Mid, Bid, Ask, percentage) truncating one decimal place for low-price assets like XRP (#27907)
 - Fixed a bug that was causing issues with TRC20 token transfers (#27922)
 - Fixed Ondo campaign opt-in to respect cutoff date (#28000)
+
+## [7.72.1]
+
+### Fixed
+
+- Fixed a bug where users in restricted regions could open perps positions from the Market Insights page (#28688)
 
 ## [7.72.0]
 
@@ -11228,8 +11216,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.73.0...HEAD
-[7.73.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.0...v7.73.0
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.1...HEAD
+[7.73.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.1...v7.73.0
+[7.72.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.0...v7.72.1
 [7.72.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.1...v7.72.0
 [7.71.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.0...v7.71.1
 [7.71.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.1...v7.71.0

@@ -118,7 +118,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
           }
         />
       </View>
-      <RCTSafeAreaView
+      <View
         style={
           {
             "backgroundColor": "#f3f3f4",
@@ -1060,7 +1060,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
             </View>
           </View>
         </View>
-      </RCTSafeAreaView>
+      </View>
       <View />
     </View>
   </View>
@@ -1185,7 +1185,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
           }
         />
       </View>
-      <RCTSafeAreaView
+      <View
         style={
           {
             "backgroundColor": "#f3f3f4",
@@ -2127,7 +2127,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
             </View>
           </View>
         </View>
-      </RCTSafeAreaView>
+      </View>
       <View />
     </View>
   </View>
@@ -2252,7 +2252,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
           }
         />
       </View>
-      <RCTSafeAreaView
+      <View
         style={
           {
             "backgroundColor": "#f3f3f4",
@@ -3194,7 +3194,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
             </View>
           </View>
         </View>
-      </RCTSafeAreaView>
+      </View>
       <View />
     </View>
   </View>
@@ -3319,7 +3319,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
           }
         />
       </View>
-      <RCTSafeAreaView
+      <View
         style={
           {
             "backgroundColor": "#f3f3f4",
@@ -4261,7 +4261,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
             </View>
           </View>
         </View>
-      </RCTSafeAreaView>
+      </View>
       <View />
     </View>
   </View>
