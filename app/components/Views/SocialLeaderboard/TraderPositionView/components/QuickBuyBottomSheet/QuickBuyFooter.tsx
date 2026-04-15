@@ -24,6 +24,7 @@ import BadgeWrapper, {
 import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import type { Hex } from '@metamask/utils';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import SourceTokenPicker from './SourceTokenPicker';
 import RewardsAnimations, {
@@ -46,13 +47,13 @@ interface QuickBuyFooterProps {
     React.SetStateAction<BridgeToken | undefined>
   >;
   sourceBalanceFiat: string | undefined;
-  estimatedPoints: number | undefined;
+  estimatedPoints: number | null;
   isRewardsLoading: boolean;
   shouldShowLiveRewardsEstimate: boolean;
   shouldShowRewardsOptInCta: boolean;
   shouldShowRewardsFallbackZero: boolean;
   hasRewardsError: boolean;
-  rewardsAccountScope: string | null | undefined;
+  rewardsAccountScope: InternalAccount | null;
   isConfirmDisabled: boolean;
   isConfirmLoading: boolean;
   getButtonLabel: () => string;

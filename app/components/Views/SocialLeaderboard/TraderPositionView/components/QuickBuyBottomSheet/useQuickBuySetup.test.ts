@@ -1,9 +1,13 @@
 import { renderHook } from '@testing-library/react-native';
 import type { Position } from '@metamask/social-controllers';
-import { useAssetMetadata } from '../../../../../UI/Bridge/hooks/useAssetMetadata';
+import {
+  useAssetMetadata,
+  AssetType,
+} from '../../../../../UI/Bridge/hooks/useAssetMetadata';
 import { useQuickBuySetup } from './useQuickBuySetup';
 
 jest.mock('../../../../../UI/Bridge/hooks/useAssetMetadata', () => ({
+  ...jest.requireActual('../../../../../UI/Bridge/hooks/useAssetMetadata'),
   useAssetMetadata: jest.fn(),
 }));
 
@@ -69,8 +73,14 @@ describe('useQuickBuySetup', () => {
     mockUseAssetMetadata.mockReturnValue({
       assetMetadata: {
         address: '0x9999999999999999999999999999999999999999',
+        symbol: 'TEST',
         decimals: 6,
         image: 'https://example.com/test-token.png',
+        chainId: '0x2105',
+        isNative: false,
+        type: AssetType.token,
+        balance: '',
+        string: '',
       },
       pending: false,
     });
@@ -98,8 +108,14 @@ describe('useQuickBuySetup', () => {
     mockUseAssetMetadata.mockReturnValue({
       assetMetadata: {
         address: 'solana-token-address',
+        symbol: 'TEST',
         decimals: 9,
         image: 'https://example.com/solana-token.png',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        isNative: false,
+        type: AssetType.token,
+        balance: '',
+        string: '',
       },
       pending: true,
     });

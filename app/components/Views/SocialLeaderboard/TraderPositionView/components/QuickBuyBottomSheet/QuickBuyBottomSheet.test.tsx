@@ -114,7 +114,7 @@ const buildHookResult = (
   sourceBalanceFiat: undefined,
   isQuoteLoading: false,
   isSubmittingTx: false,
-  estimatedPoints: undefined,
+  estimatedPoints: null,
   isRewardsLoading: false,
   shouldShowLiveRewardsEstimate: false,
   shouldShowRewardsOptInCta: false,

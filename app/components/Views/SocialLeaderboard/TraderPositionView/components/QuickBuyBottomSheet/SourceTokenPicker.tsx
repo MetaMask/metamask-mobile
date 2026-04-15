@@ -11,10 +11,10 @@ import {
   BoxJustifyContent,
   AvatarToken,
   AvatarTokenSize,
-  IconName,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconSize,
+  IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
 import BadgeWrapper, {
   BadgePosition,
@@ -119,7 +119,7 @@ const SourceTokenPicker: React.FC<SourceTokenPickerProps> = ({
                 alignItems={BoxAlignItems.Center}
                 gap={2}
               >
-                <Box alignItems={BoxAlignItems.FlexEnd}>
+                <Box alignItems={BoxAlignItems.End}>
                   {item.balanceFiat && (
                     <Text
                       variant={TextVariant.BodyMd}

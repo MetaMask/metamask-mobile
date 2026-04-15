@@ -26,10 +26,7 @@ const createCandidate = (
     Pick<BridgeToken, 'address' | 'chainId' | 'symbol'>,
 ): BridgeToken =>
   ({
-    address: ZERO_ADDRESS,
-    chainId: '0x1',
     decimals: 18,
-    symbol: 'ETH',
     name: 'Ethereum',
     ...overrides,
   }) as BridgeToken;
@@ -71,7 +68,7 @@ describe('useSourceTokenOptions', () => {
 
   it('returns no options when there is no selected account', () => {
     mockGetSourceTokenCandidates.mockReturnValue([
-      createCandidate({ address: ZERO_ADDRESS, symbol: 'ETH' }),
+      createCandidate({ address: ZERO_ADDRESS, chainId: '0x1', symbol: 'ETH' }),
     ]);
     mockSelectorValues({});
 
@@ -94,17 +91,20 @@ describe('useSourceTokenOptions', () => {
     mockGetSourceTokenCandidates.mockReturnValue([
       createCandidate({
         address: ZERO_ADDRESS,
+        chainId: '0x1',
         symbol: 'ETH',
         name: 'Ethereum',
       }),
       createCandidate({
         address: usdcAddress,
+        chainId: '0x1',
         decimals: 6,
         symbol: 'USDC',
         name: 'USD Coin',
       }),
       createCandidate({
         address: daiAddress,
+        chainId: '0x1',
         decimals: 18,
         symbol: 'DAI',
         name: 'Dai Stablecoin',

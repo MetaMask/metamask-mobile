@@ -101,7 +101,7 @@ const defaultProps = {
   setIsSourcePickerOpen: jest.fn(),
   setSelectedSourceToken: jest.fn(),
   sourceBalanceFiat: '$2000.00',
-  estimatedPoints: undefined,
+  estimatedPoints: null,
   isRewardsLoading: false,
   shouldShowLiveRewardsEstimate: false,
   shouldShowRewardsOptInCta: false,

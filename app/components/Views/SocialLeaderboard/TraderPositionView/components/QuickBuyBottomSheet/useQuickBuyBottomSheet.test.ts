@@ -172,11 +172,13 @@ const setupDefaultMocks = () => {
   (useSelector as jest.Mock).mockImplementation(
     (selector: (state: unknown) => unknown) => selector({}),
   );
-  (selectIsSubmittingTx as jest.Mock).mockReturnValue(false);
-  (selectSourceWalletAddress as jest.Mock).mockReturnValue('0xWALLET');
-  (selectDestAddress as jest.Mock).mockReturnValue(null);
-  (selectIsEvmNonEvmBridge as jest.Mock).mockReturnValue(false);
-  (selectIsNonEvmNonEvmBridge as jest.Mock).mockReturnValue(false);
+  (selectIsSubmittingTx as unknown as jest.Mock).mockReturnValue(false);
+  (selectSourceWalletAddress as unknown as jest.Mock).mockReturnValue(
+    '0xWALLET',
+  );
+  (selectDestAddress as unknown as jest.Mock).mockReturnValue(null);
+  (selectIsEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
+  (selectIsNonEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
 
   (useQuickBuySetup as jest.Mock).mockReturnValue({
     chainId: '0x1',

@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
 import type { BottomSheetRef } from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import type { Hex } from '@metamask/utils';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
@@ -61,14 +62,14 @@ export interface UseQuickBuyBottomSheetResult {
   isQuoteLoading: boolean;
   isSubmittingTx: boolean;
   // rewards
-  estimatedPoints: number | undefined;
+  estimatedPoints: number | null;
   isRewardsLoading: boolean;
   shouldShowLiveRewardsEstimate: boolean;
   shouldShowRewardsOptInCta: boolean;
   shouldShowRewardsFallbackZero: boolean;
   hasRewardsError: boolean;
-  accountOptedIn: boolean | undefined;
-  rewardsAccountScope: string | null | undefined;
+  accountOptedIn: boolean | null;
+  rewardsAccountScope: InternalAccount | null;
   // button state
   hasError: boolean;
   hasValidAmount: boolean;
