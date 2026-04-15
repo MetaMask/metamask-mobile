@@ -188,10 +188,6 @@ async function connectToChannel({
           `SDKConnect::connectToChannel - checkPermissions - error`,
           error,
         );
-        // User approval/rejection is already tracked by the MetaMetrics
-        // CONNECT_REQUEST_COMPLETED / CONNECT_REQUEST_CANCELLED events
-        // (with source: 'sdk') fired by the permission-system UI.
-
         // first needs to connect without key exchange to send the event
         await instance.state.connected[id].remote.reject({ channelId: id });
         // Send rejection event without awaiting
