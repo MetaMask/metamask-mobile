@@ -1,4 +1,5 @@
 import { CaipChainId } from '@metamask/utils';
+import type { TokenI } from '../Tokens/types';
 
 /**
  * Enum for asset delegation status
@@ -36,6 +37,7 @@ export enum CardMessageBoxType {
   CloseSpendingLimit = 'close_spending_limit',
   KYCPending = 'kyc_pending',
   CardProvisioning = 'card_provisioning',
+  AuthPrompt = 'auth_prompt',
 }
 
 export type CardUserPhase =
@@ -86,6 +88,14 @@ export type CardTokenAllowance = {
   totalAllowance?: string;
 } & CardToken &
   AuthenticatedCardTokenAllowanceData;
+
+export type CardAssetWithBalance = CardTokenAllowance & {
+  balanceFiat: string | undefined;
+  balanceFormatted: string | undefined;
+  rawFiatNumber: number | undefined;
+  rawTokenBalance: number | undefined;
+  asset?: TokenI;
+};
 
 export interface CardLoginInitiateResponse {
   token: string;

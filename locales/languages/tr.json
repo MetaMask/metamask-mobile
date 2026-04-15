@@ -4810,11 +4810,9 @@
     "body_for_seedphrase": "Değer cüzdanınıza eklendiğine göre bir şifre belirleyerek ve Gizli Kurtarma İfadenizi (gereklidir) kaydederek cüzdanınızı koruyun.",
     "button": "Cüzdanı koru"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "İşlem güncellemesi başarısız oldu",
-    "text": "Tekrar denemek ister misiniz?",
-    "cancel_button": "İptal",
-    "retry_button": "Tekrar Dene"
+    "already_confirmed": "Bu işlem zaten onaylandı ve değiştirilemez."
   },
   "payment_request": {
     "title": "Talep",
