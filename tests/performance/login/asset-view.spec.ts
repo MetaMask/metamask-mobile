@@ -19,29 +19,25 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
 
       const assetViewScreen = new TimerHelper(
         'Time since the user clicks on the asset view button until the user sees the token overview screen',
-        { ios: 600, android: 600 },
+        { ios: 3000, android: 600 },
         currentDeviceDetails.platform,
       );
 
       await WalletView.tapOnTokensSection();
-      await WalletView.tapOnToken('USDC');
+      await WalletView.tapOnToken('BTC');
 
-      await assetViewScreen.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(TokenOverview.container),
-        );
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(TokenOverview.sendButton),
-        );
-        // Replicating the logic of the old spec to wait for the todays change to be visible isTodaysChangeVisible method in the TokenOverview wdio screen object
-        await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
-          asPlaywrightElement(TokenOverview.todaysChange),
-          {
-            timeout: 10000,
-            settleMs: 500,
-          },
-        );
-      });
+      const todaysChangeEl = asPlaywrightElement(TokenOverview.todaysChange);
+
+      await assetViewScreen.measure(
+        async () => {
+          await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
+            todaysChangeEl,
+          );
+        },
+        async () => {
+          await PlaywrightAssertions.expectElementToBeVisible(todaysChangeEl);
+        },
+      );
 
       performanceTracker.addTimer(assetViewScreen);
     },

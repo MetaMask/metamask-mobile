@@ -1,7 +1,12 @@
 import test from '@playwright/test';
 import type { DeviceMatrix } from './types';
 import { PlaywrightElement } from './PlaywrightAdapter';
-import { DEFAULT_IMPLICIT_WAIT_MS } from './Constants';
+import {
+  DEFAULT_IMPLICIT_WAIT_MS,
+  DEFAULT_SNAPSHOT_MAX_DEPTH,
+  DEFAULT_SNAPSHOT_MAX_CHILDREN,
+  DEFAULT_CUSTOM_SNAPSHOT_TIMEOUT,
+} from './Constants';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import-x/no-commonjs, @typescript-eslint/no-require-imports
 const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');
@@ -34,6 +39,35 @@ export async function withImplicitWait<T>(
     return await fn();
   } finally {
     await drv.setTimeout({ implicit: DEFAULT_IMPLICIT_WAIT_MS });
+  }
+}
+
+export interface SnapshotSettings {
+  snapshotMaxDepth?: number;
+  snapshotMaxChildren?: number;
+  customSnapshotTimeout?: number;
+}
+
+/**
+ * Runs a callback with temporarily adjusted WDA snapshot settings.
+ * Restores defaults afterward, even if the callback throws.
+ * Use this for heavy screens (e.g. token selector lists) where
+ * a smaller depth/children limit speeds up element lookups.
+ */
+export async function withSnapshotSettings<T>(
+  settings: SnapshotSettings,
+  fn: () => Promise<T>,
+): Promise<T> {
+  const drv = getDriver();
+  await drv.updateSettings(settings);
+  try {
+    return await fn();
+  } finally {
+    await drv.updateSettings({
+      snapshotMaxDepth: DEFAULT_SNAPSHOT_MAX_DEPTH,
+      snapshotMaxChildren: DEFAULT_SNAPSHOT_MAX_CHILDREN,
+      customSnapshotTimeout: DEFAULT_CUSTOM_SNAPSHOT_TIMEOUT,
+    });
   }
 }
 

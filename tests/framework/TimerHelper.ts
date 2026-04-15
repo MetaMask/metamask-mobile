@@ -121,15 +121,25 @@ class TimerHelper {
   /**
    * Measures the execution time of an async action.
    * Starts the timer before the action and stops it after completion (or failure).
+   *
    * @param action - Async function to measure
+   * @param overheadProbe - Optional async function that exercises the same element lookup on an already-visible element. Executed after the timer stops; its duration is subtracted to isolate real app latency from Appium overhead.
    * @returns This TimerHelper instance for chaining
    */
-  async measure(action: () => Promise<void>): Promise<TimerHelper> {
+  async measure(
+    action: () => Promise<void>,
+    overheadProbe?: () => Promise<void>,
+  ): Promise<TimerHelper> {
     this.start();
     try {
       await action();
     } finally {
       this.stop();
+    }
+    if (overheadProbe) {
+      const probeStart = Date.now();
+      await overheadProbe();
+      this.subtractOverhead(Date.now() - probeStart);
     }
     return this;
   }
@@ -150,6 +160,21 @@ class TimerHelper {
   /** Returns whether this timer has a threshold defined. */
   hasThreshold(): boolean {
     return this._baseThreshold !== null;
+  }
+
+  /**
+   * Subtracts a measured overhead (e.g. Appium roundtrip) from the recorded duration.
+   * Useful to isolate real app performance from test framework latency.
+   * @param overheadMs - Overhead in milliseconds to subtract
+   */
+  subtractOverhead(overheadMs: number): void {
+    const timer = TimerStore.getTimer(this.id);
+    if (timer.duration === null) {
+      throw new Error(
+        `Timer "${this.id}" has no duration yet. Call stop() first.`,
+      );
+    }
+    timer.duration = Math.max(0, timer.duration - overheadMs);
   }
 
   /** The unique identifier for this timer. */

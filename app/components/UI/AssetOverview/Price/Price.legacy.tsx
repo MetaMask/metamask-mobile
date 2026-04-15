@@ -130,6 +130,7 @@ const PriceLegacy = ({
             </View>
           ) : distributedPriceData.length > 0 ? (
             <Text
+              testID={TokenOverviewSelectorsIDs.TODAYS_CHANGE}
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={

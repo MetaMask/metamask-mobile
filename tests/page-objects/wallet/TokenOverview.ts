@@ -59,12 +59,10 @@ class TokenOverview {
   get todaysChange(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
-        Matchers.getElementByText(
-          TokenOverviewSelectorsText.TODAYS_CHANGE_SUFFIX,
-        ),
+        Matchers.getElementByID(TokenOverviewSelectorsIDs.TODAYS_CHANGE),
       appium: () =>
-        PlaywrightMatchers.getElementByCatchAll(
-          TokenOverviewSelectorsText.TODAYS_CHANGE_SUFFIX,
+        PlaywrightMatchers.getElementById(
+          TokenOverviewSelectorsIDs.TODAYS_CHANGE,
         ),
     });
   }

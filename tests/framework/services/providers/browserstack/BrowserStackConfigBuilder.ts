@@ -67,7 +67,7 @@ export class BrowserStackConfigBuilder {
       port: 443,
       path: '/wd/hub',
       protocol: 'https',
-      logLevel: 'warn' as const,
+      logLevel: 'debug' as const,
       user: username,
       key: accessKey,
       hostname: 'hub.browserstack.com',
@@ -126,7 +126,7 @@ export class BrowserStackConfigBuilder {
         'appium:waitForQuiescence': false, // Don't wait for app idle
         'appium:animationCoolOffTimeout': 0, // Skip animation wait
         'appium:reduceMotion': true, // Reduce iOS animations
-        'appium:customSnapshotTimeout': 15, // Snapshot timeout in seconds"
+        'appium:customSnapshotTimeout': 15,
         'appium:waitForIdleTimeout': 0, // Don't wait for idle
         'appium:disableWindowAnimation': true, // Disable animations
         'appium:skipDeviceInitialization': true, // Skip init (faster startup)

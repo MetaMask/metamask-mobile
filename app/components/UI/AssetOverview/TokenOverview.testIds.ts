@@ -16,6 +16,7 @@ export const TokenOverviewSelectorsIDs = {
   LONG_BUTTON: 'token-long-button',
   SHORT_BUTTON: 'token-short-button',
   MORE_BUTTON: 'token-more-button',
+  TODAYS_CHANGE: 'token-todays-change',
 };
 
 export const TokenOverviewSelectorsText = {
