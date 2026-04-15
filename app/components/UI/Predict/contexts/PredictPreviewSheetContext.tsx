@@ -156,10 +156,7 @@ export const PredictPreviewSheetProvider: React.FC<
         buyNonceRef.current += 1;
         setBuyNonce(buyNonceRef.current);
       } else {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params,
-        });
+        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, params);
       }
     },
     [bottomSheetEnabled, navigation],
@@ -172,10 +169,7 @@ export const PredictPreviewSheetProvider: React.FC<
         sellNonceRef.current += 1;
         setSellNonce(sellNonceRef.current);
       } else {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-          params,
-        });
+        navigation.navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, params);
       }
     },
     [bottomSheetEnabled, navigation],

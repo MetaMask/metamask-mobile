@@ -230,10 +230,10 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-buy'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: buyParams,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.MODALS.BUY_PREVIEW,
+      buyParams,
+    );
     expect(screen.queryByTestId('predict-buy-preview-sheet')).toBeNull();
   });
 
@@ -248,10 +248,10 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-sell'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-      params: sellParams,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.MODALS.SELL_PREVIEW,
+      sellParams,
+    );
     expect(screen.queryByTestId('predict-sell-preview-sheet')).toBeNull();
   });
 

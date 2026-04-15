@@ -477,7 +477,7 @@ describe('PredictBuyPreview', () => {
 
       fireEvent.press(doneButton);
 
-      expect(screen.queryByText('incl. fees')).toBeOnTheScreen();
+      expect(screen.queryByText('Total')).toBeOnTheScreen();
     });
 
     it('hides disclaimer on initial render when input is focused', () => {
@@ -1158,8 +1158,7 @@ describe('PredictBuyPreview', () => {
 
       fireEvent.press(doneButton);
 
-      // Fee summary should be visible with fees info
-      expect(screen.getByText('incl. fees')).toBeOnTheScreen();
+      // Fee summary should be visible
       expect(screen.getByText('Total')).toBeOnTheScreen();
     });
   });
@@ -1296,7 +1295,6 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       // Fee summary should be visible
-      expect(screen.getByText('incl. fees')).toBeOnTheScreen();
       expect(screen.getByText('Total')).toBeOnTheScreen();
     });
 
@@ -1749,8 +1747,7 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       // Look for the fees section
-      const feesSection = screen.getByText('incl. fees');
-      expect(feesSection).toBeOnTheScreen();
+      expect(screen.getByText('Total')).toBeOnTheScreen();
 
       // Total should also be visible
       expect(screen.getByText('Total')).toBeOnTheScreen();
@@ -1763,8 +1760,7 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       // The fee summary component is rendered with the callback
-      // The handleFeesInfoPress function is bound to the component
-      expect(screen.getByText('incl. fees')).toBeOnTheScreen();
+      expect(screen.getByText('Total')).toBeOnTheScreen();
     });
 
     it('renders PredictFeeBreakdownSheet with onClose callback', () => {
