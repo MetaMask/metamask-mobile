@@ -48,7 +48,6 @@ import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled'
 import { BridgeToken } from '../../Bridge/types';
 import { TokenDetailsSource } from '../constants/constants';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { useTokenDetailsABTest } from './useTokenDetailsABTest';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -145,9 +144,6 @@ export const useTokenActions = ({
   const rampsButtonClickData = useRampsButtonClickData();
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
 
-  // A/B test context
-  const { isTestActive, variantName } = useTokenDetailsABTest();
-
   // Swap/Bridge navigation
   const { sourceToken, destToken } = getSwapTokens(token);
   // When Token Details was opened from the bridge asset picker, skip updating
@@ -160,11 +156,7 @@ export const useTokenActions = ({
     sourcePage: 'MainView',
     sourceToken,
     destToken,
-    abTestContext: {
-      ...(isTestActive && {
-        assetsASSETS2493AbtestTokenDetailsLayout: variantName,
-      }),
-    },
+    abTestContext: {},
     transactionActiveAbTests: token.transactionActiveAbTests,
     skipLocationUpdate: isFromBridgeAssetPicker,
   });
@@ -233,9 +225,6 @@ export const useTokenActions = ({
       action_position: ActionPosition.THIRD_POSITION,
       button_label: strings('asset_overview.send_button'),
       location: ActionLocation.ASSET_DETAILS,
-      ...(isTestActive && {
-        ab_tests: { assetsASSETS2493AbtestTokenDetailsLayout: variantName },
-      }),
     };
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ACTION_BUTTON_CLICKED)
@@ -286,8 +275,6 @@ export const useTokenActions = ({
     token,
     selectedChainId,
     navigateToSendPage,
-    isTestActive,
-    variantName,
   ]);
 
   const onBuy = useCallback(() => {

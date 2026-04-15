@@ -27,7 +27,6 @@ import {
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
 import { usePerpsActions } from '../hooks/usePerpsActions';
-import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -248,8 +247,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tronNativeToken = isTronNativeToken(token) ? token : null;
 
-  // A/B test hook for layout selection (must be called before usePerpsActions to pass ab_tests)
-  const { isTestActive, variantName } = useTokenDetailsABTest();
   const isTokenOverviewAdvancedChartEnabled = useSelector(
     selectTokenOverviewAdvancedChartEnabled,
   );
@@ -261,7 +258,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   } = usePerpsActions({
     symbol: isPerpsEnabled ? token.symbol : null,
     fromTokenDetails: true,
-    abTestTokenDetailsLayout: isTestActive ? variantName : undefined,
     transactionActiveAbTests: token.transactionActiveAbTests,
   });
 

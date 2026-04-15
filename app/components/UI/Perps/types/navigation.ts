@@ -239,8 +239,6 @@ export interface PerpsNavigationParamList extends ParamListBase {
     asset: string;
     /** When true, the order was initiated from the token details screen */
     fromTokenDetails?: boolean;
-    /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
-    assetsASSETS2493AbtestTokenDetailsLayout?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 }
