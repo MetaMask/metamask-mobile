@@ -75,13 +75,17 @@ export class E2EControllerOverrides {
     // Update Redux state to reflect the new position/balance
     const mockAccount = this.mockService.getMockAccountState();
 
-    (this.controller as ControllerWithUpdate).update(
-      (state: PerpsControllerState) => {
-        state.accountState = mockAccount;
-        state.lastUpdateTimestamp = Date.now();
-        state.lastError = null;
-      },
-    );
+    try {
+      (this.controller as ControllerWithUpdate).update(
+        (state: PerpsControllerState) => {
+          state.accountState = mockAccount;
+          state.lastUpdateTimestamp = Date.now();
+          state.lastError = null;
+        },
+      );
+    } catch (e) {
+      console.error('E2E Mock: placeOrder — controller.update() failed:', e);
+    }
 
     return result;
   }
@@ -161,18 +165,29 @@ export class E2EControllerOverrides {
             maybeAddResult?.id ??
             fallbackTxId;
         }
-      } catch {
+      } catch (e) {
+        console.warn(
+          'E2E Mock: mockPerpsDepositTransaction messenger call failed, using fallback txId:',
+          e,
+        );
         resolvedTxId = fallbackTxId;
       }
     }
 
-    (this.controller as ControllerWithUpdate).update(
-      (state: PerpsControllerState) => {
-        state.lastDepositTransactionId = resolvedTxId;
-        state.lastUpdateTimestamp = Date.now();
-        state.lastError = null;
-      },
-    );
+    try {
+      (this.controller as ControllerWithUpdate).update(
+        (state: PerpsControllerState) => {
+          state.lastDepositTransactionId = resolvedTxId;
+          state.lastUpdateTimestamp = Date.now();
+          state.lastError = null;
+        },
+      );
+    } catch (e) {
+      console.error(
+        'E2E Mock: mockPerpsDepositTransaction — controller.update() failed:',
+        e,
+      );
+    }
 
     return { result: Promise.resolve(resolvedTxId) };
   }
@@ -237,13 +252,20 @@ export class E2EControllerOverrides {
     const mockAccount = this.mockService.getMockAccountState();
 
     // Update Redux state just like the real controller does
-    (this.controller as ControllerWithUpdate).update(
-      (state: PerpsControllerState) => {
-        state.accountState = mockAccount;
-        state.lastUpdateTimestamp = Date.now();
-        state.lastError = null;
-      },
-    );
+    try {
+      (this.controller as ControllerWithUpdate).update(
+        (state: PerpsControllerState) => {
+          state.accountState = mockAccount;
+          state.lastUpdateTimestamp = Date.now();
+          state.lastError = null;
+        },
+      );
+    } catch (e) {
+      console.error(
+        'E2E Mock: getAccountState — controller.update() failed:',
+        e,
+      );
+    }
 
     return mockAccount;
   }
@@ -274,12 +296,16 @@ export class E2EControllerOverrides {
     const mockPositions = this.mockService.getMockPositions();
 
     // Update Redux state
-    (this.controller as ControllerWithUpdate).update(
-      (state: PerpsControllerState) => {
-        state.lastUpdateTimestamp = Date.now();
-        state.lastError = null;
-      },
-    );
+    try {
+      (this.controller as ControllerWithUpdate).update(
+        (state: PerpsControllerState) => {
+          state.lastUpdateTimestamp = Date.now();
+          state.lastError = null;
+        },
+      );
+    } catch (e) {
+      console.error('E2E Mock: getPositions — controller.update() failed:', e);
+    }
 
     return mockPositions;
   }
@@ -300,13 +326,17 @@ export class E2EControllerOverrides {
     // Update Redux state to reflect the position closure
     const mockAccount = this.mockService.getMockAccountState();
 
-    (this.controller as ControllerWithUpdate).update(
-      (state: PerpsControllerState) => {
-        state.accountState = mockAccount;
-        state.lastUpdateTimestamp = Date.now();
-        state.lastError = null;
-      },
-    );
+    try {
+      (this.controller as ControllerWithUpdate).update(
+        (state: PerpsControllerState) => {
+          state.accountState = mockAccount;
+          state.lastUpdateTimestamp = Date.now();
+          state.lastError = null;
+        },
+      );
+    } catch (e) {
+      console.error('E2E Mock: closePosition — controller.update() failed:', e);
+    }
 
     return result;
   }
@@ -326,12 +356,19 @@ export class E2EControllerOverrides {
   ): Promise<OrderResult> {
     const result = this.mockService.mockUpdatePositionTPSL(params);
     // Refresh Redux timestamp after TP/SL changes
-    (this.controller as ControllerWithUpdate).update(
-      (state: PerpsControllerState) => {
-        state.lastUpdateTimestamp = Date.now();
-        state.lastError = null;
-      },
-    );
+    try {
+      (this.controller as ControllerWithUpdate).update(
+        (state: PerpsControllerState) => {
+          state.lastUpdateTimestamp = Date.now();
+          state.lastError = null;
+        },
+      );
+    } catch (e) {
+      console.error(
+        'E2E Mock: updatePositionTPSL — controller.update() failed:',
+        e,
+      );
+    }
     return result;
   }
 
@@ -432,18 +469,29 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
   ];
 
   methodsToOverride.forEach((method) => {
-    const controllerRecord = controller as unknown as Record<string, unknown>;
-    const overridesRecord = overrides as unknown as Record<string, unknown>;
-    if (overridesRecord[method]) {
-      // Store original if it exists
-      if (controllerRecord[method]) {
-        controllerRecord[`_original_${method}`] = controllerRecord[method];
+    try {
+      const controllerRecord = controller as unknown as Record<string, unknown>;
+      const overridesRecord = overrides as unknown as Record<string, unknown>;
+      if (overridesRecord[method]) {
+        // Store original if it exists
+        if (controllerRecord[method]) {
+          controllerRecord[`_original_${method}`] = controllerRecord[method];
+        }
+        // Apply mock override (also adds method if it didn't exist)
+        controllerRecord[method] = (
+          overridesRecord[method] as (...args: unknown[]) => unknown
+        ).bind(overrides);
+        console.log(`Mocked ${method} method`);
+      } else {
+        console.warn(
+          `E2E Mock: Override for '${method}' not found in E2EControllerOverrides — skipping`,
+        );
       }
-      // Apply mock override (also adds method if it didn't exist)
-      controllerRecord[method] = (
-        overridesRecord[method] as (...args: unknown[]) => unknown
-      ).bind(overrides);
-      console.log(`Mocked ${method} method`);
+    } catch (e) {
+      console.error(
+        `E2E Mock: Failed to override '${method}' on PerpsController:`,
+        e,
+      );
     }
   });
 
@@ -508,7 +556,10 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
       mockService.reset();
     }
   } catch (e) {
-    // no-op if structure differs
+    console.warn(
+      'E2E Mock: Failed to read mockProfile from controller state — using default profile:',
+      e,
+    );
   }
   const mockAccount = mockService.getMockAccountState();
   const mockPositions = mockService.getMockPositions();
@@ -519,22 +570,33 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
     positionsCount: mockPositions.length,
   });
 
-  (controller as ControllerWithUpdate).update((state: PerpsControllerState) => {
-    state.accountState = mockAccount;
-    state.lastUpdateTimestamp = Date.now();
-    state.lastError = null;
-    state.isEligible = true;
-  });
+  try {
+    (controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.accountState = mockAccount;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+        state.isEligible = true;
+      },
+    );
+  } catch (e) {
+    console.error(
+      'E2E Mock: applyE2EPerpsControllerMocks — initial controller.update() failed. ' +
+        'This may cause the app to crash or display stale state:',
+      e,
+    );
+  }
 
   console.log('✅ E2E PerpsController mocks applied with initial state');
 }
 
 /**
- * Create E2E mock stream manager for PerpsStreamProvider
+ * Plain channel map before Proxy wrapping (used for contract checks and stream mock shape).
  */
-export function createE2EMockStreamManager(): unknown {
-  console.log('Creating E2E mock stream manager');
-
+export function buildE2EMockStreamManagerPlain(): Record<
+  string,
+  Record<string, unknown>
+> {
   // Use centralized E2E mock service for consistent state
   const mockService = PerpsE2EMockService.getInstance();
   const mockMarkets = mockService.getMockMarkets();
@@ -626,6 +688,13 @@ export function createE2EMockStreamManager(): unknown {
         setTimeout(() => params.callback(mockService.getMockPositions()), 0);
         return () => mockService.unregisterPositionCallback(params.callback);
       },
+      updatePositionTPSLOptimistic: (
+        _coin: string,
+        _takeProfitPrice: string | undefined,
+        _stopLossPrice: string | undefined,
+      ): void => {
+        // No-op: E2E mock has no WebSocket position cache like production.
+      },
     },
     fills: {
       subscribe: (params: { callback: (data: OrderFill[]) => void }) => {
@@ -661,8 +730,57 @@ export function createE2EMockStreamManager(): unknown {
         setTimeout(() => params.callback({ candles: [] }), 0);
         return () => undefined;
       },
+      fetchHistoricalCandles: async (
+        _symbol: string,
+        _interval: unknown,
+        _duration: unknown,
+      ): Promise<void> => {
+        await Promise.resolve();
+      },
     },
   };
+}
+
+/**
+ * Create E2E mock stream manager for PerpsStreamProvider
+ */
+export function createE2EMockStreamManager(): unknown {
+  console.log('Creating E2E mock stream manager');
+
+  const streamManager = buildE2EMockStreamManagerPlain();
+
+  // Wrap each channel in a Proxy so any missing property access is logged
+  // immediately — no static list to maintain, catches anything production
+  // hooks call regardless of when new methods are added.
+  const wrapChannel = (
+    channel: Record<string, unknown>,
+    channelName: string,
+  ): Record<string, unknown> =>
+    new Proxy(channel, {
+      get(target, prop: string | symbol) {
+        const value = Reflect.get(target, prop);
+        if (typeof prop === 'string' && value === undefined) {
+          console.error(
+            `E2E Mock: createE2EMockStreamManager — '${channelName}.${prop}' is missing. ` +
+              'This will crash when production hooks call it.',
+          );
+        }
+        return value;
+      },
+    });
+
+  const managerRecord = streamManager as Record<
+    string,
+    Record<string, unknown>
+  >;
+  for (const channelName of Object.keys(managerRecord)) {
+    managerRecord[channelName] = wrapChannel(
+      managerRecord[channelName],
+      channelName,
+    );
+  }
+
+  return streamManager;
 }
 
 export default {
