@@ -78,8 +78,8 @@ describe('tokenListControllerInit', () => {
   });
 
   it('initializes the controller', () => {
-    const { messengerClient } = tokenListControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(TokenListController);
+    const { controller } = tokenListControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(TokenListController);
   });
 
   it('passes the proper arguments to the controller', () => {

@@ -323,7 +323,7 @@ describe('ramps controller init', () => {
 
     const result = rampsControllerInit(initRequestMock);
 
-    expect(result.messengerClient).toBeDefined();
+    expect(result.controller).toBeDefined();
     expect(rampsControllerClassMock).toHaveBeenCalledTimes(1);
   });
 
@@ -357,12 +357,12 @@ describe('ramps controller init', () => {
         enabled: false,
       });
 
-      const { messengerClient } = rampsControllerInit(initRequestMock);
+      const { controller } = rampsControllerInit(initRequestMock);
       const initRampsDebugBridge = getInitRampsDebugBridgeMock();
 
       expect(initRampsDebugBridge).toHaveBeenCalledTimes(1);
       expect(initRampsDebugBridge).toHaveBeenCalledWith(
-        messengerClient,
+        controller,
         initRequestMock.controllerMessenger,
       );
     });

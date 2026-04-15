@@ -15,12 +15,12 @@ export const addressBookControllerInit: MessengerClientInitFunction<
   AddressBookController,
   AddressBookControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {
-  const messengerClient = new AddressBookController({
+  const controller = new AddressBookController({
     messenger: controllerMessenger,
     state: persistedState.AddressBookController,
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

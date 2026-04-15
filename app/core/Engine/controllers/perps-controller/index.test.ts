@@ -79,7 +79,7 @@ describe('perps controller init', () => {
   });
 
   it('returns controller instance', () => {
-    expect(perpsControllerInit(initRequestMock).messengerClient).toBeInstanceOf(
+    expect(perpsControllerInit(initRequestMock).controller).toBeInstanceOf(
       PerpsController,
     );
   });

@@ -44,9 +44,9 @@ describe('predict controller init', () => {
   });
 
   it('returns controller instance', () => {
-    expect(
-      predictControllerInit(initRequestMock).messengerClient,
-    ).toBeInstanceOf(PredictController);
+    expect(predictControllerInit(initRequestMock).controller).toBeInstanceOf(
+      PredictController,
+    );
   });
 
   it('controller state should be default state when no initial state is passed in', () => {

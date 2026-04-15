@@ -77,7 +77,7 @@ export const bridgeControllerInit: MessengerClientInitFunction<
       traceFn: trace as TraceCallback,
     });
 
-    return { messengerClient: bridgeController };
+    return { controller: bridgeController };
   } catch (error) {
     Logger.error(error as Error, 'Failed to initialize BridgeController');
     throw error;

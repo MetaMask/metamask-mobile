@@ -85,10 +85,10 @@ describe('Notification Services Controller', () => {
 
   it('returns controller instance', () => {
     const { messenger } = arrange();
-    const messengerClient = createNotificationServicesPushController({
+    const controller = createNotificationServicesPushController({
       messenger,
     });
-    expect(messengerClient).toBeInstanceOf(NotificationServicesPushController);
+    expect(controller).toBeInstanceOf(NotificationServicesPushController);
   });
 
   it('uses default state if not state provided', () => {

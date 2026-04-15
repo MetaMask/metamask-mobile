@@ -30,7 +30,7 @@ export const tokensControllerInit: MessengerClientInitFunction<
 
   assert(provider, 'Provider is required to initialize `TokensController`.');
 
-  const messengerClient = new TokensController({
+  const controller = new TokensController({
     state: persistedState.TokensController,
     messenger: controllerMessenger,
     chainId: getGlobalChainId(networkController),
@@ -38,6 +38,6 @@ export const tokensControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

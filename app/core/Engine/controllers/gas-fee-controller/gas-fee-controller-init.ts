@@ -46,7 +46,7 @@ export const GasFeeControllerInit: MessengerClientInitFunction<
       messenger: controllerMessenger,
     });
 
-    return { messengerClient: gasFeeController };
+    return { controller: gasFeeController };
   } catch (error) {
     Logger.error(error as Error, 'Failed to initialize GasFeeController');
     throw error;

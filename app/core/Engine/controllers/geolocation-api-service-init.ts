@@ -21,11 +21,11 @@ export const geolocationApiServiceInit: MessengerClientInitFunction<
   const sdkEnv = getSdkEnvironment();
   const env = sdkEnv === SdkEnvironment.Production ? Env.PRD : Env.DEV;
 
-  const messengerClient = new GeolocationApiService({
+  const controller = new GeolocationApiService({
     messenger: controllerMessenger,
     env,
     fetch: fetch.bind(globalThis),
   });
 
-  return { messengerClient };
+  return { controller };
 };

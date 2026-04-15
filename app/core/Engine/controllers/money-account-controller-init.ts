@@ -17,10 +17,10 @@ export const moneyAccountControllerInit: MessengerClientInitFunction<
   MoneyAccountController,
   MoneyAccountControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {
-  const messengerClient = new MoneyAccountController({
+  const controller = new MoneyAccountController({
     messenger: controllerMessenger,
     state: persistedState.MoneyAccountController,
   });
 
-  return { messengerClient };
+  return { controller };
 };

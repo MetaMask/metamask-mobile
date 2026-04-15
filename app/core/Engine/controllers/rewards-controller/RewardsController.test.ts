@@ -318,7 +318,7 @@ const createTestSeasonStatusState = (
 
 describe('RewardsController', () => {
   let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
-  let messengerClient: RewardsController;
+  let controller: RewardsController;
   let mockRewardsDataService: jest.Mocked<
     InstanceType<typeof RewardsDataService>
   >;
@@ -370,7 +370,7 @@ describe('RewardsController', () => {
       unsubscribe: jest.fn(),
     } as unknown as jest.Mocked<RewardsControllerMessenger>;
 
-    messengerClient = new RewardsController({
+    controller = new RewardsController({
       messenger: mockMessenger,
       isDisabled: () => false,
     });
@@ -383,12 +383,12 @@ describe('RewardsController', () => {
 
   describe('initialization', () => {
     it('initializes with default state', () => {
-      expect(messengerClient.state).toEqual(getRewardsControllerDefaultState());
+      expect(controller.state).toEqual(getRewardsControllerDefaultState());
     });
 
     it('registers action handlers', () => {
       expect(mockMessenger.registerMethodActionHandlers).toHaveBeenCalledWith(
-        messengerClient,
+        controller,
         expect.arrayContaining([
           'getHasAccountOptedIn',
           'getPointsEvents',
@@ -436,34 +436,34 @@ describe('RewardsController', () => {
         },
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
         isDisabled: () => false,
       });
 
-      messengerClient.resetState();
+      controller.resetState();
 
-      expect(messengerClient.state).toEqual({
+      expect(controller.state).toEqual({
         ...getRewardsControllerDefaultState(),
         rewardsEnvUrl: null,
       });
     });
 
     it('preserves rewardsEnvUrl across resetState', () => {
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: { rewardsEnvUrl: 'https://rewards.uat-api.cx.metamask.io' },
         isDisabled: () => false,
       });
 
-      messengerClient.resetState();
+      controller.resetState();
 
-      expect(messengerClient.state.rewardsEnvUrl).toBe(
+      expect(controller.state.rewardsEnvUrl).toBe(
         'https://rewards.uat-api.cx.metamask.io',
       );
-      expect(messengerClient.state.accounts).toEqual({});
-      expect(messengerClient.state.activeAccount).toBeNull();
+      expect(controller.state.accounts).toEqual({});
+      expect(controller.state.activeAccount).toBeNull();
     });
 
     it('manages account state correctly', () => {
@@ -476,7 +476,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: null,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -487,10 +487,8 @@ describe('RewardsController', () => {
       });
 
       // Verify state was set correctly
-      expect(messengerClient.state.accounts[CAIP_ACCOUNT_1]).toEqual(
-        accountState,
-      );
-      expect(messengerClient.state.accounts[CAIP_ACCOUNT_2]).toBeUndefined();
+      expect(controller.state.accounts[CAIP_ACCOUNT_1]).toEqual(accountState);
+      expect(controller.state.accounts[CAIP_ACCOUNT_2]).toBeUndefined();
     });
   });
 
@@ -515,13 +513,13 @@ describe('RewardsController', () => {
           return false;
         return undefined;
       });
-      const resetAllSpy = jest.spyOn(messengerClient, 'resetAll');
+      const resetAllSpy = jest.spyOn(controller, 'resetAll');
 
       // Act
-      await messengerClient.setRewardsEnvUrl(UAT_URL);
+      await controller.setRewardsEnvUrl(UAT_URL);
 
       // Assert — state untouched, data service not called, resetAll not triggered
-      expect(messengerClient.state.rewardsEnvUrl).toBeNull();
+      expect(controller.state.rewardsEnvUrl).toBeNull();
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:setRewardsEnvUrl',
         expect.anything(),
@@ -529,35 +527,35 @@ describe('RewardsController', () => {
       expect(resetAllSpy).not.toHaveBeenCalled();
     });
 
-    it('updates messengerClient state to UAT URL', async () => {
+    it('updates controller state to UAT URL', async () => {
       // Arrange
-      expect(messengerClient.state.rewardsEnvUrl).toBeNull();
+      expect(controller.state.rewardsEnvUrl).toBeNull();
 
       // Act
-      await messengerClient.setRewardsEnvUrl(UAT_URL);
+      await controller.setRewardsEnvUrl(UAT_URL);
 
       // Assert
-      expect(messengerClient.state.rewardsEnvUrl).toBe(UAT_URL);
+      expect(controller.state.rewardsEnvUrl).toBe(UAT_URL);
     });
 
-    it('updates messengerClient state to PRD URL', async () => {
+    it('updates controller state to PRD URL', async () => {
       // Arrange
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: { rewardsEnvUrl: UAT_URL },
         isDisabled: () => false,
       });
 
       // Act
-      await messengerClient.setRewardsEnvUrl(PRD_URL);
+      await controller.setRewardsEnvUrl(PRD_URL);
 
       // Assert
-      expect(messengerClient.state.rewardsEnvUrl).toBe(PRD_URL);
+      expect(controller.state.rewardsEnvUrl).toBe(PRD_URL);
     });
 
     it('syncs the env URL to the data service via messenger', async () => {
       // Act
-      await messengerClient.setRewardsEnvUrl(UAT_URL);
+      await controller.setRewardsEnvUrl(UAT_URL);
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -568,10 +566,10 @@ describe('RewardsController', () => {
 
     it('calls resetAll to clear cached data', async () => {
       // Arrange
-      const resetAllSpy = jest.spyOn(messengerClient, 'resetAll');
+      const resetAllSpy = jest.spyOn(controller, 'resetAll');
 
       // Act
-      await messengerClient.setRewardsEnvUrl(UAT_URL);
+      await controller.setRewardsEnvUrl(UAT_URL);
 
       // Assert
       expect(resetAllSpy).toHaveBeenCalled();
@@ -579,7 +577,7 @@ describe('RewardsController', () => {
 
     it('preserves rewardsEnvUrl after resetAll clears other state', async () => {
       // Arrange — set up some state that resetAll will clear
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: {
@@ -595,16 +593,16 @@ describe('RewardsController', () => {
       });
 
       // Act
-      await messengerClient.setRewardsEnvUrl(UAT_URL);
+      await controller.setRewardsEnvUrl(UAT_URL);
 
       // Assert — rewardsEnvUrl persists, but other state is cleared
-      expect(messengerClient.state.rewardsEnvUrl).toBe(UAT_URL);
-      expect(messengerClient.state.subscriptions).toEqual({});
+      expect(controller.state.rewardsEnvUrl).toBe(UAT_URL);
+      expect(controller.state.subscriptions).toEqual({});
     });
 
     it('registers the action handler', () => {
       expect(mockMessenger.registerMethodActionHandlers).toHaveBeenCalledWith(
-        messengerClient,
+        controller,
         expect.arrayContaining(['setRewardsEnvUrl']),
       );
     });
@@ -640,7 +638,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: recentTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -650,7 +648,7 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      const result = await messengerClient.getHasAccountOptedIn(CAIP_ACCOUNT_1);
+      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
 
       expect(result).toBe(true);
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
@@ -670,7 +668,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: recentTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -680,7 +678,7 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      const result = await messengerClient.getHasAccountOptedIn(CAIP_ACCOUNT_1);
+      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
 
       expect(result).toBe(false);
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
@@ -699,7 +697,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: staleTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -714,7 +712,7 @@ describe('RewardsController', () => {
         discountBips: 500,
       });
 
-      const result = await messengerClient.getHasAccountOptedIn(CAIP_ACCOUNT_1);
+      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getPerpsDiscount',
@@ -733,7 +731,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: staleTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -748,11 +746,11 @@ describe('RewardsController', () => {
       });
 
       // Act
-      await messengerClient.getHasAccountOptedIn(CAIP_ACCOUNT_1);
+      await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
 
       // Assert - verify state has been updated
       const updatedAccountState =
-        messengerClient.state.accounts[
+        controller.state.accounts[
           CAIP_ACCOUNT_1.replace('eip155:1:', 'eip155:0:') as CaipAccountId
         ];
       expect(updatedAccountState).toBeDefined();
@@ -770,12 +768,12 @@ describe('RewardsController', () => {
       });
 
       // Act - check account that doesn't exist in state
-      const result = await messengerClient.getHasAccountOptedIn(CAIP_ACCOUNT_2);
+      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
 
       // Assert - verify new account state was created
       expect(result).toBe(true);
       const newAccountState =
-        messengerClient.state.accounts[
+        controller.state.accounts[
           CAIP_ACCOUNT_2.replace('eip155:1:', 'eip155:0:') as CaipAccountId
         ];
       expect(newAccountState).toBeDefined();
@@ -793,7 +791,7 @@ describe('RewardsController', () => {
         discountBips: 500,
       });
 
-      const result = await messengerClient.getHasAccountOptedIn(CAIP_ACCOUNT_2);
+      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getPerpsDiscount',
@@ -808,7 +806,7 @@ describe('RewardsController', () => {
         discountBips: 1000,
       });
 
-      const result = await messengerClient.getHasAccountOptedIn(CAIP_ACCOUNT_2);
+      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getPerpsDiscount',
@@ -820,7 +818,7 @@ describe('RewardsController', () => {
     it('handles data service errors and return false', async () => {
       mockMessenger.call.mockRejectedValue(new Error('Network error'));
 
-      const result = await messengerClient.getHasAccountOptedIn(CAIP_ACCOUNT_2);
+      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
 
       expect(result).toBe(false);
     });
@@ -834,7 +832,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: null,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -849,7 +847,7 @@ describe('RewardsController', () => {
         discountBips: 750,
       });
 
-      const result = await messengerClient.getHasAccountOptedIn(CAIP_ACCOUNT_1);
+      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getPerpsDiscount',
@@ -933,7 +931,7 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      const result = await messengerClient.estimatePoints(mockRequest);
+      const result = await controller.estimatePoints(mockRequest);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:estimatePoints',
@@ -991,7 +989,7 @@ describe('RewardsController', () => {
         },
       );
 
-      await expect(messengerClient.estimatePoints(mockRequest)).rejects.toThrow(
+      await expect(controller.estimatePoints(mockRequest)).rejects.toThrow(
         'API error',
       );
 
@@ -1057,7 +1055,7 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      const result = await messengerClient.estimatePoints(mockRequest);
+      const result = await controller.estimatePoints(mockRequest);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:estimatePoints',
@@ -1088,7 +1086,7 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      const result = await messengerClient.estimatePoints(mockRequest);
+      const result = await controller.estimatePoints(mockRequest);
 
       expect(result).toEqual({ pointsEstimate: 0, bonusBips: 0 });
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
@@ -1149,7 +1147,7 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      const result = await messengerClient.estimatePoints(mockRequest);
+      const result = await controller.estimatePoints(mockRequest);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:estimatePoints',
@@ -1228,12 +1226,12 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      expect(messengerClient.state.pointsEstimateHistory).toHaveLength(0);
+      expect(controller.state.pointsEstimateHistory).toHaveLength(0);
 
-      await messengerClient.estimatePoints(mockRequest);
+      await controller.estimatePoints(mockRequest);
 
-      expect(messengerClient.state.pointsEstimateHistory).toHaveLength(1);
-      const historyEntry = messengerClient.state.pointsEstimateHistory[0];
+      expect(controller.state.pointsEstimateHistory).toHaveLength(1);
+      const historyEntry = controller.state.pointsEstimateHistory[0];
 
       // Verify flattened request fields
       expect(historyEntry.requestActivityType).toBe(mockRequest.activityType);
@@ -1338,9 +1336,9 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      await messengerClient.estimatePoints(mockRequest);
+      await controller.estimatePoints(mockRequest);
 
-      const historyEntry = messengerClient.state.pointsEstimateHistory[0];
+      const historyEntry = controller.state.pointsEstimateHistory[0];
 
       // Verify flattened perps context fields
       expect(historyEntry.requestPerpsType).toBe(mockPerpsContext.type);
@@ -1410,9 +1408,9 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      await messengerClient.estimatePoints(mockRequest);
+      await controller.estimatePoints(mockRequest);
 
-      const historyEntry = messengerClient.state.pointsEstimateHistory[0];
+      const historyEntry = controller.state.pointsEstimateHistory[0];
 
       // Verify flattened predict context fields
       expect(historyEntry.requestPredictFeeAssetId).toBe(
@@ -1486,9 +1484,9 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      await messengerClient.estimatePoints(mockRequest);
+      await controller.estimatePoints(mockRequest);
 
-      const historyEntry = messengerClient.state.pointsEstimateHistory[0];
+      const historyEntry = controller.state.pointsEstimateHistory[0];
 
       // Verify flattened shield context fields
       expect(historyEntry.requestShieldFeeAssetId).toBe(mockShieldFeeAsset.id);
@@ -1572,10 +1570,10 @@ describe('RewardsController', () => {
       // Make 55 calls - should only keep last 50
       for (let i = 0; i < 55; i++) {
         jest.setSystemTime(now + i); // Ensure unique timestamps
-        await messengerClient.estimatePoints(mockRequest);
+        await controller.estimatePoints(mockRequest);
       }
 
-      expect(messengerClient.state.pointsEstimateHistory).toHaveLength(50);
+      expect(controller.state.pointsEstimateHistory).toHaveLength(50);
 
       jest.useRealTimers();
     });
@@ -1629,14 +1627,14 @@ describe('RewardsController', () => {
       });
 
       jest.setSystemTime(now);
-      await messengerClient.estimatePoints(mockRequest);
+      await controller.estimatePoints(mockRequest);
       jest.setSystemTime(now + 1000);
-      await messengerClient.estimatePoints(mockRequest);
+      await controller.estimatePoints(mockRequest);
       jest.setSystemTime(now + 2000);
-      await messengerClient.estimatePoints(mockRequest);
+      await controller.estimatePoints(mockRequest);
 
       // Array is ordered by timestamp (most recent first)
-      const entries = messengerClient.state.pointsEstimateHistory;
+      const entries = controller.state.pointsEstimateHistory;
       expect(entries).toHaveLength(3);
 
       // Verify order (most recent first)
@@ -1703,13 +1701,13 @@ describe('RewardsController', () => {
       // Spy on addPointsEstimateToHistory and make it throw
       const historyError = new Error('State update failed');
       const addHistorySpy = jest
-        .spyOn(messengerClient, 'addPointsEstimateToHistory')
+        .spyOn(controller, 'addPointsEstimateToHistory')
         .mockImplementation(() => {
           throw historyError;
         });
 
       // Act - should not throw despite history tracking failure
-      const result = await messengerClient.estimatePoints(mockRequest);
+      const result = await controller.estimatePoints(mockRequest);
 
       // Assert - estimate should be returned successfully
       expect(result).toEqual(mockResponse);
@@ -1751,10 +1749,10 @@ describe('RewardsController', () => {
         bonusBips: 200,
       };
 
-      messengerClient.addPointsEstimateToHistory(request, response);
+      controller.addPointsEstimateToHistory(request, response);
 
-      expect(messengerClient.state.pointsEstimateHistory).toHaveLength(1);
-      const entry = messengerClient.state.pointsEstimateHistory[0];
+      expect(controller.state.pointsEstimateHistory).toHaveLength(1);
+      const entry = controller.state.pointsEstimateHistory[0];
 
       expect(entry.timestamp).toBe(now);
       expect(entry.requestActivityType).toBe('SWAP');
@@ -1801,9 +1799,9 @@ describe('RewardsController', () => {
         bonusBips: 300,
       };
 
-      messengerClient.addPointsEstimateToHistory(request, response);
+      controller.addPointsEstimateToHistory(request, response);
 
-      const entry = messengerClient.state.pointsEstimateHistory[0];
+      const entry = controller.state.pointsEstimateHistory[0];
 
       expect(entry.requestSwapSrcAssetId).toBe('eip155:1/slip44:60');
       expect(entry.requestSwapSrcAssetAmount).toBe('1000000000000000000');
@@ -1844,9 +1842,9 @@ describe('RewardsController', () => {
         bonusBips: 150,
       };
 
-      messengerClient.addPointsEstimateToHistory(request, response);
+      controller.addPointsEstimateToHistory(request, response);
 
-      const entry = messengerClient.state.pointsEstimateHistory[0];
+      const entry = controller.state.pointsEstimateHistory[0];
 
       expect(entry.requestPerpsType).toBe('CLOSE_POSITION');
       expect(entry.requestPerpsCoin).toBe('BTC');
@@ -1886,9 +1884,9 @@ describe('RewardsController', () => {
         bonusBips: 100,
       };
 
-      messengerClient.addPointsEstimateToHistory(request, response);
+      controller.addPointsEstimateToHistory(request, response);
 
-      const entry = messengerClient.state.pointsEstimateHistory[0];
+      const entry = controller.state.pointsEstimateHistory[0];
 
       // Perps fields should not be present when context is an array
       expect(entry.requestPerpsType).toBeUndefined();
@@ -1925,9 +1923,9 @@ describe('RewardsController', () => {
         bonusBips: 50,
       };
 
-      messengerClient.addPointsEstimateToHistory(request, response);
+      controller.addPointsEstimateToHistory(request, response);
 
-      const entry = messengerClient.state.pointsEstimateHistory[0];
+      const entry = controller.state.pointsEstimateHistory[0];
 
       expect(entry.requestPredictFeeAssetId).toBe('eip155:8453/slip44:60');
       expect(entry.requestPredictFeeAssetAmount).toBe('1000000000000000');
@@ -1960,9 +1958,9 @@ describe('RewardsController', () => {
         bonusBips: 25,
       };
 
-      messengerClient.addPointsEstimateToHistory(request, response);
+      controller.addPointsEstimateToHistory(request, response);
 
-      const entry = messengerClient.state.pointsEstimateHistory[0];
+      const entry = controller.state.pointsEstimateHistory[0];
 
       expect(entry.requestShieldFeeAssetId).toBe('eip155:1/slip44:60');
       expect(entry.requestShieldFeeAssetAmount).toBe('2000000000000000');
@@ -1990,10 +1988,10 @@ describe('RewardsController', () => {
       // Add 55 entries
       for (let i = 0; i < 55; i++) {
         jest.setSystemTime(now + i);
-        messengerClient.addPointsEstimateToHistory(request, response);
+        controller.addPointsEstimateToHistory(request, response);
       }
 
-      expect(messengerClient.state.pointsEstimateHistory).toHaveLength(50);
+      expect(controller.state.pointsEstimateHistory).toHaveLength(50);
 
       jest.useRealTimers();
     });
@@ -2026,12 +2024,12 @@ describe('RewardsController', () => {
       };
 
       jest.setSystemTime(now);
-      messengerClient.addPointsEstimateToHistory(request1, response1);
+      controller.addPointsEstimateToHistory(request1, response1);
 
       jest.setSystemTime(now + 1000);
-      messengerClient.addPointsEstimateToHistory(request2, response2);
+      controller.addPointsEstimateToHistory(request2, response2);
 
-      const entries = messengerClient.state.pointsEstimateHistory;
+      const entries = controller.state.pointsEstimateHistory;
       expect(entries).toHaveLength(2);
 
       // Most recent entry should be first
@@ -2061,13 +2059,13 @@ describe('RewardsController', () => {
       // Add 55 entries with different timestamps and points
       for (let i = 0; i < 55; i++) {
         jest.setSystemTime(now + i);
-        messengerClient.addPointsEstimateToHistory(request, {
+        controller.addPointsEstimateToHistory(request, {
           pointsEstimate: i + 1,
           bonusBips: 0,
         });
       }
 
-      const entries = messengerClient.state.pointsEstimateHistory;
+      const entries = controller.state.pointsEstimateHistory;
 
       // Should have exactly 50 entries
       expect(entries).toHaveLength(50);
@@ -2112,7 +2110,7 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      const result = await messengerClient.hasActiveSeason();
+      const result = await controller.hasActiveSeason();
 
       expect(result).toBe(false);
     });
@@ -2125,7 +2123,7 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      const result = await messengerClient.hasActiveSeason();
+      const result = await controller.hasActiveSeason();
 
       expect(result).toBe(false);
       expect(mockLogger.log).toHaveBeenCalledWith(
@@ -2170,7 +2168,7 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      const result = await messengerClient.hasActiveSeason();
+      const result = await controller.hasActiveSeason();
 
       expect(result).toBe(true);
 
@@ -2206,7 +2204,7 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      const result = await messengerClient.hasActiveSeason();
+      const result = await controller.hasActiveSeason();
 
       expect(result).toBe(false);
     });
@@ -2240,7 +2238,7 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      const result = await messengerClient.hasActiveSeason();
+      const result = await controller.hasActiveSeason();
 
       expect(result).toBe(false);
     });
@@ -2281,7 +2279,7 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      const result = await messengerClient.hasActiveSeason();
+      const result = await controller.hasActiveSeason();
 
       expect(result).toBe(true);
 
@@ -2324,7 +2322,7 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      const result = await messengerClient.hasActiveSeason();
+      const result = await controller.hasActiveSeason();
 
       expect(result).toBe(true);
 
@@ -2401,7 +2399,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(mockResponse as any);
 
-      const result = await messengerClient.getPointsEvents(mockRequest);
+      const result = await controller.getPointsEvents(mockRequest);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getPointsEvents',
@@ -2435,7 +2433,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(mockResponse as unknown as any);
 
-      const result = await messengerClient.getPointsEvents(mockRequest);
+      const result = await controller.getPointsEvents(mockRequest);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getPointsEvents',
@@ -2454,9 +2452,9 @@ describe('RewardsController', () => {
       const apiError = new Error('API error');
       mockMessenger.call.mockRejectedValue(apiError);
 
-      await expect(
-        messengerClient.getPointsEvents(mockRequest),
-      ).rejects.toThrow('API error');
+      await expect(controller.getPointsEvents(mockRequest)).rejects.toThrow(
+        'API error',
+      );
     });
 
     describe('balance updated event emission', () => {
@@ -3656,8 +3654,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(mockLastUpdated);
 
       // Act
-      const result =
-        await messengerClient.getPointsEventsLastUpdated(mockRequest);
+      const result = await controller.getPointsEventsLastUpdated(mockRequest);
 
       // Assert
       expect(result).toEqual(mockLastUpdated);
@@ -3682,7 +3679,7 @@ describe('RewardsController', () => {
 
       // Act & Assert
       await expect(
-        messengerClient.getPointsEventsLastUpdated(mockRequest),
+        controller.getPointsEventsLastUpdated(mockRequest),
       ).rejects.toThrow('API error');
 
       expect(mockLogger.log).toHaveBeenCalledWith(
@@ -3700,8 +3697,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(null);
 
       // Act
-      const result =
-        await messengerClient.getPointsEventsLastUpdated(mockRequest);
+      const result = await controller.getPointsEventsLastUpdated(mockRequest);
 
       // Assert
       expect(result).toBeNull();
@@ -3737,7 +3733,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: recentTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -3748,7 +3744,7 @@ describe('RewardsController', () => {
       });
 
       const result =
-        await messengerClient.getPerpsDiscountForAccount(CAIP_ACCOUNT_1);
+        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_1);
 
       expect(result).toBe(750);
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
@@ -3767,7 +3763,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: staleTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -3783,7 +3779,7 @@ describe('RewardsController', () => {
       });
 
       const result =
-        await messengerClient.getPerpsDiscountForAccount(CAIP_ACCOUNT_1);
+        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_1);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getPerpsDiscount',
@@ -3802,7 +3798,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: staleTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -3819,12 +3815,12 @@ describe('RewardsController', () => {
 
       // Act
       const result =
-        await messengerClient.getPerpsDiscountForAccount(CAIP_ACCOUNT_1);
+        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_1);
 
       // Assert - verify state has been updated
       expect(result).toBe(1500);
       const updatedAccountState =
-        messengerClient.state.accounts[
+        controller.state.accounts[
           CAIP_ACCOUNT_1.replace('eip155:1:', 'eip155:0:') as CaipAccountId
         ];
       expect(updatedAccountState).toBeDefined();
@@ -3842,7 +3838,7 @@ describe('RewardsController', () => {
       });
 
       const result =
-        await messengerClient.getPerpsDiscountForAccount(CAIP_ACCOUNT_2);
+        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_2);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getPerpsDiscount',
@@ -3859,12 +3855,12 @@ describe('RewardsController', () => {
 
       // Act - check discount for account that doesn't exist in state
       const result =
-        await messengerClient.getPerpsDiscountForAccount(CAIP_ACCOUNT_3);
+        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_3);
 
       // Assert - verify new account state was created with correct values
       expect(result).toBe(2000);
       const newAccountState =
-        messengerClient.state.accounts[
+        controller.state.accounts[
           CAIP_ACCOUNT_3.replace('eip155:1:', 'eip155:0:') as CaipAccountId
         ];
       expect(newAccountState).toBeDefined();
@@ -3880,7 +3876,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(new Error('Network error'));
 
       const result =
-        await messengerClient.getPerpsDiscountForAccount(CAIP_ACCOUNT_2);
+        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_2);
 
       expect(result).toBe(0);
     });
@@ -3898,21 +3894,21 @@ describe('RewardsController', () => {
 
         // Act - fetch discount for account that needs coercion
         const result =
-          await messengerClient.getPerpsDiscountForAccount(nonCoercedAccount);
+          await controller.getPerpsDiscountForAccount(nonCoercedAccount);
 
         // Assert - verify result is correct
         expect(result).toBe(1500);
 
         // Verify state was stored with coerced account key (not the original)
         const coercedAccountState =
-          messengerClient.state.accounts[expectedCoercedAccount];
+          controller.state.accounts[expectedCoercedAccount];
         expect(coercedAccountState).toBeDefined();
         expect(coercedAccountState.account).toBe(expectedCoercedAccount);
         expect(coercedAccountState.perpsFeeDiscount).toBe(1500);
 
         // Verify state was NOT stored with non-coerced account key
         const nonCoercedAccountState =
-          messengerClient.state.accounts[nonCoercedAccount];
+          controller.state.accounts[nonCoercedAccount];
         expect(nonCoercedAccountState).toBeUndefined();
       });
 
@@ -3927,7 +3923,7 @@ describe('RewardsController', () => {
           lastPerpsDiscountRateFetched: Date.now() - 600000, // Stale cache
         };
 
-        messengerClient = new RewardsController({
+        controller = new RewardsController({
           messenger: mockMessenger,
           state: {
             activeAccount: null,
@@ -3946,14 +3942,13 @@ describe('RewardsController', () => {
         // Act - fetch discount for non-coerced account format (should coerce to same key)
         const nonCoercedAccount = 'eip155:1:0xABCDEF' as CaipAccountId;
         const result =
-          await messengerClient.getPerpsDiscountForAccount(nonCoercedAccount);
+          await controller.getPerpsDiscountForAccount(nonCoercedAccount);
 
         // Assert
         expect(result).toBe(1000);
 
         // Verify state was updated using the coerced key
-        const updatedAccountState =
-          messengerClient.state.accounts[coercedAccount];
+        const updatedAccountState = controller.state.accounts[coercedAccount];
         expect(updatedAccountState).toBeDefined();
         expect(updatedAccountState.hasOptedIn).toBe(false);
         expect(updatedAccountState.subscriptionId).toBeNull(); // This is the critical fix - should use coerced key
@@ -3971,12 +3966,12 @@ describe('RewardsController', () => {
 
         // Act
         const result =
-          await messengerClient.getPerpsDiscountForAccount(correctAccount);
+          await controller.getPerpsDiscountForAccount(correctAccount);
 
         // Assert - should store with same key (lowercased)
         expect(result).toBe(2000);
         const accountState =
-          messengerClient.state.accounts['eip155:0:0xdef123' as CaipAccountId];
+          controller.state.accounts['eip155:0:0xdef123' as CaipAccountId];
         expect(accountState).toBeDefined();
         expect(accountState.account).toBe('eip155:0:0xdef123' as CaipAccountId);
         expect(accountState.perpsFeeDiscount).toBe(2000);
@@ -3993,7 +3988,7 @@ describe('RewardsController', () => {
           lastPerpsDiscountRateFetched: Date.now() - 700000, // Stale
         };
 
-        messengerClient = new RewardsController({
+        controller = new RewardsController({
           messenger: mockMessenger,
           state: {
             activeAccount: null,
@@ -4013,17 +4008,17 @@ describe('RewardsController', () => {
 
         // Act - query with different chain ID format (should coerce to same key)
         const queryAccount = 'eip155:137:0xABC123' as CaipAccountId; // Different chain ID, uppercase
-        await messengerClient.getPerpsDiscountForAccount(queryAccount);
+        await controller.getPerpsDiscountForAccount(queryAccount);
 
         // Assert - verify the CORRECT coerced account was updated
-        const updatedState = messengerClient.state.accounts[existingAccount];
+        const updatedState = controller.state.accounts[existingAccount];
         expect(updatedState).toBeDefined();
         expect(updatedState.hasOptedIn).toBe(false);
         expect(updatedState.subscriptionId).toBeNull(); // Should use coerced key to set null
         expect(updatedState.perpsFeeDiscount).toBe(800);
 
         // Ensure no duplicate entries were created with wrong keys
-        const wrongKeyEntry = messengerClient.state.accounts[queryAccount];
+        const wrongKeyEntry = controller.state.accounts[queryAccount];
         expect(wrongKeyEntry).toBeUndefined();
       });
 
@@ -4041,7 +4036,7 @@ describe('RewardsController', () => {
           lastPerpsDiscountRateFetched: Date.now() - 800000,
         };
 
-        messengerClient = new RewardsController({
+        controller = new RewardsController({
           messenger: mockMessenger,
           state: {
             activeAccount: null,
@@ -4061,18 +4056,18 @@ describe('RewardsController', () => {
 
         // Act - query with format that needs coercion
         const queryFormat = 'eip155:1:0x999888' as CaipAccountId;
-        await messengerClient.getPerpsDiscountForAccount(queryFormat);
+        await controller.getPerpsDiscountForAccount(queryFormat);
 
         // Assert - the coerced account should have subscriptionId set to null
-        const finalState = messengerClient.state.accounts[coercedFormat];
+        const finalState = controller.state.accounts[coercedFormat];
         expect(finalState).toBeDefined();
         expect(finalState.subscriptionId).toBeNull();
         expect(finalState.hasOptedIn).toBe(false);
         expect(finalState.perpsFeeDiscount).toBe(100);
 
         // Verify no state was created or modified under the wrong key
-        expect(Object.keys(messengerClient.state.accounts).length).toBe(1);
-        expect(messengerClient.state.accounts[queryFormat]).toBeUndefined();
+        expect(Object.keys(controller.state.accounts).length).toBe(1);
+        expect(controller.state.accounts[queryFormat]).toBeUndefined();
       });
 
       it('preserves subscriptionId when hasOptedIn remains true', async () => {
@@ -4086,7 +4081,7 @@ describe('RewardsController', () => {
           lastPerpsDiscountRateFetched: Date.now() - 900000,
         };
 
-        messengerClient = new RewardsController({
+        controller = new RewardsController({
           messenger: mockMessenger,
           state: {
             activeAccount: null,
@@ -4106,10 +4101,10 @@ describe('RewardsController', () => {
 
         // Act
         const queryFormat = 'eip155:5:0xFFFFFF' as CaipAccountId;
-        await messengerClient.getPerpsDiscountForAccount(queryFormat);
+        await controller.getPerpsDiscountForAccount(queryFormat);
 
         // Assert - subscriptionId should be preserved (not set to null)
-        const finalState = messengerClient.state.accounts[coercedFormat];
+        const finalState = controller.state.accounts[coercedFormat];
         expect(finalState).toBeDefined();
         expect(finalState.subscriptionId).toBe('keep-this-sub');
         expect(finalState.hasOptedIn).toBe(true);
@@ -4120,7 +4115,7 @@ describe('RewardsController', () => {
 
   describe('isRewardsFeatureEnabled', () => {
     it('returns true when not disabled', () => {
-      const result = messengerClient.isRewardsFeatureEnabled();
+      const result = controller.isRewardsFeatureEnabled();
 
       expect(result).toBe(true);
     });
@@ -4633,7 +4628,7 @@ describe('RewardsController', () => {
         lastFetched: recentTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -4658,9 +4653,9 @@ describe('RewardsController', () => {
       });
 
       // Spy on the getSeasonStatus method to implement caching logic with 1 minute threshold
-      const originalGetSeasonStatus = messengerClient.getSeasonStatus;
+      const originalGetSeasonStatus = controller.getSeasonStatus;
       const getSeasonStatusSpy = jest
-        .spyOn(messengerClient, 'getSeasonStatus')
+        .spyOn(controller, 'getSeasonStatus')
         .mockImplementation(async function (
           this: RewardsController,
           subscriptionId: string,
@@ -4688,7 +4683,7 @@ describe('RewardsController', () => {
           );
         });
 
-      const result = await messengerClient.getSeasonStatus(
+      const result = await controller.getSeasonStatus(
         mockSubscriptionId,
         mockSeasonId,
       );
@@ -4723,7 +4718,7 @@ describe('RewardsController', () => {
         season: mockSeasonMetadata,
       });
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -4761,7 +4756,7 @@ describe('RewardsController', () => {
         return Promise.resolve({});
       });
 
-      const result = await messengerClient.getSeasonStatus(
+      const result = await controller.getSeasonStatus(
         mockSubscriptionId,
         mockSeasonId,
       );
@@ -4802,7 +4797,7 @@ describe('RewardsController', () => {
         currentTierId: 'gold',
       });
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -4840,7 +4835,7 @@ describe('RewardsController', () => {
         return Promise.resolve({});
       });
 
-      const result = await messengerClient.getSeasonStatus(
+      const result = await controller.getSeasonStatus(
         mockSubscriptionId,
         mockSeasonId,
       );
@@ -4855,12 +4850,12 @@ describe('RewardsController', () => {
 
       // Check season status in root map with composite key
       const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const seasonStatus = messengerClient.state.seasonStatuses[compositeKey];
+      const seasonStatus = controller.state.seasonStatuses[compositeKey];
       expect(seasonStatus).toBeDefined();
       expect(seasonStatus).toEqual(result); // Should be the same object
 
       // Check seasons map
-      const storedSeason = messengerClient.state.seasons[mockSeasonId];
+      const storedSeason = controller.state.seasons[mockSeasonId];
       expect(storedSeason).toBeDefined();
       expect(storedSeason.id).toBe(mockSeasonId);
       expect(storedSeason.name).toBe(mockApiResponse.season.name);
@@ -4868,7 +4863,7 @@ describe('RewardsController', () => {
     });
 
     it('throws error when season is not found in state', async () => {
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -4888,14 +4883,14 @@ describe('RewardsController', () => {
       });
 
       await expect(
-        messengerClient.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+        controller.getSeasonStatus(mockSubscriptionId, mockSeasonId),
       ).rejects.toThrow(
         `Failed to get season status: season not found for seasonId: ${mockSeasonId}`,
       );
     });
 
     it('handles errors from data service', async () => {
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -4929,7 +4924,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(new Error('API error'));
 
       await expect(
-        messengerClient.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+        controller.getSeasonStatus(mockSubscriptionId, mockSeasonId),
       ).rejects.toThrow('API error');
     });
 
@@ -6094,7 +6089,7 @@ describe('RewardsController', () => {
 
     it('returns null when disabled via isDisabled callback', async () => {
       const isDisabled = () => true;
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6108,7 +6103,7 @@ describe('RewardsController', () => {
         isDisabled,
       });
 
-      const result = await messengerClient.getSeasonMetadata('current');
+      const result = await controller.getSeasonMetadata('current');
 
       expect(result).toBeNull();
       expect(mockMessenger.call).not.toHaveBeenCalled();
@@ -6127,7 +6122,7 @@ describe('RewardsController', () => {
         lastFetched: recentTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6142,7 +6137,7 @@ describe('RewardsController', () => {
         },
       });
 
-      const result = await messengerClient.getSeasonMetadata('current');
+      const result = await controller.getSeasonMetadata('current');
 
       expect(result).toEqual(mockSeasonData);
       expect(result?.id).toBe(mockSeasonId);
@@ -6163,7 +6158,7 @@ describe('RewardsController', () => {
         lastFetched: expiredTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6209,7 +6204,7 @@ describe('RewardsController', () => {
         },
       );
 
-      const result = await messengerClient.getSeasonMetadata('current');
+      const result = await controller.getSeasonMetadata('current');
 
       // Should fetch fresh data instead of using expired cache
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -6232,7 +6227,7 @@ describe('RewardsController', () => {
         lastFetched: staleTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6277,7 +6272,7 @@ describe('RewardsController', () => {
         },
       );
 
-      const result = await messengerClient.getSeasonMetadata('current');
+      const result = await controller.getSeasonMetadata('current');
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getDiscoverSeasons',
@@ -6317,7 +6312,7 @@ describe('RewardsController', () => {
         tiers,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6343,7 +6338,7 @@ describe('RewardsController', () => {
         },
       );
 
-      const result = await messengerClient.getSeasonMetadata('current');
+      const result = await controller.getSeasonMetadata('current');
 
       expect(result).toBeDefined();
       expect(result?.name).toBe('New Season');
@@ -6351,13 +6346,13 @@ describe('RewardsController', () => {
       expect(result?.lastFetched).toBeGreaterThan(Date.now() - 1000);
 
       // Verify state is updated with both type key and season ID key
-      const storedSeasonByType = messengerClient.state.seasons.current;
+      const storedSeasonByType = controller.state.seasons.current;
       expect(storedSeasonByType).toBeDefined();
       expect(storedSeasonByType.id).toBe(mockSeasonId);
       expect(storedSeasonByType.name).toBe('New Season');
       expect(storedSeasonByType.tiers).toHaveLength(4);
 
-      const storedSeasonById = messengerClient.state.seasons[mockSeasonId];
+      const storedSeasonById = controller.state.seasons[mockSeasonId];
       expect(storedSeasonById).toBeDefined();
       expect(storedSeasonById.id).toBe(mockSeasonId);
       expect(storedSeasonById.name).toBe('New Season');
@@ -6387,7 +6382,7 @@ describe('RewardsController', () => {
         tiers,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6413,7 +6408,7 @@ describe('RewardsController', () => {
         },
       );
 
-      const result = await messengerClient.getSeasonMetadata('previous');
+      const result = await controller.getSeasonMetadata('previous');
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getDiscoverSeasons',
@@ -6426,8 +6421,8 @@ describe('RewardsController', () => {
       expect(result?.name).toBe('Previous Season');
 
       // Verify both type key and ID key are stored
-      expect(messengerClient.state.seasons.previous).toBeDefined();
-      expect(messengerClient.state.seasons[previousSeasonId]).toBeDefined();
+      expect(controller.state.seasons.previous).toBeDefined();
+      expect(controller.state.seasons[previousSeasonId]).toBeDefined();
     });
 
     it('throws error when previous is null', async () => {
@@ -6446,7 +6441,7 @@ describe('RewardsController', () => {
         },
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6469,9 +6464,7 @@ describe('RewardsController', () => {
         },
       );
 
-      await expect(
-        messengerClient.getSeasonMetadata('previous'),
-      ).rejects.toThrow(
+      await expect(controller.getSeasonMetadata('previous')).rejects.toThrow(
         'No valid season metadata could be found for type: previous',
       );
 
@@ -6505,7 +6498,7 @@ describe('RewardsController', () => {
         tiers,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6531,7 +6524,7 @@ describe('RewardsController', () => {
         },
       );
 
-      const result = await messengerClient.getSeasonMetadata('current');
+      const result = await controller.getSeasonMetadata('current');
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getDiscoverSeasons',
@@ -6556,7 +6549,7 @@ describe('RewardsController', () => {
         next: null,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6571,15 +6564,13 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(mockDiscoverSeasons);
 
-      await expect(
-        messengerClient.getSeasonMetadata('current'),
-      ).rejects.toThrow(
+      await expect(controller.getSeasonMetadata('current')).rejects.toThrow(
         'No valid season metadata could be found for type: current',
       );
     });
 
     it('handles errors from discover seasons API', async () => {
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6594,9 +6585,9 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockRejectedValue(new Error('Discover API error'));
 
-      await expect(
-        messengerClient.getSeasonMetadata('current'),
-      ).rejects.toThrow('Discover API error');
+      await expect(controller.getSeasonMetadata('current')).rejects.toThrow(
+        'Discover API error',
+      );
     });
 
     it('handles errors from season metadata API', async () => {
@@ -6610,7 +6601,7 @@ describe('RewardsController', () => {
         next: null,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6636,9 +6627,9 @@ describe('RewardsController', () => {
         },
       );
 
-      await expect(
-        messengerClient.getSeasonMetadata('current'),
-      ).rejects.toThrow('Metadata API error');
+      await expect(controller.getSeasonMetadata('current')).rejects.toThrow(
+        'Metadata API error',
+      );
     });
   });
 
@@ -6681,7 +6672,7 @@ describe('RewardsController', () => {
         lastFetched: recentTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6705,7 +6696,7 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      const result = await messengerClient.getReferralDetails(
+      const result = await controller.getReferralDetails(
         mockSubscriptionId,
         mockSeasonId,
       );
@@ -6730,7 +6721,7 @@ describe('RewardsController', () => {
         referralPoints: 1000,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6754,7 +6745,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(mockApiResponse);
 
-      const result = await messengerClient.getReferralDetails(
+      const result = await controller.getReferralDetails(
         mockSubscriptionId,
         mockSeasonId,
       );
@@ -6782,7 +6773,7 @@ describe('RewardsController', () => {
         referralPoints: 750,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6806,7 +6797,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(mockApiResponse);
 
-      const result = await messengerClient.getReferralDetails(
+      const result = await controller.getReferralDetails(
         mockSubscriptionId,
         mockSeasonId,
       );
@@ -6819,7 +6810,7 @@ describe('RewardsController', () => {
       expect(result?.lastFetched).toBeGreaterThan(Date.now() - 1000);
 
       const updatedReferralDetails =
-        messengerClient.state.subscriptionReferralDetails[compositeKey];
+        controller.state.subscriptionReferralDetails[compositeKey];
       expect(updatedReferralDetails).toBeDefined();
       expect(updatedReferralDetails).toEqual(result); // Should be the same object
       expect(updatedReferralDetails.referralCode).toBe(
@@ -6837,7 +6828,7 @@ describe('RewardsController', () => {
     });
 
     it('logs and rethrows Error objects when API call fails', async () => {
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6863,12 +6854,12 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(apiError);
 
       await expect(
-        messengerClient.getReferralDetails(mockSubscriptionId, mockSeasonId),
+        controller.getReferralDetails(mockSubscriptionId, mockSeasonId),
       ).rejects.toThrow('API connection failed');
     });
 
     it('rethrows non-Error objects when API call fails', async () => {
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -6894,7 +6885,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(numberError);
 
       await expect(
-        messengerClient.getReferralDetails(mockSubscriptionId, mockSeasonId),
+        controller.getReferralDetails(mockSubscriptionId, mockSeasonId),
       ).rejects.toEqual(404);
     });
   });
@@ -6927,7 +6918,7 @@ describe('RewardsController', () => {
         lastFetched: 100,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -6938,7 +6929,7 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      const result = await messengerClient.getBenefits(
+      const result = await controller.getBenefits(
         mockSubscriptionId,
         mockLimit,
       );
@@ -6954,7 +6945,7 @@ describe('RewardsController', () => {
     it('fetches fresh benefits when cache is empty', async () => {
       const apiBenefits = [createMockBenefit({ id: 2 })];
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => false,
@@ -6962,7 +6953,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(apiBenefits);
 
-      const result = await messengerClient.getBenefits(
+      const result = await controller.getBenefits(
         mockSubscriptionId,
         mockLimit,
       );
@@ -6986,7 +6977,7 @@ describe('RewardsController', () => {
 
       const freshFromApi = [createMockBenefit({ id: 4 })];
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -6999,7 +6990,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(freshFromApi);
 
-      const result = await messengerClient.getBenefits(
+      const result = await controller.getBenefits(
         mockSubscriptionId,
         mockLimit,
       );
@@ -7016,7 +7007,7 @@ describe('RewardsController', () => {
     it('persists fetched benefits to subscriptionBenefits state', async () => {
       const apiBenefits = [createMockBenefit({ id: 5 })];
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => false,
@@ -7024,21 +7015,21 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(apiBenefits);
 
-      await messengerClient.getBenefits(mockSubscriptionId, mockLimit);
+      await controller.getBenefits(mockSubscriptionId, mockLimit);
 
-      expect(
-        messengerClient.state.subscriptionBenefits[mockSubscriptionId],
-      ).toEqual({
-        benefits: apiBenefits,
-        limit: mockLimit,
-        lastFetched: 123,
-      });
+      expect(controller.state.subscriptionBenefits[mockSubscriptionId]).toEqual(
+        {
+          benefits: apiBenefits,
+          limit: mockLimit,
+          lastFetched: 123,
+        },
+      );
     });
 
     it('logs and rethrows when the benefits API call fails', async () => {
       mockLogger.log.mockClear();
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => false,
@@ -7048,7 +7039,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(apiError);
 
       await expect(
-        messengerClient.getBenefits(mockSubscriptionId, mockLimit),
+        controller.getBenefits(mockSubscriptionId, mockLimit),
       ).rejects.toThrow('Benefits API failed');
 
       expect(mockLogger.log).toHaveBeenCalledWith(
@@ -7066,7 +7057,7 @@ describe('RewardsController', () => {
     it('calls RewardsDataService to post a benefit impression', async () => {
       mockMessenger.call.mockResolvedValue(undefined);
 
-      await messengerClient.postBenefitImpression(
+      await controller.postBenefitImpression(
         mockSubscriptionId,
         mockBenefitId,
         mockBenefitType,
@@ -7087,7 +7078,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(apiError);
 
       await expect(
-        messengerClient.postBenefitImpression(
+        controller.postBenefitImpression(
           mockSubscriptionId,
           mockBenefitId,
           mockBenefitType,
@@ -7112,14 +7103,14 @@ describe('RewardsController', () => {
       mockMessenger.call.mockReturnValueOnce([]); // Empty accounts array
 
       // Act
-      await messengerClient.handleAuthenticationTrigger('test-reason');
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
       // Verify that activeAccount is set to null when no accounts are available
-      expect(messengerClient.state.activeAccount).toBeNull();
+      expect(controller.state.activeAccount).toBeNull();
     });
 
     it('calls performSilentAuth with null when accounts is null', async () => {
@@ -7127,14 +7118,14 @@ describe('RewardsController', () => {
       mockMessenger.call.mockReturnValueOnce(null); // Null accounts
 
       // Act
-      await messengerClient.handleAuthenticationTrigger('test-reason');
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
       // Verify that activeAccount is set to null when accounts is null
-      expect(messengerClient.state.activeAccount).toBeNull();
+      expect(controller.state.activeAccount).toBeNull();
     });
 
     it('successfully authenticate with single account', async () => {
@@ -7156,20 +7147,20 @@ describe('RewardsController', () => {
       mockMessenger.call.mockReturnValueOnce([mockAccount]);
 
       // Act
-      await messengerClient.handleAuthenticationTrigger('test-reason');
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
       // Verify that activeAccount is set correctly
-      expect(messengerClient.state.activeAccount).toBeDefined();
-      expect(messengerClient.state.activeAccount?.account).toBeDefined();
+      expect(controller.state.activeAccount).toBeDefined();
+      expect(controller.state.activeAccount?.account).toBeDefined();
       // Verify that the account was added to the accounts map
-      const accountId = messengerClient.state.activeAccount?.account;
+      const accountId = controller.state.activeAccount?.account;
       expect(accountId).toBeDefined();
       expect(
-        messengerClient.state.accounts[accountId as CaipAccountId],
+        controller.state.accounts[accountId as CaipAccountId],
       ).toBeDefined();
     });
 
@@ -7208,12 +7199,12 @@ describe('RewardsController', () => {
       // Spy on performSilentAuth to verify later
       // Mock it to return null on first call (fail) so it continues to second account
       const performSilentAuthSpy = jest
-        .spyOn(messengerClient, 'performSilentAuth')
+        .spyOn(controller, 'performSilentAuth')
         .mockResolvedValueOnce(null) // First account fails
         .mockResolvedValueOnce('subscription-id-123'); // Second account succeeds
 
       // Act
-      await messengerClient.handleAuthenticationTrigger('test-reason');
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -7271,11 +7262,11 @@ describe('RewardsController', () => {
 
       // Spy on performSilentAuth to verify it stops after first success
       const performSilentAuthSpy = jest
-        .spyOn(messengerClient, 'performSilentAuth')
+        .spyOn(controller, 'performSilentAuth')
         .mockResolvedValueOnce('subscription-id-123'); // First account succeeds
 
       // Act
-      await messengerClient.handleAuthenticationTrigger('test-reason');
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -7342,20 +7333,20 @@ describe('RewardsController', () => {
         });
 
       // Act
-      await messengerClient.handleAuthenticationTrigger('test-reason');
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
       // Verify that activeAccount is set to the second account (after first failed)
-      expect(messengerClient.state.activeAccount).toBeDefined();
-      expect(messengerClient.state.activeAccount?.account).toBeDefined();
+      expect(controller.state.activeAccount).toBeDefined();
+      expect(controller.state.activeAccount?.account).toBeDefined();
       // Verify that the account was added to the accounts map
-      const accountId = messengerClient.state.activeAccount?.account;
+      const accountId = controller.state.activeAccount?.account;
       expect(accountId).toBeDefined();
       expect(
-        messengerClient.state.accounts[accountId as CaipAccountId],
+        controller.state.accounts[accountId as CaipAccountId],
       ).toBeDefined();
     });
 
@@ -7393,7 +7384,7 @@ describe('RewardsController', () => {
       const caipAccount2 = 'eip155:1:0x2222222222222222' as CaipAccountId;
 
       // Create account states so they can be set as activeAccount
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -7428,13 +7419,13 @@ describe('RewardsController', () => {
 
       // Mock performSilentAuth to return null for both accounts (both fail)
       const performSilentAuthSpy = jest
-        .spyOn(messengerClient, 'performSilentAuth')
+        .spyOn(controller, 'performSilentAuth')
         .mockResolvedValueOnce(null) // First account fails
         .mockResolvedValueOnce(null); // Second account fails
 
       // Mock convertInternalAccountToCaipAccountId to return valid CAIP IDs
       const convertSpy = jest
-        .spyOn(messengerClient, 'convertInternalAccountToCaipAccountId')
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
         .mockImplementation((account: InternalAccount) => {
           if (account.address === mockAccount1.address) {
             return caipAccount1;
@@ -7446,7 +7437,7 @@ describe('RewardsController', () => {
         });
 
       // Act - should not throw
-      await messengerClient.handleAuthenticationTrigger('test-reason');
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -7455,8 +7446,8 @@ describe('RewardsController', () => {
       // Verify that performSilentAuth was called for both accounts
       expect(performSilentAuthSpy).toHaveBeenCalledTimes(2);
       // Verify that activeAccount is set to the first account (fallback behavior)
-      expect(messengerClient.state.activeAccount).toBeDefined();
-      expect(messengerClient.state.activeAccount?.account).toBe(caipAccount1);
+      expect(controller.state.activeAccount).toBeDefined();
+      expect(controller.state.activeAccount?.account).toBe(caipAccount1);
 
       // Clean up spies
       performSilentAuthSpy.mockRestore();
@@ -7487,7 +7478,7 @@ describe('RewardsController', () => {
       );
 
       // Act - should not throw
-      await messengerClient.handleAuthenticationTrigger('test-reason');
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
       // Verify that the method completed without throwing
@@ -7495,8 +7486,8 @@ describe('RewardsController', () => {
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
       // Verify that activeAccount is set to the first account even when auth fails
-      expect(messengerClient.state.activeAccount).toBeDefined();
-      expect(messengerClient.state.activeAccount?.account).toBeDefined();
+      expect(controller.state.activeAccount).toBeDefined();
+      expect(controller.state.activeAccount?.account).toBeDefined();
     });
 
     it('handles "Engine does not exist" errors silently', async () => {
@@ -7523,7 +7514,7 @@ describe('RewardsController', () => {
       );
 
       // Act - should not throw and should not log the error
-      await messengerClient.handleAuthenticationTrigger('test-reason');
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -7542,7 +7533,7 @@ describe('RewardsController', () => {
       });
 
       // Act - should not throw
-      await messengerClient.handleAuthenticationTrigger('test-reason');
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -7561,7 +7552,7 @@ describe('RewardsController', () => {
       });
 
       // Act - should not throw
-      await messengerClient.handleAuthenticationTrigger('test-reason');
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -7610,13 +7601,10 @@ describe('RewardsController', () => {
       ]);
 
       // Spy on performSilentAuth to verify the order accounts are processed
-      const performSilentAuthSpy = jest.spyOn(
-        messengerClient,
-        'performSilentAuth',
-      );
+      const performSilentAuthSpy = jest.spyOn(controller, 'performSilentAuth');
 
       // Act
-      await messengerClient.handleAuthenticationTrigger('test-reason');
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert - Should authenticate with accounts
       expect(performSilentAuthSpy).toHaveBeenCalledTimes(2);
@@ -7648,7 +7636,7 @@ describe('RewardsController', () => {
         },
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -7666,7 +7654,7 @@ describe('RewardsController', () => {
       const caipAccount = 'eip155:1:0x123' as CaipAccountId;
 
       // Act
-      const result = await messengerClient.shouldSkipSilentAuth(
+      const result = await controller.shouldSkipSilentAuth(
         caipAccount,
         mockInternalAccount,
       );
@@ -7707,7 +7695,7 @@ describe('RewardsController', () => {
         token: 'valid-session-token',
       });
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: accountState,
@@ -7723,7 +7711,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await messengerClient.shouldSkipSilentAuth(
+      const result = await controller.shouldSkipSilentAuth(
         caipAccount,
         mockInternalAccount,
       );
@@ -7760,7 +7748,7 @@ describe('RewardsController', () => {
         // No lastFreshOptInStatusCheck
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: accountState,
@@ -7776,7 +7764,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await messengerClient.shouldSkipSilentAuth(
+      const result = await controller.shouldSkipSilentAuth(
         caipAccount,
         mockInternalAccount,
       );
@@ -7813,7 +7801,7 @@ describe('RewardsController', () => {
         lastFreshOptInStatusCheck: recentTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: accountState,
@@ -7829,7 +7817,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await messengerClient.shouldSkipSilentAuth(
+      const result = await controller.shouldSkipSilentAuth(
         caipAccount,
         mockInternalAccount,
       );
@@ -7866,7 +7854,7 @@ describe('RewardsController', () => {
         lastFreshOptInStatusCheck: staleTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: accountState,
@@ -7882,7 +7870,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await messengerClient.shouldSkipSilentAuth(
+      const result = await controller.shouldSkipSilentAuth(
         caipAccount,
         mockInternalAccount,
       );
@@ -7924,7 +7912,7 @@ describe('RewardsController', () => {
         token: 'valid-session-token',
       });
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: accountState,
@@ -7942,7 +7930,7 @@ describe('RewardsController', () => {
       const lookupCaipAccount = 'eip155:1:0xABC' as CaipAccountId;
 
       // Act - Should find account even with different chain ID format
-      const result = await messengerClient.shouldSkipSilentAuth(
+      const result = await controller.shouldSkipSilentAuth(
         lookupCaipAccount,
         mockInternalAccount,
       );
@@ -7978,7 +7966,7 @@ describe('RewardsController', () => {
 
     it('skips logout when no authenticated account exists', async () => {
       // Arrange
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -7993,7 +7981,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      await messengerClient.logout();
+      await controller.logout();
 
       // Assert - Should not call logout service
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
@@ -8006,7 +7994,7 @@ describe('RewardsController', () => {
       // Arrange
       const mockSubscriptionId = 'sub-123';
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: {
@@ -8031,10 +8019,10 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(undefined);
 
       // Act
-      await messengerClient.logout();
+      await controller.logout();
 
       // Assert
-      expect(messengerClient.state.activeAccount).toBeNull();
+      expect(controller.state.activeAccount).toBeNull();
     });
 
     it('successfully complete full logout flow - happy path', async () => {
@@ -8069,7 +8057,7 @@ describe('RewardsController', () => {
       // Mock token storage to succeed during initialization
       mockStoreSubscriptionToken.mockResolvedValue({ success: true });
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: mockActiveAccount,
@@ -8101,13 +8089,13 @@ describe('RewardsController', () => {
       mockRemoveSubscriptionToken.mockResolvedValue({ success: true });
 
       // Verify state is correctly set before calling logout
-      expect(messengerClient.state.activeAccount).not.toBeNull();
-      expect(messengerClient.state.activeAccount?.subscriptionId).toBe(
+      expect(controller.state.activeAccount).not.toBeNull();
+      expect(controller.state.activeAccount?.subscriptionId).toBe(
         mockSubscriptionId,
       );
 
       // Act
-      await messengerClient.logout();
+      await controller.logout();
 
       // Assert - Verify data service logout was called
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -8121,8 +8109,8 @@ describe('RewardsController', () => {
       );
 
       // Assert - Verify state was cleared correctly
-      expect(messengerClient.state.activeAccount).toBeNull();
-      expect(messengerClient.state.accounts[CAIP_ACCOUNT_1]).toBeUndefined();
+      expect(controller.state.activeAccount).toBeNull();
+      expect(controller.state.accounts[CAIP_ACCOUNT_1]).toBeUndefined();
 
       // Assert - Verify success was logged
       expect(mockLogger.log).toHaveBeenCalledWith(
@@ -8130,9 +8118,7 @@ describe('RewardsController', () => {
       );
 
       // Assert - Verify subscription data is preserved (logout doesn't clear subscriptions)
-      expect(
-        messengerClient.state.subscriptions[mockSubscriptionId],
-      ).toBeDefined();
+      expect(controller.state.subscriptions[mockSubscriptionId]).toBeDefined();
     });
 
     it('logs error and re-throw when logout fails', async () => {
@@ -8150,7 +8136,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: Date.now(),
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: activeAccountState,
@@ -8170,7 +8156,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValueOnce(mockError); // RewardsDataService:logout
 
       // Act & Assert
-      await expect(messengerClient.logout()).rejects.toThrow(
+      await expect(controller.logout()).rejects.toThrow(
         'Logout service failed',
       );
 
@@ -8195,7 +8181,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: Date.now(),
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: activeAccountState,
@@ -8216,7 +8202,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      await messengerClient.resetAll();
+      await controller.resetAll();
 
       // Assert
       expect(mockLogger.log).toHaveBeenCalledWith(
@@ -8235,7 +8221,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: Date.now(),
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: activeAccountState,
@@ -8256,13 +8242,13 @@ describe('RewardsController', () => {
       });
 
       // Act
-      await messengerClient.resetAll();
+      await controller.resetAll();
 
       // Assert tokens cleared
       expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
 
       // Assert state updated: tokens cleared and state reset; active account is opted-out if preserved
-      const active = messengerClient.state.activeAccount;
+      const active = controller.state.activeAccount;
       const activeIsOptedOut =
         !!active &&
         active.account === CAIP_ACCOUNT_1 &&
@@ -8272,8 +8258,8 @@ describe('RewardsController', () => {
       expect(active?.lastFreshOptInStatusCheck).toBeNull();
 
       // Accounts and subscriptions should be cleared by resetState
-      expect(Object.keys(messengerClient.state.accounts)).toHaveLength(0);
-      expect(Object.keys(messengerClient.state.subscriptions)).toHaveLength(0);
+      expect(Object.keys(controller.state.accounts)).toHaveLength(0);
+      expect(Object.keys(controller.state.subscriptions)).toHaveLength(0);
 
       // Success log
       expect(mockLogger.log).toHaveBeenCalledWith(
@@ -8292,7 +8278,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: Date.now(),
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: activeAccountState,
@@ -8316,7 +8302,7 @@ describe('RewardsController', () => {
       mockResetAllSubscriptionTokens.mockRejectedValueOnce(error);
 
       // Act & Assert
-      await expect(messengerClient.resetAll()).rejects.toThrow(
+      await expect(controller.resetAll()).rejects.toThrow(
         'secure storage failure',
       );
 
@@ -8350,27 +8336,27 @@ describe('RewardsController', () => {
 
     it('returns false for empty or whitespace-only codes', async () => {
       // Act & Assert
-      expect(await messengerClient.validateReferralCode('')).toBe(false);
-      expect(await messengerClient.validateReferralCode('   ')).toBe(false);
-      expect(await messengerClient.validateReferralCode('\t\n')).toBe(false);
+      expect(await controller.validateReferralCode('')).toBe(false);
+      expect(await controller.validateReferralCode('   ')).toBe(false);
+      expect(await controller.validateReferralCode('\t\n')).toBe(false);
     });
 
     it('returns false for codes with incorrect length', async () => {
       // Act & Assert
-      expect(await messengerClient.validateReferralCode('ABC12')).toBe(false); // Too short
-      expect(await messengerClient.validateReferralCode('ABC1234')).toBe(false); // Too long
+      expect(await controller.validateReferralCode('ABC12')).toBe(false); // Too short
+      expect(await controller.validateReferralCode('ABC1234')).toBe(false); // Too long
     });
 
     it('returns false for codes with characters outside Base32 alphabet', async () => {
       // I, L, O, U are excluded from the Base32 alphabet
-      expect(await messengerClient.validateReferralCode('ABCIOU')).toBe(false);
-      expect(await messengerClient.validateReferralCode('LIONER')).toBe(false);
+      expect(await controller.validateReferralCode('ABCIOU')).toBe(false);
+      expect(await controller.validateReferralCode('LIONER')).toBe(false);
     });
 
     it('returns false for codes with special characters', async () => {
       // Act & Assert
-      expect(await messengerClient.validateReferralCode('AB-C!D')).toBe(false);
-      expect(await messengerClient.validateReferralCode('CO@E12')).toBe(false);
+      expect(await controller.validateReferralCode('AB-C!D')).toBe(false);
+      expect(await controller.validateReferralCode('CO@E12')).toBe(false);
     });
 
     it('returns true for valid referral codes from service', async () => {
@@ -8384,7 +8370,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await messengerClient.validateReferralCode('ABC234'); // Using valid Base32 code
+      const result = await controller.validateReferralCode('ABC234'); // Using valid Base32 code
 
       // Assert
       expect(result).toBe(true);
@@ -8405,7 +8391,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await messengerClient.validateReferralCode('XYZ567'); // Using valid Base32 code
+      const result = await controller.validateReferralCode('XYZ567'); // Using valid Base32 code
 
       // Assert
       expect(result).toBe(false);
@@ -8428,7 +8414,7 @@ describe('RewardsController', () => {
           return Promise.resolve();
         });
 
-        const result = await messengerClient.validateReferralCode(code);
+        const result = await controller.validateReferralCode(code);
         expect(result).toBe(true);
         expect(mockMessenger.call).toHaveBeenCalledWith(
           'RewardsDataService:validateReferralCode',
@@ -8442,9 +8428,9 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(new Error('Service error'));
 
       // Act & Assert
-      await expect(
-        messengerClient.validateReferralCode('ABC123'),
-      ).rejects.toThrow('Service error');
+      await expect(controller.validateReferralCode('ABC123')).rejects.toThrow(
+        'Service error',
+      );
     });
   });
 
@@ -8476,31 +8462,31 @@ describe('RewardsController', () => {
 
     it('returns false for empty or whitespace-only codes', async () => {
       // Act & Assert
+      expect(await controller.validateBonusCode('', mockSubscriptionId)).toBe(
+        false,
+      );
       expect(
-        await messengerClient.validateBonusCode('', mockSubscriptionId),
+        await controller.validateBonusCode('   ', mockSubscriptionId),
       ).toBe(false);
       expect(
-        await messengerClient.validateBonusCode('   ', mockSubscriptionId),
-      ).toBe(false);
-      expect(
-        await messengerClient.validateBonusCode('\t\n', mockSubscriptionId),
+        await controller.validateBonusCode('\t\n', mockSubscriptionId),
       ).toBe(false);
     });
 
     it('returns false for codes shorter than 4 characters', async () => {
       // Act & Assert
+      expect(await controller.validateBonusCode('AB', mockSubscriptionId)).toBe(
+        false,
+      );
       expect(
-        await messengerClient.validateBonusCode('AB', mockSubscriptionId),
-      ).toBe(false);
-      expect(
-        await messengerClient.validateBonusCode('ABC', mockSubscriptionId),
+        await controller.validateBonusCode('ABC', mockSubscriptionId),
       ).toBe(false);
     });
 
     it('returns false for codes longer than 16 characters', async () => {
       // Act & Assert
       expect(
-        await messengerClient.validateBonusCode(
+        await controller.validateBonusCode(
           'ABCDEFGHIJKLMNOPQ',
           mockSubscriptionId,
         ),
@@ -8517,23 +8503,23 @@ describe('RewardsController', () => {
       });
 
       expect(
-        await messengerClient.validateBonusCode('AIOU', mockSubscriptionId),
+        await controller.validateBonusCode('AIOU', mockSubscriptionId),
       ).toBe(true);
       expect(
-        await messengerClient.validateBonusCode('LION', mockSubscriptionId),
+        await controller.validateBonusCode('LION', mockSubscriptionId),
       ).toBe(true);
     });
 
     it('returns false for codes with non-alphanumeric characters', async () => {
       // Act & Assert
       expect(
-        await messengerClient.validateBonusCode('AB-C!', mockSubscriptionId),
+        await controller.validateBonusCode('AB-C!', mockSubscriptionId),
       ).toBe(false);
       expect(
-        await messengerClient.validateBonusCode('CODE@123', mockSubscriptionId),
+        await controller.validateBonusCode('CODE@123', mockSubscriptionId),
       ).toBe(false);
       expect(
-        await messengerClient.validateBonusCode('A B C D', mockSubscriptionId),
+        await controller.validateBonusCode('A B C D', mockSubscriptionId),
       ).toBe(false);
     });
 
@@ -8548,7 +8534,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await messengerClient.validateBonusCode(
+      const result = await controller.validateBonusCode(
         'BNS234',
         mockSubscriptionId,
       );
@@ -8573,7 +8559,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await messengerClient.validateBonusCode(
+      const result = await controller.validateBonusCode(
         'XYZ567',
         mockSubscriptionId,
       );
@@ -8593,7 +8579,7 @@ describe('RewardsController', () => {
 
       // Act & Assert
       await expect(
-        messengerClient.validateBonusCode('BNS123', mockSubscriptionId),
+        controller.validateBonusCode('BNS123', mockSubscriptionId),
       ).rejects.toThrow('Service error');
     });
   });
@@ -8632,12 +8618,12 @@ describe('RewardsController', () => {
       });
 
       const invalidateSpy = jest.spyOn(
-        messengerClient,
+        controller,
         'invalidateSubscriptionCache',
       );
 
       // Act
-      await messengerClient.applyBonusCode(mockBonusCode, mockSubscriptionId);
+      await controller.applyBonusCode(mockBonusCode, mockSubscriptionId);
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -8656,7 +8642,7 @@ describe('RewardsController', () => {
 
       // Act & Assert
       await expect(
-        messengerClient.applyBonusCode(mockBonusCode, mockSubscriptionId),
+        controller.applyBonusCode(mockBonusCode, mockSubscriptionId),
       ).rejects.toThrow('Invalid bonus code');
     });
 
@@ -8666,7 +8652,7 @@ describe('RewardsController', () => {
 
       // Act & Assert
       await expect(
-        messengerClient.applyBonusCode(mockBonusCode, mockSubscriptionId),
+        controller.applyBonusCode(mockBonusCode, mockSubscriptionId),
       ).rejects.toThrow('Network error');
     });
   });
@@ -8679,7 +8665,7 @@ describe('RewardsController', () => {
       const currentPoints = 1500;
 
       // Act
-      const result = messengerClient.calculateTierStatus(
+      const result = controller.calculateTierStatus(
         tiers,
         invalidCurrentTierId,
         currentPoints,
@@ -8700,7 +8686,7 @@ describe('RewardsController', () => {
       const currentPoints = 15000; // More than platinum tier
 
       // Act
-      const result = messengerClient.calculateTierStatus(
+      const result = controller.calculateTierStatus(
         tiers,
         lastTierCurrentTierId,
         currentPoints,
@@ -8721,7 +8707,7 @@ describe('RewardsController', () => {
       const currentPointsAboveNext = 6000; // More than Gold's 5000 requirement
 
       // Act
-      const result = messengerClient.calculateTierStatus(
+      const result = controller.calculateTierStatus(
         tiers,
         currentTierId,
         currentPointsAboveNext,
@@ -8740,7 +8726,7 @@ describe('RewardsController', () => {
       const currentPoints = 250; // Less than Silver's 1000 requirement
 
       // Act
-      const result = messengerClient.calculateTierStatus(
+      const result = controller.calculateTierStatus(
         tiers,
         currentTierId,
         currentPoints,
@@ -8804,7 +8790,7 @@ describe('RewardsController', () => {
       const currentPoints = 1500;
 
       // Act
-      const result = messengerClient.calculateTierStatus(
+      const result = controller.calculateTierStatus(
         unsortedTiers,
         currentTierId,
         currentPoints,
@@ -8838,7 +8824,7 @@ describe('RewardsController', () => {
       };
 
       // Act
-      const result = messengerClient.convertToSeasonStatusDto(
+      const result = controller.convertToSeasonStatusDto(
         seasonMetadata,
         seasonState,
       );
@@ -8877,7 +8863,7 @@ describe('RewardsController', () => {
       };
 
       // Act
-      const result = messengerClient.convertToSeasonStatusDto(
+      const result = controller.convertToSeasonStatusDto(
         seasonMetadata,
         seasonState,
       );
@@ -8909,7 +8895,7 @@ describe('RewardsController', () => {
       };
 
       // Act
-      const result = messengerClient.convertToSeasonStatusDto(
+      const result = controller.convertToSeasonStatusDto(
         seasonMetadata,
         seasonState,
       );
@@ -8963,7 +8949,7 @@ describe('RewardsController', () => {
       };
 
       // Act
-      const result = messengerClient.convertToSeasonStatusDto(
+      const result = controller.convertToSeasonStatusDto(
         seasonMetadata,
         seasonState,
       );
@@ -8996,7 +8982,7 @@ describe('RewardsController', () => {
       };
 
       // Act
-      const result = messengerClient.convertToSeasonStatusDto(
+      const result = controller.convertToSeasonStatusDto(
         seasonMetadata,
         seasonState,
       );
@@ -9026,7 +9012,7 @@ describe('RewardsController', () => {
       };
 
       // Act
-      const result = messengerClient.convertToSeasonStatusDto(
+      const result = controller.convertToSeasonStatusDto(
         seasonMetadata,
         seasonState,
       );
@@ -9054,7 +9040,7 @@ describe('RewardsController', () => {
       };
 
       // Act
-      const result = messengerClient.convertInternalAccountToCaipAccountId(
+      const result = controller.convertInternalAccountToCaipAccountId(
         invalidInternalAccount,
       );
 
@@ -9084,9 +9070,7 @@ describe('RewardsController', () => {
 
       // Act
       const result =
-        messengerClient.convertInternalAccountToCaipAccountId(
-          accountWithNoScopes,
-        );
+        controller.convertInternalAccountToCaipAccountId(accountWithNoScopes);
 
       // Assert
       expect(result).toBeNull();
@@ -9114,9 +9098,7 @@ describe('RewardsController', () => {
 
       // Act
       const result =
-        messengerClient.convertInternalAccountToCaipAccountId(
-          validInternalAccount,
-        );
+        controller.convertInternalAccountToCaipAccountId(validInternalAccount);
 
       // Assert
       expect(result).toBe('eip155:1:0x123456789');
@@ -9156,17 +9138,17 @@ describe('RewardsController', () => {
         ...getRewardsControllerDefaultState(),
         activeAccount: null,
       };
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
         isDisabled: () => false,
       });
 
       // Act
-      messengerClient.setActiveAccountFromCandidate(null);
+      controller.setActiveAccountFromCandidate(null);
 
       // Assert
-      expect(messengerClient.state.activeAccount).toBeNull();
+      expect(controller.state.activeAccount).toBeNull();
     });
 
     it('returns early when convertInternalAccountToCaipAccountId returns null', () => {
@@ -9175,23 +9157,23 @@ describe('RewardsController', () => {
         ...getRewardsControllerDefaultState(),
         activeAccount: null,
       };
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
         isDisabled: () => false,
       });
 
       jest
-        .spyOn(messengerClient, 'convertInternalAccountToCaipAccountId')
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
         .mockReturnValue(null);
 
       // Act
-      messengerClient.setActiveAccountFromCandidate(mockInternalAccount);
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
 
       // Assert
-      expect(messengerClient.state.activeAccount).toBeNull();
+      expect(controller.state.activeAccount).toBeNull();
       expect(
-        messengerClient.convertInternalAccountToCaipAccountId,
+        controller.convertInternalAccountToCaipAccountId,
       ).toHaveBeenCalledWith(mockInternalAccount);
     });
 
@@ -9202,21 +9184,21 @@ describe('RewardsController', () => {
         activeAccount: null,
         accounts: {},
       };
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
         isDisabled: () => false,
       });
 
       jest
-        .spyOn(messengerClient, 'convertInternalAccountToCaipAccountId')
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
         .mockReturnValue(CAIP_ACCOUNT_1);
 
       // Act
-      messengerClient.setActiveAccountFromCandidate(mockInternalAccount);
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
 
       // Assert
-      expect(messengerClient.state.activeAccount).toBeNull();
+      expect(controller.state.activeAccount).toBeNull();
     });
 
     it('sets activeAccount when candidate is valid and account state exists', () => {
@@ -9228,23 +9210,23 @@ describe('RewardsController', () => {
           [CAIP_ACCOUNT_1]: mockAccountState,
         },
       };
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
         isDisabled: () => false,
       });
 
       jest
-        .spyOn(messengerClient, 'convertInternalAccountToCaipAccountId')
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
         .mockReturnValue(CAIP_ACCOUNT_1);
 
       // Act
-      messengerClient.setActiveAccountFromCandidate(mockInternalAccount);
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
 
       // Assert
-      expect(messengerClient.state.activeAccount).toEqual(mockAccountState);
+      expect(controller.state.activeAccount).toEqual(mockAccountState);
       expect(
-        messengerClient.convertInternalAccountToCaipAccountId,
+        controller.convertInternalAccountToCaipAccountId,
       ).toHaveBeenCalledWith(mockInternalAccount);
     });
 
@@ -9265,24 +9247,22 @@ describe('RewardsController', () => {
           [CAIP_ACCOUNT_1]: mockAccountState,
         },
       };
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
         isDisabled: () => false,
       });
 
       jest
-        .spyOn(messengerClient, 'convertInternalAccountToCaipAccountId')
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
         .mockReturnValue(CAIP_ACCOUNT_1);
 
       // Act
-      messengerClient.setActiveAccountFromCandidate(mockInternalAccount);
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
 
       // Assert
-      expect(messengerClient.state.activeAccount).toEqual(mockAccountState);
-      expect(messengerClient.state.activeAccount).not.toEqual(
-        existingActiveAccount,
-      );
+      expect(controller.state.activeAccount).toEqual(mockAccountState);
+      expect(controller.state.activeAccount).not.toEqual(existingActiveAccount);
     });
 
     it('handles account state lookup with different CAIP format variations', () => {
@@ -9304,7 +9284,7 @@ describe('RewardsController', () => {
           [caipAccountLowercase]: accountStateWithLowercase,
         },
       };
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
         isDisabled: () => false,
@@ -9314,17 +9294,15 @@ describe('RewardsController', () => {
       const caipAccountWithChainId =
         'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId;
       jest
-        .spyOn(messengerClient, 'convertInternalAccountToCaipAccountId')
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
         .mockReturnValue(caipAccountWithChainId);
 
       // Act
-      messengerClient.setActiveAccountFromCandidate(mockInternalAccount);
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
 
       // Assert
       // The #getAccountState method should find the account state even with different CAIP format
-      expect(messengerClient.state.activeAccount).toEqual(
-        accountStateWithLowercase,
-      );
+      expect(controller.state.activeAccount).toEqual(accountStateWithLowercase);
     });
   });
 
@@ -9924,13 +9902,13 @@ describe('RewardsController', () => {
 
       // First call to populate cache
       mockMessenger.call.mockResolvedValueOnce('US-NY');
-      const firstResult = await messengerClient.getGeoRewardsMetadata();
+      const firstResult = await controller.getGeoRewardsMetadata();
 
       // Clear messenger call mock to verify no additional calls are made
       jest.clearAllMocks();
 
       // Act - Second call should use cache
-      const secondResult = await messengerClient.getGeoRewardsMetadata();
+      const secondResult = await controller.getGeoRewardsMetadata();
 
       // Assert - Verify cached data is returned
       expect(secondResult).toEqual(mockCachedGeoData);
@@ -9953,7 +9931,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValueOnce(mockGeoLocation);
 
       // Act
-      const result = await messengerClient.getGeoRewardsMetadata();
+      const result = await controller.getGeoRewardsMetadata();
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -9981,7 +9959,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValueOnce(mockGeoLocation);
 
       // Act
-      const result = await messengerClient.getGeoRewardsMetadata();
+      const result = await controller.getGeoRewardsMetadata();
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -9999,7 +9977,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValueOnce(geoServiceError);
 
       // Act
-      const result = await messengerClient.getGeoRewardsMetadata();
+      const result = await controller.getGeoRewardsMetadata();
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -10024,7 +10002,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValueOnce(nonErrorObject);
 
       // Act
-      const result = await messengerClient.getGeoRewardsMetadata();
+      const result = await controller.getGeoRewardsMetadata();
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -10101,7 +10079,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await messengerClient.optIn(mockAccounts);
+      const result = await controller.optIn(mockAccounts);
 
       // Assert
       expect(result).toBe(mockSubscriptionId);
@@ -10143,7 +10121,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await messengerClient.optIn(mockAccounts, referralCode);
+      const result = await controller.optIn(mockAccounts, referralCode);
 
       // Assert
       expect(result).toBe(mockSubscriptionId);
@@ -10177,7 +10155,7 @@ describe('RewardsController', () => {
       const mockAccounts: InternalAccount[] = [];
 
       // Act
-      const result = await messengerClient.optIn(mockAccounts);
+      const result = await controller.optIn(mockAccounts);
 
       // Assert
       expect(result).toBeNull();
@@ -10202,7 +10180,7 @@ describe('RewardsController', () => {
       }));
 
       // Act & Assert
-      await expect(messengerClient.optIn(mockAccounts)).rejects.toThrow(
+      await expect(controller.optIn(mockAccounts)).rejects.toThrow(
         'Failed to opt in any account from the account group',
       );
     });
@@ -10232,7 +10210,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await messengerClient.optIn(mockAccounts);
+      const result = await controller.optIn(mockAccounts);
 
       // Assert
       expect(result).toBe(mockSubscriptionId);
@@ -10257,7 +10235,7 @@ describe('RewardsController', () => {
       }));
 
       // Act & Assert
-      await expect(messengerClient.optIn(mockAccounts)).rejects.toThrow(
+      await expect(controller.optIn(mockAccounts)).rejects.toThrow(
         'Failed to opt in any account from the account group',
       );
     });
@@ -10278,12 +10256,12 @@ describe('RewardsController', () => {
       }));
 
       // Act & Assert
-      await expect(messengerClient.optIn(mockAccounts)).rejects.toThrow(
+      await expect(controller.optIn(mockAccounts)).rejects.toThrow(
         'Failed to opt in any account from the account group',
       );
     });
 
-    it('updates messengerClient state after successful opt-in', async () => {
+    it('updates controller state after successful opt-in', async () => {
       // Arrange
       const mockAccounts = [mockEvmInternalAccount];
       mockMessenger.call.mockImplementation((method, ..._args): any => {
@@ -10301,13 +10279,13 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await messengerClient.optIn(mockAccounts);
+      const result = await controller.optIn(mockAccounts);
 
       // Assert
       expect(result).toBe(mockSubscriptionId);
 
       // Check that the controller state was updated
-      const state = messengerClient.state;
+      const state = controller.state;
       expect(state.subscriptions[mockSubscriptionId]).toBeDefined();
       expect(state.subscriptions[mockSubscriptionId].id).toBe(
         mockSubscriptionId,
@@ -10339,7 +10317,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await messengerClient.optIn(mockAccounts);
+      const result = await controller.optIn(mockAccounts);
 
       // Assert
       expect(result).toBe(mockSubscriptionId);
@@ -10378,7 +10356,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await messengerClient.optIn(mockAccounts);
+      const result = await controller.optIn(mockAccounts);
 
       // Assert
       expect(result).toBe(mockSubscriptionId); // Should still return the subscription ID even if linking fails
@@ -10408,7 +10386,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await messengerClient.optIn(mockAccounts);
+      const result = await controller.optIn(mockAccounts);
 
       // Assert
       expect(result).toBe(mockSubscriptionId); // Should still succeed even if token storage fails
@@ -10447,7 +10425,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await messengerClient.optIn(mockAccounts);
+      const result = await controller.optIn(mockAccounts);
 
       // Assert
       expect(result).toBe(mockSubscriptionId); // Should try EVM account first due to sorting
@@ -10477,7 +10455,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await messengerClient.optIn(mockAccounts);
+      const result = await controller.optIn(mockAccounts);
 
       // Assert
       expect(result).toBe(mockSubscriptionId); // Should not call mobileJoin since there are no remaining accounts
@@ -10513,7 +10491,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await messengerClient.optIn(mockAccounts);
+      const result = await controller.optIn(mockAccounts);
 
       // Assert
       expect(result).toBe(mockSubscriptionId);
@@ -10540,7 +10518,7 @@ describe('RewardsController', () => {
       }));
 
       // Act & Assert
-      await expect(messengerClient.optIn(mockAccounts)).rejects.toThrow(
+      await expect(controller.optIn(mockAccounts)).rejects.toThrow(
         'Failed to opt in any account from the account group',
       );
     });
@@ -10565,7 +10543,7 @@ describe('RewardsController', () => {
       }));
 
       // Act & Assert
-      await expect(messengerClient.optIn(mockAccounts)).rejects.toThrow(
+      await expect(controller.optIn(mockAccounts)).rejects.toThrow(
         'Failed to opt in any account from the account group',
       );
     });
@@ -10608,7 +10586,7 @@ describe('RewardsController', () => {
 
       // Mock convertInternalAccountToCaipAccountId to return null
       jest
-        .spyOn(messengerClient as any, 'convertInternalAccountToCaipAccountId')
+        .spyOn(controller as any, 'convertInternalAccountToCaipAccountId')
         .mockReturnValue(null);
 
       mockMessenger.call.mockImplementation((method, ..._args): any => {
@@ -10626,7 +10604,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await messengerClient.optIn(mockAccounts);
+      const result = await controller.optIn(mockAccounts);
 
       // Assert
       expect(result).toBe(mockSubscriptionId); // Should still succeed even if convertInternalAccountToCaipAccountId returns null
@@ -10655,7 +10633,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await messengerClient.optIn(mockAccounts);
+      const result = await controller.optIn(mockAccounts);
 
       // Assert
       expect(result).toBe(mockSubscriptionId); // Should still succeed even if sessionId is missing
@@ -10684,7 +10662,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await messengerClient.optIn(mockAccounts);
+      const result = await controller.optIn(mockAccounts);
 
       // Assert
       expect(result).toBeNull(); // Should return null when subscription id is missing
@@ -10806,9 +10784,7 @@ describe('RewardsController', () => {
 
     it('returns empty array when accounts array is empty', async () => {
       // Act
-      const result = await messengerClient.linkAccountsToSubscriptionCandidate(
-        [],
-      );
+      const result = await controller.linkAccountsToSubscriptionCandidate([]);
 
       // Assert
       expect(result).toEqual([]);
@@ -10820,7 +10796,7 @@ describe('RewardsController', () => {
 
       // Act
       const result =
-        await messengerClient.linkAccountsToSubscriptionCandidate(accounts);
+        await controller.linkAccountsToSubscriptionCandidate(accounts);
 
       // Assert
       expect(result).toEqual([
@@ -11300,7 +11276,7 @@ describe('RewardsController', () => {
         const mockAccounts: InternalAccount[] = [];
 
         // Act
-        const result = await messengerClient.optIn(mockAccounts);
+        const result = await controller.optIn(mockAccounts);
 
         // Assert
         expect(result).toBeNull();
@@ -11314,7 +11290,7 @@ describe('RewardsController', () => {
         const mockAccounts = null as unknown as InternalAccount[];
 
         // Act
-        const result = await messengerClient.optIn(mockAccounts);
+        const result = await controller.optIn(mockAccounts);
 
         // Assert
         expect(result).toBeNull();
@@ -11328,7 +11304,7 @@ describe('RewardsController', () => {
         const mockAccounts = undefined as unknown as InternalAccount[];
 
         // Act
-        const result = await messengerClient.optIn(mockAccounts);
+        const result = await controller.optIn(mockAccounts);
 
         // Assert
         expect(result).toBeNull();
@@ -11364,7 +11340,7 @@ describe('RewardsController', () => {
         }));
 
         // Act & Assert
-        await expect(messengerClient.optIn(mockAccounts)).rejects.toThrow(
+        await expect(controller.optIn(mockAccounts)).rejects.toThrow(
           'Failed to opt in any account from the account group',
         );
       });
@@ -11406,10 +11382,7 @@ describe('RewardsController', () => {
         }));
 
         // Act
-        const result = await messengerClient.optIn(
-          mockAccounts,
-          longReferralCode,
-        );
+        const result = await controller.optIn(mockAccounts, longReferralCode);
 
         // Assert
         expect(result).toBe('test-subscription-id');
@@ -11452,7 +11425,7 @@ describe('RewardsController', () => {
         }));
 
         // Act
-        const result = await messengerClient.optIn(
+        const result = await controller.optIn(
           mockAccounts,
           specialReferralCode,
         );
@@ -11628,7 +11601,7 @@ describe('RewardsController', () => {
       // Arrange
 
       // Act
-      const result = await messengerClient.getCandidateSubscriptionId();
+      const result = await controller.getCandidateSubscriptionId();
 
       // Assert
       expect(result).toBeNull();
@@ -12719,7 +12692,7 @@ describe('RewardsController', () => {
       // We expect the function to throw an error when no subscription is found
       // This is the expected behavior regardless of account type
       try {
-        await messengerClient.linkAccountToSubscriptionCandidate(solanaAccount);
+        await controller.linkAccountToSubscriptionCandidate(solanaAccount);
         // If we get here, the test should fail
         fail('Expected function to throw an error');
       } catch (error) {
@@ -13693,7 +13666,7 @@ describe('RewardsController', () => {
 
       // Act
       const result =
-        await messengerClient.linkAccountsToSubscriptionCandidate(accounts);
+        await controller.linkAccountsToSubscriptionCandidate(accounts);
 
       // Assert
       expect(result).toEqual([]);
@@ -13705,7 +13678,7 @@ describe('RewardsController', () => {
 
       // Mock the individual linkAccountToSubscriptionCandidate calls to all fail
       const linkSpy = jest.spyOn(
-        messengerClient,
+        controller,
         'linkAccountToSubscriptionCandidate',
       );
       linkSpy
@@ -13714,7 +13687,7 @@ describe('RewardsController', () => {
 
       // Act
       const result =
-        await messengerClient.linkAccountsToSubscriptionCandidate(accounts);
+        await controller.linkAccountsToSubscriptionCandidate(accounts);
 
       // Assert
       expect(result).toEqual([
@@ -13727,7 +13700,7 @@ describe('RewardsController', () => {
 
       // Verify cache invalidation was NOT called
       const invalidateSpy = jest.spyOn(
-        messengerClient,
+        controller,
         'invalidateSubscriptionCache',
       );
       expect(invalidateSpy).not.toHaveBeenCalled();
@@ -13800,7 +13773,7 @@ describe('RewardsController', () => {
         .mockResolvedValueOnce(mockResponse); // RewardsDataService:getOptInStatus
 
       // Act
-      const result = await messengerClient.getOptInStatus(mockParams);
+      const result = await controller.getOptInStatus(mockParams);
 
       // Assert
       expect(result).toEqual(mockResponse);
@@ -13848,13 +13821,13 @@ describe('RewardsController', () => {
         .mockResolvedValueOnce(mockResponse); // RewardsDataService:getOptInStatus
 
       // Act
-      const result = await messengerClient.getOptInStatus(mockParams);
+      const result = await controller.getOptInStatus(mockParams);
 
       // Assert
       expect(result).toEqual(mockResponse);
 
       // Check that subscription IDs were cached in account state
-      const state = messengerClient.state;
+      const state = controller.state;
       const account1State = state.accounts['eip155:1:0x123'];
       const account2State = state.accounts['eip155:1:0x456'];
 
@@ -13905,7 +13878,7 @@ describe('RewardsController', () => {
         .mockRejectedValueOnce(mockError); // RewardsDataService:getOptInStatus
 
       // Act & Assert
-      await expect(messengerClient.getOptInStatus(mockParams)).rejects.toThrow(
+      await expect(controller.getOptInStatus(mockParams)).rejects.toThrow(
         'Service error',
       );
 
@@ -13929,7 +13902,7 @@ describe('RewardsController', () => {
         .mockRejectedValueOnce(mockError); // RewardsDataService:getOptInStatus
 
       // Act & Assert
-      await expect(messengerClient.getOptInStatus(mockParams)).rejects.toBe(
+      await expect(controller.getOptInStatus(mockParams)).rejects.toBe(
         'String error',
       );
 
@@ -14326,7 +14299,7 @@ describe('RewardsController', () => {
   });
 
   describe('getActivePointsBoosts', () => {
-    let messengerClient: RewardsController;
+    let controller: RewardsController;
     let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
 
     beforeEach(() => {
@@ -14342,7 +14315,7 @@ describe('RewardsController', () => {
         unsubscribe: jest.fn(),
       } as unknown as jest.Mocked<RewardsControllerMessenger>;
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -14383,7 +14356,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await messengerClient.getActivePointsBoosts(
+      const result = await controller.getActivePointsBoosts(
         seasonId,
         subscriptionId,
       );
@@ -14410,7 +14383,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await messengerClient.getActivePointsBoosts(
+      const result = await controller.getActivePointsBoosts(
         seasonId,
         subscriptionId,
       );
@@ -14430,7 +14403,7 @@ describe('RewardsController', () => {
 
       // Act & Assert
       await expect(
-        messengerClient.getActivePointsBoosts(seasonId, subscriptionId),
+        controller.getActivePointsBoosts(seasonId, subscriptionId),
       ).rejects.toThrow('Data service error');
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -14450,7 +14423,7 @@ describe('RewardsController', () => {
 
       // Act & Assert
       await expect(
-        messengerClient.getActivePointsBoosts(seasonId, subscriptionId),
+        controller.getActivePointsBoosts(seasonId, subscriptionId),
       ).rejects.toThrow('Request timeout after 10000ms');
     });
 
@@ -14464,7 +14437,7 @@ describe('RewardsController', () => {
 
       // Act & Assert
       await expect(
-        messengerClient.getActivePointsBoosts(seasonId, subscriptionId),
+        controller.getActivePointsBoosts(seasonId, subscriptionId),
       ).rejects.toThrow('Authentication failed');
     });
 
@@ -14490,7 +14463,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await messengerClient.getActivePointsBoosts(
+      const result = await controller.getActivePointsBoosts(
         seasonId,
         subscriptionId,
       );
@@ -14567,7 +14540,7 @@ describe('RewardsController', () => {
         lastFetched: recentTime,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -14584,7 +14557,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await messengerClient.getActivePointsBoosts(
+      const result = await controller.getActivePointsBoosts(
         seasonId,
         subscriptionId,
       );
@@ -14655,7 +14628,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -14678,7 +14651,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await messengerClient.getActivePointsBoosts(
+      const result = await controller.getActivePointsBoosts(
         seasonId,
         subscriptionId,
       );
@@ -14728,7 +14701,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -14746,7 +14719,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await messengerClient.getActivePointsBoosts(
+      const result = await controller.getActivePointsBoosts(
         seasonId,
         subscriptionId,
       );
@@ -14760,7 +14733,7 @@ describe('RewardsController', () => {
       expect(result[1].seasonLong).toBe(false);
 
       // Check that state was updated with cached boosts
-      const cachedBoosts = messengerClient.state.activeBoosts[compositeKey];
+      const cachedBoosts = controller.state.activeBoosts[compositeKey];
       expect(cachedBoosts).toBeDefined();
       expect(cachedBoosts.boosts).toHaveLength(2);
       expect(cachedBoosts.boosts[0].id).toBe('state-boost-1');
@@ -14790,7 +14763,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -14808,7 +14781,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await messengerClient.getActivePointsBoosts(
+      const result = await controller.getActivePointsBoosts(
         seasonId,
         subscriptionId,
       );
@@ -14824,7 +14797,7 @@ describe('RewardsController', () => {
 
       // Verify cache was populated
       const compositeKey = `${seasonId}:${subscriptionId}`;
-      const cachedBoosts = messengerClient.state.activeBoosts[compositeKey];
+      const cachedBoosts = controller.state.activeBoosts[compositeKey];
       expect(cachedBoosts).toBeDefined();
       expect(cachedBoosts.boosts[0].id).toBe('new-boost');
       expect(cachedBoosts.lastFetched).toBeGreaterThan(Date.now() - 1000);
@@ -14868,7 +14841,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -14906,13 +14879,13 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(mockResponse2);
 
       // Act - First call should use cache
-      const result1 = await messengerClient.getActivePointsBoosts(
+      const result1 = await controller.getActivePointsBoosts(
         seasonId1,
         subscriptionId1,
       );
 
       // Act - Second call should fetch fresh data
-      const result2 = await messengerClient.getActivePointsBoosts(
+      const result2 = await controller.getActivePointsBoosts(
         seasonId2,
         subscriptionId2,
       );
@@ -14932,14 +14905,14 @@ describe('RewardsController', () => {
       );
 
       // Verify both composite keys exist in state
-      expect(messengerClient.state.activeBoosts[compositeKey1]).toBeDefined();
-      expect(messengerClient.state.activeBoosts[compositeKey2]).toBeDefined();
-      expect(
-        messengerClient.state.activeBoosts[compositeKey1].boosts[0].id,
-      ).toBe('boost-A-X');
-      expect(
-        messengerClient.state.activeBoosts[compositeKey2].boosts[0].id,
-      ).toBe('boost-B-Y');
+      expect(controller.state.activeBoosts[compositeKey1]).toBeDefined();
+      expect(controller.state.activeBoosts[compositeKey2]).toBeDefined();
+      expect(controller.state.activeBoosts[compositeKey1].boosts[0].id).toBe(
+        'boost-A-X',
+      );
+      expect(controller.state.activeBoosts[compositeKey2].boosts[0].id).toBe(
+        'boost-B-Y',
+      );
     });
 
     it('reauthenticates and retries after 403 error on active boosts', async () => {
@@ -15062,7 +15035,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(genericError);
 
       await expect(
-        messengerClient.getActivePointsBoosts(seasonId, subscriptionId),
+        controller.getActivePointsBoosts(seasonId, subscriptionId),
       ).rejects.toThrow('Network error');
 
       // Should NOT attempt reauth for non-403 errors
@@ -15073,7 +15046,7 @@ describe('RewardsController', () => {
   });
 
   describe('getUnlockedRewards', () => {
-    let messengerClient: RewardsController;
+    let controller: RewardsController;
     let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockSeasonId = 'season123';
     const mockSubscriptionId = 'sub123';
@@ -15129,7 +15102,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -15149,7 +15122,7 @@ describe('RewardsController', () => {
         },
       });
 
-      const result = await messengerClient.getUnlockedRewards(
+      const result = await controller.getUnlockedRewards(
         mockSeasonId,
         mockSubscriptionId,
       );
@@ -15197,7 +15170,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -15219,7 +15192,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(mockFreshRewards);
 
-      const result = await messengerClient.getUnlockedRewards(
+      const result = await controller.getUnlockedRewards(
         mockSeasonId,
         mockSubscriptionId,
       );
@@ -15236,7 +15209,7 @@ describe('RewardsController', () => {
       expect(result[2].claimStatus).toBe(RewardClaimStatus.CLAIMED);
 
       // Verify state was updated with fresh data
-      const updatedCache = messengerClient.state.unlockedRewards[compositeKey];
+      const updatedCache = controller.state.unlockedRewards[compositeKey];
       expect(updatedCache).toBeDefined();
       expect(updatedCache.rewards).toEqual(mockFreshRewards);
       expect(updatedCache.lastFetched).toBeGreaterThan(Date.now() - 1000);
@@ -15256,14 +15229,14 @@ describe('RewardsController', () => {
         },
       ];
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
       mockMessenger.call.mockResolvedValue(mockApiRewards);
 
-      const result = await messengerClient.getUnlockedRewards(
+      const result = await controller.getUnlockedRewards(
         mockSeasonId,
         mockSubscriptionId,
       );
@@ -15280,14 +15253,14 @@ describe('RewardsController', () => {
 
       // Verify state was updated with cached data
       const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const cachedData = messengerClient.state.unlockedRewards[compositeKey];
+      const cachedData = controller.state.unlockedRewards[compositeKey];
       expect(cachedData).toBeDefined();
       expect(cachedData.rewards).toEqual(mockApiRewards);
       expect(cachedData.lastFetched).toBeGreaterThan(Date.now() - 1000);
     });
 
     it('throws error when API fails', async () => {
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15295,7 +15268,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(new Error('API error'));
 
       await expect(
-        messengerClient.getUnlockedRewards(mockSeasonId, mockSubscriptionId),
+        controller.getUnlockedRewards(mockSeasonId, mockSubscriptionId),
       ).rejects.toThrow('API error');
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -15306,14 +15279,14 @@ describe('RewardsController', () => {
     });
 
     it('handles null API response', async () => {
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
       mockMessenger.call.mockResolvedValue(null);
 
-      const result = await messengerClient.getUnlockedRewards(
+      const result = await controller.getUnlockedRewards(
         mockSeasonId,
         mockSubscriptionId,
       );
@@ -15322,20 +15295,20 @@ describe('RewardsController', () => {
 
       // Verify state was updated with empty array
       const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const cachedData = messengerClient.state.unlockedRewards[compositeKey];
+      const cachedData = controller.state.unlockedRewards[compositeKey];
       expect(cachedData).toBeDefined();
       expect(cachedData.rewards).toEqual([]);
     });
 
     it('handles empty rewards array from API', async () => {
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
       mockMessenger.call.mockResolvedValue([]);
 
-      const result = await messengerClient.getUnlockedRewards(
+      const result = await controller.getUnlockedRewards(
         mockSeasonId,
         mockSubscriptionId,
       );
@@ -15345,7 +15318,7 @@ describe('RewardsController', () => {
 
       // Verify state was updated
       const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const cachedData = messengerClient.state.unlockedRewards[compositeKey];
+      const cachedData = controller.state.unlockedRewards[compositeKey];
       expect(cachedData).toBeDefined();
       expect(cachedData.rewards).toEqual([]);
       expect(cachedData.lastFetched).toBeGreaterThan(Date.now() - 1000);
@@ -15380,7 +15353,7 @@ describe('RewardsController', () => {
         },
       ];
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -15405,13 +15378,13 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(mockRewards2);
 
       // Act - First call should use cache
-      const result1 = await messengerClient.getUnlockedRewards(
+      const result1 = await controller.getUnlockedRewards(
         seasonId1,
         subscriptionId1,
       );
 
       // Act - Second call should fetch fresh data
-      const result2 = await messengerClient.getUnlockedRewards(
+      const result2 = await controller.getUnlockedRewards(
         seasonId2,
         subscriptionId2,
       );
@@ -15433,15 +15406,11 @@ describe('RewardsController', () => {
       );
 
       // Verify both caches exist
-      expect(
-        messengerClient.state.unlockedRewards[compositeKey1],
-      ).toBeDefined();
-      expect(
-        messengerClient.state.unlockedRewards[compositeKey2],
-      ).toBeDefined();
-      expect(
-        messengerClient.state.unlockedRewards[compositeKey2].rewards,
-      ).toEqual(mockRewards2);
+      expect(controller.state.unlockedRewards[compositeKey1]).toBeDefined();
+      expect(controller.state.unlockedRewards[compositeKey2]).toBeDefined();
+      expect(controller.state.unlockedRewards[compositeKey2].rewards).toEqual(
+        mockRewards2,
+      );
     });
 
     it('uses current season ID as default', async () => {
@@ -15454,14 +15423,14 @@ describe('RewardsController', () => {
         },
       ];
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
       mockMessenger.call.mockResolvedValue(mockRewards);
 
-      const result = await messengerClient.getUnlockedRewards(
+      const result = await controller.getUnlockedRewards(
         currentSeasonId,
         mockSubscriptionId,
       );
@@ -15488,7 +15457,7 @@ describe('RewardsController', () => {
 
     it('successfully claim reward without DTO', async () => {
       // Arrange
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15496,7 +15465,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(undefined);
 
       // Act
-      await messengerClient.claimReward(mockRewardId, mockSubscriptionId);
+      await controller.claimReward(mockRewardId, mockSubscriptionId);
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -15530,7 +15499,7 @@ describe('RewardsController', () => {
         },
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15538,11 +15507,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(undefined);
 
       // Act
-      await messengerClient.claimReward(
-        mockRewardId,
-        mockSubscriptionId,
-        mockDto,
-      );
+      await controller.claimReward(mockRewardId, mockSubscriptionId, mockDto);
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -15623,7 +15588,7 @@ describe('RewardsController', () => {
         pointsEvents: {},
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
       });
@@ -15631,17 +15596,17 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(undefined);
 
       // Act
-      await messengerClient.claimReward(mockRewardId, mockSubscriptionId);
+      await controller.claimReward(mockRewardId, mockSubscriptionId);
 
       // Assert - Cache should be invalidated for current season
       expect(
-        messengerClient.state.seasonStatuses[currentSeasonCompositeKey],
+        controller.state.seasonStatuses[currentSeasonCompositeKey],
       ).toBeUndefined();
       expect(
-        messengerClient.state.activeBoosts[currentSeasonCompositeKey],
+        controller.state.activeBoosts[currentSeasonCompositeKey],
       ).toBeUndefined();
       expect(
-        messengerClient.state.unlockedRewards[currentSeasonCompositeKey],
+        controller.state.unlockedRewards[currentSeasonCompositeKey],
       ).toBeUndefined();
     });
 
@@ -15665,7 +15630,7 @@ describe('RewardsController', () => {
     it('handles and re-throw API errors', async () => {
       // Arrange
       const mockError = new Error('API Error: Reward already claimed');
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15674,7 +15639,7 @@ describe('RewardsController', () => {
 
       // Act & Assert
       await expect(
-        messengerClient.claimReward(mockRewardId, mockSubscriptionId),
+        controller.claimReward(mockRewardId, mockSubscriptionId),
       ).rejects.toThrow('API Error: Reward already claimed');
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -15693,14 +15658,14 @@ describe('RewardsController', () => {
     it('handles non-Error objects in catch block', async () => {
       // Arrange
       const mockError = 'String error';
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => false,
       });
       mockMessenger.call.mockRejectedValue(mockError);
       await expect(
-        messengerClient.claimReward(mockRewardId, mockSubscriptionId),
+        controller.claimReward(mockRewardId, mockSubscriptionId),
       ).rejects.toBe('String error');
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to claim reward:',
@@ -15711,7 +15676,7 @@ describe('RewardsController', () => {
     it('handles empty DTO object', async () => {
       // Arrange
       const emptyDto = {};
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => false,
@@ -15720,11 +15685,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(undefined);
 
       // Act
-      await messengerClient.claimReward(
-        mockRewardId,
-        mockSubscriptionId,
-        emptyDto,
-      );
+      await controller.claimReward(mockRewardId, mockSubscriptionId, emptyDto);
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -15744,7 +15705,7 @@ describe('RewardsController', () => {
           metadata: 'additional-metadata',
         },
       };
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15752,7 +15713,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(undefined);
 
       // Act
-      await messengerClient.claimReward(
+      await controller.claimReward(
         mockRewardId,
         mockSubscriptionId,
         complexDto,
@@ -15815,7 +15776,7 @@ describe('RewardsController', () => {
         pointsEvents: {},
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
       });
@@ -15823,17 +15784,17 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(undefined);
 
       // Act
-      await messengerClient.claimReward(mockRewardId, mockSubscriptionId);
+      await controller.claimReward(mockRewardId, mockSubscriptionId);
 
       // Assert - Current season cache should be invalidated
       expect(
-        messengerClient.state.seasonStatuses[currentSeasonCompositeKey],
+        controller.state.seasonStatuses[currentSeasonCompositeKey],
       ).toBeUndefined();
     });
 
     it('logs cache invalidation', async () => {
       // Arrange
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15841,7 +15802,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(undefined);
 
       // Act
-      await messengerClient.claimReward(mockRewardId, mockSubscriptionId);
+      await controller.claimReward(mockRewardId, mockSubscriptionId);
 
       // Assert
       expect(mockLogger.log).toHaveBeenCalledWith(
@@ -15867,7 +15828,7 @@ describe('RewardsController', () => {
         amount: '1000',
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15876,7 +15837,7 @@ describe('RewardsController', () => {
 
       // Act
       const result =
-        await messengerClient.getSeasonOneLineaRewardTokens(mockSubscriptionId);
+        await controller.getSeasonOneLineaRewardTokens(mockSubscriptionId);
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -15905,7 +15866,7 @@ describe('RewardsController', () => {
     it('handles and re-throw API errors', async () => {
       // Arrange
       const mockError = new Error('API Error: Failed to get tokens');
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15914,7 +15875,7 @@ describe('RewardsController', () => {
 
       // Act & Assert
       await expect(
-        messengerClient.getSeasonOneLineaRewardTokens(mockSubscriptionId),
+        controller.getSeasonOneLineaRewardTokens(mockSubscriptionId),
       ).rejects.toThrow('API Error: Failed to get tokens');
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -15930,7 +15891,7 @@ describe('RewardsController', () => {
     it('handles non-Error objects in catch block', async () => {
       // Arrange
       const mockError = 'String error';
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => false,
@@ -15939,7 +15900,7 @@ describe('RewardsController', () => {
 
       // Act & Assert
       await expect(
-        messengerClient.getSeasonOneLineaRewardTokens(mockSubscriptionId),
+        controller.getSeasonOneLineaRewardTokens(mockSubscriptionId),
       ).rejects.toBe('String error');
 
       expect(mockLogger.log).toHaveBeenCalledWith(
@@ -15950,7 +15911,7 @@ describe('RewardsController', () => {
 
     it('returns null when data service returns null', async () => {
       // Arrange
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15959,7 +15920,7 @@ describe('RewardsController', () => {
 
       // Act
       const result =
-        await messengerClient.getSeasonOneLineaRewardTokens(mockSubscriptionId);
+        await controller.getSeasonOneLineaRewardTokens(mockSubscriptionId);
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -15977,7 +15938,7 @@ describe('RewardsController', () => {
         amount: '5000',
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -15985,7 +15946,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue(mockLineaTokenReward);
 
       // Act
-      const result = await messengerClient.getSeasonOneLineaRewardTokens(
+      const result = await controller.getSeasonOneLineaRewardTokens(
         differentSubscriptionId,
       );
 
@@ -16002,8 +15963,8 @@ describe('RewardsController', () => {
     it('includes expected state in debug snapshots', () => {
       expect(
         deriveStateFromMetadata(
-          messengerClient.state,
-          messengerClient.metadata,
+          controller.state,
+          controller.metadata,
           'includeInDebugSnapshot',
         ),
       ).toMatchSnapshot();
@@ -16013,8 +15974,8 @@ describe('RewardsController', () => {
   it('includes expected state in state logs', () => {
     expect(
       deriveStateFromMetadata(
-        messengerClient.state,
-        messengerClient.metadata,
+        controller.state,
+        controller.metadata,
         'includeInStateLogs',
       ),
     ).toMatchSnapshot();
@@ -16022,19 +15983,15 @@ describe('RewardsController', () => {
 
   it('persists expected state', () => {
     expect(
-      deriveStateFromMetadata(
-        messengerClient.state,
-        messengerClient.metadata,
-        'persist',
-      ),
+      deriveStateFromMetadata(controller.state, controller.metadata, 'persist'),
     ).toMatchSnapshot();
   });
 
   it('exposes expected state to UI', () => {
     expect(
       deriveStateFromMetadata(
-        messengerClient.state,
-        messengerClient.metadata,
+        controller.state,
+        controller.metadata,
         'usedInUi',
       ),
     ).toMatchSnapshot();
@@ -16694,26 +16651,24 @@ describe('RewardsController', () => {
       const initialState = getRewardsControllerDefaultState();
 
       // Create a controller with empty state
-      const messengerClient = new RewardsController({
+      const controller = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
       });
 
       // Act - should not throw error even when cache is empty
       expect(() =>
-        messengerClient.invalidateSubscriptionCache(subscriptionId, seasonId),
+        controller.invalidateSubscriptionCache(subscriptionId, seasonId),
       ).not.toThrow();
 
       // Assert - state should remain empty
-      expect(Object.keys(messengerClient.state.seasonStatuses)).toHaveLength(0);
-      expect(Object.keys(messengerClient.state.unlockedRewards)).toHaveLength(
-        0,
-      );
-      expect(Object.keys(messengerClient.state.activeBoosts)).toHaveLength(0);
+      expect(Object.keys(controller.state.seasonStatuses)).toHaveLength(0);
+      expect(Object.keys(controller.state.unlockedRewards)).toHaveLength(0);
+      expect(Object.keys(controller.state.activeBoosts)).toHaveLength(0);
       expect(
-        Object.keys(messengerClient.state.subscriptionReferralDetails),
+        Object.keys(controller.state.subscriptionReferralDetails),
       ).toHaveLength(0);
-      expect(Object.keys(messengerClient.state.pointsEvents)).toHaveLength(0);
+      expect(Object.keys(controller.state.pointsEvents)).toHaveLength(0);
     });
 
     it('handles empty state gracefully when invalidating all seasons', async () => {
@@ -16724,26 +16679,24 @@ describe('RewardsController', () => {
       const initialState = getRewardsControllerDefaultState();
 
       // Create a controller with empty state
-      const messengerClient = new RewardsController({
+      const controller = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
       });
 
       // Act - should not throw error even when cache is empty
       expect(() =>
-        messengerClient.invalidateSubscriptionCache(subscriptionId),
+        controller.invalidateSubscriptionCache(subscriptionId),
       ).not.toThrow();
 
       // Assert - state should remain empty
-      expect(Object.keys(messengerClient.state.seasonStatuses)).toHaveLength(0);
-      expect(Object.keys(messengerClient.state.unlockedRewards)).toHaveLength(
-        0,
-      );
-      expect(Object.keys(messengerClient.state.activeBoosts)).toHaveLength(0);
+      expect(Object.keys(controller.state.seasonStatuses)).toHaveLength(0);
+      expect(Object.keys(controller.state.unlockedRewards)).toHaveLength(0);
+      expect(Object.keys(controller.state.activeBoosts)).toHaveLength(0);
       expect(
-        Object.keys(messengerClient.state.subscriptionReferralDetails),
+        Object.keys(controller.state.subscriptionReferralDetails),
       ).toHaveLength(0);
-      expect(Object.keys(messengerClient.state.pointsEvents)).toHaveLength(0);
+      expect(Object.keys(controller.state.pointsEvents)).toHaveLength(0);
     });
 
     it('only invalidate data for the specified subscription when invalidating all seasons', async () => {
@@ -17226,7 +17179,7 @@ describe('RewardsController', () => {
       mockIsHardwareAccount.mockReturnValue(true);
 
       // Act
-      const result = messengerClient.isOptInSupported(hardwareAccount);
+      const result = controller.isOptInSupported(hardwareAccount);
 
       // Assert
       expect(result).toBe(false);
@@ -17254,7 +17207,7 @@ describe('RewardsController', () => {
       mockIsSolanaAddress.mockReturnValue(false);
 
       // Act
-      const result = messengerClient.isOptInSupported(evmAccount);
+      const result = controller.isOptInSupported(evmAccount);
 
       // Assert
       expect(result).toBe(true);
@@ -17285,7 +17238,7 @@ describe('RewardsController', () => {
       mockIsSolanaAddress.mockReturnValue(true); // Is Solana
 
       // Act
-      const result = messengerClient.isOptInSupported(solanaAccount);
+      const result = controller.isOptInSupported(solanaAccount);
 
       // Assert
       expect(result).toBe(true);
@@ -17404,7 +17357,7 @@ describe('RewardsController', () => {
       mockIsBtcAccount.mockReturnValue(false); // Not Bitcoin
 
       // Act
-      const result = messengerClient.isOptInSupported(nonBitcoinAccount);
+      const result = controller.isOptInSupported(nonBitcoinAccount);
 
       // Assert
       expect(result).toBe(false);
@@ -17527,7 +17480,7 @@ describe('RewardsController', () => {
       mockIsBtcAccount.mockReturnValue(false); // Not Bitcoin
 
       // Act
-      const result = messengerClient.isOptInSupported(
+      const result = controller.isOptInSupported(
         nonEvmNonSolanaNonBitcoinAccount,
       );
 
@@ -17569,7 +17522,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = messengerClient.isOptInSupported(account);
+      const result = controller.isOptInSupported(account);
 
       // Assert
       expect(result).toBe(false);
@@ -17603,7 +17556,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = messengerClient.isOptInSupported(account);
+      const result = controller.isOptInSupported(account);
 
       // Assert
       expect(result).toBe(false);
@@ -17639,7 +17592,7 @@ describe('RewardsController', () => {
       mockIsBtcAccount.mockReturnValue(false);
 
       // Act
-      const result = messengerClient.isOptInSupported(hardwareEvmAccount);
+      const result = controller.isOptInSupported(hardwareEvmAccount);
 
       // Assert
       expect(result).toBe(false); // Should return false due to hardware check
@@ -17673,7 +17626,7 @@ describe('RewardsController', () => {
       mockIsHardwareAccount.mockReturnValue(true); // Is hardware
 
       // Act
-      const result = messengerClient.isOptInSupported(hardwareAccount);
+      const result = controller.isOptInSupported(hardwareAccount);
 
       // Assert
       expect(result).toBe(false); // Hardware accounts always return false
@@ -17696,7 +17649,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: null,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -17705,7 +17658,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = messengerClient.getActualSubscriptionId(CAIP_ACCOUNT_1);
+      const result = controller.getActualSubscriptionId(CAIP_ACCOUNT_1);
 
       // Assert
       expect(result).toBe('test-sub-123');
@@ -17713,13 +17666,13 @@ describe('RewardsController', () => {
 
     it('returns null for non-existent account', () => {
       // Arrange
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
       // Act
-      const result = messengerClient.getActualSubscriptionId(CAIP_ACCOUNT_1);
+      const result = controller.getActualSubscriptionId(CAIP_ACCOUNT_1);
 
       // Assert
       expect(result).toBeNull();
@@ -17735,7 +17688,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: null,
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -17744,7 +17697,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = messengerClient.getActualSubscriptionId(CAIP_ACCOUNT_1);
+      const result = controller.getActualSubscriptionId(CAIP_ACCOUNT_1);
 
       // Assert
       expect(result).toBeNull();
@@ -17767,7 +17720,7 @@ describe('RewardsController', () => {
         },
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -17776,7 +17729,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = messengerClient.getFirstSubscriptionId();
+      const result = controller.getFirstSubscriptionId();
 
       // Assert
       expect(result).toBe('sub-123'); // First key in the object
@@ -17784,13 +17737,13 @@ describe('RewardsController', () => {
 
     it('returns null when no subscriptions exist', () => {
       // Arrange
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
       // Act
-      const result = messengerClient.getFirstSubscriptionId();
+      const result = controller.getFirstSubscriptionId();
 
       // Assert
       expect(result).toBeNull();
@@ -18180,7 +18133,7 @@ describe('RewardsController', () => {
     beforeEach(() => {
       // Mock convertInternalAccountToCaipAccountId to return predictable CAIP IDs
       jest
-        .spyOn(messengerClient, 'convertInternalAccountToCaipAccountId')
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
         .mockImplementation((account: InternalAccount) => {
           if (account.address === ADDRESS_1) return CAIP_ACCOUNT_1;
           if (account.address === ADDRESS_2) return CAIP_ACCOUNT_2;
@@ -18225,7 +18178,7 @@ describe('RewardsController', () => {
         lastFreshOptInStatusCheck: Date.now(),
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -18240,7 +18193,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = messengerClient.checkOptInStatusAgainstCache(
+      const result = controller.checkOptInStatusAgainstCache(
         addresses,
         addressToAccountMap,
       );
@@ -18260,7 +18213,7 @@ describe('RewardsController', () => {
         [ADDRESS_3.toLowerCase(), mockInternalAccount3],
       ]);
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -18271,7 +18224,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = messengerClient.checkOptInStatusAgainstCache(
+      const result = controller.checkOptInStatusAgainstCache(
         addresses,
         addressToAccountMap,
       );
@@ -18304,7 +18257,7 @@ describe('RewardsController', () => {
       };
 
       // Only ADDRESS_1 has cached data, ADDRESS_2 and ADDRESS_3 don't
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -18317,7 +18270,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = messengerClient.checkOptInStatusAgainstCache(
+      const result = controller.checkOptInStatusAgainstCache(
         addresses,
         addressToAccountMap,
       );
@@ -18353,7 +18306,7 @@ describe('RewardsController', () => {
         lastFreshOptInStatusCheck: Date.now(),
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -18366,7 +18319,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = messengerClient.checkOptInStatusAgainstCache(
+      const result = controller.checkOptInStatusAgainstCache(
         addresses,
         addressToAccountMap,
       );
@@ -18393,7 +18346,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: Date.now(),
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -18405,7 +18358,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = messengerClient.checkOptInStatusAgainstCache(
+      const result = controller.checkOptInStatusAgainstCache(
         addresses,
         addressToAccountMap,
       );
@@ -18422,7 +18375,7 @@ describe('RewardsController', () => {
       const addressToAccountMap = new Map();
 
       // Act
-      const result = messengerClient.checkOptInStatusAgainstCache(
+      const result = controller.checkOptInStatusAgainstCache(
         addresses,
         addressToAccountMap,
       );
@@ -18443,7 +18396,7 @@ describe('RewardsController', () => {
 
       // Mock convertInternalAccountToCaipAccountId to return null for ADDRESS_1
       jest
-        .spyOn(messengerClient, 'convertInternalAccountToCaipAccountId')
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
         .mockImplementation((account: InternalAccount) => {
           if (account.address === ADDRESS_1) return null;
           if (account.address === ADDRESS_2) return CAIP_ACCOUNT_2;
@@ -18458,7 +18411,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: Date.now(),
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -18470,7 +18423,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = messengerClient.checkOptInStatusAgainstCache(
+      const result = controller.checkOptInStatusAgainstCache(
         addresses,
         addressToAccountMap,
       );
@@ -18517,7 +18470,7 @@ describe('RewardsController', () => {
         lastFreshOptInStatusCheck: Date.now(),
       };
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           activeAccount: null,
@@ -18531,7 +18484,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = messengerClient.checkOptInStatusAgainstCache(
+      const result = controller.checkOptInStatusAgainstCache(
         addresses,
         addressToAccountMap,
       );
@@ -18940,7 +18893,7 @@ describe('RewardsController', () => {
   });
 
   describe('getCampaigns', () => {
-    let messengerClient: RewardsController;
+    let controller: RewardsController;
     let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockSubscriptionId = 'sub123';
 
@@ -19002,7 +18955,7 @@ describe('RewardsController', () => {
     });
 
     it('fetches campaigns when rewards is enabled', async () => {
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -19010,7 +18963,7 @@ describe('RewardsController', () => {
       const mockCampaigns = [createTestCampaign({ id: 'campaign-flag-test' })];
       mockMessenger.call.mockResolvedValue(mockCampaigns);
 
-      const result = await messengerClient.getCampaigns(mockSubscriptionId);
+      const result = await controller.getCampaigns(mockSubscriptionId);
 
       expect(result).toEqual(mockCampaigns);
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -19020,7 +18973,7 @@ describe('RewardsController', () => {
     });
 
     it('fetches campaigns from API and caches result', async () => {
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -19031,7 +18984,7 @@ describe('RewardsController', () => {
       ];
       mockMessenger.call.mockResolvedValue(mockCampaigns);
 
-      const result = await messengerClient.getCampaigns(mockSubscriptionId);
+      const result = await controller.getCampaigns(mockSubscriptionId);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getCampaigns',
@@ -19040,7 +18993,7 @@ describe('RewardsController', () => {
       expect(result).toEqual(mockCampaigns);
       expect(result).toHaveLength(2);
 
-      const cached = messengerClient.state.campaigns.CAMPAIGNS_CACHE_KEY;
+      const cached = controller.state.campaigns.CAMPAIGNS_CACHE_KEY;
       expect(cached).toBeDefined();
       expect(cached.campaigns).toEqual(mockCampaigns);
       expect(cached.lastFetched).toBeGreaterThan(Date.now() - 1000);
@@ -19050,7 +19003,7 @@ describe('RewardsController', () => {
       const recentTime = Date.now() - 60000; // 1 minute ago (within 5 minute threshold)
       const mockCachedCampaign = createTestCampaign({ id: 'cached-campaign' });
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -19063,7 +19016,7 @@ describe('RewardsController', () => {
         },
       });
 
-      const result = await messengerClient.getCampaigns(mockSubscriptionId);
+      const result = await controller.getCampaigns(mockSubscriptionId);
 
       expect(result).toEqual([{ ...mockCachedCampaign, image: null }]);
       expect(mockMessenger.call).not.toHaveBeenCalled();
@@ -19074,7 +19027,7 @@ describe('RewardsController', () => {
       const staleCampaign = createTestCampaign({ id: 'stale-campaign' });
       const freshCampaigns = [createTestCampaign({ id: 'fresh-campaign' })];
 
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -19089,7 +19042,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(freshCampaigns);
 
-      const result = await messengerClient.getCampaigns(mockSubscriptionId);
+      const result = await controller.getCampaigns(mockSubscriptionId);
 
       expect(result).toEqual(freshCampaigns);
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -19099,7 +19052,7 @@ describe('RewardsController', () => {
     });
 
     it('logs when fetching fresh campaigns data', async () => {
-      messengerClient = new RewardsController({
+      controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
@@ -19107,7 +19060,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockResolvedValue([]);
       mockLogger.log.mockClear();
 
-      await messengerClient.getCampaigns(mockSubscriptionId);
+      await controller.getCampaigns(mockSubscriptionId);
 
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching fresh campaigns data via API call',
@@ -19847,7 +19800,7 @@ describe('RewardsController', () => {
       };
       mockMessenger.call.mockResolvedValue(mockRequirements);
 
-      const result = await messengerClient.getClientVersionRequirements();
+      const result = await controller.getClientVersionRequirements();
 
       expect(result).toEqual(mockRequirements);
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -19861,11 +19814,11 @@ describe('RewardsController', () => {
       };
       mockMessenger.call.mockResolvedValue(mockRequirements);
 
-      const firstResult = await messengerClient.getClientVersionRequirements();
+      const firstResult = await controller.getClientVersionRequirements();
 
       jest.clearAllMocks();
 
-      const secondResult = await messengerClient.getClientVersionRequirements();
+      const secondResult = await controller.getClientVersionRequirements();
 
       expect(secondResult).toEqual(firstResult);
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
@@ -20021,7 +19974,7 @@ describe('RewardsController', () => {
       const mockDate = new Date('2026-03-28T14:30:00Z');
       mockMessenger.call.mockResolvedValue(mockDate);
 
-      const result = await messengerClient.getActivityLastUpdated(
+      const result = await controller.getActivityLastUpdated(
         'campaign-1',
         'sub-1',
       );
@@ -20037,7 +19990,7 @@ describe('RewardsController', () => {
     it('returns null when data service returns null', async () => {
       mockMessenger.call.mockResolvedValue(null);
 
-      const result = await messengerClient.getActivityLastUpdated(
+      const result = await controller.getActivityLastUpdated(
         'campaign-1',
         'sub-1',
       );
@@ -20049,7 +20002,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(new Error('API error'));
 
       await expect(
-        messengerClient.getActivityLastUpdated('campaign-1', 'sub-1'),
+        controller.getActivityLastUpdated('campaign-1', 'sub-1'),
       ).rejects.toThrow('API error');
     });
   });

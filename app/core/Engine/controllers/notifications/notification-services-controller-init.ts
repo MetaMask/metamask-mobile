@@ -31,10 +31,10 @@ export const notificationServicesControllerInit: MessengerClientInitFunction<
 
   const state = persistedState.NotificationServicesController ?? defaultState;
 
-  const messengerClient = createNotificationServicesController({
+  const controller = createNotificationServicesController({
     messenger: controllerMessenger,
     initialState: state,
   });
 
-  return { messengerClient };
+  return { controller };
 };

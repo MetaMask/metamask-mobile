@@ -70,9 +70,9 @@ describe('accounts controller init', () => {
   });
 
   it('returns controller instance', () => {
-    expect(
-      accountsControllerInit(initRequestMock).messengerClient,
-    ).toBeInstanceOf(AccountsController);
+    expect(accountsControllerInit(initRequestMock).controller).toBeInstanceOf(
+      AccountsController,
+    );
   });
 
   it('controller state should be default state when no initial state is passed in', () => {

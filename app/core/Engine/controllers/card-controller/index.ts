@@ -31,7 +31,7 @@ export const cardControllerInit: MessengerClientInitFunction<
     cardFeatureFlag,
   });
 
-  const messengerClient = new CardController({
+  const controller = new CardController({
     messenger: controllerMessenger,
     state: {
       ...(persistedState.CardController ?? defaultCardControllerState),
@@ -40,7 +40,7 @@ export const cardControllerInit: MessengerClientInitFunction<
     providers: { baanx: baanxProvider },
   });
 
-  return { messengerClient };
+  return { controller };
 };
 
 export { CardController };

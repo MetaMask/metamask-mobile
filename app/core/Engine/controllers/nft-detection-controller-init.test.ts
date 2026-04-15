@@ -41,9 +41,8 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('NftDetectionControllerInit', () => {
   it('initializes the controller', () => {
-    const { messengerClient } =
-      nftDetectionControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(NftDetectionController);
+    const { controller } = nftDetectionControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(NftDetectionController);
   });
 
   it('passes the proper arguments to the controller', () => {

@@ -60,6 +60,6 @@ export const rampsServiceInit: MessengerClientInitFunction<
   });
 
   return {
-    messengerClient: service,
+    controller: service,
   };
 };

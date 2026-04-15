@@ -22,7 +22,7 @@ export const accountTrackerControllerInit: MessengerClientInitFunction<
     'AssetsContractController',
   );
 
-  const messengerClient = new AccountTrackerController({
+  const controller = new AccountTrackerController({
     messenger: controllerMessenger,
     state: persistedState.AccountTrackerController ?? {
       accountsByChainId: {},
@@ -40,6 +40,6 @@ export const accountTrackerControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

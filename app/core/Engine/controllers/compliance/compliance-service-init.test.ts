@@ -39,8 +39,8 @@ describe('complianceServiceInit', () => {
 
   it('instantiates the ComplianceService', () => {
     mockIsProduction.mockReturnValue(false);
-    const { messengerClient } = complianceServiceInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(ComplianceService);
+    const { controller } = complianceServiceInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(ComplianceService);
   });
 
   it('passes env=production when isProduction() returns true', () => {

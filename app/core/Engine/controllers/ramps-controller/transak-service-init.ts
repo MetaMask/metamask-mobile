@@ -39,6 +39,6 @@ export const transakServiceInit: MessengerClientInitFunction<
   });
 
   return {
-    messengerClient: service,
+    controller: service,
   };
 };

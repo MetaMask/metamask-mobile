@@ -56,7 +56,7 @@ describe('GatorPermissionsControllerInit', () => {
   it('returns controller instance', () => {
     const requestMock = buildInitRequestMock();
     expect(
-      GatorPermissionsControllerInit(requestMock).messengerClient,
+      GatorPermissionsControllerInit(requestMock).controller,
     ).toBeInstanceOf(GatorPermissionsController);
   });
 

@@ -75,7 +75,7 @@ describe('GasFeeController Init', () => {
 
   it('returns controller instance', () => {
     const requestMock = buildInitRequestMock();
-    expect(GasFeeControllerInit(requestMock).messengerClient).toBeInstanceOf(
+    expect(GasFeeControllerInit(requestMock).controller).toBeInstanceOf(
       GasFeeController,
     );
   });

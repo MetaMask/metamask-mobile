@@ -27,7 +27,7 @@ export const ApprovalControllerInit: MessengerClientInitFunction<
       ],
     });
 
-    return { messengerClient: approvalController };
+    return { controller: approvalController };
   } catch (error) {
     Logger.error(error as Error, 'Failed to initialize ApprovalController');
     throw error;

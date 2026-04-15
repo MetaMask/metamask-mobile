@@ -43,8 +43,8 @@ describe('Notification Services Controller', () => {
 
   it('returns controller instance', () => {
     const { messenger } = arrange();
-    const messengerClient = createNotificationServicesController({ messenger });
-    expect(messengerClient).toBeInstanceOf(NotificationServicesController);
+    const controller = createNotificationServicesController({ messenger });
+    expect(controller).toBeInstanceOf(NotificationServicesController);
   });
 
   it('initialises with correct messenger and state', () => {

@@ -16,7 +16,7 @@ export const authenticationControllerInit: MessengerClientInitFunction<
   AuthenticationController,
   AuthenticationControllerMessenger
 > = ({ controllerMessenger, persistedState, analyticsId }) => {
-  const messengerClient = new AuthenticationController({
+  const controller = new AuthenticationController({
     messenger: controllerMessenger,
 
     // @ts-expect-error: `AuthenticationController` does not accept partial state.
@@ -29,6 +29,6 @@ export const authenticationControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

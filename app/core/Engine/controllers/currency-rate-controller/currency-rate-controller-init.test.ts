@@ -30,7 +30,7 @@ describe('currency rate controller init', () => {
 
   it('returns controller instance', () => {
     expect(
-      currencyRateControllerInit(initRequestMock).messengerClient,
+      currencyRateControllerInit(initRequestMock).controller,
     ).toBeInstanceOf(CurrencyRateController);
   });
 

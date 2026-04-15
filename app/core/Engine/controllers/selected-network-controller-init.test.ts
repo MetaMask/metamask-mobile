@@ -30,9 +30,8 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('SelectedNetworkControllerInit', () => {
   it('initializes the controller', () => {
-    const { messengerClient } =
-      selectedNetworkControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(SelectedNetworkController);
+    const { controller } = selectedNetworkControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(SelectedNetworkController);
   });
 
   it('passes the proper arguments to the controller', () => {

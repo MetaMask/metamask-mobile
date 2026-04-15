@@ -36,7 +36,7 @@ export const bridgeStatusControllerInit: MessengerClientInitFunction<
       },
     });
 
-    return { messengerClient: bridgeStatusController };
+    return { controller: bridgeStatusController };
   } catch (error) {
     Logger.error(error as Error, 'Failed to initialize BridgeStatusController');
     throw error;

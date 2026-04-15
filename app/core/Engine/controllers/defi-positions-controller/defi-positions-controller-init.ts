@@ -25,7 +25,7 @@ export const defiPositionsControllerInit: MessengerClientInitFunction<
 > = (request) => {
   const { initMessenger, controllerMessenger } = request;
 
-  const messengerClient = new DeFiPositionsController({
+  const controller = new DeFiPositionsController({
     messenger: controllerMessenger,
     isEnabled: () => {
       const isBasicFunctionalityToggleEnabled = selectBasicFunctionalityEnabled(
@@ -59,5 +59,5 @@ export const defiPositionsControllerInit: MessengerClientInitFunction<
     },
   });
 
-  return { messengerClient };
+  return { controller };
 };

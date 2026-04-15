@@ -21,10 +21,10 @@ export const complianceControllerInit: MessengerClientInitFunction<
   ComplianceController,
   ComplianceControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {
-  const messengerClient = new ComplianceController({
+  const controller = new ComplianceController({
     messenger: controllerMessenger,
     state: persistedState.ComplianceController,
   });
 
-  return { messengerClient };
+  return { controller };
 };

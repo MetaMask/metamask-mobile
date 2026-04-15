@@ -19,7 +19,7 @@ export const accountActivityServiceInit: MessengerClientInitFunction<
 > = ({ controllerMessenger }) => {
   Logger.log('Initializing AccountActivityService');
 
-  const messengerClient = new AccountActivityService({
+  const controller = new AccountActivityService({
     messenger: controllerMessenger,
     // @ts-expect-error: Types of `TraceRequest` are not the same.
     traceFn: trace,
@@ -28,6 +28,6 @@ export const accountActivityServiceInit: MessengerClientInitFunction<
   Logger.log('AccountActivityService initialized');
 
   return {
-    messengerClient,
+    controller,
   };
 };

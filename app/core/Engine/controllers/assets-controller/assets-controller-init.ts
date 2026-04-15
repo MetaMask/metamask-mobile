@@ -126,7 +126,7 @@ export const assetsControllerInit: MessengerClientInitFunction<
   };
 
   // Create the controller - it now creates all data sources internally
-  const messengerClient = new AssetsController({
+  const controller = new AssetsController({
     messenger: controllerMessenger,
     state: persistedState?.AssetsController ?? {
       assetPreferences: {},
@@ -153,5 +153,5 @@ export const assetsControllerInit: MessengerClientInitFunction<
     trace,
   });
 
-  return { messengerClient };
+  return { controller };
 };

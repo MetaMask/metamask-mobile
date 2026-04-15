@@ -66,13 +66,13 @@ describe('initMessengerClients', () => {
     jest.clearAllMocks();
 
     mockAccountsControllerInit.mockReturnValue({
-      messengerClient: {} as unknown as AccountsController,
+      controller: {} as unknown as AccountsController,
     });
     mockApprovalControllerInit.mockReturnValue({
-      messengerClient: {} as unknown as ApprovalController,
+      controller: {} as unknown as ApprovalController,
     });
     mockPermissionControllerInit.mockReturnValue({
-      messengerClient: {} as unknown as PermissionController<
+      controller: {} as unknown as PermissionController<
         PermissionSpecificationConstraint,
         CaveatSpecificationConstraint
       >,
@@ -120,7 +120,7 @@ describe('getMessengerClientOrThrow', () => {
   it('throws when controller is not found', () => {
     expect(() =>
       getMessengerClientOrThrow({
-        messengerClient: undefined,
+        controller: undefined,
         name: 'AccountsController',
       }),
     ).toThrow();
@@ -129,7 +129,7 @@ describe('getMessengerClientOrThrow', () => {
   it('not throws when controller is found', () => {
     expect(() =>
       getMessengerClientOrThrow({
-        messengerClient: jest.fn() as unknown as AccountsController,
+        controller: jest.fn() as unknown as AccountsController,
         name: 'AccountsController',
       }),
     ).not.toThrow();

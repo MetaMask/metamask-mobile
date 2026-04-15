@@ -76,8 +76,8 @@ describe('SnapControllerInit', () => {
   });
 
   it('initializes the controller', () => {
-    const { messengerClient } = snapControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(SnapController);
+    const { controller } = snapControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(SnapController);
   });
 
   it('passes the proper arguments to the controller', () => {

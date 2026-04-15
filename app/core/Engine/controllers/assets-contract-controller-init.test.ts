@@ -56,9 +56,8 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('AssetsContractControllerInit', () => {
   it('initializes the controller', () => {
-    const { messengerClient } =
-      assetsContractControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(AssetsContractController);
+    const { controller } = assetsContractControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(AssetsContractController);
   });
 
   it('passes the proper arguments to the controller', () => {

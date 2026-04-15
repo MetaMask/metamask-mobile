@@ -30,8 +30,8 @@ describe('socialControllerInit', () => {
   });
 
   it('instantiates the SocialController', () => {
-    const { messengerClient } = socialControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(SocialController);
+    const { controller } = socialControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(SocialController);
   });
 
   it('passes persisted state to the controller', () => {

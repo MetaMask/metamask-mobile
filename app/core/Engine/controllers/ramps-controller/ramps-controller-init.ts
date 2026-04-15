@@ -56,7 +56,7 @@ export const rampsControllerInit: MessengerClientInitFunction<
   const rampsControllerState =
     persistedState.RampsController ?? getDefaultRampsControllerState();
 
-  const messengerClient = new RampsController({
+  const controller = new RampsController({
     messenger: controllerMessenger,
     state: rampsControllerState,
   });
@@ -83,10 +83,10 @@ export const rampsControllerInit: MessengerClientInitFunction<
       return;
     }
     registerUnifiedBuyV2OrderSubscriptions();
-    messengerClient
+    controller
       .init()
       .then(() => {
-        messengerClient.startOrderPolling();
+        controller.startOrderPolling();
       })
       .catch(() => {
         // Initialization failed - error state will be available via selectors
@@ -114,13 +114,13 @@ export const rampsControllerInit: MessengerClientInitFunction<
       const { initRampsDebugBridge } =
         // eslint-disable-next-line @typescript-eslint/no-require-imports -- dev-only optional tooling; Jest cannot mock dynamic import()
         require('../../../../components/UI/Ramp/debug/RampsDebugBridge');
-      initRampsDebugBridge(messengerClient, controllerMessenger);
+      initRampsDebugBridge(controller, controllerMessenger);
     } catch {
       /* optional dev tooling — ignore load failures */
     }
   }
 
   return {
-    messengerClient,
+    controller,
   };
 };

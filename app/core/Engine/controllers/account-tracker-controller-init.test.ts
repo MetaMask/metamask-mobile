@@ -56,9 +56,8 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('AccountTrackerControllerInit', () => {
   it('initializes the controller', () => {
-    const { messengerClient } =
-      accountTrackerControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(AccountTrackerController);
+    const { controller } = accountTrackerControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(AccountTrackerController);
   });
 
   it('passes the proper arguments to the controller including isHomepageSectionsV1Enabled', () => {

@@ -33,8 +33,8 @@ function getInitRequestMock() {
 
 describe('EarnControllerInit', () => {
   it('initializes the controller', () => {
-    const { messengerClient } = earnControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(EarnController);
+    const { controller } = earnControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(EarnController);
   });
 
   it('passes the proper arguments to the controller', () => {
@@ -48,7 +48,7 @@ describe('EarnControllerInit', () => {
   });
 
   it('calls init() on the controller after construction', () => {
-    const { messengerClient } = earnControllerInit(getInitRequestMock());
-    expect(messengerClient.init).toHaveBeenCalledTimes(1);
+    const { controller } = earnControllerInit(getInitRequestMock());
+    expect(controller.init).toHaveBeenCalledTimes(1);
   });
 });

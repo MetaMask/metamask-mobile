@@ -30,7 +30,7 @@ export const remoteFeatureFlagControllerInit: MessengerClientInitFunction<
   const prevClientVersion =
     persistedState?.AppMetadataController?.currentAppVersion;
 
-  const messengerClient = new RemoteFeatureFlagController({
+  const controller = new RemoteFeatureFlagController({
     messenger: controllerMessenger,
     state: persistedState.RemoteFeatureFlagController,
     disabled,
@@ -55,7 +55,7 @@ export const remoteFeatureFlagControllerInit: MessengerClientInitFunction<
   } else if (isRemoteFeatureFlagOverrideActivated) {
     Logger.log('Remote feature flags override activated.');
   } else {
-    messengerClient
+    controller
       .updateRemoteFeatureFlags()
       .then(() => {
         Logger.log('Feature flags updated');
@@ -64,6 +64,6 @@ export const remoteFeatureFlagControllerInit: MessengerClientInitFunction<
   }
 
   return {
-    messengerClient,
+    controller,
   };
 };

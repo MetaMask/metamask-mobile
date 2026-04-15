@@ -23,7 +23,7 @@ export const socialControllerInit: MessengerClientInitFunction<
       state: persistedState.SocialController,
     });
 
-    return { messengerClient: controller };
+    return { controller };
   } catch (error) {
     Logger.error(error as Error, 'Failed to initialize SocialController');
     throw error;

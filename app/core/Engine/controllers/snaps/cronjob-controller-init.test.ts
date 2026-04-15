@@ -32,7 +32,7 @@ describe('CronjobControllerInit', () => {
   });
 
   it('initializes the controller', () => {
-    const { messengerClient } = cronjobControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(CronjobController);
+    const { controller } = cronjobControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(CronjobController);
   });
 });

@@ -16,7 +16,7 @@ export const preferencesControllerInit: MessengerClientInitFunction<
   PreferencesController,
   PreferencesControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {
-  const messengerClient = new PreferencesController({
+  const controller = new PreferencesController({
     messenger: controllerMessenger,
     state: {
       ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
@@ -36,6 +36,6 @@ export const preferencesControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

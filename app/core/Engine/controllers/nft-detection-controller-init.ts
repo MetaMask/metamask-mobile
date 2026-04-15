@@ -17,7 +17,7 @@ export const nftDetectionControllerInit: MessengerClientInitFunction<
 > = ({ controllerMessenger, getMessengerClient }) => {
   const nftController = getMessengerClient('NftController');
 
-  const messengerClient = new NftDetectionController({
+  const controller = new NftDetectionController({
     messenger: controllerMessenger,
     disabled: false,
     addNfts: nftController.addNfts.bind(nftController),
@@ -25,6 +25,6 @@ export const nftDetectionControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

@@ -29,8 +29,8 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('RewardsDataServiceInit', () => {
   it('initializes the controller', () => {
-    const { messengerClient } = rewardsDataServiceInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(RewardsDataService);
+    const { controller } = rewardsDataServiceInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(RewardsDataService);
   });
 
   it('passes the proper arguments to the controller', () => {
@@ -53,10 +53,10 @@ describe('RewardsDataServiceInit', () => {
     } as typeof requestMock.persistedState;
 
     // Act
-    const { messengerClient } = rewardsDataServiceInit(requestMock);
+    const { controller } = rewardsDataServiceInit(requestMock);
 
     // Assert
-    expect(messengerClient.setRewardsEnvUrl).toHaveBeenCalledWith(persistedUrl);
+    expect(controller.setRewardsEnvUrl).toHaveBeenCalledWith(persistedUrl);
   });
 
   it('does not call setRewardsEnvUrl when rewardsEnvUrl is null', () => {
@@ -67,10 +67,10 @@ describe('RewardsDataServiceInit', () => {
     } as typeof requestMock.persistedState;
 
     // Act
-    const { messengerClient } = rewardsDataServiceInit(requestMock);
+    const { controller } = rewardsDataServiceInit(requestMock);
 
     // Assert
-    expect(messengerClient.setRewardsEnvUrl).not.toHaveBeenCalled();
+    expect(controller.setRewardsEnvUrl).not.toHaveBeenCalled();
   });
 
   it('does not call setRewardsEnvUrl when RewardsController state is missing', () => {
@@ -79,9 +79,9 @@ describe('RewardsDataServiceInit', () => {
     requestMock.persistedState = {} as typeof requestMock.persistedState;
 
     // Act
-    const { messengerClient } = rewardsDataServiceInit(requestMock);
+    const { controller } = rewardsDataServiceInit(requestMock);
 
     // Assert
-    expect(messengerClient.setRewardsEnvUrl).not.toHaveBeenCalled();
+    expect(controller.setRewardsEnvUrl).not.toHaveBeenCalled();
   });
 });

@@ -35,8 +35,8 @@ describe('complianceControllerInit', () => {
   });
 
   it('instantiates the ComplianceController', () => {
-    const { messengerClient } = complianceControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(ComplianceController);
+    const { controller } = complianceControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(ComplianceController);
   });
 
   it('hydrates state from persistedState', () => {
@@ -53,10 +53,10 @@ describe('complianceControllerInit', () => {
       },
     };
 
-    const { messengerClient } = complianceControllerInit(
+    const { controller } = complianceControllerInit(
       getInitRequestMock({ persistedState }),
     );
 
-    expect(messengerClient).toBeInstanceOf(ComplianceController);
+    expect(controller).toBeInstanceOf(ComplianceController);
   });
 });

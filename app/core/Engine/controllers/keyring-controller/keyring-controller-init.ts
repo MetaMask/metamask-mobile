@@ -116,7 +116,7 @@ export const keyringControllerInit: MessengerClientInitFunction<
   additionalKeyrings.push(snapKeyringBuilder);
   ///: END:ONLY_INCLUDE_IF
 
-  const messengerClient = new KeyringController({
+  const controller = new KeyringController({
     encryptor,
     messenger: controllerMessenger,
     state: initialKeyringState || persistedState.KeyringController,
@@ -126,6 +126,6 @@ export const keyringControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

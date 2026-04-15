@@ -23,7 +23,7 @@ export const socialServiceInit: MessengerClientInitFunction<
       baseUrl: AppConstants.SOCIAL_API_URL,
     });
 
-    return { messengerClient: controller };
+    return { controller };
   } catch (error) {
     Logger.error(error as Error, 'Failed to initialize SocialService');
     throw error;

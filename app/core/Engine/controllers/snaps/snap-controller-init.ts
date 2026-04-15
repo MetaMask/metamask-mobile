@@ -102,7 +102,7 @@ export const snapControllerInit: MessengerClientInitFunction<
     onboardingPromise = null;
   }
 
-  const messengerClient = new SnapController({
+  const controller = new SnapController({
     environmentEndowmentPermissions: Object.values(EndowmentPermissions),
     excludedPermissions: {
       ...ExcludedSnapPermissions,
@@ -167,6 +167,6 @@ export const snapControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

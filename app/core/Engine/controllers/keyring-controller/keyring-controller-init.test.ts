@@ -75,12 +75,12 @@ describe('keyringControllerInit', () => {
     mockIsMoneyAccountEnabled.mockReturnValue(true);
   });
 
-  it('initializes the messengerClient', () => {
-    const { messengerClient } = keyringControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(KeyringController);
+  it('initializes the controller', () => {
+    const { controller } = keyringControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(KeyringController);
   });
 
-  it('passes the proper arguments to the messengerClient', () => {
+  it('passes the proper arguments to the controller', () => {
     keyringControllerInit(getInitRequestMock());
 
     const controllerMock = jest.mocked(KeyringController);

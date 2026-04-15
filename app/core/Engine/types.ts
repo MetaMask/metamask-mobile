@@ -1098,7 +1098,7 @@ export type MessengerClientInitFunction<
     InitMessengerType
   >,
 ) => {
-  messengerClient: MessengerClientType;
+  controller: MessengerClientType;
 };
 
 /**

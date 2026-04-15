@@ -22,7 +22,7 @@ export const geolocationControllerInit: MessengerClientInitFunction<
     persistedState.GeolocationController ??
     getDefaultGeolocationControllerState();
 
-  const messengerClient = new GeolocationController({
+  const controller = new GeolocationController({
     messenger: controllerMessenger,
     state: geolocationControllerState,
   });
@@ -37,10 +37,10 @@ export const geolocationControllerInit: MessengerClientInitFunction<
     geolocationControllerState.location !== '';
 
   if (!hasKnownLocation) {
-    messengerClient.getGeolocation().catch(() => {
+    controller.getGeolocation().catch(() => {
       // Best-effort fetch; errors are surfaced via controller state.
     });
   }
 
-  return { messengerClient };
+  return { controller };
 };

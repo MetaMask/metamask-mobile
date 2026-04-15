@@ -46,7 +46,7 @@ describe('cardControllerInit', () => {
   it('returns a controller instance', () => {
     const result = cardControllerInit(initRequestMock);
 
-    expect(result.messengerClient).toBeInstanceOf(CardController);
+    expect(result.controller).toBeInstanceOf(CardController);
   });
 
   it('uses default state when no persisted state is provided', () => {

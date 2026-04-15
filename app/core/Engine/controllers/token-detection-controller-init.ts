@@ -40,7 +40,7 @@ export const tokenDetectionControllerInit: MessengerClientInitFunction<
       AssetsContractControllerGetBalancesInSingleCallAction['handler']
     >;
 
-  const messengerClient = new TokenDetectionController({
+  const controller = new TokenDetectionController({
     messenger: controllerMessenger,
     disabled: false,
     getBalancesInSingleCall,
@@ -67,6 +67,6 @@ export const tokenDetectionControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

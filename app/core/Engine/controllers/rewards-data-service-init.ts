@@ -18,7 +18,7 @@ export const rewardsDataServiceInit: MessengerClientInitFunction<
   RewardsDataService,
   RewardsDataServiceMessenger
 > = ({ controllerMessenger, persistedState }) => {
-  const messengerClient = new RewardsDataService({
+  const controller = new RewardsDataService({
     messenger: controllerMessenger,
     locale: I18n.locale,
     fetch,
@@ -29,10 +29,10 @@ export const rewardsDataServiceInit: MessengerClientInitFunction<
     | Partial<RewardsControllerState>
     | undefined;
   if (rewardsState?.rewardsEnvUrl) {
-    messengerClient.setRewardsEnvUrl(rewardsState.rewardsEnvUrl);
+    controller.setRewardsEnvUrl(rewardsState.rewardsEnvUrl);
   }
 
   return {
-    messengerClient,
+    controller,
   };
 };

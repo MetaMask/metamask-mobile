@@ -120,7 +120,7 @@ describe('BridgeController Init', () => {
     const result = bridgeControllerInit(requestMock);
 
     // Assert
-    expect(result.messengerClient).toBeInstanceOf(BridgeController);
+    expect(result.controller).toBeInstanceOf(BridgeController);
   });
 
   it('throws error if TransactionController is not found', () => {

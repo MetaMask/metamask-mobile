@@ -40,7 +40,7 @@ export const permissionControllerInit: MessengerClientInitFunction<
   const keyringController = getMessengerClient('KeyringController');
   ///: END:ONLY_INCLUDE_IF
 
-  const messengerClient = new PermissionController({
+  const controller = new PermissionController({
     messenger: controllerMessenger,
     state: persistedState.PermissionController,
     caveatSpecifications: getCaveatSpecifications({
@@ -74,6 +74,6 @@ export const permissionControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

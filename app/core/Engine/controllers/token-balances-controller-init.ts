@@ -22,7 +22,7 @@ export const tokenBalancesControllerInit: MessengerClientInitFunction<
 > = ({ controllerMessenger, initMessenger, persistedState, getState }) => {
   const preferencesState = initMessenger.call('PreferencesController:getState');
 
-  const messengerClient = new TokenBalancesController({
+  const controller = new TokenBalancesController({
     messenger: controllerMessenger,
     state: persistedState?.TokenBalancesController ?? {
       tokenBalances: {},
@@ -37,6 +37,6 @@ export const tokenBalancesControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

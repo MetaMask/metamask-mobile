@@ -43,7 +43,7 @@ describe('transak-service-init', () => {
           fetch: expect.any(Function),
         }),
       );
-      expect(result).toEqual({ messengerClient: expect.any(Object) });
+      expect(result).toEqual({ controller: expect.any(Object) });
     });
 
     it('creates a TransakService with android context', () => {
@@ -60,7 +60,7 @@ describe('transak-service-init', () => {
           fetch: expect.any(Function),
         }),
       );
-      expect(result).toEqual({ messengerClient: expect.any(Object) });
+      expect(result).toEqual({ controller: expect.any(Object) });
     });
 
     it('passes the environment from getTransakEnvironment', () => {

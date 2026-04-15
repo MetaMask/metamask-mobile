@@ -25,7 +25,7 @@ export const perpsControllerInit: MessengerClientInitFunction<
   const perpsControllerState =
     persistedState.PerpsController ?? getDefaultPerpsControllerState();
 
-  const messengerClient = new PerpsController({
+  const controller = new PerpsController({
     messenger: controllerMessenger,
     state: perpsControllerState,
     infrastructure: createMobileInfrastructure(),
@@ -33,7 +33,7 @@ export const perpsControllerInit: MessengerClientInitFunction<
   });
 
   // Apply E2E mocks if configured via bridge
-  applyE2EControllerMocks(messengerClient);
+  applyE2EControllerMocks(controller);
 
-  return { messengerClient };
+  return { controller };
 };

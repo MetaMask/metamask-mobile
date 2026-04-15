@@ -35,7 +35,7 @@ describe('multichain network controller init', () => {
 
   it('returns controller instance', () => {
     expect(
-      multichainNetworkControllerInit(initRequestMock).messengerClient,
+      multichainNetworkControllerInit(initRequestMock).controller,
     ).toBeInstanceOf(MultichainNetworkController);
   });
 

@@ -33,7 +33,7 @@ export const DelegationControllerInit: MessengerClientInitFunction<
   DelegationControllerMessenger,
   DelegationControllerInitMessenger
 > = ({ controllerMessenger, persistedState, initMessenger }) => {
-  const messengerClient = new DelegationController({
+  const controller = new DelegationController({
     messenger: controllerMessenger,
     state: persistedState.DelegationController,
     hashDelegation: getDelegationHashOffchain,
@@ -42,21 +42,21 @@ export const DelegationControllerInit: MessengerClientInitFunction<
 
   controllerMessenger.registerActionHandler(
     'DelegationController:signDelegation',
-    messengerClient.signDelegation.bind(messengerClient),
+    controller.signDelegation.bind(controller),
   );
 
   return {
-    messengerClient,
+    controller,
     api: {
-      signDelegation: messengerClient.signDelegation.bind(messengerClient),
-      storeDelegationEntry: messengerClient.store.bind(messengerClient),
-      listDelegationEntries: messengerClient.list.bind(messengerClient),
-      getDelegationEntry: messengerClient.retrieve.bind(messengerClient),
-      getDelegationEntryChain: messengerClient.chain.bind(messengerClient),
-      deleteDelegationEntry: messengerClient.delete.bind(messengerClient),
+      signDelegation: controller.signDelegation.bind(controller),
+      storeDelegationEntry: controller.store.bind(controller),
+      listDelegationEntries: controller.list.bind(controller),
+      getDelegationEntry: controller.retrieve.bind(controller),
+      getDelegationEntryChain: controller.chain.bind(controller),
+      deleteDelegationEntry: controller.delete.bind(controller),
       awaitDeleteDelegationEntry: awaitDeleteDelegationEntry.bind(
         null,
-        messengerClient,
+        controller,
         initMessenger,
       ),
     },
@@ -75,7 +75,7 @@ export const DelegationControllerInit: MessengerClientInitFunction<
  * @param options.entryToStore - The delegation entry to store.
  */
 export async function awaitDeleteDelegationEntry(
-  messengerClient: DelegationController,
+  controller: DelegationController,
   initMessenger: DelegationControllerInitMessenger,
   {
     hash,
@@ -134,9 +134,9 @@ export async function awaitDeleteDelegationEntry(
     }
 
     if (action === 'delete') {
-      messengerClient.delete(hash);
+      controller.delete(hash);
       if (entryToStore) {
-        messengerClient.store({ entry: entryToStore });
+        controller.store({ entry: entryToStore });
       }
     }
 

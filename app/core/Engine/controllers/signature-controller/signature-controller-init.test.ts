@@ -73,7 +73,7 @@ describe('SignatureController Init', () => {
 
   it('returns controller instance', () => {
     const requestMock = buildInitRequestMock();
-    expect(SignatureControllerInit(requestMock).messengerClient).toBeInstanceOf(
+    expect(SignatureControllerInit(requestMock).controller).toBeInstanceOf(
       SignatureController,
     );
   });

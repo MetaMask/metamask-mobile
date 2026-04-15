@@ -24,9 +24,9 @@ describe('AppMetadataController', () => {
   });
 
   it('initializes with default state', async () => {
-    const { messengerClient } = appMetadataControllerInit(mockInitRequest);
+    const { controller } = appMetadataControllerInit(mockInitRequest);
 
-    expect(messengerClient.state).toEqual({
+    expect(controller.state).toEqual({
       currentAppVersion: expect.any(String),
       previousAppVersion: expect.any(String),
       previousMigrationVersion: expect.any(Number),
@@ -42,12 +42,12 @@ describe('AppMetadataController', () => {
       currentMigrationVersion: 80,
     };
 
-    const { messengerClient } = appMetadataControllerInit({
+    const { controller } = appMetadataControllerInit({
       ...mockInitRequest,
       persistedState: { AppMetadataController: persistedState },
     });
 
-    expect(messengerClient.state).toEqual({
+    expect(controller.state).toEqual({
       currentAppVersion: '1.44.0',
       previousAppVersion: '',
       previousMigrationVersion: expect.any(Number),

@@ -186,7 +186,7 @@ describe('rampsServiceInit', () => {
   });
 
   it('returns service instance', () => {
-    expect(rampsServiceInit(initRequestMock).messengerClient).toBeInstanceOf(
+    expect(rampsServiceInit(initRequestMock).controller).toBeInstanceOf(
       RampsService,
     );
   });

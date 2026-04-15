@@ -18,7 +18,7 @@ export const snapKeyringBuilderInit: MessengerClientInitFunction<
   SnapKeyringBuilderMessenger,
   SnapKeyringBuilderInitMessenger
 > = ({ controllerMessenger, initMessenger, removeAccount }) => {
-  const messengerClient = snapKeyringBuilder(controllerMessenger, {
+  const controller = snapKeyringBuilder(controllerMessenger, {
     persistKeyringHelper: async () => {
       // Necessary to only persist the keyrings, the `AccountsController` will
       // automatically react to `KeyringController:stateChange`.
@@ -30,6 +30,6 @@ export const snapKeyringBuilderInit: MessengerClientInitFunction<
   return {
     persistedStateKey: null,
     memStateKey: null,
-    messengerClient,
+    controller,
   };
 };

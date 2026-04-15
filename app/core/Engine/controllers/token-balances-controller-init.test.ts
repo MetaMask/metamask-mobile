@@ -45,10 +45,9 @@ describe('TokenBalancesControllerInit', () => {
   });
 
   it('initializes the controller', () => {
-    const { messengerClient } =
-      tokenBalancesControllerInit(getInitRequestMock());
+    const { controller } = tokenBalancesControllerInit(getInitRequestMock());
 
-    expect(messengerClient).toBeInstanceOf(TokenBalancesController);
+    expect(controller).toBeInstanceOf(TokenBalancesController);
   });
 
   it('passes the persisted state to the controller when available', () => {

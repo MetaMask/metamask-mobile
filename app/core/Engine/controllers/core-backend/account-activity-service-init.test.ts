@@ -37,7 +37,7 @@ describe('accountActivityServiceInit', () => {
       messenger: mocks.controllerMessenger,
       traceFn: expect.any(Function),
     });
-    expect(result.messengerClient).toBeDefined();
+    expect(result.controller).toBeDefined();
   });
 
   it('logs initialization messages', () => {

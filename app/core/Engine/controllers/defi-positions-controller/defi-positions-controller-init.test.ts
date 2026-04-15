@@ -58,9 +58,8 @@ describe('DeFiPositionsControllerInit', () => {
   });
 
   it('returns controller instance', () => {
-    const { messengerClient } =
-      defiPositionsControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(DeFiPositionsController);
+    const { controller } = defiPositionsControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(DeFiPositionsController);
   });
 
   it('passes the proper arguments to the controller', () => {

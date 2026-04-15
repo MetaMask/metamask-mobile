@@ -192,12 +192,12 @@ export const storageServiceInit: MessengerClientInitFunction<
   StorageService,
   StorageServiceMessenger
 > = ({ controllerMessenger }) => {
-  const messengerClient = new StorageService({
+  const controller = new StorageService({
     messenger: controllerMessenger,
     storage: mobileStorageAdapter,
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

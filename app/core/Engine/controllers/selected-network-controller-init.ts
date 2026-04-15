@@ -17,7 +17,7 @@ export const selectedNetworkControllerInit: MessengerClientInitFunction<
   SelectedNetworkController,
   SelectedNetworkControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {
-  const messengerClient = new SelectedNetworkController({
+  const controller = new SelectedNetworkController({
     messenger: controllerMessenger,
 
     // @ts-expect-error: `SelectedNetworkController` does not accept partial
@@ -31,6 +31,6 @@ export const selectedNetworkControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

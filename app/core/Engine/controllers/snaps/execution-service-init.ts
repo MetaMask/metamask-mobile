@@ -61,7 +61,7 @@ export const executionServiceInit: MessengerClientInitFunction<
   };
 
   return {
-    messengerClient: new WebViewExecutionService({
+    controller: new WebViewExecutionService({
       messenger: controllerMessenger,
       // @ts-expect-error The stream type doesn't match because of a version mismatch.
       setupSnapProvider,

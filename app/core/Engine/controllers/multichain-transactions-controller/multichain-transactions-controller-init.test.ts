@@ -35,7 +35,7 @@ describe('multichain transactions controller init', () => {
 
   it('returns controller instance', () => {
     expect(
-      multichainTransactionsControllerInit(initRequestMock).messengerClient,
+      multichainTransactionsControllerInit(initRequestMock).controller,
     ).toBeInstanceOf(MultichainTransactionsController);
   });
 

@@ -32,8 +32,8 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('ExecutionServiceInit', () => {
   it('initializes the webview execution service', () => {
-    const { messengerClient } = executionServiceInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(WebViewExecutionService);
+    const { controller } = executionServiceInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(WebViewExecutionService);
   });
 
   it('passes the proper arguments to the service', () => {

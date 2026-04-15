@@ -37,7 +37,7 @@ describe('ApprovalController Init', () => {
 
   it('returns controller instance', () => {
     const requestMock = buildInitRequestMock();
-    expect(ApprovalControllerInit(requestMock).messengerClient).toBeInstanceOf(
+    expect(ApprovalControllerInit(requestMock).controller).toBeInstanceOf(
       ApprovalController,
     );
   });

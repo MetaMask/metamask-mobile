@@ -62,8 +62,8 @@ describe('UserStorageControllerInit', () => {
   });
 
   it('initializes the controller', () => {
-    const { messengerClient } = userStorageControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(UserStorageController);
+    const { controller } = userStorageControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(UserStorageController);
   });
 
   it('passes the proper arguments to the controller', () => {

@@ -45,7 +45,7 @@ describe('backendWebSocketServiceInit', () => {
         url: 'wss://gateway.api.cx.metamask.io/v1',
       }),
     );
-    expect(result.messengerClient).toBeDefined();
+    expect(result.controller).toBeDefined();
     expect(Logger.log).toHaveBeenCalledWith(
       'Initializing BackendWebSocketService',
     );

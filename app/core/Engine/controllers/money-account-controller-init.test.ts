@@ -27,9 +27,8 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('moneyAccountControllerInit', () => {
   it('initializes the controller', () => {
-    const { messengerClient } =
-      moneyAccountControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(MoneyAccountController);
+    const { controller } = moneyAccountControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(MoneyAccountController);
   });
 
   it('passes the proper arguments to the controller', () => {

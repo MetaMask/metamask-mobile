@@ -26,12 +26,12 @@ export const connectivityControllerInit: MessengerClientInitFunction<
   // to NetInfo in the same context
   const connectivityAdapter = new NetInfoConnectivityAdapter();
 
-  const messengerClient = new ConnectivityController({
+  const controller = new ConnectivityController({
     messenger: controllerMessenger,
     connectivityAdapter,
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

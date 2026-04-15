@@ -188,7 +188,7 @@ export const TransactionControllerInit: MessengerClientInitFunction<
         publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
       });
 
-    return { messengerClient: transactionController };
+    return { controller: transactionController };
   } catch (error) {
     Logger.error(error as Error, 'Failed to initialize TransactionController');
     throw error;

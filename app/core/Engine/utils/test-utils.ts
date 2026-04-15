@@ -54,7 +54,7 @@ export function createMockMessengerClientInitFunction<
     }
 
     return {
-      messengerClient: jest.fn() as unknown as T,
+      controller: jest.fn() as unknown as T,
     };
   };
 }

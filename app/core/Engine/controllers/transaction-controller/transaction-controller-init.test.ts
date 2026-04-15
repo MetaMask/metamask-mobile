@@ -211,9 +211,9 @@ describe('Transaction Controller Init', () => {
 
   it('returns controller instance', () => {
     const requestMock = buildInitRequestMock();
-    expect(
-      TransactionControllerInit(requestMock).messengerClient,
-    ).toBeInstanceOf(TransactionController);
+    expect(TransactionControllerInit(requestMock).controller).toBeInstanceOf(
+      TransactionController,
+    );
   });
 
   it('initialize with correct state', () => {

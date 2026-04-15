@@ -35,16 +35,16 @@ export const analyticsControllerInit: MessengerClientInitFunction<
     ? createE2EPlatformAdapter()
     : createPlatformAdapter();
 
-  const messengerClient = new AnalyticsController({
+  const controller = new AnalyticsController({
     messenger: controllerMessenger,
     state,
     platformAdapter,
     isAnonymousEventsFeatureEnabled: true,
   });
 
-  messengerClient.init();
+  controller.init();
 
   return {
-    messengerClient,
+    controller,
   };
 };

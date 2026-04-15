@@ -32,8 +32,8 @@ describe('aiDigestControllerInit', () => {
   });
 
   it('initializes the controller', () => {
-    const { messengerClient } = aiDigestControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(AiDigestController);
+    const { controller } = aiDigestControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(AiDigestController);
   });
 
   it('passes the correct baseUrl (DIGEST_API_URL) to AiDigestService', () => {

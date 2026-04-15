@@ -14,8 +14,8 @@ describe('MultichainNetworkServiceControllerInit', () => {
   });
 
   it('returns controller instance', () => {
-    const messengerClient = MultichainNetworkServiceInit();
-    expect(messengerClient).toBeInstanceOf(MultichainNetworkService);
+    const controller = MultichainNetworkServiceInit();
+    expect(controller).toBeInstanceOf(MultichainNetworkService);
   });
 
   it('initializes with window.fetch', () => {

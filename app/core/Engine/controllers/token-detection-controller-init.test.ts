@@ -36,9 +36,8 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('TokenDetectionControllerInit', () => {
   it('initializes the controller', () => {
-    const { messengerClient } =
-      tokenDetectionControllerInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(TokenDetectionController);
+    const { controller } = tokenDetectionControllerInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(TokenDetectionController);
   });
 
   it('passes the proper arguments to the controller', () => {

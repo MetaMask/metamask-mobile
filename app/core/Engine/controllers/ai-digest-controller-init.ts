@@ -22,13 +22,13 @@ export const aiDigestControllerInit: MessengerClientInitFunction<
     baseUrl: AppConstants.DIGEST_API_URL,
   });
 
-  const messengerClient = new AiDigestController({
+  const controller = new AiDigestController({
     messenger: controllerMessenger,
     state: persistedState.AiDigestController,
     digestService,
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

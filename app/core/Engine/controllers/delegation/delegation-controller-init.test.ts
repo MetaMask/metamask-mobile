@@ -63,9 +63,9 @@ describe('DelegationControllerInit', () => {
 
   it('returns controller instance', () => {
     const requestMock = buildInitRequestMock();
-    expect(
-      DelegationControllerInit(requestMock).messengerClient,
-    ).toBeInstanceOf(DelegationController);
+    expect(DelegationControllerInit(requestMock).controller).toBeInstanceOf(
+      DelegationController,
+    );
   });
 
   it('initializes with correct messenger and state', () => {
@@ -102,7 +102,7 @@ describe('DelegationControllerInit', () => {
 
 describe('DelegationController:awaitDeleteDelegationEntry', () => {
   const mockHash = '0x123' as Hex;
-  let messengerClient: DelegationController;
+  let controller: DelegationController;
   let initMessenger: DelegationControllerInitMessenger;
   let subscribeHandler:
     | ((event: { transactionMeta: TransactionMeta }) => void)
@@ -127,7 +127,7 @@ describe('DelegationController:awaitDeleteDelegationEntry', () => {
   });
 
   beforeEach(() => {
-    messengerClient = new DelegationController({
+    controller = new DelegationController({
       messenger: getDelegationControllerMessenger(
         new Messenger<MockAnyNamespace>({
           namespace: MOCK_ANY_NAMESPACE,
@@ -156,7 +156,7 @@ describe('DelegationController:awaitDeleteDelegationEntry', () => {
   it('subscribes to transaction status updates', () => {
     const txMeta = createMockTransactionMeta({});
 
-    awaitDeleteDelegationEntry(messengerClient, initMessenger, {
+    awaitDeleteDelegationEntry(controller, initMessenger, {
       hash: mockHash,
       txMeta,
     });
@@ -169,9 +169,9 @@ describe('DelegationController:awaitDeleteDelegationEntry', () => {
 
   it('deletes delegation when transaction is confirmed', () => {
     const txMeta = createMockTransactionMeta({});
-    const deleteSpy = jest.spyOn(messengerClient, 'delete');
+    const deleteSpy = jest.spyOn(controller, 'delete');
 
-    awaitDeleteDelegationEntry(messengerClient, initMessenger, {
+    awaitDeleteDelegationEntry(controller, initMessenger, {
       hash: mockHash,
       txMeta,
     });
@@ -189,9 +189,9 @@ describe('DelegationController:awaitDeleteDelegationEntry', () => {
 
   it('unsubscribes when transaction is dropped', () => {
     const txMeta = createMockTransactionMeta({});
-    const deleteSpy = jest.spyOn(messengerClient, 'delete');
+    const deleteSpy = jest.spyOn(controller, 'delete');
 
-    awaitDeleteDelegationEntry(messengerClient, initMessenger, {
+    awaitDeleteDelegationEntry(controller, initMessenger, {
       hash: mockHash,
       txMeta,
     });
@@ -209,9 +209,9 @@ describe('DelegationController:awaitDeleteDelegationEntry', () => {
 
   it('follows transaction chain when replaced', () => {
     const txMeta = createMockTransactionMeta({});
-    const deleteSpy = jest.spyOn(messengerClient, 'delete');
+    const deleteSpy = jest.spyOn(controller, 'delete');
 
-    awaitDeleteDelegationEntry(messengerClient, initMessenger, {
+    awaitDeleteDelegationEntry(controller, initMessenger, {
       hash: mockHash,
       txMeta,
     });
@@ -240,9 +240,9 @@ describe('DelegationController:awaitDeleteDelegationEntry', () => {
 
   it('unsubscribes when transaction is cancelled', () => {
     const txMeta = createMockTransactionMeta({});
-    const deleteSpy = jest.spyOn(messengerClient, 'delete');
+    const deleteSpy = jest.spyOn(controller, 'delete');
 
-    awaitDeleteDelegationEntry(messengerClient, initMessenger, {
+    awaitDeleteDelegationEntry(controller, initMessenger, {
       hash: mockHash,
       txMeta,
     });

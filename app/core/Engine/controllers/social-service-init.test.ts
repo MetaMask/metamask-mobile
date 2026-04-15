@@ -28,7 +28,7 @@ describe('socialServiceInit', () => {
   });
 
   it('instantiates the SocialService', () => {
-    const { messengerClient } = socialServiceInit(getInitRequestMock());
-    expect(messengerClient).toBeInstanceOf(SocialService);
+    const { controller } = socialServiceInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(SocialService);
   });
 });

@@ -17,12 +17,12 @@ export const assetsContractControllerInit: MessengerClientInitFunction<
   AssetsContractControllerMessenger
 > = ({ controllerMessenger, getMessengerClient }) => {
   const networkController = getMessengerClient('NetworkController');
-  const messengerClient = new AssetsContractController({
+  const controller = new AssetsContractController({
     messenger: controllerMessenger,
     chainId: getGlobalChainId(networkController),
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

@@ -25,7 +25,7 @@ export const tokenListControllerInit: MessengerClientInitFunction<
 }) => {
   const networkController = getMessengerClient('NetworkController');
 
-  const messengerClient = new TokenListController({
+  const controller = new TokenListController({
     messenger: controllerMessenger,
     chainId: getGlobalChainId(networkController),
     state: persistedState.TokenListController,
@@ -40,11 +40,11 @@ export const tokenListControllerInit: MessengerClientInitFunction<
       ),
   });
 
-  messengerClient.initialize().catch(() => {
+  controller.initialize().catch(() => {
     // Initialization failed
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

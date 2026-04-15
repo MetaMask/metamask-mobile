@@ -50,7 +50,7 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
     name: Name,
   ): MessengerClientsByName[Name] =>
     getMessengerClientOrThrow({
-      messengerClient: partialMessengerClientsByName?.[name],
+      controller: partialMessengerClientsByName?.[name],
       name,
     });
 
@@ -86,12 +86,12 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
     };
 
     // Initialize the messenger client
-    const { messengerClient } = initFunction(finalInitRequest);
+    const { controller } = initFunction(finalInitRequest);
 
     // Add the messenger client to the map
     partialMessengerClientsByName = {
       ...partialMessengerClientsByName,
-      [messengerClientName]: messengerClient,
+      [messengerClientName]: controller,
     };
 
     log('Initialized messenger client', messengerClientName);
@@ -108,22 +108,22 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
  * Throws an error if the messenger client is not found.
  *
  * @param options - Options containing the messenger client and name.
- * @param options.messengerClient - The messenger client to get.
+ * @param options.controller - The messenger client to get.
  * @param options.name - The name of the messenger client.
  * @returns The messenger client.
  */
 export function getMessengerClientOrThrow<Name extends MessengerClientName>({
-  messengerClient,
+  controller,
   name,
 }: {
-  messengerClient: Partial<MessengerClientsByName>[Name];
+  controller: Partial<MessengerClientsByName>[Name];
   name: Name;
 }): MessengerClientsByName[Name] {
-  if (!messengerClient) {
+  if (!controller) {
     throw new Error(
       `Messenger client requested before it was initialized: ${name}`,
     );
   }
 
-  return messengerClient;
+  return controller;
 }

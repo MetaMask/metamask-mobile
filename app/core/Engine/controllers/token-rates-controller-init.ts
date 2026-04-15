@@ -16,7 +16,7 @@ export const tokenRatesControllerInit: MessengerClientInitFunction<
   TokenRatesController,
   TokenRatesControllerMessenger
 > = ({ controllerMessenger, persistedState, codefiTokenApiV2 }) => {
-  const messengerClient = new TokenRatesController({
+  const controller = new TokenRatesController({
     messenger: controllerMessenger,
     state: persistedState.TokenRatesController ?? { marketData: {} },
     interval: inMilliseconds(30, Duration.Minute),
@@ -24,6 +24,6 @@ export const tokenRatesControllerInit: MessengerClientInitFunction<
   });
 
   return {
-    messengerClient,
+    controller,
   };
 };

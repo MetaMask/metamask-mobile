@@ -90,7 +90,7 @@ describe.each([
 
     describe(`when analyticsId is ${analyticsId}, analytics is ${analyticsEnabled ? 'enabled' : 'disabled'} and pna25Acknowledged is ${pna25Acknowledged}`, () => {
       it('initializes the controller', () => {
-        const { messengerClient } = profileMetricsControllerInit(
+        const { controller } = profileMetricsControllerInit(
           getInitRequestMock({
             analyticsId,
             analyticsEnabled,
@@ -98,7 +98,7 @@ describe.each([
           }),
         );
 
-        expect(messengerClient).toBeInstanceOf(ProfileMetricsController);
+        expect(controller).toBeInstanceOf(ProfileMetricsController);
       });
 
       it('passes the proper arguments to the controller', () => {

@@ -17,16 +17,16 @@ export const earnControllerInit: MessengerClientInitFunction<
 > = ({ controllerMessenger, getMessengerClient }) => {
   const transactionController = getMessengerClient('TransactionController');
 
-  const messengerClient = new EarnController({
+  const controller = new EarnController({
     messenger: controllerMessenger,
     addTransactionFn: transactionController.addTransaction.bind(
       transactionController,
     ),
   });
 
-  messengerClient.init();
+  controller.init();
 
   return {
-    messengerClient,
+    controller,
   };
 };

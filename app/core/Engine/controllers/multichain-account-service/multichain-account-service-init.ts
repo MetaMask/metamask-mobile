@@ -50,7 +50,7 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     },
   };
 
-  const messengerClient = new MultichainAccountService({
+  const controller = new MultichainAccountService({
     messenger: controllerMessenger,
     providerConfigs: {
       [SOL_ACCOUNT_PROVIDER_NAME]: solanaSnapAccountProviderConfig,
@@ -78,5 +78,5 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     },
   );
 
-  return { messengerClient, memStateKey: null, persistedStateKey: null };
+  return { controller, memStateKey: null, persistedStateKey: null };
 };
