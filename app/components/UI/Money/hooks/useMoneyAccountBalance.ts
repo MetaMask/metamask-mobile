@@ -21,8 +21,11 @@ import { fromTokenMinimalUnitString } from '../../../../util/number';
 import { toChecksumAddress } from '../../../../util/address';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 
-// Placeholder hook to unblock work needing balances.
-const useMoneyAccountBalance = () => {
+const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
+
+const useMoneyAccountBalance = (
+  refetchInterval: number = DEFAULT_REFETCH_INTERVAL,
+) => {
   // TODO: Replace with selector for actual money account.
   const selectedEvmAddress = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
@@ -42,6 +45,7 @@ const useMoneyAccountBalance = () => {
             selectedEvmAddress,
           ],
           enabled: Boolean(selectedEvmAddress),
+          refetchInterval,
         },
         {
           queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_VAULT_APY],
@@ -52,6 +56,7 @@ const useMoneyAccountBalance = () => {
             selectedEvmAddress,
           ],
           enabled: Boolean(selectedEvmAddress),
+          refetchInterval,
         },
       ],
     }) as [
@@ -60,10 +65,6 @@ const useMoneyAccountBalance = () => {
       UseQueryResult<MusdEquivalentValueResponse>,
     ];
 
-  // TODO: Review this logic.
-  // Compute the per-mUSD fiat rate from Mainnet market data.
-  // mUSD is a USD-pegged stablecoin so Mainnet market data is reliable even
-  // when the service is temporarily configured against a different chain.
   const musdFiatRate = useMemo(() => {
     const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
     if (!musdAddress) return undefined;
@@ -85,9 +86,14 @@ const useMoneyAccountBalance = () => {
     return new BigNumber(priceInNativeCurrency).times(conversionRate);
   }, [tokenMarketData, currencyRates, networkConfigurations]);
 
-  // True while any query that feeds into the aggregated balance is still fetching.
-  const isAggregatedBalanceLoading =
-    musdBalanceResult.isLoading || musdEquivalentBalanceResult.isLoading;
+  /**
+   * True while any query that feeds into the aggregated balance is still fetching.
+   * isLoading is only true when there is no cached data even if it's stale.
+   */
+  const isAggregatedBalanceLoading = useMemo(
+    () => musdBalanceResult.isLoading || musdEquivalentBalanceResult.isLoading,
+    [musdBalanceResult.isLoading, musdEquivalentBalanceResult.isLoading],
+  );
 
   const { musdFiat, musdSHFvdFiat, tokenTotal, totalFiat } = useMemo(() => {
     // mUSD balance: raw uint256 (6 decimals) → decimal BigNumber
