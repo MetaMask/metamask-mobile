@@ -1,10 +1,27 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
-import { View, SafeAreaView, ScrollView, Linking } from 'react-native';
+import { ScrollView, Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { captureException } from '@sentry/react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
+
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
+} from '@metamask/design-system-react-native';
 
 import {
   OnboardingActionTypes,
@@ -14,27 +31,16 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
-import Button, {
+import OldButton, {
   ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
+  ButtonSize as OldButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../component-library/components/Icons/Icon';
+import { IconName as CLibIconName } from '../../../component-library/components/Icons/Icon';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import { useStyles } from '../../../component-library/hooks/useStyles';
 import AppConstants from '../../../core/AppConstants';
 import { Authentication } from '../../../core';
-import styleSheet from './SRPErrorScreen.styles';
 
 interface SRPErrorScreenProps {
   error: Error;
@@ -46,11 +52,10 @@ const SRPErrorScreen = ({
   saveOnboardingEvent,
 }: SRPErrorScreenProps) => {
   const navigation = useNavigation();
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const [copied, setCopied] = useState(false);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Cleanup timeout on unmount
   useEffect(
     () => () => {
       if (copyTimeoutRef.current) {
@@ -60,7 +65,6 @@ const SRPErrorScreen = ({
     [],
   );
 
-  // Track screen viewed event
   useEffect(() => {
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(
@@ -90,7 +94,6 @@ const SRPErrorScreen = ({
       saveOnboardingEvent,
     );
 
-    // Delete wallet
     await Authentication.deleteWallet();
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
@@ -146,94 +149,96 @@ const SRPErrorScreen = ({
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={tw.style('flex-1 bg-default')}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={tw.style('flex-grow p-4')}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.content}>
+        <Box twClassName="flex-1 items-center pt-12">
           <Icon
             name={IconName.Danger}
             size={IconSize.Xl}
-            color={IconColor.Error}
-            style={styles.warningIcon}
+            color={IconColor.ErrorDefault}
+            twClassName="mb-4"
           />
 
-          <Text variant={TextVariant.HeadingMD} style={styles.title}>
+          <Text variant={TextVariant.HeadingMd} twClassName="text-center mb-4">
             {strings('wallet_creation_error.title')}
           </Text>
 
-          <View style={styles.infoBanner}>
+          <Box twClassName="flex-row bg-info-muted rounded-lg p-3 mb-6 w-full">
             <Icon
               name={IconName.Info}
               size={IconSize.Sm}
-              color={IconColor.Info}
-              style={styles.infoBannerIcon}
+              color={IconColor.InfoDefault}
+              twClassName="mr-2 mt-0.5"
             />
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
-              style={styles.infoBannerText}
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="flex-1"
             >
               {strings('wallet_creation_error.srp_description_part1')}{' '}
               <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Primary}
+                variant={TextVariant.BodySm}
+                color={TextColor.PrimaryDefault}
                 onPress={handleContactSupport}
               >
                 {strings('wallet_creation_error.metamask_support')}
               </Text>
               {'.'}
             </Text>
-          </View>
+          </Box>
 
-          <View style={styles.errorReportContainer}>
-            <View style={styles.errorReportHeader}>
-              <Text variant={TextVariant.BodyMDMedium}>
+          <Box twClassName="w-full mb-6">
+            <Box twClassName="flex-row justify-between items-center mb-2">
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('wallet_creation_error.error_report')}
               </Text>
-              <Button
+              <OldButton
                 variant={ButtonVariants.Link}
-                size={ButtonSize.Sm}
+                size={OldButtonSize.Sm}
                 label={
                   copied
                     ? strings('wallet_creation_error.copied')
                     : strings('wallet_creation_error.copy')
                 }
                 onPress={handleCopyError}
-                startIconName={copied ? IconName.Check : IconName.Copy}
+                startIconName={copied ? CLibIconName.Check : CLibIconName.Copy}
               />
-            </View>
+            </Box>
             <ScrollView
-              style={styles.errorReportContent}
+              style={tw.style('bg-alternative rounded-lg p-3 max-h-[200px]')}
               nestedScrollEnabled
               showsVerticalScrollIndicator
             >
-              <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
                 {errorReport}
               </Text>
             </ScrollView>
-          </View>
-        </View>
+          </Box>
+        </Box>
 
-        <View style={styles.buttonContainer}>
+        <Box twClassName="w-full pt-4 pb-6">
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('wallet_creation_error.send_error_report')}
+            isFullWidth
             onPress={handleSendErrorReport}
-            style={styles.button}
-          />
+            style={tw.style('mb-4')}
+          >
+            {strings('wallet_creation_error.send_error_report')}
+          </Button>
 
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('wallet_creation_error.try_again')}
+            isFullWidth
             onPress={handleTryAgain}
-          />
-        </View>
+          >
+            {strings('wallet_creation_error.try_again')}
+          </Button>
+        </Box>
       </ScrollView>
     </SafeAreaView>
   );

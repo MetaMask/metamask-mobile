@@ -19,7 +19,6 @@ import { TagShape, TagSeverity } from './TagBase.types';
 describe('TagBase', () => {
   it('should render TagBase', () => {
     const wrapper = render(<TagBase {...SAMPLE_TAGBASE_PROPS} />);
-    expect(wrapper).toMatchSnapshot();
     expect(wrapper.queryByTestId(TAGBASE_TESTID)).not.toBe(null);
   });
 

@@ -26,7 +26,11 @@ export const BlockingAlertMessage: React.FC = React.memo(() => {
   return (
     <View style={styles.container}>
       {typeof blockingAlertMessage === 'string' ? (
-        <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Error}
+          style={styles.message}
+        >
           {blockingAlertMessage}
         </Text>
       ) : (

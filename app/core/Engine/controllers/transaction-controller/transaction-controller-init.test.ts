@@ -14,14 +14,18 @@ import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { Hex } from '@metamask/utils';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { updateConfirmationMetric } from '../../../redux/slices/confirmationMetrics';
+import { store } from '../../../../store';
+import { selectMetaMaskPayFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { getGlobalChainId } from '../../../../util/networks/global-network';
 import { submitSmartTransactionHook } from '../../../../util/smart-transactions/smart-publish-hook';
+import { accountSupports7702 } from '../../../../util/transactions/account-supports-7702';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
-import { ControllerInitRequest } from '../../types';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { MessengerClientInitRequest } from '../../types';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import {
   handleTransactionAddedEventForMetrics,
   handleTransactionApprovedEventForMetrics,
@@ -38,9 +42,20 @@ jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
 jest.mock('./event-handlers/metrics');
+jest.mock('../../../../util/transactions/account-supports-7702');
 jest.mock('../../../../util/transactions/hooks/delegation-7702-publish');
 jest.mock('../../../../util/transactions/sentinel-api');
 jest.mock('@metamask/transaction-pay-controller');
+jest.mock('../../../../selectors/featureFlagController/confirmations');
+jest.mock('../../../redux/slices/confirmationMetrics', () => ({
+  updateConfirmationMetric: jest.fn((params) => ({
+    type: 'updateConfirmationMetric',
+    payload: params,
+  })),
+}));
+jest.mock('../../../../store', () => ({
+  store: { dispatch: jest.fn() },
+}));
 
 jest.mock('../../../../util/transactions', () => ({
   getTransactionById: jest.fn((_id) => ({
@@ -88,7 +103,7 @@ function buildControllerMock(
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >
@@ -100,7 +115,7 @@ function buildInitRequestMock(
     namespace: MOCK_ANY_NAMESPACE,
   });
   const requestMock = {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     initMessenger:
       initMessenger as unknown as TransactionControllerInitMessenger,
     controllerMessenger:
@@ -139,9 +154,13 @@ describe('Transaction Controller Init', () => {
   const handleTransactionAddedEventForMetricsMock = jest.mocked(
     handleTransactionAddedEventForMetrics,
   );
+  const accountSupports7702Mock = jest.mocked(accountSupports7702);
   const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
+  const selectMetaMaskPayFlagsMock = jest.mocked(selectMetaMaskPayFlags);
   const payHookClassMock = jest.mocked(TransactionPayPublishHook);
   const payHookMock: jest.MockedFn<PublishHook> = jest.fn();
+  const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
+  const storeMock = jest.mocked(store);
 
   /**
    * Extract a constructor option passed to the controller.
@@ -172,6 +191,14 @@ describe('Transaction Controller Init', () => {
     selectShouldUseSmartTransactionMock.mockReturnValue(true);
     getGlobalChainIdMock.mockReturnValue('0x1');
     isSendBundleSupportedMock.mockResolvedValue(true);
+    selectMetaMaskPayFlagsMock.mockReturnValue({
+      attemptsMax: 2,
+      bufferInitial: 0.025,
+      bufferStep: 0.025,
+      bufferSubsequent: 0.05,
+      slippage: 0.005,
+      stxDisabled: false,
+    });
 
     payHookClassMock.mockReturnValue({
       getHook: () => payHookMock,
@@ -315,6 +342,90 @@ describe('Transaction Controller Init', () => {
 
       expect(payHookMock).toHaveBeenCalledTimes(1);
     });
+
+    it('passes isSmartTransaction returning false to pay hook when stxDisabled is true', async () => {
+      selectMetaMaskPayFlagsMock.mockReturnValue({
+        attemptsMax: 2,
+        bufferInitial: 0.025,
+        bufferStep: 0.025,
+        bufferSubsequent: 0.05,
+        slippage: 0.005,
+        stxDisabled: true,
+      });
+
+      const hooks = testConstructorOption('hooks');
+      await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      const { isSmartTransaction } = payHookClassMock.mock.calls[0][0];
+      expect(isSmartTransaction('0x1')).toBe(false);
+    });
+
+    it('passes isSmartTransaction returning true to pay hook when stxDisabled is false', async () => {
+      selectMetaMaskPayFlagsMock.mockReturnValue({
+        attemptsMax: 2,
+        bufferInitial: 0.025,
+        bufferStep: 0.025,
+        bufferSubsequent: 0.05,
+        slippage: 0.005,
+        stxDisabled: false,
+      });
+
+      const hooks = testConstructorOption('hooks');
+      await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      const { isSmartTransaction } = payHookClassMock.mock.calls[0][0];
+      expect(isSmartTransaction('0x1')).toBe(true);
+    });
+
+    it('dispatches sentinel_relay metric when delegation-7702 hook returns a transaction hash', async () => {
+      accountSupports7702Mock.mockResolvedValue(true);
+      isSendBundleSupportedMock.mockResolvedValue(false);
+      selectShouldUseSmartTransactionMock.mockReturnValue(false);
+
+      const delegation7702Mock: jest.MockedFn<PublishHook> = jest
+        .fn()
+        .mockResolvedValue({ transactionHash: '0xde702' });
+      jest.mocked(Delegation7702PublishHook).mockImplementation(
+        () =>
+          ({
+            getHook: () => delegation7702Mock,
+          }) as unknown as InstanceType<typeof Delegation7702PublishHook>,
+      );
+
+      const hooks = testConstructorOption('hooks');
+      await hooks?.publish?.({ ...MOCK_TRANSACTION_META, chainId: '0x13' });
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: MOCK_TRANSACTION_META.id,
+          params: expect.objectContaining({
+            properties: expect.objectContaining({
+              transaction_submission_method: 'sentinel_relay',
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('dispatches sentinel_stx metric when STX hook returns a transaction hash', async () => {
+      submitSmartTransactionHookMock.mockResolvedValue({
+        transactionHash: '0xsmarthash',
+      });
+
+      const hooks = testConstructorOption('hooks');
+      await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: MOCK_TRANSACTION_META.id,
+          params: expect.objectContaining({
+            properties: expect.objectContaining({
+              transaction_submission_method: 'sentinel_stx',
+            }),
+          }),
+        }),
+      );
+    });
   });
 
   describe('publishBatch hook', () => {
@@ -370,6 +481,67 @@ describe('Transaction Controller Init', () => {
       );
     });
 
+    it('dispatches sentinel_stx metric for each transaction when batch hook returns a result', async () => {
+      const mockTransactions = [
+        { id: 'tx1', signedTx: '0xaaa' as Hex },
+        { id: 'tx2', signedTx: '0xbbb' as Hex },
+      ];
+
+      const getTransactionByIdMock = jest.requireMock(
+        '../../../../util/transactions',
+      ).getTransactionById;
+      getTransactionByIdMock.mockReturnValue({
+        id: 'tx2',
+        chainId: '0x1',
+        status: 'approved',
+        time: 123,
+        txParams: { from: '0x123' },
+        networkClientId: 'selectedNetworkClientId',
+      });
+
+      selectShouldUseSmartTransactionMock.mockReturnValue(true);
+
+      const submitBatchMock = jest.requireMock(
+        '../../../../util/smart-transactions/smart-publish-hook',
+      ).submitBatchSmartTransactionHook;
+      submitBatchMock.mockResolvedValue({
+        results: [
+          { transactionHash: '0xhash1' },
+          { transactionHash: '0xhash2' },
+        ],
+      });
+
+      const hooks = testConstructorOption('hooks');
+      await hooks?.publishBatch?.({
+        transactions:
+          mockTransactions as unknown as PublishBatchHookTransaction[],
+        from: '0x123',
+        networkClientId: 'selectedNetworkClientId',
+      });
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledTimes(2);
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'tx1',
+          params: expect.objectContaining({
+            properties: expect.objectContaining({
+              transaction_submission_method: 'sentinel_stx',
+            }),
+          }),
+        }),
+      );
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'tx2',
+          params: expect.objectContaining({
+            properties: expect.objectContaining({
+              transaction_submission_method: 'sentinel_stx',
+            }),
+          }),
+        }),
+      );
+    });
+
     describe('7702 delegation hook', () => {
       const Delegation7702PublishHookMock = jest.mocked(
         Delegation7702PublishHook,
@@ -377,6 +549,7 @@ describe('Transaction Controller Init', () => {
       let mockDelegation7702Hook: jest.MockedFn<PublishHook>;
 
       beforeEach(() => {
+        accountSupports7702Mock.mockResolvedValue(true);
         payHookMock.mockResolvedValue({ transactionHash: undefined });
         mockDelegation7702Hook = jest
           .fn()
@@ -387,6 +560,20 @@ describe('Transaction Controller Init', () => {
               getHook: () => mockDelegation7702Hook,
             }) as unknown as InstanceType<typeof Delegation7702PublishHook>,
         );
+      });
+
+      it('skips Delegation7702PublishHook for hardware wallet accounts', async () => {
+        accountSupports7702Mock.mockResolvedValue(false);
+        selectShouldUseSmartTransactionMock.mockReturnValue(false);
+
+        const hooks = testConstructorOption('hooks');
+        await hooks?.publish?.({
+          ...MOCK_TRANSACTION_META,
+          chainId: '0x13',
+        });
+
+        expect(Delegation7702PublishHookMock).not.toHaveBeenCalled();
+        expect(mockDelegation7702Hook).not.toHaveBeenCalled();
       });
 
       it('falls back to Delegation7702PublishHook when smart transactions are disabled', async () => {
@@ -673,6 +860,7 @@ describe('Transaction Controller Init', () => {
     });
 
     it('returns true if isExternalSign', async () => {
+      accountSupports7702Mock.mockResolvedValue(true);
       const mockTransactionMeta = {
         id: '123',
         status: 'approved',
@@ -687,6 +875,7 @@ describe('Transaction Controller Init', () => {
   });
 
   it('calls getNonceLock and releaseLock via Delegation7702PublishHook getNextNonce', async () => {
+    accountSupports7702Mock.mockResolvedValue(true);
     const releaseLockMock = jest.fn();
     const getNonceLockMock = jest.fn().mockResolvedValue({
       nextNonce: 99,
@@ -728,6 +917,7 @@ describe('Transaction Controller Init', () => {
   });
 
   it('calls 7702 publish hook if isExternalSign', async () => {
+    accountSupports7702Mock.mockResolvedValue(true);
     const delegation7702Mock: jest.MockedFn<PublishHook> = jest.fn();
 
     jest.mocked(Delegation7702PublishHook).mockImplementation(

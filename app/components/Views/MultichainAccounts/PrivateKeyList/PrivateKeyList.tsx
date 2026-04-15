@@ -6,8 +6,16 @@ import React, {
   useRef,
   useMemo,
   useContext,
+  forwardRef,
 } from 'react';
-import { View, TextInput, Linking } from 'react-native';
+import {
+  View,
+  TextInput,
+  Linking,
+  Platform,
+  ScrollViewProps,
+} from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { FlashList } from '@shopify/flash-list';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -38,10 +46,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import {
   useParams,
   createNavigationDetails,
@@ -63,6 +72,46 @@ export const createPrivateKeyListNavigationDetails =
   createNavigationDetails<PrivateKeyListParams>(
     Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
   );
+
+/**
+ * Shared context that lets the module-level GestureScrollComponent write back
+ * the RNGH ScrollView ref to its PrivateKeyList ancestor, which then passes it
+ * to BottomSheet via `panGestureHandlerProps.simultaneousHandlers` on Android.
+ */
+const GestureScrollRefContext = React.createContext<
+  React.MutableRefObject<React.ComponentRef<typeof ScrollView> | null>
+>({ current: null });
+
+/**
+ * Stable RNGH-backed scroll component for FlashList.
+ *
+ * Defined at module level (not inside PrivateKeyList) to satisfy the
+ * react/no-unstable-nested-components rule. Uses forwardRef so FlashList can
+ * properly forward its internal scroll ref — plain function components have
+ * their ref prop stripped by React 18's reconciler. Also reads
+ * GestureScrollRefContext to populate the parent's flashListScrollGestureRef,
+ * which BottomSheet uses via panGestureHandlerProps on Android so that scroll
+ * gestures are not captured as dismiss-sheet pans.
+ */
+const GestureScrollComponent = forwardRef<
+  React.ComponentRef<typeof ScrollView>,
+  ScrollViewProps
+>((props, ref) => {
+  const scrollGestureRef = useContext(GestureScrollRefContext);
+  return (
+    <ScrollView
+      {...props}
+      ref={(node) => {
+        scrollGestureRef.current = node;
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (ref) {
+          (ref as React.MutableRefObject<typeof node | null>).current = node;
+        }
+      }}
+    />
+  );
+});
 
 /**
  * Check if the account has the private key available according to its keyring type.
@@ -87,6 +136,13 @@ export const PrivateKeyList = () => {
   const { styles } = useStyles(styleSheet, {});
   const { toastRef } = useContext(ToastContext);
   const sheetRef = useRef<BottomSheetRef>(null);
+  /**
+   * Ref to FlashList's RNGH ScrollView; passed via `panGestureHandlerProps.simultaneousHandlers`
+   * on Android so list scrolling is not captured by the sheet dismiss pan.
+   */
+  const flashListScrollGestureRef = useRef<React.ComponentRef<
+    typeof ScrollView
+  > | null>(null);
   const [password, setPassword] = useState<string>('');
   const [wrongPassword, setWrongPassword] = useState<boolean>(false);
   const [reveal, setReveal] = useState<boolean>(false);
@@ -233,21 +289,23 @@ export const PrivateKeyList = () => {
         </View>
         <View style={styles.buttons}>
           <Button
-            label={strings('multichain_accounts.private_key_list.cancel')}
-            size={ButtonSize.Lg}
-            variant={ButtonVariants.Secondary}
+            size={ButtonBaseSize.Lg}
+            variant={ButtonVariant.Secondary}
             onPress={onCancel}
             style={styles.button}
             testID={PrivateKeyListIds.CANCEL_BUTTON}
-          />
+          >
+            {strings('multichain_accounts.private_key_list.cancel')}
+          </Button>
           <Button
-            label={strings('multichain_accounts.private_key_list.continue')}
-            size={ButtonSize.Lg}
-            variant={ButtonVariants.Primary}
+            size={ButtonBaseSize.Lg}
+            variant={ButtonVariant.Primary}
             onPress={() => verifyPasswordAndUnlockKeys()}
             style={styles.button}
             testID={PrivateKeyListIds.CONTINUE_BUTTON}
-          />
+          >
+            {strings('multichain_accounts.private_key_list.continue')}
+          </Button>
         </View>
       </>
     ),
@@ -270,6 +328,7 @@ export const PrivateKeyList = () => {
           data={filteredAccounts()}
           keyExtractor={(item) => item.scope}
           renderItem={renderAddressItem}
+          renderScrollComponent={GestureScrollComponent}
           testID={PrivateKeyListIds.LIST}
           onLoad={() => {
             endTrace({ name: TraceName.ShowAccountPrivateKeyList });
@@ -298,20 +357,32 @@ export const PrivateKeyList = () => {
   );
 
   return (
-    <BottomSheet style={styles.bottomSheetContent} ref={sheetRef}>
-      <Fragment>
-        <SheetHeader title={title} />
-        <Banner
-          variant={BannerVariant.Alert}
-          severity={BannerAlertSeverity.Error}
-          title={strings('multichain_accounts.private_key_list.warning_title')}
-          description={privateKeyBannerDescription}
-          style={styles.banner}
-          testID={PrivateKeyListIds.BANNER}
-        />
+    <GestureScrollRefContext.Provider value={flashListScrollGestureRef}>
+      <BottomSheet
+        style={styles.bottomSheetContent}
+        ref={sheetRef}
+        panGestureHandlerProps={
+          Platform.OS === 'android'
+            ? { simultaneousHandlers: flashListScrollGestureRef }
+            : undefined
+        }
+      >
+        <Fragment>
+          <SheetHeader title={title} />
+          <Banner
+            variant={BannerVariant.Alert}
+            severity={BannerAlertSeverity.Error}
+            title={strings(
+              'multichain_accounts.private_key_list.warning_title',
+            )}
+            description={privateKeyBannerDescription}
+            style={styles.banner}
+            testID={PrivateKeyListIds.BANNER}
+          />
 
-        {reveal ? renderPrivateKeyList() : renderPassword()}
-      </Fragment>
-    </BottomSheet>
+          {reveal ? renderPrivateKeyList() : renderPassword()}
+        </Fragment>
+      </BottomSheet>
+    </GestureScrollRefContext.Provider>
   );
 };

@@ -23,7 +23,7 @@ import {
   REFERRAL_CODE_LENGTH,
 } from '../../hooks/useValidateReferralCode';
 import { useApplyReferralCode } from '../../hooks/useApplyReferralCode';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useTheme } from '../../../../../util/theme';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 
@@ -49,7 +49,7 @@ const ReferredByCodeSection: React.FC = () => {
     applyReferralCodeSuccess,
   } = useApplyReferralCode();
 
-  const { fetchReferralDetails } = useReferralDetails();
+  const { fetchReferralDetails } = useReferralDetails({ fetchOnMount: false });
 
   const hasReferredByCode = Boolean(referredByCode);
 

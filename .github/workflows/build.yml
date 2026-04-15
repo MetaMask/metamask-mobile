@@ -13,6 +13,43 @@ on:
         required: false
         type: boolean
         default: false
+      source_branch:
+        description: >-
+          Branch, tag, or SHA. If skip_version_bump is false: base branch for the version bump (empty uses github.ref_name).
+          If skip_version_bump is true: ref for prepare, node-modules setup, and build checkout (empty uses the default triggering ref).
+        required: false
+        type: string
+        default: ''
+      upload_to_sentry:
+        description: 'If true, enable Sentry CLI upload of JS source maps and native debug symbols during the build'
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      build_name:
+        description: 'build_name input passed to this workflow'
+        value: ${{ inputs.build_name }}
+      platform:
+        description: 'platform input (android, ios, or both)'
+        value: ${{ inputs.platform }}
+      source_branch_input:
+        description: 'source_branch input (empty means default ref was used)'
+        value: ${{ inputs.source_branch }}
+      checkout_ref:
+        description: 'Git ref used for checkout (version-bump commit SHA or source_branch / triggering ref)'
+        value: ${{ jobs.emit-build-metadata.outputs.checkout_ref }}
+      built_commit_sha:
+        description: 'Resolved commit SHA at checkout_ref after build succeeded'
+        value: ${{ jobs.emit-build-metadata.outputs.built_commit_sha }}
+      semantic_version:
+        description: 'package.json version at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.semantic_version }}
+      android_version_code:
+        description: 'android/app/build.gradle versionCode at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.android_version_code }}
+      ios_version_code:
+        description: 'ios/MetaMask.xcodeproj/project.pbxproj CURRENT_PROJECT_VERSION at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.ios_version_code }}
   workflow_dispatch:
     inputs:
       build_name:
@@ -40,6 +77,11 @@ on:
         required: false
         type: boolean
         default: false
+      upload_to_sentry:
+        description: 'Upload JS source maps and native debug symbols to Sentry during the build (requires Sentry auth in the build environment)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -55,7 +97,7 @@ jobs:
       contents: write
       id-token: write
     with:
-      base-branch: ${{ github.ref_name }}
+      base-branch: ${{ inputs.source_branch || github.ref_name }}
     secrets:
       PR_TOKEN: ${{ secrets.PR_TOKEN }}
 
@@ -67,11 +109,16 @@ jobs:
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
       secrets_json: ${{ steps.config.outputs.secrets_json }}
+      tap_and_pay_sdk_repo_ssh: ${{ steps.config.outputs.tap_and_pay_sdk_repo_ssh }}
       signing_aws_role: ${{ steps.config.outputs.signing_aws_role }}
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
+      checkout_ref_for_setup: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -89,6 +136,8 @@ jobs:
           const build = config.builds['${{ inputs.build_name }}'];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
+          const env = build.env || {};
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'tap_and_pay_sdk_repo_ssh=' + (env.TAP_AND_PAY_SDK_REPO_SSH || '') + '\n');
           const signing = build.signing;
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
@@ -99,17 +148,20 @@ jobs:
   setup-dependencies:
     name: Setup Dependencies (${{ matrix.platform }})
     needs: [prepare]
+    if: ${{ always() && !failure() && !cancelled() }}
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
     uses: ./.github/workflows/setup-node-modules.yml
     with:
+      ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
+      fetch-depth: 0
       checkout-submodules: true
       platform: ${{ matrix.platform }}
       build_name: ${{ inputs.build_name }}
       use-tarball: true
       upload-artifact: true
-      artifact-name: node-modules-${{ matrix.platform }}
+      artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
       artifact-retention-days: 1
 
   # Build
@@ -120,8 +172,8 @@ jobs:
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
-    # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: GitHub-hosted macOS
-    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: Cirrus macOS Tahoe (has Xcode 26.x)
+    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     steps:
       - name: Validate version-bump commit
@@ -140,7 +192,13 @@ jobs:
           submodules: recursive
 
       - uses: actions/checkout@v4
-        if: ${{ inputs.skip_version_bump }}
+        if: ${{ inputs.skip_version_bump && inputs.source_branch != '' }}
+        with:
+          ref: ${{ inputs.source_branch }}
+          submodules: recursive
+
+      - uses: actions/checkout@v4
+        if: ${{ inputs.skip_version_bump && inputs.source_branch == '' }}
         with:
           submodules: recursive
 
@@ -153,7 +211,7 @@ jobs:
       - name: Download node_modules tarball
         uses: actions/download-artifact@v4
         with:
-          name: node-modules-${{ matrix.platform }}
+          name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
 
       - name: Extract tarball (preserves symlinks)
         run: |
@@ -207,9 +265,39 @@ jobs:
 
       - name: Select Xcode (iOS)
         if: matrix.platform == 'ios'
+        run: |
+          sudo xcodes select 26.3
+          xcodebuild -version
+
+      # TapAndPay SDK Setup (Android only)
+      - name: Clone TapAndPay SDK
+        if: |
+          matrix.platform == 'android' &&
+          needs.prepare.outputs.tap_and_pay_sdk_repo_ssh != ''
+        run: |
+          if [ -z "$TAP_AND_PAY_SDK_SSH_KEY" ]; then
+            echo "⚠️ TAP_AND_PAY_SDK_SSH_KEY not set, skipping TapAndPay SDK clone"
+            exit 0
+          fi
+          mkdir -p ~/.ssh
+          echo "$TAP_AND_PAY_SDK_SSH_KEY" | base64 -d | tr -d '\r' > ~/.ssh/tap_and_pay_key
+          echo "" >> ~/.ssh/tap_and_pay_key
+          chmod 600 ~/.ssh/tap_and_pay_key
+          trap 'rm -f ~/.ssh/tap_and_pay_key' EXIT
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/tap_and_pay_key
+          echo "📦 Cloning TapAndPay SDK into android/libs/..."
+          git clone --depth 1 "$TAP_AND_PAY_SDK_REPO_SSH" /tmp/tap-and-pay-sdk
+          mkdir -p android/libs
+          cp -r /tmp/tap-and-pay-sdk/* android/libs/
+          rm -rf /tmp/tap-and-pay-sdk
+          ssh-add -D
+          eval "$(ssh-agent -k)"
+          echo "✅ TapAndPay SDK installed to android/libs/"
         env:
-          XCODE_VERSION: '16.3'
-        run: sudo xcode-select -s "/Applications/Xcode_$XCODE_VERSION.app"
+          TAP_AND_PAY_SDK_SSH_KEY: ${{ secrets.TAP_AND_PAY_SDK_SSH_KEY }}
+          TAP_AND_PAY_SDK_REPO_SSH: ${{ needs.prepare.outputs.tap_and_pay_sdk_repo_ssh }}
 
       - name: Apply build config
         run: |
@@ -248,8 +336,10 @@ jobs:
       - name: Set Android environment variables
         if: matrix.platform == 'android'
         run: |
-          echo "ANDROID_HOME=/opt/android-sdk" >> "$GITHUB_ENV"
-          echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> "$GITHUB_ENV"
+          {
+            echo "ANDROID_HOME=/opt/android-sdk"
+            echo "ANDROID_SDK_ROOT=/opt/android-sdk"
+          } >> "$GITHUB_ENV"
 
       - name: Setup Java
         if: matrix.platform == 'android'
@@ -268,7 +358,7 @@ jobs:
             security delete-keychain "$KEYCHAIN_PATH" || true
           fi
 
-      # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
+      # Signing: uses role + secret from builds.yml (skipped when builds.yml omits signing, e.g. simulator-only flask-dev / qa-dev)
       - name: Configure signing certificates
         if: needs.prepare.outputs.signing_aws_role != ''
         uses: ./.github/actions/configure-signing
@@ -290,9 +380,24 @@ jobs:
           cat ios/.xcode.env.local
           node --version
 
+      # Sentry: build.sh defaults SENTRY_DISABLE_AUTO_UPLOAD=true; set false only when opted in.
+      - name: Configure Sentry upload
+        env:
+          UPLOAD_TO_SENTRY: ${{ inputs.upload_to_sentry }}
+        run: |
+          if [ "$UPLOAD_TO_SENTRY" = "true" ]; then
+            echo "SENTRY_DISABLE_AUTO_UPLOAD=false" >> "$GITHUB_ENV"
+            echo "✅ Sentry auto-upload enabled for this build"
+          else
+            echo "SENTRY_DISABLE_AUTO_UPLOAD=true" >> "$GITHUB_ENV"
+            echo "ℹ️ Sentry auto-upload disabled"
+          fi
+
       # Build with retry logic. Timeouts: 55min per attempt, 115min total for step, 120min job
       - name: Build ${{ matrix.platform }}
         timeout-minutes: 115
+        env:
+          GIT_BRANCH: ${{ inputs.source_branch || github.ref_name }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 55
@@ -305,60 +410,79 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Rename build artifacts (also zips simulator .app and writes ios_deploy_path / ios_archive_path outputs)
+      # Rename build artifacts (ios_simulator_path / ios_ipa_path / ios_archive_path / android_*_path outputs)
       - name: Rename ${{ matrix.platform }} artifacts
         if: success()
         id: rename
         run: node scripts/rename-artifacts.js ${{ matrix.platform }}
 
       # Upload build artifacts (only if build succeeded)
-      - name: Upload iOS simulator artifacts
+      - name: Upload iOS simulator app
         if: matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: ios-${{ inputs.build_name }}
-          path: ${{ steps.rename.outputs.ios_deploy_path }}
+          name: ios-app-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_simulator_path }}
           if-no-files-found: error
 
-      - name: Upload iOS device artifacts
-        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+      - name: Upload iOS IPA
+        if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
         uses: actions/upload-artifact@v4
         with:
-          name: ios-${{ inputs.build_name }}
-          path: |
-            ${{ steps.rename.outputs.ios_deploy_path }}
-            ${{ steps.rename.outputs.ios_archive_path }}
+          name: ios-ipa-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_ipa_path }}
+          if-no-files-found: error
+
+      - name: Upload iOS xcarchive
+        if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-xcarchive-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_archive_path }}
           if-no-files-found: error
 
       - name: Upload iOS sourcemap
-        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
         uses: actions/upload-artifact@v4
         with:
           name: ios-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_sourcemap_path }}
           if-no-files-found: warn
 
-      # Dev builds (CONFIGURATION=Debug): APK only — mirrors Bitrise IS_DEV_BUILD behavior
-      - name: Upload Android dev artifacts
+      # Dev builds (CONFIGURATION=Debug): APK + test APK (for E2E)
+      - name: Upload Android APK (dev)
         if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
         uses: actions/upload-artifact@v4
         with:
-          name: android-${{ inputs.build_name }}
+          name: android-apk-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_apk_path }}
           if-no-files-found: error
 
-      # Release builds: APK + AAB — mirrors Bitrise Deploy APK + Deploy AAB
-      - name: Upload Android release artifacts
+      - name: Upload Android test APK (dev)
+        if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug' && steps.rename.outputs.android_test_apk_path != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-apk-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_test_apk_path }}
+          if-no-files-found: warn
+
+      # Release builds: APK and AAB as separate artifacts
+      - name: Upload Android APK (release)
         if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
         uses: actions/upload-artifact@v4
         with:
-          name: android-${{ inputs.build_name }}
-          path: |
-            ${{ steps.rename.outputs.android_apk_path }}
-            ${{ steps.rename.outputs.android_aab_path }}
+          name: android-apk-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_apk_path }}
           if-no-files-found: error
 
-      # Non-Debug builds (prod, RC, beta, test, e2e, exp): sourcemaps — mirrors Bitrise Deploy Android Sourcemaps step
+      - name: Upload Android AAB
+        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_aab_path }}
+          if-no-files-found: error
+
       - name: Upload Android sourcemaps
         if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
         uses: actions/upload-artifact@v4
@@ -366,3 +490,36 @@ jobs:
           name: android-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_sourcemap_dir }}
           if-no-files-found: warn
+
+  # Single fan-in job so workflow_call outputs work with matrix `build` (matrix jobs cannot feed workflow outputs directly).
+  emit-build-metadata:
+    name: Emit build metadata
+    needs: [prepare, build]
+    if: ${{ !failure() && !cancelled() && needs.prepare.result == 'success' && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    outputs:
+      checkout_ref: ${{ steps.meta.outputs.checkout_ref }}
+      built_commit_sha: ${{ steps.meta.outputs.built_commit_sha }}
+      semantic_version: ${{ steps.meta.outputs.semantic_version }}
+      android_version_code: ${{ steps.meta.outputs.android_version_code }}
+      ios_version_code: ${{ steps.meta.outputs.ios_version_code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Read metadata from tree at built ref
+        id: meta
+        run: |
+          REF="${{ needs.prepare.outputs.checkout_ref_for_setup }}"
+          {
+            echo "checkout_ref=$REF"
+            echo "built_commit_sha=$(git rev-parse HEAD)"
+          } >> "$GITHUB_OUTPUT"
+          ./scripts/get-build-metadata.sh --ci

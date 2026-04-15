@@ -98,7 +98,10 @@ const PerpsSelectModifyActionView: React.FC<
 
         case 'reduce_position':
           // Open close position screen
-          navigateToClosePosition(position);
+          navigateToClosePosition(
+            position,
+            PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+          );
           break;
 
         case 'flip_position':

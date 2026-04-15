@@ -10,7 +10,7 @@ import type {
   TransactionMetrics,
   TransactionMetricsBuilderRequest,
 } from '../types';
-import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
+import { JsonMap } from '../../../../../util/analytics/analytics.types';
 import { getMethodData } from '../../../../../util/transactions';
 import { EIP5792ErrorCode } from '../../../../../constants/transaction';
 

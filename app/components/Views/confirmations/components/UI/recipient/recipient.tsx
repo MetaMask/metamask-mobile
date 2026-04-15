@@ -36,7 +36,6 @@ export interface RecipientType {
 interface RecipientProps {
   recipient: RecipientType;
   isSelected?: boolean;
-  isBIP44?: boolean;
   accountAvatarType: AvatarAccountType;
   onPress?: (recipient: RecipientType) => void;
 }
@@ -44,7 +43,6 @@ interface RecipientProps {
 export function Recipient({
   recipient,
   isSelected,
-  isBIP44,
   accountAvatarType,
   onPress,
 }: RecipientProps) {
@@ -89,7 +87,10 @@ export function Recipient({
       accessibilityRole="button"
     >
       <Box twClassName="flex-row items-center">
-        <Box twClassName="h-12 justify-center">
+        <Box
+          twClassName="h-12 justify-center"
+          testID={`recipient-avatar-${recipient.address}`}
+        >
           <Avatar
             variant={AvatarVariant.Account}
             type={accountAvatarType}
@@ -104,9 +105,7 @@ export function Recipient({
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
           >
-            {isBIP44
-              ? recipient.accountGroupName || recipient.contactName
-              : recipient.accountName || recipient.contactName}
+            {recipient.accountGroupName || recipient.contactName}
           </Text>
           <Box twClassName="flex-row items-center">
             <Text

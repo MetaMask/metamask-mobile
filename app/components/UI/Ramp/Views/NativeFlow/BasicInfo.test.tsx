@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import V2BasicInfo from './BasicInfo';
+import Routes from '../../../../../constants/navigation/Routes';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const mockNavigate = jest.fn();
@@ -164,11 +165,6 @@ describe('V2BasicInfo', () => {
     };
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(<V2BasicInfo />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('renders the form fields', () => {
     const { getByTestId } = renderWithTheme(<V2BasicInfo />);
 
@@ -200,7 +196,7 @@ describe('V2BasicInfo', () => {
 
     const { queryByTestId } = renderWithTheme(<V2BasicInfo />);
 
-    expect(queryByTestId('ssn-input')).toBeNull();
+    expect(queryByTestId('ssn-input')).not.toBeOnTheScreen();
   });
 
   it('renders the continue button', () => {
@@ -279,7 +275,13 @@ describe('V2BasicInfo', () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.RAMP.ENTER_ADDRESS,
+        expect.objectContaining({
+          previousFormData: validPreviousFormData,
+          quote: mockUseParamsReturn.quote,
+        }),
+      );
     });
   });
 
@@ -388,7 +390,7 @@ describe('V2BasicInfo', () => {
     });
   });
 
-  it('matches snapshot for non-US region', () => {
+  it('does not render SSN field for non-US region (GB)', () => {
     mockUserRegion = {
       country: {
         isoCode: 'GB',
@@ -403,8 +405,9 @@ describe('V2BasicInfo', () => {
       regionCode: 'gb',
     };
 
-    const { toJSON } = renderWithTheme(<V2BasicInfo />);
-    expect(toJSON()).toMatchSnapshot();
+    const { queryByTestId, getByTestId } = renderWithTheme(<V2BasicInfo />);
+    expect(queryByTestId('ssn-input')).not.toBeOnTheScreen();
+    expect(getByTestId('first-name-input')).toBeOnTheScreen();
   });
 
   it('disables continue button while loading', async () => {
@@ -432,13 +435,12 @@ describe('V2BasicInfo', () => {
   it('navigates to ssn info modal when ssn info button is pressed', () => {
     const { getByTestId } = renderWithTheme(<V2BasicInfo />);
     fireEvent.press(getByTestId('ssn-info-button'));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'RampModals',
-      expect.objectContaining({ screen: 'RampSsnInfoModal' }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.MODALS.ID, {
+      screen: Routes.RAMP.MODALS.SSN_INFO,
+    });
   });
 
-  it('handles region with no phone prefix', () => {
+  it('renders form fields when region has no phone prefix', () => {
     mockUserRegion = {
       country: {
         isoCode: 'GB',
@@ -453,8 +455,9 @@ describe('V2BasicInfo', () => {
       regionCode: 'gb',
     };
 
-    const { toJSON } = renderWithTheme(<V2BasicInfo />);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByTestId } = renderWithTheme(<V2BasicInfo />);
+    expect(getByTestId('first-name-input')).toBeOnTheScreen();
+    expect(getByTestId('last-name-input')).toBeOnTheScreen();
   });
 
   it('shows validation errors when fields are empty', async () => {

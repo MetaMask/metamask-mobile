@@ -42,6 +42,7 @@ describe('My Test Suite', () => {
 | `languageAndLocale`     | `LanguageAndLocale`                                     | `false`  | -       | Set the device Language and Locale of the device                                                      |
 | `permissions`           | `object`                                                | `false`  | -       | Allows setting specific device permissions                                                            |
 | `endTestfn`             | `fn()`                                                  | `false`  | -       | Allows providing a function that is executed at the end of the test before the cleanup                |
+| `analyticsExpectations` | `AnalyticsExpectations`                                 | `false`  | -       | Optional MetaMetrics checks after `endTestfn`, before mock drain; see `tests/docs/analytics-e2e.md`   |
 | `skipReactNativeReload` | `boolean`                                               | `false`  | `false` | Skip React Native reload during cleanup to preserve app state between tests                           |
 | `useCommandQueueServer` | `boolean`                                               | `false`  | `false` | Launches an instance of CommandQueueServer to create a queue of items the app consumes on E2E context |
 

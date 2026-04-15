@@ -119,7 +119,9 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.InsufficientPayTokenBalance]: 'insufficient_funds',
   [AlertKeys.InsufficientPayTokenFees]: 'insufficient_funds_for_fees',
   [AlertKeys.InsufficientPayTokenNative]: 'insufficient_funds_for_gas',
+  [AlertKeys.InsufficientPerpsBalance]: 'insufficient_funds',
   [AlertKeys.InsufficientPredictBalance]: 'insufficient_funds',
+  [AlertKeys.AccountNoFunds]: 'account_no_funds',
   [AlertKeys.NoPayTokenQuotes]: 'no_payment_route_available',
   [AlertKeys.OriginTrustSignalMalicious]: 'origin_trust_signal_malicious',
   [AlertKeys.OriginTrustSignalWarning]: 'origin_trust_signal_warning',
@@ -127,6 +129,7 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.PerpsDepositMinimum]: 'minimum_deposit',
   [AlertKeys.PerpsHardwareAccount]: 'perps_hardware_account',
   [AlertKeys.SignedOrSubmitted]: 'signed_or_submitted',
+  [AlertKeys.TokenContractAddress]: 'token_contract_address',
   [AlertKeys.TokenTrustSignalMalicious]: 'token_trust_signal_malicious',
   [AlertKeys.TokenTrustSignalWarning]: 'token_trust_signal_warning',
 };

@@ -3,13 +3,19 @@
 exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1`] = `
 <Navigator
   initialRouteName="Home"
-  mode="modal"
   screenOptions={
     {
+      "cardStyle": {
+        "backgroundColor": "#ffffff",
+      },
       "headerShown": false,
     }
   }
 >
+  <Screen
+    component={[Function]}
+    name="Home"
+  />
   <Screen
     component={[Function]}
     name="CollectiblesDetails"
@@ -19,6 +25,7 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
+        "presentation": "modal",
       }
     }
   />
@@ -31,12 +38,9 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
+        "presentation": "modal",
       }
     }
-  />
-  <Screen
-    component={[Function]}
-    name="Home"
   />
   <Screen
     component={[Function]}
@@ -52,6 +56,17 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   <Screen
     component={[Function]}
     name="DeFiFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="CashTokensFullView"
     options={
       {
         "animationEnabled": true,
@@ -125,6 +140,11 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
     name="Send"
     options={
       {
+        "animationEnabled": true,
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+        "cardStyleInterpolator": [Function],
         "gestureEnabled": false,
       }
     }
@@ -178,7 +198,25 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   />
   <Screen
     component={[Function]}
-    name="PaymentRequestView"
+    name="BenefitFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="BenefitsFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -186,9 +224,23 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   />
   <Screen
     name="RampBuy"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+      }
+    }
   />
   <Screen
     name="RampSell"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -197,6 +249,12 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   <Screen
     component={[Function]}
     name="Bridge"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -206,9 +264,10 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
         },
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -242,9 +301,10 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
         },
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -256,33 +316,10 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
         },
-        "headerShown": false,
-      }
-    }
-  />
-  <Screen
-    component={[Function]}
-    name="Predict"
-    options={
-      {
-        "animationEnabled": true,
         "cardStyleInterpolator": [Function],
-      }
-    }
-  />
-  <Screen
-    component={[Function]}
-    name="PredictModals"
-    options={
-      {
-        "animationEnabled": false,
-        "cardStyle": {
-          "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
-        },
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -300,6 +337,17 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   <Screen
     component={[Function]}
     name="SitesFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="ExploreSectionResultsFullView"
     options={
       {
         "animationEnabled": true,
@@ -361,13 +409,7 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   <Screen
     component={[Function]}
     name="DeFiProtocolPositionDetails"
-    options={
-      {
-        "animationEnabled": true,
-        "cardStyleInterpolator": [Function],
-        "headerShown": true,
-      }
-    }
+    options={[Function]}
   />
   <Screen
     component={[Function]}
@@ -379,15 +421,25 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   />
   <Screen
     component={[Function]}
+    name="RewardsCampaignTourStep"
+    options={
+      {
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     name="RampProcessingInfoModal"
     options={
       {
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
         },
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -397,13 +449,19 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
 exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] = `
 <Navigator
   initialRouteName="Home"
-  mode="modal"
   screenOptions={
     {
+      "cardStyle": {
+        "backgroundColor": "#ffffff",
+      },
       "headerShown": false,
     }
   }
 >
+  <Screen
+    component={[Function]}
+    name="Home"
+  />
   <Screen
     component={[Function]}
     name="CollectiblesDetails"
@@ -413,6 +471,7 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
+        "presentation": "modal",
       }
     }
   />
@@ -425,12 +484,9 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
+        "presentation": "modal",
       }
     }
-  />
-  <Screen
-    component={[Function]}
-    name="Home"
   />
   <Screen
     component={[Function]}
@@ -446,6 +502,17 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   <Screen
     component={[Function]}
     name="DeFiFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="CashTokensFullView"
     options={
       {
         "animationEnabled": true,
@@ -519,6 +586,11 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
     name="Send"
     options={
       {
+        "animationEnabled": true,
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+        "cardStyleInterpolator": [Function],
         "gestureEnabled": false,
       }
     }
@@ -572,7 +644,25 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   />
   <Screen
     component={[Function]}
-    name="PaymentRequestView"
+    name="BenefitFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="BenefitsFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -580,9 +670,23 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   />
   <Screen
     name="RampBuy"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+      }
+    }
   />
   <Screen
     name="RampSell"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -591,6 +695,12 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   <Screen
     component={[Function]}
     name="Bridge"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -600,9 +710,10 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
         },
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -636,9 +747,10 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
         },
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -650,33 +762,10 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
         },
-        "headerShown": false,
-      }
-    }
-  />
-  <Screen
-    component={[Function]}
-    name="Predict"
-    options={
-      {
-        "animationEnabled": true,
         "cardStyleInterpolator": [Function],
-      }
-    }
-  />
-  <Screen
-    component={[Function]}
-    name="PredictModals"
-    options={
-      {
-        "animationEnabled": false,
-        "cardStyle": {
-          "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
-        },
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -694,6 +783,17 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   <Screen
     component={[Function]}
     name="SitesFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="ExploreSectionResultsFullView"
     options={
       {
         "animationEnabled": true,
@@ -755,13 +855,7 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   <Screen
     component={[Function]}
     name="DeFiProtocolPositionDetails"
-    options={
-      {
-        "animationEnabled": true,
-        "cardStyleInterpolator": [Function],
-        "headerShown": true,
-      }
-    }
+    options={[Function]}
   />
   <Screen
     component={[Function]}
@@ -773,15 +867,25 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   />
   <Screen
     component={[Function]}
+    name="RewardsCampaignTourStep"
+    options={
+      {
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     name="RampProcessingInfoModal"
     options={
       {
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
         },
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -791,13 +895,19 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
 exports[`MainNavigator matches rendered snapshot 1`] = `
 <Navigator
   initialRouteName="Home"
-  mode="modal"
   screenOptions={
     {
+      "cardStyle": {
+        "backgroundColor": "#ffffff",
+      },
       "headerShown": false,
     }
   }
 >
+  <Screen
+    component={[Function]}
+    name="Home"
+  />
   <Screen
     component={[Function]}
     name="CollectiblesDetails"
@@ -807,6 +917,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
+        "presentation": "modal",
       }
     }
   />
@@ -819,12 +930,9 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
+        "presentation": "modal",
       }
     }
-  />
-  <Screen
-    component={[Function]}
-    name="Home"
   />
   <Screen
     component={[Function]}
@@ -840,6 +948,17 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="DeFiFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="CashTokensFullView"
     options={
       {
         "animationEnabled": true,
@@ -913,6 +1032,11 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="Send"
     options={
       {
+        "animationEnabled": true,
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+        "cardStyleInterpolator": [Function],
         "gestureEnabled": false,
       }
     }
@@ -966,7 +1090,25 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     component={[Function]}
-    name="PaymentRequestView"
+    name="BenefitFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="BenefitsFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -974,9 +1116,23 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     name="RampBuy"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+      }
+    }
   />
   <Screen
     name="RampSell"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -985,6 +1141,12 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="Bridge"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -994,9 +1156,10 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
         },
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -1030,9 +1193,10 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
         },
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -1044,33 +1208,10 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
         },
-        "headerShown": false,
-      }
-    }
-  />
-  <Screen
-    component={[Function]}
-    name="Predict"
-    options={
-      {
-        "animationEnabled": true,
         "cardStyleInterpolator": [Function],
-      }
-    }
-  />
-  <Screen
-    component={[Function]}
-    name="PredictModals"
-    options={
-      {
-        "animationEnabled": false,
-        "cardStyle": {
-          "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
-        },
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -1088,6 +1229,17 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="SitesFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="ExploreSectionResultsFullView"
     options={
       {
         "animationEnabled": true,
@@ -1149,13 +1301,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="DeFiProtocolPositionDetails"
-    options={
-      {
-        "animationEnabled": true,
-        "cardStyleInterpolator": [Function],
-        "headerShown": true,
-      }
-    }
+    options={[Function]}
   />
   <Screen
     component={[Function]}
@@ -1167,15 +1313,25 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     component={[Function]}
+    name="RewardsCampaignTourStep"
+    options={
+      {
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     name="RampProcessingInfoModal"
     options={
       {
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
-          "cardStyleInterpolator": [Function],
         },
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />

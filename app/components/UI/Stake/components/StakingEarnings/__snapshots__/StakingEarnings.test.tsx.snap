@@ -13,7 +13,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
     style={
       {
         "color": "#131416",
-        "fontFamily": "Geist-Bold",
+        "fontFamily": "Geist-SemiBold",
         "fontSize": 20,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -23,7 +23,13 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
   >
     Your earnings
   </Text>
-  <View>
+  <View
+    style={
+      {
+        "paddingBottom": 24,
+      }
+    }
+  >
     <View
       style={
         {
@@ -360,7 +366,7 @@ exports[`Staking Earnings should render correctly 1`] = `
     style={
       {
         "color": "#131416",
-        "fontFamily": "Geist-Bold",
+        "fontFamily": "Geist-SemiBold",
         "fontSize": 20,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -370,7 +376,13 @@ exports[`Staking Earnings should render correctly 1`] = `
   >
     Your earnings
   </Text>
-  <View>
+  <View
+    style={
+      {
+        "paddingBottom": 24,
+      }
+    }
+  >
     <View
       style={
         {

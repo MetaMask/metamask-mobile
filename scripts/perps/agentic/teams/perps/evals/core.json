@@ -1,0 +1,32 @@
+{
+  "pump-market": {
+    "description": "PUMP market data with live price",
+    "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){return JSON.stringify(ms.find(function(m){return m.symbol==='PUMP'}))})",
+    "async": true
+  },
+  "tpsl-orders": {
+    "description": "Open TP/SL trigger orders",
+    "expression": "Engine.context.PerpsController.getOpenOrders().then(function(os){return JSON.stringify(os.filter(function(o){return o.isTrigger}))})",
+    "async": true
+  },
+  "positions-by-symbol": {
+    "description": "Find open position by symbol (TEMPLATE — substitute symbol via eval-async for custom scenarios)",
+    "expression": "Engine.context.PerpsController.getPositions().then(function(ps){return JSON.stringify(ps.find(function(p){return p.symbol==='BTC'}))})",
+    "async": true
+  },
+  "leverage-config": {
+    "description": "Trade configurations (leverage, fee tiers) from controller state",
+    "expression": "JSON.stringify(Engine.context.PerpsController.state.tradeConfigurations)",
+    "async": false
+  },
+  "watchlist": {
+    "description": "Watchlist markets from controller state",
+    "expression": "JSON.stringify(Engine.context.PerpsController.state.watchlistMarkets)",
+    "async": false
+  },
+  "available-dexs": {
+    "description": "HIP-3 DEX list (validates DEX discovery cache)",
+    "expression": "Engine.context.PerpsController.getAvailableDexs().then(function(dexs){return JSON.stringify({count:dexs.length,dexs:dexs,hasMainDex:dexs.indexOf('')>=0})})",
+    "async": true
+  }
+}

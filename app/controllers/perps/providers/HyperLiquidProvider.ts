@@ -1,4 +1,4 @@
-import { CaipAccountId } from '@metamask/utils';
+import { CaipAccountId, hasProperty } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -168,6 +168,35 @@ type GetAssetInfoParams = {
   dexName: string | null;
 };
 
+type DexFetchFailureStep = 'metaAndAssetCtxs' | 'allMids';
+
+type DexFetchResult = {
+  dex: string | null;
+  meta: MetaResponse | null;
+  assetCtxs: PerpsAssetCtx[];
+  allMids: Record<string, string>;
+  success: boolean;
+  failedStep?: DexFetchFailureStep;
+  errorMessage?: string;
+};
+
+type DexQueryResult<TResult> = {
+  dex: string | null;
+  data: TResult;
+};
+
+type DexQueryResponse<TResult> = {
+  results: DexQueryResult<TResult>[];
+  failedDexs: { dex: string | null; error: Error }[];
+};
+
+type CachedMarketDataSnapshot = {
+  data: PerpsMarketData[];
+  timestamp: number;
+  contributingDexs: string[];
+  failedDexs: string[];
+};
+
 type GetAssetInfoResult = {
   assetInfo: {
     name: string;
@@ -270,6 +299,9 @@ export class HyperLiquidProvider implements PerpsProvider {
   // Filtering is applied on-demand (cheap array operations) - no need for separate processed cache
   readonly #cachedMetaByDex = new Map<string, MetaResponse>();
 
+  // Last known-good market list for stale fallback when every enabled DEX fails in one fetch window.
+  #cachedMarketDataWithPrices: CachedMarketDataSnapshot | null = null;
+
   // Session cache for spot metadata (contains USDC/USDH token info for HIP-3 collateral checks)
   // Pre-fetched in ensureReadyForTrading() to avoid API failures during order placement
   #cachedSpotMeta: SpotMetaResponse | null = null;
@@ -343,6 +375,10 @@ export class HyperLiquidProvider implements PerpsProvider {
 
   readonly #messenger: PerpsControllerMessengerBase;
 
+  readonly #builderAddressTestnet?: string;
+
+  readonly #builderAddressMainnet?: string;
+
   constructor(options: {
     isTestnet?: boolean;
     hip3Enabled?: boolean;
@@ -352,9 +388,13 @@ export class HyperLiquidProvider implements PerpsProvider {
     platformDependencies: PerpsPlatformDependencies;
     messenger: PerpsControllerMessengerBase;
     initialAssetMapping?: [string, number][];
+    builderAddressTestnet?: string;
+    builderAddressMainnet?: string;
   }) {
     this.#deps = options.platformDependencies;
     this.#messenger = options.messenger;
+    this.#builderAddressTestnet = options.builderAddressTestnet;
+    this.#builderAddressMainnet = options.builderAddressMainnet;
     const isTestnet = options.isTestnet ?? false;
 
     // Dev-friendly defaults: Enable all markets by default for easier testing (discovery mode)
@@ -1275,6 +1315,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Store raw meta response for reuse
     this.#cachedMetaByDex.set(dexKey, meta);
+    await this.#backfillAssetMapForDex(dexName, meta);
 
     this.#deps.debugLogger.log(
       '[getCachedMeta] Fetched and cached meta response',
@@ -1286,6 +1327,124 @@ export class HyperLiquidProvider implements PerpsProvider {
     );
 
     return meta;
+  }
+
+  /**
+   * Backfill the asset ID map for a single DEX from a fresh meta response.
+   * Used to repair partial asset mapping when an individual DEX becomes available later.
+   *
+   * @param dex - DEX name (null for main DEX).
+   * @param meta - Meta response containing the DEX universe.
+   * @returns True if the mapping was rebuilt for the DEX.
+   */
+  async #backfillAssetMapForDex(
+    dex: string | null,
+    meta: MetaResponse,
+  ): Promise<boolean> {
+    if (!meta?.universe || !Array.isArray(meta.universe)) {
+      return false;
+    }
+
+    if (!this.#cachedAllPerpDexs) {
+      try {
+        await this.#getValidatedDexs();
+      } catch (error) {
+        this.#deps.debugLogger.log(
+          '[backfillAssetMapForDex] Unable to refresh validated DEXs before rebuilding asset map',
+          {
+            dex: dex ?? 'main',
+            error: ensureError(
+              error,
+              'HyperLiquidProvider.backfillAssetMapForDex',
+            ).message,
+          },
+        );
+      }
+    }
+
+    const allPerpDexs = this.#cachedAllPerpDexs ?? [null];
+    const perpDexIndex = allPerpDexs.findIndex((entry) => {
+      if (dex === null) {
+        return entry === null;
+      }
+      return entry !== null && entry.name === dex;
+    });
+
+    if (perpDexIndex === -1) {
+      this.#deps.debugLogger.log(
+        '[backfillAssetMapForDex] Could not find perpDexIndex for DEX',
+        { dex: dex ?? 'main' },
+      );
+      return false;
+    }
+
+    const { symbolToAssetId } = buildAssetMapping({
+      metaUniverse: meta.universe,
+      dex,
+      perpDexIndex,
+    });
+
+    symbolToAssetId.forEach((assetId, coin) => {
+      this.#symbolToAssetId.set(coin, assetId);
+    });
+
+    this.#deps.debugLogger.log(
+      '[backfillAssetMapForDex] Rebuilt asset mapping for DEX',
+      {
+        dex: dex ?? 'main',
+        dexAssetCount: symbolToAssetId.size,
+        totalAssetCount: this.#symbolToAssetId.size,
+      },
+    );
+
+    return symbolToAssetId.size > 0;
+  }
+
+  /**
+   * Resolve an asset ID, repairing the DEX-specific map when meta is available but the map is stale.
+   *
+   * @param params - Resolution parameters.
+   * @param params.symbol - Asset symbol to resolve.
+   * @param params.dexName - DEX name (null for main DEX).
+   * @param params.meta - Optional pre-fetched meta for the DEX.
+   * @returns The asset ID.
+   */
+  async #getAssetIdWithRepair(params: {
+    symbol: string;
+    dexName: string | null;
+    meta?: MetaResponse;
+  }): Promise<number> {
+    const { symbol, dexName } = params;
+    const existingAssetId = this.#symbolToAssetId.get(symbol);
+
+    if (existingAssetId !== undefined) {
+      return existingAssetId;
+    }
+
+    const meta =
+      params.meta ?? (await this.#getCachedMeta({ dexName: dexName ?? null }));
+    const assetExistsInMeta = meta.universe.some(
+      (asset) => asset.name === symbol,
+    );
+
+    if (assetExistsInMeta) {
+      await this.#backfillAssetMapForDex(dexName, meta);
+      const repairedAssetId = this.#symbolToAssetId.get(symbol);
+      if (repairedAssetId !== undefined) {
+        return repairedAssetId;
+      }
+    }
+
+    this.#deps.debugLogger.log('Asset ID lookup failed', {
+      requestedCoin: symbol,
+      dexName: dexName ?? 'main',
+      mapSize: this.#symbolToAssetId.size,
+      mapContainsAsset: this.#symbolToAssetId.has(symbol),
+      assetExistsInMeta,
+      allKeys: Array.from(this.#symbolToAssetId.keys()).slice(0, 20),
+    });
+
+    throw new Error(`Asset ID not found for ${symbol}`);
   }
 
   /**
@@ -1809,14 +1968,19 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Check order status
       const status = result.response?.data?.statuses?.[0];
-      if (isStatusObject(status) && 'error' in status) {
+      if (isStatusObject(status) && hasProperty(status, 'error')) {
         return { success: false, error: String(status.error) };
       }
 
+      // Note: `in` narrows the HyperLiquid SDK discriminated union to the
+      // branch that has `filled`; `hasProperty` only narrows the key and
+      // types `status.filled` as `unknown`, which loses access to `.totalSz`.
+      /* eslint-disable no-restricted-syntax */
       const filledSize =
         isStatusObject(status) && 'filled' in status
           ? parseFloat(status.filled?.totalSz ?? '0')
           : 0;
+      /* eslint-enable no-restricted-syntax */
 
       this.#deps.debugLogger.log(
         'HyperLiquidProvider: USDC→USDH swap completed',
@@ -1958,13 +2122,6 @@ export class HyperLiquidProvider implements PerpsProvider {
     let dexsToMap: (string | null)[];
     try {
       dexsToMap = await this.#getValidatedDexs();
-      // Mark DEX discovery as complete only when we got real data (not a fallback).
-      // #cachedValidatedDexs is null when #fetchValidatedDexsInternal returned [null]
-      // without caching (transient failure) — in that case we stay incomplete so
-      // #ensureReady resets its promise and retries on the next call.
-      if (this.#cachedValidatedDexs !== null) {
-        this.#dexDiscoveryComplete = true;
-      }
     } catch (dexError) {
       // If getValidatedDexs fails, fall back to main DEX only to keep the provider
       // functional. Without this, a transient perpDexs() failure would permanently
@@ -1975,16 +2132,13 @@ export class HyperLiquidProvider implements PerpsProvider {
         '[buildAssetMapping] getValidatedDexs failed, falling back to main DEX',
         { error: String(dexError) },
       );
-      this.#cachedAllPerpDexs = this.#cachedAllPerpDexs ?? [null];
       dexsToMap = [null];
     }
 
-    // Use cached perpDexs array (populated by getValidatedDexs)
-    // Defensive: ensure non-null even if getValidatedDexs had an unexpected issue
-    if (!this.#cachedAllPerpDexs) {
-      this.#cachedAllPerpDexs = [null];
-    }
-    const allPerpDexs = this.#cachedAllPerpDexs;
+    // Local fallback only — never write [null] into #cachedAllPerpDexs here.
+    // That cache is owned exclusively by #fetchValidatedDexsInternal; writing a
+    // fallback here would prevent subsequent callers from retrying perpDexs().
+    const allPerpDexs = this.#cachedAllPerpDexs ?? [null];
 
     this.#deps.debugLogger.log(
       'HyperLiquidProvider: Starting asset mapping rebuild',
@@ -2062,6 +2216,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Build mapping with DEX prefixes for HIP-3 DEXs using the utility function
     this.#symbolToAssetId.clear();
+    let dexDiscoveryComplete = this.#cachedValidatedDexs !== null;
 
     allMetas.forEach((result) => {
       if (
@@ -2082,6 +2237,7 @@ export class HyperLiquidProvider implements PerpsProvider {
               isArray: Array.isArray(meta.universe),
             },
           );
+          dexDiscoveryComplete = false;
           return;
         }
 
@@ -2101,6 +2257,7 @@ export class HyperLiquidProvider implements PerpsProvider {
               dex ?? 'main'
             }`,
           );
+          dexDiscoveryComplete = false;
           return;
         }
 
@@ -2115,8 +2272,12 @@ export class HyperLiquidProvider implements PerpsProvider {
         symbolToAssetId.forEach((assetId, coin) => {
           this.#symbolToAssetId.set(coin, assetId);
         });
+      } else {
+        dexDiscoveryComplete = false;
       }
     });
+
+    this.#dexDiscoveryComplete = dexDiscoveryComplete;
 
     const allKeys = Array.from(this.#symbolToAssetId.keys());
     const mainDexKeys = allKeys.filter((key) => !key.includes(':')).slice(0, 5);
@@ -2170,20 +2331,38 @@ export class HyperLiquidProvider implements PerpsProvider {
   >(
     baseParams: TParams,
     queryFn: (params: TParams & { dex?: string }) => Promise<TResult>,
-  ): Promise<{ dex: string | null; data: TResult }[]> {
+  ): Promise<DexQueryResponse<TResult>> {
     const enabledDexs = await this.#getValidatedDexs();
 
-    const results = await Promise.all(
+    const settledResults = await Promise.allSettled(
       enabledDexs.map(async (dex) => {
         const params = dex
           ? ({ ...baseParams, dex } as TParams & { dex: string })
           : (baseParams as TParams & { dex?: string });
-        const data = await queryFn(params);
-        return { dex, data };
+        return queryFn(params);
       }),
     );
 
-    return results;
+    const results: DexQueryResult<TResult>[] = [];
+    const failedDexs: DexQueryResponse<TResult>['failedDexs'] = [];
+
+    settledResults.forEach((result, index) => {
+      const dex = enabledDexs[index];
+      if (result.status === 'fulfilled') {
+        results.push({ dex, data: result.value });
+        return;
+      }
+
+      failedDexs.push({
+        dex,
+        error: ensureError(
+          result.reason,
+          'HyperLiquidProvider.queryUserDataAcrossDexs',
+        ),
+      });
+    });
+
+    return { results, failedDexs };
   }
 
   /**
@@ -3252,10 +3431,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
 
       const status = result.response?.data?.statuses?.[0];
+      // Note: `in` narrows the HyperLiquid SDK discriminated union to the
+      // branch that has the property; `hasProperty` types the property as
+      // `unknown`, losing downstream access to `.oid`, `.totalSz`, `.avgPx`.
+      /* eslint-disable no-restricted-syntax */
       const restingOrder =
         isStatusObject(status) && 'resting' in status ? status.resting : null;
       const filledOrder =
         isStatusObject(status) && 'filled' in status ? status.filled : null;
+      /* eslint-enable no-restricted-syntax */
 
       // Success - auto-rebalance excess funds
       if (isHip3Order && transferInfo && dexName) {
@@ -3349,7 +3533,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       const { dex: dexName } = parseAssetName(params.symbol);
 
       // 1. Get asset info and current price
-      const { assetInfo, currentPrice } = await this.#getAssetInfo({
+      const { assetInfo, currentPrice, meta } = await this.#getAssetInfo({
         symbol: params.symbol,
         dexName,
       });
@@ -3392,17 +3576,11 @@ export class HyperLiquidProvider implements PerpsProvider {
         });
 
       // 4. Get asset ID and validate it exists
-      const assetId = this.#symbolToAssetId.get(params.symbol);
-      if (assetId === undefined) {
-        this.#deps.debugLogger.log('Asset ID lookup failed', {
-          requestedCoin: params.symbol,
-          dexName: dexName ?? 'main',
-          mapSize: this.#symbolToAssetId.size,
-          mapContainsAsset: this.#symbolToAssetId.has(params.symbol),
-          allKeys: Array.from(this.#symbolToAssetId.keys()).slice(0, 20),
-        });
-        throw new Error(`Asset ID not found for ${params.symbol}`);
-      }
+      const assetId = await this.#getAssetIdWithRepair({
+        symbol: params.symbol,
+        dexName,
+        meta,
+      });
 
       this.#deps.debugLogger.log('Resolved DEX-specific asset ID', {
         coin: params.symbol,
@@ -3614,10 +3792,11 @@ export class HyperLiquidProvider implements PerpsProvider {
         price: orderPrice,
         szDecimals: assetInfo.szDecimals,
       });
-      const assetId = this.#symbolToAssetId.get(params.newOrder.symbol);
-      if (assetId === undefined) {
-        throw new Error(`Asset ID not found for ${params.newOrder.symbol}`);
-      }
+      const assetId = await this.#getAssetIdWithRepair({
+        symbol: params.newOrder.symbol,
+        dexName,
+        meta,
+      });
 
       // Build new order parameters
       const newOrder: SDKOrderParams = {
@@ -3690,10 +3869,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       await this.#ensureReadyForTrading();
 
       const exchangeClient = this.#clientService.getExchangeClient();
-      const asset = this.#symbolToAssetId.get(params.symbol);
-      if (asset === undefined) {
-        throw new Error(`Asset not found for symbol: ${params.symbol}`);
-      }
+      const asset = await this.#getAssetIdWithRepair({
+        symbol: params.symbol,
+        dexName: parseAssetName(params.symbol).dex,
+      });
 
       const result = await exchangeClient.cancel({
         cancels: [
@@ -3753,16 +3932,18 @@ export class HyperLiquidProvider implements PerpsProvider {
       const exchangeClient = this.#clientService.getExchangeClient();
 
       // Map orders to SDK format and validate coins
-      const cancelRequests = params.map((order) => {
-        const asset = this.#symbolToAssetId.get(order.symbol);
-        if (asset === undefined) {
-          throw new Error(`Asset not found for symbol: ${order.symbol}`);
-        }
-        return {
-          a: asset,
-          o: parseInt(order.orderId, 10),
-        };
-      });
+      const cancelRequests = await Promise.all(
+        params.map(async (order) => {
+          const asset = await this.#getAssetIdWithRepair({
+            symbol: order.symbol,
+            dexName: parseAssetName(order.symbol).dex,
+          });
+          return {
+            a: asset,
+            o: parseInt(order.orderId, 10),
+          };
+        }),
+      );
 
       // Single batch API call
       const result = await exchangeClient.cancel({
@@ -3897,10 +4078,11 @@ export class HyperLiquidProvider implements PerpsProvider {
         }
 
         // Get asset ID
-        const assetId = this.#symbolToAssetId.get(position.symbol);
-        if (assetId === undefined) {
-          throw new Error(`Asset ID not found for ${position.symbol}`);
-        }
+        const assetId = await this.#getAssetIdWithRepair({
+          symbol: position.symbol,
+          dexName,
+          meta,
+        });
 
         // Calculate position details (always full close)
         const positionSize = parseFloat(position.size);
@@ -3971,7 +4153,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       const { statuses } = result.response.data;
       const successCount = statuses.filter(
         (stat) =>
-          isStatusObject(stat) && ('filled' in stat || 'resting' in stat),
+          isStatusObject(stat) &&
+          (hasProperty(stat, 'filled') || hasProperty(stat, 'resting')),
       ).length;
       const failureCount = statuses.length - successCount;
 
@@ -3981,7 +4164,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           const status = statuses[i];
           const isSuccess =
             isStatusObject(status) &&
-            ('filled' in status || 'resting' in status);
+            (hasProperty(status, 'filled') || hasProperty(status, 'resting'));
 
           if (isSuccess && hip3Transfers[i]) {
             const { sourceDex, freedMargin } = hip3Transfers[i];
@@ -4007,9 +4190,9 @@ export class HyperLiquidProvider implements PerpsProvider {
           symbol: positionsToClose[index].symbol,
           success:
             isStatusObject(status) &&
-            ('filled' in status || 'resting' in status),
+            (hasProperty(status, 'filled') || hasProperty(status, 'resting')),
           error:
-            isStatusObject(status) && 'error' in status
+            isStatusObject(status) && hasProperty(status, 'error')
               ? String(status.error)
               : undefined,
         })),
@@ -4121,10 +4304,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Cancel existing TP/SL orders for this position
       // OPTIMIZATION: Use WebSocket cache first (0 weight), fall back to single-DEX REST (20 weight)
       // Previously: queryUserDataAcrossDexs queried ALL DEXs (20 weight × N DEXs = 40+ weight)
-      const assetId = this.#symbolToAssetId.get(symbol);
-      if (assetId === undefined) {
-        throw new Error(`Asset ID not found for ${symbol}`);
-      }
+      const assetId = await this.#getAssetIdWithRepair({
+        symbol,
+        dexName,
+      });
 
       let cancelRequests: { a: number; o: number }[] = [];
 
@@ -4167,21 +4350,24 @@ export class HyperLiquidProvider implements PerpsProvider {
           { cachedOrdersCount: cachedOrders.length },
         );
 
-        // Filter using normalized Order type properties
-        // Note: Cached orders don't have isPositionTpsl, but we identify TP/SL orders by:
+        // Filter using normalized Order type properties, matching the REST fallback criteria:
+        // - symbol matches
         // - isTrigger === true
         // - reduceOnly === true
+        // - isPositionTpsl matches the configured mode (only cancel position-bound TP/SL,
+        //   not normalTpsl children that belong to pending limit orders)
         // - detailedOrderType contains 'Take Profit' or 'Stop'
         const tpslOrders = cachedOrders.filter(
           (order) =>
             order.symbol === symbol &&
             order.reduceOnly === true &&
             order.isTrigger === true &&
+            order.isPositionTpsl ===
+              Boolean(TP_SL_CONFIG.UsePositionBoundTpsl) &&
             order.detailedOrderType &&
             (order.detailedOrderType.includes('Take Profit') ||
               order.detailedOrderType.includes('Stop')),
         );
-
         cancelRequests = tpslOrders.map((order) => ({
           a: assetId,
           o: parseInt(order.orderId, 10),
@@ -4517,10 +4703,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       const isBuy = parseFloat(position.size) > 0; // true for long, false for short
 
       // Get asset ID for the symbol
-      const assetId = this.#symbolToAssetId.get(symbol);
-      if (assetId === undefined) {
-        throw new Error(`Asset ID not found for ${symbol}`);
-      }
+      const assetId = await this.#getAssetIdWithRepair({
+        symbol,
+        dexName: parseAssetName(symbol).dex,
+      });
 
       // Convert amount to micro-units (HyperLiquid SDK requirement)
       const amountFloat = parseFloat(amount);
@@ -4604,6 +4790,12 @@ export class HyperLiquidProvider implements PerpsProvider {
     if (!allDexs || !Array.isArray(allDexs)) {
       return [null];
     }
+
+    // Populate #cachedAllPerpDexs so buildAssetMapping can compute perpDexIndex.
+    // Without this, getValidatedDexs returns from #cachedValidatedDexs (string names)
+    // but #cachedAllPerpDexs (raw objects for index computation) stays null,
+    // causing "Could not find perpDexIndex for DEX xyz" failures.
+    this.#cachedAllPerpDexs = allDexs;
 
     // Extract HIP-3 DEX names (filter out null which represents main DEX)
     const availableHip3Dexs: string[] = [];
@@ -4710,7 +4902,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
 
       // Query positions and orders across all enabled DEXs in parallel
-      const [stateResults, orderResults] = await Promise.all([
+      const [stateResponse, orderResponse] = await Promise.all([
         this.#queryUserDataAcrossDexs({ user: userAddress }, (userParam) =>
           infoClient.clearinghouseState(userParam),
         ),
@@ -4718,6 +4910,24 @@ export class HyperLiquidProvider implements PerpsProvider {
           infoClient.frontendOpenOrders(userParam),
         ),
       ]);
+      const { results: stateResults, failedDexs: failedStateDexs } =
+        stateResponse;
+      const { results: orderResults, failedDexs: failedOrderDexs } =
+        orderResponse;
+
+      if (failedStateDexs.length > 0 || failedOrderDexs.length > 0) {
+        this.#deps.debugLogger.log(
+          'Partial multi-DEX position fetch completed with failures',
+          {
+            failedStateDexs: failedStateDexs.map(
+              ({ dex, error }) => `${dex ?? 'main'}:${error.message}`,
+            ),
+            failedOrderDexs: failedOrderDexs.map(
+              ({ dex, error }) => `${dex ?? 'main'}:${error.message}`,
+            ),
+          },
+        );
+      }
 
       // Combine all orders from all DEXs for TP/SL lookup
       const allOrders = orderResults.flatMap((result) => result.data);
@@ -4746,11 +4956,15 @@ export class HyperLiquidProvider implements PerpsProvider {
 
             // Find TP/SL orders for this position
             // First check direct trigger orders (raw SDK uses 'coin', adapted position uses 'symbol')
+            // Only match position-bound TP/SL orders when UsePositionBoundTpsl is enabled,
+            // to avoid picking up normalTpsl children from pending limit orders
             const positionOrders = allOrders.filter(
               (order) =>
                 order.coin === position.symbol &&
                 order.isTrigger &&
-                order.reduceOnly,
+                order.reduceOnly &&
+                order.isPositionTpsl ===
+                  Boolean(TP_SL_CONFIG.UsePositionBoundTpsl),
             );
 
             // Also check for parent orders that might have TP/SL children
@@ -4898,6 +5112,20 @@ export class HyperLiquidProvider implements PerpsProvider {
         count: rawFills?.length ?? 0,
       });
 
+      // Start fetching historical orders in parallel with fill transformation.
+      // The fills API does not return order type, so we cross-reference
+      // with historical orders to enable TP/SL pill rendering in activity.
+      const historicalOrdersPromise = (
+        infoClient.historicalOrders?.({ user: userAddress }) ??
+        Promise.resolve(null)
+      ).catch((enrichError: unknown) => {
+        this.#deps.debugLogger.log(
+          'Warning: failed to enrich fills with order types:',
+          enrichError,
+        );
+        return null;
+      });
+
       // Transform HyperLiquid fills to abstract OrderFill type
       const fills = (rawFills || []).reduce((acc: OrderFill[], fill) => {
         // Perps only, no Spots
@@ -4927,6 +5155,32 @@ export class HyperLiquidProvider implements PerpsProvider {
 
         return acc;
       }, []);
+
+      // Enrich fills with detailedOrderType from historical orders
+      // Wrapped in its own try/catch so a malformed order never discards fetched fills
+      try {
+        const rawOrders = await historicalOrdersPromise;
+        if (rawOrders) {
+          const orderTypeByOid = new Map<string, string>();
+          for (const rawOrder of rawOrders) {
+            const oid = rawOrder.order?.oid?.toString();
+            if (oid && rawOrder.order?.orderType && !orderTypeByOid.has(oid)) {
+              orderTypeByOid.set(oid, rawOrder.order.orderType);
+            }
+          }
+          for (const fill of fills) {
+            const orderType = orderTypeByOid.get(fill.orderId);
+            if (orderType) {
+              fill.detailedOrderType = orderType;
+            }
+          }
+        }
+      } catch (enrichError) {
+        this.#deps.debugLogger.log(
+          'Error enriching fills with order types:',
+          enrichError,
+        );
+      }
 
       return fills;
     } catch (error) {
@@ -5112,10 +5366,22 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
 
       // Query orders across all enabled DEXs in parallel
-      const orderResults = await this.#queryUserDataAcrossDexs(
-        { user: userAddress },
-        (userParam) => infoClient.frontendOpenOrders(userParam),
-      );
+      const { results: orderResults, failedDexs } =
+        await this.#queryUserDataAcrossDexs(
+          { user: userAddress },
+          (userParam) => infoClient.frontendOpenOrders(userParam),
+        );
+
+      if (failedDexs.length > 0) {
+        this.#deps.debugLogger.log(
+          'Partial multi-DEX open order fetch completed with failures',
+          {
+            failedDexs: failedDexs.map(
+              ({ dex, error }) => `${dex ?? 'main'}:${error.message}`,
+            ),
+          },
+        );
+      }
 
       // Combine all orders from all DEXs
       const rawOrders = orderResults.flatMap((result) => result.data);
@@ -5424,13 +5690,70 @@ export class HyperLiquidProvider implements PerpsProvider {
         this.#clientService.isTestnetMode() ? 'TESTNET' : 'MAINNET',
       );
 
-      // Get Spot balance (global, not DEX-specific) and Perps states across all DEXs
-      const [spotState, perpsStateResults] = await Promise.all([
+      // Get Spot balance (global, not DEX-specific) and Perps states across all DEXs.
+      // One transient DEX failure should not blank the entire account state.
+      const [spotStateResult, perpsStateResult] = await Promise.allSettled([
         infoClient.spotClearinghouseState({ user: userAddress }),
         this.#queryUserDataAcrossDexs({ user: userAddress }, (userParam) =>
           infoClient.clearinghouseState(userParam),
         ),
       ]);
+      const spotState =
+        spotStateResult.status === 'fulfilled' ? spotStateResult.value : null;
+      const perpsResponse =
+        perpsStateResult.status === 'fulfilled'
+          ? perpsStateResult.value
+          : {
+              results: [],
+              failedDexs: [
+                {
+                  dex: null,
+                  error: ensureError(
+                    perpsStateResult.reason,
+                    'HyperLiquidProvider.getAccountState.perps',
+                  ),
+                },
+              ],
+            };
+      const perpsStateResults = perpsResponse.results;
+      const failedPerpsDexs = perpsResponse.failedDexs;
+
+      if (spotStateResult.status === 'rejected') {
+        this.#deps.debugLogger.log(
+          'Spot state fetch failed during account state aggregation',
+          {
+            error: ensureError(
+              spotStateResult.reason,
+              'HyperLiquidProvider.getAccountState.spot',
+            ).message,
+          },
+        );
+      }
+
+      if (failedPerpsDexs.length > 0) {
+        this.#deps.debugLogger.log(
+          'Perps account state completed with partial DEX failures',
+          {
+            failedDexs: failedPerpsDexs.map(
+              ({ dex, error }) => `${dex ?? 'main'}:${error.message}`,
+            ),
+          },
+        );
+      }
+
+      if (perpsStateResults.length === 0) {
+        const failedDexNames = failedPerpsDexs.map(({ dex }) => dex ?? 'main');
+        const spotErrorMessage =
+          spotStateResult.status === 'rejected'
+            ? ensureError(
+                spotStateResult.reason,
+                'HyperLiquidProvider.getAccountState.spot',
+              ).message
+            : undefined;
+        throw new Error(
+          `Failed to fetch account state (failedDexs=[${failedDexNames.join(',')}], spotError=${spotErrorMessage ?? 'none'})`,
+        );
+      }
 
       this.#deps.debugLogger.log('Spot state:', spotState);
       this.#deps.debugLogger.log('Perps states (all DEXs):', {
@@ -5500,7 +5823,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
       // Re-throw the error so the controller can handle it properly
       // This allows the UI to show proper error messages instead of zeros
-      throw error;
+      throw ensureError(error, 'HyperLiquidProvider.getAccountState');
     }
   }
 
@@ -5693,7 +6016,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Extract HIP-3 DEX names (filter out null which is main DEX)
       const hip3DexNames: string[] = [];
       allDexs.forEach((dex) => {
-        if (dex !== null && 'name' in dex) {
+        if (dex !== null && hasProperty(dex, 'name')) {
           hip3DexNames.push(dex.name);
         }
       });
@@ -5744,13 +6067,163 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
+   * Get allMids for a DEX — uses WS snapshot as primary source, REST as fallback.
+   *
+   * @param infoClient - The HyperLiquid info client (used only on cold start).
+   * @param dexParam - Optional DEX parameter (empty string for main DEX).
+   * @returns allMids record.
+   */
+  async #getAllMids(
+    infoClient: ReturnType<
+      typeof HyperLiquidClientService.prototype.getInfoClient
+    >,
+    dexParam?: string,
+  ): Promise<Record<string, string>> {
+    const wsSnapshot =
+      this.#subscriptionService.getLastAllMidsSnapshot?.(dexParam);
+    if (wsSnapshot) {
+      return wsSnapshot;
+    }
+
+    this.#deps.debugLogger.log(
+      '[getMarketDataWithPrices] No WS allMids snapshot, falling back to REST',
+      { dexParam: dexParam ?? 'main' },
+    );
+    const mids = await infoClient.allMids(
+      dexParam ? { dex: dexParam } : undefined,
+    );
+    return mids ?? {};
+  }
+
+  async #fetchSingleDexFresh(
+    infoClient: ReturnType<
+      typeof HyperLiquidClientService.prototype.getInfoClient
+    >,
+    dex: string | null,
+  ): Promise<DexFetchResult> {
+    const dexParam = dex ?? '';
+
+    let metaAndCtxs: [MetaResponse | null, PerpsAssetCtx[]] | null = null;
+    try {
+      metaAndCtxs = (await infoClient.metaAndAssetCtxs(
+        dexParam ? { dex: dexParam } : undefined,
+      )) as [MetaResponse | null, PerpsAssetCtx[]] | null;
+    } catch (error) {
+      return {
+        dex,
+        meta: null,
+        assetCtxs: [],
+        allMids: {},
+        success: false,
+        failedStep: 'metaAndAssetCtxs',
+        errorMessage: ensureError(
+          error,
+          'HyperLiquidProvider.getMarketDataWithPrices.metaAndAssetCtxs',
+        ).message,
+      };
+    }
+
+    const meta = metaAndCtxs?.[0] ?? null;
+    const assetCtxs = metaAndCtxs?.[1] ?? [];
+
+    let dexAllMids: Record<string, string> = {};
+    let allMidsErrorMessage: string | undefined;
+    try {
+      dexAllMids = await this.#getAllMids(infoClient, dexParam || undefined);
+    } catch (error) {
+      allMidsErrorMessage = ensureError(
+        error,
+        'HyperLiquidProvider.getMarketDataWithPrices.allMids',
+      ).message;
+    }
+
+    if (meta?.universe) {
+      this.#cachedMetaByDex.set(dexParam, meta);
+      this.#subscriptionService.setDexMetaCache(dexParam, meta);
+      this.#subscriptionService.setDexAssetCtxsCache(dexParam, assetCtxs);
+      await this.#backfillAssetMapForDex(dex, meta);
+    }
+
+    return {
+      dex,
+      meta,
+      assetCtxs,
+      allMids: dexAllMids,
+      success: Boolean(meta?.universe),
+      failedStep: allMidsErrorMessage ? 'allMids' : undefined,
+      errorMessage: allMidsErrorMessage,
+    };
+  }
+
+  #mergeDexResultsInto(
+    results: DexFetchResult[],
+    combinedUniverse: MetaResponse['universe'],
+    combinedAssetCtxs: PerpsAssetCtx[],
+    combinedAllMids: Record<string, string>,
+  ): void {
+    results.forEach((result) => {
+      if (result.success && result.meta?.universe) {
+        const marketsFromDex = result.meta.universe;
+        const filteredMarkets =
+          result.dex === null
+            ? marketsFromDex
+            : marketsFromDex.filter((asset) =>
+                shouldIncludeMarket(
+                  asset.name,
+                  result.dex,
+                  this.#hip3Enabled,
+                  this.#compiledAllowlistPatterns,
+                  this.#compiledBlocklistPatterns,
+                ),
+              );
+
+        combinedUniverse.push(...filteredMarkets);
+        combinedAssetCtxs.push(...result.assetCtxs);
+        Object.assign(combinedAllMids, result.allMids);
+      }
+    });
+  }
+
+  #cacheFreshMarketDataSnapshot(
+    marketData: PerpsMarketData[],
+    results: DexFetchResult[],
+  ): PerpsMarketData[] {
+    const freshMarketData = marketData.map((market) => ({
+      ...market,
+      isStale: false,
+    }));
+    this.#cachedMarketDataWithPrices = {
+      data: freshMarketData.map((market) => ({ ...market })),
+      timestamp: Date.now(),
+      contributingDexs: results
+        .filter((result) => result.success && result.meta?.universe)
+        .map((result) => result.dex ?? 'main'),
+      failedDexs: results
+        .filter((result) => !result.success)
+        .map((result) => result.dex ?? 'main'),
+    };
+    return freshMarketData;
+  }
+
+  #getStaleMarketDataSnapshot(): PerpsMarketData[] | null {
+    if (!this.#cachedMarketDataWithPrices) {
+      return null;
+    }
+
+    return this.#cachedMarketDataWithPrices.data.map((market) => ({
+      ...market,
+      isStale: true,
+    }));
+  }
+
+  /**
    * Get market data with prices, volumes, and 24h changes
    * Aggregates data from all enabled DEXs (main + HIP-3) when equity is enabled
    *
    * Note: This is called once during initialization and cached by PerpsStreamManager.
    * Real-time price updates come from WebSocket subscriptions, not this method.
    *
-   * @returns A promise that resolves to the result.
+   * @returns A promise that resolves to the combined market data from all enabled DEXs.
    */
   async getMarketDataWithPrices(): Promise<PerpsMarketData[]> {
     this.#deps.debugLogger.log(
@@ -5770,95 +6243,101 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Get enabled DEXs respecting feature flags (uses cached perpDexs)
     const enabledDexs = await this.#getValidatedDexs();
 
-    // Fetch meta, assetCtxs, and allMids for each enabled DEX in parallel
-    // Optimization: Check cache first to avoid redundant API calls when buildAssetMapping
-    // has already fetched, or populate cache for buildAssetMapping to reuse
+    // Fetch meta, assetCtxs, and allMids for each enabled DEX in parallel.
+    // Check the meta cache first to avoid redundant API calls when buildAssetMapping
+    // has already populated it; on cache miss, delegate to #fetchSingleDexFresh.
     const dexDataResults = await Promise.all(
       enabledDexs.map(async (dex) => {
         const dexKey = dex ?? '';
         const dexParam = dex ?? '';
-        try {
-          let meta: MetaResponse | null = null;
-          let assetCtxs: PerpsAssetCtx[] = [];
+        const cachedMeta = this.#cachedMetaByDex.get(dexKey);
+        if (!cachedMeta) {
+          this.#deps.debugLogger.log(
+            `[getMarketDataWithPrices] Cache miss for ${dex ?? 'main'}, fetching`,
+          );
+          return this.#fetchSingleDexFresh(infoClient, dex);
+        }
 
-          // Check if meta is already cached (e.g., from previous fetch or buildAssetMapping)
-          const cachedMeta = this.#cachedMetaByDex.get(dexKey);
-          if (cachedMeta) {
-            this.#deps.debugLogger.log(
-              `[getMarketDataWithPrices] Using cached meta for ${dex ?? 'main'}`,
-              { universeSize: cachedMeta.universe.length },
-            );
-            meta = cachedMeta;
-            // Try to get cached assetCtxs from subscription service
-            const cachedCtxs =
-              this.#subscriptionService.getDexAssetCtxsCache(dexKey);
-            if (cachedCtxs) {
-              assetCtxs = cachedCtxs;
-            } else {
-              // Need fresh assetCtxs, fetch via metaAndAssetCtxs (meta will be same)
-              const metaAndCtxs = await infoClient.metaAndAssetCtxs(
-                dexParam ? { dex: dexParam } : undefined,
-              );
-              assetCtxs = metaAndCtxs?.[1] || [];
-              // Cache assetCtxs for future calls
-              this.#subscriptionService.setDexAssetCtxsCache(dexKey, assetCtxs);
-            }
-          } else {
-            // Cache miss - fetch and populate cache for buildAssetMapping to reuse
-            this.#deps.debugLogger.log(
-              `[getMarketDataWithPrices] Cache miss for ${dex ?? 'main'}, fetching`,
-            );
-            const metaAndCtxs = await infoClient.metaAndAssetCtxs(
+        this.#deps.debugLogger.log(
+          `[getMarketDataWithPrices] Using cached meta for ${dex ?? 'main'}`,
+          { universeSize: cachedMeta.universe.length },
+        );
+
+        let metaForDex = cachedMeta;
+        let assetCtxs =
+          this.#subscriptionService.getDexAssetCtxsCache(dexKey) ?? [];
+        let failedStep: DexFetchFailureStep | undefined;
+        let errorMessage: string | undefined;
+
+        if (assetCtxs.length !== metaForDex.universe.length) {
+          try {
+            const freshResult = await infoClient.metaAndAssetCtxs(
               dexParam ? { dex: dexParam } : undefined,
             );
-            meta = metaAndCtxs?.[0] || null;
-            assetCtxs = metaAndCtxs?.[1] || [];
+            const freshMeta = freshResult?.[0] ?? null;
+            const freshAssetCtxs = freshResult?.[1] ?? [];
 
-            // IMPORTANT: Populate cache for buildAssetMapping and other methods to reuse
-            if (meta?.universe) {
-              this.#cachedMetaByDex.set(dexKey, meta);
-              this.#subscriptionService.setDexMetaCache(dexKey, meta);
-              // Also cache assetCtxs for consistency with buildAssetMapping
-              this.#subscriptionService.setDexAssetCtxsCache(dexKey, assetCtxs);
-              this.#deps.debugLogger.log(
-                `[getMarketDataWithPrices] Cached meta for ${dex ?? 'main'}`,
-                { universeSize: meta.universe.length },
-              );
+            if (
+              !freshMeta?.universe ||
+              freshAssetCtxs.length !== freshMeta.universe.length
+            ) {
+              return {
+                dex,
+                meta: null,
+                assetCtxs: [],
+                allMids: {},
+                success: false,
+                failedStep: 'metaAndAssetCtxs' as const,
+                errorMessage:
+                  'metaAndAssetCtxs returned mismatched universe/assetCtxs lengths',
+              };
             }
-          }
 
-          // Always fetch fresh allMids for current prices
-          const dexAllMids = await infoClient.allMids(
-            dexParam ? { dex: dexParam } : undefined,
-          );
-
-          return {
-            dex,
-            meta,
-            assetCtxs,
-            allMids: dexAllMids || {},
-            success: true,
-          };
-        } catch (error) {
-          // Log per-DEX failures locally only — the aggregate error at the end
-          // of this method reports to Sentry, avoiding duplicate events.
-          this.#deps.debugLogger.log(
-            `[getMarketDataWithPrices] DEX fetch failed for ${dex ?? 'main'}`,
-            {
-              error: ensureError(
+            metaForDex = freshMeta;
+            assetCtxs = freshAssetCtxs;
+            this.#cachedMetaByDex.set(dexKey, freshMeta);
+            this.#subscriptionService.setDexMetaCache(dexKey, freshMeta);
+            this.#subscriptionService.setDexAssetCtxsCache(dexKey, assetCtxs);
+            await this.#backfillAssetMapForDex(dex, freshMeta);
+          } catch (error) {
+            return {
+              dex,
+              meta: null,
+              assetCtxs: [],
+              allMids: {},
+              success: false,
+              failedStep: 'metaAndAssetCtxs' as const,
+              errorMessage: ensureError(
                 error,
-                'HyperLiquidProvider.getMarketDataWithPrices',
+                'HyperLiquidProvider.getMarketDataWithPrices.metaAndAssetCtxs',
               ).message,
-            },
-          );
-          return {
-            dex,
-            meta: null,
-            assetCtxs: [],
-            allMids: {},
-            success: false,
-          };
+            };
+          }
         }
+
+        let dexAllMids: Record<string, string> = {};
+        try {
+          dexAllMids = await this.#getAllMids(
+            infoClient,
+            dexParam || undefined,
+          );
+        } catch (error) {
+          failedStep = 'allMids';
+          errorMessage = ensureError(
+            error,
+            'HyperLiquidProvider.getMarketDataWithPrices.allMids',
+          ).message;
+        }
+
+        return {
+          dex,
+          meta: metaForDex,
+          assetCtxs,
+          allMids: dexAllMids,
+          success: true,
+          failedStep,
+          errorMessage,
+        };
       }),
     );
 
@@ -5866,41 +6345,96 @@ export class HyperLiquidProvider implements PerpsProvider {
     const combinedUniverse: MetaResponse['universe'] = [];
     const combinedAssetCtxs: PerpsAssetCtx[] = [];
     const combinedAllMids: Record<string, string> = {};
+    let latestDexResults = dexDataResults;
 
-    dexDataResults.forEach((result) => {
-      if (result.success && result.meta?.universe) {
-        // Apply market filtering for HIP-3 DEXs only (main DEX returns all markets)
-        const marketsFromDex = result.meta.universe;
-        const filteredMarkets =
-          result.dex === null
-            ? marketsFromDex // Main DEX: no filtering
-            : marketsFromDex.filter((asset) =>
-                shouldIncludeMarket(
-                  asset.name,
-                  result.dex,
-                  this.#hip3Enabled,
-                  this.#compiledAllowlistPatterns,
-                  this.#compiledBlocklistPatterns,
-                ),
-              );
-
-        combinedUniverse.push(...filteredMarkets);
-        combinedAssetCtxs.push(...result.assetCtxs);
-        // Merge price data from this DEX into combined prices
-        Object.assign(combinedAllMids, result.allMids);
-      }
-    });
+    this.#mergeDexResultsInto(
+      dexDataResults,
+      combinedUniverse,
+      combinedAssetCtxs,
+      combinedAllMids,
+    );
 
     if (combinedUniverse.length === 0) {
-      const failedDexs = dexDataResults
-        .filter((result) => !result.success)
-        .map((result) => result.dex ?? 'main');
-      const succeededDexs = dexDataResults
-        .filter((result) => result.success)
-        .map((result) => result.dex ?? 'main');
-      const wsState = this.#clientService.getConnectionState();
-      throw new Error(
-        `Failed to fetch market data - no markets available (enabledDexs=${enabledDexs.length}, failed=[${failedDexs.join(',')}], succeeded=[${succeededDexs.join(',')}], wsState=${wsState})`,
+      combinedUniverse.length = 0;
+      combinedAssetCtxs.length = 0;
+      for (const key of Object.keys(combinedAllMids)) {
+        delete combinedAllMids[key];
+      }
+
+      const retryDelayMs = 2000;
+      this.#deps.debugLogger.log(
+        `[getMarketDataWithPrices] All DEXs returned empty, retrying in ${retryDelayMs}ms`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+
+      const retryResults = await Promise.all(
+        enabledDexs.map((dex) => this.#fetchSingleDexFresh(infoClient, dex)),
+      );
+
+      this.#mergeDexResultsInto(
+        retryResults,
+        combinedUniverse,
+        combinedAssetCtxs,
+        combinedAllMids,
+      );
+
+      latestDexResults = retryResults;
+
+      if (combinedUniverse.length === 0) {
+        const failedDexs = retryResults
+          .filter((result) => !result.success)
+          .map((result) => result.dex ?? 'main');
+        const succeededDexs = retryResults
+          .filter((result) => result.success)
+          .map((result) => result.dex ?? 'main');
+        const failedDetails = retryResults
+          .filter((result) => result.errorMessage)
+          .map(
+            (result) =>
+              `${result.dex ?? 'main'}:${result.failedStep ?? 'unknown'}:${
+                result.errorMessage
+              }`,
+          );
+        const staleMarketData = this.#getStaleMarketDataSnapshot();
+
+        if (staleMarketData) {
+          this.#deps.debugLogger.log(
+            '[getMarketDataWithPrices] Returning stale cached market data after retry failure',
+            {
+              failedDexs,
+              failedDetails,
+              cachedAt:
+                this.#cachedMarketDataWithPrices?.timestamp ?? Date.now(),
+            },
+          );
+          return staleMarketData;
+        }
+
+        const wsState = this.#clientService.getConnectionState();
+        throw new Error(
+          `Failed to fetch market data - no markets available (enabledDexs=${enabledDexs.length}, failed=[${failedDexs.join(',')}], succeeded=[${succeededDexs.join(',')}], wsState=${wsState}, details=[${failedDetails.join(';')}])`,
+        );
+      }
+
+      this.#deps.debugLogger.log('[getMarketDataWithPrices] Retry succeeded', {
+        marketCount: combinedUniverse.length,
+      });
+    }
+
+    const partialFailures = latestDexResults.filter(
+      (result) => result.errorMessage,
+    );
+    if (partialFailures.length > 0) {
+      this.#deps.debugLogger.log(
+        'Market data fetch completed with partial per-DEX failures',
+        {
+          failures: partialFailures.map(
+            (result) =>
+              `${result.dex ?? 'main'}:${result.failedStep ?? 'unknown'}:${
+                result.errorMessage
+              }`,
+          ),
+        },
       );
     }
 
@@ -5909,10 +6443,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       {
         dexCount: enabledDexs.length,
         totalMarkets: combinedUniverse.length,
-        mainDexMarkets: dexDataResults[0]?.meta?.universe?.length ?? 0,
+        mainDexMarkets: latestDexResults[0]?.meta?.universe?.length ?? 0,
         hip3Markets:
           combinedUniverse.length -
-          (dexDataResults[0]?.meta?.universe?.length ?? 0),
+          (latestDexResults[0]?.meta?.universe?.length ?? 0),
       },
     );
 
@@ -5933,7 +6467,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     });
 
     // Transform to UI-friendly format using standalone utility
-    return transformMarketData(
+    const transformedMarketData = transformMarketData(
       {
         universe: combinedUniverse,
         assetCtxs: combinedAssetCtxs,
@@ -5941,6 +6475,11 @@ export class HyperLiquidProvider implements PerpsProvider {
       },
       this.#deps.marketDataFormatters,
       HIP3_ASSET_MARKET_TYPES,
+    );
+
+    return this.#cacheFreshMarketDataSnapshot(
+      transformedMarketData,
+      latestDexResults,
     );
   }
 
@@ -7562,9 +8101,13 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   #getBuilderAddress(isTestnet: boolean): string {
-    return isTestnet
-      ? BUILDER_FEE_CONFIG.TestnetBuilder
-      : BUILDER_FEE_CONFIG.MainnetBuilder;
+    // || intentional: env vars default to '' which must fall through to the hardcoded default
+    if (isTestnet) {
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      return this.#builderAddressTestnet || BUILDER_FEE_CONFIG.TestnetBuilder;
+    }
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return this.#builderAddressMainnet || BUILDER_FEE_CONFIG.MainnetBuilder;
   }
 
   #getReferralCode(isTestnet: boolean): string {

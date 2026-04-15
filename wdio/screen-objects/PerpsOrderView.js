@@ -36,7 +36,6 @@ class PerpsOrderView {
 
   async tapPlaceOrder() {
     await AppwrightGestures.tap(await this.placeOrderButton);
-    appwrightExpect(await PerpsPositionDetailsView.isPositionOpen()).toBe(true);
   }
 
   // Reuse logic from AmountScreen.js for Keypad interaction

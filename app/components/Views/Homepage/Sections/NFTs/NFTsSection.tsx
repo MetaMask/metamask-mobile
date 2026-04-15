@@ -18,6 +18,7 @@ import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useOwnedNfts } from './hooks';
 import NftGridItem from '../../../../UI/NftGrid/NftGridItem';
+import NftGridItemBottomSheet from '../../../../UI/NftGrid/NftGridItemBottomSheet';
 import { useNftRefresh } from '../../../../UI/NftGrid/useNftRefresh';
 import { CollectiblesEmptyState } from '../../../../UI/CollectiblesEmptyState/CollectiblesEmptyState';
 import { useNftDetection } from '../../../../hooks/useNftDetection';
@@ -27,12 +28,13 @@ import { isNftFetchingProgressSelector } from '../../../../../reducers/collectib
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { Nft } from '@metamask/assets-controllers';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 const MAX_NFTS_DISPLAYED = 6;
 const NFTS_PER_ROW = 3;
-
-// No-op for long press since we don't need action sheet in homepage section
-const noop = () => undefined;
 
 const NftSkeletonRow = () => {
   const { colors } = useTheme();
@@ -67,6 +69,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
     const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const ownedNfts = useOwnedNfts();
     const hasNfts = ownedNfts.length > 0;
     const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
@@ -119,20 +122,31 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
     }, [navigation]);
 
+    const [longPressedNft, setLongPressedNft] = useState<Nft | null>(null);
+
+    const handleLongPress = useCallback((nft: Nft) => {
+      setLongPressedNft(nft);
+    }, []);
+
     const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
 
     const handleImportNfts = useCallback(() => {
       setIsAddNFTEnabled(false);
       navigation.navigate('AddAsset', { assetType: 'collectible' });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES)
+          .addProperties({ action: 'Wallet View', name: 'Add Collectibles' })
+          .build(),
+      );
       setTimeout(() => setIsAddNFTEnabled(true), 1000);
-    }, [navigation]);
+    }, [navigation, trackEvent, createEventBuilder]);
 
     // Pass null while loading so the hook uses the immediate-fire path and
     // does not fire from viewport visibility with stale itemCount/isEmpty.
     const isLoadingSection = isNftFetchingProgress && !hasNfts;
     const willRender = !isLoadingSection;
 
-    useHomeViewedEvent({
+    const { onLayout } = useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
       isLoading: isLoadingSection,
       sectionName: HomeSectionNames.NFTS,
@@ -142,8 +156,15 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       itemCount: ownedNfts.length,
     });
 
+    useSectionPerformance({
+      sectionId: HomeSectionNames.NFTS,
+      contentReady: !isLoadingSection,
+      isEmpty: !hasNfts,
+      isLoading: isLoadingSection,
+    });
+
     return (
-      <View ref={sectionViewRef}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
           <SectionHeader title={title} onPress={handleViewAllNfts} />
           {hasNfts ? (
@@ -162,7 +183,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
                       >
                         <NftGridItem
                           item={nft}
-                          onLongPress={noop}
+                          onLongPress={handleLongPress}
                           source="mobile-nft-list"
                         />
                       </Box>
@@ -193,6 +214,11 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
             />
           )}
         </Box>
+        <NftGridItemBottomSheet
+          isVisible={longPressedNft !== null}
+          onClose={() => setLongPressedNft(null)}
+          nft={longPressedNft}
+        />
       </View>
     );
   },

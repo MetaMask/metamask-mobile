@@ -22,7 +22,7 @@ jobs:
   repack-ios-flask-apps:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'FlaskBuildTests')
     name: 'Repack iOS Flask Apps'
-    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia
+    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe
     permissions:
       contents: read
       id-token: write
@@ -30,12 +30,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup iOS Environment
-        timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1.7.0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          platform: ios
-          setup-simulator: false
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
 
       - name: Install dependencies
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
@@ -45,23 +44,13 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
 
-      - name: Restore .metamask folder
-        id: restore-metamask
-        uses: actions/cache@v4
-        with:
-          path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
-
-      - name: Install Foundry if cache missed
-        if: steps.restore-metamask.outputs.cache-hit != 'true'
-        run: yarn install:foundryup
       - name: Setup project
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn setup:github-ci --no-build-android
+          command: yarn setup:github-ci --no-build-ios --no-build-android
 
       - name: Download Main iOS App artifacts
         uses: actions/download-artifact@v4
@@ -141,6 +130,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'flask'
       metamask_environment: 'e2e'
+      artifact_name_prefix: ''
     secrets: inherit
 
   report-ios-smoke-tests:
@@ -163,7 +153,7 @@ jobs:
         continue-on-error: true
         with:
           path: all-test-artifacts/
-          pattern: 'test-e2e-*-ios-*'
+          pattern: 'test-e2e-flask-ios-smoke-*'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
@@ -180,3 +170,4 @@ jobs:
         with:
           name: e2e-smoke-ios-flask-all-test-artifacts
           path: all-test-artifacts/
+          retention-days: 7

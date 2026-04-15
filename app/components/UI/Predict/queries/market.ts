@@ -14,7 +14,7 @@ export const predictMarketKeys = {
 };
 
 export const predictMarketOptions = ({ marketId }: { marketId: string }) =>
-  queryOptions({
+  queryOptions<PredictMarket | null, Error>({
     queryKey: predictMarketKeys.detail(marketId),
     queryFn: async (): Promise<PredictMarket | null> => {
       const controller = Engine.context.PredictController;

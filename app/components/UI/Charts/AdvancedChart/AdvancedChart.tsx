@@ -7,9 +7,12 @@ import React, {
   useState,
   forwardRef,
 } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { Linking, View } from 'react-native';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
+import type { WebViewOpenWindowEvent } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
+import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet, { DEFAULT_CHART_HEIGHT } from './AdvancedChart.styles';
 import {
@@ -20,12 +23,33 @@ import {
   ChartType,
   DEFAULT_DISABLED_FEATURES,
   parseWebViewMessage,
+  resolveLineChromeOptions,
   type AdvancedChartProps,
   type AdvancedChartRef,
   type IndicatorType,
   type OHLCVBar,
+  type OHLCVPaginationConfig,
   type RNToWebViewMessage,
 } from './AdvancedChart.types';
+
+const openInAppBrowser = (url: string) => {
+  const fallback = () => {
+    try {
+      Linking.openURL(url);
+    } catch {
+      /* noop */
+    }
+  };
+  try {
+    InAppBrowser.isAvailable()
+      .then((available) =>
+        available ? InAppBrowser.open(url) : Linking.openURL(url),
+      )
+      .catch(fallback);
+  } catch {
+    fallback();
+  }
+};
 
 /**
  * Generic TradingView Advanced Chart component.
@@ -38,48 +62,74 @@ import {
  * TradingView Advanced Charts (TM)
  * Copyright (c) 2025 TradingView, Inc. https://www.tradingview.com/
  */
+
+/** Hide layout skeleton if WebView never sends `CHART_LAYOUT_SETTLED` (e.g. older HTML). */
+const LAYOUT_SETTLE_FALLBACK_MS = 2500;
+
+/** Debounce TradingView external opens (redirect chains can fire multiple navigation requests). */
+const TRADINGVIEW_OPEN_DEBOUNCE_MS = 800;
+
 const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
   (
     {
       ohlcvData,
+      ohlcvSeriesKey,
       height = DEFAULT_CHART_HEIGHT,
       realtimeBar,
-      onRequestMoreHistory,
+      ohlcvPagination,
       indicators = [],
       positionLines,
       chartType,
       showVolume = false,
+      volumeOverlay = false,
       enableDrawingTools = false,
       disabledFeatures = DEFAULT_DISABLED_FEATURES,
       onChartReady,
       onError,
       onCrosshairMove,
+      onChartInteracted,
+      onChartTradingViewClicked,
       isLoading = false,
+      lineChrome,
+      visibleFromMs,
+      visibleToMs,
     },
     ref,
   ) => {
     const { styles, theme } = useStyles(styleSheet, {
       height,
-    } as { height: number });
+    });
     const webViewRef = useRef<WebView>(null);
     const [chartReadyCount, setChartReadyCount] = useState(0);
     const isChartReady = chartReadyCount > 0;
     const [webViewError, setWebViewError] = useState<string | null>(null);
+    /**
+     * After `CHART_READY`, a full `SET_OHLCV_DATA` (new series key, first bars, or large length
+     * change) still leaves TradingView applying scale/layout asynchronously. We keep the skeleton
+     * until the WebView posts `CHART_LAYOUT_SETTLED` (see deferred settle in chartLogic) or the
+     * `LAYOUT_SETTLE_FALLBACK_MS` timer, so the canvas does not flash empty or half-drawn.
+     */
+    const [layoutSettling, setLayoutSettling] = useState(false);
+    const layoutSettleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+      null,
+    );
 
     const activeIndicatorsRef = useRef<Set<IndicatorType>>(new Set());
     const [webViewLoaded, setWebViewLoaded] = useState(false);
     const prevPositionLinesRef = useRef(positionLines);
     const prevChartTypeRef = useRef(chartType);
-    const prevShowVolumeRef = useRef(showVolume);
+    const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
+    const prevOhlcvSeriesKeyRef = useRef<string | undefined>(undefined);
+    const tradingViewOpenInterceptRef = useRef(0);
 
     const htmlContent = useMemo(
       () =>
         createAdvancedChartTemplate(theme, {
           enableDrawingTools,
-          showVolume,
           disabledFeatures,
+          lineChrome,
         }),
-      [theme, enableDrawingTools, showVolume, disabledFeatures],
+      [theme, enableDrawingTools, disabledFeatures, lineChrome],
     );
 
     // Reset all chart state when the WebView reloads due to htmlContent changes
@@ -89,7 +139,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       activeIndicatorsRef.current.clear();
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
-      prevShowVolumeRef.current = showVolume;
+      prevOhlcvDataRef.current = [];
+      prevOhlcvSeriesKeyRef.current = undefined;
     }, [htmlContent]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ---- Helpers ----
@@ -100,11 +151,54 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }
     }, []);
 
+    const clearLayoutSettleTimeout = useCallback(() => {
+      const t = layoutSettleTimeoutRef.current;
+      if (t !== null) {
+        clearTimeout(t);
+        layoutSettleTimeoutRef.current = null;
+      }
+    }, []);
+
+    const beginFullOhlcvLayoutSettle = useCallback(() => {
+      if (!isChartReady) {
+        return;
+      }
+      setLayoutSettling(true);
+      clearLayoutSettleTimeout();
+      layoutSettleTimeoutRef.current = setTimeout(() => {
+        layoutSettleTimeoutRef.current = null;
+        setLayoutSettling(false);
+      }, LAYOUT_SETTLE_FALLBACK_MS);
+    }, [isChartReady, clearLayoutSettleTimeout]);
+
+    useEffect(
+      () => () => {
+        clearLayoutSettleTimeout();
+      },
+      [clearLayoutSettleTimeout],
+    );
+
+    const paginationRef = useRef<OHLCVPaginationConfig | undefined>(
+      ohlcvPagination,
+    );
+    paginationRef.current = ohlcvPagination;
+
+    const visibleFromMsRef = useRef<number | undefined>(visibleFromMs);
+    visibleFromMsRef.current = visibleFromMs;
+
+    const visibleToMsRef = useRef<number | undefined>(visibleToMs);
+    visibleToMsRef.current = visibleToMs;
+
     const sendOHLCVData = useCallback(
       (data: OHLCVBar[]) => {
         postMessage({
           type: 'SET_OHLCV_DATA',
-          payload: { data },
+          payload: {
+            data,
+            pagination: paginationRef.current,
+            visibleFromMs: visibleFromMsRef.current,
+            visibleToMs: visibleToMsRef.current,
+          },
         });
       },
       [postMessage],
@@ -143,6 +237,33 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       [isChartReady, postMessage],
     );
 
+    /**
+     * Opens a TradingView URL in the in-app browser, fires analytics,
+     * and dedupes across onOpenWindow and postMessage channels.
+     */
+    const handleTradingViewOpen = useCallback(
+      (url: string) => {
+        const now = Date.now();
+        if (
+          now - tradingViewOpenInterceptRef.current <
+          TRADINGVIEW_OPEN_DEBOUNCE_MS
+        ) {
+          return;
+        }
+        tradingViewOpenInterceptRef.current = now;
+        openInAppBrowser(url);
+        onChartTradingViewClicked?.();
+      },
+      [onChartTradingViewClicked],
+    );
+
+    const handleOpenWindow = useCallback(
+      (event: WebViewOpenWindowEvent) => {
+        handleTradingViewOpen(event.nativeEvent.targetUrl);
+      },
+      [handleTradingViewOpen],
+    );
+
     // ---- WebView message handling ----
 
     const handleMessage = useCallback(
@@ -162,10 +283,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             activeIndicatorsRef.current.clear();
             prevPositionLinesRef.current = undefined;
             prevChartTypeRef.current = undefined;
-            prevShowVolumeRef.current = showVolume;
+            clearLayoutSettleTimeout();
+            setLayoutSettling(false);
             setChartReadyCount((c) => c + 1);
             setWebViewError(null);
             onChartReady?.();
+            break;
+
+          case 'CHART_LAYOUT_SETTLED':
+            clearLayoutSettleTimeout();
+            setLayoutSettling(false);
             break;
 
           case 'INDICATOR_ADDED':
@@ -180,9 +307,17 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             onCrosshairMove?.(message.payload.data);
             break;
 
-          case 'NEED_MORE_HISTORY':
-            onRequestMoreHistory?.(message.payload);
+          case 'CHART_INTERACTED':
+            onChartInteracted?.(message.payload);
             break;
+
+          case 'CHART_TRADINGVIEW_CLICKED': {
+            const bridgeUrl = message.payload?.url;
+            if (typeof bridgeUrl === 'string' && bridgeUrl.length > 0) {
+              handleTradingViewOpen(bridgeUrl);
+            }
+            break;
+          }
 
           case 'ERROR':
             if (!isChartReady) {
@@ -192,6 +327,11 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             break;
 
           case 'DEBUG':
+            if (__DEV__) {
+              // WebView console is not the Metro / Xcode log; chartLogic mirrors here via DEBUG.
+              // eslint-disable-next-line no-console -- intentional dev bridge from WebView
+              console.log(message.payload.message);
+            }
             break;
 
           default:
@@ -200,11 +340,12 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       },
       [
         isChartReady,
-        showVolume,
+        clearLayoutSettleTimeout,
         onChartReady,
         onError,
         onCrosshairMove,
-        onRequestMoreHistory,
+        onChartInteracted,
+        handleTradingViewOpen,
       ],
     );
 
@@ -230,26 +371,112 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         removeIndicator,
         setChartType: setChartTypeInternal,
         reset: () => {
+          clearLayoutSettleTimeout();
+          setLayoutSettling(false);
           setChartReadyCount(0);
           setWebViewLoaded(false);
           setWebViewError(null);
           activeIndicatorsRef.current.clear();
           prevPositionLinesRef.current = undefined;
           prevChartTypeRef.current = undefined;
-          prevShowVolumeRef.current = showVolume;
+          prevOhlcvDataRef.current = [];
+          prevOhlcvSeriesKeyRef.current = undefined;
           webViewRef.current?.reload();
         },
       }),
-      [addIndicator, removeIndicator, setChartTypeInternal, showVolume],
+      [
+        addIndicator,
+        removeIndicator,
+        setChartTypeInternal,
+        clearLayoutSettleTimeout,
+      ],
     );
 
     // ---- Declarative prop syncing ----
 
     useEffect(() => {
-      if (ohlcvData.length > 0 && webViewLoaded) {
+      if (ohlcvData.length === 0 || !webViewLoaded) return;
+
+      const prevData = prevOhlcvDataRef.current;
+
+      if (
+        ohlcvSeriesKey !== undefined &&
+        ohlcvSeriesKey !== prevOhlcvSeriesKeyRef.current
+      ) {
+        if (prevOhlcvSeriesKeyRef.current !== undefined) {
+          // Time range switch: ohlcvData is still stale from the previous
+          // period (fetch is in progress). Show skeleton, mark the key, and
+          // clear prevData so the fresh data triggers the length-diff branch
+          // on arrival — avoiding sending stale data to the WebView which
+          // causes a resolution race condition in TradingView.
+          beginFullOhlcvLayoutSettle();
+          prevOhlcvSeriesKeyRef.current = ohlcvSeriesKey;
+          prevOhlcvDataRef.current = [];
+          return;
+        }
+        beginFullOhlcvLayoutSettle();
         sendOHLCVData(ohlcvData);
+        prevOhlcvDataRef.current = ohlcvData;
+        prevOhlcvSeriesKeyRef.current = ohlcvSeriesKey;
+        return;
       }
-    }, [ohlcvData, webViewLoaded, sendOHLCVData]);
+
+      // If this is the first load or data length changed significantly, send full dataset
+      if (
+        prevData.length === 0 ||
+        Math.abs(ohlcvData.length - prevData.length) > 1
+      ) {
+        beginFullOhlcvLayoutSettle();
+        sendOHLCVData(ohlcvData);
+        prevOhlcvDataRef.current = ohlcvData;
+        if (ohlcvSeriesKey !== undefined) {
+          prevOhlcvSeriesKeyRef.current = ohlcvSeriesKey;
+        }
+        return;
+      }
+
+      // If only the last candle changed (polling update), use REALTIME_UPDATE instead
+      const lastCandle = ohlcvData[ohlcvData.length - 1];
+      const prevLastCandle = prevData[prevData.length - 1];
+
+      if (
+        lastCandle &&
+        prevLastCandle &&
+        (lastCandle.time !== prevLastCandle.time ||
+          lastCandle.close !== prevLastCandle.close ||
+          lastCandle.high !== prevLastCandle.high ||
+          lastCandle.low !== prevLastCandle.low ||
+          lastCandle.volume !== prevLastCandle.volume)
+      ) {
+        postMessage({
+          type: 'REALTIME_UPDATE',
+          payload: { bar: lastCandle },
+        });
+        prevOhlcvDataRef.current = ohlcvData;
+        return;
+      }
+
+      prevOhlcvDataRef.current = ohlcvData;
+    }, [
+      ohlcvData,
+      ohlcvSeriesKey,
+      webViewLoaded,
+      sendOHLCVData,
+      postMessage,
+      beginFullOhlcvLayoutSettle,
+    ]);
+
+    // Send initial chartType as soon as WebView loads (before chart is ready)
+    // This prevents the flash of default chart type during initialization
+    useEffect(() => {
+      if (!webViewLoaded || chartType === undefined) return;
+      if (prevChartTypeRef.current !== undefined) return;
+      prevChartTypeRef.current = chartType;
+      postMessage({
+        type: 'SET_CHART_TYPE',
+        payload: { type: chartType },
+      });
+    }, [webViewLoaded, chartType, postMessage]);
 
     // Forward real-time bar updates to WebView
     useEffect(() => {
@@ -300,17 +527,23 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setChartTypeInternal(chartType);
     }, [chartType, chartReadyCount, setChartTypeInternal]);
 
-    // Sync showVolume prop
+    // Sync showVolume + optional volumeOverlay (fires on chart ready)
     useEffect(() => {
       if (chartReadyCount === 0) return;
-      if (showVolume === prevShowVolumeRef.current) return;
-      prevShowVolumeRef.current = showVolume;
-
       postMessage({
         type: 'TOGGLE_VOLUME',
-        payload: { visible: showVolume },
+        payload: { visible: showVolume, volumeOverlay },
       });
-    }, [showVolume, chartReadyCount, postMessage]);
+    }, [showVolume, volumeOverlay, chartReadyCount, postMessage]);
+
+    // Line / chart chrome: always send resolved payload after CHART_READY (matches inline CONFIG).
+    useEffect(() => {
+      if (chartReadyCount === 0) return;
+      postMessage({
+        type: 'SET_LINE_CHROME',
+        payload: resolveLineChromeOptions(lineChrome),
+      });
+    }, [lineChrome, chartReadyCount, postMessage]);
 
     // ---- Render ----
 
@@ -326,36 +559,36 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     return (
       <View style={styles.container}>
-        <WebView
-          ref={webViewRef}
-          source={{ html: htmlContent, baseUrl: CHARTING_LIBRARY_BASE_URL }}
-          style={styles.webview}
-          onMessage={handleMessage}
-          onError={handleWebViewError}
-          onLoadEnd={handleLoadEnd}
-          originWhitelist={['*']}
-          javaScriptEnabled
-          domStorageEnabled
-          scrollEnabled={false}
-          bounces={false}
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
-          allowsInlineMediaPlayback
-          androidLayerType="hardware"
-          mixedContentMode="always"
-        />
-
-        {(isLoading || !isChartReady) && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator
-              size="large"
-              color={theme.colors.primary.default}
+        <View style={styles.chartSurface}>
+          <WebView
+            ref={webViewRef}
+            source={{ html: htmlContent, baseUrl: CHARTING_LIBRARY_BASE_URL }}
+            style={styles.webview}
+            onMessage={handleMessage}
+            onOpenWindow={handleOpenWindow}
+            onError={handleWebViewError}
+            onLoadEnd={handleLoadEnd}
+            originWhitelist={['*']}
+            javaScriptEnabled
+            domStorageEnabled
+            webviewDebuggingEnabled={__DEV__}
+            scrollEnabled={false}
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            allowsInlineMediaPlayback
+            androidLayerType="hardware"
+            mixedContentMode="always"
+          />
+          {(isLoading || !isChartReady || layoutSettling) && (
+            <Skeleton
+              height={height}
+              width="100%"
+              style={styles.skeletonOverlay}
+              testID="advanced-chart-skeleton"
             />
-            <Text variant={TextVariant.BodySm} style={styles.loadingText}>
-              Loading chart...
-            </Text>
-          </View>
-        )}
+          )}
+        </View>
       </View>
     );
   },

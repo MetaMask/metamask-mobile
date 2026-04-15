@@ -1,39 +1,35 @@
 import React, { useCallback, useMemo } from 'react';
+import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { QuickPickButtonOption } from '../SwapsKeypad/types';
 import { QuickPickButtons } from '../SwapsKeypad/QuickPickButtons';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
-import { KeypadChangeData, Keys } from '../../../../Base/Keypad';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
 import { useABTest } from '../../../../../hooks';
+import Engine from '../../../../../core/Engine';
 import {
   NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS,
   NUMPAD_QUICK_ACTIONS_AB_KEY,
   NUMPAD_QUICK_ACTIONS_VARIANTS,
   NumpadQuickActionsVariant,
 } from './abTestConfig';
-import { useTrackInputAmountChange } from './useTrackInputAmountChange';
 
 interface GaslessQuickPickOptionsProps {
   token?: BridgeToken;
+  tokenBalance?: string;
   onMaxPress: () => void;
-  onChange: (data: KeypadChangeData) => void;
+  onAmountSelect: (value: string) => void;
   isQuoteSponsored?: boolean;
 }
 
 export const GaslessQuickPickOptions = ({
-  onChange,
+  onAmountSelect,
   onMaxPress,
   token,
+  tokenBalance,
   isQuoteSponsored,
 }: GaslessQuickPickOptionsProps) => {
-  const tokenBalance = useLatestBalance({
-    address: token?.address,
-    decimals: token?.decimals,
-    chainId: token?.chainId,
-  });
-  const { variantName } = useABTest(
+  const { variantName, isActive } = useABTest(
     NUMPAD_QUICK_ACTIONS_AB_KEY,
     NUMPAD_QUICK_ACTIONS_VARIANTS,
   );
@@ -41,27 +37,47 @@ export const GaslessQuickPickOptions = ({
     variantName === NumpadQuickActionsVariant.Treatment
       ? NumpadQuickActionsVariant.Treatment
       : NumpadQuickActionsVariant.Control;
-  const trackInputAmountChange = useTrackInputAmountChange();
+  const trackInputAmountChange = useCallback(
+    ({ inputValue, preset }: { inputValue: string; preset?: string }) => {
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+        UnifiedSwapBridgeEventName.InputChanged,
+        {
+          input: 'token_amount_source',
+          input_value: inputValue,
+          ...(preset && { input_amount_preset: preset }),
+          // This Bridge-specific event bypasses the shared analytics wrappers,
+          // so its A/B context still needs to be attached manually here.
+          ...(isActive && {
+            active_ab_tests: [
+              {
+                key: NUMPAD_QUICK_ACTIONS_AB_KEY,
+                value: variantName,
+              },
+            ],
+          }),
+        },
+      );
+    },
+    [isActive, variantName],
+  );
 
   const onQuickOptionPress = useCallback(
     (percentage: number) => () => {
-      if (!tokenBalance?.displayBalance) return '0';
+      if (!tokenBalance) {
+        return;
+      }
 
-      const balance = new BigNumber(tokenBalance.displayBalance);
+      const balance = new BigNumber(tokenBalance);
       const amount = balance
         .multipliedBy(percentage / 100)
         .decimalPlaces(token?.decimals ?? 18, BigNumber.ROUND_DOWN);
 
-      onChange({
-        value: amount.toString(),
-        valueAsNumber: Number(amount),
-        pressedKey: Keys.Initial,
-      });
+      onAmountSelect(amount.toString());
 
       const preset = `${percentage}%`;
       trackInputAmountChange({ inputValue: amount.toString(), preset });
     },
-    [tokenBalance, token?.decimals, onChange, trackInputAmountChange],
+    [tokenBalance, token?.decimals, onAmountSelect, trackInputAmountChange],
   );
 
   const handleTrackedMaxPress = useCallback(() => {
@@ -71,7 +87,7 @@ export const GaslessQuickPickOptions = ({
 
   const shouldRenderMaxOption = useShouldRenderMaxOption(
     token,
-    tokenBalance?.displayBalance,
+    tokenBalance,
     isQuoteSponsored,
   );
 

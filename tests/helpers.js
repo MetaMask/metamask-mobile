@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import { waitFor, web } from 'detox';
 import { getFixturesServerPort } from './framework/fixtures/FixtureUtils';
 import Utilities from './framework/Utilities';

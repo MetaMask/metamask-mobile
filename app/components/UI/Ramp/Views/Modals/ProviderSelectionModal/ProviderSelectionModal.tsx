@@ -3,9 +3,10 @@ import { useWindowDimensions, View } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import type { Provider } from '@metamask/ramps-controller';
 import { useSelector } from 'react-redux';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
 import {
   createNavigationDetails,
@@ -17,8 +18,9 @@ import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
-import { selectRampsOrders } from '../../../../../../selectors/rampsController';
+import { selectRampsOrdersForSelectedAccountGroup } from '../../../../../../selectors/rampsController';
 import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
+import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -59,7 +61,9 @@ function ProviderSelectionModal() {
   } = useRampsController();
 
   const legacyOrdersProviders = useSelector(getOrdersProviders);
-  const controllerOrders = useSelector(selectRampsOrders);
+  const controllerOrders = useSelector(
+    selectRampsOrdersForSelectedAccountGroup,
+  );
 
   const ordersProviders = useMemo(() => {
     const v2ProviderIds = completedOrdersFromRampsOrders(controllerOrders).map(
@@ -80,12 +84,17 @@ function ProviderSelectionModal() {
     '';
   const assetId = paramAssetId ?? selectedToken?.assetId ?? '';
 
+  /**
+   * Only list (and quote) providers that support the effective asset. Uses the
+   * same id as `getQuotes` (`paramAssetId ?? selectedToken?.assetId`), so flows
+   * without route `assetId` still filter when `selectedToken` is set.
+   */
   const displayProviders = useMemo(() => {
-    if (!paramAssetId) return providers;
-    return providers.filter(
-      (p) => p.supportedCryptoCurrencies?.[paramAssetId] === true,
-    );
-  }, [providers, paramAssetId]);
+    if (!assetId) {
+      return providers;
+    }
+    return providers.filter((p) => providerSupportsAsset(p, assetId));
+  }, [providers, assetId]);
 
   const providerIds = useMemo(
     () => displayProviders.map((p) => p.id),
@@ -94,16 +103,17 @@ function ProviderSelectionModal() {
 
   const quoteFetchParams = useMemo(
     () =>
-      !skipQuotes && amount > 0 && walletAddress && assetId
+      !skipQuotes &&
+      amount > 0 &&
+      walletAddress &&
+      assetId &&
+      selectedPaymentMethod
         ? {
             amount,
             walletAddress,
             assetId,
             providers: providerIds,
-            paymentMethods: selectedPaymentMethod
-              ? [selectedPaymentMethod.id]
-              : undefined,
-            forceRefresh: true,
+            paymentMethods: [selectedPaymentMethod.id],
           }
         : null,
     [
@@ -162,14 +172,18 @@ function ProviderSelectionModal() {
   );
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack onClose={handleDismiss}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      onClose={handleDismiss}
+    >
       <View style={styles.container}>
         <ProviderSelection
           providers={displayProviders}
           quotes={quotes}
           quotesLoading={quotesLoading}
           quotesError={quotesError}
-          showQuotes={!skipQuotes && amount > 0}
+          showQuotes={!skipQuotes && amount > 0 && !!selectedPaymentMethod}
           showBackButton={hasPaymentModalInStack}
           ordersProviders={ordersProviders.filter(
             (id): id is string => id != null,

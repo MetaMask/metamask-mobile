@@ -28,6 +28,26 @@ describe('AndroidGoogleLoginHandler', () => {
   });
 
   describe('login', () => {
+    it('throws UserCancelled when user explicitly cancels', async () => {
+      mockSignInWithGoogle.mockRejectedValue(new Error('User cancelled'));
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.UserCancelled,
+      });
+      expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
+    });
+
+    it('treats "no credential" as UserCancelled', async () => {
+      mockSignInWithGoogle.mockRejectedValue(
+        new Error('Legacy sign-in returned no credential'),
+      );
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.UserCancelled,
+      });
+      expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
+    });
+
     it('throws GoogleLoginUserDisabledOneTapFeature when user disabled One Tap', async () => {
       mockSignInWithGoogle.mockRejectedValue(
         new Error('user disabled the feature'),

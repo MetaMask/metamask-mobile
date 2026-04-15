@@ -1,15 +1,10 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 
 import { strings } from '../../../../../../locales/i18n';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
@@ -18,11 +13,15 @@ import {
   getConnectionTipsForWalletType,
 } from '../../../helpers';
 import { ContentLayout } from './ContentLayout';
+import { useTheme } from '../../../../../util/theme';
 
 export const CONNECTING_CONTENT_TEST_ID = 'connecting-content';
 export const CONNECTING_CONTENT_SPINNER_TEST_ID = 'connecting-content-spinner';
 
 const styles = StyleSheet.create({
+  tipsHeader: {
+    marginBottom: 8,
+  },
   tipItem: {
     flexDirection: 'row',
     marginBottom: 8,
@@ -34,6 +33,10 @@ const styles = StyleSheet.create({
   tipText: {
     flex: 1,
   },
+  spinnerContainer: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
 });
 
 export interface ConnectingContentProps {
@@ -44,6 +47,7 @@ export interface ConnectingContentProps {
 export const ConnectingContent: React.FC<ConnectingContentProps> = ({
   deviceType,
 }) => {
+  const { colors } = useTheme();
   const deviceName = getHardwareWalletTypeName(deviceType);
   const connectionTips = getConnectionTipsForWalletType(deviceType);
 
@@ -54,46 +58,46 @@ export const ConnectingContent: React.FC<ConnectingContentProps> = ({
         device: deviceName,
       })}
       body={
-        connectionTips.length > 0 ? (
-          <View>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {strings('hardware_wallet.connecting.tips_header')}
-            </Text>
+        <View>
+          {connectionTips.length > 0 && (
+            <View>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Default}
+                style={styles.tipsHeader}
+              >
+                {strings('hardware_wallet.connecting.tips_header')}
+              </Text>
 
-            {connectionTips.map((tipKey) => (
-              <View key={tipKey} style={styles.tipItem}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Default}
-                  style={styles.tipBullet}
-                >
-                  •
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Default}
-                  style={styles.tipText}
-                >
-                  {strings(tipKey, { device: deviceName })}
-                </Text>
-              </View>
-            ))}
+              {connectionTips.map((tipKey) => (
+                <View key={tipKey} style={styles.tipItem}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Default}
+                    style={styles.tipBullet}
+                  >
+                    •
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Default}
+                    style={styles.tipText}
+                  >
+                    {strings(tipKey, { device: deviceName })}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          <View style={styles.spinnerContainer}>
+            <ActivityIndicator
+              testID={CONNECTING_CONTENT_SPINNER_TEST_ID}
+              size="large"
+              color={colors.primary.default}
+            />
           </View>
-        ) : undefined
-      }
-      footer={
-        <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label=""
-          onPress={
-            // eslint-disable-next-line no-empty-function
-            () => {}
-          }
-          loading
-          testID={CONNECTING_CONTENT_SPINNER_TEST_ID}
-        />
+        </View>
       }
     />
   );

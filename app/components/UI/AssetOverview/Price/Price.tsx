@@ -1,202 +1,66 @@
-import {
+import React from 'react';
+import { useSelector } from 'react-redux';
+import type {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
-import React, { useMemo, useState } from 'react';
-import { View } from 'react-native';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { strings } from '../../../../../locales/i18n';
-import { useStyles } from '../../../../component-library/hooks';
-import { toDateFormat } from '../../../../util/date';
-import { addCurrencySymbol } from '../../../../util/number';
-import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+import type { TokenI } from '../../Tokens/types';
+import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
+import PriceAdvanced from './Price.advanced';
+import PriceLegacy from './Price.legacy';
 
-import PriceChart from '../PriceChart/PriceChart';
-import { distributeDataPoints } from '../PriceChart/utils';
-import styleSheet from './Price.styles';
-import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
-import { TokenI } from '../../Tokens/types';
-import StockBadge from '../../shared/StockBadge/StockBadge';
-import { BridgeToken } from '../../Bridge/types';
-import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
-
-interface PriceProps {
-  asset: TokenI;
-  prices: TokenPrice[];
+interface PriceSharedProps {
   priceDiff: number;
   currentPrice: number;
   currentCurrency: string;
   comparePrice: number;
   isLoading: boolean;
-  timePeriod: TimePeriod;
 }
 
-const Price = ({
-  asset,
-  prices,
-  priceDiff,
-  currentPrice,
-  currentCurrency,
-  comparePrice,
-  isLoading,
-  timePeriod,
-}: PriceProps) => {
-  const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
-  const { isStockToken } = useRWAToken();
+/**
+ * Token overview price header + chart. Passes both legacy (`prices`, `timePeriod`) and
+ * advanced (`asset`) data; the remote flag {@link selectTokenOverviewAdvancedChartEnabled}
+ * chooses which implementation to render.
+ */
+export type PriceProps = PriceSharedProps & {
+  asset: TokenI;
+  prices: TokenPrice[];
+  timePeriod: TimePeriod;
+};
 
-  const distributedPriceData = useMemo(() => {
-    if (prices.length > 0) {
-      return distributeDataPoints(prices);
-    }
-    return [];
-  }, [prices]);
-
-  const handleChartInteraction = (index: number) => {
-    setActiveChartIndex(index);
-  };
-
-  const timePeriodTextDict: Record<TimePeriod, string> = {
-    '1d': strings('asset_overview.chart_time_period.1d'),
-    '7d': strings('asset_overview.chart_time_period.7d'),
-    '1w': strings('asset_overview.chart_time_period.1w'),
-    '1m': strings('asset_overview.chart_time_period.1m'),
-    '3m': strings('asset_overview.chart_time_period.3m'),
-    '1y': strings('asset_overview.chart_time_period.1y'),
-    '3y': strings('asset_overview.chart_time_period.3y'),
-    all: strings('asset_overview.chart_time_period.all'),
-  };
-
-  const price: number =
-    activeChartIndex >= 0 &&
-    distributedPriceData[activeChartIndex]?.[1] !== undefined
-      ? distributedPriceData[activeChartIndex][1]
-      : currentPrice;
-
-  const date: string | undefined =
-    activeChartIndex >= 0 &&
-    distributedPriceData[activeChartIndex]?.[0] !== undefined
-      ? toDateFormat(Number(distributedPriceData[activeChartIndex][0]))
-      : timePeriodTextDict[timePeriod];
-
-  const diff: number | undefined =
-    activeChartIndex >= 0 &&
-    distributedPriceData[activeChartIndex]?.[1] !== undefined
-      ? distributedPriceData[activeChartIndex][1] - comparePrice
-      : priceDiff;
-
-  const { styles, theme } = useStyles(styleSheet, { priceDiff: diff });
-  const ticker = asset.ticker || asset.symbol;
-
-  const stockTokenBadge = isStockToken(asset as BridgeToken) && (
-    <StockBadge style={styles.stockBadge} token={asset as BridgeToken} />
+const Price = (props: PriceProps) => {
+  const isAdvancedChartEnabled = useSelector(
+    selectTokenOverviewAdvancedChartEnabled,
   );
-  return (
-    <>
-      <View style={styles.wrapper}>
-        {asset.name ? (
-          stockTokenBadge ? (
-            <View>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
-              >
-                {asset.name}
-              </Text>
-              <View style={styles.assetWrapper}>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Alternative}
-                >
-                  {ticker}
-                </Text>
-                {stockTokenBadge}
-              </View>
-            </View>
-          ) : (
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
-              {asset.name} ({ticker})
-            </Text>
-          )
-        ) : (
-          <View style={styles.assetWrapper}>
-            <Text variant={TextVariant.BodyMDMedium}>{ticker}</Text>
-            {stockTokenBadge}
-          </View>
-        )}
-        {!isNaN(price) && (
-          <Text
-            testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
-            variant={TextVariant.HeadingLG}
-          >
-            {isLoading ? (
-              <View style={styles.loadingPrice}>
-                <SkeletonPlaceholder
-                  backgroundColor={theme.colors.background.section}
-                  highlightColor={theme.colors.background.subsection}
-                >
-                  <SkeletonPlaceholder.Item
-                    width={100}
-                    height={32}
-                    borderRadius={6}
-                  />
-                </SkeletonPlaceholder>
-              </View>
-            ) : (
-              formatPriceWithSubscriptNotation(price, currentCurrency)
-            )}
-          </Text>
-        )}
-        <Text allowFontScaling={false}>
-          {isLoading ? (
-            <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
-              <SkeletonPlaceholder
-                backgroundColor={theme.colors.background.section}
-                highlightColor={theme.colors.background.subsection}
-              >
-                <SkeletonPlaceholder.Item
-                  width={150}
-                  height={18}
-                  borderRadius={6}
-                />
-              </SkeletonPlaceholder>
-            </View>
-          ) : distributedPriceData.length > 0 ? (
-            <Text
-              style={styles.priceDiff}
-              variant={TextVariant.BodyMDMedium}
-              allowFontScaling={false}
-            >
-              {diff > 0 ? '+' : ''}
-              {addCurrencySymbol(diff, currentCurrency, true)} (
-              {diff > 0 ? '+' : ''}
-              {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
-              %){' '}
-              <Text
-                testID="price-label"
-                color={TextColor.Alternative}
-                variant={TextVariant.BodyMDMedium}
-                allowFontScaling={false}
-              >
-                {date}
-              </Text>
-            </Text>
-          ) : null}
-        </Text>
-      </View>
-      <PriceChart
-        prices={distributedPriceData}
-        priceDiff={priceDiff}
+  const {
+    asset,
+    prices,
+    timePeriod,
+    isLoading,
+    currentPrice,
+    currentCurrency,
+    ...rest
+  } = props;
+
+  if (isAdvancedChartEnabled) {
+    return (
+      <PriceAdvanced
+        asset={asset}
         isLoading={isLoading}
-        onChartIndexChange={handleChartInteraction}
+        currentPrice={currentPrice}
+        currentCurrency={currentCurrency}
       />
-    </>
+    );
+  }
+  return (
+    <PriceLegacy
+      prices={prices}
+      timePeriod={timePeriod}
+      isLoading={isLoading}
+      currentPrice={currentPrice}
+      currentCurrency={currentCurrency}
+      {...rest}
+    />
   );
 };
 

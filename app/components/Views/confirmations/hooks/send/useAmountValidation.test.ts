@@ -15,7 +15,7 @@ import {
   validatePositiveNumericString,
 } from './useAmountValidation';
 import { AssetType, TokenStandard } from '../../types/token';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as SendContext from '../../context/send-context/send-context';
 import { validateAmountMultichain } from '../../utils/multichain-snaps';
 

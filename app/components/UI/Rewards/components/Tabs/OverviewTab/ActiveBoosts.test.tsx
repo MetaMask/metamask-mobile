@@ -5,7 +5,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import ActiveBoosts from './ActiveBoosts';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { PointsBoostDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
-import { SkeletonProps } from '../../../../../../component-library/components/Skeleton';
+import { SkeletonProps } from '../../../../../../component-library/components-temp/Skeleton';
 
 // Mock dependencies
 const mockUseTheme = jest.fn(() => ({
@@ -81,12 +81,15 @@ jest.mock('../../../utils/formatUtils', () => ({
   }),
 }));
 
-jest.mock('../../../../../../component-library/components/Skeleton', () => ({
-  Skeleton: ({ testID, ...props }: SkeletonProps) => {
-    const { View } = jest.requireActual('react-native');
-    return <View testID={testID || 'skeleton'} {...props} />;
-  },
-}));
+jest.mock(
+  '../../../../../../component-library/components-temp/Skeleton',
+  () => ({
+    Skeleton: ({ testID, ...props }: SkeletonProps) => {
+      const { View } = jest.requireActual('react-native');
+      return <View testID={testID || 'skeleton'} {...props} />;
+    },
+  }),
+);
 
 // Mock RewardsThemeImageComponent
 jest.mock('../../ThemeImageComponent', () => {

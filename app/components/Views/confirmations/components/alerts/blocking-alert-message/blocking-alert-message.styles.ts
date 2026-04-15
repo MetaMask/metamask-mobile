@@ -5,6 +5,9 @@ const styleSheet = () =>
     container: {
       paddingTop: 32,
     },
+    message: {
+      textAlign: 'center',
+    },
   });
 
 export default styleSheet;

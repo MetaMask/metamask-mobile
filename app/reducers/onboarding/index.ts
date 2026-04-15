@@ -7,19 +7,33 @@ import {
   SET_COMPLETED_ONBOARDING,
   SET_ACCOUNT_TYPE,
   CLEAR_ACCOUNT_TYPE,
+  SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
+  SET_SEEDLESS_ONBOARDING,
+  CLEAR_SEEDLESS_ONBOARDING,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 import { AccountType } from '../../constants/onboarding';
+import { AuthConnection } from '../../core/OAuthService/OAuthInterface';
 
 export interface OnboardingState {
   events: [ITrackingEvent][];
   completedOnboarding: boolean;
   accountType?: AccountType;
+  onboardingVersion?: string;
+
+  // used to backfill analytic preferences selected event for social login users
+  pendingSocialLoginMarketingConsentBackfill: string | null;
+
+  seedlessOnboarding?: {
+    clientId: string;
+    authConnection: AuthConnection;
+  };
 }
 
 export const initialOnboardingState: OnboardingState = {
   events: [],
   completedOnboarding: false,
+  pendingSocialLoginMarketingConsentBackfill: null,
 };
 
 /**
@@ -51,11 +65,31 @@ const onboardingReducer = (
       return {
         ...state,
         accountType: action.accountType,
+        onboardingVersion: action.onboardingVersion,
       };
     case CLEAR_ACCOUNT_TYPE:
       return {
         ...state,
         accountType: undefined,
+        onboardingVersion: undefined,
+      };
+    case SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL:
+      return {
+        ...state,
+        pendingSocialLoginMarketingConsentBackfill: action.authConnection,
+      };
+    case SET_SEEDLESS_ONBOARDING:
+      return {
+        ...state,
+        seedlessOnboarding: {
+          clientId: action.clientId,
+          authConnection: action.authConnection,
+        },
+      };
+    case CLEAR_SEEDLESS_ONBOARDING:
+      return {
+        ...state,
+        seedlessOnboarding: undefined,
       };
     default:
       return state;

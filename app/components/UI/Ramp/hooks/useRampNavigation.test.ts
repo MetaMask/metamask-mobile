@@ -23,9 +23,6 @@ jest.mock('./useRampsTokens', () => ({
   }),
 }));
 jest.mock('@react-navigation/native');
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: jest.fn((component) => component),
-}));
 jest.mock('../Aggregator/routes/utils');
 jest.mock('../Deposit/routes/utils');
 jest.mock('../Views/TokenSelection/TokenSelection', () => {
@@ -146,13 +143,61 @@ describe('useRampNavigation', () => {
         expect(mockSetSelectedToken).toHaveBeenCalledWith(intent.assetId);
         expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: intent.assetId,
+          buyFlowOrigin: undefined,
         });
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
         expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
       });
 
-      it('does not navigate to BuildQuote when assetId is not provided', () => {
+      it('passes buyFlowOrigin through to BuildQuote params', () => {
+        const intent = { assetId: 'eip155:1/erc20:0x123' };
+
+        const { result } = renderHookWithProvider(() => useRampNavigation());
+
+        result.current.goToBuy(intent, { buyFlowOrigin: 'tokenInfo' });
+
+        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+          assetId: intent.assetId,
+          buyFlowOrigin: 'tokenInfo',
+        });
+      });
+
+      it('passes homeTokenList buyFlowOrigin through to BuildQuote params', () => {
+        const intent = { assetId: 'eip155:1/erc20:0x123' };
+
+        const { result } = renderHookWithProvider(() => useRampNavigation());
+
+        result.current.goToBuy(intent, { buyFlowOrigin: 'homeTokenList' });
+
+        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+          assetId: intent.assetId,
+          buyFlowOrigin: 'homeTokenList',
+        });
+      });
+
+      it('navigates to TokenSelection when no assetId and V1 is disabled (matches handleRampUrl deeplink)', () => {
+        // V2 on, V1 off (default in this describe): must go to TokenSelection like handleRampUrl, not legacy
+        const mockNavDetails = [
+          Routes.RAMP.TOKEN_SELECTION,
+          undefined,
+        ] as const;
+        mockCreateTokenSelectionNavigationDetails.mockReturnValue(
+          mockNavDetails,
+        );
+
+        const { result } = renderHookWithProvider(() => useRampNavigation());
+
+        result.current.goToBuy();
+
+        expect(mockSetSelectedToken).not.toHaveBeenCalled();
+        expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
+        expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+        expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+      });
+
+      it('navigates to TokenSelection when no assetId and V1 is also enabled', () => {
         mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
         const mockNavDetails = [
           Routes.RAMP.TOKEN_SELECTION,
@@ -215,6 +260,7 @@ describe('useRampNavigation', () => {
         expect(mockSetSelectedToken).toHaveBeenCalledWith(intent.assetId);
         expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: intent.assetId,
+          buyFlowOrigin: undefined,
         });
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();

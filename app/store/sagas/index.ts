@@ -35,6 +35,7 @@ import Authentication from '../../core/Authentication';
 import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
+import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
 
 /**
  * Creates a channel to listen to app state changes.
@@ -52,7 +53,12 @@ function appStateListenerChannel() {
  * Checks seedless password status and performs the correct auth flow.
  */
 async function tryBiometricUnlock(): Promise<void> {
-  if (await Authentication.checkIsSeedlessPasswordOutdated()) {
+  if (
+    await Authentication.checkIsSeedlessPasswordOutdated({
+      skipCache: true,
+      captureSentryError: false,
+    })
+  ) {
     NavigationService.navigation?.reset({
       routes: [
         {
@@ -114,7 +120,7 @@ export function* appLockStateMachine() {
     try {
       const { ApprovalController } = Engine.context;
       if (ApprovalController) {
-        ApprovalController.clear(providerErrors.userRejectedRequest());
+        ApprovalController.clearRequests(providerErrors.userRejectedRequest());
       }
     } catch (error) {
       Logger.error(
@@ -337,6 +343,11 @@ export function* rootSaga() {
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
   yield fork(rewardsBulkLinkSaga);
+
+  // Send one-time analytics backfill for migrated social login users after
+  // persisted state has been rehydrated and app services are available.
+  yield fork(backfillSocialLoginMarketingConsentSaga);
+
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   yield fork(handleSnapsRegistry);
   ///: END:ONLY_INCLUDE_IF

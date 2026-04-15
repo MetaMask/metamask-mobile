@@ -27,6 +27,7 @@ import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { TraceName } from '../../../../../util/trace';
 import { PERPS_CONSTANTS, type Order } from '@metamask/perps-controller';
 import styleSheet from './PerpsOrderDetailsView.styles';
+import { PerpsOrderDetailsViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import {
   formatPerpsFiat,
@@ -406,6 +407,7 @@ const PerpsOrderDetailsView: React.FC = () => {
             label={strings('perps.order_details.cancel_order')}
             onPress={handleCancelOrder}
             loading={isCanceling}
+            testID={PerpsOrderDetailsViewSelectorsIDs.CANCEL_BUTTON}
           />
         </View>
       ) : null}

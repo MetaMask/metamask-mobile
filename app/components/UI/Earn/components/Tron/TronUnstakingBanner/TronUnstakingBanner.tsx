@@ -4,8 +4,6 @@ import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../../../../component-library/components/Banners/Banner';
-import { Text } from '@metamask/design-system-react-native';
-import { TronUnstakingBannerTestIds } from './TronUnstakingBanner.testIds';
 
 interface TronUnstakingBannerProps {
   amount: string;
@@ -15,11 +13,8 @@ const TronUnstakingBanner = ({ amount }: TronUnstakingBannerProps) => (
   <Banner
     severity={BannerAlertSeverity.Info}
     variant={BannerVariant.Alert}
-    description={
-      <Text testID={TronUnstakingBannerTestIds.BANNER_TEXT}>
-        {strings('stake.tron.trx_unstaking_in_progress', { amount })}
-      </Text>
-    }
+    title={strings('stake.tron.unstaking_banner.title', { amount })}
+    description={strings('stake.tron.unstaking_banner.description')}
   />
 );
 

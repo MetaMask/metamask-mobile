@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 jest.mock('fs', () => ({
   existsSync: jest.fn(() => true),
   mkdirSync: jest.fn(),
@@ -264,6 +264,46 @@ describe('PerformanceReporter', () => {
       expect(BrowserStackEnricher).toHaveBeenCalled();
     });
 
+    it('enriches sessions when project name ends with browserstack', async () => {
+      const result = makeResult({
+        attachments: [
+          makeSessionAttachment({
+            projectName: 'mm-connect-android-browserstack',
+          }),
+          makeMetricsAttachment(),
+        ],
+      });
+      reporter.onTestEnd(
+        makeTest({
+          parent: { project: { name: 'mm-connect-android-browserstack' } },
+        }) as never,
+        result as never,
+      );
+
+      await reporter.onEnd();
+
+      expect(BrowserStackEnricher).toHaveBeenCalled();
+    });
+
+    it('enriches sessions for onboarding BrowserStack projects', async () => {
+      const result = makeResult({
+        attachments: [
+          makeSessionAttachment({ projectName: 'android-onboarding' }),
+          makeMetricsAttachment(),
+        ],
+      });
+      reporter.onTestEnd(
+        makeTest({
+          parent: { project: { name: 'android-onboarding' } },
+        }) as never,
+        result as never,
+      );
+
+      await reporter.onEnd();
+
+      expect(BrowserStackEnricher).toHaveBeenCalled();
+    });
+
     it('creates reports directory if it does not exist', async () => {
       (fs.existsSync as jest.Mock).mockReturnValue(false);
       const result = makeResult({
@@ -307,7 +347,7 @@ describe('PerformanceReporter', () => {
       await reporter.onEnd();
 
       // BrowserStackEnricher should still be constructed but enrichSession should not be called
-      // because the project name doesn't include "browserstack-"
+      // because the project name doesn't include "browserstack"
       const enricherInstance = (BrowserStackEnricher as unknown as jest.Mock)
         .mock.results[0];
       if (enricherInstance) {

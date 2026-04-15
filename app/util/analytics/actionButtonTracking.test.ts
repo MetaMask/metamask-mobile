@@ -7,7 +7,7 @@ import {
 } from './actionButtonTracking';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
-import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
+import { ITrackingEvent } from './analytics.types';
 
 // Mock dependencies
 jest.mock('../../core/Analytics');

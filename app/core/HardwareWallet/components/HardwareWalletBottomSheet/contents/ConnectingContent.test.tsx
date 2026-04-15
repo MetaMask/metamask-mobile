@@ -57,19 +57,18 @@ describe('ConnectingContent', () => {
     expect(getByTestId(CONNECTING_CONTENT_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('renders activity indicator', () => {
+  it('renders spinner', () => {
     const { getByTestId } = renderComponent();
 
     expect(getByTestId(CONNECTING_CONTENT_SPINNER_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('renders tips', () => {
+  it('renders connection tips', () => {
     const { getByText } = renderComponent();
 
     expect(
       getByText('hardware_wallet.connecting.tips_header'),
     ).toBeOnTheScreen();
-    // All tips are rendered with { device: deviceName } interpolation params
     expect(
       getByText(/hardware_wallet\.connecting\.tip_unlock/),
     ).toBeOnTheScreen();
@@ -78,9 +77,6 @@ describe('ConnectingContent', () => {
     ).toBeOnTheScreen();
     expect(
       getByText(/hardware_wallet\.connecting\.tip_enable_bluetooth/),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(/hardware_wallet\.connecting\.tip_dnd_off/),
     ).toBeOnTheScreen();
   });
 });

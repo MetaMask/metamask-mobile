@@ -23,16 +23,14 @@ import PredictCashOutPage from '../../page-objects/Predict/PredictCashOutPage';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
-import { getEventsPayloads } from '../../helpers/analytics/helpers';
-import SoftAssert from '../../framework/SoftAssert';
+import { predictCashOutFlowAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-cash-out.analytics';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
-  Verifies the cash out flow for a predictions position:
-  1. Navigate to Predictions tab and verify balance is $28.16
-  2. Open Spurs vs. Pelicans position details
-  3. Cash out the position with updated mocks
-  4. Verify cash out appears in Activities tab
+  Verifies the cash out flow for a predictions position (homepage sections v1 — no wallet tabs):
+  1. From wallet homepage Predictions section, open Spurs vs. Pelicans position details
+  2. Cash out the position with updated mocks
+  3. Verify balance and cash out in Activities tab
   */
 const positionDetails = {
   name: 'Spurs vs. Pelicans',
@@ -46,13 +44,18 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
     carouselBanners: false,
+    exploreSectionsOrder: {
+      home: ['predictions', 'tokens', 'perps', 'stocks', 'sites'],
+      quickActions: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
+      search: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
+    },
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
 };
 
 describe(SmokePredictions('Predictions'), () => {
-  it('should cash out on open position: Spurs vs. Pelicans', async () => {
+  it('cashes out on open position: Spurs vs. Pelicans', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -61,6 +64,7 @@ describe(SmokePredictions('Predictions'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: PredictionMarketFeature,
+        analyticsExpectations: predictCashOutFlowAnalyticsExpectations,
       },
       async ({ mockServer }) => {
         await loginToApp();
@@ -103,63 +107,6 @@ describe(SmokePredictions('Predictions'), () => {
           PredictActivityDetails.container,
         );
         await Assertions.expectTextDisplayed(positionDetails.cashOutValue);
-
-        // Verify analytics events
-        const events = await getEventsPayloads(mockServer);
-        const softAssert = new SoftAssert();
-
-        const expectedEvents = {
-          MARKET_DETAILS_OPENED: 'Predict Market Details Opened',
-          POSITION_VIEWED: 'Predict Position Viewed',
-          ACTIVITY_VIEWED: 'Predict Activity Viewed',
-        };
-
-        // Event 1: PREDICT_MARKET_DETAILS_OPENED
-        await softAssert.checkAndCollect(async () => {
-          const marketDetailsOpened = events.filter(
-            (event) => event.event === expectedEvents.MARKET_DETAILS_OPENED,
-          );
-          await Assertions.checkIfValueIsDefined(marketDetailsOpened);
-          if (marketDetailsOpened.length > 0) {
-            await Assertions.checkIfValueIsDefined(
-              marketDetailsOpened[0].properties.entry_point,
-            );
-            await Assertions.checkIfValueIsDefined(
-              marketDetailsOpened[0].properties.market_details_viewed,
-            );
-          }
-        }, 'Market Details Opened event should be tracked');
-
-        // Event 2: PREDICT_POSITION_VIEWED
-        await softAssert.checkAndCollect(async () => {
-          const positionViewed = events.filter(
-            (event) => event.event === expectedEvents.POSITION_VIEWED,
-          );
-          await Assertions.checkIfValueIsDefined(positionViewed);
-          if (positionViewed.length > 0) {
-            await Assertions.checkIfValueIsDefined(
-              positionViewed[0].properties.open_positions_count,
-            );
-          }
-        }, 'Position Viewed event should be tracked');
-
-        // Event 3: PREDICT_ACTIVITY_VIEWED
-        await softAssert.checkAndCollect(async () => {
-          const activityViewed = events.filter(
-            (event) => event.event === expectedEvents.ACTIVITY_VIEWED,
-          );
-          await Assertions.checkIfValueIsDefined(activityViewed);
-          if (activityViewed.length > 0) {
-            await Assertions.checkIfObjectContains(
-              activityViewed[0].properties,
-              {
-                activity_type: 'activity_list',
-              },
-            );
-          }
-        }, 'Activity Viewed event should be tracked');
-
-        softAssert.throwIfErrors();
       },
     );
   });

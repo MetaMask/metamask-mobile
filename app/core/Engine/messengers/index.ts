@@ -24,7 +24,7 @@ import {
   getSnapControllerInitMessenger,
   getSnapControllerMessenger,
   getSnapInterfaceControllerMessenger,
-  getSnapsRegistryMessenger,
+  getSnapRegistryControllerMessenger,
   getWebSocketServiceMessenger,
 } from './snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -111,20 +111,16 @@ import {
   getUserStorageControllerInitMessenger,
 } from './identity/user-storage-controller-messenger';
 import { getAuthenticationControllerMessenger } from './identity/authentication-controller-messenger';
-import {
-  getEarnControllerInitMessenger,
-  getEarnControllerMessenger,
-} from './earn-controller-messenger';
+import { getEarnControllerMessenger } from './earn-controller-messenger';
+import { getMoneyAccountControllerMessenger } from './money-account-controller-messenger';
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
-import { getSwapsControllerMessenger } from './swaps-controller-messenger';
 import {
   getDelegationControllerInitMessenger,
   getDelegationControllerMessenger,
 } from './delegation/delegation-controller-messenger';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
-import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
 import { getStorageServiceMessenger } from './storage-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import {
@@ -137,9 +133,9 @@ import { getPhishingControllerMessenger } from './phishing-controller-messenger'
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 import { getConnectivityControllerMessenger } from './connectivity-controller-messenger';
 import {
-  getMultichainRouterInitMessenger,
-  getMultichainRouterMessenger,
-} from './multichain-router-messenger';
+  getMultichainRoutingServiceInitMessenger,
+  getMultichainRoutingServiceMessenger,
+} from './multichain-routing-service-messenger.ts';
 import {
   getTransactionPayControllerInitMessenger,
   getTransactionPayControllerMessenger,
@@ -151,12 +147,16 @@ import {
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
+import { getSocialServiceMessenger } from './social-service-messenger';
+import { getSocialControllerMessenger } from './social-controller-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
+import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
+import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
 
 /**
- * The messengers for the controllers that have been.
+ * The messenger factories for the messenger clients that have been modularized.
  */
-export const CONTROLLER_MESSENGERS = {
+export const MESSENGER_FACTORIES = {
   AccountsController: {
     getMessenger: getAccountsControllerMessenger,
     getInitMessenger: noop,
@@ -191,7 +191,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   EarnController: {
     getMessenger: getEarnControllerMessenger,
-    getInitMessenger: getEarnControllerInitMessenger,
+    getInitMessenger: noop,
   },
   GeolocationApiService: {
     getMessenger: getGeolocationApiServiceMessenger,
@@ -199,10 +199,6 @@ export const CONTROLLER_MESSENGERS = {
   },
   GeolocationController: {
     getMessenger: getGeolocationControllerMessenger,
-    getInitMessenger: noop,
-  },
-  ErrorReportingService: {
-    getMessenger: getErrorReportingServiceMessenger,
     getInitMessenger: noop,
   },
   LoggingController: {
@@ -294,8 +290,8 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getSnapInterfaceControllerMessenger,
     getInitMessenger: noop,
   },
-  SnapsRegistry: {
-    getMessenger: getSnapsRegistryMessenger,
+  SnapRegistryController: {
+    getMessenger: getSnapRegistryControllerMessenger,
     getInitMessenger: noop,
   },
   NotificationServicesController: {
@@ -332,9 +328,13 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getMultichainBalancesControllerMessenger,
     getInitMessenger: noop,
   },
-  MultichainRouter: {
-    getMessenger: getMultichainRouterMessenger,
-    getInitMessenger: getMultichainRouterInitMessenger,
+  MultichainRoutingService: {
+    getMessenger: getMultichainRoutingServiceMessenger,
+    getInitMessenger: getMultichainRoutingServiceInitMessenger,
+  },
+  MoneyAccountController: {
+    getMessenger: getMoneyAccountControllerMessenger,
+    getInitMessenger: noop,
   },
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
@@ -366,10 +366,6 @@ export const CONTROLLER_MESSENGERS = {
   SmartTransactionsController: {
     getMessenger: getSmartTransactionsControllerMessenger,
     getInitMessenger: getSmartTransactionsControllerInitMessenger,
-  },
-  SwapsController: {
-    getMessenger: getSwapsControllerMessenger,
-    getInitMessenger: noop,
   },
   NetworkEnablementController: {
     getMessenger: getNetworkEnablementControllerMessenger,
@@ -471,8 +467,24 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getAiDigestControllerMessenger,
     getInitMessenger: noop,
   },
+  SocialService: {
+    getMessenger: getSocialServiceMessenger,
+    getInitMessenger: noop,
+  },
+  SocialController: {
+    getMessenger: getSocialControllerMessenger,
+    getInitMessenger: noop,
+  },
   CardController: {
     getMessenger: getCardControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ComplianceService: {
+    getMessenger: getComplianceServiceMessenger,
+    getInitMessenger: noop,
+  },
+  ComplianceController: {
+    getMessenger: getComplianceControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;

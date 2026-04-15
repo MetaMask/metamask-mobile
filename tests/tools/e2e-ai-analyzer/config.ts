@@ -28,8 +28,9 @@ export const LLM_CONFIG = {
   /**
    * Provider priority order for automatic fallback
    * The first available provider in this list will be used
+   * Order: Claude → OpenAI → Gemini (matching Extension team)
    */
-  providerPriority: ['openai', 'anthropic', 'google'] as ProviderType[],
+  providerPriority: ['anthropic', 'openai', 'google'] as ProviderType[],
 
   /**
    * Per-provider configuration

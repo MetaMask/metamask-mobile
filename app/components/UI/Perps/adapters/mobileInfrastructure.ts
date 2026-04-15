@@ -6,17 +6,25 @@
  */
 
 import Logger from '../../../../util/Logger';
+import StorageWrapper from '../../../../store/storage-wrapper';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
 import { trace, endTrace, TraceName } from '../../../../util/trace';
-import { setMeasurement } from '@sentry/react-native';
+import {
+  setMeasurement,
+  addBreadcrumb,
+  type SeverityLevel,
+} from '@sentry/react-native';
 import performance from 'react-native-performance';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import Engine from '../../../../core/Engine';
 import {
+  PERPS_CONSTANTS,
+  parseCommaSeparatedString,
   type PerpsPlatformDependencies,
+  type PerpsControllerConfig,
   type PerpsMetrics,
   type PerpsTraceName,
   type PerpsTraceValue,
@@ -151,6 +159,44 @@ function createCacheInvalidatorAdapter() {
 }
 
 /**
+ * Creates mobile-specific client config from environment variables.
+ * Centralizes all process.env reads so the Engine init file stays pure wiring.
+ */
+export function createMobileClientConfig(): PerpsControllerConfig {
+  return {
+    fallbackBlockedRegions: parseCommaSeparatedString(
+      process.env.MM_PERPS_BLOCKED_REGIONS ?? '',
+    ),
+    fallbackHip3Enabled: process.env.MM_PERPS_HIP3_ENABLED === 'true',
+    fallbackHip3AllowlistMarkets: parseCommaSeparatedString(
+      process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS ?? '',
+    ),
+    fallbackHip3BlocklistMarkets: parseCommaSeparatedString(
+      process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS ?? '',
+    ),
+    providerCredentials: {
+      hyperliquid: {
+        builderAddressTestnet:
+          process.env.MM_PERPS_HL_BUILDER_ADDRESS_TESTNET ?? '',
+        builderAddressMainnet:
+          process.env.MM_PERPS_HL_BUILDER_ADDRESS_MAINNET ?? '',
+      },
+      myx: {
+        enabled: process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true',
+        appIdTestnet: process.env.MM_PERPS_MYX_APP_ID_TESTNET ?? '',
+        apiSecretTestnet: process.env.MM_PERPS_MYX_API_SECRET_TESTNET ?? '',
+        brokerAddressTestnet:
+          process.env.MM_PERPS_MYX_BROKER_ADDRESS_TESTNET ?? '',
+        appIdMainnet: process.env.MM_PERPS_MYX_APP_ID_MAINNET ?? '',
+        apiSecretMainnet: process.env.MM_PERPS_MYX_API_SECRET_MAINNET ?? '',
+        brokerAddressMainnet:
+          process.env.MM_PERPS_MYX_BROKER_ADDRESS_MAINNET ?? '',
+      },
+    },
+  };
+}
+
+/**
  * Creates mobile-specific platform dependencies for PerpsController.
  * Controller access uses messenger pattern (messenger.call()).
  */
@@ -166,8 +212,13 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
           extras?: Record<string, unknown>;
         },
       ): void {
-        // Logger.error expects (error, context) format
-        Logger.error(error, options?.context ?? options);
+        Logger.error(error, {
+          ...options,
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            ...options?.tags,
+          },
+        });
       },
     },
     debugLogger: {
@@ -211,6 +262,14 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
       setMeasurement(name: string, value: number, unit: string): void {
         setMeasurement(name, value, unit);
       },
+      addBreadcrumb(breadcrumb: {
+        category: string;
+        message: string;
+        level: SeverityLevel;
+        data?: Record<string, unknown>;
+      }): void {
+        addBreadcrumb(breadcrumb);
+      },
     },
 
     // === Platform Services ===
@@ -228,6 +287,16 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
 
     // === Cache Invalidation ===
     cacheInvalidator: createCacheInvalidatorAdapter(),
+
+    // === Disk Cache (cold-start persistence via MMKV) ===
+    diskCache: {
+      getItem: (key: string) => StorageWrapper.getItem(key),
+      getItemSync: (key: string) => StorageWrapper.getItemSync(key),
+      setItem: (key: string, value: string) =>
+        StorageWrapper.setItem(key, value),
+      removeItem: (key: string) =>
+        StorageWrapper.removeItem(key).then(() => undefined),
+    },
 
     // === Rewards (DI — no RewardsController in Core yet) ===
     rewards: {

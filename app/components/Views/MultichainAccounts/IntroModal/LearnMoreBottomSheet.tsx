@@ -6,12 +6,10 @@ import {
   TextVariant,
   IconName,
   TextColor,
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
 } from '@metamask/design-system-react-native';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import BottomSheet, {
   BottomSheetRef,
@@ -27,7 +25,7 @@ import { setMultichainAccountsIntroModalSeen } from '../../../../actions/user';
 import { LEARN_MORE_BOTTOM_SHEET_TEST_IDS } from './LearnMoreBottomSheet.testIds';
 
 interface LearnMoreBottomSheetProps {
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
@@ -111,14 +109,15 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
 
         <View style={styles.footer}>
           <Button
-            variant={ButtonVariants.Primary}
-            label={strings('multichain_accounts.learn_more.confirm_button')}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Primary}
+            size={ButtonBaseSize.Lg}
+            isFullWidth
             onPress={handleConfirm}
             isDisabled={!isCheckboxChecked}
             testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CONFIRM_BUTTON}
-          />
+          >
+            {strings('multichain_accounts.learn_more.confirm_button')}
+          </Button>
         </View>
       </View>
     </BottomSheet>

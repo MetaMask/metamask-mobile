@@ -5,7 +5,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import RewardSettingsAccountGroupList from '../components/Settings/RewardSettingsAccountGroupList';
 import RewardsInfoBanner from '../components/RewardsInfoBanner';
@@ -17,7 +18,7 @@ export const REWARDS_SETTINGS_SAFE_AREA_TEST_ID = 'rewards-settings-safe-area';
 const RewardsSettingsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedSettingsViewed = useRef(false);
   const [isOffDeviceSheetOpen, setIsOffDeviceSheetOpen] = useState(false);
 
@@ -44,7 +45,7 @@ const RewardsSettingsView: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsSettingsView">
       <SafeAreaView
-        edges={{ bottom: 'additive' }}
+        edges={{ top: 'additive' }}
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_SETTINGS_SAFE_AREA_TEST_ID}
       >
@@ -52,7 +53,6 @@ const RewardsSettingsView: React.FC = () => {
           title={strings('rewards.settings.title')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}
-          includesTopInset
         />
         <Box twClassName="py-4 flex-1 gap-4">
           {offDeviceAccounts.length > 0 && (

@@ -2,14 +2,22 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import usePrevious from '../../../hooks/usePrevious';
 import { BigNumber } from 'bignumber.js';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import type { OrderFill } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
 import { areAddressesEqual } from '../../../../util/address';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { PerpsTransaction } from '../types/transactionHistory';
+import {
+  PerpsTransaction,
+  PerpsTransactionType,
+} from '../types/transactionHistory';
+import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { useUserHistory } from './useUserHistory';
 import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
 import {
@@ -18,7 +26,21 @@ import {
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
   transformWalletPerpsDepositsToTransactions,
+  transformWithdrawalRequestsToTransactions,
+  walletPerpsWithdrawalsToRequests,
+  mergeOrderFills,
 } from '../utils/transactionTransforms';
+
+function deduplicateByTxHash(
+  walletTxs: PerpsTransaction[],
+  restHashes: Set<string>,
+) {
+  return walletTxs.filter((tx) => {
+    const walletTxHash =
+      tx.depositWithdrawal?.txHash?.toLowerCase?.()?.trim() ?? '';
+    return walletTxHash === '' || !restHashes.has(walletTxHash);
+  });
+}
 
 interface UsePerpsTransactionHistoryParams {
   startTime?: number;
@@ -46,6 +68,7 @@ export const usePerpsTransactionHistory = ({
   skipInitialFetch = false,
 }: UsePerpsTransactionHistoryParams = {}): UsePerpsTransactionHistoryResult => {
   const [transactions, setTransactions] = useState<PerpsTransaction[]>([]);
+  const [restFills, setRestFills] = useState<OrderFill[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,21 +84,47 @@ export const usePerpsTransactionHistory = ({
   // This ensures new trades appear immediately without waiting for REST refetch
   const { fills: liveFills } = usePerpsLiveFills({ throttleMs: 0 });
 
-  // Wallet perps deposits (TransactionType.perpsDeposit / perpsDepositAndOrder) for the Deposits tab
+  // Wallet perps deposits and withdrawals for the Deposits tab
   const walletTransactions = useSelector(selectNonReplacedTransactions);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const walletDepositTransactions = useMemo(() => {
-    const filtered = walletTransactions.filter(
-      (tx) =>
-        selectedAddress &&
-        areAddressesEqual(tx.txParams?.from ?? '', selectedAddress) &&
-        (tx.type === TransactionType.perpsDeposit ||
-          tx.type === TransactionType.perpsDepositAndOrder),
-    );
-    return transformWalletPerpsDepositsToTransactions(filtered);
-  }, [walletTransactions, selectedAddress]);
+  const { walletDepositTransactions, walletWithdrawalTransactions } =
+    useMemo(() => {
+      if (!selectedAddress) {
+        return {
+          walletDepositTransactions: [] as PerpsTransaction[],
+          walletWithdrawalTransactions: [] as PerpsTransaction[],
+        };
+      }
+
+      const deposits: TransactionMeta[] = [];
+      const withdrawals: TransactionMeta[] = [];
+
+      for (const tx of walletTransactions) {
+        if (!areAddressesEqual(tx.txParams?.from ?? '', selectedAddress)) {
+          continue;
+        }
+        if (
+          hasTransactionType(tx, [
+            TransactionType.perpsDeposit,
+            TransactionType.perpsDepositAndOrder,
+          ])
+        ) {
+          deposits.push(tx);
+        } else if (hasTransactionType(tx, [TransactionType.perpsWithdraw])) {
+          withdrawals.push(tx);
+        }
+      }
+
+      return {
+        walletDepositTransactions:
+          transformWalletPerpsDepositsToTransactions(deposits),
+        walletWithdrawalTransactions: transformWithdrawalRequestsToTransactions(
+          walletPerpsWithdrawalsToRequests(withdrawals),
+        ),
+      };
+    }, [walletTransactions, selectedAddress]);
 
   // Store userHistory in ref to avoid recreating fetchAllTransactions callback
   const userHistoryRef = useRef(userHistory);
@@ -140,8 +189,13 @@ export const usePerpsTransactionHistory = ({
         }
       }
 
+      // Store raw enriched fills so mergedTransactions can merge at fill level
+      // (prevents WS partial-snapshot from overwriting correctly aggregated REST data)
+      setRestFills(enrichedFills);
+
       // Transform each data type to PerpsTransaction format
-      const fillTransactions = transformFillsToTransactions(enrichedFills);
+      // Note: fill transactions are derived in mergedTransactions from restFills,
+      // so we only need orders, funding, and user history here.
       const orderTransactions = transformOrdersToTransactions(
         orders,
         fillSizeByOrderId,
@@ -151,9 +205,8 @@ export const usePerpsTransactionHistory = ({
         userHistoryRef.current,
       );
 
-      // Combine all transactions (no Arbitrum withdrawals - using user history as single source of truth)
+      // Combine all non-trade transactions (no Arbitrum withdrawals - using user history as single source of truth)
       const allTransactions = [
-        ...fillTransactions,
         ...orderTransactions,
         ...fundingTransactions,
         ...userHistoryTransactions,
@@ -181,6 +234,7 @@ export const usePerpsTransactionHistory = ({
       DevLogger.log('Error fetching transaction history:', errorMessage);
       setError(errorMessage);
       setTransactions([]);
+      setRestFills([]);
     } finally {
       setIsLoading(false);
     }
@@ -223,86 +277,61 @@ export const usePerpsTransactionHistory = ({
     return null;
   }, [error, userHistoryError]);
 
-  // Merge live WebSocket fills with REST transactions for instant updates
-  // Live fills take precedence for recent trades
-  // IMPORTANT: Deduplicate trades using asset+timestamp (truncated to seconds), not tx.id,
-  // because:
-  // 1. The ID includes array index which differs between REST and WebSocket arrays
-  // 2. Aggregated fills (from split stop loss/TP) may have slightly different first-fill
-  //    timestamps between REST and WebSocket if fills arrive in different order
+  // Merge live WebSocket fills with REST fills at the raw OrderFill level first,
+  // then transform once. This ensures multi-fill trades (e.g. SL split into 10
+  // sub-fills) are aggregated from the complete fill set rather than from the WS
+  // partial snapshot, which would produce an incorrect (lower) PnL and size.
   const mergedTransactions = useMemo(() => {
-    // Transform live fills to PerpsTransaction format
-    // Note: transformFillsToTransactions now aggregates split stop loss/TP fills
-    const liveTransactions = transformFillsToTransactions(liveFills);
+    // Transform once on the complete merged fill set
+    const mergedFillTransactions = transformFillsToTransactions(
+      mergeOrderFills(restFills, liveFills),
+    );
 
-    // If no REST transactions yet, return live fills plus wallet deposits (sorted)
-    if (transactions.length === 0) {
-      const combined = [...liveTransactions, ...walletDepositTransactions].sort(
-        (a, b) => b.timestamp - a.timestamp,
-      );
-      return combined;
+    // Separate non-trade transactions (orders, funding, user history deposits)
+    const nonTradeTransactions = transactions.filter(
+      (tx) => tx.type !== PerpsTransactionType.Trade,
+    );
+
+    // Deduplicate wallet deposits/withdrawals against REST (user history) by txHash.
+    // When a wallet-originated transaction is bridged and recorded by the perps backend,
+    // it appears in both sources; we keep the REST version and drop the wallet duplicate.
+    const restDepositTxHashes = new Set<string>();
+    const restWithdrawalTxHashes = new Set<string>();
+    for (const tx of nonTradeTransactions) {
+      const restTxHash = tx.depositWithdrawal?.txHash?.trim();
+      if (!restTxHash) continue;
+      const normalizedHash = restTxHash.toLowerCase();
+      if (tx.type === PerpsTransactionType.Deposit) {
+        restDepositTxHashes.add(normalizedHash);
+      } else if (tx.type === PerpsTransactionType.Withdrawal) {
+        restWithdrawalTxHashes.add(normalizedHash);
+      }
     }
 
-    // Separate trade transactions from non-trade transactions (orders, funding, deposits)
-    // Non-trade transactions use their ID directly (no index issue)
-    const restTradeTransactions = transactions.filter(
-      (tx) => tx.type === 'trade',
+    const walletDepositsDeduplicated = deduplicateByTxHash(
+      walletDepositTransactions,
+      restDepositTxHashes,
     );
-    const nonTradeTransactions = transactions.filter(
-      (tx) => tx.type !== 'trade',
+    const walletWithdrawalsDeduplicated = deduplicateByTxHash(
+      walletWithdrawalTransactions,
+      restWithdrawalTxHashes,
     );
-    // Deduplicate wallet deposits against REST (user history) deposits by txHash.
-    // When a wallet-originated deposit is bridged and recorded by the perps backend,
-    // it appears in both sources; we keep the REST version and drop the wallet duplicate.
-    const restDepositTxHashes = new Set(
-      nonTradeTransactions
-        .filter(
-          (tx) =>
-            tx.type === 'deposit' &&
-            tx.depositWithdrawal?.txHash?.trim() !== '',
-        )
-        .map((tx) => (tx.depositWithdrawal?.txHash ?? '').toLowerCase().trim()),
-    );
-    const walletDepositsDeduplicated = walletDepositTransactions.filter(
-      (tx) => {
-        const h = tx.depositWithdrawal?.txHash?.toLowerCase?.()?.trim() ?? '';
-        return h === '' || !restDepositTxHashes.has(h);
-      },
-    );
-    const nonTradeIncludingWalletDeposits = [
+
+    const allTransactions = [
+      ...mergedFillTransactions,
       ...nonTradeTransactions,
       ...walletDepositsDeduplicated,
+      ...walletWithdrawalsDeduplicated,
     ];
 
-    // Merge trades using asset+timestamp(seconds) as dedup key
-    // Use seconds-truncated timestamp to handle cases where REST and WebSocket
-    // aggregated fills have slightly different first-fill timestamps
-    const tradeMap = new Map<string, PerpsTransaction>();
-
-    // Add REST trade transactions first
-    for (const tx of restTradeTransactions) {
-      // Use asset + timestamp (truncated to seconds) as key
-      const timestampSeconds = Math.floor(tx.timestamp / 1000);
-      const dedupKey = `${tx.asset}-${timestampSeconds}`;
-      tradeMap.set(dedupKey, tx);
-    }
-
-    // Add live fills (overwrites REST duplicates - live data is fresher)
-    for (const tx of liveTransactions) {
-      const timestampSeconds = Math.floor(tx.timestamp / 1000);
-      const dedupKey = `${tx.asset}-${timestampSeconds}`;
-      tradeMap.set(dedupKey, tx);
-    }
-
-    // Combine deduplicated trades with non-trade transactions (including wallet deposits)
-    const allTransactions = [
-      ...Array.from(tradeMap.values()),
-      ...nonTradeIncludingWalletDeposits,
-    ];
-
-    // Sort by timestamp descending
     return allTransactions.sort((a, b) => b.timestamp - a.timestamp);
-  }, [liveFills, transactions, walletDepositTransactions]);
+  }, [
+    liveFills,
+    restFills,
+    transactions,
+    walletDepositTransactions,
+    walletWithdrawalTransactions,
+  ]);
 
   return {
     transactions: mergedTransactions,

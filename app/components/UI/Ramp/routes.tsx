@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { createStackNavigator } from '@react-navigation/stack';
+import reactQueryService from '../../../core/ReactQueryService/ReactQueryService';
 import Routes from '../../../constants/navigation/Routes';
 import TokenSelection from './Views/TokenSelection';
 import BuildQuote from './Views/BuildQuote';
@@ -13,6 +15,7 @@ import V2BankDetails from './Views/NativeFlow/BankDetails';
 import V2OrderProcessing from './Views/NativeFlow/OrderProcessing';
 import V2KycProcessing from './Views/NativeFlow/KycProcessing';
 import V2AdditionalVerification from './Views/NativeFlow/AdditionalVerification';
+import V2KycWebview from './Views/NativeFlow/KycWebview';
 import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
 import SettingsModal from './Views/Modals/SettingsModal';
 import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
@@ -21,26 +24,18 @@ import ProviderSelectionModal from './Views/Modals/ProviderSelectionModal';
 import ErrorDetailsModal from './Views/Modals/ErrorDetailsModal';
 import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SsnInfoModal from './Deposit/Views/Modals/SsnInfoModal';
+import StateSelectorModal from './Views/Modals/StateSelectorModal';
+import UnsupportedStateModal from './Views/Modals/UnsupportedStateModal';
 import RampsOrderDetails from './Views/OrderDetails';
 import LockManagerService from '../../../core/LockManagerService';
+import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
 
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
-
 const MainRoutes = () => (
-  <Stack.Navigator
-    initialRouteName={Routes.RAMP.TOKEN_SELECTION}
-    headerMode="screen"
-  >
+  <Stack.Navigator initialRouteName={Routes.RAMP.TOKEN_SELECTION}>
     <Stack.Screen
       name={Routes.RAMP.TOKEN_SELECTION}
       component={TokenSelection}
@@ -83,6 +78,17 @@ const MainRoutes = () => (
       }}
     />
     <Stack.Screen
+      name={Routes.RAMP.KYC_WEBVIEW}
+      component={V2KycWebview}
+      options={{
+        headerShown: false,
+        cardStyle: { backgroundColor: 'transparent' },
+        animationEnabled: false,
+        gestureEnabled: false,
+        detachPreviousScreen: false,
+      }}
+    />
+    <Stack.Screen
       name={Routes.RAMP.RAMPS_ORDER_DETAILS}
       component={RampsOrderDetails}
     />
@@ -91,8 +97,7 @@ const MainRoutes = () => (
 
 const TokenListModalsRoutes = () => (
   <ModalsStack.Navigator
-    mode="modal"
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
   >
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_TOKEN}
@@ -121,10 +126,22 @@ const TokenListModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.PROCESSING_INFO}
       component={ProcessingInfoModal}
+      options={{
+        ...clearStackNavigatorOptions,
+        presentation: 'transparentModal',
+      }}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.SSN_INFO}
       component={SsnInfoModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.STATE_SELECTOR}
+      component={StateSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.UNSUPPORTED_STATE}
+      component={UnsupportedStateModal}
     />
   </ModalsStack.Navigator>
 );
@@ -141,23 +158,25 @@ const TokenListRoutes = () => {
   }, []);
 
   return (
-    <RootStack.Navigator
-      initialRouteName={Routes.RAMP.TOKEN_SELECTION}
-      headerMode="none"
-    >
-      <RootStack.Screen
-        name={Routes.RAMP.TOKEN_SELECTION}
-        component={MainRoutes}
-      />
-      <RootStack.Screen
-        name={Routes.RAMP.MODALS.ID}
-        component={TokenListModalsRoutes}
-        options={{
-          ...clearStackNavigatorOptions,
-          detachPreviousScreen: false,
-        }}
-      />
-    </RootStack.Navigator>
+    <QueryClientProvider client={reactQueryService.queryClient}>
+      <RootStack.Navigator
+        initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+        screenOptions={{ headerShown: false }}
+      >
+        <RootStack.Screen
+          name={Routes.RAMP.TOKEN_SELECTION}
+          component={MainRoutes}
+        />
+        <RootStack.Screen
+          name={Routes.RAMP.MODALS.ID}
+          component={TokenListModalsRoutes}
+          options={{
+            ...clearStackNavigatorOptions,
+            detachPreviousScreen: false,
+          }}
+        />
+      </RootStack.Navigator>
+    </QueryClientProvider>
   );
 };
 

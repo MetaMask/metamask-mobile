@@ -29,9 +29,17 @@ tests/component-view/
 ├── mocks.ts              ← Engine + native mocks (import this first, always)
 ├── render.tsx            ← renderComponentViewScreen, renderScreenWithRoutes
 ├── stateFixture.ts       ← StateFixtureBuilder, createStateFixture, deepMerge
+├── platform.ts           ← describeForPlatforms, itForPlatforms, itEach, describeEach (per OS + array tables)
+├── api-mocking/          ← HTTP API mocks (nock) — one file per feature, extensible
 ├── presets/              ← initialState<Feature>() builders — one file per feature
 └── renderers/            ← render<Feature>View() functions — one file per feature
 ```
+
+### API mocking (external HTTP) {#api-mocking}
+
+- **Directory:** [api-mocking/](api-mocking/)
+- **Role:** Intercept external HTTP APIs used by views (e.g. trending tokens) via [nock](https://github.com/nock/nock). No `jest.mock` of service modules; network-level interception is allowed. One file per feature (e.g. `trending.ts`); shared helpers in `nockHelpers.ts`.
+- **Usage:** In view tests that need an API mock, import `setupXxxApiMock` and `clearXxxApiMocks` from `tests/component-view/api-mocking/<feature>`, call setup in `beforeEach` and clear in `afterEach`. To add a new API mock, copy the pattern from `api-mocking/trending.ts` and use `nockHelpers.ts`; see also navigation-mocking.md (External Service / API Mocking).
 
 ### Mocks {#framework-mocks}
 
@@ -98,9 +106,11 @@ For run-by-name, watch mode, or other options, see the skill’s [references/ref
 ## Implementation reference {#implementation-reference}
 
 - Mocks: [mocks.ts](mocks.ts)
+- API mocking (nock): [api-mocking/](api-mocking/)
 - Presets: [presets/](presets/)
 - Renderers: [renderers/](renderers/)
 - State fixture: [stateFixture.ts](stateFixture.ts)
+- Platform + itEach/describeEach: [platform.ts](platform.ts)
 
 ## Before working
 

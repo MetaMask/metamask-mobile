@@ -4,6 +4,14 @@
 
 Automated test quality enforcement and bug detection for MetaMask Mobile React Native codebase
 
+## Comment Deduplication
+
+- **ALWAYS** review your previous comments on the PR before posting
+- **DO NOT** re-raise an issue if the user has already:
+  - Resolved the comment
+  - Added a thumbs-down reaction (👎)
+- Treat resolved/rejected comments as acknowledged — move on
+
 ## Execution Protocol
 
 ### 1. Initial Setup - Unit Tests

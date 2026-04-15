@@ -16,8 +16,23 @@ concurrency:
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
 jobs:
+  check-skip-merge-queue:
+    name: Check if pull request can skip merge queue
+    runs-on: ubuntu-latest
+    outputs:
+      skip-merge-queue: ${{ steps.check-skip-merge-queue.outputs.up-to-date }}
+    steps:
+      - name: Check pull request merge queue status
+        id: check-skip-merge-queue
+        if: github.event_name == 'merge_group'
+        uses: MetaMask/github-tools/.github/actions/check-skip-merge-queue@v1
+
   check-diff:
+    name: Check diff
     runs-on: macos-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -64,7 +79,11 @@ jobs:
           fi
 
   dedupe:
+    name: Dedupe
     runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -96,7 +115,11 @@ jobs:
           fi
 
   git-safe-dependencies:
+    name: Run `@lavamoat/git-safe-dependencies`
     runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -121,7 +144,11 @@ jobs:
           command: yarn git-safe-dependencies
 
   scripts:
+    name: Run `${{ matrix.scripts }}`
     runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     strategy:
       matrix:
         scripts:
@@ -160,7 +187,11 @@ jobs:
           fi
 
   js-bundle-size-check:
+    name: JS bundle size check
     runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -183,15 +214,17 @@ jobs:
           NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 53
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 55
 
       - name: Upload iOS bundle
         uses: actions/upload-artifact@v4
         with:
           name: ios-bundle
           path: ios/main.jsbundle
+          retention-days: 7
 
   ship-js-bundle-size-check:
+    name: Ship JS bundle size check
     runs-on: ubuntu-latest
     needs: [js-bundle-size-check]
     if: ${{ github.ref == 'refs/heads/main' }}
@@ -213,6 +246,9 @@ jobs:
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     steps:
       - uses: actions/checkout@v4
       - name: Download actionlint
@@ -224,7 +260,11 @@ jobs:
         shell: bash
 
   unit-tests:
+    name: Unit tests (${{ matrix.shard }})
     runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     strategy:
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -254,6 +294,7 @@ jobs:
         shell: bash
         run: |
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
+          cp tests/results/unit-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
       - uses: actions/upload-artifact@v4
@@ -261,6 +302,7 @@ jobs:
           name: coverage-unit-${{ matrix.shard }}
           path: ./tests/coverage/
           if-no-files-found: error
+          retention-days: 7
       - name: Require clean working directory
         shell: bash
         run: |
@@ -271,6 +313,8 @@ jobs:
             echo "No changes detected"
           fi
 
+  # We need to merge both unit and component view tests into a single coverage report so the PR coverage
+  # threshold calculation is accurate.
   merge-unit-and-component-view-tests:
     runs-on: ubuntu-latest
     needs: [unit-tests, component-view-tests]
@@ -320,6 +364,11 @@ jobs:
             [ -f "$file" ] && cp "$file" ./tests/coverage-cv-merged/
           done
 
+          mkdir -p tests/coverage-unit-merged
+          for file in ./tests/coverage/coverage-unit-*/coverage-unit-*.json; do
+            [ -f "$file" ] && cp "$file" ./tests/coverage-unit-merged/
+          done
+
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
@@ -328,23 +377,41 @@ jobs:
           name: lcov.info
           path: ./tests/merged-coverage/lcov.info
           if-no-files-found: error
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
           name: cv-test-stats
           path: ./cv-test-stats.json
           if-no-files-found: error
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
           name: unit-test-stats
           path: ./unit-test-stats.json
           if-no-files-found: error
-      - name: Generate CV test HTML coverage report
-        run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html
+          retention-days: 7
+      - name: Generate CV test coverage report
+        run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html --reporter json-summary
       - uses: actions/upload-artifact@v4
         with:
           name: cv-test-coverage-html
           path: ./tests/coverage-cv-lcov/
           if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cv-test-coverage-summary
+          path: ./tests/coverage-cv-lcov/coverage-summary.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Generate unit test coverage summary
+        run: yarn nyc report --temp-dir ./tests/coverage-unit-merged --report-dir ./tests/coverage-unit-lcov --reporter json-summary
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-coverage-summary
+          path: ./tests/coverage-unit-lcov/coverage-summary.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Require clean working directory
         shell: bash
         run: |
@@ -356,7 +423,11 @@ jobs:
           fi
 
   component-view-tests:
+    name: Component view tests
     runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     strategy:
       matrix:
         shard: [1, 2]
@@ -388,6 +459,7 @@ jobs:
         shell: bash
         run: |
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
+          cp tests/results/cv-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
       - uses: actions/upload-artifact@v4
@@ -395,6 +467,7 @@ jobs:
           name: coverage-cv-${{ matrix.shard }}
           path: ./tests/coverage/
           if-no-files-found: error
+          retention-days: 7
 
   needs_e2e_build:
     uses: ./.github/workflows/needs-e2e-build.yml
@@ -402,10 +475,13 @@ jobs:
   smart-e2e-selection:
     name: 'Smart E2E Selection'
     runs-on: ubuntu-latest
-    if: ${{ !github.event.pull_request.head.repo.fork }}
+    if: ${{ (github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true') && !github.event.pull_request.head.repo.fork }}
+    needs:
+      - check-skip-merge-queue
     continue-on-error: true
     permissions:
       contents: read
+      issues: write
       pull-requests: write
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
@@ -417,6 +493,7 @@ jobs:
         with:
           sparse-checkout: |
             .github/actions/smart-e2e-selection
+            .github/scripts/e2e-risk-label.mjs
           sparse-checkout-cone-mode: false
           fetch-depth: 1
 
@@ -433,6 +510,7 @@ jobs:
           repository: ${{ github.repository }}
           post-comment: 'true'
           base-ref: ${{ github.event.pull_request.base.ref }}
+          is-draft: ${{ github.event.pull_request.draft }}
 
   # Main E2E tests
 
@@ -584,7 +662,7 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
-          name: test-e2e-validate-e2e-fixtures-junit-results
+          name: test-e2e-main-validate-e2e-fixtures-junit-results
           path: fixture-results/
 
       - name: Report results
@@ -598,6 +676,7 @@ jobs:
         run: node .github/scripts/e2e-report-fixture-validation.mjs
 
   sonar-cloud:
+    name: SonarCloud analysis
     runs-on: ubuntu-latest
     needs: merge-unit-and-component-view-tests
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
@@ -642,6 +721,7 @@ jobs:
           done
 
   sonar-cloud-quality-gate-status:
+    name: SonarCloud quality gate status
     runs-on: ubuntu-latest
     needs: sonar-cloud
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
@@ -757,14 +837,23 @@ jobs:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     needs:
+      - check-skip-merge-queue
       - all-jobs-pass
       - needs_e2e_build
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
       - e2e-smoke-tests-android-flask
       - e2e-smoke-tests-ios-flask
+    env:
+      SKIPPED: ${{ needs.check-skip-merge-queue.outputs.skip-merge-queue == 'true' }}
     steps:
       - run: |
+          # If the merge queue was skipped, consider all jobs as passed
+          if [[ "$SKIPPED" == "true" ]]; then
+            echo "Merge queue skipped, considering all jobs as passed"
+            exit 0
+          fi
+
           # Check if all non-E2E jobs passed
           if [[ "${{ needs.all-jobs-pass.outputs.ALL_JOBS_PASSED }}" != "true" ]]; then
             echo "Non-E2E jobs failed"

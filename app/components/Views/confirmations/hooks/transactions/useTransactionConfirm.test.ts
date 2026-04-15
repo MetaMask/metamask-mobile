@@ -26,9 +26,11 @@ import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
+import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockMusdNavigateOnConfirm = jest.fn();
 
 jest.mock('../useApprovalRequest');
 jest.mock('./useTransactionMetadataRequest');
@@ -41,6 +43,7 @@ jest.mock('../../../../../util/transactions/sentinel-api');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../gas/useIsGaslessSupported');
 jest.mock('../gas/useGaslessSupportedSmartTransactions');
+jest.mock('../../../../UI/Earn/hooks/useMusdConfirmNavigation');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -79,9 +82,15 @@ describe('useTransactionConfirm', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const useMusdConfirmNavigationMock = jest.mocked(useMusdConfirmNavigation);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useMusdConfirmNavigationMock.mockReturnValue({
+      navigateOnConfirm: mockMusdNavigateOnConfirm,
+    });
+
     useIsGaslessSupportedMock.mockReturnValue({
       isSmartTransaction: true,
       isSupported: true,
@@ -199,16 +208,30 @@ describe('useTransactionConfirm', () => {
     expect(tryEnableEvmNetworkMock).toHaveBeenCalledWith(CHAIN_ID_MOCK);
   });
 
-  it('navigates to Transactions view after approval error', async () => {
+  it('calls onError callback on approval failure', async () => {
+    const testError = new Error('Test error');
+    onApprovalConfirm.mockRejectedValueOnce(testError);
+    const onError = jest.fn();
+
+    const { result } = renderHook();
+
+    await act(async () => {
+      await result.current.onConfirm({ onError });
+    });
+
+    expect(onError).toHaveBeenCalledWith(testError);
+  });
+
+  it('still navigates on error when onError is not provided', async () => {
     onApprovalConfirm.mockRejectedValueOnce(new Error('Test error'));
 
     const { result } = renderHook();
 
     await act(async () => {
-      await result.current.onConfirm();
+      await expect(result.current.onConfirm()).resolves.toBeUndefined();
     });
 
-    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 
   it('does nothing when transactionMetadata is missing', async () => {
@@ -281,7 +304,7 @@ describe('useTransactionConfirm', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('wallet home if musdConversion', async () => {
+    it('calls musdConversionNavigateOnConfirm if musdConversion', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
         type: TransactionType.musdConversion,
@@ -293,7 +316,7 @@ describe('useTransactionConfirm', () => {
         await result.current.onConfirm();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockMusdNavigateOnConfirm).toHaveBeenCalled();
     });
 
     it('transactions if full screen', async () => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { userEvent } from '@testing-library/react-native';
-import { lightTheme } from '@metamask/design-tokens';
+import { mockTheme } from '../../../../util/theme';
 import NotificationRoot from './Root';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
@@ -30,7 +30,7 @@ describe('NotificationRoot', () => {
     const { renderComponent, testID } = arrange();
     const { getByTestId } = renderComponent({ isRead: true });
     expect(getByTestId(testID)).toHaveStyle({
-      backgroundColor: lightTheme.colors.background.default,
+      backgroundColor: mockTheme.colors.background.default,
     });
   });
 
@@ -38,7 +38,7 @@ describe('NotificationRoot', () => {
     const { renderComponent, testID } = arrange();
     const { getByTestId } = renderComponent({ isRead: false });
     expect(getByTestId(testID)).toHaveStyle({
-      backgroundColor: lightTheme.colors.info.muted,
+      backgroundColor: mockTheme.colors.info.muted,
     });
   });
 

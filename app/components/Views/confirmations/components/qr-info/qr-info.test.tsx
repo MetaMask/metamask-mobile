@@ -5,7 +5,7 @@ import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { typedSignV3ConfirmationState } from '../../../../../util/test/confirm-data-helpers';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import QRInfo from './qr-info';
 import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 /* eslint-disable @typescript-eslint/no-var-requires */
 import React, { useRef } from 'react';
 import BottomSheet, {

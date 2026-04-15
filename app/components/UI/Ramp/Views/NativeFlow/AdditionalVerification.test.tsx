@@ -36,9 +36,10 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
     (..._args: unknown[]) =>
     (params: unknown) => ['MockRoute', params],
   useParams: () => ({
-    quote: { quoteId: 'test-quote-id', fiatAmount: 100 },
+    quote: { quoteId: 'test-quote-id', fiatAmount: 127.37 },
     kycUrl: 'https://kyc.example.com',
     workFlowRunId: 'wf-123',
+    amount: 25,
   }),
 }));
 
@@ -59,18 +60,16 @@ describe('V2AdditionalVerification', () => {
     jest.clearAllMocks();
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(<V2AdditionalVerification />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('calls navigateToKycWebview when continue button is pressed', () => {
     const { getByText } = renderWithTheme(<V2AdditionalVerification />);
 
     fireEvent.press(getByText('deposit.additional_verification.button'));
 
     expect(mockNavigateToKycWebview).toHaveBeenCalledWith({
+      quote: { quoteId: 'test-quote-id', fiatAmount: 127.37 },
       kycUrl: 'https://kyc.example.com',
+      workFlowRunId: 'wf-123',
+      amount: 25,
     });
   });
 

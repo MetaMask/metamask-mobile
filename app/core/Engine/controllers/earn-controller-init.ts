@@ -1,9 +1,8 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   EarnController,
   EarnControllerMessenger,
 } from '@metamask/earn-controller';
-import { EarnControllerInitMessenger } from '../messengers/earn-controller-messenger';
 
 /**
  * Initialize the earn controller.
@@ -12,12 +11,10 @@ import { EarnControllerInitMessenger } from '../messengers/earn-controller-messe
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const earnControllerInit: ControllerInitFunction<
+export const earnControllerInit: MessengerClientInitFunction<
   EarnController,
-  EarnControllerMessenger,
-  EarnControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, getController }) => {
-  const networkState = initMessenger.call('NetworkController:getState');
+  EarnControllerMessenger
+> = ({ controllerMessenger, getController }) => {
   const transactionController = getController('TransactionController');
 
   const controller = new EarnController({
@@ -25,8 +22,9 @@ export const earnControllerInit: ControllerInitFunction<
     addTransactionFn: transactionController.addTransaction.bind(
       transactionController,
     ),
-    selectedNetworkClientId: networkState.selectedNetworkClientId,
   });
+
+  controller.init();
 
   return {
     controller,

@@ -5,6 +5,8 @@ import {
 } from '../../../../reducers/fiatOrders';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
 
+const AMOUNT_PLACEHOLDER = '...';
+
 export interface DisplayOrder {
   id: string;
   source: 'legacy' | 'v2';
@@ -37,7 +39,10 @@ export function fiatOrderToDisplayOrder(order: FiatOrder): DisplayOrder {
     createdAt: toEpochMs(order.createdAt),
     fiatAmount: order.amount,
     fiatCurrencyCode: order.currency,
-    cryptoAmount: order.cryptoAmount ?? 0,
+    cryptoAmount:
+      order.cryptoAmount != null && Number(order.cryptoAmount) > 0
+        ? order.cryptoAmount
+        : AMOUNT_PLACEHOLDER,
     cryptoCurrencySymbol: order.cryptocurrency,
     network: order.network,
     status: order.state,
@@ -65,7 +70,10 @@ export function rampsOrderToDisplayOrder(order: RampsOrder): DisplayOrder {
     createdAt: toEpochMs(order.createdAt),
     fiatAmount: order.fiatAmount,
     fiatCurrencyCode: order.fiatCurrency?.symbol ?? '',
-    cryptoAmount: order.cryptoAmount,
+    cryptoAmount:
+      order.cryptoAmount != null && Number(order.cryptoAmount) > 0
+        ? order.cryptoAmount
+        : AMOUNT_PLACEHOLDER,
     cryptoCurrencySymbol: order.cryptoCurrency?.symbol ?? '',
     network: order.network?.chainId ?? '',
     status: RAMPS_STATUS_TO_DISPLAY[order.status] ?? 'PENDING',
@@ -74,11 +82,20 @@ export function rampsOrderToDisplayOrder(order: RampsOrder): DisplayOrder {
   };
 }
 
+const HIDDEN_ORDER_STATUSES = new Set<RampsOrderStatus>([
+  RampsOrderStatus.Precreated,
+  RampsOrderStatus.IdExpired,
+  RampsOrderStatus.Unknown,
+]);
+
 export function mergeDisplayOrders(
   legacyOrders: FiatOrder[],
   v2Orders: RampsOrder[],
 ): DisplayOrder[] {
-  const v2Ids = new Set(v2Orders.map((o) => o.providerOrderId));
+  const visibleV2Orders = v2Orders.filter(
+    (o) => !HIDDEN_ORDER_STATUSES.has(o.status),
+  );
+  const v2Ids = new Set(visibleV2Orders.map((o) => o.providerOrderId));
 
   const legacy = legacyOrders
     .filter((o) => {
@@ -88,7 +105,7 @@ export function mergeDisplayOrders(
     })
     .map(fiatOrderToDisplayOrder);
 
-  const v2 = v2Orders.map(rampsOrderToDisplayOrder);
+  const v2 = visibleV2Orders.map(rampsOrderToDisplayOrder);
 
   return [...legacy, ...v2].sort((a, b) => b.createdAt - a.createdAt);
 }

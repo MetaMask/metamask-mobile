@@ -81,6 +81,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'predict.fee_summary.exchange_fee_description') {
       return 'Fee paid to the exchange or market';
     }
+    if (key === 'predict.fee_summary.deposit_fee') {
+      return 'Deposit fee';
+    }
+    if (key === 'predict.fee_summary.deposit_fee_description') {
+      return 'Fee paid for token deposit';
+    }
     if (key === 'predict.fee_summary.total') {
       return 'Total';
     }
@@ -240,6 +246,22 @@ describe('PredictFeeBreakdownSheet', () => {
 
       const zeroAmounts = getAllByText('$0.00');
       expect(zeroAmounts.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('does not render standalone 0 text when depositFee is 0', () => {
+      const props = {
+        ...defaultProps,
+        depositFee: 0,
+      };
+      const TestComponent = () => {
+        const ref = useRef<BottomSheetRef>(null);
+        return <PredictFeeBreakdownSheet ref={ref} {...props} />;
+      };
+
+      const { queryByText, queryAllByText } = render(<TestComponent />);
+
+      expect(queryByText(/^0$/)).not.toBeOnTheScreen();
+      expect(queryAllByText('Deposit fee')).toHaveLength(0);
     });
   });
 

@@ -77,7 +77,7 @@ jest.mock('../../core/Engine', () => ({
       updateAccounts: jest.fn(),
     },
     ApprovalController: {
-      clear: jest.fn(),
+      clearRequests: jest.fn(),
     },
     RemoteFeatureFlagController: {
       state: {
@@ -161,7 +161,10 @@ jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
 );
 
 const defaultMockState = {
-  onboarding: { completedOnboarding: false },
+  onboarding: {
+    completedOnboarding: false,
+    pendingSocialLoginMarketingConsentBackfill: null,
+  },
   user: { existingUser: true },
   engine: { backgroundState: {} },
   confirmation: {},
@@ -349,7 +352,7 @@ describe('appStateListenerTask', () => {
 
 describe('appLockStateMachine', () => {
   const mockApprovalControllerClear = Engine.context.ApprovalController
-    .clear as jest.Mock;
+    .clearRequests as jest.Mock;
 
   beforeEach(() => {
     mockNavigate.mockClear();
@@ -368,7 +371,7 @@ describe('appLockStateMachine', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
   });
 
-  it('clears pending approvals via ApprovalController.clear when app is locked', async () => {
+  it('clears pending approvals via ApprovalController.clearRequests when app is locked', async () => {
     await expectSaga(appLockStateMachine)
       .dispatch({ type: UserActionType.LOCKED_APP })
       .run();
@@ -379,7 +382,7 @@ describe('appLockStateMachine', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
   });
 
-  it('navigates to LockScreen even when ApprovalController.clear throws', async () => {
+  it('navigates to LockScreen even when ApprovalController.clearRequests throws', async () => {
     mockApprovalControllerClear.mockImplementationOnce(() => {
       throw new Error('clear failed');
     });

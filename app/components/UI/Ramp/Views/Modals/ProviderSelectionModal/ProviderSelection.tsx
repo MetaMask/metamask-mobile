@@ -31,6 +31,7 @@ import PaymentSelectionAlert from '../PaymentSelectionModal/PaymentSelectionAler
 import PaymentMethodIcon from '../../../Aggregator/components/PaymentMethodIcon';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useTheme } from '../../../../../../util/theme';
+import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
 
 const SKELETON_ROW_COUNT = 5;
 const SKELETON_NAME_WIDTH = 120;
@@ -175,7 +176,27 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
 
   const sortedListItems = useMemo((): ProviderListItem[] => {
     if (!displayQuotes || !quotes || quotesLoading) {
-      return providers.map((provider) => ({ type: 'provider', provider }));
+      // When quotes aren't available, separate by supportedCryptoCurrencies
+      const assetId = selectedToken?.assetId;
+      const [supported, unsupported] = providers.reduce<
+        [ProviderListItem[], ProviderListItem[]]
+      >(
+        ([sup, unsup], provider) => {
+          const item: ProviderListItem = { type: 'provider', provider };
+          if (!assetId) {
+            return [[...sup, item], unsup];
+          }
+          return providerSupportsAsset(provider, assetId)
+            ? [[...sup, item], unsup]
+            : [sup, [...unsup, item]];
+        },
+        [[], []],
+      );
+
+      if (assetId && supported.length > 0 && unsupported.length > 0) {
+        return [...supported, { type: 'separator' as const }, ...unsupported];
+      }
+      return [...supported, ...unsupported];
     }
 
     const sortOrder =
@@ -219,7 +240,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     }
 
     return items;
-  }, [providers, quotes, quotesLoading, displayQuotes]);
+  }, [providers, quotes, quotesLoading, displayQuotes, selectedToken?.assetId]);
 
   const handleProviderSelect = useCallback(
     (provider: Provider, _matchedQuote: Quote | null) => {
@@ -235,14 +256,19 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
       }
 
       const { provider } = item;
+      const isCustomActionQuote = (q: Quote) =>
+        Boolean((q.quote as { isCustomAction?: boolean })?.isCustomAction);
       const matchedQuote =
         quotes?.success?.find(
           (q) =>
             q.provider === provider.id &&
             (!selectedPaymentMethod ||
-              q.quote?.paymentMethod === selectedPaymentMethod.id),
+              q.quote?.paymentMethod === selectedPaymentMethod.id) &&
+            !isCustomActionQuote(q),
         ) ??
-        quotes?.success?.find((q) => q.provider === provider.id) ??
+        quotes?.success?.find(
+          (q) => q.provider === provider.id && !isCustomActionQuote(q),
+        ) ??
         null;
       const amountOut = matchedQuote?.quote?.amountOut;
       const cryptoAmount =
@@ -269,7 +295,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           accessible
         >
           <ListItemColumn widthType={WidthType.Fill}>
-            <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {provider.name}
             </Text>
             {tag ? (
@@ -324,7 +350,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
             message={
               showQuotes
                 ? strings('fiat_on_ramp.no_quotes_available')
-                : strings('fiat_on_ramp.no_providers_available')
+                : strings('fiat_on_ramp_aggregator.no_providers_available')
             }
             severity={BannerAlertSeverity.Error}
           />

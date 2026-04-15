@@ -23,6 +23,7 @@ cd "$(dirname "$0")/../../.."
 [ -f .js.env ] && source .js.env
 
 LABEL="${1:-screenshot}"
+LABEL="${LABEL%.png}"  # strip .png suffix if caller passed it
 TIMESTAMP=$(date +%Y-%m-%d_%H%M%S)
 DIR=".agent/screenshots"
 mkdir -p "$DIR"

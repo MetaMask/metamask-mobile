@@ -28,6 +28,11 @@ const MarketInsightsViewSkeleton: React.FC<MarketInsightsViewSkeletonProps> = ({
         contentContainerStyle={tw.style(`pb-[${insets.bottom + 8}px]`)}
         showsVerticalScrollIndicator={false}
       >
+        <Skeleton
+          width="100%"
+          style={tw.style('w-full', { aspectRatio: 786 / 340 })}
+        />
+
         <Box twClassName="px-4 pt-4 pb-3" gap={2}>
           <Skeleton height={28} width="90%" />
           <Skeleton height={28} width="62%" />

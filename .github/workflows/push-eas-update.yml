@@ -3,12 +3,8 @@ name: Push OTA Update
 on:
   workflow_dispatch:
     inputs:
-      commit_hash:
-        description: 'Commit hash to publish'
-        required: true
-        type: string
       pr_number:
-        description: 'PR number associated with the commit'
+        description: 'PR number to publish (uses PR branch HEAD commit)'
         required: true
         type: string
       base_branch:
@@ -38,12 +34,36 @@ on:
           - android
         default: all
 
+  workflow_call:
+    inputs:
+      pr_number:
+        description: 'PR number to publish (uses PR branch HEAD commit)'
+        type: string
+        required: true
+      base_branch:
+        description: 'Base ref to compare fingerprints against (branch name like "main" or tag name like "v7.61.6")'
+        type: string
+        required: true
+      message:
+        description: 'EAS update message'
+        type: string
+        required: true
+      channel:
+        description: 'OTA channel to push update to (exp, rc, production)'
+        type: string
+        required: false
+        default: exp
+      platform:
+        description: 'Platform to update (all, ios, android)'
+        type: string
+        required: false
+        default: all
+
 permissions:
   contents: read
   id-token: write
 
 env:
-  TARGET_COMMIT_HASH: ${{ inputs.commit_hash }}
   TARGET_PR_NUMBER: ${{ inputs.pr_number }}
   BASE_BRANCH_REF: ${{ inputs.base_branch }}
   UPDATE_MESSAGE: ${{ inputs.message }}
@@ -51,8 +71,30 @@ env:
   OTA_PUSH_PLATFORM: ${{ inputs.platform }}
 
 jobs:
+  validate-pr:
+    name: Resolve PR HEAD commit
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.resolve-pr.outputs.pr_number }}
+      commit_sha: ${{ steps.resolve-pr.outputs.commit_sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve PR HEAD commit
+        id: resolve-pr
+        env:
+          PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          .github/scripts/validate-pr-commit.sh
+
   ota-summary:
     name: OTA Update Summary
+    needs: validate-pr
     runs-on: ubuntu-latest
     steps:
       - name: Display OTA Summary
@@ -65,7 +107,8 @@ jobs:
             echo "| **Update version** | ${UPDATE_MESSAGE} |"
             echo "| **Target version** | ${BASE_BRANCH_REF} |"
             echo "| **Environment** | ${TARGET_CHANNEL} |"
-            echo "| **Target commit** | ${TARGET_COMMIT_HASH} |"
+            echo "| **Platform** | ${OTA_PUSH_PLATFORM} |"
+            echo "| **Target commit** | ${{ needs.validate-pr.outputs.commit_sha }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
   setup-dependencies:
@@ -74,7 +117,7 @@ jobs:
       - validate-pr
     uses: ./.github/workflows/setup-node-modules.yml
     with:
-      ref: ${{ inputs.commit_hash }}
+      ref: ${{ needs.validate-pr.outputs.commit_sha }}
       fetch-depth: 0
       upload-artifact: true
       artifact-name: node-modules-eas-update-pr
@@ -95,6 +138,7 @@ jobs:
   fingerprint-comparison:
     name: Compare Expo Fingerprints
     needs:
+      - validate-pr
       - setup-dependencies
       - setup-dependencies-base
     runs-on: ubuntu-latest
@@ -109,7 +153,7 @@ jobs:
       - name: Checkout target commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.TARGET_COMMIT_HASH }}
+          ref: ${{ needs.validate-pr.outputs.commit_sha }}
           fetch-depth: 0
 
       - name: Checkout base branch snapshot
@@ -214,7 +258,7 @@ jobs:
           BRANCH_FP: ${{ steps.branch_fingerprint.outputs.fingerprint }}
           MAIN_FP: ${{ steps.main_fingerprint.outputs.fingerprint }}
           MATCHES: ${{ steps.compare.outputs.equal }}
-          TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
+          TARGET_COMMIT_HASH: ${{ needs.validate-pr.outputs.commit_sha }}
           BASE_BRANCH_REF: ${{ env.BASE_BRANCH_REF }}
         run: |
           {
@@ -224,28 +268,6 @@ jobs:
             echo "- Base branch (\`$BASE_BRANCH_REF\`) fingerprint: \`$MAIN_FP\`"
             echo "- Match: \`$MATCHES\`"
           } >> "$GITHUB_STEP_SUMMARY"
-
-  validate-pr:
-    name: Validate PR and Commit
-    runs-on: ubuntu-latest
-    outputs:
-      pr_number: ${{ steps.validate-pr.outputs.pr_number }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Validate PR contains commit
-        id: validate-pr
-        env:
-          COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
-          PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
-          BASE_BRANCH: ${{ env.BASE_BRANCH_REF }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: |
-          .github/scripts/validate-pr-commit.sh
 
   approval:
     name: Require OTA Update Approval
@@ -275,12 +297,15 @@ jobs:
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       needs.approval.result == 'success'
     env:
+      TARGET_COMMIT_HASH: ${{ needs.validate-pr.outputs.commit_sha }}
       ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
       EXPO_CHANNEL: ${{ vars.EXPO_CHANNEL }}
       GIT_BRANCH: ${{ github.ref_name }}
-      RAMP_INTERNAL_BUILD: 'true'
+      RAMP_DEV_BUILD: ${{ secrets.RAMP_DEV_BUILD || 'false' }}
+      RAMP_INTERNAL_BUILD: ${{ secrets.RAMP_INTERNAL_BUILD || 'false' }}
+      RAMPS_ENVIRONMENT: ${{ secrets.RAMPS_ENVIRONMENT || 'production' }}
       MM_MUSD_CONVERSION_FLOW_ENABLED: 'false'
       MM_NETWORK_UI_REDESIGN_ENABLED: 'false'
       MM_NOTIFICATIONS_UI_ENABLED: 'true'
@@ -333,6 +358,9 @@ jobs:
       QUICKNODE_BSC_URL: ${{ secrets.QUICKNODE_BSC_URL }}
       QUICKNODE_SEI_URL: ${{ secrets.QUICKNODE_SEI_URL }}
       MM_CHARTING_LIBRARY_URL: ${{ secrets.MM_CHARTING_LIBRARY_URL }}
+      MM_BRAZE_API_KEY_IOS: ${{ secrets.MM_BRAZE_API_KEY_IOS }}
+      MM_BRAZE_API_KEY_ANDROID: ${{ secrets.MM_BRAZE_API_KEY_ANDROID }}
+      MM_BRAZE_SDK_ENDPOINT: ${{ secrets.MM_BRAZE_SDK_ENDPOINT }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

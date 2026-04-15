@@ -6,11 +6,12 @@ import BackupAndSyncFeaturesToggles, {
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 
-jest.mock('../../../../components/hooks/useMetrics');
+jest.mock('../../../../components/hooks/useAnalytics/useAnalytics');
 
 const MOCK_STORE_STATE = {
   engine: {
@@ -40,19 +41,12 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
 );
 
 const mockTrackEvent = jest.fn();
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+jest.mocked(useAnalytics).mockReturnValue(
+  createMockUseAnalyticsHook({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+  }),
+);
 
 const mockSetIsBackupAndSyncFeatureEnabled = jest.fn();
 jest.mock('../../../../util/identity/hooks/useBackupAndSync', () => ({
@@ -65,13 +59,25 @@ jest.mock('../../../../util/identity/hooks/useBackupAndSync', () => ({
 describe('BackupAndSyncToggle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
   });
 
-  it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(<BackupAndSyncFeaturesToggles />, {
-      state: MOCK_STORE_STATE,
+  it('renders all feature toggle sections', () => {
+    const { getByTestId } = renderWithProvider(
+      <BackupAndSyncFeaturesToggles />,
+      {
+        state: MOCK_STORE_STATE,
+      },
+    );
+
+    backupAndSyncFeaturesTogglesSections.forEach((section) => {
+      expect(getByTestId(section.testID)).toBeOnTheScreen();
     });
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('tracks toggle event when toggling the switch', async () => {
@@ -88,7 +94,7 @@ describe('BackupAndSyncToggle', () => {
       fireEvent(switchElement, 'onValueChange', true);
     });
 
-    const expectedEvent = MetricsEventBuilder.createEventBuilder(
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.SETTINGS_UPDATED,
     )
       .addProperties({

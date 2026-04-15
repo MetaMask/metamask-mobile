@@ -1,3 +1,4 @@
+import { ActivityIndicator } from 'react-native';
 import { waitFor, screen } from '@testing-library/react-native';
 import Root from './Root';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -82,13 +83,19 @@ describe('Root Component', () => {
     (useParams as jest.Mock).mockReturnValue(undefined);
   });
 
-  it('render matches snapshot', () => {
+  it('renders the loading indicator', () => {
     render(Root);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.UNSAFE_getAllByType(ActivityIndicator).length,
+    ).toBeGreaterThan(0);
   });
 
-  it('redirects to BUILD_QUOTE immediately when no created orders exist', async () => {
+  it('redirects to BUILD_QUOTE when no created orders exist after hydrating stored token', async () => {
+    mockCheckExistingToken.mockResolvedValue(false);
     render(Root);
+    await waitFor(() => {
+      expect(mockCheckExistingToken).toHaveBeenCalled();
+    });
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
@@ -100,7 +107,6 @@ describe('Root Component', () => {
         ],
       });
     });
-    expect(mockCheckExistingToken).not.toHaveBeenCalled();
   });
 
   it('calls checkExistingToken when a created order exists', async () => {

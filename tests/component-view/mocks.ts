@@ -12,6 +12,9 @@ jest.mock('../../app/core/Engine', () => {
           keyrings: [],
         },
       },
+      AccountsController: {
+        listAccounts: jest.fn().mockReturnValue([]),
+      },
       AccountTrackerController: {
         refresh() {
           return undefined;
@@ -26,6 +29,9 @@ jest.mock('../../app/core/Engine', () => {
         },
       },
       PreferencesController: {
+        state: {
+          securityAlertsEnabled: true,
+        },
         setTokenNetworkFilter() {
           return undefined;
         },
@@ -118,6 +124,18 @@ jest.mock('../../app/core/Engine', () => {
       },
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+      },
+      AssetsContractController: {
+        getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
+      },
+      TransactionController: {
+        state: {
+          transactions: [],
+        },
+        addTransaction: jest.fn().mockResolvedValue({}),
+        getNonceLock: jest
+          .fn()
+          .mockResolvedValue({ nextNonce: 0, releaseLock: jest.fn() }),
       },
       NetworkController: {
         state: { networksMetadata: {} },
@@ -233,9 +251,15 @@ jest.mock('../../app/core/Engine', () => {
       unsubscribe() {
         return undefined;
       },
-      call(_action: string, ..._args: unknown[]) {
-        // Analytics calls are side effects - return resolved promise to prevent errors
-        // but don't execute actual analytics tracking in tests
+      call(action: string, ...args: unknown[]) {
+        // Non-EVM (e.g. TRON) amount validation calls SnapController:handleRequest with onAmountInput
+        const params = args[0] as { request?: { method?: string } } | undefined;
+        if (
+          action === 'SnapController:handleRequest' &&
+          params?.request?.method === 'onAmountInput'
+        ) {
+          return Promise.resolve({ valid: true, errors: [] });
+        }
         return Promise.resolve(undefined);
       },
     },

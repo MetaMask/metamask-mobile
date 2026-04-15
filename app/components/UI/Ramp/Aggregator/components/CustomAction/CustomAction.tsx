@@ -23,6 +23,7 @@ import TagColored from '../../../../../../component-library/components-temp/TagC
 import styleSheet from './CustomAction.styles';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ListItem from '../../../../../../component-library/components/List/ListItem';
+import { CUSTOM_ACTION_TEST_IDS } from './CustomAction.testIds';
 
 interface Props {
   customAction: PaymentCustomAction;
@@ -82,7 +83,10 @@ const CustomAction: React.FC<Props> = ({
   }));
 
   return (
-    <Animated.View style={animatedOpacity} testID="animated-view-opacity">
+    <Animated.View
+      style={animatedOpacity}
+      testID={CUSTOM_ACTION_TEST_IDS.ANIMATED_VIEW_OPACITY}
+    >
       <Box
         onPress={highlighted ? undefined : onPress}
         highlighted={highlighted}
@@ -136,7 +140,7 @@ const CustomAction: React.FC<Props> = ({
             <Animated.View
               onLayout={handleOnLayout}
               style={[styles.data, animatedStyle]}
-              testID="animated-view-height"
+              testID={CUSTOM_ACTION_TEST_IDS.ANIMATED_VIEW_HEIGHT}
             >
               <View style={styles.buyButton}>
                 <Button

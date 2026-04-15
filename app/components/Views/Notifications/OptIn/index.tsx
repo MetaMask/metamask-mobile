@@ -3,9 +3,7 @@ import { Image, View, Linking, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import Button, {
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import Text, {
   TextColor,
@@ -100,19 +98,21 @@ const OptIn = () => {
 
         <View style={styles.btnContainer}>
           <Button
-            variant={ButtonVariants.Secondary}
-            label={strings('notifications.activation_card.cancel')}
+            variant={ButtonVariant.Secondary}
             onPress={handleOptInCancel}
             style={styles.ctaBtn}
             testID={EnableNotificationModalSelectorsIDs.BUTTON_CANCEL}
-          />
+          >
+            {strings('notifications.activation_card.cancel')}
+          </Button>
           <Button
-            variant={ButtonVariants.Primary}
-            label={strings('notifications.activation_card.cta')}
+            variant={ButtonVariant.Primary}
             onPress={handleOptInClick}
             style={styles.ctaBtn}
             testID={EnableNotificationModalSelectorsIDs.BUTTON_ENABLE}
-          />
+          >
+            {strings('notifications.activation_card.cta')}
+          </Button>
         </View>
       </View>
       <SwitchLoadingModal

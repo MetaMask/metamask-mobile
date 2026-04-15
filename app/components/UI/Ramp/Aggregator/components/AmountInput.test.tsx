@@ -4,6 +4,7 @@ import AmountInput from './AmountInput';
 import { TouchableOpacity } from 'react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { BuildQuoteSelectors } from '../Views/BuildQuote/BuildQuote.testIds';
 
 const defaultState = {
   engine: {
@@ -23,7 +24,7 @@ describe('AmountInput', () => {
     renderWithProvider(<AmountInput {...mockProps} />, {
       state: defaultState,
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('$100.50')).toBeOnTheScreen();
   });
 
   it('renders correctly with currency selector', () => {
@@ -34,7 +35,7 @@ describe('AmountInput', () => {
         state: defaultState,
       },
     );
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('USD')).toBeOnTheScreen();
   });
 
   it('calls onPress when pressed', () => {
@@ -62,7 +63,7 @@ describe('AmountInput', () => {
     renderWithProvider(<AmountInput {...mockProps} loading />, {
       state: defaultState,
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.queryByText('$100.50')).not.toBeOnTheScreen();
   });
 
   it('renders loading state correctly with currency selector', () => {
@@ -77,7 +78,27 @@ describe('AmountInput', () => {
         state: defaultState,
       },
     );
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.queryByText('USD')).not.toBeOnTheScreen();
+  });
+
+  it('shows live cursor when input is highlighted', () => {
+    renderWithProvider(<AmountInput {...mockProps} highlighted />, {
+      state: defaultState,
+    });
+
+    expect(
+      screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not show live cursor when input is not highlighted', () => {
+    renderWithProvider(<AmountInput {...mockProps} />, {
+      state: defaultState,
+    });
+
+    expect(
+      screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
+    ).not.toBeOnTheScreen();
   });
 
   it('does not call onPress when loading', () => {

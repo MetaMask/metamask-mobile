@@ -1,4 +1,10 @@
-import React, { ReactNode, useCallback, useMemo, useRef } from 'react';
+import React, {
+  ReactNode,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import HardwareWalletContext from './contexts/HardwareWalletContext';
 import { HardwareWalletBottomSheet } from './components';
@@ -12,6 +18,11 @@ import {
 } from './hooks';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import DevLogger from '../SDKConnect/utils/DevLogger';
+import {
+  HardwareWalletAnalyticsFlow,
+  useHardwareWalletAnalytics,
+} from './analytics';
+import { useAnalyticsFlowFromApproval } from './analytics/useAnalyticsFlowFromApproval';
 
 interface HardwareWalletProviderProps {
   children: ReactNode;
@@ -69,6 +80,30 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     updateConnectionState,
   });
 
+  const awaitingConfirmationRejectRef = useRef<(() => void) | null>(null);
+  const operationTypeRef = useRef<'transaction' | 'message' | null>(null);
+
+  const [analyticsFlow, setAnalyticsFlow] = useState(
+    HardwareWalletAnalyticsFlow.Connection,
+  );
+
+  const derivedAnalyticsFlow = useAnalyticsFlowFromApproval();
+  const derivedAnalyticsFlowRef = useRef(derivedAnalyticsFlow);
+  derivedAnalyticsFlowRef.current = derivedAnalyticsFlow;
+
+  const { trackCTAClicked, resetAnalyticsState } = useHardwareWalletAnalytics({
+    connectionState,
+    walletType: effectiveWalletType,
+    flow: analyticsFlow,
+    deviceModel: deviceSelection.selectedDevice?.name ?? null,
+  });
+
+  const handleFlowStart = useCallback(() => {
+    operationTypeRef.current = null;
+    resetAnalyticsState();
+    setAnalyticsFlow(derivedAnalyticsFlowRef.current);
+  }, [resetAnalyticsState]);
+
   const {
     ensureDeviceReady,
     connect,
@@ -85,9 +120,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     createAdapterWithCallbacks,
     initializeAdapter,
     checkTransportEnabledOrShowError,
+    onFlowStart: handleFlowStart,
   });
-
-  const awaitingConfirmationRejectRef = useRef<(() => void) | null>(null);
 
   const showHardwareWalletError = useCallback(
     (error: unknown) => {
@@ -104,6 +138,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         operationType,
       );
       awaitingConfirmationRejectRef.current = onReject ?? null;
+      operationTypeRef.current = operationType;
 
       updateConnectionState({
         status: ConnectionStatus.AwaitingConfirmation,
@@ -120,11 +155,30 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     updateConnectionState({ status: ConnectionStatus.Disconnected });
   }, [updateConnectionState]);
 
+  const handleCloseFlow = useCallback(() => {
+    operationTypeRef.current = null;
+    setAnalyticsFlow(HardwareWalletAnalyticsFlow.Connection);
+    closeFlow();
+  }, [closeFlow]);
+
+  const handleRetryOrClose = useCallback(async () => {
+    if (operationTypeRef.current !== null) {
+      DevLogger.log(
+        '[HardwareWallet] Post-signing error — closing flow instead of retrying',
+      );
+      handleCloseFlow();
+      return;
+    }
+    await retryEnsureDeviceReady();
+  }, [handleCloseFlow, retryEnsureDeviceReady]);
+
   const handleAwaitingConfirmationCancel = useCallback(() => {
     DevLogger.log('[HardwareWallet] handleAwaitingConfirmationCancel');
+    // eslint-disable-next-line no-empty-function
+    refs.adapterRef.current?.disconnect().catch(() => {});
     awaitingConfirmationRejectRef.current?.();
     hideAwaitingConfirmation();
-  }, [hideAwaitingConfirmation]);
+  }, [hideAwaitingConfirmation, refs.adapterRef]);
 
   const contextValue = useMemo(
     () => ({
@@ -158,13 +212,14 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         connectionState={connectionState}
         deviceSelection={deviceSelection}
         walletType={effectiveWalletType}
-        retryEnsureDeviceReady={retryEnsureDeviceReady}
+        retryEnsureDeviceReady={handleRetryOrClose}
         selectDevice={selectDevice}
         rescan={rescan}
         connect={connect}
-        onClose={closeFlow}
+        onClose={handleCloseFlow}
         onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
         onConnectionSuccess={handleConnectionSuccess}
+        onCTAClicked={trackCTAClicked}
       />
     </HardwareWalletContext.Provider>
   );

@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 // External dependencies.
 import { TextColor, TextVariant } from '../Text/Text.types';
 import { IconName, IconSize, IconColor } from '../../Icons/Icon';

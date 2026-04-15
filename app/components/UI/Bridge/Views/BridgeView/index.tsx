@@ -14,12 +14,7 @@ import {
   TokenInputAreaType,
 } from '../../components/TokenInputArea';
 import { useStyles } from '../../../../../component-library/hooks';
-import { Box } from '../../../Box/Box';
-import { FlexDirection, AlignItems } from '../../../Box/box.types';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import { Box } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
@@ -30,7 +25,6 @@ import {
   resetBridgeState,
   selectDestToken,
   selectSourceToken,
-  selectBridgeControllerState,
   selectIsEvmNonEvmBridge,
   selectIsSubmittingTx,
   selectDestAddress,
@@ -38,10 +32,20 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
+  selectDestTokenWarning,
+  selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
+import { TokenFeatureType } from '@metamask/bridge-controller';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
+import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import {
   useNavigation,
   useRoute,
+  useFocusEffect,
   type RouteProp,
 } from '@react-navigation/native';
 import { getBridgeNavbar } from '../../../Navbar';
@@ -53,17 +57,15 @@ import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import QuoteDetailsCardSkeleton from '../../components/QuoteDetailsCard/QuoteDetailsCardSkeleton';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
 import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useIsNetworkEnabled } from '../../hooks/useIsNetworkEnabled';
-import { BridgeToken } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import {
+  Pressable,
   ScrollView,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
@@ -75,34 +77,33 @@ import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
-import ApprovalTooltip from '../../components/ApprovalText';
-import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
-import { isNullOrUndefined, Hex } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
-import { trimTrailingZeros } from '../../utils/trimTrailingZeros.ts';
+import { normalizeSourceAmountToMaxLength } from '../../utils/normalizeSourceAmountToMaxLength.ts';
 import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
 import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
-import { useRWAToken } from '../../hooks/useRWAToken.ts';
 import { SwapsKeypadRef } from '../../components/SwapsKeypad/types.ts';
 import { GaslessQuickPickOptions } from '../../components/GaslessQuickPickOptions/index.tsx';
 import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.tsx';
 import { useBridgeViewOnFocus } from '../../hooks/useBridgeViewOnFocus/index.ts';
-import { useRenderQuoteExpireModal } from '../../hooks/useRenderQuoteExpireModal/index.ts';
 import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/index.ts';
 import BridgeTrendingTokensSection from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import type { RootState } from '../../../../../reducers';
-const SCROLL_NEAR_BOTTOM_PX = 160;
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
+import { useSourceAmountCursor } from '../../hooks/useSourceAmountCursor.ts';
+import { BridgeViewFooter } from './BridgeViewFooter.tsx';
+import { getQuoteStreamReasonString } from './BridgeView.utils';
+
+const SCROLL_NEAR_BOTTOM_PX = 160;
 
 const BridgeView = () => {
-  const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const [isNearBottom, setIsNearBottom] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
@@ -119,6 +120,7 @@ const BridgeView = () => {
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const keypadRef = useRef<SwapsKeypadRef>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Needed to get gas fee estimates
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
@@ -130,9 +132,7 @@ const BridgeView = () => {
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
-  const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
-  const { isStockToken } = useRWAToken();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -145,7 +145,26 @@ const BridgeView = () => {
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const tokenWarning = useSelector(selectDestTokenWarning);
+  const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
+  const handleSourceAmountChange = useCallback(
+    (value: string | undefined) => {
+      dispatch(setSourceAmount(value));
+    },
+    [dispatch],
+  );
+  const {
+    sourceSelection,
+    handleSourceSelectionChange,
+    handleKeypadChange,
+    resetSourceAmountCursorPosition,
+  } = useSourceAmountCursor({
+    sourceAmount,
+    sourceTokenDecimals: sourceToken?.decimals,
+    maxInputLength: MAX_INPUT_LENGTH,
+    onSourceAmountChange: handleSourceAmountChange,
+  });
 
   /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
   const location = route.params?.location;
@@ -175,6 +194,16 @@ const BridgeView = () => {
   useRecipientInitialization(hasInitializedRecipient);
 
   useBridgeViewOnFocus({ inputRef, keypadRef });
+
+  // Scroll to top when navigating to the bridge view if requested
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.scrollToTopOnNav && scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: 0, animated: false });
+        navigation.setParams({ scrollToTopOnNav: undefined });
+      }
+    }, [navigation, route.params?.scrollToTopOnNav]),
+  );
 
   useEffect(() => {
     if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
@@ -206,10 +235,11 @@ const BridgeView = () => {
     activeQuote,
     isLoading,
     destTokenAmount,
-    quoteFetchError,
     isNoQuotesAvailable,
     blockaidError,
+    quoteFetchError,
     shouldShowPriceImpactWarning,
+    needsNewQuote,
   } = useBridgeQuoteData({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -267,11 +297,6 @@ const BridgeView = () => {
     isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
   });
 
-  // Compute error state directly from dependencies
-  const isError = isNoQuotesAvailable || quoteFetchError;
-
-  // Always show quote details when there's an active quote
-  const shouldDisplayQuoteDetails = !!activeQuote;
   const isZeroState = !sourceAmount || !(Number(sourceAmount) > 0);
 
   // Update quote parameters when relevant state changes
@@ -302,65 +327,61 @@ const BridgeView = () => {
 
   useTrackSwapPageViewed();
 
-  // Reset isErrorBannerVisible when error state changes
-  useEffect(() => {
-    if (isError) {
-      setIsErrorBannerVisible(true);
-    }
-  }, [isError]);
-
-  // Keypad already handles max token decimals, so we don't need to check here
-  const handleKeypadChange = ({
-    value,
-  }: {
-    value: string;
-    valueAsNumber: number;
-    pressedKey: string;
-  }) => {
-    if (value.length >= MAX_INPUT_LENGTH) {
-      return;
-    }
-    dispatch(setSourceAmount(value || undefined));
-  };
-
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
       const balance = latestSourceBalance.displayBalance;
-      const cleaned = trimTrailingZeros(balance);
+      const cleaned = normalizeSourceAmountToMaxLength(
+        balance,
+        MAX_INPUT_LENGTH,
+      );
+      resetSourceAmountCursorPosition();
       dispatch(setSourceAmountAsMax(cleaned));
     }
   };
+
+  const handleSourcePresetAmountSelect = useCallback(
+    (value: string) => {
+      // Quick-pick presets replace the full amount rather than editing at the
+      // current cursor position, so clear the cursor state before updating.
+      resetSourceAmountCursorPosition();
+      dispatch(
+        setSourceAmount(
+          normalizeSourceAmountToMaxLength(value, MAX_INPUT_LENGTH) ||
+            undefined,
+        ),
+      );
+    },
+    [dispatch, resetSourceAmountCursorPosition],
+  );
 
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'source',
     });
 
+  const handleFlipTokensPress = useCallback(() => {
+    resetSourceAmountCursorPosition();
+    void handleSwitchTokens(destTokenAmount)();
+  }, [destTokenAmount, handleSwitchTokens, resetSourceAmountCursorPosition]);
+
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'dest',
     });
 
-  useRenderQuoteExpireModal({ inputRef, latestSourceBalance });
-
-  const isRWATokenSelected = useMemo(
-    () =>
-      (sourceToken && isStockToken(sourceToken as BridgeToken)) ||
-      (destToken && isStockToken(destToken as BridgeToken)),
-    [isStockToken, sourceToken, destToken],
-  );
-  const genericErrorMessage = isRWATokenSelected
-    ? strings('bridge.stock_token_error_banner_description')
-    : strings('bridge.error_banner_description');
-
   const getContentMode = () => {
-    if (isLoading && !activeQuote) return 'loading';
-    if (isError && isErrorBannerVisible) return 'error';
-    if (shouldDisplayQuoteDetails) return 'quote';
+    if (isLoading && !activeQuote && !needsNewQuote) return 'loading';
     if (isZeroState) return 'zero';
-    return 'none';
+    return 'quote';
   };
   const contentMode = getContentMode();
+  const shouldShowTrendingTokens =
+    contentMode === 'zero' && isSwapsTrendingTokensEnabled;
+
+  const dismissInputAndKeypad = useCallback(() => {
+    inputRef.current?.blur();
+    keypadRef.current?.close();
+  }, []);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -374,107 +395,32 @@ const BridgeView = () => {
     [],
   );
 
-  const renderBottomContent = () => {
-    if (isLoading && !activeQuote) {
-      return null;
-    }
-
-    // Prevent bottom section from rendering when no active
-    // quotes exist and none are being fetching.
-    // This resolves edge cases when users are redirected back from
-    // Select Quote page due to quotes expiry.
-    if (!activeQuote) {
-      return null;
-    }
-
-    // TODO: remove this once controller types are updated
-    // @ts-expect-error: controller types are not up to date yet
-    const quoteBpsFee = activeQuote?.quote?.feeData?.metabridge?.quoteBpsFee;
-    const feePercentage = !isNullOrUndefined(quoteBpsFee)
-      ? quoteBpsFee / 100
-      : BRIDGE_MM_FEE_RATE;
-
-    const hasFee = activeQuote && feePercentage > 0;
-
-    const approval =
-      activeQuote?.approval && sourceAmount && sourceToken
-        ? { amount: sourceAmount, symbol: sourceToken.symbol }
-        : null;
-
-    return (
-      isValidSourceAmount &&
-      activeQuote &&
-      quotesLastFetched && (
-        <Box style={styles.buttonContainer}>
-          {isHardwareAddress && isSolanaSourced && (
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              description={strings(
-                'bridge.hardware_wallet_not_supported_solana',
-              )}
-            />
-          )}
-          {blockaidError && (
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              title={strings('bridge.blockaid_error_title')}
-              description={blockaidError}
-            />
-          )}
-
-          <SwapsConfirmButton
-            location={location}
-            latestSourceBalance={latestSourceBalance}
-          />
-          <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {hasFee
-                ? strings('bridge.fee_disclaimer', {
-                    feePercentage,
-                  })
-                : strings('bridge.no_mm_fee_disclaimer', {
-                    destTokenSymbol: destToken?.symbol,
-                  })}
-              {approval
-                ? ` ${strings('bridge.approval_needed', approval)}`
-                : ''}{' '}
-            </Text>
-            {approval && (
-              <ApprovalTooltip
-                amount={approval.amount}
-                symbol={approval.symbol}
-              />
-            )}
-          </Box>
-        </Box>
-      )
-    );
-  };
-
   return (
     // Need this to be full height of screen
     // @ts-expect-error The type is incorrect, this will work
     <ScreenView contentContainerStyle={styles.screen}>
       <Box
         style={styles.content}
-        onStartShouldSetResponder={() => true}
-        onResponderRelease={() => {
-          inputRef.current?.blur();
-          keypadRef.current?.close();
-        }}
+        onStartShouldSetResponder={() => !shouldShowTrendingTokens}
+        onResponderRelease={dismissInputAndKeypad}
       >
         <ScrollView
+          ref={scrollViewRef}
           testID={BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL}
           style={styles.scrollView}
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
           scrollEventThrottle={16}
+          onScrollBeginDrag={
+            shouldShowTrendingTokens ? dismissInputAndKeypad : undefined
+          }
           onScroll={isSwapsTrendingTokensEnabled ? handleScroll : undefined}
         >
           <Box style={styles.inputsContainer}>
             <TokenInputArea
               ref={inputRef}
               amount={sourceAmount}
+              selection={sourceSelection}
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
               networkImageSource={
@@ -487,6 +433,7 @@ const BridgeView = () => {
               testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
               tokenType={TokenInputAreaType.Source}
               onInputPress={() => keypadRef.current?.open()}
+              onSelectionChange={handleSourceSelectionChange}
               onTokenPress={handleSourceTokenPress}
               onMaxPress={handleSourceMaxPress}
               latestAtomicBalance={latestSourceBalance?.atomicBalance}
@@ -494,7 +441,7 @@ const BridgeView = () => {
               isQuoteSponsored={isQuoteSponsored}
             />
             <FLipQuoteButton
-              onPress={handleSwitchTokens(destTokenAmount)}
+              onPress={handleFlipTokensPress}
               disabled={
                 !destChainId ||
                 !destToken ||
@@ -520,23 +467,99 @@ const BridgeView = () => {
             />
           </Box>
 
-          <Box style={styles.dynamicContent}>
+          <Box gap={3} twClassName="mx-4">
+            {quoteStreamComplete?.reason || quoteFetchError
+              ? (() => {
+                  const quoteStreamErrorBannerStyle = {
+                    borderLeftWidth: 4,
+                    borderColor: colors.error.default,
+                    backgroundColor: colors.error.muted,
+                    paddingLeft: 8,
+                  };
+                  return (
+                    <BannerBase
+                      style={quoteStreamErrorBannerStyle}
+                      startAccessory={
+                        <Icon
+                          name={IconName.Danger}
+                          color={colors.error.default}
+                          size={IconSize.Lg}
+                        />
+                      }
+                      description={getQuoteStreamReasonString(
+                        quoteStreamComplete?.reason,
+                      )}
+                    />
+                  );
+                })()
+              : null}
+
+            {contentMode === 'quote' && tokenWarning
+              ? (() => {
+                  const isMalicious =
+                    tokenWarning.type === TokenFeatureType.MALICIOUS;
+                  const bannerColors = isMalicious
+                    ? colors.error
+                    : colors.warning;
+                  const bannerStyle = {
+                    borderLeftWidth: 4,
+                    borderColor: bannerColors.default,
+                    backgroundColor: bannerColors.muted,
+                    paddingLeft: 8,
+                  };
+                  const navigateToModal = () =>
+                    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+                      screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+                      params: {
+                        warningType: tokenWarning.type,
+                        description: tokenWarning.description,
+                        mode: TokenWarningModalMode.Info,
+                        location,
+                      },
+                    });
+                  return (
+                    <Pressable onPress={navigateToModal}>
+                      <BannerBase
+                        style={bannerStyle}
+                        startAccessory={
+                          <Icon
+                            name={
+                              isMalicious ? IconName.Danger : IconName.Warning
+                            }
+                            color={bannerColors.default}
+                            size={IconSize.Lg}
+                          />
+                        }
+                        description={
+                          isMalicious
+                            ? strings('bridge.token_warning_malicious_banner', {
+                                token: destToken?.symbol,
+                              })
+                            : strings(
+                                'bridge.token_warning_suspicious_banner',
+                                {
+                                  token: destToken?.symbol,
+                                },
+                              )
+                        }
+                        onClose={navigateToModal}
+                        closeButtonProps={{ iconName: IconName.ArrowRight }}
+                      />
+                    </Pressable>
+                  );
+                })()
+              : null}
+          </Box>
+
+          <Box
+            style={styles.dynamicContent}
+            onTouchEnd={
+              shouldShowTrendingTokens ? dismissInputAndKeypad : undefined
+            }
+          >
             {contentMode === 'loading' ? (
               <Box style={styles.loadingContainer}>
                 <QuoteDetailsCardSkeleton />
-              </Box>
-            ) : null}
-            {contentMode === 'error' ? (
-              <Box style={styles.buttonContainer}>
-                <BannerAlert
-                  severity={BannerAlertSeverity.Error}
-                  description={genericErrorMessage}
-                  onClose={() => {
-                    setIsErrorBannerVisible(false);
-                    inputRef.current?.focus();
-                    keypadRef.current?.open();
-                  }}
-                />
               </Box>
             ) : null}
             {contentMode === 'quote' ? (
@@ -547,13 +570,16 @@ const BridgeView = () => {
                 />
               </Box>
             ) : null}
-            {contentMode === 'zero' && isSwapsTrendingTokensEnabled ? (
+            {shouldShowTrendingTokens ? (
               <BridgeTrendingTokensSection isNearBottom={isNearBottom} />
             ) : null}
           </Box>
         </ScrollView>
 
-        {renderBottomContent()}
+        <BridgeViewFooter
+          location={location}
+          latestSourceBalance={latestSourceBalance}
+        />
 
         <SwapsKeypad
           ref={keypadRef}
@@ -571,9 +597,10 @@ const BridgeView = () => {
           ) : (
             <GaslessQuickPickOptions
               token={sourceToken}
+              tokenBalance={latestSourceBalance?.displayBalance}
               onMaxPress={handleSourceMaxPress}
               isQuoteSponsored={isQuoteSponsored}
-              onChange={handleKeypadChange}
+              onAmountSelect={handleSourcePresetAmountSelect}
             />
           )}
         </SwapsKeypad>

@@ -7,8 +7,9 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
-import { useCallback, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { ToastContext } from '../../../component-library/components/Toast';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
@@ -16,8 +17,14 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { isHardwareAccount } from '../../../util/address';
-import { getMediumGasPriceHex } from '../../../util/confirmation/gas';
-import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
+import {
+  getGasValuesForReplacement,
+  getMediumGasPriceHex,
+} from '../../../util/confirmation/gas';
+import {
+  getPreviousGasFromController,
+  speedUpTransaction as speedUpTx,
+} from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import {
   createLedgerTransactionModalNavDetails,
@@ -25,6 +32,7 @@ import {
   type ReplacementTxParams,
 } from '../../UI/LedgerModals/LedgerTransactionModal';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
+import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 
 type Maybe<T> = T | null | undefined;
 
@@ -54,9 +62,6 @@ interface LedgerSignRequest {
   };
 }
 
-const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : undefined;
-
 export const SpeedUpCancelModalState = {
   Closed: 'closed',
   SpeedUp: 'speedUp',
@@ -68,6 +73,8 @@ export type SpeedUpCancelModalState =
 
 export function useUnifiedTxActions() {
   const navigation = useNavigation();
+  const toastContext = useContext(ToastContext);
+  const toastRef = toastContext?.toastRef;
 
   const gasFeeEstimates = useSelector(selectGasFeeEstimates);
   const accounts = useSelector(selectAccounts);
@@ -75,10 +82,6 @@ export function useUnifiedTxActions() {
     selectSelectedInternalAccountFormattedAddress,
   );
 
-  const [retryIsOpen, setRetryIsOpen] = useState(false);
-  const [retryErrorMsg, setRetryErrorMsg] = useState<string | undefined>(
-    undefined,
-  );
   const [speedUpCancelModalState, setSpeedUpCancelModalState] =
     useState<SpeedUpCancelModalState>(SpeedUpCancelModalState.Closed);
   const [confirmDisabled, setConfirmDisabled] = useState(false);
@@ -90,10 +93,14 @@ export function useUnifiedTxActions() {
     ExtendedKeyringTypes.ledger,
   ]);
 
-  const toggleRetry = (msg?: string) => {
-    setRetryIsOpen((prev) => !prev);
-    setRetryErrorMsg(msg);
-  };
+  const showTransactionUpdateErrorToast = useCallback(
+    (error: unknown) => {
+      toastRef?.current?.showToast(
+        getTransactionUpdateErrorToastOptions(error),
+      );
+    },
+    [toastRef],
+  );
 
   const closeSpeedUpCancelModal = useCallback(() => {
     setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
@@ -190,7 +197,6 @@ export function useUnifiedTxActions() {
     if (params?.error) {
       return undefined;
     }
-    // Legacy tx with gasPrice 0x0 would produce 0 from the modal; fall back to market estimate so the replacement gets mined.
     if (
       params &&
       'gasPrice' in params &&
@@ -213,8 +219,14 @@ export function useUnifiedTxActions() {
         throw new Error('Missing transaction id for speed up');
       }
 
+      const rawGasValues = getParamsToSend(params);
+      const gasValues = getGasValuesForReplacement(
+        rawGasValues,
+        getPreviousGasFromController(speedUpTxId),
+        SPEED_UP_RATE,
+      );
+
       if (isLedgerAccount) {
-        const gasValues = getParamsToSend(params);
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
 
         await signLedgerTransaction({
@@ -230,10 +242,10 @@ export function useUnifiedTxActions() {
         return;
       }
 
-      await speedUpTx(speedUpTxId, getParamsToSend(params));
+      await speedUpTx(speedUpTxId, gasValues);
       onSpeedUpCancelCompleted();
     } catch (error: unknown) {
-      toggleRetry(getErrorMessage(error));
+      showTransactionUpdateErrorToast(error);
       setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
     }
   };
@@ -247,8 +259,14 @@ export function useUnifiedTxActions() {
         throw new Error('Missing transaction id for cancel');
       }
 
+      const rawGasValues = getParamsToSend(params);
+      const gasValues = getGasValuesForReplacement(
+        rawGasValues,
+        getPreviousGasFromController(cancelTxId),
+        CANCEL_RATE,
+      );
+
       if (isLedgerAccount) {
-        const gasValues = getParamsToSend(params);
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
 
         await signLedgerTransaction({
@@ -265,11 +283,11 @@ export function useUnifiedTxActions() {
 
       await Engine.context.TransactionController.stopTransaction(
         cancelTxId,
-        getParamsToSend(params),
+        gasValues,
       );
       onSpeedUpCancelCompleted();
     } catch (error: unknown) {
-      toggleRetry(getErrorMessage(error));
+      showTransactionUpdateErrorToast(error);
       setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
     }
   };
@@ -289,22 +307,19 @@ export function useUnifiedTxActions() {
   );
 
   const cancelUnsignedQRTransaction = async (tx: TransactionMeta) => {
-    await Engine.context.ApprovalController.reject(
+    await Engine.context.ApprovalController.rejectRequest(
       tx.id,
       providerErrors.userRejectedRequest(),
     );
   };
 
   return {
-    retryIsOpen,
-    retryErrorMsg,
     speedUpIsOpen: speedUpCancelModalState === SpeedUpCancelModalState.SpeedUp,
     cancelIsOpen: speedUpCancelModalState === SpeedUpCancelModalState.Cancel,
     confirmDisabled,
     existingTx,
     speedUpTxId,
     cancelTxId,
-    toggleRetry,
     onSpeedUpAction,
     onCancelAction,
     onSpeedUpCancelCompleted,

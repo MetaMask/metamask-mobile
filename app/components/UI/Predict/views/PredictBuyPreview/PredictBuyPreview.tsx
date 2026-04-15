@@ -4,9 +4,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   ButtonSize as ButtonSizeHero,
-  FontWeight,
   Icon,
-  IconColor,
   IconName,
   IconSize,
   Text,
@@ -46,41 +44,28 @@ import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
-import {
-  PredictTradeStatus,
-  PredictEventValues,
-} from '../../constants/eventNames';
+import { PredictTradeStatus } from '../../constants/eventNames';
+import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
-import { IconName as IconNameLegacy } from '../../../../../component-library/components/Icons/Icon';
-import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
-import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
-import {
-  TextVariant as LegacyTextVariant,
-  TextColor as LegacyTextColor,
-} from '../../../../../component-library/components/Texts/Text/Text.types';
-import RewardsAnimations, {
-  RewardAnimationState,
-} from '../../../Rewards/components/RewardPointsAnimation';
-import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
+import PredictFeeSummary from '../PredictBuyWithAnyToken/components/PredictFeeSummary/PredictFeeSummary';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
-import { usePredictDeposit } from '../../hooks/usePredictDeposit';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import { usePredictRewards } from '../../hooks/usePredictRewards';
+
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
-export const MINIMUM_BET = 1; // $1 minimum bet
+import { MINIMUM_BET } from '../../constants/transactions';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -93,29 +78,7 @@ const PredictBuyPreview = () => {
   const { market, outcome, outcomeToken, entryPoint } = route.params;
 
   const analyticsProperties = useMemo(
-    () => ({
-      marketId: market?.id,
-      marketTitle: market?.title,
-      marketCategory: market?.category,
-      marketTags: market?.tags,
-      entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
-      liquidity: market?.liquidity,
-      volume: market?.volume,
-      sharePrice: outcomeToken?.price,
-      marketType:
-        market?.outcomes?.length === 1
-          ? PredictEventValues.MARKET_TYPE.BINARY
-          : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
-      outcome: outcomeToken?.title?.toLowerCase(),
-      marketSlug: market?.slug,
-      gameId: market?.game?.id,
-      gameStartTime: market?.game?.startTime,
-      gameLeague: market?.game?.league,
-      gameStatus: market?.game?.status,
-      gamePeriod: market?.game?.period,
-      gameClock: market?.game?.elapsed,
-    }),
+    () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
     [market, outcomeToken, entryPoint],
   );
 
@@ -131,7 +94,6 @@ const PredictBuyPreview = () => {
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();
 
-  const { deposit } = usePredictDeposit();
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const [currentValue, setCurrentValue] = useState(0);
@@ -231,21 +193,8 @@ const PredictBuyPreview = () => {
     !isBalanceLoading &&
     !isRateLimited;
 
-  const {
-    enabled: isRewardsEnabled,
-    isLoading: isRewardsLoading,
-    accountOptedIn: isAccountOptedIntoRewards,
-    rewardsAccountScope,
-    estimatedPoints: estimatedRewardsPoints,
-    hasError: isRewardsError,
-  } = usePredictRewards(
-    isLoading || previewError ? undefined : (preview?.fees?.totalFee ?? 0),
-  );
-
-  // Show rewards row if we have a valid amount
-  // && either active account address is opted in or not opted in but opt-in is supported
-  const shouldShowRewardsRow =
-    isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null;
+  const rewardsFeeAmountUsd =
+    isLoading || previewError ? undefined : (preview?.fees?.totalFee ?? 0);
 
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
@@ -492,111 +441,22 @@ const PredictBuyPreview = () => {
       return null;
     }
 
-    const isLoadingRewardsState =
-      (isCalculating && isUserInputChange) || isRewardsLoading;
     return (
       <Box
         flexDirection={BoxFlexDirection.Column}
-        twClassName="border-t border-muted p-4 pb-0 gap-4"
+        twClassName="border-t border-muted"
       >
-        <TouchableOpacity
-          onPress={handleFeesInfoPress}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          style={tw.style('py-1')}
+        <PredictFeeSummary
+          disabled={false}
+          total={total}
+          rewardsFeeAmountUsd={rewardsFeeAmountUsd}
+          rewardsLoadingOverride={isCalculating && isUserInputChange}
+          handleFeesInfoPress={handleFeesInfoPress}
+        />
+        <Box
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="gap-2 px-4 pb-0"
         >
-          <Box twClassName="flex-row justify-between items-center">
-            <Box twClassName="flex-col">
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Bold}
-                color={TextColor.TextDefault}
-              >
-                {strings('predict.fee_summary.total')}
-              </Text>
-              <Box twClassName="flex-row items-center gap-1">
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('predict.fee_summary.total_incl_fees')}
-                </Text>
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                />
-              </Box>
-            </Box>
-            <Text
-              variant={TextVariant.HeadingMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {formatPrice(total, { maximumDecimals: 2 })}
-            </Text>
-          </Box>
-        </TouchableOpacity>
-
-        {shouldShowRewardsRow &&
-          (isAccountOptedIntoRewards || rewardsAccountScope) && (
-            <KeyValueRow
-              field={{
-                label: {
-                  text: strings('predict.fee_summary.estimated_points'),
-                  variant: LegacyTextVariant.BodyMD,
-                  color: LegacyTextColor.Default,
-                },
-                tooltip: {
-                  title: strings('predict.fee_summary.points_tooltip'),
-                  content: `${strings(
-                    'predict.fee_summary.points_tooltip_content_1',
-                  )}\n\n${strings(
-                    'predict.fee_summary.points_tooltip_content_2',
-                  )}`,
-                  size: TooltipSizes.Sm,
-                  iconName: IconNameLegacy.Info,
-                },
-              }}
-              value={{
-                label: (
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Center}
-                    gap={1}
-                  >
-                    {isAccountOptedIntoRewards ? (
-                      <RewardsAnimations
-                        value={estimatedRewardsPoints ?? 0}
-                        state={
-                          isLoadingRewardsState
-                            ? RewardAnimationState.Loading
-                            : isRewardsError
-                              ? RewardAnimationState.ErrorState
-                              : RewardAnimationState.Idle
-                        }
-                      />
-                    ) : rewardsAccountScope ? (
-                      <AddRewardsAccount account={rewardsAccountScope} />
-                    ) : (
-                      <></>
-                    )}
-                  </Box>
-                ),
-                ...(isRewardsError && {
-                  tooltip: {
-                    title: strings('predict.fee_summary.points_error'),
-                    content: strings(
-                      'predict.fee_summary.points_error_content',
-                    ),
-                    size: TooltipSizes.Sm,
-                    iconName: IconNameLegacy.Info,
-                  },
-                }),
-              }}
-            />
-          )}
-        <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
           {errorMessage && (
             <Text
               variant={TextVariant.BodySm}
@@ -607,7 +467,7 @@ const PredictBuyPreview = () => {
             </Text>
           )}
           <Box twClassName="w-full h-12">{renderActionButton()}</Box>
-          <Box twClassName="text-center items-center flex-row gap-1 justify-center">
+          <Box twClassName="text-center items-center flex-row gap-1 justify-center flex-wrap">
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}
@@ -642,7 +502,6 @@ const PredictBuyPreview = () => {
         setCurrentValue={setCurrentValue}
         setCurrentValueUSDString={setCurrentValueUSDString}
         setIsInputFocused={setIsInputFocused}
-        onAddFunds={deposit}
       />
       {renderBottomContent()}
       {isFeeBreakdownVisible && (

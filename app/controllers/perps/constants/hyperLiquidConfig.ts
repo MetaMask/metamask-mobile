@@ -30,8 +30,6 @@ export const USDC_SYMBOL = 'USDC';
 export const USDC_NAME = 'USD Coin';
 export const USDC_DECIMALS = 6;
 export const TOKEN_DECIMALS = 18;
-export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-export const ZERO_BALANCE = '0x0';
 
 // Network constants
 export const ARBITRUM_SEPOLIA_CHAIN_ID = '0x66eee'; // 421614 in decimal
@@ -337,6 +335,19 @@ export const HIP3_ASSET_MARKET_TYPES: Record<
   'xyz:CRWV': 'equity',
   'xyz:SMSN': 'equity',
 
+  'xyz:GME': 'equity',
+  'xyz:SOFTBANK': 'equity',
+  'xyz:HYUNDAI': 'equity',
+  'xyz:KIOXIA': 'equity',
+  'xyz:HIMS': 'equity',
+  'xyz:EWY': 'equity',
+  'xyz:EWJ': 'equity',
+  'xyz:SP500': 'equity',
+  'xyz:JP225': 'equity',
+  'xyz:KR200': 'equity',
+  'xyz:VIX': 'equity',
+  'xyz:USAR': 'equity',
+
   // xyz DEX - Commodities
   'xyz:GOLD': 'commodity',
   'xyz:SILVER': 'commodity',
@@ -344,13 +355,16 @@ export const HIP3_ASSET_MARKET_TYPES: Record<
   'xyz:COPPER': 'commodity',
   'xyz:ALUMINIUM': 'commodity',
   'xyz:URANIUM': 'commodity',
-  'xyz:USAR': 'commodity',
+  'xyz:URNM': 'commodity',
   'xyz:NATGAS': 'commodity',
   'xyz:PLATINUM': 'commodity',
+  'xyz:PALLADIUM': 'commodity',
+  'xyz:BRENTOIL': 'commodity',
 
   // xyz DEX - Forex
   'xyz:EUR': 'forex',
   'xyz:JPY': 'forex',
+  'xyz:DXY': 'forex',
 } as const;
 
 /**

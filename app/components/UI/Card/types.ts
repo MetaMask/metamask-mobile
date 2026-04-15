@@ -1,4 +1,5 @@
 import { CaipChainId } from '@metamask/utils';
+import type { TokenI } from '../Tokens/types';
 
 /**
  * Enum for asset delegation status
@@ -36,6 +37,7 @@ export enum CardMessageBoxType {
   CloseSpendingLimit = 'close_spending_limit',
   KYCPending = 'kyc_pending',
   CardProvisioning = 'card_provisioning',
+  AuthPrompt = 'auth_prompt',
 }
 
 export type CardUserPhase =
@@ -87,6 +89,14 @@ export type CardTokenAllowance = {
 } & CardToken &
   AuthenticatedCardTokenAllowanceData;
 
+export type CardAssetWithBalance = CardTokenAllowance & {
+  balanceFiat: string | undefined;
+  balanceFormatted: string | undefined;
+  rawFiatNumber: number | undefined;
+  rawTokenBalance: number | undefined;
+  asset?: TokenI;
+};
+
 export interface CardLoginInitiateResponse {
   token: string;
   url: string;
@@ -94,7 +104,19 @@ export interface CardLoginInitiateResponse {
 
 export type CardLocation = 'us' | 'international';
 
-export type CardNetwork = 'linea' | 'solana' | 'base';
+/**
+ * Region representation for country/region selectors (e.g. sign-up, phone, address).
+ * Used by useRegions and RegionSelectorModal.
+ */
+export interface Region {
+  key: string;
+  name: string;
+  emoji?: string;
+  areaCode?: string;
+  canSignUp?: boolean;
+}
+
+export type CardNetwork = 'linea' | 'solana' | 'base' | 'monad';
 
 export interface CardNetworkInfo {
   caipChainId: CaipChainId;
@@ -441,6 +463,17 @@ export interface DelegationSettingsResponse {
   _links: {
     self: string;
   };
+}
+
+export interface DelegationPostApprovalParams {
+  address: string;
+  network: CardNetwork;
+  currency: string;
+  amount: string;
+  txHash: string;
+  sigHash: string;
+  sigMessage: string;
+  token: string;
 }
 
 /**

@@ -361,10 +361,13 @@ export function isAddressCompatibleWithChainId(
 export function getInternalAccountByAddress(
   address: string,
 ): InternalAccount | undefined {
-  const { accounts } = Engine.context.AccountsController.state.internalAccounts;
-  return Object.values(accounts).find((a: InternalAccount) =>
-    areAddressesEqual(a.address, address),
-  );
+  const {
+    internalAccounts: { accounts },
+    accountIdByAddress,
+  } = Engine.context.AccountsController.state;
+  const id =
+    accountIdByAddress[address] ?? accountIdByAddress[address?.toLowerCase()];
+  return id ? accounts[id] : undefined;
 }
 
 /**

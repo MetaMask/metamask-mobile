@@ -4,7 +4,7 @@ import {
   DataDeleteStatus,
   type IDeleteRegulationResponse,
   type IDeleteRegulationStatus,
-} from '../../../core/Analytics/MetaMetrics.types';
+} from '../../../util/analytics/analyticsDataDeletion.types';
 import {
   AnalyticsEventBuilder,
   type AnalyticsTrackingEvent,

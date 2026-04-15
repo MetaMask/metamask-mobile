@@ -6,9 +6,9 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { Footer } from '../../components/footer';
 import QRInfo from '../../components/qr-info';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Camera from './useCamera';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as QRHardwareAwareness from './useQRHardwareAwareness';
 import {
   QRHardwareContextProvider,
@@ -35,6 +35,24 @@ jest.mock('../../../../../core/Engine', () => ({
   },
   rejectPendingApproval: jest.fn(),
   getQrKeyringScanner: jest.fn(() => mockQrScanner),
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+    },
+  },
+}));
+
+// Mock HardwareWallet hooks used by useConfirmActions
+jest.mock('../../../../../core/HardwareWallet', () => ({
+  useHardwareWallet: jest.fn(() => ({
+    ensureDeviceReady: jest.fn().mockResolvedValue(true),
+    showAwaitingConfirmation: jest.fn(),
+    hideAwaitingConfirmation: jest.fn(),
+    showHardwareWalletError: jest.fn(),
+  })),
+  isUserCancellation: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('../../hooks/gas/useGasFeeToken');

@@ -106,9 +106,19 @@ export interface HardwareWalletAdapter {
   stopDeviceDiscovery(): void;
 
   /**
-   * Check if the underlying transport mechanism is available.
+   * Ensure required OS permissions are granted for this adapter.
+   * Requests permissions if needed; opens OS Settings when permanently denied.
+   *
+   * @returns `true` if permissions are granted, `false` if the user was
+   * redirected to Settings.
+   */
+  ensurePermissions(): Promise<boolean>;
+
+  /**
+   * Check if the underlying transport mechanism is available for adapters that
+   * participate in persistent transport monitoring.
    * For Ledger: Bluetooth is enabled
-   * For QR: Camera permission granted
+   * For QR: not used for camera permission gating
    * For Non-hardware: always true
    */
   isTransportAvailable(): Promise<boolean>;
@@ -133,9 +143,9 @@ export interface HardwareWalletAdapter {
    * Get the ErrorCode to use when this adapter's transport is unavailable,
    * or null if this adapter does not require persistent transport monitoring.
    *
-   * Returning a non-null value means the provider will monitor transport
-   * availability and show an error if it becomes unavailable during an
-   * active operation.
+   * Returning a non-null value means the provider will preflight and monitor
+   * transport availability, showing an error if it becomes unavailable during
+   * an active operation.
    */
   getTransportDisabledErrorCode(): ErrorCode | null;
 }

@@ -13,15 +13,14 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: { default: '#fff' },
-      border: { muted: '#ccc' },
-      overlay: { default: 'rgba(0,0,0,0.5)' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  // Use the real mockTheme to avoid hardcoded hex literals
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: () => actual.mockTheme,
+  };
+});
 
 jest.mock(
   '../../../../../component-library/components/Sheet/SheetHeader',
@@ -50,22 +49,27 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
+jest.mock('@metamask/design-system-react-native', () => {
   /* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
   const ReactMock = require('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
-    __esModule: true,
-    default: ({ label, onPress, testID }: Record<string, unknown>) =>
+    ...actual,
+    Button: ({ children, onPress }: Record<string, unknown>) =>
       ReactMock.createElement(
         'View',
         {
-          testID: testID ?? 'edit-network-button',
+          testID: 'edit-network-button',
           onPress,
+          accessibilityRole: 'button',
+          accessible: true,
         },
-        ReactMock.createElement('Text', {}, label),
+        ReactMock.createElement(
+          'Text',
+          { accessibilityRole: 'text' },
+          children,
+        ),
       ),
-    ButtonVariants: { Secondary: 'Secondary' },
-    ButtonSize: { Lg: 'Lg' },
   };
 });
 

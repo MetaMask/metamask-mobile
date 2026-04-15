@@ -2,9 +2,13 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, TextInput, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Text, {
+import {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -15,11 +19,6 @@ import DepositTextField from '../../Deposit/components/DepositTextField';
 import { useForm } from '../../Deposit/hooks/useForm';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import PrivacySection from '../../Deposit/components/PrivacySection';
 import { VALIDATION_REGEX } from '../../Deposit/constants/constants';
 import Logger from '../../../../../util/Logger';
@@ -32,6 +31,8 @@ import { useTransakRouting } from '../../hooks/useTransakRouting';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { BasicInfoFormData } from './BasicInfo';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { ENTER_ADDRESS_TEST_IDS } from './EnterAddress.testIds';
+import StateSelector from './StateSelector';
 
 export interface AddressFormData {
   addressLine1: string;
@@ -66,14 +67,31 @@ const V2EnterAddress = (): JSX.Element => {
   const addressLine1InputRef = useRef<TextInput>(null);
   const addressLine2InputRef = useRef<TextInput>(null);
   const cityInputRef = useRef<TextInput>(null);
+  const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
 
-  const stateName = userRegion?.state?.name || '';
+  const deriveUsStateCode = (): string => {
+    const stateId = userRegion?.state?.stateId;
+    if (stateId) {
+      return stateId.toUpperCase().replace(/^US-/, '');
+    }
+    const id = userRegion?.state?.id;
+    if (id) {
+      const match = id.match(/us-([a-z]{2})$/i);
+      if (match) return match[1].toUpperCase();
+    }
+    return '';
+  };
+
+  const initialStateValue =
+    regionIsoCode === 'US'
+      ? deriveUsStateCode()
+      : userRegion?.state?.name || '';
 
   const initialFormData: AddressFormData = {
     addressLine1: previousFormData?.addressLine1 || '',
     addressLine2: previousFormData?.addressLine2 || '',
-    state: previousFormData?.state || stateName,
+    state: previousFormData?.state || initialStateValue,
     city: previousFormData?.city || '',
     postCode: previousFormData?.postCode || '',
     countryCode: previousFormData?.countryCode || regionIsoCode,
@@ -107,12 +125,10 @@ const V2EnterAddress = (): JSX.Element => {
       formErrors.city = strings('deposit.enter_address.city_invalid');
     }
 
-    if (regionIsoCode === 'US') {
-      if (!data.state.trim()) {
-        formErrors.state = strings('deposit.enter_address.state_required');
-      } else if (!VALIDATION_REGEX.state.test(data.state)) {
-        formErrors.state = strings('deposit.enter_address.state_invalid');
-      }
+    if (!data.state.trim()) {
+      formErrors.state = strings('deposit.enter_address.state_required');
+    } else if (!VALIDATION_REGEX.state.test(data.state)) {
+      formErrors.state = strings('deposit.enter_address.state_invalid');
     }
 
     if (!data.postCode.trim()) {
@@ -227,7 +243,7 @@ const V2EnterAddress = (): JSX.Element => {
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.textContainer}>
-              <Text variant={TextVariant.HeadingLG}>
+              <Text variant={TextVariant.HeadingLg}>
                 {strings('deposit.enter_address.title')}
               </Text>
               <Text style={styles.subtitle}>
@@ -253,7 +269,7 @@ const V2EnterAddress = (): JSX.Element => {
               )}
               error={errors.addressLine1}
               returnKeyType="next"
-              testID="address-line-1-input"
+              testID={ENTER_ADDRESS_TEST_IDS.ADDRESS_LINE_1_INPUT}
               ref={addressLine1InputRef}
               autoComplete="address-line1"
               textContentType="fullStreetAddress"
@@ -271,7 +287,7 @@ const V2EnterAddress = (): JSX.Element => {
               )}
               error={errors.addressLine2}
               returnKeyType="next"
-              testID="address-line-2-input"
+              testID={ENTER_ADDRESS_TEST_IDS.ADDRESS_LINE_2_INPUT}
               ref={addressLine2InputRef}
               autoComplete="address-line2"
               textContentType="fullStreetAddress"
@@ -286,27 +302,51 @@ const V2EnterAddress = (): JSX.Element => {
                 value={formData.city}
                 onChangeText={handleFieldChange(
                   'city',
-                  focusNextField(postCodeInputRef),
+                  focusNextField(
+                    regionIsoCode === 'US' ? postCodeInputRef : stateInputRef,
+                  ),
                 )}
                 error={errors.city}
                 returnKeyType="next"
-                testID="city-input"
+                testID={ENTER_ADDRESS_TEST_IDS.CITY_INPUT}
                 containerStyle={styles.nameInputContainer}
                 ref={cityInputRef}
                 textContentType="addressCity"
                 autoCapitalize="words"
-                onSubmitEditing={focusNextField(postCodeInputRef)}
+                onSubmitEditing={focusNextField(
+                  regionIsoCode === 'US' ? postCodeInputRef : stateInputRef,
+                )}
               />
 
-              <DepositTextField
-                label={strings('deposit.enter_address.state')}
-                placeholder={strings('deposit.enter_address.state')}
-                value={formData.state}
-                error={errors.state}
-                testID="state-input"
-                containerStyle={styles.nameInputContainer}
-                isDisabled
-              />
+              {regionIsoCode === 'US' ? (
+                <StateSelector
+                  label={strings('deposit.enter_address.state')}
+                  selectedValue={formData.state}
+                  onValueChange={handleFormDataChange('state')}
+                  error={errors.state}
+                  containerStyle={styles.nameInputContainer}
+                  defaultValue={strings('deposit.enter_address.select_state')}
+                  testID={ENTER_ADDRESS_TEST_IDS.STATE_INPUT}
+                />
+              ) : (
+                <DepositTextField
+                  label={strings('deposit.enter_address.state')}
+                  placeholder={strings('deposit.enter_address.state')}
+                  value={formData.state}
+                  onChangeText={handleFieldChange(
+                    'state',
+                    focusNextField(postCodeInputRef),
+                  )}
+                  error={errors.state}
+                  returnKeyType="next"
+                  testID={ENTER_ADDRESS_TEST_IDS.STATE_INPUT}
+                  containerStyle={styles.nameInputContainer}
+                  ref={stateInputRef}
+                  textContentType="addressState"
+                  autoCapitalize="words"
+                  onSubmitEditing={focusNextField(postCodeInputRef)}
+                />
+              )}
             </View>
 
             <View style={styles.nameInputRow}>
@@ -319,7 +359,7 @@ const V2EnterAddress = (): JSX.Element => {
                 })}
                 error={errors.postCode}
                 returnKeyType="done"
-                testID="postal-code-input"
+                testID={ENTER_ADDRESS_TEST_IDS.POSTAL_CODE_INPUT}
                 containerStyle={styles.nameInputContainer}
                 ref={postCodeInputRef}
                 autoComplete="postal-code"
@@ -334,7 +374,7 @@ const V2EnterAddress = (): JSX.Element => {
                 value={userRegion?.country?.name || ''}
                 error={errors.countryCode}
                 returnKeyType="done"
-                testID="country-input"
+                testID={ENTER_ADDRESS_TEST_IDS.COUNTRY_INPUT}
                 containerStyle={styles.nameInputContainer}
                 isDisabled
                 numberOfLines={1}
@@ -355,13 +395,14 @@ const V2EnterAddress = (): JSX.Element => {
             <Button
               size={ButtonSize.Lg}
               onPress={handleOnPressContinue}
-              label={strings('deposit.enter_address.continue')}
-              variant={ButtonVariants.Primary}
-              width={ButtonWidthTypes.Full}
+              variant={ButtonVariant.Primary}
+              isFullWidth
               isDisabled={loading || !!error}
-              loading={loading}
-              testID="address-continue-button"
-            />
+              isLoading={loading}
+              testID={ENTER_ADDRESS_TEST_IDS.CONTINUE_BUTTON}
+            >
+              {strings('deposit.enter_address.continue')}
+            </Button>
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>

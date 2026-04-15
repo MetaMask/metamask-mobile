@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import type { ServiceContext } from './ServiceContext';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -21,7 +22,6 @@ import type {
   WithdrawResult,
   PerpsPlatformDependencies,
 } from '../types';
-import type { ServiceContext } from './ServiceContext';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { TransactionStatus } from '../types/transactionTypes';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
@@ -180,7 +180,42 @@ export class AccountService {
           context.stateManager.update((state) => {
             state.lastError = null;
             state.lastUpdateTimestamp = Date.now();
-            state.withdrawInProgress = false;
+
+            const withdrawalRequestIndex = state.withdrawalRequests.findIndex(
+              (req) => req.id === currentWithdrawalId,
+            );
+
+            if (result.txHash) {
+              // Direct completion: remove from queue and record the txHash
+              // so the polling hook won't re-match this completion.
+              // We do NOT update lastCompletedWithdrawalTimestamp here
+              // because Date.now() is local device time while the FIFO guard
+              // compares against API server timestamps — mixing domains can
+              // poison the guard.  The txHash exclusion alone prevents
+              // re-matching since the item is also spliced from the queue.
+              if (withdrawalRequestIndex !== -1) {
+                state.withdrawalRequests.splice(withdrawalRequestIndex, 1);
+              }
+
+              state.lastCompletedWithdrawalTxHashes.push(result.txHash);
+
+              const hasOtherPending = state.withdrawalRequests.some(
+                (req) => req.status === 'pending' || req.status === 'bridging',
+              );
+              state.withdrawInProgress = hasOtherPending;
+            } else if (withdrawalRequestIndex !== -1) {
+              const requestToUpdate =
+                state.withdrawalRequests[withdrawalRequestIndex];
+              // Withdrawal is bridging (no txHash yet)
+              requestToUpdate.status = 'bridging' as TransactionStatus;
+              requestToUpdate.success = true;
+              if (result.withdrawalId) {
+                requestToUpdate.withdrawalId = result.withdrawalId;
+              }
+            }
+
+            // Set lastWithdrawResult when submission is successful (even if bridging)
+            // This triggers the "confirmed" toast telling user funds arrive in ~5 mins
             state.lastWithdrawResult = {
               success: true,
               txHash: result.txHash ?? '',
@@ -189,26 +224,6 @@ export class AccountService {
               timestamp: Date.now(),
               error: '',
             };
-
-            // Update the withdrawal request by request ID
-            if (state.withdrawalRequests.length > 0) {
-              const requestToUpdate = state.withdrawalRequests.find(
-                (req) => req.id === currentWithdrawalId,
-              );
-              if (requestToUpdate) {
-                if (result.txHash) {
-                  requestToUpdate.status = 'completed' as TransactionStatus;
-                  requestToUpdate.success = true;
-                  requestToUpdate.txHash = result.txHash;
-                } else {
-                  requestToUpdate.status = 'bridging' as TransactionStatus;
-                  requestToUpdate.success = true;
-                }
-                if (result.withdrawalId) {
-                  requestToUpdate.withdrawalId = result.withdrawalId;
-                }
-              }
-            }
           });
         }
 
@@ -261,7 +276,6 @@ export class AccountService {
         context.stateManager.update((state) => {
           state.lastError = result.error ?? PERPS_ERROR_CODES.WITHDRAW_FAILED;
           state.lastUpdateTimestamp = Date.now();
-          state.withdrawInProgress = false;
           state.lastWithdrawResult = {
             success: false,
             error: result.error ?? PERPS_ERROR_CODES.WITHDRAW_FAILED,
@@ -271,16 +285,15 @@ export class AccountService {
             txHash: '',
           };
 
-          // Update the withdrawal request by request ID
-          if (state.withdrawalRequests.length > 0) {
-            const requestToUpdate = state.withdrawalRequests.find(
-              (req) => req.id === currentWithdrawalId,
-            );
-            if (requestToUpdate) {
-              requestToUpdate.status = 'failed' as TransactionStatus;
-              requestToUpdate.success = false;
-            }
+          const withdrawalRequestIndex = state.withdrawalRequests.findIndex(
+            (req) => req.id === currentWithdrawalId,
+          );
+          if (withdrawalRequestIndex !== -1) {
+            state.withdrawalRequests.splice(withdrawalRequestIndex, 1);
           }
+          state.withdrawInProgress = state.withdrawalRequests.some(
+            (req) => req.status === 'pending' || req.status === 'bridging',
+          );
         });
       }
 
@@ -325,7 +338,6 @@ export class AccountService {
         context.stateManager.update((state) => {
           state.lastError = errorMessage;
           state.lastUpdateTimestamp = Date.now();
-          state.withdrawInProgress = false;
           state.lastWithdrawResult = {
             success: false,
             error: errorMessage,
@@ -335,16 +347,15 @@ export class AccountService {
             txHash: '',
           };
 
-          // Update the withdrawal request by request ID
-          if (state.withdrawalRequests.length > 0) {
-            const requestToUpdate = state.withdrawalRequests.find(
-              (req) => req.id === currentWithdrawalId,
-            );
-            if (requestToUpdate) {
-              requestToUpdate.status = 'failed' as TransactionStatus;
-              requestToUpdate.success = false;
-            }
+          const withdrawalRequestIndex = state.withdrawalRequests.findIndex(
+            (req) => req.id === currentWithdrawalId,
+          );
+          if (withdrawalRequestIndex !== -1) {
+            state.withdrawalRequests.splice(withdrawalRequestIndex, 1);
           }
+          state.withdrawInProgress = state.withdrawalRequests.some(
+            (req) => req.status === 'pending' || req.status === 'bridging',
+          );
         });
       }
 

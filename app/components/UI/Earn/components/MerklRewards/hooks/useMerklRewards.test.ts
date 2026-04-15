@@ -6,7 +6,7 @@ import {
   useMerklRewards,
 } from './useMerklRewards';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
+import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
@@ -17,10 +17,6 @@ import { AGLAMERKL_ADDRESS_MAINNET } from '../constants';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
-}));
-
-jest.mock('../../../../../../util/number', () => ({
-  renderFromTokenMinimalUnit: jest.fn(),
 }));
 
 jest.mock('../merkl-client', () => ({
@@ -55,14 +51,20 @@ jest.mock('../../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: () => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(),
+    }),
+  }),
+}));
+
 // Mock fetch globally
 global.fetch = jest.fn();
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockRenderFromTokenMinimalUnit =
-  renderFromTokenMinimalUnit as jest.MockedFunction<
-    typeof renderFromTokenMinimalUnit
-  >;
 const mockFetchMerklRewardsForAsset =
   fetchMerklRewardsForAsset as jest.MockedFunction<
     typeof fetchMerklRewardsForAsset
@@ -158,39 +160,21 @@ describe('useMerklRewards', () => {
     mockGetClaimedAmountFromContract.mockReset();
     // Default: return null to fall back to API's claimed value
     mockGetClaimedAmountFromContract.mockResolvedValue(null);
-    mockRenderFromTokenMinimalUnit.mockReset();
     (global.fetch as jest.Mock).mockClear();
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
+      if (selector === selectNetworkConfigurationByChainId) {
+        return { name: 'Ethereum Mainnet' };
+      }
       return undefined;
     });
-
-    // Default implementation for renderFromTokenMinimalUnit
-    // This calculates the actual value from the input, which is what most tests need
-    mockRenderFromTokenMinimalUnit.mockImplementation(
-      (value: string | number | unknown, decimals: number) => {
-        let stringValue: string;
-        if (typeof value === 'string') {
-          stringValue = value;
-        } else if (typeof value === 'number') {
-          stringValue = value.toString();
-        } else {
-          // Handle BN or other types
-          stringValue = String(value);
-        }
-        const bigIntValue = BigInt(stringValue);
-        const divisor = BigInt(10 ** decimals);
-        const result = Number(bigIntValue) / Number(divisor);
-        return result.toFixed(2);
-      },
-    );
   });
 
   it('initializes with null claimableReward', () => {
-    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+    const { result } = renderHook(() => useMerklRewards({ asset: undefined }));
 
     expect(result.current.claimableReward).toBe(null);
   });
@@ -227,6 +211,9 @@ describe('useMerklRewards', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return null;
+      }
+      if (selector === selectNetworkConfigurationByChainId) {
+        return { name: 'Ethereum Mainnet' };
       }
       return undefined;
     });
@@ -277,12 +264,6 @@ describe('useMerklRewards', () => {
       mockSelectedAddress,
       mockAsset.address,
       '0xe708', // CHAIN_IDS.LINEA_MAINNET
-    );
-
-    expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
-      '1500000000000000000',
-      18,
-      2,
     );
   });
 
@@ -411,13 +392,6 @@ describe('useMerklRewards', () => {
       },
       { timeout: 3000 },
     );
-
-    // Verify it found the reward
-    expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
-      '2500000000000000000',
-      18,
-      2,
-    );
   });
 
   it('returns null claimableReward when unclaimed amount is zero', async () => {
@@ -505,13 +479,11 @@ describe('useMerklRewards', () => {
 
     mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
     mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
-    // Simulate renderFromTokenMinimalUnit returning a value without trailing zero
-    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('0.9');
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
-      // Should format to 2 decimal places
+      // Should format to 2 decimal places (0.9 * 10^18 base units → "0.90")
       expect(result.current.claimableReward).toBe('0.90');
     });
   });
@@ -536,13 +508,11 @@ describe('useMerklRewards', () => {
 
     mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
     mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
-    // Simulate renderFromTokenMinimalUnit returning a whole number
-    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('1');
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
-      // Should format to 2 decimal places
+      // Should format to 2 decimal places (1 * 10^18 base units → "1.00")
       expect(result.current.claimableReward).toBe('1.00');
     });
   });
@@ -567,13 +537,11 @@ describe('useMerklRewards', () => {
 
     mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
     mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
-    // Simulate renderFromTokenMinimalUnit returning single decimal
-    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('12.5');
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
-      // Should format to 2 decimal places
+      // Should format to 2 decimal places (12.5 * 10^18 base units → "12.50")
       expect(result.current.claimableReward).toBe('12.50');
     });
   });
@@ -599,13 +567,40 @@ describe('useMerklRewards', () => {
     mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
     mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
 
-    // renderFromTokenMinimalUnit returns "< 0.00001" for very small amounts
-    mockRenderFromTokenMinimalUnit.mockReturnValue('< 0.00001');
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      // 100 base units with 18 decimals = 1e-16, below 0.01 → "< 0.01"
+      expect(result.current.claimableReward).toBe('< 0.01');
+    });
+  });
+
+  it('shows "< 0.01" when actual amount is below 0.01 but would round to 0.01', async () => {
+    // 7401 with 6 decimals = 0.007401; renderFromTokenMinimalUnit(7401, 6, 2) returns "0.01" (rounds)
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 6,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '7401',
+      pending: '0',
+      proofs: [],
+      amount: '7401',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
-      // Should convert to "< 0.01" for consistency with 2 decimal places
+      // 7401 with 6 decimals = 0.007401, below 0.01 → "< 0.01"
       expect(result.current.claimableReward).toBe('< 0.01');
     });
   });
@@ -726,13 +721,6 @@ describe('useMerklRewards', () => {
       },
       { timeout: 3000 },
     );
-
-    // Should use token decimals from API (18) not asset decimals (6)
-    expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
-      '1500000000000000000',
-      18,
-      2,
-    );
   });
 
   it('defaults to 18 decimals when token and asset decimals are undefined', async () => {
@@ -769,12 +757,6 @@ describe('useMerklRewards', () => {
     await waitFor(() => {
       expect(result.current.claimableReward).toBe('1.50');
     });
-
-    expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
-      '1500000000000000000',
-      18,
-      2,
-    );
   });
 
   it('falls back to API claimed value when contract call fails', async () => {
@@ -806,14 +788,6 @@ describe('useMerklRewards', () => {
         expect(result.current.claimableReward).toBe('0.50');
       },
       { timeout: 3000 },
-    );
-
-    // Should use API's claimed value (1.0) instead of contract value
-    // unclaimed = amount - claimed = 1.5 - 1.0 = 0.5
-    expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
-      '500000000000000000',
-      18,
-      2,
     );
   });
 
@@ -849,17 +823,10 @@ describe('useMerklRewards', () => {
       },
       { timeout: 3000 },
     );
-
-    // Should use contract value (1.2) not API value (1.0)
-    // unclaimed = amount - claimed = 1.5 - 1.2 = 0.3
-    expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
-      '300000000000000000',
-      18,
-      2,
-    );
   });
 
-  it('returns null claimableReward when renderFromTokenMinimalUnit returns empty string', async () => {
+  it('returns "< 0.01" when amount is below 0.01 (e.g. 0.001 tokens)', async () => {
+    // 1e15 base units with 18 decimals = 0.001 → below 0.01 → displayAmount = '< 0.01'
     const mockRewardData = {
       token: {
         address: AGLAMERKL_ADDRESS_MAINNET,
@@ -869,30 +836,26 @@ describe('useMerklRewards', () => {
         price: null,
       },
       accumulated: '0',
-      unclaimed: '1000000000000000000',
+      unclaimed: '1000000000000000', // 0.001 tokens (1e15 base units)
       pending: '0',
       proofs: [],
-      amount: '1000000000000000000',
+      amount: '1000000000000000',
       claimed: '0',
       recipient: mockSelectedAddress,
     };
 
     mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
     mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
-    // Return empty string to test the falsy check
-    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('');
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
-      expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
+      expect(result.current.claimableReward).toBe('< 0.01');
     });
-
-    // Should remain null when rendered amount is empty string
-    expect(result.current.claimableReward).toBe(null);
   });
 
-  it('returns null claimableReward when renderFromTokenMinimalUnit returns "0"', async () => {
+  it('returns "< 0.01" when amount is tiny (e.g. 1 base unit)', async () => {
+    // 1 base unit with 18 decimals = 1e-18 → below 0.01 → displayAmount = '< 0.01'
     const mockRewardData = {
       token: {
         address: AGLAMERKL_ADDRESS_MAINNET,
@@ -902,27 +865,22 @@ describe('useMerklRewards', () => {
         price: null,
       },
       accumulated: '0',
-      unclaimed: '1000000000000000000',
+      unclaimed: '1',
       pending: '0',
       proofs: [],
-      amount: '1000000000000000000',
+      amount: '1',
       claimed: '0',
       recipient: mockSelectedAddress,
     };
 
     mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
     mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
-    // Return '0' to test the exact zero check
-    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('0');
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
-      expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
+      expect(result.current.claimableReward).toBe('< 0.01');
     });
-
-    // Should remain null when rendered amount is exactly '0'
-    expect(result.current.claimableReward).toBe(null);
   });
 
   it('ignores AbortError when fetch is cancelled', async () => {
@@ -976,13 +934,6 @@ describe('useMerklRewards', () => {
         expect(result.current.claimableReward).toBe('1.50');
       },
       { timeout: 3000 },
-    );
-
-    // Should fall back to asset decimals (6) when token decimals is null
-    expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
-      '1500000',
-      6,
-      2,
     );
   });
 
@@ -1044,5 +995,104 @@ describe('useMerklRewards', () => {
     // Verify fetch was called again
     expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
     expect(mockGetClaimedAmountFromContract).toHaveBeenCalled();
+  });
+
+  it('clears stale claimableReward when refetch returns no matching reward', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '1500000000000000000',
+      pending: '0',
+      proofs: [],
+      amount: '1500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      expect(result.current.claimableReward).toBe('1.50');
+    });
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(null);
+
+    act(() => {
+      result.current.refetch();
+    });
+
+    await waitFor(() => {
+      expect(result.current.claimableReward).toBe(null);
+    });
+  });
+
+  it('starts auto-refresh interval and clears it on unmount', () => {
+    const intervalId = 123 as unknown as ReturnType<typeof setInterval>;
+    const setIntervalSpy = jest
+      .spyOn(global, 'setInterval')
+      .mockReturnValue(intervalId);
+    const clearIntervalSpy = jest
+      .spyOn(global, 'clearInterval')
+      .mockImplementation(() => undefined);
+
+    const { unmount } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 60000);
+
+    unmount();
+
+    expect(clearIntervalSpy).toHaveBeenCalledWith(intervalId);
+
+    setIntervalSpy.mockRestore();
+    clearIntervalSpy.mockRestore();
+  });
+
+  it('increments rewardsFetchVersion after successful fetch and refetch', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '1500000000000000000',
+      pending: '0',
+      proofs: [],
+      amount: '1500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValue(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValue('0');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      expect(result.current.rewardsFetchVersion).toBeGreaterThan(0);
+    });
+
+    const versionAfterInitialFetch = result.current.rewardsFetchVersion;
+
+    act(() => {
+      result.current.refetch();
+    });
+
+    await waitFor(() => {
+      expect(result.current.rewardsFetchVersion).toBeGreaterThan(
+        versionAfterInitialFetch,
+      );
+    });
   });
 });

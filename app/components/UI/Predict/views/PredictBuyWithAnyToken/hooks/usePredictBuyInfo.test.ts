@@ -1,0 +1,378 @@
+import { renderHook } from '@testing-library/react-native';
+import { OrderPreview, Side } from '../../../types';
+import { usePredictBuyInfo } from './usePredictBuyInfo';
+
+let mockIsPredictBalanceSelected = true;
+let mockPayTotals: {
+  fees?: {
+    provider?: { usd?: number };
+    sourceNetwork?: { estimate?: { usd?: number } };
+    targetNetwork?: { usd?: number };
+  };
+} | null = null;
+let mockActiveOrder: { error?: string } | null = null;
+let mockAvailableBalance = 1000;
+let mockIsBalanceLoading = false;
+let mockInsufficientPayAlerts: { message: string; isBlocking: boolean }[] = [];
+let mockNoQuotesAlerts: { message: string; isBlocking: boolean }[] = [];
+
+jest.mock('../../../hooks/usePredictPaymentToken', () => ({
+  usePredictPaymentToken: () => ({
+    isPredictBalanceSelected: mockIsPredictBalanceSelected,
+  }),
+}));
+
+jest.mock(
+  '../../../../../Views/confirmations/hooks/pay/useTransactionPayData',
+  () => ({
+    useTransactionPayTotals: () => mockPayTotals,
+  }),
+);
+
+jest.mock('../../../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: () => ({
+    activeOrder: mockActiveOrder,
+  }),
+}));
+
+jest.mock('./usePredictBuyAvailableBalance', () => ({
+  usePredictBuyAvailableBalance: () => ({
+    availableBalance: mockAvailableBalance,
+    isBalanceLoading: mockIsBalanceLoading,
+  }),
+}));
+
+jest.mock(
+  '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+  () => ({
+    useInsufficientPayTokenBalanceAlert: () => mockInsufficientPayAlerts,
+  }),
+);
+
+jest.mock(
+  '../../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+  () => ({
+    useNoPayTokenQuotesAlert: () => mockNoQuotesAlerts,
+  }),
+);
+
+jest.mock('../../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string, options?: Record<string, unknown>) => {
+    if (key === 'predict.order.prediction_minimum_bet') {
+      return `Minimum bet: ${options?.amount}`;
+    }
+    if (key === 'predict.order.prediction_insufficient_funds') {
+      return `Not enough funds. You can use up to ${options?.amount}.`;
+    }
+    if (key === 'predict.order.no_funds_enough') {
+      return 'Not enough funds.';
+    }
+    return key;
+  }),
+}));
+
+jest.mock('../../../utils/format', () => ({
+  formatPrice: jest.fn((value: number) => `$${value.toFixed(2)}`),
+}));
+
+const createMockPreview = (
+  overrides?: Partial<OrderPreview>,
+): OrderPreview => ({
+  marketId: 'market-1',
+  outcomeId: 'outcome-1',
+  outcomeTokenId: 'token-1',
+  timestamp: 1000000,
+  side: Side.BUY,
+  sharePrice: 0.5,
+  maxAmountSpent: 100,
+  minAmountReceived: 180,
+  slippage: 0.01,
+  tickSize: 0.01,
+  minOrderSize: 1,
+  negRisk: false,
+  rateLimited: false,
+  fees: {
+    totalFee: 5,
+    metamaskFee: 2,
+    providerFee: 3,
+    totalFeePercentage: 0.05,
+    collector: '0xCollector',
+  },
+  ...overrides,
+});
+
+const defaultParams = {
+  currentValue: 100,
+  preview: createMockPreview(),
+  previewError: null as string | null,
+  isConfirming: false,
+  isPlacingOrder: false,
+};
+
+describe('usePredictBuyInfo', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsPredictBalanceSelected = true;
+    mockPayTotals = null;
+    mockActiveOrder = null;
+    mockAvailableBalance = 1000;
+    mockIsBalanceLoading = false;
+    mockInsufficientPayAlerts = [];
+    mockNoQuotesAlerts = [];
+  });
+
+  describe('depositFee', () => {
+    it('calculates depositFee summing provider + sourceNetwork + targetNetwork usd fees', () => {
+      mockIsPredictBalanceSelected = false;
+      mockPayTotals = {
+        fees: {
+          provider: { usd: 1.5 },
+          sourceNetwork: { estimate: { usd: 2.5 } },
+          targetNetwork: { usd: 1.0 },
+        },
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
+
+      expect(result.current.depositFee).toBe(5);
+    });
+
+    it('returns 0 when isPredictBalanceSelected is true', () => {
+      mockIsPredictBalanceSelected = true;
+      mockPayTotals = {
+        fees: {
+          provider: { usd: 1.5 },
+          sourceNetwork: { estimate: { usd: 2.5 } },
+          targetNetwork: { usd: 1.0 },
+        },
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
+
+      expect(result.current.depositFee).toBe(0);
+    });
+
+    it('returns 0 when payTotals has no fees', () => {
+      mockIsPredictBalanceSelected = false;
+      mockPayTotals = {};
+
+      const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
+
+      expect(result.current.depositFee).toBe(0);
+    });
+
+    it('handles missing individual fee components gracefully', () => {
+      mockIsPredictBalanceSelected = false;
+      mockPayTotals = {
+        fees: {
+          provider: { usd: 2.0 },
+        },
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
+
+      expect(result.current.depositFee).toBe(2.0);
+    });
+
+    it('returns 0 when there is an insufficient pay token balance alert', () => {
+      mockIsPredictBalanceSelected = false;
+      mockPayTotals = {
+        fees: {
+          provider: { usd: 1.5 },
+          sourceNetwork: { estimate: { usd: 2.5 } },
+          targetNetwork: { usd: 1.0 },
+        },
+      };
+      mockInsufficientPayAlerts = [
+        { message: 'Insufficient payment token balance', isBlocking: true },
+      ];
+
+      const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
+
+      expect(result.current.depositFee).toBe(0);
+    });
+
+    it('keeps the last accepted deposit fee while confirming', () => {
+      mockIsPredictBalanceSelected = false;
+      mockPayTotals = {
+        fees: {
+          provider: { usd: 1.5 },
+          sourceNetwork: { estimate: { usd: 2.5 } },
+          targetNetwork: { usd: 1.0 },
+        },
+      };
+
+      const { result, rerender } = renderHook(
+        (params: typeof defaultParams) => usePredictBuyInfo(params),
+        {
+          initialProps: { ...defaultParams, isConfirming: true },
+        },
+      );
+
+      expect(result.current.depositFee).toBe(5);
+
+      mockPayTotals = {};
+
+      rerender({ ...defaultParams, isConfirming: true });
+
+      expect(result.current.depositFee).toBe(5);
+    });
+
+    it('clears the accepted deposit fee after confirming ends', () => {
+      mockIsPredictBalanceSelected = false;
+      mockPayTotals = {
+        fees: {
+          provider: { usd: 1.5 },
+          sourceNetwork: { estimate: { usd: 2.5 } },
+          targetNetwork: { usd: 1.0 },
+        },
+      };
+
+      const { result, rerender } = renderHook(
+        (params: typeof defaultParams) => usePredictBuyInfo(params),
+        {
+          initialProps: { ...defaultParams, isConfirming: true },
+        },
+      );
+
+      expect(result.current.depositFee).toBe(5);
+
+      mockPayTotals = {};
+
+      rerender({ ...defaultParams, isConfirming: false });
+
+      expect(result.current.depositFee).toBe(0);
+    });
+  });
+
+  describe('total', () => {
+    it('calculates total as currentValue + providerFee + metamaskFee + depositFee', () => {
+      mockIsPredictBalanceSelected = true;
+      const params = {
+        ...defaultParams,
+        currentValue: 100,
+        preview: createMockPreview({
+          fees: {
+            totalFee: 5,
+            metamaskFee: 2,
+            providerFee: 3,
+            totalFeePercentage: 0.05,
+            collector: '0xCollector',
+          },
+        }),
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      // 100 (currentValue) + 3 (providerFee) + 2 (metamaskFee) + 0 (depositFee, balance selected)
+      expect(result.current.total).toBe(105);
+    });
+
+    it('includes depositFee when external token selected', () => {
+      mockIsPredictBalanceSelected = false;
+      mockPayTotals = {
+        fees: {
+          provider: { usd: 1.0 },
+          sourceNetwork: { estimate: { usd: 1.0 } },
+          targetNetwork: { usd: 1.0 },
+        },
+      };
+      const params = {
+        ...defaultParams,
+        currentValue: 100,
+        preview: createMockPreview({
+          fees: {
+            totalFee: 5,
+            metamaskFee: 2,
+            providerFee: 3,
+            totalFeePercentage: 0.05,
+            collector: '0xCollector',
+          },
+        }),
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.total).toBe(108);
+    });
+  });
+
+  describe('toWin', () => {
+    it('returns minAmountReceived from preview', () => {
+      const params = {
+        ...defaultParams,
+        preview: createMockPreview({ minAmountReceived: 250 }),
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.toWin).toBe(250);
+    });
+
+    it('returns 0 when preview is null', () => {
+      const params = {
+        ...defaultParams,
+        preview: null,
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.toWin).toBe(0);
+    });
+  });
+
+  describe('totalPayForPredictBalance', () => {
+    it('returns the bet amount plus provider and MetaMask fees', () => {
+      const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
+
+      expect(result.current.totalPayForPredictBalance).toBe(105);
+    });
+  });
+
+  describe('rewardsFeeAmount', () => {
+    it('returns totalFee from preview fees', () => {
+      const params = {
+        ...defaultParams,
+        isPlacingOrder: false,
+        previewError: null,
+        preview: createMockPreview({
+          fees: {
+            totalFee: 7,
+            metamaskFee: 3,
+            providerFee: 4,
+            totalFeePercentage: 0.07,
+            collector: '0xCollector',
+          },
+        }),
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.rewardsFeeAmount).toBe(7);
+    });
+
+    it('returns undefined when isPlacingOrder is true', () => {
+      const params = {
+        ...defaultParams,
+        isPlacingOrder: true,
+        previewError: null,
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.rewardsFeeAmount).toBeUndefined();
+    });
+
+    it('returns undefined when previewError exists', () => {
+      const params = {
+        ...defaultParams,
+        isPlacingOrder: false,
+        previewError: 'Preview failed',
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.rewardsFeeAmount).toBeUndefined();
+    });
+  });
+});

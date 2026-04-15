@@ -321,6 +321,10 @@ export const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
     },
     selectedAccount: internalAccount2.id,
   },
+  accountIdByAddress: {
+    [internalAccount1.address]: internalAccount1.id,
+    [internalAccount2.address]: internalAccount2.id,
+  },
 };
 
 export const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA: AccountsControllerState =
@@ -332,6 +336,10 @@ export const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA: AccountsControllerState
         ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
         [internalSolanaAccount1.id]: internalSolanaAccount1,
       },
+    },
+    accountIdByAddress: {
+      ...MOCK_ACCOUNTS_CONTROLLER_STATE.accountIdByAddress,
+      [internalSolanaAccount1.address]: internalSolanaAccount1.id,
     },
   };
 
@@ -423,6 +431,14 @@ export const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES: AccountsControll
         [expectedSecondHDKeyringUuid]: mockSecondHDKeyringInternalAccount,
       },
     },
+    accountIdByAddress: {
+      ...MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA.accountIdByAddress,
+      [mockQRHardwareInternalAccount.address]: mockQRHardwareAccountId,
+      [mockSimpleKeyringInternalAccount.address]: mockSimpleKeyringAccountId,
+      [mockSnapAccount1InternalAccount.address]: mockSnapAccount1Id,
+      [mockSnapAccount2InternalAccount.address]: mockSnapAccount2Id,
+      [mockSecondHDKeyringInternalAccount.address]: expectedSecondHDKeyringUuid,
+    },
   };
 
 export function createMockAccountsControllerState(
@@ -447,11 +463,17 @@ export function createMockAccountsControllerState(
       ? createMockUuidFromAddress(selectedAddress.toLowerCase())
       : createMockUuidFromAddress(addresses[0].toLowerCase());
 
+  const accountIdByAddress: Record<string, string> = {};
+  Object.values(accounts).forEach((account) => {
+    accountIdByAddress[account.address] = account.id;
+  });
+
   return {
     internalAccounts: {
       accounts,
       selectedAccount,
     },
+    accountIdByAddress,
   };
 }
 

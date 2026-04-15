@@ -93,6 +93,18 @@ class AccountMenu {
     });
   }
 
+  get notificationsButton(): DetoxElement {
+    return Matchers.getElementByID(
+      AccountsMenuSelectorsIDs.NOTIFICATIONS_BUTTON,
+    );
+  }
+
+  async tapNotifications(): Promise<void> {
+    await Gestures.waitAndTap(this.notificationsButton, {
+      elemDescription: 'Notifications button',
+    });
+  }
+
   async tapLock(): Promise<void> {
     await Gestures.waitAndTap(this.lockButton, {
       elemDescription: 'Lock button',

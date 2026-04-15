@@ -11,6 +11,7 @@ export const WalletViewSelectorsIDs = {
   TOTAL_BALANCE_TEXT: 'total-balance-text',
   CARD_BUTTON: 'card-button',
   STAKE_BUTTON: 'stake-button',
+  CARD_BUTTON_BADGE: 'card-button-badge',
   EARN_EARNINGS_HISTORY_BUTTON: 'earn-earnings-history-button',
   UNSTAKE_BUTTON: 'unstake-button',
   STAKE_MORE_BUTTON: 'stake-more-button',
@@ -89,6 +90,8 @@ export const WalletViewSelectorsIDs = {
   BALANCE_EMPTY_STATE_CONTAINER: 'account-group-balance-empty-state',
   BALANCE_EMPTY_STATE_ACTION_BUTTON:
     'account-group-balance-empty-state-action-button',
+  WALLET_HEADER_ROOT: 'wallet-header-root',
+  WALLET_SAFE_AREA: 'wallet-safe-area',
   WALLET_SCROLL_VIEW: 'wallet-scroll-view',
   HOMEPAGE_SECTION_TITLE: (sectionName: string): string =>
     `homepage-section-title-${sectionName}`,

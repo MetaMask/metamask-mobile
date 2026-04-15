@@ -104,10 +104,13 @@ const PerpsMarketListView = ({
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
-        perpsNavigation.navigateToMarketDetails(market, route.params?.source);
+        perpsNavigation.navigateToMarketDetails(
+          market,
+          PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+        );
       }
     },
-    [onMarketSelect, perpsNavigation, route.params?.source],
+    [onMarketSelect, perpsNavigation],
   );
 
   // Compute available categories based on market counts (hide empty categories)
@@ -192,6 +195,7 @@ const PerpsMarketListView = ({
         PERPS_EVENT_VALUE.SCREEN_TYPE.MARKET_LIST,
       [PERPS_EVENT_PROPERTY.SOURCE]: source,
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
+      [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: marketTypeFilter,
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),

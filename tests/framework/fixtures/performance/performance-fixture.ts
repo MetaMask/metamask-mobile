@@ -4,6 +4,7 @@ import {
   type MetricsOutput,
 } from '../../../reporters/PerformanceTracker';
 import { publishPerformanceScenarioToSentry } from '../../../reporters/providers/sentry/PerformanceSentryPublisher';
+import { BrowserStackAPI } from '../../services/providers/browserstack/BrowserStackAPI';
 import {
   QualityGatesValidator,
   markQualityGateFailure,
@@ -11,9 +12,40 @@ import {
   getTestId,
 } from '../../quality-gates';
 import { getTeamInfoFromTags } from '../../utils/teams';
+import { IsDisplayedParams, PlaywrightElement } from '../../PlaywrightAdapter';
 
 interface PerformanceFixtures {
   performanceTracker: PerformanceTracker;
+}
+
+async function getBrowserStackRecordingUrl(
+  sessionId: string | null,
+  projectName: string,
+): Promise<string | null> {
+  if (!sessionId || !projectName.toLowerCase().includes('browserstack')) {
+    return null;
+  }
+
+  try {
+    const api = new BrowserStackAPI();
+    const sessionDetails = await api.getSessionDetails(sessionId);
+    if (!sessionDetails?.buildId) {
+      return null;
+    }
+
+    return api.buildSessionURL(sessionDetails.buildId, sessionId);
+  } catch {
+    return null;
+  }
+}
+
+function getSessionIdFromAnnotations(
+  annotations?: { type: string; description?: string }[],
+): string | null {
+  return (
+    annotations?.find((annotation) => annotation.type === 'sessionId')
+      ?.description ?? null
+  );
 }
 
 // Create a custom test fixture that handles performance tracking and cleanup
@@ -75,13 +107,21 @@ export const test = base.extend<PerformanceFixtures>({
       );
     }
 
+    const sessionId = getSessionIdFromAnnotations(testInfo.annotations);
+
     if (metrics) {
+      const videoRecordingUrl = await getBrowserStackRecordingUrl(
+        sessionId,
+        testInfo.project?.name ?? 'unknown',
+      );
+
       try {
         const sentToSentry = await publishPerformanceScenarioToSentry({
           metrics,
           testTitle: testInfo.title,
           projectName: testInfo.project?.name ?? 'unknown',
           testFilePath: testInfo.file,
+          videoRecordingUrl,
           tags: testTags,
           status: testInfo.status,
           retry: testInfo.retry,
@@ -127,15 +167,6 @@ export const test = base.extend<PerformanceFixtures>({
 
     console.log('🔍 Looking for session ID...');
 
-    let sessionId: string | null = null;
-
-    if (testInfo?.annotations) {
-      sessionId =
-        testInfo.annotations.find(
-          (annotation) => annotation.type === 'sessionId',
-        )?.description ?? null;
-    }
-
     if (sessionId) {
       // Store session data as a test attachment for the reporter to find
       // Include team info and tags in session data
@@ -156,5 +187,27 @@ export const test = base.extend<PerformanceFixtures>({
     } else {
       console.log('⚠️ No session ID found - video URL cannot be retrieved');
     }
+  },
+});
+
+/**
+ * Extend the test expect with a toBeVisible matcher.
+ * @param locator - The locator to check.
+ * @param options - The options to pass to the isVisible method.
+ * @returns The result of the isVisible method.
+ */
+export const expect = test.expect.extend({
+  toBeVisible: async (elem: PlaywrightElement, options?: IsDisplayedParams) => {
+    const isVisible = await elem.isVisible(options);
+    return {
+      message: () =>
+        isVisible
+          ? `Expected element NOT to be visible, but it was found on the screen`
+          : `Element was not found on the screen`,
+      pass: isVisible,
+      name: 'toBeVisible',
+      expected: true,
+      actual: isVisible,
+    };
   },
 });

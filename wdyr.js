@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 // Initialization for why-did-you-render in React Native/Expo
 // Must be imported as early as possible from the entry file in development only
 

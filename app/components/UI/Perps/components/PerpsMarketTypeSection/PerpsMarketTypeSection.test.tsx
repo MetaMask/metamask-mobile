@@ -129,6 +129,7 @@ describe('PerpsMarketTypeSection', () => {
         title="Crypto"
         markets={mockMarkets}
         marketType="crypto"
+        source="perps_home"
       />,
       { state: initialState },
     );
@@ -142,6 +143,7 @@ describe('PerpsMarketTypeSection', () => {
       screen: Routes.PERPS.MARKET_LIST,
       params: {
         defaultMarketTypeFilter: 'crypto',
+        source: 'perps_home',
       },
     });
   });
@@ -153,6 +155,7 @@ describe('PerpsMarketTypeSection', () => {
         title="Crypto"
         markets={mockMarkets}
         marketType="crypto"
+        source="perps_home"
       />,
       { state: initialState },
     );
@@ -164,7 +167,7 @@ describe('PerpsMarketTypeSection', () => {
     // Assert
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
-      params: { market: mockMarkets[0] },
+      params: { market: mockMarkets[0], source: 'perps_home' },
     });
   });
 

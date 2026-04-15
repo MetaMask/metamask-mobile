@@ -192,6 +192,20 @@ describe('useNetworkValidation', () => {
     });
   });
 
+  describe('disabledByName', () => {
+    it('returns true when network name is empty', () => {
+      const { result } = renderHook(() => useNetworkValidation());
+      expect(
+        result.current.disabledByName({ ...baseForm, nickname: undefined }),
+      ).toBe(true);
+    });
+
+    it('returns false when network name is present', () => {
+      const { result } = renderHook(() => useNetworkValidation());
+      expect(result.current.disabledByName(baseForm)).toBe(false);
+    });
+  });
+
   describe('onRpcUrlValidationChange', () => {
     it('updates validatedRpcURL state', () => {
       const { result } = renderHook(() => useNetworkValidation());
@@ -333,6 +347,16 @@ describe('useNetworkValidation', () => {
   });
 
   describe('validateName', () => {
+    it('sets required warning when network name is empty', () => {
+      const { result } = renderHook(() => useNetworkValidation());
+
+      act(() => {
+        result.current.validateName({ ...baseForm, nickname: '' });
+      });
+
+      expect(result.current.warningName).toBeDefined();
+    });
+
     it('does nothing when useSafeChainsListValidation is false', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector.name?.includes('SafeChainsListValidation')) return false;

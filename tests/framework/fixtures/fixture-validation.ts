@@ -1,5 +1,5 @@
-/* eslint-disable import/no-nodejs-modules */
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-nodejs-modules */
+/* eslint-disable import-x/no-namespace */
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -202,14 +202,13 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Snap-related (loaded from bundles at runtime, not fixture state) ──
     'engine.backgroundState.SnapController',
     'engine.backgroundState.SnapInterfaceController',
-    'engine.backgroundState.SnapsRegistry',
+    'engine.backgroundState.SnapRegistryController',
     'engine.backgroundState.SubjectMetadataController',
 
     // ── Per-wallet secrets and dynamic IDs (change every onboarding) ──
     'engine.backgroundState.AccountsController.internalAccounts.selectedAccount',
     'engine.backgroundState.AccountsController.internalAccounts.accounts',
-    'engine.backgroundState.PreferencesController.selectedAddress',
-    'engine.backgroundState.PreferencesController.identities',
+    'engine.backgroundState.AccountsController.accountIdByAddress',
     'engine.backgroundState.AccountTrackerController.accountsByChainId',
     'engine.backgroundState.KeyringController.keyrings',
     'engine.backgroundState.KeyringController.vault',
@@ -217,15 +216,12 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.KeyringController.encryptionKey',
     'engine.backgroundState.KeyringController.encryptionSalt',
     'engine.backgroundState.AccountTreeController.accountTree.wallets',
-    'engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup',
+    'engine.backgroundState.AccountTreeController.selectedAccountGroup',
     'engine.backgroundState.AccountTreeController.accountGroupsMetadata',
     'engine.backgroundState.AccountTreeController.accountWalletsMetadata',
     'engine.backgroundState.TokenBalancesController.tokenBalances',
     'engine.backgroundState.MultichainNetworkController.networksWithTransactionActivity',
     'browser.activeTab',
-
-    // ── Random IDs (generated fresh each onboarding) ──
-    'engine.backgroundState.PerpsController.cachedUserDataAddress',
 
     // ── Timestamps (non-deterministic) ──
     'engine.backgroundState.CurrencyRateController.currencyRates.ETH.conversionDate',
@@ -233,7 +229,10 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.PhishingController.stalelistLastFetched',
     'engine.backgroundState.PhishingController.c2DomainBlocklistLastFetched',
     'engine.backgroundState.PerpsController.lastUpdateTimestamp',
+    'engine.backgroundState.PerpsController.cachedMarketDataByProvider',
     'engine.backgroundState.PerpsController.cachedMarketDataTimestamp',
+    'engine.backgroundState.PerpsController.cachedUserDataByProvider',
+    'engine.backgroundState.PerpsController.cachedUserDataAddress',
     'engine.backgroundState.PerpsController.cachedUserDataTimestamp',
     'legalNotices.newPrivacyPolicyToastShownDate',
     'engine.backgroundState.RemoteFeatureFlagController.cacheTimestamp',
@@ -268,6 +267,13 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.ProfileMetricsController',
     'engine.backgroundState.UserStorageController',
     'engine.backgroundState.AuthenticationController',
+
+    // ── Token state (account-address-keyed, changes on every fresh wallet) ──
+    // useEnsureMusdTokenRegistered registers mUSD at app startup, adding entries
+    // under allTokens[chainId][accountAddress]. Since the fixture validation test
+    // creates a fresh wallet each run, the account address differs between runs,
+    // making this subtree non-deterministic.
+    'engine.backgroundState.TokensController.allTokens',
 
     // ── Transaction runtime state ──
     'engine.backgroundState.TransactionController.transactions',
@@ -314,6 +320,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Runtime-detected values (non-deterministic between environments) ──
     'card.geoLocation',
     'engine.backgroundState.GeolocationController.location',
+    'engine.backgroundState.GeolocationController.lastFetchedAt',
     'fiatOrders.rampRoutingDecision',
 
     // ── Networks present in app defaults but not in fixture (added by controller at runtime) ──
@@ -343,8 +350,6 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'swaps.hasOnboarded',
     'navigation.currentRoute',
     'inpageProvider.networkId',
-    'engine.backgroundState.SwapsController.pollingCyclesLeft',
-
     // ── Redux-persist internals ──
     '_persist',
   ];

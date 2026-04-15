@@ -1,6 +1,6 @@
 import { Box } from '@metamask/design-system-react-native';
 import React, { PropsWithChildren } from 'react';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 
 interface PreviousSeasonSummaryTileProps extends PropsWithChildren {
   twClassName?: string;

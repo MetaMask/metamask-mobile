@@ -10,7 +10,7 @@ import {
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import useBalanceChanges from '../../../../UI/SimulationDetails/useBalanceChanges';
 import { AssetType } from '../../../../UI/SimulationDetails/types';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as TokenUtils from '../../utils/token';
 import { useBatchApproveBalanceChanges } from './useBatchApproveBalanceChanges';
 

@@ -34,15 +34,8 @@ export const QuoteSelectorView = () => {
   const dispatch = useDispatch();
   const selectedQuoteRequestId = useSelector(selectSelectedQuoteRequestId);
   const currency = useSelector(selectCurrentCurrency);
-  const {
-    validQuotes,
-    bestQuote,
-    isLoading,
-    blockaidError,
-    quoteFetchError,
-    isExpired,
-    willRefresh,
-  } = useBridgeQuoteData();
+  const { validQuotes, bestQuote, isLoading, blockaidError, quoteFetchError } =
+    useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const latestSourceBalance = useLatestBalance({
@@ -131,10 +124,10 @@ export const QuoteSelectorView = () => {
 
   // Go back to bridge view only if there's an error or quotes are expired
   useEffect(() => {
-    if (quoteFetchError || blockaidError || (isExpired && !willRefresh)) {
+    if (quoteFetchError || blockaidError) {
       navigation.goBack();
     }
-  }, [quoteFetchError, blockaidError, isExpired, navigation, willRefresh]);
+  }, [quoteFetchError, blockaidError, navigation]);
 
   return (
     <ScreenView>

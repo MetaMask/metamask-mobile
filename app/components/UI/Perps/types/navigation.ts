@@ -19,6 +19,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsOrder: {
     direction: 'long' | 'short';
     asset: string;
+    defaultSzDecimals?: number;
+    defaultMaxLeverage?: number;
     leverage?: number;
     amount?: string;
     price?: string;
@@ -110,6 +112,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   PerpsClosePosition: {
     position: Position;
+    source?: string;
   };
 
   PerpsAdjustMargin: {
@@ -160,6 +163,10 @@ export interface PerpsNavigationParamList extends ParamListBase {
     isFromGTMModal?: boolean;
     /** Analytics: how the user got to the tutorial (e.g. homescreen_tab, main_action_button) */
     source?: string;
+    /** Screen to navigate to after tutorial completion instead of the default PerpsHome */
+    redirectScreen?: string;
+    /** Params to pass to the redirect screen */
+    redirectParams?: Record<string, unknown>;
   };
 
   // TP/SL screen
@@ -175,11 +182,16 @@ export interface PerpsNavigationParamList extends ParamListBase {
     limitPrice?: string;
     amount?: string; // For new orders - USD amount to calculate position size for P&L
     szDecimals?: number; // For new orders - asset decimal precision for P&L
+    /**
+     * Called when user confirms TP/SL. First arg is position when editing existing position (avoids "No position found" from stale ref).
+     * Signature: (position?, takeProfitPrice?, stopLossPrice?, trackingData?) so both edit-flow and order-flow can use it.
+     */
     onConfirm: (
+      position?: Position,
       takeProfitPrice?: string,
       stopLossPrice?: string,
       trackingData?: TPSLTrackingData,
-    ) => Promise<void>;
+    ) => Promise<{ success: boolean } | void>;
   };
 
   // PnL Hero Card screen

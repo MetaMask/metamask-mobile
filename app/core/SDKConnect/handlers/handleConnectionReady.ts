@@ -46,7 +46,7 @@ export const handleConnectionReady = async ({
   if (!apiVersion) {
     // clear previous pending approval
     if (approvalController.get(connection.channelId)) {
-      approvalController.reject(
+      approvalController.rejectRequest(
         connection.channelId,
         providerErrors.userRejectedRequest(),
       );
@@ -143,7 +143,7 @@ export const handleConnectionReady = async ({
         if (approvalController.get(connection.channelId)) {
           DevLogger.log(`SDKConnect::CLIENTS_READY reject previous approval`);
           // cleaning previous pending approval
-          approvalController.reject(
+          approvalController.rejectRequest(
             connection.channelId,
             providerErrors.userRejectedRequest(),
           );

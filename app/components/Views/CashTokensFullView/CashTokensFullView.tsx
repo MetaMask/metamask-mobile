@@ -1,0 +1,198 @@
+import React, { useCallback, useMemo } from 'react';
+import { Linking, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Hex } from '@metamask/utils';
+import {
+  Box,
+  BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  HeaderBase,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../locales/i18n';
+import Tokens from '../../UI/Tokens';
+import { useMusdBalance } from '../../UI/Earn/hooks/useMusdBalance';
+import { useMusdConversionTokens } from '../../UI/Earn/hooks/useMusdConversionTokens';
+import { useMusdConversion } from '../../UI/Earn/hooks/useMusdConversion';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../UI/Earn/types/musd.types';
+import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import MoneyConvertStablecoins from '../../UI/Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
+import AssetOverviewClaimBonus from '../../UI/Earn/components/AssetOverviewClaimBonus/AssetOverviewClaimBonus';
+import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
+import CashGetMusdEmptyState from '../Homepage/Sections/Cash/CashGetMusdEmptyState';
+import SectionRow from '../Homepage/components/SectionRow/SectionRow';
+import { AssetType } from '../confirmations/types/token';
+import Logger from '../../../util/Logger';
+import AppConstants from '../../../core/AppConstants';
+
+const CashTokensFullView = () => {
+  const navigation = useNavigation();
+  const tw = useTailwind();
+  const { hasMusdBalanceOnAnyChain } = useMusdBalance();
+  const { tokens: conversionTokens } = useMusdConversionTokens();
+
+  const hasConversionTokens = conversionTokens.length > 0;
+
+  const { initiateMaxConversion, initiateCustomConversion } =
+    useMusdConversion();
+  const { goToBuy } = useRampNavigation();
+  const { goToSwaps } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.MainView,
+    sourcePage: 'CashTokensFullView',
+  });
+
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleConvertMaxPress = useCallback(
+    async (token: AssetType) => {
+      try {
+        await initiateMaxConversion(token);
+      } catch (error) {
+        Logger.error(error as Error, {
+          message: '[CashTokensFullView] Failed to initiate max conversion',
+        });
+      }
+    },
+    [initiateMaxConversion],
+  );
+
+  const handleConvertEditPress = useCallback(
+    async (token: AssetType) => {
+      try {
+        await initiateCustomConversion({
+          preferredPaymentToken: {
+            address: token.address as Hex,
+            chainId: token.chainId as Hex,
+          },
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
+        });
+      } catch (error) {
+        Logger.error(error as Error, {
+          message: '[CashTokensFullView] Failed to initiate custom conversion',
+        });
+      }
+    },
+    [initiateCustomConversion],
+  );
+
+  const handleConvertPress = useCallback(async () => {
+    const topToken = conversionTokens[0];
+    if (!topToken) return;
+    try {
+      await initiateMaxConversion(topToken);
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: '[CashTokensFullView] Failed to initiate convert CTA',
+      });
+    }
+  }, [conversionTokens, initiateMaxConversion]);
+
+  const handleLearnMorePress = useCallback(() => {
+    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+  }, []);
+
+  const bonusAndConvertSections = useMemo(
+    () => (
+      <>
+        <AssetOverviewClaimBonus asset={MUSD_MAINNET_ASSET_FOR_DETAILS} />
+        <MoneyConvertStablecoins
+          tokens={conversionTokens}
+          onMaxPress={handleConvertMaxPress}
+          onEditPress={handleConvertEditPress}
+          onLearnMorePress={handleLearnMorePress}
+        />
+      </>
+    ),
+    [
+      conversionTokens,
+      handleConvertMaxPress,
+      handleConvertEditPress,
+      handleLearnMorePress,
+    ],
+  );
+
+  return (
+    <SafeAreaView style={tw`flex-1 bg-default pb-4`}>
+      <HeaderBase
+        startAccessory={
+          <ButtonIcon
+            size={ButtonIconSize.Md}
+            onPress={handleBackPress}
+            iconName={IconName.ArrowLeft}
+            testID="back-button"
+          />
+        }
+        style={tw`p-4`}
+        twClassName="h-auto"
+      >
+        {strings('homepage.sections.cash')}
+      </HeaderBase>
+      {hasMusdBalanceOnAnyChain ? (
+        <Tokens
+          isFullView
+          showOnlyMusd
+          hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
+          listFooterComponent={bonusAndConvertSections}
+        />
+      ) : (
+        <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
+          <SectionRow>
+            <CashGetMusdEmptyState isFullView />
+          </SectionRow>
+          {bonusAndConvertSections}
+        </ScrollView>
+      )}
+      {hasConversionTokens ? (
+        <Box twClassName="px-4 pt-4">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleConvertPress}
+          >
+            {strings('money.convert_stablecoins.convert_cta')}
+          </Button>
+        </Box>
+      ) : (
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 pt-4 gap-2">
+          <Box twClassName="flex-1">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={() => goToSwaps()}
+            >
+              {strings('money.convert_stablecoins.swap')}
+            </Button>
+          </Box>
+          <Box twClassName="flex-1">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={() => goToBuy()}
+            >
+              {strings('money.convert_stablecoins.buy')}
+            </Button>
+          </Box>
+        </Box>
+      )}
+    </SafeAreaView>
+  );
+};
+
+CashTokensFullView.displayName = 'CashTokensFullView';
+
+export default CashTokensFullView;

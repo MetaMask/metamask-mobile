@@ -45,6 +45,7 @@ export interface UseNetworkOperationsReturn {
     params: {
       enableAction: boolean;
       disabledByChainId: boolean;
+      disabledByName: boolean;
       disabledBySymbol: boolean;
       isCustomMainnet: boolean;
       shouldNetworkSwitchPopToWallet: boolean;
@@ -197,6 +198,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
       params: {
         enableAction: boolean;
         disabledByChainId: boolean;
+        disabledByName: boolean;
         disabledBySymbol: boolean;
         isCustomMainnet: boolean;
         shouldNetworkSwitchPopToWallet: boolean;
@@ -211,6 +213,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
       const {
         enableAction,
         disabledByChainId,
+        disabledByName,
         disabledBySymbol,
         isCustomMainnet,
         shouldNetworkSwitchPopToWallet,
@@ -218,7 +221,14 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
         validateChainIdOnSubmit,
       } = params;
 
-      if (!enableAction || disabledByChainId || disabledBySymbol) return;
+      if (
+        !enableAction ||
+        disabledByChainId ||
+        disabledByName ||
+        disabledBySymbol
+      ) {
+        return;
+      }
 
       const {
         rpcUrl,
@@ -232,7 +242,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
 
       const ticker = form.ticker ? form.ticker.toUpperCase() : undefined;
 
-      if (!stateChainId || !rpcUrl) return;
+      if (!stateChainId || !rpcUrl || !nickname?.trim()) return;
 
       // Check if network with this chainId already exists
       const isNetworkNew = addMode

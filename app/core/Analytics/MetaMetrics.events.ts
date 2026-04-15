@@ -77,6 +77,21 @@ enum EVENT_NAME {
   NFT_DETAILS_OPENED = 'NFT Details Opened',
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
+  /** Token overview advanced chart: user switched line vs candlestick */
+  CHART_TYPE_CHANGED = 'chart_type_changed',
+  /** Token overview advanced chart: user selected a different timeframe */
+  CHART_TIMEFRAME_CHANGED = 'chart_timeframe_changed',
+  /** Advanced chart: user zoomed, panned, or used crosshair tooltip */
+  CHART_INTERACTED = 'chart_interacted',
+  /** Advanced chart: user tapped TradingView logo/link to open external chart */
+  CHART_TRADINGVIEW_CLICKED = 'chart_tradingview_clicked',
+  /**
+   * Token overview advanced chart: empty state shown (no usable chart data).
+   * Triggered when no chart data is available.
+   */
+  CHART_EMPTY_DISPLAYED = 'chart_empty_displayed',
+  SECURITY_TRUST_BOTTOM_SHEET_OPENED = 'Security Trust BottomSheet Opened',
+  SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN = 'Security Trust BottomSheet Action Taken',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
   VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
@@ -122,6 +137,7 @@ enum EVENT_NAME {
 
   // Analytics
   ANALYTICS_PREFERENCE_SELECTED = 'Analytics Preference Selected',
+  METRICS_OPT_IN = 'Metrics Opt In',
   METRICS_OPT_OUT = 'Metrics Opt Out',
   ANALYTICS_REQUEST_DATA_DELETION = 'Delete MetaMetrics Data Request Submitted',
   EXPERIMENT_VIEWED = 'Experiment Viewed',
@@ -144,6 +160,8 @@ enum EVENT_NAME {
   WALLET_CREATION_ATTEMPTED = 'Wallet Creation Attempted',
   WALLET_CREATED = 'Wallet Created',
   WALLET_SETUP_FAILURE = 'Wallet Setup Failure',
+  WALLET_GOOGLE_IOS_WARNING_VIEWED = 'Wallet Google Ios Warning Viewed',
+  WALLET_GOOGLE_IOS_ERROR_VIEWED = 'Wallet Google Ios Error Viewed',
   WALLET_CREATION_ERROR_SCREEN_VIEWED = 'Wallet Creation Error Screen Viewed',
   WALLET_CREATION_ERROR_RETRY_CLICKED = 'Wallet Creation Error Retry Clicked',
   WALLET_CREATION_ERROR_REPORT_SENT = 'Wallet Creation Error Report Sent',
@@ -156,6 +174,7 @@ enum EVENT_NAME {
   REHYDRATION_PASSWORD_ATTEMPTED = 'Rehydration Password Attempted',
   REHYDRATION_COMPLETED = 'Rehydration Completed',
   REHYDRATION_PASSWORD_FAILED = 'Rehydration Password Failed',
+  PASSWORD_OUTDATED_MODAL_VIEWED = 'Password Outdated Modal Viewed',
   PASSWORD_CHANGED = 'Password Changed',
   FORGOT_PASSWORD_CLICKED = 'Forgot Password Clicked',
   USE_DIFFERENT_LOGIN_METHOD_CLICKED = 'Use Different Login Method Clicked',
@@ -228,6 +247,9 @@ enum EVENT_NAME {
   HARDWARE_WALLET_ADD_ACCOUNT = 'Hardware Wallet Account Connected',
   HARDWARE_WALLET_FORGOTTEN = 'Hardware Wallet Forgotten',
   HARDWARE_WALLET_ERROR = 'Hardware Wallet Connection Failed',
+  HARDWARE_WALLET_RECOVERY_MODAL_VIEWED = 'Hardware Wallet Recovery Modal Viewed',
+  HARDWARE_WALLET_RECOVERY_CTA_CLICKED = 'Hardware Wallet Recovery CTA Clicked',
+  HARDWARE_WALLET_RECOVERY_SUCCESS_MODAL_VIEWED = 'Hardware Wallet Recovery Success Modal Viewed',
 
   // Tokens
   TOKEN_DETECTED = 'Token Detected',
@@ -607,6 +629,8 @@ enum EVENT_NAME {
   REWARDS_REWARD_VIEWED = 'Rewards Reward Viewed',
   REWARDS_SETTINGS_VIEWED = 'Rewards Settings Viewed',
   REWARDS_WAYS_TO_EARN_CTA_CLICKED = 'Rewards Ways to Earn CTA Clicked',
+  REWARDS_VERSION_GUARD_VIEWED = 'Rewards Version Guard Viewed',
+  REWARDS_VERSION_GUARD_UPDATE_CLICKED = 'Rewards Version Guard Update Clicked',
 
   // Predict
   PREDICT_TRADE_TRANSACTION = 'Predict Trade Transaction',
@@ -619,10 +643,15 @@ enum EVENT_NAME {
   // Trending
   TRENDING_FEED_VIEWED = 'Trending Feed Viewed',
 
+  // Explore Search
+  EXPLORE_SEARCH_INTERACTED = 'Explore Search Interacted',
+
   // Market Insights
+  MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW = 'Market Insights Card Scrolled to View',
   MARKET_INSIGHTS_OPENED = 'Market Insights Opened',
   MARKET_INSIGHTS_VIEWED = 'Market Insights Viewed',
   MARKET_INSIGHTS_INTERACTION = 'Market Insights Interaction',
+  MARKET_INSIGHTS_CLOSED = 'Market Insights Closed',
 
   // Share
   SHARE_ACTION = 'Share Action',
@@ -641,7 +670,11 @@ enum EVENT_NAME {
   MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED = 'mUSD Fullscreen Announcement Button Clicked',
   MUSD_CONVERSION_STATUS_UPDATED = 'mUSD Conversion Status Updated',
   MUSD_CLAIM_BONUS_BUTTON_CLICKED = 'mUSD Claim Bonus Button Clicked',
+  MUSD_CLAIM_BONUS_CTA_DISPLAYED = 'mUSD Claim Bonus CTA Displayed',
   MUSD_CLAIM_BONUS_STATUS_UPDATED = 'mUSD Claim Bonus Status Updated',
+  MUSD_QUICK_CONVERT_SCREEN_VIEWED = 'mUSD Quick Convert Screen Viewed',
+  MUSD_BONUS_TERMS_OF_USE_PRESSED = 'mUSD Bonus Terms of Use Pressed',
+  MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED = 'mUSD Quick Convert Token Row Button Clicked',
 
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
@@ -823,6 +856,7 @@ const events = {
   ANALYTICS_PREFERENCE_SELECTED: generateOpt(
     EVENT_NAME.ANALYTICS_PREFERENCE_SELECTED,
   ),
+  METRICS_OPT_IN: generateOpt(EVENT_NAME.METRICS_OPT_IN),
   METRICS_OPT_OUT: generateOpt(EVENT_NAME.METRICS_OPT_OUT),
   ANALYTICS_REQUEST_DATA_DELETION: generateOpt(
     EVENT_NAME.ANALYTICS_REQUEST_DATA_DELETION,
@@ -851,6 +885,12 @@ const events = {
   WALLET_CREATION_ATTEMPTED: generateOpt(EVENT_NAME.WALLET_CREATION_ATTEMPTED),
   WALLET_CREATED: generateOpt(EVENT_NAME.WALLET_CREATED),
   WALLET_SETUP_FAILURE: generateOpt(EVENT_NAME.WALLET_SETUP_FAILURE),
+  WALLET_GOOGLE_IOS_WARNING_VIEWED: generateOpt(
+    EVENT_NAME.WALLET_GOOGLE_IOS_WARNING_VIEWED,
+  ),
+  WALLET_GOOGLE_IOS_ERROR_VIEWED: generateOpt(
+    EVENT_NAME.WALLET_GOOGLE_IOS_ERROR_VIEWED,
+  ),
   WALLET_CREATION_ERROR_SCREEN_VIEWED: generateOpt(
     EVENT_NAME.WALLET_CREATION_ERROR_SCREEN_VIEWED,
   ),
@@ -879,6 +919,9 @@ const events = {
   REHYDRATION_COMPLETED: generateOpt(EVENT_NAME.REHYDRATION_COMPLETED),
   REHYDRATION_PASSWORD_FAILED: generateOpt(
     EVENT_NAME.REHYDRATION_PASSWORD_FAILED,
+  ),
+  PASSWORD_OUTDATED_MODAL_VIEWED: generateOpt(
+    EVENT_NAME.PASSWORD_OUTDATED_MODAL_VIEWED,
   ),
   PASSWORD_CHANGED: generateOpt(EVENT_NAME.PASSWORD_CHANGED),
   FORGOT_PASSWORD_CLICKED: generateOpt(EVENT_NAME.FORGOT_PASSWORD_CLICKED),
@@ -962,6 +1005,15 @@ const events = {
   ),
   HARDWARE_WALLET_FORGOTTEN: generateOpt(EVENT_NAME.HARDWARE_WALLET_FORGOTTEN),
   HARDWARE_WALLET_ERROR: generateOpt(EVENT_NAME.HARDWARE_WALLET_ERROR),
+  HARDWARE_WALLET_RECOVERY_MODAL_VIEWED: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_RECOVERY_MODAL_VIEWED,
+  ),
+  HARDWARE_WALLET_RECOVERY_CTA_CLICKED: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_RECOVERY_CTA_CLICKED,
+  ),
+  HARDWARE_WALLET_RECOVERY_SUCCESS_MODAL_VIEWED: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_RECOVERY_SUCCESS_MODAL_VIEWED,
+  ),
 
   TOKEN_DETECTED: generateOpt(EVENT_NAME.TOKEN_DETECTED),
   TOKEN_IMPORT_CLICKED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CLICKED),
@@ -1467,6 +1519,17 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
+  CHART_TYPE_CHANGED: generateOpt(EVENT_NAME.CHART_TYPE_CHANGED),
+  CHART_TIMEFRAME_CHANGED: generateOpt(EVENT_NAME.CHART_TIMEFRAME_CHANGED),
+  CHART_INTERACTED: generateOpt(EVENT_NAME.CHART_INTERACTED),
+  CHART_TRADINGVIEW_CLICKED: generateOpt(EVENT_NAME.CHART_TRADINGVIEW_CLICKED),
+  CHART_EMPTY_DISPLAYED: generateOpt(EVENT_NAME.CHART_EMPTY_DISPLAYED),
+  SECURITY_TRUST_BOTTOM_SHEET_OPENED: generateOpt(
+    EVENT_NAME.SECURITY_TRUST_BOTTOM_SHEET_OPENED,
+  ),
+  SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN: generateOpt(
+    EVENT_NAME.SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN,
+  ),
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
@@ -1525,11 +1588,15 @@ const events = {
     EVENT_NAME.ASSET_FILTER_CUSTOM_SELECTED,
   ),
   // Market Insights
+  MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW: generateOpt(
+    EVENT_NAME.MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW,
+  ),
   MARKET_INSIGHTS_OPENED: generateOpt(EVENT_NAME.MARKET_INSIGHTS_OPENED),
   MARKET_INSIGHTS_VIEWED: generateOpt(EVENT_NAME.MARKET_INSIGHTS_VIEWED),
   MARKET_INSIGHTS_INTERACTION: generateOpt(
     EVENT_NAME.MARKET_INSIGHTS_INTERACTION,
   ),
+  MARKET_INSIGHTS_CLOSED: generateOpt(EVENT_NAME.MARKET_INSIGHTS_CLOSED),
   // Card
   CARD_BUTTON_VIEWED: generateOpt(EVENT_NAME.CARD_BUTTON_VIEWED),
   CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),
@@ -1621,6 +1688,12 @@ const events = {
   REWARDS_WAYS_TO_EARN_CTA_CLICKED: generateOpt(
     EVENT_NAME.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
   ),
+  REWARDS_VERSION_GUARD_VIEWED: generateOpt(
+    EVENT_NAME.REWARDS_VERSION_GUARD_VIEWED,
+  ),
+  REWARDS_VERSION_GUARD_UPDATE_CLICKED: generateOpt(
+    EVENT_NAME.REWARDS_VERSION_GUARD_UPDATE_CLICKED,
+  ),
   // Predict
   PREDICT_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PREDICT_TRADE_TRANSACTION),
   PREDICT_MARKET_DETAILS_OPENED: generateOpt(
@@ -1634,6 +1707,8 @@ const events = {
   PREDICT_FEED_VIEWED: generateOpt(EVENT_NAME.PREDICT_FEED_VIEWED),
 
   TRENDING_FEED_VIEWED: generateOpt(EVENT_NAME.TRENDING_FEED_VIEWED),
+
+  EXPLORE_SEARCH_INTERACTED: generateOpt(EVENT_NAME.EXPLORE_SEARCH_INTERACTED),
 
   // Share
   SHARE_ACTION: generateOpt(EVENT_NAME.SHARE_ACTION),
@@ -1667,8 +1742,20 @@ const events = {
   MUSD_CLAIM_BONUS_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
   ),
+  MUSD_CLAIM_BONUS_CTA_DISPLAYED: generateOpt(
+    EVENT_NAME.MUSD_CLAIM_BONUS_CTA_DISPLAYED,
+  ),
   MUSD_CLAIM_BONUS_STATUS_UPDATED: generateOpt(
     EVENT_NAME.MUSD_CLAIM_BONUS_STATUS_UPDATED,
+  ),
+  MUSD_QUICK_CONVERT_SCREEN_VIEWED: generateOpt(
+    EVENT_NAME.MUSD_QUICK_CONVERT_SCREEN_VIEWED,
+  ),
+  MUSD_BONUS_TERMS_OF_USE_PRESSED: generateOpt(
+    EVENT_NAME.MUSD_BONUS_TERMS_OF_USE_PRESSED,
+  ),
+  MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
   ),
 };
 

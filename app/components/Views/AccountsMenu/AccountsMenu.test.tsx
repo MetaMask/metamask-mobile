@@ -30,20 +30,12 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        default: '#FFFFFF',
-        alternative: '#F2F4F6',
-      },
-      text: {
-        default: '#24272A',
-        alternative: '#6A737D',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
@@ -203,43 +195,7 @@ describe('AccountsMenu', () => {
     expect(getByText('accounts_menu.resources')).toBeOnTheScreen();
   });
 
-  describe('Snapshots', () => {
-    it('match snapshot when MetaMask Card is hidden', () => {
-      (useSelector as jest.Mock).mockReturnValue(false);
-
-      const { toJSON } = render(<AccountsMenu />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('match snapshot when MetaMask Card is visible', () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
-
-      const { toJSON } = render(<AccountsMenu />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-  });
-
   describe('MetaMask Card Button', () => {
-    it('render MetaMask Card row when shouldDisplayCardButton is true', () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
-
-      const { getByText, getByTestId } = render(<AccountsMenu />);
-
-      expect(getByText('accounts_menu.card_title')).toBeOnTheScreen();
-      expect(
-        getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD),
-      ).toBeOnTheScreen();
-    });
-
-    it('does NOT render MetaMask Card row when shouldDisplayCardButton is false', () => {
-      (useSelector as jest.Mock).mockReturnValue(false);
-
-      const { queryByText, queryByTestId } = render(<AccountsMenu />);
-
-      expect(queryByText('accounts_menu.card_title')).toBeNull();
-      expect(queryByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD)).toBeNull();
-    });
-
     it('navigate to card and track analytics when MetaMask Card is pressed', () => {
       (useSelector as jest.Mock).mockReturnValue(true);
 
@@ -270,8 +226,10 @@ describe('AccountsMenu', () => {
 
       const { queryByText, queryByTestId } = render(<AccountsMenu />);
 
-      expect(queryByText('accounts_menu.buy')).toBeNull();
-      expect(queryByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON)).toBeNull();
+      expect(queryByText('accounts_menu.buy')).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('navigate to buy flow and track analytics when Buy is pressed', () => {
@@ -479,7 +437,7 @@ describe('AccountsMenu', () => {
 
       const { queryByText } = render(<AccountsMenu />);
 
-      expect(queryByText('accounts_menu.notifications')).toBeNull();
+      expect(queryByText('accounts_menu.notifications')).not.toBeOnTheScreen();
     });
 
     it('navigate to notifications view when enabled and pressed', () => {
@@ -538,7 +496,7 @@ describe('AccountsMenu', () => {
       const { queryByText } = render(<AccountsMenu />);
 
       // Badge should not be visible
-      expect(queryByText('0')).toBeNull();
+      expect(queryByText('0')).not.toBeOnTheScreen();
     });
 
     it('track NOTIFICATIONS_MENU_OPENED event when enabled and pressed', () => {
@@ -633,6 +591,26 @@ describe('AccountsMenu', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.SETTINGS.SDK_SESSIONS_MANAGER,
+      );
+    });
+  });
+
+  describe('Networks Row', () => {
+    it('render Networks row', () => {
+      const { getByText, getByTestId } = render(<AccountsMenu />);
+
+      expect(getByText('accounts_menu.networks')).toBeOnTheScreen();
+      expect(getByTestId(AccountsMenuSelectorsIDs.NETWORKS)).toBeOnTheScreen();
+    });
+
+    it('navigate to NetworksManagement when Networks is pressed', () => {
+      const { getByTestId } = render(<AccountsMenu />);
+      const networksButton = getByTestId(AccountsMenuSelectorsIDs.NETWORKS);
+
+      fireEvent.press(networksButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SETTINGS.NETWORKS_MANAGEMENT,
       );
     });
   });

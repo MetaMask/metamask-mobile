@@ -2,11 +2,11 @@ import {
   ProfileMetricsController,
   ProfileMetricsControllerMessenger,
 } from '@metamask/profile-metrics-controller';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { profileMetricsControllerInit } from './profile-metrics-controller-init';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ProfileMetricsControllerInitMessenger } from '../messengers/profile-metrics-controller-messenger';
 
 jest.mock('@metamask/profile-metrics-controller');
@@ -22,7 +22,7 @@ function getInitRequestMock({
   analyticsEnabled: boolean;
   pna25Acknowledged: boolean;
 }): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     ProfileMetricsControllerMessenger,
     ProfileMetricsControllerInitMessenger
   >
@@ -54,7 +54,7 @@ function getInitRequestMock({
   } as unknown as ProfileMetricsControllerInitMessenger;
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     initMessenger: mockInitMessenger,
     analyticsId,
     getController: mockGetController,
@@ -133,6 +133,7 @@ describe.each([
           state: undefined,
           assertUserOptedIn: expect.any(Function),
           getMetaMetricsId: expect.any(Function),
+          initialDelayDuration: 60_000,
         });
         expect(controllerMock.mock.calls[0][0].assertUserOptedIn()).toBe(
           analyticsEnabled && remoteFeatureFlag && pna25Acknowledged,

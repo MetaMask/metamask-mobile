@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { PerpsFlipPositionConfirmSheetSelectorsIDs } from '../../Perps.testIds';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -67,9 +68,11 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   const price = parseFloat(currentPrice?.price || '0');
   const markPrice = parseFloat(currentPrice?.markPrice || '0');
 
-  // Calculate USD amount for fee estimation
+  // Calculate USD amount for fee estimation.
+  // A flip places one order of 2x position size (1x to close current, 1x to open opposite).
+  // Fee is charged on the full 2x notional, so multiply by 2 for an accurate estimate.
   const usdAmount = useMemo(
-    () => (positionSize * (markPrice || price)).toString(),
+    () => (positionSize * 2 * (markPrice || price)).toString(),
     [positionSize, markPrice, price],
   );
 
@@ -140,6 +143,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
         variant: ButtonVariants.Secondary,
         size: ButtonSize.Lg,
         disabled: isFlipping,
+        testID: PerpsFlipPositionConfirmSheetSelectorsIDs.CANCEL_BUTTON,
       },
       {
         label: isFlipping
@@ -150,6 +154,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
         size: ButtonSize.Lg,
         disabled: isFlipping || !hasValidAmount,
         danger: true,
+        testID: PerpsFlipPositionConfirmSheetSelectorsIDs.FLIP_BUTTON,
       },
     ],
     [handleCloseInternal, handleReverse, isFlipping, hasValidAmount],
@@ -160,6 +165,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
       ref={sheetRef}
       shouldNavigateBack={!externalSheetRef}
       onClose={externalSheetRef ? onClose : undefined}
+      testID={PerpsFlipPositionConfirmSheetSelectorsIDs.SHEET}
     >
       <BottomSheetHeader onClose={handleCloseInternal}>
         <Text variant={TextVariant.HeadingMD}>
@@ -202,7 +208,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
                         : strings('perps.order.short_label')}
                     </Text>
                     <Icon
-                      name={IconName.Arrow2Right}
+                      name={IconName.ArrowRight}
                       size={IconSize.Md}
                       color={IconColor.Default}
                     />

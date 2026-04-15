@@ -1,26 +1,28 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OnboardingGeneralSettings should render correctly 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
     {
-      "flex": 1,
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
 >
   <RCTScrollView
     style={
       {
-        "flex": 1,
-        "paddingHorizontal": 16,
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
+        "paddingLeft": 16,
+        "paddingRight": 16,
         "paddingTop": 16,
       }
     }
@@ -48,7 +50,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -133,7 +135,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -218,7 +220,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -366,5 +368,5 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;

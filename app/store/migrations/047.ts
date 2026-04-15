@@ -2,8 +2,16 @@ import { captureException } from '@sentry/react-native';
 import { isObject, hasProperty } from '@metamask/utils';
 import { ensureValidState } from './util';
 import { AccountsControllerState } from '@metamask/accounts-controller';
-import { PreferencesState } from '@metamask/preferences-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+
+interface LegacyIdentity {
+  importTime?: number;
+}
+
+interface LegacyPreferencesState {
+  identities: Record<string, LegacyIdentity>;
+  [key: string]: unknown;
+}
 
 /**
  * Migration to add importTime property to accounts metadata of accounts controller
@@ -72,7 +80,7 @@ export default function migrate(state: unknown) {
   }
 
   const preferencesControllerState = state.engine.backgroundState
-    .PreferencesController as PreferencesState;
+    .PreferencesController as LegacyPreferencesState;
 
   if (!isObject(preferencesControllerState)) {
     captureException(

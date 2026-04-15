@@ -13,8 +13,8 @@ import type { CardProviderConfig } from '../provider-config';
 export function resolveBaanxConfig(): CardProviderConfig {
   return {
     apiKey: process.env.MM_CARD_BAANX_API_CLIENT_KEY ?? '',
-    baseUrl: getDefaultBaanxApiBaseUrlForMetaMaskEnv(
-      process.env.METAMASK_ENVIRONMENT,
-    ),
+    baseUrl:
+      process.env.BAANX_API_URL ||
+      getDefaultBaanxApiBaseUrlForMetaMaskEnv(process.env.METAMASK_ENVIRONMENT),
   };
 }

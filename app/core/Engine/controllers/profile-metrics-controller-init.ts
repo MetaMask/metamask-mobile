@@ -3,7 +3,7 @@ import {
   ProfileMetricsControllerMessenger,
 } from '@metamask/profile-metrics-controller';
 import { analyticsControllerSelectors } from '@metamask/analytics-controller';
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import { ProfileMetricsControllerInitMessenger } from '../messengers/profile-metrics-controller-messenger';
 
 /**
@@ -16,7 +16,7 @@ import { ProfileMetricsControllerInitMessenger } from '../messengers/profile-met
  * @param request.getController - A function to get other initialized controllers.
  * @returns The initialized controller.
  */
-export const profileMetricsControllerInit: ControllerInitFunction<
+export const profileMetricsControllerInit: MessengerClientInitFunction<
   ProfileMetricsController,
   ProfileMetricsControllerMessenger,
   ProfileMetricsControllerInitMessenger
@@ -48,6 +48,7 @@ export const profileMetricsControllerInit: ControllerInitFunction<
     state: persistedState.ProfileMetricsController,
     assertUserOptedIn,
     getMetaMetricsId: () => analyticsId,
+    initialDelayDuration: 60_000, // 1 minute delay
   });
 
   return {
