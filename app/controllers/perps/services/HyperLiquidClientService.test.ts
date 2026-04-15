@@ -463,8 +463,11 @@ describe('HyperLiquidClientService', () => {
       // Make transport.ready() reject with abort error
       mockWsTransportReady.mockRejectedValueOnce(new Error('Aborted'));
 
-      await expect(service.initialize(mockWallet)).rejects.toThrow('Aborted');
-      expect(service.isInitialized()).toBe(false);
+      // WebSocket failure falls back to HTTP-only — initialize succeeds
+      await service.initialize(mockWallet);
+      expect(service.isInitialized()).toBe(true);
+      // Subscription client cleared in HTTP-only fallback
+      expect(service.getSubscriptionClient()).toBeUndefined();
     });
   });
 

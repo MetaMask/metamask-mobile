@@ -164,12 +164,11 @@ export class HyperLiquidClientService {
         note: 'Using WebSocket for InfoClient (default), HTTP fallback available',
       });
     } catch (error) {
-      // Cleanup on failure to prevent leaks and ensure isInitialized() returns false
-      // Clear clients first, then transports
+      // WebSocket failed — clean up WS-dependent clients but keep HTTP
+      // clients alive so exchange operations still work (e.g. in E2E tests
+      // or restricted networks where WSS is unavailable).
       this.#subscriptionClient = undefined;
       this.#infoClient = undefined;
-      this.#infoClientHttp = undefined;
-      this.#exchangeClient = undefined;
 
       // Close WebSocket transport to release resources and event listeners
       if (this.#wsTransport) {
@@ -180,6 +179,27 @@ export class HyperLiquidClientService {
         }
         this.#wsTransport = undefined;
       }
+
+      // Keep exchangeClient + infoClientHttp + httpTransport alive.
+      // Report Connected so controller doesn't trigger polling fallback
+      // that would overwrite E2E mock data with real API responses.
+      if (this.#exchangeClient && this.#infoClientHttp) {
+        this.#infoClient = this.#infoClientHttp;
+        this.#updateConnectionState(WebSocketConnectionState.Connected);
+
+        this.#deps.debugLogger.log(
+          'HyperLiquid WebSocket failed, falling back to HTTP-only',
+          {
+            error: ensureError(error, 'WebSocketTransport.ready').message,
+            network,
+          },
+        );
+        return;
+      }
+
+      // Full failure — no HTTP clients either
+      this.#infoClientHttp = undefined;
+      this.#exchangeClient = undefined;
       this.#httpTransport = undefined;
 
       const errorInstance = ensureError(
@@ -307,11 +327,9 @@ export class HyperLiquidClientService {
    * @returns True if all SDK clients are initialized.
    */
   public isInitialized(): boolean {
+    // Core clients required; subscriptionClient optional (absent in HTTP-only fallback)
     return Boolean(
-      this.#exchangeClient &&
-        this.#infoClient &&
-        this.#infoClientHttp &&
-        this.#subscriptionClient,
+      this.#exchangeClient && this.#infoClient && this.#infoClientHttp,
     );
   }
 
@@ -809,8 +827,14 @@ export class HyperLiquidClientService {
       return;
     }
 
-    // If already disconnected, return immediately
-    if (this.#connectionState === WebSocketConnectionState.Disconnected) {
+    // If already disconnected and no clients remain, return immediately.
+    // In HTTP-only fallback the state is Connected but WS clients are gone.
+    if (
+      this.#connectionState === WebSocketConnectionState.Disconnected &&
+      !this.#exchangeClient &&
+      !this.#infoClient &&
+      !this.#infoClientHttp
+    ) {
       return;
     }
 
