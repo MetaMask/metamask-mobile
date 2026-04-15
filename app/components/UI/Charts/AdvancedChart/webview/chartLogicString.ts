@@ -1133,35 +1133,28 @@ function hideCustomSeriesLastValueLabelDom() {
 }
 
 /**
- * True when the outline pill should not show based on tail vs viewport (inset probe + fallbacks).
+ * Whether to hide the outline price pill: {@link isCustomLineEndMarkerVisibleInPlot} (geometry) plus
+ * {@link isSeriesTailOffScreenByData} so panning to old history (newest bar not in visible window) still
+ * shows the outline when coordinateToTime alone would wrongly hide it.
  */
-function shouldHideVisibleEdgeOutlinePill(chart, tailSec) {
-  var offRight =
-    tailSec !== null
-      ? isSeriesLastBarOffRightOfVisiblePlot(chart, tailSec)
+function shouldHideVisibleEdgeOutlinePill(chart, tailSec, ohlcvData) {
+  if (tailSec === null || !isFinite(Number(tailSec))) {
+    return true;
+  }
+  var geo = isCustomLineEndMarkerVisibleInPlot(chart, Number(tailSec));
+  var dataOff =
+    ohlcvData && ohlcvData.length
+      ? isSeriesTailOffScreenByData(chart, ohlcvData)
       : null;
-  var trailing =
-    offRight === null && tailSec !== null
-      ? trailingVisibleBarMatchesSeriesLast(chart, tailSec)
-      : false;
-  if (offRight === false) {
-    return true;
+  if (geo === false || dataOff === true) {
+    return false;
   }
-  if (offRight === null && trailing) {
-    return true;
-  }
-  return (
-    offRight === true &&
-    tailSec !== null &&
-    isSeriesLastCoveredByVisibleRangeRightBound(chart, tailSec)
-  );
+  return true;
 }
 
 /**
- * Outline pill: close of the rightmost visible OHLCV bar. Shown only when the series tail is
- * scrolled off the right (\`coordinateToTime\` at right inset), subject to
- * \`isSeriesLastCoveredByVisibleRangeRightBound\` (padding / first load) and
- * \`trailingVisibleBarMatchesSeriesLast\` when the inset probe is unavailable.
+ * Outline pill: shown when geometry or data says the series tail is off-screen (see
+ * {@link shouldHideVisibleEdgeOutlinePill}).
  */
 function updateVisibleEdgeOutlinePriceLabel() {
   var elOut = document.getElementById('custom-series-last-value-label');
@@ -1187,7 +1180,7 @@ function updateVisibleEdgeOutlinePriceLabel() {
   var chart = w.chartWidget.activeChart();
   var tailBar = w.ohlcvData[w.ohlcvData.length - 1];
   var tailSec = normalizeChartUnixSec(tailBar.time);
-  if (shouldHideVisibleEdgeOutlinePill(chart, tailSec)) {
+  if (shouldHideVisibleEdgeOutlinePill(chart, tailSec, w.ohlcvData)) {
     hideCustomSeriesLastValueLabelDom();
     return;
   }
@@ -2554,56 +2547,65 @@ function trailingVisibleBarMatchesSeriesLast(chart, lastBarTimeSec) {
   }
 }
 
+/** Helpers for {@link isCustomLineEndMarkerVisibleInPlot} (time ↔ x on the time scale). */
+
 /**
- * True when the visible time window’s **right** bound still reaches the series last bar (last bar
- * time ≤ right bound). Then the newest candle is still in the chart’s visible range, even if
- * {@link isSeriesLastBarOffRightOfVisiblePlot} is true because \`coordinateToTime\` at the right inset
- * samples empty padding to the right of the last bar (first load / default anchoring).
- *
- * @param {object} chart - \`widget.activeChart()\`
- * @param {number} lastBarTimeSec - unix seconds for the last OHLCV bar
- * @returns {boolean}
+ * @param {object} ts - \`chart.getTimeScale()\`
+ * @param {number} x
+ * @returns {number | null} unix seconds
  */
-function isSeriesLastCoveredByVisibleRangeRightBound(chart, lastBarTimeSec) {
-  var brToSec = null;
-  try {
-    var br = chart.getVisibleBarsRange();
-    if (br && br.to !== undefined && br.to !== null) {
-      brToSec = normalizeChartUnixSec(br.to);
-    }
-  } catch (eBr) {
-    brToSec = null;
+function timeScaleCoordinateToTimeSec(ts, x) {
+  var raw = ts.coordinateToTime(x);
+  if (raw == null || raw === undefined) {
+    return null;
   }
-  if (brToSec === null) {
-    var r = getVisibleTimeRangeSecFromChart(chart);
-    if (r) {
-      brToSec = r.hi;
-    }
-  }
-  if (
-    brToSec === null ||
-    lastBarTimeSec == null ||
-    !isFinite(Number(lastBarTimeSec))
-  ) {
-    return false;
-  }
-  return Number(lastBarTimeSec) <= brToSec;
+  return normalizeChartUnixSec(raw);
 }
 
 /**
- * True if the **last OHLCV bar’s time** is to the **right** of the time painted at the plot’s
- * right edge—i.e. the series end is scrolled off-screen to the right (outline pill should show).
- * False if the time at the right edge is at or past the last bar (end is in view). Null if unknown.
+ * Smallest x in [0, maxX] with coordinate time ≥ tNorm (binary search; assumes time increases with x).
  *
- * Uses {@link ITimeScaleApi.coordinateToTime} at the right inset so we don’t rely on
- * \`getVisibleBarsRange().to\`, which can still “match” the last bar’s timestamp while the oldest bar
- * is visible on the left and the newest is not drawn at the right edge.
- *
- * @param {object} chart
- * @param {number} lastBarTimeSec — unix **seconds** (same as \`normalizeChartUnixSec\` of tail)
- * @returns {boolean | null}
+ * @returns {number | null}
  */
-function isSeriesLastBarOffRightOfVisiblePlot(chart, lastBarTimeSec) {
+function findSmallestXWhereTimeGte(ts, maxX, tNorm) {
+  var tLo = timeScaleCoordinateToTimeSec(ts, 0);
+  var tHi = timeScaleCoordinateToTimeSec(ts, maxX);
+  if (tLo === null || tHi === null) {
+    return null;
+  }
+  if (tHi < tNorm) {
+    return null;
+  }
+  if (tLo >= tNorm) {
+    return 0;
+  }
+  var lo = 0;
+  var hi = maxX;
+  while (lo < hi) {
+    var mid = (lo + hi) >> 1;
+    var tm = timeScaleCoordinateToTimeSec(ts, mid);
+    if (tm === null) {
+      return null;
+    }
+    if (tm < tNorm) {
+      lo = mid + 1;
+    } else {
+      hi = mid;
+    }
+  }
+  return lo;
+}
+
+/**
+ * Single source of truth for “would the custom line-end marker appear in the plot before the chrome
+ * inset?” — same horizontal rules as {@link getLineEndIconTimeSec} + {@link LINE_END_ICON_TIME_INSET_PX}
+ * (inverse of \`coordinateToTime\` via {@link findSmallestXWhereTimeGte}).
+ *
+ * @param {object} chart - \`widget.activeChart()\`
+ * @param {number} lastBarTimeSec - unix seconds, OHLCV tail (same as line overlay)
+ * @returns {boolean | null} true = marker visible in plot (hide outline pill), false = not visible (show outline), null = unknown (hide outline)
+ */
+function isCustomLineEndMarkerVisibleInPlot(chart, lastBarTimeSec) {
   if (!chart || lastBarTimeSec == null || !isFinite(Number(lastBarTimeSec))) {
     return null;
   }
@@ -2620,17 +2622,33 @@ function isSeriesLastBarOffRightOfVisiblePlot(chart, lastBarTimeSec) {
     if (!(plotW > LINE_END_ICON_TIME_INSET_PX + 4)) {
       return null;
     }
-    var x = Math.max(0, Math.floor(plotW - LINE_END_ICON_TIME_INSET_PX - 1));
-    var rawT = ts.coordinateToTime(x);
-    if (rawT == null || rawT === undefined) {
+    var markerTimeSec = getLineEndIconTimeSec(chart, Number(lastBarTimeSec));
+    var tNorm = normalizeChartUnixSec(markerTimeSec);
+    if (tNorm === null) {
       return null;
     }
-    var tRightEdge = normalizeChartUnixSec(rawT);
-    if (tRightEdge === null) {
+    var xCut = Math.max(0, Math.floor(plotW - LINE_END_ICON_TIME_INSET_PX - 1));
+    var maxX = Math.max(0, Math.floor(plotW - 1));
+
+    var tMax = timeScaleCoordinateToTimeSec(ts, maxX);
+    var tMin = timeScaleCoordinateToTimeSec(ts, 0);
+    if (tMin === null || tMax === null) {
       return null;
     }
-    var barDur = getApproxBarDurationSec();
-    return lastBarTimeSec > tRightEdge + barDur;
+    /* Marker time past the right edge of the plot → not visible (panned off). */
+    if (tNorm > tMax) {
+      return false;
+    }
+    /* Same conservative branch as before: treat as visible for outline (hide pill). */
+    if (tNorm < tMin) {
+      return true;
+    }
+
+    var xFirst = findSmallestXWhereTimeGte(ts, maxX, tNorm);
+    if (xFirst === null) {
+      return null;
+    }
+    return xFirst <= xCut;
   } catch (e) {
     return null;
   }
@@ -2709,6 +2727,35 @@ function getRightmostOhlcvBarInVisibleTimeRange(chart, data) {
     }
   }
   return best;
+}
+
+/**
+ * True when the **newest** OHLCV bar is **not** among the bars intersecting the visible time range:
+ * the rightmost visible bar is strictly older than the series tail (user panned the tail off-screen).
+ *
+ * @param {object} chart - \`widget.activeChart()\`
+ * @param {Array<{ time: number }>} data - \`window.ohlcvData\`
+ * @returns {boolean | null} true = tail off-screen by data, false = tail still in range, null = unknown
+ */
+function isSeriesTailOffScreenByData(chart, data) {
+  if (!chart || !data || !data.length) {
+    return null;
+  }
+  var tail = data[data.length - 1];
+  var tailMs = tail.time;
+  var rightmost = getRightmostOhlcvBarInVisibleTimeRange(chart, data);
+  if (!rightmost) {
+    return null;
+  }
+  if (rightmost === tail || rightmost.time === tailMs) {
+    return false;
+  }
+  var barDurMs = getApproxBarDurationSec() * 1000;
+  var halfBarSlackMs = Math.max(1, barDurMs * 0.5);
+  if (tailMs - rightmost.time <= halfBarSlackMs) {
+    return false;
+  }
+  return true;
 }
 
 /**
