@@ -342,6 +342,5 @@ jobs:
     needs: [build-ios-on-bitrise]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
-      selected_tags: '["SmokeTrade"]'
       use_bitrise_runner: true
     secrets: inherit
