@@ -9,6 +9,10 @@ import {
   SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
   SET_SEEDLESS_ONBOARDING,
   CLEAR_SEEDLESS_ONBOARDING,
+  SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
+  RESET_WALLET_HOME_ONBOARDING_STEPS,
+  SET_WALLET_HOME_ONBOARDING_STEPS_STEP,
+  SUPPRESS_WALLET_HOME_ONBOARDING_STEPS,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 import { AccountType } from '../../constants/onboarding';
@@ -20,6 +24,11 @@ describe('onboardingReducer', () => {
     completedOnboarding: false,
     pendingSocialLoginMarketingConsentBackfill: null as string | null,
     iosGoogleWarningSheetLastDismissedAt: null as number | null,
+    walletHomeOnboardingStepsEligible: false,
+    walletHomeOnboardingSteps: {
+      suppressedReason: null,
+      stepIndex: 0,
+    },
   };
 
   it('returns the initial state when no action is provided', () => {
@@ -154,5 +163,67 @@ describe('onboardingReducer', () => {
     const state = onboardingReducer(dirtyState, action);
 
     expect(state).toEqual(initialOnboardingState);
+  });
+
+  it('handles SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE', () => {
+    const action = {
+      type: SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
+      eligible: true,
+    } as const;
+    const state = onboardingReducer(initialState, action);
+    expect(state.walletHomeOnboardingStepsEligible).toBe(true);
+  });
+
+  it('handles RESET_WALLET_HOME_ONBOARDING_STEPS', () => {
+    const dirty = {
+      ...initialState,
+      walletHomeOnboardingSteps: {
+        suppressedReason: 'flow_completed' as const,
+        stepIndex: 2,
+      },
+    };
+    const state = onboardingReducer(dirty, {
+      type: RESET_WALLET_HOME_ONBOARDING_STEPS,
+    });
+    expect(state.walletHomeOnboardingSteps).toEqual({
+      suppressedReason: null,
+      stepIndex: 0,
+    });
+  });
+
+  it('handles SET_WALLET_HOME_ONBOARDING_STEPS_STEP', () => {
+    const state = onboardingReducer(initialState, {
+      type: SET_WALLET_HOME_ONBOARDING_STEPS_STEP,
+      stepIndex: 1,
+    });
+    expect(state.walletHomeOnboardingSteps?.stepIndex).toBe(1);
+  });
+
+  it('handles SUPPRESS_WALLET_HOME_ONBOARDING_STEPS for account_funded', () => {
+    const state = onboardingReducer(
+      { ...initialState, walletHomeOnboardingStepsEligible: true },
+      {
+        type: SUPPRESS_WALLET_HOME_ONBOARDING_STEPS,
+        reason: 'account_funded',
+      },
+    );
+    expect(state.walletHomeOnboardingSteps?.suppressedReason).toBe(
+      'account_funded',
+    );
+    expect(state.walletHomeOnboardingStepsEligible).toBe(false);
+  });
+
+  it('handles SUPPRESS_WALLET_HOME_ONBOARDING_STEPS without clearing eligible when not account_funded', () => {
+    const state = onboardingReducer(
+      { ...initialState, walletHomeOnboardingStepsEligible: true },
+      {
+        type: SUPPRESS_WALLET_HOME_ONBOARDING_STEPS,
+        reason: 'flow_completed',
+      },
+    );
+    expect(state.walletHomeOnboardingSteps?.suppressedReason).toBe(
+      'flow_completed',
+    );
+    expect(state.walletHomeOnboardingStepsEligible).toBe(true);
   });
 });
