@@ -14,7 +14,10 @@ import { addCurrencySymbol } from '../../../../util/number';
 import { toDateFormat } from '../../../../util/date';
 import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import styleSheet from './Price.styles';
-import { TOKEN_OVERVIEW_CHART_HEIGHT as CHART_HEIGHT } from './tokenOverviewChart.constants';
+import {
+  CHART_DATA_THRESHOLD,
+  TOKEN_OVERVIEW_CHART_HEIGHT as CHART_HEIGHT,
+} from './tokenOverviewChart.constants';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
@@ -51,7 +54,6 @@ import type {
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
 import PriceLegacy from './Price.legacy';
-import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
 
@@ -269,28 +271,11 @@ const PriceAdvanced = ({
 
   const { styles, theme } = useStyles(styleSheet);
 
-  const hasChartData = ohlcvData.length > 1;
-  const hasInsufficientData = ohlcvData.length === 1;
-  const showEmptyState = !chartLoading && (!hasChartData || !!chartError);
+  const shouldFallbackToLegacy =
+    !chartLoading &&
+    (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
 
-  const hasTrackedEmptyRef = useRef(false);
-
-  useEffect(() => {
-    if (!showEmptyState) {
-      hasTrackedEmptyRef.current = false;
-      return;
-    }
-    if (hasTrackedEmptyRef.current) {
-      return;
-    }
-    hasTrackedEmptyRef.current = true;
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CHART_EMPTY_DISPLAYED).build(),
-    );
-  }, [showEmptyState, createEventBuilder, trackEvent]);
-
-  // Fallback to legacy chart if OHLCV data is not available or if there's an error
-  if ((hasEmptyData || chartError) && !chartLoading) {
+  if (shouldFallbackToLegacy) {
     return (
       <PriceLegacy
         prices={prices}
@@ -379,7 +364,7 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
-      <Box twClassName={showEmptyState ? 'mt-3 mb-6' : 'mt-3'}>
+      <Box twClassName="mt-3">
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}
@@ -390,46 +375,37 @@ const PriceAdvanced = ({
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
         >
-          {showEmptyState ? (
-            <NoDataOverlay
-              hasInsufficientData={hasInsufficientData}
-              chartHeight={CHART_HEIGHT}
-              chartPlaceholderFill={theme.colors.border.muted}
-            />
-          ) : (
-            <AdvancedChart
-              ohlcvData={ohlcvData}
-              ohlcvSeriesKey={ohlcvSeriesKey}
-              height={CHART_HEIGHT}
-              showVolume={chartType === ChartType.Candles}
-              volumeOverlay
-              chartType={chartType}
-              indicators={EMPTY_INDICATORS}
-              lineChrome={advancedChartLineChromePresets.tokenOverview}
-              isLoading={chartLoading}
-              ohlcvPagination={ohlcvPagination}
-              visibleFromMs={visibleFromMs}
-              visibleToMs={visibleToMs}
-              onCrosshairMove={handleCrosshairMove}
-              onChartInteracted={handleChartInteracted}
-              onChartTradingViewClicked={handleChartTradingViewClicked}
-            />
-          )}
+          <AdvancedChart
+            ohlcvData={ohlcvData}
+            ohlcvSeriesKey={ohlcvSeriesKey}
+            height={CHART_HEIGHT}
+            showVolume={chartType === ChartType.Candles}
+            volumeOverlay
+            chartType={chartType}
+            indicators={EMPTY_INDICATORS}
+            lineChrome={advancedChartLineChromePresets.tokenOverview}
+            isLoading={chartLoading}
+            ohlcvPagination={ohlcvPagination}
+            visibleFromMs={visibleFromMs}
+            visibleToMs={visibleToMs}
+            onCrosshairMove={handleCrosshairMove}
+            onChartInteracted={handleChartInteracted}
+            onChartTradingViewClicked={handleChartTradingViewClicked}
+          />
         </View>
       </Box>
 
-      {!showEmptyState && (
-        <View style={styles.timeRangeContainer}>
-          <View style={styles.timeRangeSelectorWrap}>
-            <TimeRangeSelector
-              selected={timeRange}
-              onSelect={handleTimeRangeSelect}
-              chartType={chartType}
-              onChartTypeToggle={toggleChartType}
-            />
-          </View>
+      <View style={styles.timeRangeContainer}>
+        <View style={styles.timeRangeSelectorWrap}>
+          <TimeRangeSelector
+            isChartLoading={chartLoading}
+            selected={timeRange}
+            onSelect={handleTimeRangeSelect}
+            chartType={chartType}
+            onChartTypeToggle={toggleChartType}
+          />
         </View>
-      )}
+      </View>
     </>
   );
 };

@@ -76,12 +76,15 @@ const mockAsset: TokenI = {
   isETH: false,
 };
 
+/** Must be >= CHART_DATA_THRESHOLD so advanced path does not fall back to legacy. */
+const mockPricesAtLeast5 = Array.from({ length: 5 }, (_, i) => [
+  String(1736761237983 + i),
+  100 + i,
+]) as [string, number][];
+
 const unifiedProps = {
   asset: mockAsset,
-  prices: [
-    ['1736761237983', 100] as [string, number],
-    ['1736761237986', 105] as [string, number],
-  ],
+  prices: mockPricesAtLeast5,
   timePeriod: '1d' as const,
   priceDiff: 5,
   currentPrice: 105,

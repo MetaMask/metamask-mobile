@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import PriceAdvanced, { type PriceAdvancedProps } from './Price.advanced';
+import PriceLegacy from './Price.legacy';
+import type { TokenPrice } from '../../../../components/hooks/useTokenHistoricalPrices';
 import type { TokenI } from '../../Tokens/types';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -53,8 +55,16 @@ jest.mock('../../Charts/AdvancedChart/OHLCVBar/OHLCVBar', () => {
   };
 });
 
+/** Older candles so total length meets CHART_DATA_THRESHOLD (see tokenOverviewChart.constants). */
+const ohlcvPaddingThree = [
+  { time: 100, open: 90, high: 91, low: 89, close: 90, volume: 1 },
+  { time: 200, open: 90, high: 91, low: 89, close: 91, volume: 1 },
+  { time: 300, open: 91, high: 92, low: 90, close: 92, volume: 1 },
+];
+
 const mockUseOHLCVChart = jest.fn().mockReturnValue({
   ohlcvData: [
+    ...ohlcvPaddingThree,
     { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
     { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
   ],
@@ -107,9 +117,15 @@ jest.mock('./Price.legacy', () => {
   const { View } = require('react-native');
   return {
     __esModule: true,
-    default: () => <View testID="price-legacy-fallback" />,
+    default: jest.fn(() => <View testID="price-legacy-fallback" />),
   };
 });
+
+/** Enough points to stay on the advanced path (see CHART_DATA_THRESHOLD in Price.advanced). */
+const mockPricesAtLeast5: TokenPrice[] = Array.from({ length: 5 }, (_, i) => [
+  String(1000 + i),
+  100,
+]);
 
 const mockAsset: TokenI = {
   address: '0x1234567890123456789012345678901234567890',
@@ -131,6 +147,7 @@ const baseProps: PriceAdvancedProps = {
   priceDiff: 5,
   comparePrice: 100,
   isLoading: false,
+  prices: mockPricesAtLeast5,
 };
 
 describe('PriceAdvanced', () => {
@@ -138,6 +155,7 @@ describe('PriceAdvanced', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(PriceLegacy).mockClear();
     const analyticsHook = createMockUseAnalyticsHook();
     mockTrackEvent = analyticsHook.trackEvent as jest.Mock;
     jest.mocked(useAnalytics).mockReturnValue(analyticsHook);
@@ -200,7 +218,7 @@ describe('PriceAdvanced', () => {
     expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
   });
 
-  it('shows insufficient-data overlay when only 1 data point', () => {
+  it('falls back to legacy when only one OHLCV candle (insufficient for advanced chart)', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
         { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
@@ -212,7 +230,7 @@ describe('PriceAdvanced', () => {
     });
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-    expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
+    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
   });
 
   it('falls back to legacy chart on OHLCV error', () => {
@@ -230,17 +248,23 @@ describe('PriceAdvanced', () => {
     expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
   });
 
-  it('tracks CHART_EMPTY_DISPLAYED when empty state is shown', () => {
+  it('falls back to legacy chart when OHLCV has fewer than 5 candles', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
-      ohlcvData: [],
+      ohlcvData: [
+        { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+        { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        { time: 3000, open: 105, high: 106, low: 104, close: 105, volume: 1 },
+        { time: 4000, open: 105, high: 106, low: 104, close: 105, volume: 1 },
+      ],
       isLoading: false,
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      hasEmptyData: false,
     });
-    render(<PriceAdvanced {...baseProps} />);
+    const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
   });
 
   it('tracks CHART_TIMEFRAME_CHANGED when a different time range is selected', () => {
@@ -303,9 +327,36 @@ describe('PriceAdvanced', () => {
     // Expected: (105 - 100) / 100 * 100 = 5.00%
     const now = Date.now();
     const oneDayAgo = now - 24 * 60 * 60 * 1000;
+    const ohlcvPadBefore = [
+      {
+        time: oneDayAgo - 4_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+      {
+        time: oneDayAgo - 3_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+      {
+        time: oneDayAgo - 2_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+    ];
 
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
+        ...ohlcvPadBefore,
         {
           time: oneDayAgo,
           open: 95,
@@ -337,7 +388,7 @@ describe('PriceAdvanced', () => {
     expect(getByText(/5\.00%/)).toBeOnTheScreen();
   });
 
-  it('hides price diff when OHLCV data is empty', () => {
+  it('falls back to legacy when OHLCV data is empty', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [],
       isLoading: false,
@@ -346,10 +397,9 @@ describe('PriceAdvanced', () => {
       nextCursor: null,
     });
 
-    const { queryByTestId } = render(<PriceAdvanced {...baseProps} />);
+    const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-    // Should not render price-label when no OHLCV data
-    expect(queryByTestId('price-label')).not.toBeOnTheScreen();
+    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
   });
 
   it('updates percentage when time range changes and new OHLCV data loads', () => {
@@ -357,9 +407,36 @@ describe('PriceAdvanced', () => {
     // Expected: (105 - 100) / 100 * 100 = 5.00%
     const now = Date.now();
     const oneDayAgo = now - 24 * 60 * 60 * 1000;
+    const ohlcvPadBefore = [
+      {
+        time: oneDayAgo - 4_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+      {
+        time: oneDayAgo - 3_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+      {
+        time: oneDayAgo - 2_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+    ];
 
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
+        ...ohlcvPadBefore,
         {
           time: oneDayAgo,
           open: 95,
@@ -393,6 +470,7 @@ describe('PriceAdvanced', () => {
     // Expected: (105 - 103) / 103 * 100 = 1.94%
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
+        ...ohlcvPadBefore,
         {
           time: oneDayAgo,
           open: 102,
@@ -425,9 +503,36 @@ describe('PriceAdvanced', () => {
     // Edge case: reference candle close is 0 — should still render, not hide
     const now = Date.now();
     const oneDayAgo = now - 24 * 60 * 60 * 1000;
+    const ohlcvPadBefore = [
+      {
+        time: oneDayAgo - 4_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+      {
+        time: oneDayAgo - 3_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+      {
+        time: oneDayAgo - 2_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+    ];
 
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
+        ...ohlcvPadBefore,
         {
           time: oneDayAgo,
           open: 0,
@@ -470,6 +575,15 @@ describe('PriceAdvanced', () => {
 
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
+        // Extra history so candle count >= CHART_DATA_THRESHOLD (ignored for compare)
+        {
+          time: lastBarTime - 4 * oneDayMs,
+          open: 50,
+          high: 51,
+          low: 49,
+          close: 50,
+          volume: 1,
+        },
         // 3 days ago — before visible range, should be skipped
         {
           time: lastBarTime - 3 * oneDayMs,

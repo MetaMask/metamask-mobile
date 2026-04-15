@@ -173,11 +173,7 @@ const PriceLegacy = ({
           )}
         </Text>
       </View>
-      <Box
-        twClassName={
-          distributedPriceData.length === 0 && !isLoading ? 'mt-3 mb-6' : 'mt-3'
-        }
-      >
+      <Box twClassName={'mt-3'}>
         <PriceChart
           prices={distributedPriceData}
           priceDiff={priceDiff}
@@ -185,22 +181,20 @@ const PriceLegacy = ({
           onChartIndexChange={handleChartInteraction}
         />
       </Box>
-      {distributedPriceData.length > 0 &&
-        chartNavigationButtons.length > 0 &&
-        onTimePeriodChange && (
-          <View style={styles.chartNavigationWrapper}>
-            {chartNavigationButtons.map((label) => (
-              <ChartNavigationButton
-                key={label}
-                label={strings(
-                  `asset_overview.chart_time_period_navigation.${label}`,
-                )}
-                onPress={() => onTimePeriodChange(label)}
-                selected={timePeriod === label}
-              />
-            ))}
-          </View>
-        )}
+      {chartNavigationButtons.length > 0 && onTimePeriodChange && (
+        <View style={styles.chartNavigationWrapper}>
+          {chartNavigationButtons.map((label) => (
+            <ChartNavigationButton
+              key={label}
+              label={strings(
+                `asset_overview.chart_time_period_navigation.${label}`,
+              )}
+              onPress={() => onTimePeriodChange(label)}
+              selected={timePeriod === label}
+            />
+          ))}
+        </View>
+      )}
     </>
   );
 };
