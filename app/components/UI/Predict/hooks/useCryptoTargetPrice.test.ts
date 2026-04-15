@@ -2,7 +2,6 @@ import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useCryptoTargetPrice } from './useCryptoTargetPrice';
-import { clearTargetPriceCache } from '../queries/cryptoTargetPrice';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -35,7 +34,6 @@ const defaultParams = {
 describe('useCryptoTargetPrice', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    clearTargetPriceCache();
   });
 
   it('does not fetch when eventId is empty', () => {

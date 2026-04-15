@@ -1,8 +1,6 @@
 import {
   predictCryptoTargetPriceKeys,
   predictCryptoTargetPriceOptions,
-  clearTargetPriceCache,
-  getTargetPriceCacheSize,
   type CryptoTargetPriceQueryParams,
 } from './cryptoTargetPrice';
 import Engine from '../../../../core/Engine';
@@ -34,7 +32,6 @@ const invokeQueryFn = async (
 describe('cryptoTargetPrice queries', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    clearTargetPriceCache();
   });
 
   describe('predictCryptoTargetPriceKeys', () => {
@@ -92,29 +89,17 @@ describe('cryptoTargetPrice queries', () => {
       });
     });
 
-    it('returns cached result on second call', async () => {
+    it('calls controller on every invocation (caching delegated to React Query)', async () => {
       (
         Engine.context.PredictController.getCryptoTargetPrice as jest.Mock
       ).mockResolvedValue(42000);
 
-      const first = await invokeQueryFn();
-      const second = await invokeQueryFn();
+      await invokeQueryFn();
+      await invokeQueryFn();
 
-      expect(first).toBe(42000);
-      expect(second).toBe(42000);
       expect(
         Engine.context.PredictController.getCryptoTargetPrice,
-      ).toHaveBeenCalledTimes(1);
-    });
-
-    it('returns fallback value when controller returns a fallback value', async () => {
-      (
-        Engine.context.PredictController.getCryptoTargetPrice as jest.Mock
-      ).mockResolvedValueOnce(41500);
-
-      const result = await invokeQueryFn();
-
-      expect(result).toBe(41500);
+      ).toHaveBeenCalledTimes(2);
     });
 
     it('throws when controller returns null so React Query can retry', async () => {
@@ -125,29 +110,6 @@ describe('cryptoTargetPrice queries', () => {
       await expect(invokeQueryFn()).rejects.toThrow(
         'Crypto target price unavailable',
       );
-    });
-
-    it('increments cache size to 2 after fetching two distinct events', async () => {
-      (Engine.context.PredictController.getCryptoTargetPrice as jest.Mock)
-        .mockResolvedValueOnce(42000)
-        .mockResolvedValueOnce(3000);
-
-      await invokeQueryFn({ ...defaultParams, eventId: 'event-btc' });
-      await invokeQueryFn({ ...defaultParams, eventId: 'event-eth' });
-
-      expect(getTargetPriceCacheSize()).toBe(2);
-    });
-
-    it('clears module-level cache via clearTargetPriceCache', async () => {
-      (
-        Engine.context.PredictController.getCryptoTargetPrice as jest.Mock
-      ).mockResolvedValueOnce(42000);
-
-      await invokeQueryFn();
-      expect(getTargetPriceCacheSize()).toBe(1);
-
-      clearTargetPriceCache();
-      expect(getTargetPriceCacheSize()).toBe(0);
     });
   });
 });
