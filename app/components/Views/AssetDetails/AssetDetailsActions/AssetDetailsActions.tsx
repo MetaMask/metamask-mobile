@@ -39,6 +39,7 @@ export interface AssetDetailsActionsProps {
   swapButtonActionID?: string;
   sendButtonActionID?: string;
   receiveButtonActionID?: string;
+  containerTestID?: string;
 }
 
 // TODO: Delete when TokenDetailsV2Buttons flag is fully rolled out
@@ -54,6 +55,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   swapButtonActionID = TokenOverviewSelectorsIDs.SWAP_BUTTON,
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
   receiveButtonActionID = TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
+  containerTestID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -139,7 +141,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   }, [withNavigationLock, onReceive]);
 
   return (
-    <View style={styles.activitiesButton}>
+    <View style={styles.activitiesButton} testID={containerTestID}>
       {displayBuyButton && (
         <MainActionButton
           iconName={IconName.AttachMoney}

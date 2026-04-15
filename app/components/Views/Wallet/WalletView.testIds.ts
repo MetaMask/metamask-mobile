@@ -96,6 +96,14 @@ export const WalletViewSelectorsIDs = {
   HOMEPAGE_SECTION_TITLE: (sectionName: string): string =>
     `homepage-section-title-${sectionName}`,
   TOKENS_SECTION_CONTAINER: 'tokens-section-container',
+  ACTION_BUTTONS_CONTAINER: 'wallet-action-buttons',
+  WALLET_TABS: 'wallet-tabs',
+  TOKENS_TAB_ITEM: 'wallet-tab-tokens',
+  PERPS_TAB_ITEM: 'wallet-tab-perps',
+  PREDICT_TAB_ITEM: 'wallet-tab-predict',
+  DEFI_TAB_ITEM: 'wallet-tab-defi',
+  NFTS_TAB_ITEM: 'wallet-tab-nfts',
+  VIEW_ALL_TOKENS_BUTTON: 'view-all-tokens-button',
 } as const;
 
 export const WalletViewSelectorsText = {

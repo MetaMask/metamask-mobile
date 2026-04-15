@@ -205,6 +205,7 @@ const TokenListComponent = ({
             variant={ButtonVariant.Secondary}
             onPress={handleViewAllTokens}
             isFullWidth
+            testID={WalletViewSelectorsIDs.VIEW_ALL_TOKENS_BUTTON}
           >
             {strings('wallet.view_all_tokens')}
           </Button>

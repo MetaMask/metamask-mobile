@@ -557,6 +557,7 @@ export const TokenListItem = React.memo(
 
     return (
       <TouchableOpacity
+        accessible={false}
         {...generateTestId(Platform, getAssetTestId(asset.symbol))}
         onPress={() => {
           onItemPress?.(asset);

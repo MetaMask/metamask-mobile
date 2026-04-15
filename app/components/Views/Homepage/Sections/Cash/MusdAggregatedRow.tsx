@@ -89,6 +89,7 @@ const MusdAggregatedRow = () => {
 
   return (
     <Pressable
+      accessible={false}
       style={({ pressed }) =>
         tw.style('flex-row items-center py-1', pressed && 'opacity-80')
       }

@@ -182,6 +182,7 @@ const AccountGroupBalance = () => {
 
   return (
     <TouchableOpacity
+      accessible={false}
       onPress={() => togglePrivacy(!privacyMode)}
       testID="balance-container"
       style={styles.balanceContainer}
