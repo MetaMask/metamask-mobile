@@ -718,6 +718,7 @@ export class PredictController extends BaseController<
           symbol: params.symbol,
         },
         fallbackErrorCode: PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+        updateErrorState: false,
       },
       async () => {
         let price: number | null = null;
