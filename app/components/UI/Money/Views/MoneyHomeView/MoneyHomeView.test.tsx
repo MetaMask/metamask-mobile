@@ -11,7 +11,7 @@ import { MoneyOnboardingCardTestIds } from '../../components/MoneyOnboardingCard
 import { MoneyHowItWorksTestIds } from '../../components/MoneyHowItWorks/MoneyHowItWorks.testIds';
 import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings.testIds';
 import { MoneyMetaMaskCardTestIds } from '../../components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
-import { MoneyWhyMetaMaskMoneyTestIds } from '../../components/MoneyWhyMetaMaskMoney/MoneyWhyMetaMaskMoney.testIds';
+import { MoneyWhatYouGetTestIds } from '../../components/MoneyWhatYouGet/MoneyWhatYouGet.testIds';
 import { MoneyFooterTestIds } from '../../components/MoneyFooter/MoneyFooter.testIds';
 import { MoneyActivityListTestIds } from '../../components/MoneyActivityList/MoneyActivityList.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -174,9 +174,7 @@ describe('MoneyHomeView', () => {
   it('renders the why MetaMask Money section', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-    expect(
-      getByTestId(MoneyWhyMetaMaskMoneyTestIds.CONTAINER),
-    ).toBeOnTheScreen();
+    expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
   it('renders the footer', () => {

@@ -13,7 +13,7 @@ import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
 import MoneyMetaMaskCard from '../../components/MoneyMetaMaskCard';
-import MoneyWhyMetaMaskMoney from '../../components/MoneyWhyMetaMaskMoney';
+import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
 import MoneyActivityList from '../../components/MoneyActivityList';
 import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -58,7 +58,6 @@ const MoneyHomeView = () => {
   const handleLearnMorePress = noopHandler;
   const handleAddMoneyPress = noopHandler;
   const handleHowItWorksHeaderPress = noopHandler;
-  const handleWhyMetaMaskMoneyHeaderPress = noopHandler;
 
   const handleViewAllActivityPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.ACTIVITY as never);
@@ -131,10 +130,7 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        <MoneyWhyMetaMaskMoney
-          onLearnMorePress={handleLearnMorePress}
-          onHeaderPress={handleWhyMetaMaskMoneyHeaderPress}
-        />
+        <MoneyWhatYouGet onLearnMorePress={handleLearnMorePress} />
       </ScrollView>
       <MoneyFooter onAddMoneyPress={handleAddMoneyPress} />
     </Box>
