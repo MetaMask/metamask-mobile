@@ -135,13 +135,20 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     navigateToAddAccountActions ===
     AccountSelectorScreens.MultichainAddWalletActions;
 
-  const [screen, setScreen] = useState<AccountSelectorScreens>(() =>
-    shouldRedirectToAddWallet
-      ? AccountSelectorScreens.MultichainAddWalletActions
-      : navigateToAddAccountActions === AccountSelectorScreens.AddAccountActions
-        ? AccountSelectorScreens.AddAccountActions
-        : AccountSelectorScreens.AccountSelector,
-  );
+  const getInitialScreen = (): AccountSelectorScreens => {
+    if (shouldRedirectToAddWallet) {
+      return AccountSelectorScreens.MultichainAddWalletActions;
+    }
+    if (
+      navigateToAddAccountActions === AccountSelectorScreens.AddAccountActions
+    ) {
+      return AccountSelectorScreens.AddAccountActions;
+    }
+    return AccountSelectorScreens.AccountSelector;
+  };
+
+  const [screen, setScreen] =
+    useState<AccountSelectorScreens>(getInitialScreen());
   const [keyboardAvoidingViewEnabled, setKeyboardAvoidingViewEnabled] =
     useState(false);
 
