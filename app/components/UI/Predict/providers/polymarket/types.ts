@@ -36,14 +36,9 @@ export interface OrderData {
   maker: string;
 
   /**
-   * Address of the order taker. The zero address is used to indicate a public order
-   */
-  taker: string;
-
-  /**
    * Token Id of the CTF ERC1155 asset to be bought or sold.
    * If BUY, this is the tokenId of the asset to be bought, i.e the makerAssetId
-   * If SELL, this is the tokenId of the asset to be sold, i.e the  takerAssetId
+   * If SELL, this is the tokenId of the asset to be sold, i.e the takerAssetId
    */
   tokenId: string;
 
@@ -63,16 +58,6 @@ export interface OrderData {
   side: UtilsSide;
 
   /**
-   * Fee rate, in basis points, charged to the order maker, charged on proceeds
-   */
-  feeRateBps: string;
-
-  /**
-   * Nonce used for onchain cancellations
-   */
-  nonce: string;
-
-  /**
    * Signer of the order. Optional, if it is not present the signer is the maker of the order.
    */
   signer?: string;
@@ -87,6 +72,21 @@ export interface OrderData {
    * Signature type used by the Order. Default value 'EOA'
    */
   signatureType?: SignatureType;
+
+  /**
+   * v2: Unix timestamp of order creation
+   */
+  timestamp: string;
+
+  /**
+   * v2: Order metadata (bytes32, set to zero hash for POC)
+   */
+  metadata: string;
+
+  /**
+   * v2: Builder attribution (bytes32, set to zero hash for POC)
+   */
+  builder: string;
 }
 
 /**
@@ -256,6 +256,11 @@ export enum SignatureType {
    * EIP712 signatures signed by EOAs that own Polymarket Gnosis safes
    */
   POLY_GNOSIS_SAFE,
+
+  /**
+   * EIP-1271 smart contract wallet signatures
+   */
+  POLY_1271,
 }
 
 // Simplified market order for users
@@ -281,21 +286,6 @@ export interface UserMarketOrder {
    * Side of the order
    */
   side: Side;
-
-  /**
-   * Fee rate, in basis points, charged to the order maker, charged on proceeds
-   */
-  feeRateBps?: number;
-
-  /**
-   * Nonce used for onchain cancellations
-   */
-  nonce?: number;
-
-  /**
-   * Address of the order taker. The zero address is used to indicate a public order
-   */
-  taker?: string;
 
   /**
    * Specifies the type of order execution:

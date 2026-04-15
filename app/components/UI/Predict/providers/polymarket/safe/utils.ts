@@ -29,12 +29,14 @@ import {
   MIN_COLLATERAL_BALANCE_FOR_CLAIM,
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
+  USDC_E_ADDRESS,
 } from '../constants';
 import {
   encodeApprove,
   encodeClaim,
   encodeErc1155Approve,
   encodeErc20Transfer,
+  encodeWrap,
   getAllowance,
   getContractConfig,
   getIsApprovedForAll,
@@ -51,7 +53,8 @@ import {
   SAFE_MSG_TYPEHASH,
   SAFE_MULTISEND_ADDRESS,
   SAFE_TX_TYPEHASH,
-  usdcSpenders,
+  usdcESpenders,
+  pUsdSpenders,
 } from './constants';
 import {
   OperationType,
@@ -583,15 +586,27 @@ export const aggregateTransaction = (
 };
 
 export const createAllowancesSafeTransaction = (options?: {
-  extraUsdcSpenders?: string[];
+  extraPusdSpenders?: string[];
 }) => {
   const safeTxns: SafeTransaction[] = [];
-  const allUsdcSpenders = [
-    ...usdcSpenders,
-    ...(options?.extraUsdcSpenders ?? []),
-  ];
 
-  for (const spender of allUsdcSpenders) {
+  for (const spender of usdcESpenders) {
+    safeTxns.push({
+      to: USDC_E_ADDRESS,
+      data: encodeApprove({
+        spender,
+        amount: ethers.constants.MaxUint256.toBigInt(),
+      }),
+      operation: OperationType.Call,
+      value: '0',
+    });
+  }
+
+  const allPusdSpenders = [
+    ...pUsdSpenders,
+    ...(options?.extraPusdSpenders ?? []),
+  ];
+  for (const spender of allPusdSpenders) {
     safeTxns.push({
       to: MATIC_CONTRACTS.collateral,
       data: encodeApprove({
@@ -682,14 +697,14 @@ export const getSafeTransactionCallData = async ({
 
 export const getProxyWalletAllowancesTransaction = async ({
   signer,
-  extraUsdcSpenders,
+  extraPusdSpenders,
 }: {
   signer: Signer;
-  extraUsdcSpenders?: string[];
+  extraPusdSpenders?: string[];
 }) => {
   try {
     const safeAddress = computeProxyAddress(signer.address);
-    const safeTxn = createAllowancesSafeTransaction({ extraUsdcSpenders });
+    const safeTxn = createAllowancesSafeTransaction({ extraPusdSpenders });
     const callData = await getSafeTransactionCallData({
       signer,
       safeAddress,
@@ -734,15 +749,26 @@ export const getProxyWalletAllowancesTransaction = async ({
 
 export const hasAllowances = async ({
   address,
-  extraUsdcSpenders = [],
+  extraPusdSpenders = [],
 }: {
   address: string;
-  extraUsdcSpenders?: string[];
+  extraPusdSpenders?: string[];
 }) => {
   const allowanceCalls = [];
   const isApprovedForAllCalls = [];
-  const allUsdcSpenders = [...usdcSpenders, ...extraUsdcSpenders];
-  for (const spender of allUsdcSpenders) {
+
+  for (const spender of usdcESpenders) {
+    allowanceCalls.push(
+      getAllowance({
+        tokenAddress: USDC_E_ADDRESS,
+        owner: address,
+        spender,
+      }),
+    );
+  }
+
+  const allPusdSpenders = [...pUsdSpenders, ...extraPusdSpenders];
+  for (const spender of allPusdSpenders) {
     allowanceCalls.push(
       getAllowance({
         tokenAddress: MATIC_CONTRACTS.collateral,
@@ -751,6 +777,7 @@ export const hasAllowances = async ({
       }),
     );
   }
+
   for (const spender of outcomeTokenSpenders) {
     isApprovedForAllCalls.push(
       getIsApprovedForAll({

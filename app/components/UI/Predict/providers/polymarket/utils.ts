@@ -80,7 +80,7 @@ export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
-  CLOB_ENDPOINT: 'https://clob.polymarket.com',
+  CLOB_ENDPOINT: 'https://clob-v2.polymarket.com',
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
   CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
@@ -339,7 +339,7 @@ export const getOrderTypedData = ({
   primaryType: 'Order',
   domain: {
     name: 'Polymarket CTF Exchange',
-    version: '1',
+    version: '2',
     chainId,
     verifyingContract,
   },
@@ -352,15 +352,14 @@ export const getOrderTypedData = ({
       { name: 'salt', type: 'uint256' },
       { name: 'maker', type: 'address' },
       { name: 'signer', type: 'address' },
-      { name: 'taker', type: 'address' },
       { name: 'tokenId', type: 'uint256' },
       { name: 'makerAmount', type: 'uint256' },
       { name: 'takerAmount', type: 'uint256' },
-      { name: 'expiration', type: 'uint256' },
-      { name: 'nonce', type: 'uint256' },
-      { name: 'feeRateBps', type: 'uint256' },
       { name: 'side', type: 'uint8' },
       { name: 'signatureType', type: 'uint8' },
+      { name: 'timestamp', type: 'uint256' },
+      { name: 'metadata', type: 'bytes32' },
+      { name: 'builder', type: 'bytes32' },
     ],
   },
   message: order,
@@ -398,6 +397,19 @@ export const encodeErc20Transfer = ({
   new Interface([
     'function transfer(address to, uint256 value)',
   ]).encodeFunctionData('transfer', [to, value]) as Hex;
+
+export const encodeWrap = ({
+  asset,
+  to,
+  amount,
+}: {
+  asset: string;
+  to: string;
+  amount: bigint | string;
+}): Hex =>
+  new Interface([
+    'function wrap(address _asset, address _to, uint256 _amount)',
+  ]).encodeFunctionData('wrap', [asset, to, amount]) as Hex;
 
 function replaceAll(s: string, search: string, replace: string) {
   return s.split(search).join(replace);
@@ -576,6 +588,68 @@ export function buildOutcomeGroups(
     };
   });
 }
+
+export const submitClobV2Order = async ({
+  headers,
+  clobOrder,
+}: {
+  headers: ClobHeaders;
+  clobOrder: ClobOrderObject;
+}): Promise<Result<OrderResponse>> => {
+  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+  const url = `${CLOB_ENDPOINT}/order`;
+
+  const body = {
+    order: clobOrder.order,
+    owner: clobOrder.owner,
+    orderType: clobOrder.orderType,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (response.status === 403) {
+      return {
+        success: false,
+        error: 'You are unable to access this provider.',
+      };
+    }
+
+    let responseData;
+    try {
+      responseData = (await response.json()) as OrderResponse;
+    } catch (error) {
+      responseData = undefined;
+    }
+
+    if (!response.ok || !responseData || responseData?.success === false) {
+      const error = responseData?.errorMsg ?? response.statusText;
+      return {
+        success: false,
+        error,
+      };
+    }
+
+    return { success: true, response: responseData };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};
+
+export const isSportEvent = (event: PolymarketApiEvent): boolean =>
+  (Array.isArray(event.tags) ? event.tags : []).some(
+    (tag) => tag.slug === 'sports',
+  );
 
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
@@ -1729,10 +1803,8 @@ export const previewOrder = async (
 ): Promise<OrderPreview> => {
   const { marketId, outcomeId, outcomeTokenId, side, size, feeCollection } =
     params;
-  const [book, feeRateBps] = await Promise.all([
-    getOrderBook({ tokenId: outcomeTokenId }),
-    getFeeRateBps({ tokenId: outcomeTokenId }),
-  ]);
+  const book = await getOrderBook({ tokenId: outcomeTokenId });
+  const feeRateBps = '0';
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
   }
