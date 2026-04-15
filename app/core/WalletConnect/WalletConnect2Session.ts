@@ -44,7 +44,7 @@ import {
   adaptWalletConnectRequestForSnap,
   getChainChangedEmissionForWalletConnect,
   shouldEmitChainChangedForWalletConnect,
-} from './WalletConnectMultiChainConnector';
+} from './multichain-connectors';
 import { HandlerType } from '@metamask/snaps-utils';
 import { SnapId } from '@metamask/snaps-sdk';
 import { handleSnapRequest } from '../Snaps/utils';

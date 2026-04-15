@@ -1,9 +1,10 @@
+import { adaptWalletConnectRequestForSnap } from './multichain-connectors';
+import { adaptWalletConnectRequestForSnap as adaptTronRequestForSnap } from './multichain-connectors/tron';
 import {
-  adaptWalletConnectRequestForSnap,
   getCompatibleTronCaipChainIdsForWalletConnect,
   normalizeCaipChainIdInboundForWalletConnect,
   normalizeCaipChainIdOutboundForWalletConnect,
-} from './WalletConnectMultiChainConnector';
+} from './wc-utils';
 
 describe('WalletConnectMultiChainConnector', () => {
   describe('adaptWalletConnectRequestForSnap', () => {
@@ -121,6 +122,30 @@ describe('WalletConnectMultiChainConnector', () => {
       expect(result).toStrictEqual({
         method: 'eth_sign',
         params: ['0x1', '0x2'],
+      });
+    });
+
+    it('maps tron_sendTransaction to canonical sendTransaction', () => {
+      const result = adaptTronRequestForSnap({
+        method: 'tron_sendTransaction',
+        params: [{ transaction: { raw_data_hex: '0xabc' } }],
+      });
+
+      expect(result).toStrictEqual({
+        method: 'sendTransaction',
+        params: [{ transaction: { raw_data_hex: '0xabc' } }],
+      });
+    });
+
+    it('maps tron_getBalance to canonical getBalance', () => {
+      const result = adaptTronRequestForSnap({
+        method: 'tron_getBalance',
+        params: [{ address: 'TAddress' }],
+      });
+
+      expect(result).toStrictEqual({
+        method: 'getBalance',
+        params: [{ address: 'TAddress' }],
       });
     });
   });
