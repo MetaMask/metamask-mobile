@@ -7914,7 +7914,8 @@
       "legal_disclaimer_3": ". All accounts on this device will be opted in.",
       "legal_disclaimer_4": "Learn more",
       "referral_prompt": "Have a referral code?",
-      "referral_placeholder": "Optional referral code",
+      "referral_hide": "Hide code",
+      "referral_placeholder": "Referral code (optional)",
       "referral_label": "Referral code"
     },
     "settings": {
