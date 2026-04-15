@@ -37,28 +37,30 @@ const SKELETON_KEYS = Array.from(
 
 type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum';
 
-const CHAIN_FILTERS: { key: ChainFilter; label: string }[] = [
-  { key: 'all', label: 'All' },
+const getChainFilters = (): { key: ChainFilter; label: string }[] => [
+  {
+    key: 'all',
+    label: strings('social_leaderboard.top_traders_view.chain_filter.all'),
+  },
   { key: 'base', label: 'Base' },
   { key: 'solana', label: 'Solana' },
   { key: 'ethereum', label: 'Ethereum' },
 ];
 
 interface ChainPillProps {
+  filterKey: ChainFilter;
   label: string;
   isSelected: boolean;
   onPress: () => void;
 }
 
 const ChainPill: React.FC<ChainPillProps> = ({
+  filterKey,
   label,
   isSelected,
   onPress,
 }) => (
-  <TouchableOpacity
-    onPress={onPress}
-    testID={`chain-filter-${label.toLowerCase()}`}
-  >
+  <TouchableOpacity onPress={onPress} testID={`chain-filter-${filterKey}`}>
     <Box
       twClassName={`px-4 py-2 rounded-xl border ${
         isSelected ? 'bg-default border-white' : 'border-muted'
@@ -175,9 +177,10 @@ const TopTradersView = () => {
         flexDirection={BoxFlexDirection.Row}
         twClassName="px-4 pb-3 justify-between"
       >
-        {CHAIN_FILTERS.map(({ key, label }) => (
+        {getChainFilters().map(({ key, label }) => (
           <ChainPill
             key={key}
+            filterKey={key}
             label={label}
             isSelected={selectedChain === key}
             onPress={() => setSelectedChain(key)}

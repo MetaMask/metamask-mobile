@@ -1015,7 +1015,10 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Top Traders"
+      "title": "Top Traders",
+      "chain_filter": {
+        "all": "All"
+      }
     },
     "follow": "Follow",
     "following": "Following",
