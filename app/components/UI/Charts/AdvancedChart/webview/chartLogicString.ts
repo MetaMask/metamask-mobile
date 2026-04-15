@@ -1141,11 +1141,10 @@ function shouldHideVisibleEdgeOutlinePill(chart, tailSec, ohlcvData) {
   if (tailSec === null || !isFinite(Number(tailSec))) {
     return true;
   }
-  var geo = isCustomLineEndMarkerVisibleInPlot(chart, Number(tailSec));
-  var dataOff =
-    ohlcvData && ohlcvData.length
-      ? isSeriesTailOffScreenByData(chart, ohlcvData)
-      : null;
+  const geo = isCustomLineEndMarkerVisibleInPlot(chart, Number(tailSec));
+  const dataOff = ohlcvData?.length
+    ? isSeriesTailOffScreenByData(chart, ohlcvData)
+    : null;
   if (geo === false || dataOff === true) {
     return false;
   }
@@ -1157,11 +1156,11 @@ function shouldHideVisibleEdgeOutlinePill(chart, tailSec, ohlcvData) {
  * {@link shouldHideVisibleEdgeOutlinePill}).
  */
 function updateVisibleEdgeOutlinePriceLabel() {
-  var elOut = document.getElementById('custom-series-last-value-label');
+  const elOut = document.getElementById('custom-series-last-value-label');
   if (!elOut) {
     return;
   }
-  var w = window;
+  const w = window;
   if (
     !getLineChrome().useCustomPriceLabels ||
     !w.chartWidget ||
@@ -1172,54 +1171,54 @@ function updateVisibleEdgeOutlinePriceLabel() {
     hideCustomSeriesLastValueLabelDom();
     return;
   }
-  var ct = w.currentChartType;
+  const ct = w.currentChartType;
   if (ct !== 1 && ct !== 2) {
     hideCustomSeriesLastValueLabelDom();
     return;
   }
-  var chart = w.chartWidget.activeChart();
-  var tailBar = w.ohlcvData[w.ohlcvData.length - 1];
-  var tailSec = normalizeChartUnixSec(tailBar.time);
+  const chart = w.chartWidget.activeChart();
+  const tailBar = w.ohlcvData[w.ohlcvData.length - 1];
+  const tailSec = normalizeChartUnixSec(tailBar.time);
   if (shouldHideVisibleEdgeOutlinePill(chart, tailSec, w.ohlcvData)) {
     hideCustomSeriesLastValueLabelDom();
     return;
   }
-  var edgeBar = getVisibleEdgeOutlineBar(chart, w.ohlcvData);
+  const edgeBar = getVisibleEdgeOutlineBar(chart, w.ohlcvData);
   if (!edgeBar) {
     hideCustomSeriesLastValueLabelDom();
     return;
   }
-  var price = Number(edgeBar.close);
+  let price = Number(edgeBar.close);
   if (ct === 2) {
-    var tEdgeMs = getVisiblePlotRightEdgeTimeMs(chart);
+    const tEdgeMs = getVisiblePlotRightEdgeTimeMs(chart);
     if (tEdgeMs !== null) {
-      var pLine = interpolateCloseAlongLineAtTimeMs(w.ohlcvData, tEdgeMs);
+      const pLine = interpolateCloseAlongLineAtTimeMs(w.ohlcvData, tEdgeMs);
       if (pLine !== null && isFinite(pLine)) {
         price = pLine;
       }
     }
   }
-  var y = getPriceYForLastCloseOverlay(chart, price);
+  const y = getPriceYForLastCloseOverlay(chart, price);
   if (y === null || y === undefined || isNaN(y)) {
     elOut.style.display = 'none';
     elOut.style.borderColor = '';
     elOut.style.color = '';
     return;
   }
-  var resolvedLast = resolveLineEndOverlayPoint(chart);
-  var lastClosePrice =
+  const resolvedLast = resolveLineEndOverlayPoint(chart);
+  const lastClosePrice =
     resolvedLast && isFinite(resolvedLast.price)
       ? resolvedLast.price
       : tailBar.close;
-  var yLastClose = getPriceYForLastCloseOverlay(chart, lastClosePrice);
+  const yLastClose = getPriceYForLastCloseOverlay(chart, lastClosePrice);
 
-  var theme = (w.CONFIG && w.CONFIG.theme) || {};
-  var upColor = theme.successColor || '#0C9F76';
-  var downColor = theme.errorColor || '#E06470';
-  var outlineColor = upColor;
+  const theme = (w.CONFIG && w.CONFIG.theme) || {};
+  const upColor = theme.successColor || '#0C9F76';
+  const downColor = theme.errorColor || '#E06470';
+  let outlineColor = upColor;
   if (ct === 1) {
-    var o = Number(edgeBar.open);
-    var c = Number(edgeBar.close);
+    const o = Number(edgeBar.open);
+    const c = Number(edgeBar.close);
     if (isFinite(o) && isFinite(c) && c < o) {
       outlineColor = downColor;
     }
@@ -1228,13 +1227,13 @@ function updateVisibleEdgeOutlinePriceLabel() {
   elOut.style.color = outlineColor;
   elOut.textContent = formatCrosshairPrice(price);
   elOut.style.display = 'flex';
-  var overlayOut = document.getElementById('custom-crosshair-overlay');
+  const overlayOut = document.getElementById('custom-crosshair-overlay');
 
-  var yPos = y;
+  let yPos = y;
   positionPricePillAtPlotPriceBoundary(elOut, overlayOut, yPos);
-  var gapPx = 4;
-  var elLast = document.getElementById('last-close-price-label');
-  var hO = elOut.offsetHeight;
+  const gapPx = 4;
+  const elLast = document.getElementById('last-close-price-label');
+  let hO = elOut.offsetHeight;
   if (!hO || hO < 8) {
     hO = 24;
   }
@@ -1247,17 +1246,18 @@ function updateVisibleEdgeOutlinePriceLabel() {
     yLastClose !== undefined &&
     !isNaN(yLastClose)
   ) {
-    var hF = elLast.offsetHeight;
-    var half = (hF + hO) / 2 + gapPx;
+    const hF = elLast.offsetHeight;
+    const half = (hF + hO) / 2 + gapPx;
     if (Math.abs(y - yLastClose) < half) {
-      var minCenter = hO / 2 + 2;
-      var maxCenter =
+      const minCenter = hO / 2 + 2;
+      const maxCenter =
         overlayOut && overlayOut.clientHeight > 0
           ? overlayOut.clientHeight - hO / 2 - 2
           : Infinity;
-      var pOut = Number(price);
-      var pLast = Number(lastClosePrice);
-      var edgeAboveFilled = isFinite(pOut) && isFinite(pLast) ? pOut > pLast : y < yLastClose;
+      const pOut = Number(price);
+      const pLast = Number(lastClosePrice);
+      const edgeAboveFilled =
+        isFinite(pOut) && isFinite(pLast) ? pOut > pLast : y < yLastClose;
       if (edgeAboveFilled) {
         yPos = yLastClose - hF / 2 - gapPx - hO / 2;
         if (yPos < minCenter) {
@@ -1282,33 +1282,34 @@ function getPriceYForLastCloseOverlay(chart, price) {
   if (!chart || price === undefined || price === null || isNaN(Number(price))) {
     return null;
   }
-  var p = Number(price);
+  const p = Number(price);
   try {
-    var panes = chart.getPanes();
+    const panes = chart.getPanes();
     if (!panes || !panes.length) return null;
-    var pane = panes[0];
-    var scale = pane.getMainSourcePriceScale();
+    const pane = panes[0];
+    const scale = pane.getMainSourcePriceScale();
     if (!scale) return null;
 
-    var range = scale.getVisiblePriceRange();
+    const range = scale.getVisiblePriceRange();
     if (!range || range.from === undefined || range.to === undefined) {
       return null;
     }
-    var lo = Math.min(range.from, range.to);
-    var hi = Math.max(range.from, range.to);
-    var h = pane.getHeight();
+    const lo = Math.min(range.from, range.to);
+    const hi = Math.max(range.from, range.to);
+    const h = pane.getHeight();
     if (!h || h <= 0) return null;
-    var pClamped = Math.min(hi, Math.max(lo, p));
-    var inverted = typeof scale.isInverted === 'function' && scale.isInverted();
-    var mode = typeof scale.getMode === 'function' ? scale.getMode() : 0;
+    const pClamped = Math.min(hi, Math.max(lo, p));
+    const inverted =
+      typeof scale.isInverted === 'function' && scale.isInverted();
+    const mode = typeof scale.getMode === 'function' ? scale.getMode() : 0;
     if (mode === 1 && lo > 0 && hi > 0 && pClamped > 0) {
-      var logLo = Math.log(lo);
-      var logHi = Math.log(hi);
-      var logP = Math.log(pClamped);
+      const logLo = Math.log(lo);
+      const logHi = Math.log(hi);
+      const logP = Math.log(pClamped);
       if (logHi === logLo) {
         return inverted ? 0 : h / 2;
       }
-      var t = (logP - logLo) / (logHi - logLo);
+      const t = (logP - logLo) / (logHi - logLo);
       return inverted ? t * h : (1 - t) * h;
     }
     if (inverted) {
@@ -2471,7 +2472,7 @@ function resolveLineEndOverlayPoint(chart) {
  * Normalize TV/chart timestamps to unix **seconds** (library mixes sec/ms in places).
  */
 function normalizeChartUnixSec(t) {
-  var n = Number(t);
+  const n = Number(t);
   if (!isFinite(n)) {
     return null;
   }
@@ -2480,7 +2481,7 @@ function normalizeChartUnixSec(t) {
 
 /** Raw TV timestamp → unix ms (keeps sub-second precision vs {@link normalizeChartUnixSec}). */
 function chartRawTimeToUnixMs(rawT) {
-  var n = Number(rawT);
+  const n = Number(rawT);
   if (!isFinite(n)) {
     return null;
   }
@@ -2494,11 +2495,11 @@ function chartRawTimeToUnixMs(rawT) {
  * Step between last two OHLCV bars in seconds (for visible-range alignment checks).
  */
 function getApproxBarDurationSec() {
-  var d = window.ohlcvData;
+  const d = window.ohlcvData;
   if (!d || d.length < 2) {
     return 300;
   }
-  var ms = Math.abs(d[d.length - 1].time - d[d.length - 2].time);
+  const ms = Math.abs(d[d.length - 1].time - d[d.length - 2].time);
   return Math.max(60, Math.round(ms / 1000));
 }
 
@@ -2513,7 +2514,7 @@ var LINE_END_ICON_MAX_PROBES = 14;
  * Skip extrapolation during interval switches / odd zoom: too few bars, incoherent visible range vs data.
  */
 function shouldSkipLineEndIconTimeExtrapolation(chart, lastBarTimeSec) {
-  var d = window.ohlcvData;
+  const d = window.ohlcvData;
   if (!d || d.length < 2) {
     return true;
   }
@@ -2521,18 +2522,18 @@ function shouldSkipLineEndIconTimeExtrapolation(chart, lastBarTimeSec) {
     return true;
   }
   try {
-    var br = chart.getVisibleBarsRange();
+    const br = chart.getVisibleBarsRange();
     if (!br || br.from === undefined || br.to === undefined) {
       return true;
     }
-    var brFromSec = normalizeChartUnixSec(br.from);
-    var brToSec = normalizeChartUnixSec(br.to);
+    const brFromSec = normalizeChartUnixSec(br.from);
+    const brToSec = normalizeChartUnixSec(br.to);
     if (brFromSec === null || brToSec === null) {
       return true;
     }
-    var barDur = getApproxBarDurationSec();
-    var visibleSpan = Math.abs(brToSec - brFromSec);
-    var n = d.length;
+    const barDur = getApproxBarDurationSec();
+    const visibleSpan = Math.abs(brToSec - brFromSec);
+    const n = d.length;
     if (visibleSpan > barDur * Math.max(n, 1) * 96) {
       return true;
     }
@@ -2550,15 +2551,15 @@ function shouldSkipLineEndIconTimeExtrapolation(chart, lastBarTimeSec) {
 
 function trailingVisibleBarMatchesSeriesLast(chart, lastBarTimeSec) {
   try {
-    var br = chart.getVisibleBarsRange();
+    const br = chart.getVisibleBarsRange();
     if (!br || br.to === undefined || br.to === null) {
       return false;
     }
-    var brToSec = normalizeChartUnixSec(br.to);
+    const brToSec = normalizeChartUnixSec(br.to);
     if (brToSec === null) {
       return false;
     }
-    var barDur = getApproxBarDurationSec();
+    const barDur = getApproxBarDurationSec();
     return (
       lastBarTimeSec <= brToSec + barDur &&
       lastBarTimeSec >= brToSec - 2 * barDur
@@ -2576,7 +2577,7 @@ function trailingVisibleBarMatchesSeriesLast(chart, lastBarTimeSec) {
  * @returns {number | null} unix seconds
  */
 function timeScaleCoordinateToTimeSec(ts, x) {
-  var raw = ts.coordinateToTime(x);
+  const raw = ts.coordinateToTime(x);
   if (raw == null || raw === undefined) {
     return null;
   }
@@ -2589,8 +2590,8 @@ function timeScaleCoordinateToTimeSec(ts, x) {
  * @returns {number | null}
  */
 function findSmallestXWhereTimeGte(ts, maxX, tNorm) {
-  var tLo = timeScaleCoordinateToTimeSec(ts, 0);
-  var tHi = timeScaleCoordinateToTimeSec(ts, maxX);
+  const tLo = timeScaleCoordinateToTimeSec(ts, 0);
+  const tHi = timeScaleCoordinateToTimeSec(ts, maxX);
   if (tLo === null || tHi === null) {
     return null;
   }
@@ -2600,11 +2601,11 @@ function findSmallestXWhereTimeGte(ts, maxX, tNorm) {
   if (tLo >= tNorm) {
     return 0;
   }
-  var lo = 0;
-  var hi = maxX;
+  let lo = 0;
+  let hi = maxX;
   while (lo < hi) {
-    var mid = (lo + hi) >> 1;
-    var tm = timeScaleCoordinateToTimeSec(ts, mid);
+    const mid = (lo + hi) >> 1;
+    const tm = timeScaleCoordinateToTimeSec(ts, mid);
     if (tm === null) {
       return null;
     }
@@ -2631,7 +2632,7 @@ function isCustomLineEndMarkerVisibleInPlot(chart, lastBarTimeSec) {
     return null;
   }
   try {
-    var ts = chart.getTimeScale();
+    const ts = chart.getTimeScale();
     if (
       !ts ||
       typeof ts.coordinateToTime !== 'function' ||
@@ -2639,20 +2640,20 @@ function isCustomLineEndMarkerVisibleInPlot(chart, lastBarTimeSec) {
     ) {
       return null;
     }
-    var plotW = ts.width();
+    const plotW = ts.width();
     if (!(plotW > LINE_END_ICON_TIME_INSET_PX + 4)) {
       return null;
     }
-    var markerTimeSec = getLineEndIconTimeSec(chart, Number(lastBarTimeSec));
-    var tNorm = normalizeChartUnixSec(markerTimeSec);
+    const markerTimeSec = getLineEndIconTimeSec(chart, Number(lastBarTimeSec));
+    const tNorm = normalizeChartUnixSec(markerTimeSec);
     if (tNorm === null) {
       return null;
     }
-    var xCut = Math.max(0, Math.floor(plotW - LINE_END_ICON_TIME_INSET_PX - 1));
-    var maxX = Math.max(0, Math.floor(plotW - 1));
+    const xCut = Math.max(0, Math.floor(plotW - LINE_END_ICON_TIME_INSET_PX - 1));
+    const maxX = Math.max(0, Math.floor(plotW - 1));
 
-    var tMax = timeScaleCoordinateToTimeSec(ts, maxX);
-    var tMin = timeScaleCoordinateToTimeSec(ts, 0);
+    const tMax = timeScaleCoordinateToTimeSec(ts, maxX);
+    const tMin = timeScaleCoordinateToTimeSec(ts, 0);
     if (tMin === null || tMax === null) {
       return null;
     }
@@ -2665,7 +2666,7 @@ function isCustomLineEndMarkerVisibleInPlot(chart, lastBarTimeSec) {
       return true;
     }
 
-    var xFirst = findSmallestXWhereTimeGte(ts, maxX, tNorm);
+    const xFirst = findSmallestXWhereTimeGte(ts, maxX, tNorm);
     if (xFirst === null) {
       return null;
     }
@@ -2683,11 +2684,11 @@ function isCustomLineEndMarkerVisibleInPlot(chart, lastBarTimeSec) {
  * @returns {{ lo: number, hi: number } | null} null if range unavailable or timestamps invalid
  */
 function getVisibleTimeRangeSecFromChart(chart) {
-  var fromSec;
-  var toSec;
+  let fromSec;
+  let toSec;
   try {
-    var br = chart.getVisibleBarsRange();
-    if (br && br.from !== undefined && br.to !== undefined) {
+    const br = chart.getVisibleBarsRange();
+    if (br?.from !== undefined && br?.to !== undefined) {
       fromSec = normalizeChartUnixSec(br.from);
       toSec = normalizeChartUnixSec(br.to);
       if (fromSec !== null && toSec !== null) {
@@ -2698,11 +2699,11 @@ function getVisibleTimeRangeSecFromChart(chart) {
       }
     }
   } catch (eBr) {
-    /* fall through — bars range often null mid-gesture; try visible time range */
+    void eBr;
   }
   try {
-    var vr = chart.getVisibleRange && chart.getVisibleRange();
-    if (vr && vr.from !== undefined && vr.to !== undefined) {
+    const vr = chart.getVisibleRange?.();
+    if (vr?.from !== undefined && vr?.to !== undefined) {
       fromSec = normalizeChartUnixSec(vr.from);
       toSec = normalizeChartUnixSec(vr.to);
       if (fromSec !== null && toSec !== null) {
@@ -2729,18 +2730,17 @@ function getVisibleTimeRangeSecFromChart(chart) {
  * @returns {object | null} bar object or null if none intersect
  */
 function getRightmostOhlcvBarInVisibleTimeRange(chart, data) {
-  var range = getVisibleTimeRangeSecFromChart(chart);
+  const range = getVisibleTimeRangeSecFromChart(chart);
   if (!range || !data || !data.length) {
     return null;
   }
-  var slackSec = getApproxBarDurationSec() * 2;
-  var loMs = (range.lo - slackSec) * 1000;
-  var hiMs = (range.hi + slackSec) * 1000;
-  var best = null;
-  var i;
-  for (i = 0; i < data.length; i++) {
-    var b = data[i];
-    var t = b.time;
+  const slackSec = getApproxBarDurationSec() * 2;
+  const loMs = (range.lo - slackSec) * 1000;
+  const hiMs = (range.hi + slackSec) * 1000;
+  let best = null;
+  for (let i = 0; i < data.length; i++) {
+    const b = data[i];
+    const t = b.time;
     if (t >= loMs && t <= hiMs) {
       if (!best || t > best.time) {
         best = b;
@@ -2762,17 +2762,17 @@ function isSeriesTailOffScreenByData(chart, data) {
   if (!chart || !data || !data.length) {
     return null;
   }
-  var tail = data[data.length - 1];
-  var tailMs = tail.time;
-  var rightmost = getRightmostOhlcvBarInVisibleTimeRange(chart, data);
+  const tail = data[data.length - 1];
+  const tailMs = tail.time;
+  const rightmost = getRightmostOhlcvBarInVisibleTimeRange(chart, data);
   if (!rightmost) {
     return null;
   }
   if (rightmost === tail || rightmost.time === tailMs) {
     return false;
   }
-  var barDurMs = getApproxBarDurationSec() * 1000;
-  var halfBarSlackMs = Math.max(1, barDurMs * 0.5);
+  const barDurMs = getApproxBarDurationSec() * 1000;
+  const halfBarSlackMs = Math.max(1, barDurMs * 0.5);
   if (tailMs - rightmost.time <= halfBarSlackMs) {
     return false;
   }
@@ -2789,23 +2789,22 @@ function isSeriesTailOffScreenByData(chart, data) {
  * @returns {object | null}
  */
 function getVisibleEdgeOutlineBar(chart, data) {
-  var primary = getRightmostOhlcvBarInVisibleTimeRange(chart, data);
+  const primary = getRightmostOhlcvBarInVisibleTimeRange(chart, data);
   if (primary) {
     return primary;
   }
-  var range = getVisibleTimeRangeSecFromChart(chart);
+  const range = getVisibleTimeRangeSecFromChart(chart);
   if (!range || !data || !data.length) {
     return null;
   }
-  var barDur = getApproxBarDurationSec();
-  var looseSlackSec = barDur * 6;
-  var loMs = (range.lo - looseSlackSec) * 1000;
-  var hiMs = (range.hi + looseSlackSec) * 1000;
-  var best = null;
-  var i;
-  for (i = 0; i < data.length; i++) {
-    var b = data[i];
-    var t = b.time;
+  const barDur = getApproxBarDurationSec();
+  const looseSlackSec = barDur * 6;
+  const loMs = (range.lo - looseSlackSec) * 1000;
+  const hiMs = (range.hi + looseSlackSec) * 1000;
+  let best = null;
+  for (let i = 0; i < data.length; i++) {
+    const b = data[i];
+    const t = b.time;
     if (t >= loMs && t <= hiMs) {
       if (!best || t > best.time) {
         best = b;
@@ -2821,7 +2820,7 @@ function getVisiblePlotRightEdgeTimeMs(chart) {
     return null;
   }
   try {
-    var ts = chart.getTimeScale();
+    const ts = chart.getTimeScale();
     if (
       !ts ||
       typeof ts.coordinateToTime !== 'function' ||
@@ -2829,22 +2828,22 @@ function getVisiblePlotRightEdgeTimeMs(chart) {
     ) {
       return null;
     }
-    var w = ts.width();
+    const w = ts.width();
     if (!(w > OUTLINE_EDGE_TIME_INSET_PX + 2)) {
       return null;
     }
-    var x = Math.max(0, Math.floor(w - OUTLINE_EDGE_TIME_INSET_PX - 1));
-    var rawT = ts.coordinateToTime(x);
+    const x = Math.max(0, Math.floor(w - OUTLINE_EDGE_TIME_INSET_PX - 1));
+    const rawT = ts.coordinateToTime(x);
     if (rawT === null || rawT === undefined) {
       return null;
     }
-    var tMs = chartRawTimeToUnixMs(rawT);
+    let tMs = chartRawTimeToUnixMs(rawT);
     if (tMs === null) {
       return null;
     }
-    var vr = chart.getVisibleRange && chart.getVisibleRange();
-    if (vr && vr.to !== undefined && vr.to !== null) {
-      var capMs = chartRawTimeToUnixMs(vr.to);
+    const vr = chart.getVisibleRange?.();
+    if (vr?.to !== undefined && vr?.to !== null) {
+      const capMs = chartRawTimeToUnixMs(vr.to);
       if (capMs !== null && tMs > capMs) {
         tMs = capMs;
       }
@@ -2860,23 +2859,22 @@ function interpolateCloseAlongLineAtTimeMs(data, tMs) {
   if (!data || !data.length || !isFinite(tMs)) {
     return null;
   }
-  var first = data[0];
-  var last = data[data.length - 1];
+  const first = data[0];
+  const last = data[data.length - 1];
   if (tMs <= first.time) {
-    var c0 = Number(first.close);
+    const c0 = Number(first.close);
     return isFinite(c0) ? c0 : null;
   }
   if (tMs >= last.time) {
-    var cL = Number(last.close);
+    const cL = Number(last.close);
     return isFinite(cL) ? cL : null;
   }
-  var i;
-  for (i = 0; i < data.length - 1; i++) {
-    var t0 = data[i].time;
-    var t1 = data[i + 1].time;
+  for (let i = 0; i < data.length - 1; i++) {
+    const t0 = data[i].time;
+    const t1 = data[i + 1].time;
     if (tMs >= t0 && tMs <= t1) {
-      var a = Number(data[i].close);
-      var b = Number(data[i + 1].close);
+      const a = Number(data[i].close);
+      const b = Number(data[i + 1].close);
       if (!isFinite(a) || !isFinite(b)) {
         return null;
       }
@@ -2904,7 +2902,7 @@ function getLineEndIconTimeSec(chart, lastBarTimeSec) {
     return lastBarTimeSec;
   }
   try {
-    var ts = chart.getTimeScale();
+    const ts = chart.getTimeScale();
     if (
       !ts ||
       typeof ts.coordinateToTime !== 'function' ||
@@ -2912,32 +2910,31 @@ function getLineEndIconTimeSec(chart, lastBarTimeSec) {
     ) {
       return lastBarTimeSec;
     }
-    var w = ts.width();
+    const w = ts.width();
     if (!(w > LINE_END_ICON_TIME_INSET_PX + 4)) {
       return lastBarTimeSec;
     }
-    var vr = chart.getVisibleRange();
-    var capSec =
-      vr && vr.to !== undefined && vr.to !== null
+    const vr = chart.getVisibleRange?.();
+    const capSec =
+      vr?.to !== undefined && vr?.to !== null
         ? normalizeChartUnixSec(vr.to)
         : null;
-    var k;
-    for (k = 0; k < LINE_END_ICON_MAX_PROBES; k++) {
-      var x = Math.max(
+    for (let k = 0; k < LINE_END_ICON_MAX_PROBES; k++) {
+      const x = Math.max(
         0,
         Math.floor(
           w - LINE_END_ICON_TIME_INSET_PX - k * LINE_END_ICON_PROBE_STEP_PX,
         ),
       );
-      var rawT = ts.coordinateToTime(x);
+      const rawT = ts.coordinateToTime(x);
       if (rawT === null || rawT === undefined) {
         continue;
       }
-      var numT = Number(rawT);
+      const numT = Number(rawT);
       if (!isFinite(numT)) {
         continue;
       }
-      var tNorm = normalizeChartUnixSec(numT);
+      let tNorm = normalizeChartUnixSec(numT);
       if (tNorm === null) {
         continue;
       }
