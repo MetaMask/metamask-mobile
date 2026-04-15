@@ -20,8 +20,19 @@ import {
 import { fromTokenMinimalUnitString } from '../../../../util/number';
 import { toChecksumAddress } from '../../../../util/address';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
+import Engine from '../../../../core/Engine';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
+
+/**
+ * Fetches the live exchange rate for the mUSD token.
+ * This is necessary when we need the most current rate at runtime (e.g. Money account withdrawal).
+ * @returns The live exchange rate for the mUSD token.
+ */
+export const getLiveVedaVaultExchangeRate = async () =>
+  Engine.controllerMessenger
+    .call('MoneyAccountBalanceService:getExchangeRate')
+    .then(({ rate }) => rate);
 
 const useMoneyAccountBalance = (
   refetchInterval: number = DEFAULT_REFETCH_INTERVAL,

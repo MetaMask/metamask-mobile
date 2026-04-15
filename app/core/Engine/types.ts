@@ -302,7 +302,11 @@ import {
   MoneyAccountControllerEvents,
   MoneyAccountControllerState,
 } from '@metamask/money-account-controller';
-import { MoneyAccountBalanceService } from '@metamask/money-account-balance-service';
+import {
+  MoneyAccountBalanceService,
+  MoneyAccountBalanceServiceActions,
+  MoneyAccountBalanceServiceEvents,
+} from '@metamask/money-account-balance-service';
 import {
   GeolocationController,
   GeolocationControllerState,
@@ -555,6 +559,7 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | MoneyAccountControllerActions
+  | MoneyAccountBalanceServiceActions
   | GeolocationControllerActions
   | GeolocationApiServiceActions
   | PerpsControllerActions
@@ -641,6 +646,7 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | MoneyAccountControllerEvents
+  | MoneyAccountBalanceServiceEvents
   | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
