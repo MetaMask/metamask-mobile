@@ -24,7 +24,7 @@ describe('useBridgeQuoteEvents', () => {
     [{ quotesRefreshCount: 0 }],
     [{ quoteFetchError: 'Error fetching quotes' }],
   ])(
-    'should not publish QuotesReceived event when bridge-controller state has %s',
+    'does not publish QuotesReceived event when bridge-controller state has %s',
     async (stateOverrides) => {
       const bridgeControllerOverrides = {
         quotesLoadingStatus: null,
@@ -66,7 +66,7 @@ describe('useBridgeQuoteEvents', () => {
     ],
     [{}, []],
   ])(
-    'should publish QuotesReceived event with warnings: %s',
+    'publishes QuotesReceived event with warnings: %s',
     async (hookArgs, warnings) => {
       const bridgeControllerOverrides = {
         quotesLoadingStatus: null,

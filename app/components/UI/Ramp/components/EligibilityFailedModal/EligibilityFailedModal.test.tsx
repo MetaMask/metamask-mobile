@@ -15,11 +15,12 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   canOpenURL: jest.fn().mockResolvedValue(true),
 }));
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    return ReactActual.forwardRef(
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
       (
         {
           children,
@@ -33,9 +34,9 @@ jest.mock(
         }));
         return <>{children}</>;
       },
-    );
-  },
-);
+    ),
+  };
+});
 
 function render(component: React.ComponentType) {
   return renderScreen(

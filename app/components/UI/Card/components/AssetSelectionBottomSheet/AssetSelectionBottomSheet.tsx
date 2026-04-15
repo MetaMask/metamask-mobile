@@ -51,6 +51,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions } from '../../util/metrics';
 import { truncateAddress } from '../../util/truncateAddress';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
+import { getAssetBalanceKey } from '../../util/getAssetBalanceKey';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 import { useUpdateTokenPriority } from '../../hooks/useUpdateTokenPriority';
 import {
@@ -394,7 +395,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
     sortTokensByPriority,
   ]);
 
-  // Get balances for all tokens (including those from delegation settings)
   const assetBalances = useAssetBalances(supportedTokens);
 
   // Merge balance data into supportedTokens
@@ -406,7 +406,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
     () =>
       supportedTokens
         .map((token) => {
-          const tokenKey = `${token.address?.toLowerCase()}-${token.caipChainId}-${token.walletAddress?.toLowerCase()}`;
+          const tokenKey = getAssetBalanceKey(token);
           const balanceInfo = assetBalances.get(tokenKey);
 
           return {

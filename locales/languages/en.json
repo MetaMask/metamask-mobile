@@ -1026,6 +1026,9 @@
       "win_rate": "win rate",
       "pnl_30d": "30D P&L",
       "avg_hold": "avg. hold",
+      "hold_time_minutes": "{{count}}m",
+      "hold_time_hours": "{{count}} hrs",
+      "hold_time_days": "{{count}} days",
       "open": "Open",
       "closed": "Closed",
       "no_positions": "No positions yet",
@@ -5089,6 +5092,8 @@
     "got_it": "Got it",
     "encountered_error": "We've encountered an error",
     "no_quotes_error": "We encountered a problem fetching quotes from {{provider}}. Try a different amount or changing provider.",
+    "min_purchase_limit": "Minimum purchase is {{amount}}",
+    "max_purchase_limit": "Maximum purchase is {{amount}}",
     "change_provider_button": "Change provider"
   },
   "fiat_on_ramp_aggregator": {
@@ -7932,7 +7937,7 @@
     "settings": {
       "title": "Rewards settings",
       "subtitle": "Accounts",
-      "description": "Add multiple accounts to combine your points and unlock rewards faster.",
+      "description": "Add multiple accounts to combine your progress and unlock rewards faster.",
       "tab_linked_accounts": "Added ({{count}})",
       "tab_unlinked_accounts": "Not added ({{count}})",
       "no_linked_accounts": "No accounts opted in",
@@ -7972,7 +7977,7 @@
     },
     "optout": {
       "title": "Opt out of Rewards",
-      "description": "This will remove your accounts from the Rewards program and erase your points and progress. You won't be able to undo this.",
+      "description": "This will remove your accounts from the Rewards program and erase your progress. You won't be able to undo this.",
       "confirm": "Opt out",
       "modal": {
         "confirmation_title": "Are you sure?",
@@ -7997,8 +8002,8 @@
       },
       "account_not_supported": {
         "title": "Account not supported",
-        "description_hardware": "Hardware wallet accounts are not yet eligible to earn points. Please switch to a different account to proceed.",
-        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible to earn points. Please switch to a different account to proceed.",
+        "description_hardware": "Hardware wallet accounts are not yet eligible. Please switch to a different account to proceed.",
+        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible. Please switch to a different account to proceed.",
         "confirm": "Go back"
       }
     },
@@ -8259,7 +8264,7 @@
       "title": "Earn rewards",
       "musd_title": "Up to 3% bonus on stables",
       "musd_subtitle": "Calculate your mUSD bonus",
-      "card_title": "Up to 3% cash back",
+      "card_title": "Up to 3% back on spend",
       "card_subtitle": "Get your MetaMask Card now",
       "card_subtitle_cardholder": "Access your MetaMask Card benefits"
     },

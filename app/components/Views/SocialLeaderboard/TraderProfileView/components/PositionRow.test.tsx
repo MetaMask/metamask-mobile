@@ -10,7 +10,7 @@ jest.mock('../../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
 
 jest.mock('../../utils/chainMapping', () => ({
   chainNameToId: jest.fn((chain: string) =>
-    chain === 'unknown' ? undefined : '0x1',
+    chain === 'unknown' ? undefined : 'eip155:1',
   ),
 }));
 
