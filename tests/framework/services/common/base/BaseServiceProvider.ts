@@ -47,7 +47,7 @@ export abstract class BaseServiceProvider implements ServiceProvider {
       'appium:autoAcceptAlerts': true,
       'appium:fullReset': true,
       'appium:deviceOrientation': this.project.use.device?.orientation,
-      'appium:settings[snapshotMaxDepth]': 62,
+      'appium:settings[snapshotMaxDepth]': 70,
       platformName: this.project.use.platform,
     };
   }

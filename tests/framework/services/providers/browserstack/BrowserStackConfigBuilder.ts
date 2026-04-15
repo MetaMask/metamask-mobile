@@ -119,7 +119,7 @@ export class BrowserStackConfigBuilder {
         'appium:fullReset': true,
         'appium:settings[actionAcknowledgmentTimeout]': 3000,
         'appium:settings[ignoreUnimportantViews]': true,
-        'appium:settings[snapshotMaxDepth]': 62,
+        'appium:settings[snapshotMaxDepth]': 70,
         'appium:settings[waitForSelectorTimeout]': 1000,
         'appium:includeSafariInWebviews': true,
         'appium:chromedriverAutodownload': true,
@@ -134,7 +134,7 @@ export class BrowserStackConfigBuilder {
           enable: true,
           samplesX: 3,
           samplesY: 3,
-          maxDepth: 70, // Homepage has 30+ native view levels before content; 15 was too shallow
+          maxDepth: 100,
         },
       },
     };
