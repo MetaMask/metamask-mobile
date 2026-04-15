@@ -188,6 +188,11 @@ export const usePredictBuyActions = ({
             'usePredictBuyActions: PAY_WITH_ANY_TOKEN approval request is missing — approval may have been rejected or consumed',
           ),
         );
+        setIsConfirming(false);
+        return {
+          status: 'error',
+          error: PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+        };
       }
     }
     if (!preview) {
