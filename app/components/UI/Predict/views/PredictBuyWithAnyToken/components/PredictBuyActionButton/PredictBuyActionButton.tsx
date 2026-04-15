@@ -79,7 +79,7 @@ const PredictBuyActionButton = ({
         style={tw.style('text-white font-medium')}
       >
         {isSheetMode
-          ? strings('predict.order.buy', { outcome: outcomeTokenTitle })
+          ? strings('predict.order.confirm')
           : `${outcomeTokenTitle} · ${formatCents(sharePrice)}`}
       </Text>
     </ButtonHero>

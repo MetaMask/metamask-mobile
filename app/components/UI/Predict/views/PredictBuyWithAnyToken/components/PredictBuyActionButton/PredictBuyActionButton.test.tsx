@@ -8,6 +8,9 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
     if (key === 'predict.order.placing_prediction') {
       return 'Placing prediction';
     }
+    if (key === 'predict.order.confirm') {
+      return 'Confirm';
+    }
     if (key === 'predict.order.buy' && params?.outcome) {
       return `Buy ${params.outcome}`;
     }
@@ -228,7 +231,7 @@ describe('PredictBuyActionButton', () => {
   });
 
   describe('when isSheetMode is true', () => {
-    it('displays "Buy {outcome}" label instead of outcome and price', () => {
+    it('displays "Confirm" label instead of outcome and price', () => {
       renderWithProvider(
         <PredictBuyActionButton
           isLoading={false}
@@ -241,11 +244,11 @@ describe('PredictBuyActionButton', () => {
         />,
       );
 
-      expect(screen.getByText('Buy Yes')).toBeOnTheScreen();
+      expect(screen.getByText('Confirm')).toBeOnTheScreen();
       expect(screen.queryByText(/0\.65¢/)).toBeNull();
     });
 
-    it('displays "Buy No" for No outcome', () => {
+    it('displays "Confirm" regardless of outcome', () => {
       renderWithProvider(
         <PredictBuyActionButton
           isLoading={false}
@@ -258,7 +261,7 @@ describe('PredictBuyActionButton', () => {
         />,
       );
 
-      expect(screen.getByText('Buy No')).toBeOnTheScreen();
+      expect(screen.getByText('Confirm')).toBeOnTheScreen();
       expect(screen.queryByText(/· /)).toBeNull();
     });
   });

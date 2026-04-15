@@ -676,6 +676,36 @@ describe('usePredictBuyActions', () => {
       expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
     });
 
+    it('runs cleanup on unmount even when order is in flight (DEPOSITING)', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const mockOnClose = jest.fn();
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: mockOnClose,
+      };
+      const { result, rerender, unmount } = renderHook(() =>
+        usePredictBuyActions(params),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
+      rerender(params);
+
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+
+      mockOnConfirmActionsReject.mockClear();
+      mockClearActiveOrderTransactionId.mockClear();
+
+      unmount();
+
+      expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
+      expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
+    });
+
     it('falls back to StackActions.pop when isSheetMode is false (default)', async () => {
       mockActiveOrder = { state: ActiveOrderState.PREVIEW };
       const params = createDefaultParams();

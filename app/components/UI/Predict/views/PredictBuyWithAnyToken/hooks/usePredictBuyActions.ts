@@ -199,8 +199,6 @@ export const usePredictBuyActions = ({
           handleErrors: false,
         });
       } else if (transactionId) {
-        // Approval was re-created via initPayWithAnyToken; accept it directly
-        // since onApprovalConfirm still holds the stale (undefined) closure.
         Engine.acceptPendingApproval(
           transactionId,
           {},

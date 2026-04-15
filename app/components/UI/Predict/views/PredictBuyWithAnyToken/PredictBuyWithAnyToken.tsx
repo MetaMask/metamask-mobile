@@ -358,7 +358,7 @@ const PredictBuyWithAnyToken = (
       <PredictPayWithAnyTokenInfo
         currentValue={currentValue}
         preview={preview}
-        isInputFocused={isInputFocused}
+        isInputFocused={isSheetMode ? false : isInputFocused}
       />
     </Wrapper>
   );

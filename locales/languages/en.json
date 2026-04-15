@@ -2387,6 +2387,7 @@
       "yes_buy": "Yes, buy",
       "yes_sell": "Yes, sell",
       "buy": "Buy {{outcome}}",
+      "confirm": "Confirm",
       "predict_balance_first": "Your Predict balance will be used first"
     },
     "withdraw": {
