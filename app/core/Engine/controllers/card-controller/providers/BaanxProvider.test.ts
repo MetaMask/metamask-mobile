@@ -187,11 +187,13 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddress', AUTH_TOKENS);
 
-      expect(result.primaryAsset).not.toBeNull();
-      expect(result.primaryAsset?.symbol).toBe('USDC');
-      expect(result.primaryAsset?.status).toBe(FundingAssetStatus.Active);
-      expect(result.primaryAsset?.allowance).toBe('999999999999');
-      expect(result.assets).toHaveLength(1);
+      expect(result.primaryFundingAsset).not.toBeNull();
+      expect(result.primaryFundingAsset?.symbol).toBe('USDC');
+      expect(result.primaryFundingAsset?.status).toBe(
+        FundingAssetStatus.Active,
+      );
+      expect(result.primaryFundingAsset?.spendingCap).toBe('999999999999');
+      expect(result.fundingAssets).toHaveLength(1);
       expect(result.card?.id).toBe('card-1');
       expect(result.card?.status).toBe(CardStatus.ACTIVE);
       expect(result.account?.verificationStatus).toBe('VERIFIED');
@@ -203,8 +205,8 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddress', AUTH_TOKENS);
 
-      expect(result.primaryAsset).toBeNull();
-      expect(result.assets).toHaveLength(0);
+      expect(result.primaryFundingAsset).toBeNull();
+      expect(result.fundingAssets).toHaveLength(0);
       expect(result.card).toBeNull();
     });
 
@@ -478,7 +480,7 @@ describe('BaanxProvider', () => {
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
       expect(result.card).not.toBeNull();
-      expect(result.primaryAsset).toBeNull();
+      expect(result.primaryFundingAsset).toBeNull();
       expect(result.actions).toContainEqual(
         expect.objectContaining({ type: 'enable_card' }),
       );
@@ -572,8 +574,8 @@ describe('BaanxProvider', () => {
     it('returns empty home data with add_funds action', async () => {
       const result = await provider.getOnChainAssets('0xaddr');
 
-      expect(result.primaryAsset).toBeNull();
-      expect(result.assets).toHaveLength(0);
+      expect(result.primaryFundingAsset).toBeNull();
+      expect(result.fundingAssets).toHaveLength(0);
       expect(result.actions).toContainEqual(
         expect.objectContaining({ type: 'add_funds', enabled: true }),
       );
@@ -1043,8 +1045,8 @@ describe('BaanxProvider', () => {
           walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:59144' as const,
-          balance: '100',
-          allowance: '999999999999',
+          spendableBalance: '100',
+          spendingCap: '999999999999',
           priority: 1,
           status: FundingAssetStatus.Active,
           externalId: 1,
@@ -1056,8 +1058,8 @@ describe('BaanxProvider', () => {
           walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:8453' as const,
-          balance: '50',
-          allowance: '999999999999',
+          spendableBalance: '50',
+          spendingCap: '999999999999',
           priority: 2,
           status: FundingAssetStatus.Active,
           externalId: 2,
@@ -1091,8 +1093,8 @@ describe('BaanxProvider', () => {
           walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:59144' as const,
-          balance: '100',
-          allowance: '999999999999',
+          spendableBalance: '100',
+          spendingCap: '999999999999',
           priority: 2,
           status: FundingAssetStatus.Active,
           externalId: 1,
@@ -1104,8 +1106,8 @@ describe('BaanxProvider', () => {
           walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:8453' as const,
-          balance: '50',
-          allowance: '999999999999',
+          spendableBalance: '50',
+          spendingCap: '999999999999',
           priority: 1,
           status: FundingAssetStatus.Active,
           externalId: 2,
@@ -1117,8 +1119,8 @@ describe('BaanxProvider', () => {
           walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:59144' as const,
-          balance: '25',
-          allowance: '999999999999',
+          spendableBalance: '25',
+          spendingCap: '999999999999',
           priority: 3,
           status: FundingAssetStatus.Active,
           externalId: 3,
@@ -1336,7 +1338,7 @@ describe('BaanxProvider', () => {
   });
 
   describe('getCardHomeData edge cases', () => {
-    it('builds close_to_spending_limit alert for Limited asset', async () => {
+    it('does not build close_to_spending_limit alert for Limited asset without on-chain data', async () => {
       service.get.mockImplementation((path: string) => {
         if (path === '/v1/delegation/chain/config') {
           return Promise.resolve({ networks: [] });
@@ -1385,7 +1387,61 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
-      expect(result.alerts).toContainEqual(
+      expect(result.alerts).not.toContainEqual(
+        expect.objectContaining({ type: 'close_to_spending_limit' }),
+      );
+    });
+
+    it('does not build close_to_spending_limit alert for unsupported tokens (AUSDC, AMUSD)', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'card-1',
+            status: CardStatus.ACTIVE,
+            type: CardType.VIRTUAL,
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([
+            {
+              id: 1,
+              walletAddress: '0xwallet',
+              currency: 'AUSDC',
+              balance: '50',
+              allowance: '100',
+              priority: 1,
+              tokenDetails: {
+                address: '0x1',
+                decimals: 6,
+                symbol: 'AUSDC',
+                name: 'AUSDC',
+              },
+              caipChainId: 'eip155:59144',
+              network: 'linea',
+            },
+          ]);
+        }
+        if (path === '/v1/wallet/external/priority') {
+          return Promise.resolve([]);
+        }
+        return Promise.resolve({});
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.alerts).not.toContainEqual(
         expect.objectContaining({ type: 'close_to_spending_limit' }),
       );
     });
@@ -1566,11 +1622,11 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
-      expect(result.assets).toHaveLength(2);
+      expect(result.fundingAssets).toHaveLength(2);
       // fetchWalletDetails uppercases currency when no matching token found in feature flags
-      expect(result.assets[0].symbol).toBe('MUSD');
-      expect(result.assets[1].symbol).toBe('USDC');
-      expect(result.primaryAsset?.symbol).toBe('USDC');
+      expect(result.fundingAssets[0].symbol).toBe('MUSD');
+      expect(result.fundingAssets[1].symbol).toBe('USDC');
+      expect(result.primaryFundingAsset?.symbol).toBe('USDC');
     });
 
     it('uses user priority asset when no other asset has balance', async () => {
@@ -1648,7 +1704,7 @@ describe('BaanxProvider', () => {
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
       // fetchWalletDetails uppercases currency when no matching token found in feature flags
-      expect(result.primaryAsset?.symbol).toBe('MUSD');
+      expect(result.primaryFundingAsset?.symbol).toBe('MUSD');
     });
 
     function setupProvisioningEligibilityMock(
@@ -2203,9 +2259,9 @@ describe('BaanxProvider', () => {
       const result = await provider.getCardHomeData('0xabc', AUTH_TOKENS);
 
       expect(result).toStrictEqual({
-        primaryAsset: null,
-        assets: [],
-        supportedTokens: [],
+        primaryFundingAsset: null,
+        fundingAssets: [],
+        availableFundingAssets: [],
         card: null,
         account: null,
         alerts: [],
