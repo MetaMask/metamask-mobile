@@ -213,6 +213,13 @@ export type ThemeImageState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignDetailsState = {
   howItWorks: OndoCampaignHowItWorksState;
+  tiers?: OndoCampaignTierState[];
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignTierState = {
+  name: string;
+  minNetDeposit: number;
 };
 
 /**
@@ -303,12 +310,6 @@ export interface CampaignLeaderboardTier {
    * @example 150
    */
   totalParticipants: number;
-
-  /**
-   * Minimum USD net deposit required to qualify for this tier
-   * @example 5000
-   */
-  minDeposit: number;
 }
 
 /**
@@ -696,7 +697,6 @@ export type CampaignLeaderboardState = {
         qualified: boolean;
       }[];
       totalParticipants: number;
-      minDeposit: number;
     };
   };
   lastFetched: number;
@@ -771,8 +771,14 @@ export interface OndoCampaignHowItWorks {
   tour?: OndoCampaignTourStepDto[];
 }
 
+export interface OndoCampaignTier {
+  name: string;
+  minNetDeposit: number;
+}
+
 export interface OndoHoldingDetails {
   howItWorks: OndoCampaignHowItWorks;
+  tiers?: OndoCampaignTier[];
 }
 
 export type CampaignDetails = OndoHoldingDetails;
@@ -1234,7 +1240,6 @@ export interface SeasonDto {
   tiers: SeasonTierDto[];
   activityTypes: SeasonActivityTypeDto[];
   waysToEarn: SeasonWayToEarnDto[];
-  shouldInstallNewVersion?: string | undefined;
 }
 
 export interface SeasonStatusBalanceDto {
@@ -1332,6 +1337,28 @@ export type SubscriptionSeasonReferralDetailState = {
   lastFetched?: number;
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionBenefitDto = {
+  id: number;
+  longTitle: string;
+  shortDescription: string;
+  longDescription: string;
+  thumbnail: string;
+  validFrom: string;
+  validTo: string;
+  url: string;
+  actionDate: string | null;
+  chain: string;
+  type: { id: number; name: string };
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionBenefitsState = {
+  benefits: SubscriptionBenefitDto[];
+  limit: number;
+  lastFetched: number;
+};
+
 // Serializable versions for state storage (Date objects converted to timestamps)
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonRewardDtoState = {
@@ -1373,7 +1400,6 @@ export type SeasonDtoState = {
   activityTypes: SeasonActivityTypeDto[];
   waysToEarn: SeasonWayToEarnDto[];
   lastFetched?: number;
-  shouldInstallNewVersion?: string | undefined;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -1765,6 +1791,9 @@ export type RewardsControllerState = {
   subscriptionReferralDetails: {
     [compositeId: string]: SubscriptionSeasonReferralDetailState;
   };
+  subscriptionBenefits: {
+    [subscriptionId: string]: SubscriptionBenefitsState;
+  };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
@@ -2118,14 +2147,6 @@ export interface SeasonMetadataDto {
    * Ways to earn for the season
    */
   waysToEarn: SeasonWayToEarnDto[];
-
-  /**
-   * Optional version requirements for mobile and extension
-   */
-  shouldInstallNewVersion?: {
-    mobile: string | undefined;
-    extension: string | undefined;
-  };
 }
 
 /**

@@ -3,6 +3,7 @@ import type {
   NavigationProp,
   NavigationState,
 } from '@react-navigation/native';
+import type { Position } from '@metamask/social-controllers';
 
 // ============================================================================
 // Import types from their source files
@@ -201,6 +202,9 @@ import type {
   SnapSettingsParams,
 } from '../../components/Views/Modals/Modals.types';
 
+// Rewards params
+import { BenefitFullViewRouteParams } from '../../components/UI/Rewards/Views/BenefitFullView.types.ts';
+
 // Webview params
 import type {
   WebviewParams,
@@ -335,6 +339,8 @@ export interface RootStackParamList extends ParamListBase {
   RewardsOnboarding2: undefined;
   RewardsOnboarding3: undefined;
   RewardsOnboarding4: undefined;
+  BenefitFullView: BenefitFullViewRouteParams;
+  BenefitsFullView: undefined;
 
   // Modal routes
   DeleteWalletModal: undefined;
@@ -547,6 +553,16 @@ export interface RootStackParamList extends ParamListBase {
   PredictUnavailable: undefined;
   PredictAddFundsSheet: undefined;
   PredictGTMModal: undefined;
+
+  // Social Leaderboard routes
+  TopTradersView: undefined;
+  TraderProfileView: { traderId: string; traderName: string };
+  TraderPositionView: {
+    traderId: string;
+    traderName: string;
+    tokenSymbol: string;
+    position?: Position;
+  };
 
   // Misc routes
   LockScreen: undefined;

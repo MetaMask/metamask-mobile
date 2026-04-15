@@ -18,12 +18,21 @@ import {
   PendingTag,
   QualifiedTag,
 } from '../components/Campaigns/CampaignStatsSummary';
-import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
+import {
+  formatTierDisplayName,
+  getTierMinNetDeposit,
+} from '../components/Campaigns/OndoLeaderboard.utils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { strings } from '../../../../../locales/i18n';
-import { selectReferralCode } from '../../../../reducers/rewards/selectors';
+import Routes from '../../../../constants/navigation/Routes';
+import {
+  selectReferralCode,
+  selectCampaignById,
+} from '../../../../reducers/rewards/selectors';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -42,6 +51,16 @@ const OndoLeaderboardView: React.FC = () => {
     useRoute<RouteProp<OndoLeaderboardRouteParams, 'OndoLeaderboard'>>();
   const { campaignId } = route.params;
   const referralCode = useSelector(selectReferralCode);
+  const selectCampaign = useMemo(
+    () => selectCampaignById(campaignId),
+    [campaignId],
+  );
+  const campaign = useSelector(selectCampaign);
+
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_leaderboard',
+    campaign_id: campaignId,
+  });
 
   const { status: participantStatus } =
     useGetCampaignParticipantStatus(campaignId);
@@ -54,7 +73,6 @@ const OndoLeaderboardView: React.FC = () => {
   const isQualified = position != null && position.qualified;
   const {
     leaderboard: leaderboardData,
-    tierNames,
     selectedTier,
     selectedTierData,
     setSelectedTier,
@@ -66,10 +84,17 @@ const OndoLeaderboardView: React.FC = () => {
     defaultTier: position?.projectedTier,
   });
 
+  const tierNames = useMemo(
+    () => campaign?.details?.tiers?.map((t) => t.name) ?? [],
+    [campaign],
+  );
+
   const pendingSheetPosition = useMemo(() => {
     if (!position || position.qualified) return null;
-    const tierMinDeposit =
-      leaderboardData?.tiers[position.projectedTier]?.minDeposit ?? null;
+    const tierMinDeposit = getTierMinNetDeposit(
+      campaign?.details?.tiers,
+      position.projectedTier,
+    );
     if (tierMinDeposit == null) return null;
     return {
       tier: position.projectedTier,
@@ -77,7 +102,7 @@ const OndoLeaderboardView: React.FC = () => {
       qualifiedDays: position.qualifiedDays,
       tierMinDeposit,
     };
-  }, [position, leaderboardData]);
+  }, [position, campaign]);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoLeaderboardView">
@@ -91,6 +116,14 @@ const OndoLeaderboardView: React.FC = () => {
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'ondo-leaderboard-back-button' }}
+          endButtonIconProps={getCampaignMechanicsButtonProps(
+            campaign != null,
+            () =>
+              navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
+                campaignId,
+              }),
+            'leaderboard-mechanics-button',
+          )}
           includesTopInset
         />
 
@@ -104,7 +137,7 @@ const OndoLeaderboardView: React.FC = () => {
               <Box flexDirection={BoxFlexDirection.Row}>
                 <StatCell
                   label="Rank"
-                  value={`${position.rank}`}
+                  value={String(position.rank).padStart(2, '0')}
                   isLoading={isPositionLoading}
                   suffix={isPending ? <PendingTag /> : undefined}
                 />
@@ -138,6 +171,7 @@ const OndoLeaderboardView: React.FC = () => {
               onRetry={refetchLeaderboard}
               currentUserReferralCode={referralCode}
               pendingSheetPosition={pendingSheetPosition}
+              campaignId={campaignId}
             />
           </Box>
         </ScrollView>

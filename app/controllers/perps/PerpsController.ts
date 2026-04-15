@@ -1034,14 +1034,6 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Build a cache key for per-provider market data.
-   * Format: "providerId:network" (e.g. 'hyperliquid:mainnet', 'myx:testnet')
-   *
-   * @param providerId - The provider identifier.
-   * @param isTestnet - Whether the provider is on testnet.
-   * @returns The cache key string.
-   */
-  /**
    * Resolve the provider ids that should participate in aggregated cache reads.
    *
    * Providers can still be registering when the first render happens, so we

@@ -56,6 +56,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         '{{current}} of {{target}} volume',
       'rewards.ondo_campaign_prize_pool.max_tier_subtext':
         '{{maxThreshold}}+ TVL — all milestones reached',
+      'rewards.ondo_campaign_prize_pool.max_badge': 'Max',
     };
     let result = t[key] ?? key;
     if (params) {
@@ -139,6 +140,23 @@ describe('OndoPrizePool', () => {
     const progressBar = getByTestId(ONDO_PRIZE_POOL_TEST_IDS.PROGRESS_BAR);
     const innerBar = progressBar.props.children;
     expect(innerBar.props.style).toEqual({ width: '100%' });
+  });
+
+  it('shows max badge when at max tier', () => {
+    const { getByTestId, getByText } = render(
+      <OndoPrizePool {...baseProps} totalUsdDeposited="7000000" />,
+    );
+
+    expect(getByTestId(ONDO_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeDefined();
+    expect(getByText('Max')).toBeDefined();
+  });
+
+  it('does not show max badge when not at max tier', () => {
+    const { queryByTestId } = render(
+      <OndoPrizePool {...baseProps} totalUsdDeposited="2000000" />,
+    );
+
+    expect(queryByTestId(ONDO_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeNull();
   });
 
   it('calculates correct progress for $2M deposits (between $1.5M and $3.5M)', () => {
