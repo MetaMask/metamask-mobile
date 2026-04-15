@@ -16,6 +16,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import MoneyProgressBar from '../MoneyProgressBar';
 import { MoneyOnboardingCardTestIds } from './MoneyOnboardingCard.testIds';
 
 interface MoneyOnboardingCardProps {
@@ -32,29 +33,6 @@ interface MoneyOnboardingCardProps {
    */
   totalSteps?: number;
 }
-
-const ProgressBar = ({
-  current,
-  total,
-}: {
-  current: number;
-  total: number;
-}) => {
-  const safeTotal = Math.max(1, total);
-  const percent = Math.min(100, Math.max(0, (current / safeTotal) * 100));
-
-  return (
-    <Box
-      twClassName="h-2 w-full rounded-full bg-success-muted overflow-hidden"
-      testID={MoneyOnboardingCardTestIds.PROGRESS_BAR}
-    >
-      <Box
-        twClassName="h-full bg-success-default"
-        style={{ width: `${percent}%` }}
-      />
-    </Box>
-  );
-};
 
 const MoneyOnboardingCard = ({
   onAddPress = () => undefined,
@@ -76,7 +54,11 @@ const MoneyOnboardingCard = ({
           total: totalSteps,
         })}
       </Text>
-      <ProgressBar current={currentStep} total={totalSteps} />
+      <MoneyProgressBar
+        current={currentStep}
+        total={totalSteps}
+        testID={MoneyOnboardingCardTestIds.PROGRESS_BAR}
+      />
     </Box>
 
     <Box

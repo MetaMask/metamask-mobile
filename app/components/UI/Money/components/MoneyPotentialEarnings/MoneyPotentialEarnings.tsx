@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import LinearGradient from 'react-native-linear-gradient';
+import { BigNumber } from 'bignumber.js';
 import { brandColor } from '@metamask/design-tokens';
 import {
   Box,
@@ -26,11 +27,12 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 
-/** 4% APY sustained for 5 years = 20% projected gain on current balance. */
-const PROJECTED_MULTIPLIER = 0.04 * 5;
+/** Number of years the projected earnings are simulated over. */
+const PROJECTION_YEARS = 5;
 const MAX_TOKENS = 5;
 const STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT', 'DAI']);
 const GRADIENT_COLORS = [brandColor.lime100, brandColor.lime200];
@@ -42,14 +44,6 @@ const styles = StyleSheet.create({
   gradient: { flex: 1 },
   rowPressable: { flex: 1 },
 });
-
-const formatUsd = (value: number) =>
-  new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
 
 const tokenFiatValue = (token: AssetType) => token.fiat?.balance ?? 0;
 
@@ -75,6 +69,12 @@ const sortTokens = (tokens: AssetType[]) => {
 
 interface MoneyPotentialEarningsProps {
   tokens: AssetType[];
+  /**
+   * APY expressed as a percentage (e.g. 3 for 3%) used together with
+   * {@link PROJECTION_YEARS} to compute the projected earnings displayed
+   * alongside each token and in the gradient headline.
+   */
+  apy: number;
   onTokenPress?: (token: AssetType) => void;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
@@ -115,17 +115,22 @@ const GradientAmountText = ({ value }: { value: string }) => {
 const TokenRow = ({
   token,
   hasSubsidizedFee,
+  projectedMultiplier,
   onPress,
 }: {
   token: AssetType;
   hasSubsidizedFee: boolean;
+  projectedMultiplier: number;
   onPress: () => void;
 }) => {
+  const formatFiat = useFiatFormatter();
   const networkBadgeSource = useMemo(
     () => (token.chainId ? NetworkBadgeSource(token.chainId as Hex) : null),
     [token.chainId],
   );
-  const projected = formatUsd(tokenFiatValue(token) * PROJECTED_MULTIPLIER);
+  const projected = formatFiat(
+    new BigNumber(tokenFiatValue(token) * projectedMultiplier),
+  );
   const balanceDisplay = token.balanceInSelectedCurrency;
 
   return (
@@ -208,10 +213,16 @@ const TokenRow = ({
 
 const MoneyPotentialEarnings = ({
   tokens,
+  apy,
   onTokenPress,
   onViewAllPress,
   onHeaderPress,
 }: MoneyPotentialEarningsProps) => {
+  const formatFiat = useFiatFormatter();
+  const projectedMultiplier = useMemo(
+    () => (apy / 100) * PROJECTION_YEARS,
+    [apy],
+  );
   const sortedTokens = useMemo(() => sortTokens(tokens ?? []), [tokens]);
   const visibleTokens = useMemo(
     () => sortedTokens.slice(0, MAX_TOKENS),
@@ -224,10 +235,10 @@ const MoneyPotentialEarnings = ({
   const projectedAmount = useMemo(
     () =>
       visibleTokens.reduce(
-        (sum, token) => sum + tokenFiatValue(token) * PROJECTED_MULTIPLIER,
+        (sum, token) => sum + tokenFiatValue(token) * projectedMultiplier,
         0,
       ),
-    [visibleTokens],
+    [visibleTokens, projectedMultiplier],
   );
 
   const handleTokenPress = useCallback(
@@ -247,7 +258,9 @@ const MoneyPotentialEarnings = ({
           onPress={onHeaderPress}
         />
 
-        <GradientAmountText value={`+${formatUsd(projectedAmount)}`} />
+        <GradientAmountText
+          value={`+${formatFiat(new BigNumber(projectedAmount))}`}
+        />
 
         <Text
           variant={TextVariant.BodyMd}
@@ -263,6 +276,7 @@ const MoneyPotentialEarnings = ({
           key={`${token.address}-${token.chainId}`}
           token={token}
           hasSubsidizedFee={STABLECOIN_SYMBOLS.has(token.symbol)}
+          projectedMultiplier={projectedMultiplier}
           onPress={handleTokenPress(token)}
         />
       ))}

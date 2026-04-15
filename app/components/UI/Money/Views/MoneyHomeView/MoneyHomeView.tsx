@@ -107,6 +107,7 @@ const MoneyHomeView = () => {
           <>
             <MoneyPotentialEarnings
               tokens={conversionTokens}
+              apy={MUSD_CONVERSION_APY}
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}

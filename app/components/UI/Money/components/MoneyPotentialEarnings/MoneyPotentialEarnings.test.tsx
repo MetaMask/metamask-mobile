@@ -27,6 +27,14 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 }));
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
+jest.mock('../../../SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
+  __esModule: true,
+  default: () => (amount: { toString: () => string }) =>
+    `$${Number(amount.toString()).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`,
+}));
 
 const makeToken = (overrides: Partial<AssetType>): AssetType =>
   ({
@@ -82,7 +90,9 @@ const MOCK_SOL = makeToken({
 
 describe('MoneyPotentialEarnings', () => {
   it('returns null when there are no tokens with balance', () => {
-    const { queryByTestId } = render(<MoneyPotentialEarnings tokens={[]} />);
+    const { queryByTestId } = render(
+      <MoneyPotentialEarnings apy={4} tokens={[]} />,
+    );
 
     expect(
       queryByTestId(MoneyPotentialEarningsTestIds.CONTAINER),
@@ -91,7 +101,7 @@ describe('MoneyPotentialEarnings', () => {
 
   it('renders the section title and description', () => {
     const { getByText } = render(
-      <MoneyPotentialEarnings tokens={[MOCK_USDC]} />,
+      <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} />,
     );
 
     expect(
@@ -105,7 +115,7 @@ describe('MoneyPotentialEarnings', () => {
   it('computes the aggregate projected amount from token fiat balances', () => {
     // USDC 5000 + USDT 4000 = 9000 * 0.2 = 1800
     const { getByTestId } = render(
-      <MoneyPotentialEarnings tokens={[MOCK_USDC, MOCK_USDT]} />,
+      <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC, MOCK_USDT]} />,
     );
 
     expect(getByTestId(MoneyPotentialEarningsTestIds.AMOUNT)).toHaveTextContent(
@@ -123,7 +133,7 @@ describe('MoneyPotentialEarnings', () => {
     });
 
     const { queryByText } = render(
-      <MoneyPotentialEarnings tokens={[MOCK_USDC, zeroBalanceToken]} />,
+      <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC, zeroBalanceToken]} />,
     );
 
     expect(queryByText('ZERO')).not.toBeOnTheScreen();
@@ -138,6 +148,7 @@ describe('MoneyPotentialEarnings', () => {
     });
     const { queryByText } = render(
       <MoneyPotentialEarnings
+        apy={4}
         tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
       />,
     );
@@ -147,7 +158,7 @@ describe('MoneyPotentialEarnings', () => {
 
   it('renders the View all button whenever the section has any tokens', () => {
     const { getByTestId } = render(
-      <MoneyPotentialEarnings tokens={[MOCK_USDC]} />,
+      <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} />,
     );
 
     expect(
@@ -159,6 +170,7 @@ describe('MoneyPotentialEarnings', () => {
     const onViewAll = jest.fn();
     const { getByTestId } = render(
       <MoneyPotentialEarnings
+        apy={4}
         tokens={[MOCK_USDC]}
         onViewAllPress={onViewAll}
       />,
@@ -172,6 +184,7 @@ describe('MoneyPotentialEarnings', () => {
     const onTokenPress = jest.fn();
     const { getByText } = render(
       <MoneyPotentialEarnings
+        apy={4}
         tokens={[MOCK_USDC]}
         onTokenPress={onTokenPress}
       />,
@@ -185,7 +198,11 @@ describe('MoneyPotentialEarnings', () => {
   it('calls onHeaderPress when the section header is tapped', () => {
     const onHeader = jest.fn();
     const { getByText } = render(
-      <MoneyPotentialEarnings tokens={[MOCK_USDC]} onHeaderPress={onHeader} />,
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC]}
+        onHeaderPress={onHeader}
+      />,
     );
 
     fireEvent.press(getByText(strings('money.potential_earnings.title')));
