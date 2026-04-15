@@ -116,6 +116,7 @@ run_step() {
   # fd 3 → real terminal so progress() calls in step functions are visible
   exec 3>&1
 
+  set +e
   if $VERBOSE; then
     "$func" 2>&1 | tee "$tmpfile"
     rc=${PIPESTATUS[0]}
@@ -123,6 +124,7 @@ run_step() {
     "$func" > "$tmpfile" 2>&1
     rc=$?
   fi
+  set -e
 
   exec 3>&-
 
@@ -173,9 +175,6 @@ if $SKIP_BUILD; then
   STEP_COUNT=$((STEP_COUNT - 1))
 fi
 if $SKIP_TEST; then
-  STEP_COUNT=$((STEP_COUNT - 1))
-fi
-if $SKIP_BUILD; then
   STEP_COUNT=$((STEP_COUNT - 1))
 fi
 
