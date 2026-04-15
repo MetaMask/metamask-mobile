@@ -1,16 +1,18 @@
 import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import {
-  launchMobileBrowser,
-  navigateToDapp,
-  switchToMobileBrowser,
-} from '../../framework/utils/MobileBrowser.js';
 import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
-import { DappServer, DappVariants, TestDapps, sleep } from '../../framework';
+import {
+  DappServer,
+  DappVariants,
+  PlaywrightGestures,
+  TestDapps,
+  asPlaywrightElement,
+  sleep,
+} from '../../framework';
 import {
   getDappUrlForBrowser,
   setupAdbReverse,
@@ -18,8 +20,12 @@ import {
   waitForDappServerReady,
   unlockIfLockScreenVisible,
 } from './utils';
+import {
+  launchMobileBrowser,
+  navigateToDapp,
+  switchToMobileBrowser,
+} from '../../flows/native-browser.flow';
 
-const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
 const DAPP_PORT = 8090;
 
 // Create the playground server using the shared framework
@@ -43,7 +49,7 @@ test.afterAll(async () => {
   await playgroundServer.stop();
 });
 
-test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
+test('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
   currentDeviceDetails,
   driver,
   performanceTracker,
@@ -66,8 +72,8 @@ test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Br
 
   await PlaywrightContextHelpers.withNativeAction(async () => {
     await loginToAppPlaywright();
-    await launchMobileBrowser(driver);
-    await navigateToDapp(driver, DAPP_URL, DAPP_NAME);
+    await launchMobileBrowser();
+    await navigateToDapp(DAPP_URL);
   });
 
   //
@@ -94,7 +100,7 @@ test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Br
   });
 
   // Switch back to browser
-  await switchToMobileBrowser(driver);
+  await switchToMobileBrowser();
   await sleep(500);
 
   //
@@ -104,6 +110,9 @@ test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Br
   await PlaywrightContextHelpers.withWebAction(async () => {
     await BrowserPlaygroundDapp.assertMultichainConnected(true);
     connectTimer.stop();
+    await PlaywrightGestures.scrollIntoView(
+      await asPlaywrightElement(BrowserPlaygroundDapp.getScopeCard('eip155:1')),
+    );
     await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
   }, DAPP_URL);
 
