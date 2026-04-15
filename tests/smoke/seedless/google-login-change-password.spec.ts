@@ -28,7 +28,7 @@ describe(SmokeSeedlessOnboarding('Google Login - Change Password'), () => {
     jest.setTimeout(300000);
   });
 
-  it('changes password after seedless onboarding and unlocks with new password', async () => {
+  it('changes password after seedless onboarding', async () => {
     const isIOS = device.getPlatform() === 'ios';
 
     const fixture = isIOS

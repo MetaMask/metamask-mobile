@@ -572,6 +572,9 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
               value={password}
               onSubmitEditing={reauthenticateWithPassword}
               testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
+              accessibilityLabel={
+                ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID
+              }
               keyboardAppearance={themeAppearance}
               autoComplete="password"
             />
@@ -648,6 +651,9 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                       'reset_password.new_password_placeholder',
                     )}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
+                    accessibilityLabel={
+                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID
+                    }
                     onSubmitEditing={jumpToConfirmPassword}
                     returnKeyType="next"
                     autoComplete="password-new"
@@ -692,6 +698,9 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                       'reset_password.confirm_password_placeholder',
                     )}
                     testID={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                    }
+                    accessibilityLabel={
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }
                     returnKeyType={'done'}

@@ -348,6 +348,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
                   }
                 >
                   <TextInput
+                    accessibilityLabel="create-password-first-input-field"
                     autoComplete="password"
                     autoFocus={false}
                     editable={true}
