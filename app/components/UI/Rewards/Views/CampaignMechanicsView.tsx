@@ -59,12 +59,16 @@ const CampaignMechanicsView: React.FC = () => {
           contentContainerStyle={tw.style('pb-4')}
         >
           {howItWorks && (
-            <Box
-              twClassName="px-4 py-4 border-b border-border-muted"
-              testID={CAMPAIGN_MECHANICS_TEST_IDS.HOW_IT_WORKS_SECTION}
-            >
-              <CampaignHowItWorks howItWorks={howItWorks} />
-            </Box>
+            <>
+              <Box
+                twClassName="px-4 py-4"
+                testID={CAMPAIGN_MECHANICS_TEST_IDS.HOW_IT_WORKS_SECTION}
+              >
+                <CampaignHowItWorks howItWorks={howItWorks} />
+              </Box>
+              {/* ── Divider ── */}
+              <Box twClassName="my-1 border-b border-border-muted" />
+            </>
           )}
 
           {isDocument(notes) && (

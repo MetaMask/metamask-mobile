@@ -84,6 +84,9 @@ export const CAMPAIGN_STATS_SUMMARY_TEST_IDS = {
   RANK: 'campaign-stats-summary-rank',
   TIER: 'campaign-stats-summary-tier',
   PENDING_TAG: 'campaign-stats-summary-pending-tag',
+  QUALIFIED_TAG: 'campaign-stats-summary-qualified-tag',
+  INELIGIBLE_TAG: 'campaign-stats-summary-ineligible-tag',
+  NOT_ELIGIBLE_BANNER: 'campaign-stats-summary-not-eligible-banner',
   STATS_ERROR: 'campaign-stats-summary-stats-error',
 } as const;
 
@@ -111,6 +114,18 @@ export const QualifiedTag: React.FC<{ testID?: string }> = ({ testID }) => (
   </Box>
 );
 
+export const IneligibleTag: React.FC<{ testID?: string }> = ({ testID }) => (
+  <Box twClassName="bg-warning-muted rounded-[6px] px-1.5" testID={testID}>
+    <Text
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.WarningDefault}
+    >
+      {strings('rewards.ondo_campaign_leaderboard.ineligible')}
+    </Text>
+  </Box>
+);
+
 interface DataSourceState {
   isLoading: boolean;
   hasError: boolean;
@@ -127,6 +142,8 @@ interface CampaignStatsSummaryProps {
   tierMinDeposit?: number | null;
   /** Called when the user taps the "Qualify for this rank" card arrow */
   onQualifyPress?: () => void;
+  /** User joined too late to ever accumulate enough qualifying days */
+  isIneligible?: boolean;
 }
 
 const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
@@ -137,6 +154,7 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
   showHeader = true,
   tierMinDeposit,
   onQualifyPress,
+  isIneligible = false,
 }) => {
   const leaderboardLoading = leaderboard.isLoading && !leaderboardPosition;
   const portfolioLoading = portfolio.isLoading && !portfolioSummary;
@@ -149,10 +167,12 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
   const isQualified =
     leaderboardPosition != null && leaderboardPosition.qualified;
 
-  const isNegativeReturn = (leaderboardPosition?.rateOfReturn ?? 0) < 0;
+  const isNegativeReturn = portfolioSummary
+    ? parseFloat(portfolioSummary.portfolioPnlPercent) < 0
+    : false;
 
-  const returnValue = leaderboardPosition
-    ? formatPercentChange(leaderboardPosition.rateOfReturn)
+  const returnValue = portfolioSummary
+    ? formatPercentChange(portfolioSummary.portfolioPnlPercent)
     : '-';
 
   const returnColor = isNegativeReturn
@@ -169,11 +189,15 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
     ? formatUsd(portfolioSummary.totalCurrentValue)
     : '-';
 
-  const rankValue = leaderboardPosition ? `${leaderboardPosition.rank}` : '-';
+  const rankValue =
+    isIneligible || !leaderboardPosition
+      ? '-'
+      : String(leaderboardPosition.rank).padStart(2, '0');
 
-  const tierValue = leaderboardPosition
-    ? formatTierDisplayName(leaderboardPosition.projectedTier)
-    : '-';
+  const tierValue =
+    isIneligible || !leaderboardPosition
+      ? '-'
+      : formatTierDisplayName(leaderboardPosition.projectedTier);
 
   return (
     <Box twClassName="gap-3" testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.CONTAINER}>
@@ -187,7 +211,7 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
         <StatCell
           label={strings('rewards.ondo_campaign_stats.label_return')}
           value={returnValue}
-          isLoading={leaderboardLoading}
+          isLoading={portfolioLoading}
           valueColor={returnColor}
           testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN}
         />
@@ -207,7 +231,11 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
           isLoading={leaderboardLoading}
           testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK}
           suffix={
-            isPending ? (
+            isIneligible ? (
+              <IneligibleTag
+                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG}
+              />
+            ) : isPending ? (
               <PendingTag
                 testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG}
               />
@@ -220,20 +248,41 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
           isLoading={leaderboardLoading}
           testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER}
           suffix={
-            isPending ? (
+            isIneligible ? (
+              <IneligibleTag
+                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG}
+              />
+            ) : isPending ? (
               <PendingTag
                 testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG}
               />
             ) : isQualified ? (
               <QualifiedTag
-                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG}
+                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.QUALIFIED_TAG}
               />
             ) : undefined
           }
         />
       </Box>
 
-      {isPending &&
+      {isIneligible && (
+        <Box
+          twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
+          testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER}
+        >
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {strings('rewards.ondo_campaign_stats.not_eligible_title')}
+          </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('rewards.ondo_campaign_stats.not_eligible_description', {
+              days: ONDO_GM_REQUIRED_QUALIFIED_DAYS,
+            })}
+          </Text>
+        </Box>
+      )}
+
+      {!isIneligible &&
+        isPending &&
         tierMinDeposit != null &&
         leaderboardPosition &&
         Math.max(
@@ -268,7 +317,7 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
                 {strings(
                   'rewards.ondo_campaign_leaderboard.qualify_for_rank_description',
                   {
-                    minDeposit: formatUsd(tierMinDeposit),
+                    minNetDeposit: formatUsd(tierMinDeposit),
                     daysRemaining: Math.max(
                       ONDO_GM_REQUIRED_QUALIFIED_DAYS -
                         leaderboardPosition.qualifiedDays,

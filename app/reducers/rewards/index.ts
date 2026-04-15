@@ -7,11 +7,13 @@ import {
   RewardDto,
   PointsEventDto,
   SeasonActivityTypeDto,
+  SubscriptionBenefitDto,
   SeasonWayToEarnDto,
   CampaignDto,
   CampaignParticipantStatusDto,
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
+  SubscriptionBenefitsState,
   OndoGmPortfolioDto,
   OndoGmActivityEntryDto,
   OndoGmCampaignDepositsDto,
@@ -69,7 +71,6 @@ export interface RewardsState {
   seasonTiers: SeasonTierDto[];
   seasonActivityTypes: SeasonActivityTypeDto[];
   seasonWaysToEarn: SeasonWayToEarnDto[];
-  seasonShouldInstallNewVersion: string | null;
 
   // Subscription Referral state
   referralDetailsLoading: boolean;
@@ -120,6 +121,11 @@ export interface RewardsState {
 
   // Bulk link state (for linking all account groups across all wallets)
   bulkLink: BulkLinkState;
+
+  // Benefits state
+  benefits: SubscriptionBenefitDto[];
+  benefitsLoading: boolean;
+  benefitsError: boolean;
 
   // Campaigns state
   campaigns: CampaignDto[];
@@ -187,9 +193,6 @@ export const initialState: RewardsState = {
   balanceRefereePortion: 0,
   balanceUpdatedAt: null,
 
-  // Should install new version state
-  seasonShouldInstallNewVersion: null,
-
   onboardingActiveStep: OnboardingStep.INTRO,
   onboardingReferralCode: null,
   candidateSubscriptionId: 'pending',
@@ -219,6 +222,11 @@ export const initialState: RewardsState = {
     wasInterrupted: false,
     initialSubscriptionId: null,
   },
+
+  // Benefits initial state
+  benefits: [],
+  benefitsLoading: false,
+  benefitsError: false,
 
   // Campaigns initial state
   campaigns: [],
@@ -291,8 +299,6 @@ const rewardsSlice = createSlice({
       state.seasonTiers = action.payload?.season.tiers || [];
       state.seasonActivityTypes = action.payload?.season.activityTypes || [];
       state.seasonWaysToEarn = action.payload?.season.waysToEarn || [];
-      state.seasonShouldInstallNewVersion =
-        action.payload?.season?.shouldInstallNewVersion || null;
 
       // Season Balance state
       state.balanceTotal =
@@ -630,6 +636,18 @@ const rewardsSlice = createSlice({
       }
     },
 
+    setBenefits: (state, action: PayloadAction<SubscriptionBenefitsState>) => {
+      state.benefits = action.payload.benefits;
+    },
+
+    setBenefitsLoading: (state, action: PayloadAction<boolean>) => {
+      state.benefitsLoading = action.payload;
+    },
+
+    setBenefitsError: (state, action: PayloadAction<boolean>) => {
+      state.benefitsError = action.payload;
+    },
+
     setOndoCampaignActivity: (
       state,
       action: PayloadAction<{
@@ -748,8 +766,6 @@ const rewardsSlice = createSlice({
               seasonTiers: action.payload.rewards.seasonTiers,
               seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
               seasonWaysToEarn: action.payload.rewards.seasonWaysToEarn,
-              seasonShouldInstallNewVersion:
-                action.payload.rewards.seasonShouldInstallNewVersion,
               referralCode: action.payload.rewards.referralCode,
               refereeCount: action.payload.rewards.refereeCount,
               currentTier: action.payload.rewards.currentTier,
@@ -825,6 +841,10 @@ export const {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
+  // Benefits actions
+  setBenefits,
+  setBenefitsError,
+  setBenefitsLoading,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,

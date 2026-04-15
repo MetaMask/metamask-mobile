@@ -146,6 +146,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "pooled_staking": {
           "isEligible": false,
         },
+        "tron_staking": null,
       },
       "GasFeeController": {
         "estimatedGasFeeTimeBounds": {},
@@ -978,6 +979,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "pooled_staking": {
           "isEligible": false,
         },
+        "tron_staking": null,
       },
       "GasFeeController": {
         "estimatedGasFeeTimeBounds": {},
