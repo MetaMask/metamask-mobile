@@ -1,7 +1,7 @@
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MessengerClientInitRequest } from '../../types';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import {
   TransactionPayController,
   TransactionPayControllerMessenger,
@@ -29,7 +29,7 @@ function buildInitRequestMock(
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     initMessenger:
       initMessenger as unknown as TransactionPayControllerInitMessenger,
     controllerMessenger:

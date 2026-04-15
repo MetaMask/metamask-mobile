@@ -162,7 +162,7 @@ describe('PredictGameDetailsTabs', () => {
       expect(picks.props.accessibilityHint).toBe('marketId:test-market-id');
     });
 
-    it('does not render outcomes placeholder when positions exist', () => {
+    it('does not render outcomes content when positions exist', () => {
       const market = createMockMarket();
 
       const { queryByTestId } = render(
@@ -178,18 +178,16 @@ describe('PredictGameDetailsTabs', () => {
       );
 
       expect(
-        queryByTestId(
-          PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER,
-        ),
+        queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT),
       ).not.toBeOnTheScreen();
     });
   });
 
   describe('enabled, no positions (no tab bar)', () => {
-    it('renders outcomes placeholder directly', () => {
+    it('renders outcome group chips directly', () => {
       const market = createMockMarket();
 
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <PredictGameDetailsTabsContent
           market={market}
           activeTab={0}
@@ -202,9 +200,8 @@ describe('PredictGameDetailsTabs', () => {
       );
 
       expect(
-        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER),
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT),
       ).toBeOnTheScreen();
-      expect(getByText('Outcomes coming soon')).toBeOnTheScreen();
     });
 
     it('does not render PredictPicks', () => {
@@ -276,10 +273,10 @@ describe('PredictGameDetailsTabs', () => {
       expect(picks.props.accessibilityHint).toBe('marketId:test-market-id');
     });
 
-    it('renders outcomes placeholder when active tab key is outcomes', () => {
+    it('renders outcome group chips when active tab key is outcomes', () => {
       const market = createMockMarket();
 
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <PredictGameDetailsTabsContent
           market={market}
           activeTab={1}
@@ -292,9 +289,8 @@ describe('PredictGameDetailsTabs', () => {
       );
 
       expect(
-        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER),
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT),
       ).toBeOnTheScreen();
-      expect(getByText('Outcomes coming soon')).toBeOnTheScreen();
     });
 
     it('renders nothing when activeTab is out of bounds', () => {
@@ -316,9 +312,7 @@ describe('PredictGameDetailsTabs', () => {
         queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.TAB_CONTENT),
       ).not.toBeOnTheScreen();
       expect(
-        queryByTestId(
-          PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER,
-        ),
+        queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT),
       ).not.toBeOnTheScreen();
     });
 

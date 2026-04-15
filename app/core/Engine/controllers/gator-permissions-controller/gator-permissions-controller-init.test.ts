@@ -2,7 +2,7 @@ import {
   GatorPermissionsController,
   type GatorPermissionsControllerState,
 } from '@metamask/gator-permissions-controller';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import type { MessengerClientInitRequest } from '../../types';
 import {
   getGatorPermissionsControllerMessenger,
@@ -22,7 +22,7 @@ function buildInitRequestMock(): jest.Mocked<
   });
 
   return {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     controllerMessenger: getGatorPermissionsControllerMessenger(
       baseControllerMessenger,
     ),

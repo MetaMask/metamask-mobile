@@ -1,34 +1,20 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
-import {
-  getEarnControllerMessenger,
-  EarnControllerInitMessenger,
-  getEarnControllerInitMessenger,
-} from '../messengers/earn-controller-messenger';
-import { MessengerClientInitRequest } from '../types';
+import { getEarnControllerMessenger } from '../messengers/earn-controller-messenger';
 import { earnControllerInit } from './earn-controller-init';
-import {
-  EarnController,
-  type EarnControllerMessenger,
-} from '@metamask/earn-controller';
+import { EarnController } from '@metamask/earn-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/earn-controller');
 
-function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<
-    EarnControllerMessenger,
-    EarnControllerInitMessenger
-  >
-> {
+function getInitRequestMock() {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getEarnControllerMessenger(baseMessenger),
-    initMessenger: getEarnControllerInitMessenger(baseMessenger),
   };
 
   // @ts-expect-error: Partial mock.
@@ -41,11 +27,6 @@ function getInitRequestMock(): jest.Mocked<
 
     throw new Error(`Controller "${name}" not found.`);
   });
-
-  // @ts-expect-error: Partial mock.
-  baseMessenger.registerActionHandler('NetworkController:getState', () => ({
-    selectedNetworkClientId: 'mainnet',
-  }));
 
   return requestMock;
 }
@@ -63,7 +44,11 @@ describe('EarnControllerInit', () => {
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       addTransactionFn: expect.any(Function),
-      selectedNetworkClientId: 'mainnet',
     });
+  });
+
+  it('calls init() on the controller after construction', () => {
+    const { controller } = earnControllerInit(getInitRequestMock());
+    expect(controller.init).toHaveBeenCalledTimes(1);
   });
 });

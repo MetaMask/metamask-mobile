@@ -638,6 +638,8 @@
   "CardController": {
     "selectedCountry": null,
     "activeProviderId": "baanx",
+    "cardHomeData": null,
+    "cardHomeDataStatus": "idle",
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {}
@@ -699,7 +701,8 @@
         }
       ],
       "isEligible": false
-    }
+    },
+    "tron_staking": null
   },
   "DeFiPositionsController": {
     "allDeFiPositions": {},
@@ -719,11 +722,13 @@
     "ondoCampaignLeaderboardPositions": {},
     "ondoCampaignPortfolio": {},
     "ondoCampaignActivity": {},
+    "ondoCampaignDeposits": {},
     "ondoCampaignLeaderboard": {},
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
+    "subscriptionBenefits": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null
