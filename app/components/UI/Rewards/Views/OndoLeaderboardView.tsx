@@ -4,7 +4,6 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
-  IconName,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -32,6 +31,7 @@ import {
   selectReferralCode,
   selectCampaignById,
 } from '../../../../reducers/rewards/selectors';
+import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -110,20 +110,14 @@ const OndoLeaderboardView: React.FC = () => {
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'ondo-leaderboard-back-button' }}
-          endButtonIconProps={
-            campaign
-              ? [
-                  {
-                    iconName: IconName.Question,
-                    onPress: () =>
-                      navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
-                        campaignId,
-                      }),
-                    testID: 'leaderboard-mechanics-button',
-                  },
-                ]
-              : undefined
-          }
+          endButtonIconProps={getCampaignMechanicsButtonProps(
+            campaign != null,
+            () =>
+              navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
+                campaignId,
+              }),
+            'leaderboard-mechanics-button',
+          )}
           includesTopInset
         />
 

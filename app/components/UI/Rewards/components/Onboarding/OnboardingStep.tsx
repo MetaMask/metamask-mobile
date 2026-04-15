@@ -141,7 +141,6 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
         </Box>
 
         <Box twClassName="w-full flex-col gap-4 items-center">
-          {renderReferralSection?.()}
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -154,6 +153,8 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
           >
             {nextButtonText || strings('rewards.onboarding.step_confirm')}
           </Button>
+
+          {renderReferralSection?.()}
 
           {onSkip && (
             <Button

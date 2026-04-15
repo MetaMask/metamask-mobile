@@ -778,6 +778,24 @@ const HomeTabs = () => {
       return null;
     }
 
+    // Hide tab bar when on rewards sub-pages (only show on home + onboarding)
+    if (currentRoute.name === Routes.REWARDS_VIEW) {
+      const rewardsHomeState = currentRoute?.state;
+      const rewardsViewRoute = rewardsHomeState?.routes?.find(
+        (r) => r.name === Routes.REWARDS_VIEW,
+      );
+      const rewardsNavState = rewardsViewRoute?.state;
+      const activeRewardsRouteName =
+        rewardsNavState?.routes?.[rewardsNavState?.index]?.name;
+      const isRewardsHomePage =
+        !activeRewardsRouteName ||
+        activeRewardsRouteName === Routes.REWARDS_DASHBOARD ||
+        activeRewardsRouteName === Routes.REWARDS_ONBOARDING_FLOW;
+      if (!isRewardsHomePage) {
+        return null;
+      }
+    }
+
     if (isKeyboardHidden) {
       return (
         <TabBar

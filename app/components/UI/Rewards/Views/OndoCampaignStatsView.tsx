@@ -16,6 +16,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
@@ -197,20 +198,14 @@ const OndoCampaignStatsView: React.FC = () => {
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'ondo-campaign-stats-back-button' }}
-          endButtonIconProps={
-            campaign
-              ? [
-                  {
-                    iconName: IconName.Question,
-                    onPress: () =>
-                      navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
-                        campaignId,
-                      }),
-                    testID: 'campaign-stats-mechanics-button',
-                  },
-                ]
-              : undefined
-          }
+          endButtonIconProps={getCampaignMechanicsButtonProps(
+            campaign != null,
+            () =>
+              navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
+                campaignId,
+              }),
+            'campaign-stats-mechanics-button',
+          )}
           includesTopInset
         />
 

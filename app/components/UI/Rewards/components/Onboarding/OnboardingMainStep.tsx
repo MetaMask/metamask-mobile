@@ -13,7 +13,6 @@ import {
   Icon,
   IconName,
   IconColor,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { setCandidateSubscriptionId } from '../../../../../actions/rewards';
@@ -338,9 +337,6 @@ const OnboardingMainStep: React.FC = () => {
       {showReferralInput && (
         <Box twClassName="w-full gap-2">
           <Box twClassName="gap-1">
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {strings('rewards.onboarding.referral_label')}
-            </Text>
             <TextField
               placeholder={strings('rewards.onboarding.referral_placeholder')}
               value={referralCode}

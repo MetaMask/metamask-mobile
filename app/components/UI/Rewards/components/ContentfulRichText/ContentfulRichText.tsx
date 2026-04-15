@@ -117,6 +117,9 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
     return null;
   }
 
+  const sanitizeText = (s: string): string =>
+    s.replace(UNWANTED_CHARS_RE(), '').replace(/\s{2,}/g, ' ');
+
   const renderMarkedText = (
     text: string,
     marks: RichTextMark[],
@@ -133,7 +136,7 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
         twClassName={`${bodyClassName}${isItalic ? ' italic' : ''}${isUnderline ? ' underline' : ''}`}
         fontWeight={isBold ? FontWeight.Bold : undefined}
       >
-        {text}
+        {sanitizeText(text)}
       </Text>
     );
   };
@@ -147,13 +150,13 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
 
       if (isTextNode(child)) {
         if (child.marks.length === 0) {
-          return <Fragment key={childKey}>{child.value}</Fragment>;
+          return <Fragment key={childKey}>{sanitizeText(child.value)}</Fragment>;
         }
         return renderMarkedText(child.value, child.marks, childKey);
       }
 
       if (child.nodeType === 'text' && typeof child.value === 'string') {
-        return <Fragment key={childKey}>{child.value}</Fragment>;
+        return <Fragment key={childKey}>{sanitizeText(child.value)}</Fragment>;
       }
 
       if (child.nodeType === INLINE_TYPES.HYPERLINK) {
