@@ -185,6 +185,7 @@ app/core/AgenticService/             @MetaMask/perps
 app/components/Views/SocialLeaderboard/                              @MetaMask/social-ai
 app/components/UI/MarketInsights/                                    @MetaMask/social-ai
 app/components/Views/Homepage/Sections/WhatsHappening/               @MetaMask/social-ai
+app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
 app/core/Engine/controllers/social-controller-init*                  @MetaMask/social-ai
 app/core/Engine/controllers/social-service-init*                     @MetaMask/social-ai
 app/core/Engine/messengers/social-controller-messenger*              @MetaMask/social-ai
