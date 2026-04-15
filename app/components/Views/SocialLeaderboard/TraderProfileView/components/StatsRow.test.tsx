@@ -115,9 +115,9 @@ describe('StatsRow', () => {
     expect(screen.getByText('30D P&L')).toBeOnTheScreen();
   });
 
-  it('renders avg hold label', () => {
+  it('renders hold time label', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
 
-    expect(screen.getByText('avg. hold')).toBeOnTheScreen();
+    expect(screen.getByText('hold time')).toBeOnTheScreen();
   });
 });
