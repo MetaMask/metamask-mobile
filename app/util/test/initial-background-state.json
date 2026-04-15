@@ -49,9 +49,7 @@
     "allIgnoredTokens": {},
     "allDetectedTokens": {}
   },
-  "TokenListController": {
-    "tokensChainsCache": {}
-  },
+  "TokenListController": {},
   "CurrencyRateController": {
     "currentCurrency": "usd",
     "currencyRates": {

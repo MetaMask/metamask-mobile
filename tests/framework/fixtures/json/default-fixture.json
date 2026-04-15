@@ -558,41 +558,7 @@
         "TokenBalancesController": {
           "tokenBalances": {}
         },
-        "TokenListController": {
-          "tokensChainsCache": {
-            "0x1": {
-              "data": [
-                {
-                  "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f": {
-                    "address": "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f",
-                    "aggregators": [
-                      "Aave",
-                      "Bancor",
-                      "CMC",
-                      "Crypto.com",
-                      "CoinGecko",
-                      "1inch",
-                      "PMM",
-                      "Synthetix",
-                      "Zerion",
-                      "Lifi"
-                    ],
-                    "decimals": 18,
-                    "fees": {
-                      "0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f": 0,
-                      "0xda4ef8520b1a57d7d63f1e249606d1a459698876": 0
-                    },
-                    "iconUrl": "https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png",
-                    "name": "Synthetix Network Token",
-                    "occurrences": 10,
-                    "symbol": "SNX",
-                    "type": "erc20"
-                  }
-                }
-              ]
-            }
-          }
-        },
+        "TokenListController": {},
         "TokenRatesController": {
           "marketData": {}
         },
