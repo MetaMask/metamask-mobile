@@ -128,7 +128,7 @@ describe('TraderPositionView', () => {
 
     expect(mockGetAssetImageUrl).toHaveBeenCalledWith(
       '0x1234567890123456789012345678901234567890',
-      '0x2105',
+      'eip155:8453',
     );
   });
 
