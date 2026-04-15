@@ -17,6 +17,8 @@ on:
 permissions:
   contents: read
   id-token: write
+  pull-requests: write
+  actions: read
 
 jobs:
   # CI pipeline sanity check — runs a single minimal navigation test.
@@ -213,7 +215,7 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeMultiChainAPI')
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -221,7 +223,7 @@ jobs:
       platform: android
       test_suite_tag: 'SmokeMultiChainAPI'
       split_number: ${{ matrix.split }}
-      total_splits: 1
+      total_splits: 2
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
@@ -341,3 +343,15 @@ jobs:
           name: test-e2e-android-json-report
           path: test/test-results/test-runs-android.json
           retention-days: 7
+
+      - name: Post slow E2E shard warning on PR
+        if: github.event_name == 'pull_request' && github.event.pull_request.number != ''
+        continue-on-error: true
+        env:
+          PLATFORM: android
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          THRESHOLD_MINUTES: '15'
+        run: node .github/scripts/e2e-post-slow-shard-warning.mjs
