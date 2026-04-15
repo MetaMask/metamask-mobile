@@ -2397,7 +2397,6 @@
       "view": "View",
       "yes_buy": "Yes, buy",
       "yes_sell": "Yes, sell",
-      "buy": "Buy {{outcome}}",
       "confirm": "Confirm",
       "cashout_failed": "Failed to cash out",
       "predict_balance_first": "Your Predict balance will be used first"

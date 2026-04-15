@@ -4,15 +4,12 @@ import PredictBuyActionButton from './PredictBuyActionButton';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 
 jest.mock('../../../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: Record<string, string>) => {
+  strings: jest.fn((key: string) => {
     if (key === 'predict.order.placing_prediction') {
       return 'Placing prediction';
     }
     if (key === 'predict.order.confirm') {
       return 'Confirm';
-    }
-    if (key === 'predict.order.buy' && params?.outcome) {
-      return `Buy ${params.outcome}`;
     }
     return key;
   }),
