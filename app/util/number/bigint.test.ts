@@ -612,6 +612,11 @@ describe('Number utils :: renderFiat', () => {
     expect(renderFiat(0.1, 'usd')).toEqual('$0.1');
     expect(renderFiat(0.0010000001, 'usd')).toEqual('$0.001');
   });
+
+  it('places the minus before the currency symbol for negative amounts', () => {
+    expect(renderFiat(-5, 'usd')).toEqual('-$5');
+    expect(renderFiat(-0.5, 'usd')).toEqual('-$0.5');
+  });
 });
 
 describe('toHexadecimal', () => {

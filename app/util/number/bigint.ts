@@ -788,10 +788,13 @@ export function renderFiat(
   decimalsToShow: number = 5,
 ) {
   const base = Math.pow(10, decimalsToShow);
-  let fiatFixed = Math.round(Number(value) * base) / base;
+  let fiatFixed = parseFloat(String(Math.round(Number(value) * base) / base));
   fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
   if (currencySymbols[currencyCode]) {
-    return `${currencySymbols[currencyCode]}${fiatFixed}`;
+    const isNegative = fiatFixed < 0;
+    const absValue = Math.abs(fiatFixed);
+    const sign = isNegative ? '-' : '';
+    return `${sign}${currencySymbols[currencyCode]}${absValue}`;
   }
   return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }
