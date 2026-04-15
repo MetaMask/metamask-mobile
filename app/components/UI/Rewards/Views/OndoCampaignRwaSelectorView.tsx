@@ -58,6 +58,9 @@ import { strings } from '../../../../../locales/i18n';
 import OndoAfterHoursSheet from '../components/Campaigns/OndoAfterHoursSheet';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
 // USDY (Ondo USD Yield) on Ethereum mainnet — used to preset the source token
 // for open_position mode. This is the only network where USDY is supported in
@@ -65,9 +68,6 @@ import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesContr
 const USDY_CAIP19 =
   'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c' as const;
 const USDY_DECIMALS = 18;
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -96,6 +96,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<
       RouteProp<OndoCampaignRwaSelectorRouteParams, 'OndoCampaignRwaSelector'>
