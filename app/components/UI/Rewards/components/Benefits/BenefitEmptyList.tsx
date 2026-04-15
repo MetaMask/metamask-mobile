@@ -1,4 +1,11 @@
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import React, { useMemo } from 'react';
 import EmptyStateIconLight from 'images/benefits/empty-state-icon-light.svg';
 import EmptyStateIconDark from 'images/benefits/empty-state-icon-dark.svg';
@@ -31,11 +38,16 @@ const BenefitEmptyList = () => {
   }, [themeAppearance]);
 
   return (
-    <Box twClassName="flex-1 gap-3 items-center justify-center">
+    <Box
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      twClassName="py-6 gap-3"
+    >
       {displayIcon}
       <Text
         variant={TextVariant.BodyMd}
-        twClassName="text-alternative w-[220px] text-center"
+        color={TextColor.TextAlternative}
+        twClassName="text-center"
       >
         {strings('rewards.benefits.empty-list')}
       </Text>

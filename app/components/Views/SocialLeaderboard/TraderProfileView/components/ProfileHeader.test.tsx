@@ -67,4 +67,30 @@ describe('ProfileHeader', () => {
     );
     expect(screen.getByText('0 followers')).toBeOnTheScreen();
   });
+
+  it('renders the fallback letter when imageUrl is undefined', () => {
+    const profileWithoutImage: TraderProfile = {
+      ...baseProfile,
+      imageUrl: undefined,
+    };
+
+    renderWithProvider(
+      <ProfileHeader profile={profileWithoutImage} followerCount={45} />,
+    );
+
+    expect(screen.getByText('D')).toBeOnTheScreen();
+  });
+
+  it('renders the fallback letter when imageUrl is empty', () => {
+    const profileWithoutImage: TraderProfile = {
+      ...baseProfile,
+      imageUrl: '',
+    };
+
+    renderWithProvider(
+      <ProfileHeader profile={profileWithoutImage} followerCount={45} />,
+    );
+
+    expect(screen.getByText('D')).toBeOnTheScreen();
+  });
 });
