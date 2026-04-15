@@ -53,6 +53,20 @@ const getPredictConfirmationScreenOptions = ({
   };
 };
 
+const slideFromRightInterpolator: StackNavigationOptions['cardStyleInterpolator'] =
+  ({ current }) => ({
+    cardStyle: {
+      transform: [
+        {
+          translateX: current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [Dimensions.get('window').width, 0],
+          }),
+        },
+      ],
+    },
+  });
+
 const Stack = createStackNavigator<PredictNavigationParamList>();
 const ModalStack = createStackNavigator<PredictNavigationParamList>();
 
@@ -151,13 +165,19 @@ const PredictScreenStack = () => {
         <Stack.Screen
           name={Routes.PREDICT.MODALS.BUY_PREVIEW}
           component={BuyPreviewComponent}
-          options={{ headerShown: false }}
+          options={{
+            headerShown: false,
+            cardStyleInterpolator: slideFromRightInterpolator,
+          }}
         />
 
         <Stack.Screen
           name={Routes.PREDICT.MODALS.SELL_PREVIEW}
           component={PredictSellPreview}
-          options={{ headerShown: false }}
+          options={{
+            headerShown: false,
+            cardStyleInterpolator: slideFromRightInterpolator,
+          }}
         />
 
         <Stack.Screen
@@ -190,18 +210,7 @@ const PredictScreenStack = () => {
           component={PredictMarketDetails}
           options={{
             headerShown: false,
-            cardStyleInterpolator: ({ current }) => ({
-              cardStyle: {
-                transform: [
-                  {
-                    translateX: current.progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [Dimensions.get('window').width, 0],
-                    }),
-                  },
-                ],
-              },
-            }),
+            cardStyleInterpolator: slideFromRightInterpolator,
           }}
         />
       </Stack.Navigator>

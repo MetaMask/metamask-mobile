@@ -9,9 +9,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'column',
       flex: 1,
     },
-    containerSheet: {
-      flexDirection: 'column',
-    },
     cashOutContainer: {
       flexDirection: 'column',
       width: '100%',

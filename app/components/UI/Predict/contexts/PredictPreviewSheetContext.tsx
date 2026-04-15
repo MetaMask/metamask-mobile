@@ -191,9 +191,10 @@ export const PredictPreviewSheetProvider: React.FC<
     }
   }, [sellParams, sellNonce]);
 
-  const BuyComponent = payWithAnyTokenEnabled
-    ? PredictBuyWithAnyToken
-    : PredictBuyPreview;
+  const BuyComponent = useMemo(
+    () => (payWithAnyTokenEnabled ? PredictBuyWithAnyToken : PredictBuyPreview),
+    [payWithAnyTokenEnabled],
+  );
 
   const contextValue = React.useMemo(
     () => ({ openBuySheet, openSellSheet }),
@@ -217,7 +218,9 @@ export const PredictPreviewSheetProvider: React.FC<
           onDismiss={() => setBuyParams(null)}
           testID={PredictMarketDetailsSelectorsIDs.BUY_PREVIEW_SHEET}
         >
-          {(closeSheet) => <BuyComponent {...buyParams} onClose={closeSheet} />}
+          {(closeSheet) => (
+            <BuyComponent mode="sheet" {...buyParams} onClose={closeSheet} />
+          )}
         </PredictPreviewSheet>
       )}
       {bottomSheetEnabled && sellParams && (
@@ -229,7 +232,11 @@ export const PredictPreviewSheetProvider: React.FC<
           testID={PredictMarketDetailsSelectorsIDs.SELL_PREVIEW_SHEET}
         >
           {(closeSheet) => (
-            <PredictSellPreview {...sellParams} onClose={closeSheet} />
+            <PredictSellPreview
+              mode="sheet"
+              {...sellParams}
+              onClose={closeSheet}
+            />
           )}
         </PredictPreviewSheet>
       )}

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -43,10 +42,15 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../components/PredictPreviewSheet/PredictPreviewSheet', () => {
-  const ReactMock = require('react');
+  const { forwardRef, useImperativeHandle } = jest.requireActual('react');
+  const {
+    View: RNView,
+    Text: RNText,
+    TouchableOpacity: RNTouchableOpacity,
+  } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ReactMock.forwardRef(
+    default: forwardRef(
       (
         _props: {
           testID?: string;
@@ -60,13 +64,8 @@ jest.mock('../components/PredictPreviewSheet/PredictPreviewSheet', () => {
         },
         _ref: unknown,
       ) => {
-        const {
-          View: RNView,
-          Text: RNText,
-          TouchableOpacity: RNTouchableOpacity,
-        } = require('react-native');
         const closeSheet = () => _props.onDismiss?.();
-        ReactMock.useImperativeHandle(_ref, () => ({
+        useImperativeHandle(_ref, () => ({
           onOpenBottomSheet: jest.fn(),
         }));
         return (
@@ -93,7 +92,7 @@ jest.mock('../components/PredictPreviewSheet/PredictPreviewSheet', () => {
 });
 
 jest.mock('../views/PredictBuyPreview/PredictBuyPreview', () => {
-  const { View: RNView } = require('react-native');
+  const { View: RNView } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: (props: Record<string, unknown>) => (
@@ -103,7 +102,7 @@ jest.mock('../views/PredictBuyPreview/PredictBuyPreview', () => {
 });
 
 jest.mock('../views/PredictBuyWithAnyToken/PredictBuyWithAnyToken', () => {
-  const { View: RNView } = require('react-native');
+  const { View: RNView } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: (props: Record<string, unknown>) => (
@@ -113,7 +112,7 @@ jest.mock('../views/PredictBuyWithAnyToken/PredictBuyWithAnyToken', () => {
 });
 
 jest.mock('../views/PredictSellPreview/PredictSellPreview', () => {
-  const { View: RNView } = require('react-native');
+  const { View: RNView } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: (props: Record<string, unknown>) => (

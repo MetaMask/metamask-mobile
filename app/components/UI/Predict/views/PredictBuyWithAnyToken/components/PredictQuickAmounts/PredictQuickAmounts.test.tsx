@@ -81,5 +81,8 @@ describe('PredictQuickAmounts', () => {
 
     expect(screen.getByText('$20')).toBeOnTheScreen();
     expect(screen.getByText('$250')).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByText('$20'));
+    expect(mockOnSelectAmount).not.toHaveBeenCalled();
   });
 });

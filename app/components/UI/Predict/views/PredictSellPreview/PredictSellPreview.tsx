@@ -38,7 +38,7 @@ import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { Side } from '../../types';
 import {
   PredictNavigationParamList,
-  PredictSellPreviewContentProps,
+  PredictSellPreviewProps,
 } from '../../types/navigation';
 import {
   formatCents,
@@ -52,19 +52,18 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import styleSheet from './PredictSellPreview.styles';
 import { PREDICT_SELL_PREVIEW_TEST_IDS } from './PredictSellPreview.testIds';
 
-const PredictSellPreview = (
-  contentProps: Partial<PredictSellPreviewContentProps> = {},
-) => {
+const PredictSellPreview = (props: PredictSellPreviewProps) => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
   const { goBack, dispatch } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
 
-  const isSheetMode = !!contentProps.onClose;
+  const isSheetMode = props.mode === 'sheet';
   const { market, position, outcome, entryPoint } = isSheetMode
-    ? (contentProps as PredictSellPreviewContentProps)
+    ? props
     : route.params;
+  const onClose = isSheetMode ? props.onClose : undefined;
 
   const { icon, title, initialValue, size } = position;
 
@@ -169,7 +168,6 @@ const PredictSellPreview = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onClose = contentProps.onClose;
   useEffect(() => {
     if (result?.success) {
       if (isSheetMode) {
@@ -277,7 +275,7 @@ const PredictSellPreview = (
       )}
       <View
         testID={PredictCashOutSelectorsIDs.CONTAINER}
-        style={isSheetMode ? styles.containerSheet : styles.container}
+        style={isSheetMode ? tw.style('flex-col') : styles.container}
       >
         {!isSheetMode && (
           <View style={styles.cashOutContainer}>

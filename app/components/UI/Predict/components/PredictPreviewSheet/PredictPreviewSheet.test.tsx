@@ -154,12 +154,4 @@ describe('PredictPreviewSheet', () => {
       expect(screen.getByText('Default Title')).toBeOnTheScreen();
     });
   });
-
-  it('accepts isFullscreen prop', async () => {
-    render(<TestComponent shouldOpen isFullscreen={false} />);
-
-    await waitFor(() => {
-      expect(screen.getByTestId('sheet-child')).toBeOnTheScreen();
-    });
-  });
 });

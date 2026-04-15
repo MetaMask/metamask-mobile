@@ -97,8 +97,9 @@ jest.mock(
   }),
 );
 
-const navigationRef =
-  React.createRef<NavigationContainerRef<Record<string, unknown>>>();
+let navigationRef: React.RefObject<
+  NavigationContainerRef<Record<string, unknown>>
+>;
 
 const renderWithNavigation = (component: React.ReactElement) =>
   render(
@@ -109,6 +110,7 @@ describe('PredictScreenStack', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPayWithAnyTokenEnabled = false;
+    navigationRef = React.createRef();
   });
 
   it('wraps content in PredictPreviewSheetProvider', () => {
@@ -143,6 +145,18 @@ describe('PredictScreenStack', () => {
     });
 
     expect(screen.getByTestId('predict-buy-preview')).toBeOnTheScreen();
+  });
+
+  it('navigates to BUY_PREVIEW with PredictBuyWithAnyToken when payWithAnyToken is on', () => {
+    mockPayWithAnyTokenEnabled = true;
+
+    renderWithNavigation(<PredictScreenStack />);
+
+    act(() => {
+      navigationRef.current?.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW);
+    });
+
+    expect(screen.getByTestId('predict-buy-with-any-token')).toBeOnTheScreen();
   });
 
   it('navigates to SELL_PREVIEW screen', () => {
@@ -220,6 +234,11 @@ describe('PredictScreenStack', () => {
 });
 
 describe('PredictModalStack', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    navigationRef = React.createRef();
+  });
+
   it('renders with initial route UNAVAILABLE', () => {
     renderWithNavigation(<PredictModalStack />);
 

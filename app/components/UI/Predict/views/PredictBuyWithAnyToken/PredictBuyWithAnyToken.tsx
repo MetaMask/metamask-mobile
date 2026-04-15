@@ -48,7 +48,7 @@ import {
 } from '../../selectors/featureFlags';
 import { Side } from '../../types';
 import {
-  PredictBuyPreviewContentProps,
+  PredictBuyPreviewProps,
   PredictNavigationParamList,
 } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
@@ -56,19 +56,18 @@ import { formatPrice } from '../../utils/format';
 import { usePredictBuyError } from './hooks/usePredictBuyError';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 
-const PredictBuyWithAnyToken = (
-  contentProps: Partial<PredictBuyPreviewContentProps> = {},
-) => {
+const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const isSheetMode = !!contentProps.onClose;
+  const isSheetMode = props.mode === 'sheet';
   const { market, outcome, outcomeToken, entryPoint } = isSheetMode
-    ? (contentProps as PredictBuyPreviewContentProps)
+    ? props
     : route.params;
+  const onClose = isSheetMode ? props.onClose : undefined;
 
   const { isPlacingOrder } = usePredictActiveOrder();
 
@@ -195,7 +194,7 @@ const PredictBuyWithAnyToken = (
     preview,
     setIsConfirming,
     isSheetMode,
-    onClose: contentProps.onClose,
+    onClose,
   });
 
   useEffect(() => {

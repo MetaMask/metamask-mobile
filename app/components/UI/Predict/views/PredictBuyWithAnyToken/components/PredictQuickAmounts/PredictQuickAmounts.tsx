@@ -28,8 +28,8 @@ function PredictQuickAmounts({
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Md}
           label={`$${amount}`}
-          onPress={() => {
-            impactAsync(ImpactFeedbackStyle.Light);
+          onPress={async () => {
+            await impactAsync(ImpactFeedbackStyle.Light).catch(() => undefined);
             onSelectAmount(amount);
           }}
           isDisabled={disabled}

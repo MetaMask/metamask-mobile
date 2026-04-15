@@ -101,6 +101,7 @@ export const usePredictBuyActions = ({
     }
 
     const doInit = async () => {
+      batchIdRef.current = undefined;
       rejectPendingTransactions();
       resetSelectedPaymentToken();
       const result = await initPayWithAnyToken();
@@ -174,22 +175,6 @@ export const usePredictBuyActions = ({
     didInitiateOrderRef.current = true;
     setIsConfirming(true);
 
-    const transactionId =
-      currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
-        ? approvalRequest?.id
-        : undefined;
-
-    if (
-      currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN &&
-      !transactionId
-    ) {
-      Logger.error(
-        new Error(
-          'usePredictBuyActions: PAY_WITH_ANY_TOKEN transactionId is missing — approval may have been rejected or consumed',
-        ),
-      );
-    }
-
     if (currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
       if (approvalRequest?.id) {
         onApprovalConfirm({
@@ -197,15 +182,11 @@ export const usePredictBuyActions = ({
           waitForResult: true,
           handleErrors: false,
         });
-      } else if (transactionId) {
-        Engine.acceptPendingApproval(
-          transactionId,
-          {},
-          {
-            deleteAfterResult: true,
-            waitForResult: true,
-            handleErrors: false,
-          },
+      } else {
+        Logger.error(
+          new Error(
+            'usePredictBuyActions: PAY_WITH_ANY_TOKEN approval request is missing — approval may have been rejected or consumed',
+          ),
         );
       }
     }
@@ -219,7 +200,7 @@ export const usePredictBuyActions = ({
     return handlePlaceOrder({
       analyticsProperties,
       preview,
-      transactionId,
+      transactionId: approvalRequest?.id,
     });
   }, [
     setIsConfirming,

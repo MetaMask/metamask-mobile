@@ -1464,7 +1464,12 @@ describe('PredictMarketDetails', () => {
       const cashOutButton = screen.getByText('predict.cash_out');
       fireEvent.press(cashOutButton);
 
-      expect(mockOpenSellSheet).toHaveBeenCalled();
+      expect(mockOpenSellSheet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          position: mockPosition,
+          entryPoint: 'predict_market_details',
+        }),
+      );
     });
 
     it('calls openBuySheet via context when Yes button is pressed', () => {
@@ -1489,7 +1494,14 @@ describe('PredictMarketDetails', () => {
       expect(yesButton).toBeDefined();
       fireEvent.press(yesButton as ReactTestInstance);
 
-      expect(mockOpenBuySheet).toHaveBeenCalled();
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          market: singleOutcomeMarket,
+          outcome: singleOutcomeMarket.outcomes[0],
+          outcomeToken: singleOutcomeMarket.outcomes[0].tokens[0],
+          entryPoint: 'predict_market_details',
+        }),
+      );
     });
 
     it('calls openBuySheet via context when No button is pressed', () => {
@@ -1514,7 +1526,14 @@ describe('PredictMarketDetails', () => {
       expect(noButton).toBeDefined();
       fireEvent.press(noButton as ReactTestInstance);
 
-      expect(mockOpenBuySheet).toHaveBeenCalled();
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          market: singleOutcomeMarket,
+          outcome: singleOutcomeMarket.outcomes[0],
+          outcomeToken: singleOutcomeMarket.outcomes[0].tokens[1],
+          entryPoint: 'predict_market_details',
+        }),
+      );
     });
 
     it('renders stacked footer labels for long outcome names', () => {

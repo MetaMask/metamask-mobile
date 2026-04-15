@@ -535,6 +535,7 @@ describe('PredictSellPreview', () => {
 
   describe('sheet mode', () => {
     const sheetContentProps = {
+      mode: 'sheet' as const,
       market: mockMarket,
       position: mockPosition,
       outcome: mockOutcome,

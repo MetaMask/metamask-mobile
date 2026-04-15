@@ -44,7 +44,7 @@ import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { Side } from '../../types';
 import {
-  PredictBuyPreviewContentProps,
+  PredictBuyPreviewProps,
   PredictNavigationParamList,
 } from '../../types/navigation';
 import { PredictTradeStatus } from '../../constants/eventNames';
@@ -70,9 +70,7 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { MINIMUM_BET } from '../../constants/transactions';
 
-const PredictBuyPreview = (
-  contentProps: Partial<PredictBuyPreviewContentProps> = {},
-) => {
+const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
@@ -80,10 +78,11 @@ const PredictBuyPreview = (
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const isSheetMode = !!contentProps.onClose;
+  const isSheetMode = props.mode === 'sheet';
   const { market, outcome, outcomeToken, entryPoint } = isSheetMode
-    ? (contentProps as PredictBuyPreviewContentProps)
+    ? props
     : route.params;
+  const onClose = isSheetMode ? props.onClose : undefined;
 
   const analyticsProperties = useMemo(
     () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
@@ -214,7 +213,6 @@ const PredictBuyPreview = (
     preview?.sharePrice ?? outcomeToken?.price ?? 0,
   )}`;
 
-  const onClose = contentProps.onClose;
   useEffect(() => {
     if (result?.success) {
       if (isSheetMode) {
@@ -256,7 +254,7 @@ const PredictBuyPreview = (
     >
       <TouchableOpacity
         testID="back-button"
-        onPress={() => (isSheetMode ? contentProps.onClose?.() : goBack())}
+        onPress={() => (isSheetMode ? onClose?.() : goBack())}
       >
         <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
       </TouchableOpacity>
