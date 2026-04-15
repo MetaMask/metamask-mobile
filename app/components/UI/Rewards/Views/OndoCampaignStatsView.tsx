@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -15,6 +16,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
@@ -23,19 +25,27 @@ import {
   StatCell,
   PendingTag,
   QualifiedTag,
+  IneligibleTag,
+  CAMPAIGN_STATS_SUMMARY_TEST_IDS,
 } from '../components/Campaigns/CampaignStatsSummary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
-import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
+import {
+  formatTierDisplayName,
+  getTierMinNetDeposit,
+} from '../components/Campaigns/OndoLeaderboard.utils';
 import { strings } from '../../../../../locales/i18n';
 import { formatPercentChange, formatUsd } from '../utils/formatUtils';
-import { ONDO_GM_REQUIRED_QUALIFIED_DAYS } from '../utils/ondoCampaignConstants';
+import {
+  ONDO_GM_REQUIRED_QUALIFIED_DAYS,
+  isCampaignIneligible,
+} from '../utils/ondoCampaignConstants';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
-import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectCampaignById } from '../../../../reducers/rewards/selectors';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -62,11 +72,11 @@ const OndoCampaignStatsView: React.FC = () => {
     useRoute<RouteProp<OndoCampaignStatsRouteParams, 'OndoCampaignStats'>>();
   const { campaignId } = route.params;
 
-  const { campaigns } = useRewardCampaigns();
-  const campaign = useMemo(
-    () => campaigns.find((c) => c.id === campaignId) ?? null,
-    [campaigns, campaignId],
+  const selectCampaign = useMemo(
+    () => selectCampaignById(campaignId),
+    [campaignId],
   );
+  const campaign = useSelector(selectCampaign);
   const isCampaignActive =
     campaign != null && getCampaignStatus(campaign) === 'active';
 
@@ -88,7 +98,7 @@ const OndoCampaignStatsView: React.FC = () => {
     refetch: refetchLeaderboardPosition,
   } = useGetOndoLeaderboardPosition(isOptedIn ? campaignId : undefined);
 
-  const { leaderboard: leaderboardData } = useGetOndoLeaderboard(campaignId, {
+  useGetOndoLeaderboard(campaignId, {
     defaultTier: leaderboardPosition?.projectedTier,
   });
 
@@ -104,10 +114,17 @@ const OndoCampaignStatsView: React.FC = () => {
   const isQualified =
     leaderboardPosition != null && leaderboardPosition.qualified;
 
-  const isNegativeReturn = (leaderboardPosition?.rateOfReturn ?? 0) < 0;
+  const isIneligible = useMemo(
+    () => isCampaignIneligible(campaign, leaderboardPosition?.qualified),
+    [campaign, leaderboardPosition],
+  );
 
-  const returnValue = leaderboardPosition
-    ? formatPercentChange(leaderboardPosition.rateOfReturn)
+  const isNegativeReturn = portfolioData?.summary
+    ? parseFloat(portfolioData.summary.portfolioPnlPercent) < 0
+    : false;
+
+  const returnValue = portfolioData?.summary
+    ? formatPercentChange(portfolioData.summary.portfolioPnlPercent)
     : '-';
 
   const returnColor = isNegativeReturn
@@ -118,23 +135,27 @@ const OndoCampaignStatsView: React.FC = () => {
     ? formatUsd(portfolioData.summary.totalCurrentValue)
     : '-';
 
-  const netDepositedValue = portfolioData?.summary
+  const netDepositValue = portfolioData?.summary
     ? formatUsd(portfolioData.summary.netDeposit)
     : '-';
+
+  const hasCashedOut = portfolioData?.summary
+    ? parseFloat(portfolioData.summary.totalCashedOut) > 0
+    : false;
 
   const cashedOutValue = portfolioData?.summary
     ? formatUsd(portfolioData.summary.totalCashedOut)
     : '-';
 
-  const rankValue = leaderboardPosition ? `${leaderboardPosition.rank}` : '-';
+  const rankValue =
+    isIneligible || !leaderboardPosition
+      ? '-'
+      : String(leaderboardPosition.rank).padStart(2, '0');
 
-  const tierValue = leaderboardPosition
-    ? formatTierDisplayName(leaderboardPosition.projectedTier)
-    : '-';
-
-  const netDepositValue = leaderboardPosition
-    ? formatUsd(leaderboardPosition.netDeposit)
-    : '-';
+  const tierValue =
+    isIneligible || !leaderboardPosition
+      ? '-'
+      : formatTierDisplayName(leaderboardPosition.projectedTier);
 
   const daysHeldValue = leaderboardPosition
     ? `${leaderboardPosition.qualifiedDays}/${ONDO_GM_REQUIRED_QUALIFIED_DAYS}`
@@ -149,16 +170,19 @@ const OndoCampaignStatsView: React.FC = () => {
 
   const tierMinDeposit = useMemo(
     () =>
-      leaderboardPosition && leaderboardData && isCampaignActive
-        ? (leaderboardData.tiers[leaderboardPosition.projectedTier]
-            ?.minDeposit ?? null)
+      leaderboardPosition && campaign && isCampaignActive
+        ? getTierMinNetDeposit(
+            campaign.details?.tiers,
+            leaderboardPosition.projectedTier,
+          )
         : null,
-    [leaderboardData, leaderboardPosition, isCampaignActive],
+    [campaign, leaderboardPosition, isCampaignActive],
   );
 
   const showQualifyCard =
     isCampaignActive &&
     isPending &&
+    !isIneligible &&
     daysRemaining > 0 &&
     tierMinDeposit != null;
 
@@ -174,6 +198,14 @@ const OndoCampaignStatsView: React.FC = () => {
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'ondo-campaign-stats-back-button' }}
+          endButtonIconProps={getCampaignMechanicsButtonProps(
+            campaign != null,
+            () =>
+              navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
+                campaignId,
+              }),
+            'campaign-stats-mechanics-button',
+          )}
           includesTopInset
         />
 
@@ -188,7 +220,7 @@ const OndoCampaignStatsView: React.FC = () => {
                 {strings('rewards.ondo_campaign_stats.label_your_return')}
               </Text>
 
-              {leaderboardLoading ? (
+              {portfolioLoading ? (
                 <Skeleton style={tw.style('h-9 w-28 rounded')} />
               ) : (
                 <Text
@@ -201,7 +233,7 @@ const OndoCampaignStatsView: React.FC = () => {
               )}
             </Box>
 
-            {isNegativeReturn ? (
+            {hasCashedOut ? (
               <>
                 <Box flexDirection={BoxFlexDirection.Row}>
                   <StatCell
@@ -210,13 +242,13 @@ const OndoCampaignStatsView: React.FC = () => {
                     )}
                     value={marketValue}
                     isLoading={portfolioLoading}
-                    valueColor={TextColor.ErrorDefault}
+                    valueColor={returnColor}
                   />
                   <StatCell
                     label={strings(
                       'rewards.ondo_campaign_stats.label_net_deposited',
                     )}
-                    value={netDepositedValue}
+                    value={netDepositValue}
                     isLoading={portfolioLoading}
                   />
                 </Box>
@@ -239,14 +271,14 @@ const OndoCampaignStatsView: React.FC = () => {
                   )}
                   value={marketValue}
                   isLoading={portfolioLoading}
-                  valueColor={TextColor.SuccessDefault}
+                  valueColor={returnColor}
                 />
                 <Box twClassName="flex-1" />
               </Box>
             )}
 
             {/* ── Divider ── */}
-            <Box twClassName="my-5 border-b border-border-muted" />
+            <Box twClassName="my-1 border-b border-border-muted" />
 
             {/* ── Rank section heading ── */}
             <Box
@@ -257,8 +289,13 @@ const OndoCampaignStatsView: React.FC = () => {
               <Text variant={TextVariant.HeadingMd}>
                 {strings('rewards.ondo_campaign_stats.label_your_rank')}
               </Text>
-              {isPending && <PendingTag />}
-              {isQualified && <QualifiedTag />}
+              {isIneligible && (
+                <IneligibleTag
+                  testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG}
+                />
+              )}
+              {!isIneligible && isPending && <PendingTag />}
+              {!isIneligible && isQualified && <QualifiedTag />}
             </Box>
 
             {/* Rank | Tier */}
@@ -280,7 +317,7 @@ const OndoCampaignStatsView: React.FC = () => {
               <StatCell
                 label={strings('rewards.ondo_campaign_stats.label_net_deposit')}
                 value={netDepositValue}
-                isLoading={leaderboardLoading}
+                isLoading={portfolioLoading}
                 suffix={isQualified ? <CheckIcon /> : undefined}
               />
               <StatCell
@@ -306,7 +343,9 @@ const OndoCampaignStatsView: React.FC = () => {
                   navigation.navigate(Routes.MODAL.REWARDS_ONDO_PENDING_SHEET, {
                     variant: 'own',
                     tier: leaderboardPosition.projectedTier,
-                    netDeposit: leaderboardPosition.netDeposit,
+                    netDeposit: parseFloat(
+                      portfolioData?.summary?.netDeposit ?? '0',
+                    ),
                     qualifiedDays: leaderboardPosition.qualifiedDays,
                     tierMinDeposit,
                   });
@@ -339,7 +378,7 @@ const OndoCampaignStatsView: React.FC = () => {
                     {strings(
                       'rewards.ondo_campaign_leaderboard.qualify_for_rank_description',
                       {
-                        minDeposit: formatUsd(tierMinDeposit ?? 0),
+                        minNetDeposit: formatUsd(tierMinDeposit ?? 0),
                         daysRemaining,
                       },
                     )}
@@ -348,8 +387,32 @@ const OndoCampaignStatsView: React.FC = () => {
               </Pressable>
             )}
 
+            {/* ── Not eligible banner ── */}
+            {isIneligible && (
+              <Box
+                twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
+                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('rewards.ondo_campaign_stats.not_eligible_title')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings(
+                    'rewards.ondo_campaign_stats.not_eligible_description',
+                    { days: ONDO_GM_REQUIRED_QUALIFIED_DAYS },
+                  )}
+                </Text>
+              </Box>
+            )}
+
             {/* ── You're qualified card ── */}
-            {isQualified && tierMinDeposit != null && (
+            {!isIneligible && isQualified && tierMinDeposit != null && (
               <Box twClassName="bg-muted rounded-xl p-4 mt-2 gap-2">
                 <Text
                   variant={TextVariant.BodyMd}
@@ -363,7 +426,7 @@ const OndoCampaignStatsView: React.FC = () => {
                 >
                   {strings(
                     'rewards.ondo_campaign_stats.qualified_description',
-                    { minDeposit: formatUsd(tierMinDeposit) },
+                    { minNetDeposit: formatUsd(tierMinDeposit) },
                   )}
                 </Text>
               </Box>

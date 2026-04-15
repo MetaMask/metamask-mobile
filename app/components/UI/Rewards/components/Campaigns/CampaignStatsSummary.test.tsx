@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import CampaignStatsSummary, {
+  IneligibleTag,
   CAMPAIGN_STATS_SUMMARY_TEST_IDS,
 } from './CampaignStatsSummary';
 import type {
@@ -63,6 +64,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_leaderboard.tier_upper': 'Platinum',
       'rewards.ondo_campaign_leaderboard.pending': 'Pending',
       'rewards.ondo_campaign_leaderboard.qualified': 'Qualified',
+      'rewards.ondo_campaign_leaderboard.ineligible': 'Ineligible',
+      'rewards.ondo_campaign_stats.not_eligible_title': 'Not eligible',
+      'rewards.ondo_campaign_stats.not_eligible_description':
+        "Trades opened too late to meet the 10-day hold requirement won't count toward your rank or tier.",
       'rewards.ondo_campaign_stats.title': 'Stats',
       'rewards.ondo_campaign_stats.stats_error_title':
         'Unable to load all stats',
@@ -143,31 +148,41 @@ describe('CampaignStatsSummary', () => {
     ).toBeDefined();
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
-    ).toBe('+15.20%');
+    ).toBe('+7.01%');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.children,
     ).toBe('$13,057.58');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
-    ).toBe('5');
+    ).toBe('05');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER).props.children,
     ).toBe('Silver');
   });
 
-  it('displays dash for return, rank, and tier when leaderboard position is null', () => {
+  it('displays dash for rank and tier when leaderboard position is null but return from portfolio', () => {
     const { getByTestId } = render(
       <CampaignStatsSummary {...baseProps} leaderboardPosition={null} />,
     );
 
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
-    ).toBe('-');
+    ).toBe('+7.01%');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
     ).toBe('-');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER).props.children,
+    ).toBe('-');
+  });
+
+  it('displays dash for return when portfolio summary is null', () => {
+    const { getByTestId } = render(
+      <CampaignStatsSummary {...baseProps} portfolioSummary={null} />,
+    );
+
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
     ).toBe('-');
   });
 
@@ -181,7 +196,7 @@ describe('CampaignStatsSummary', () => {
     ).toBe('-');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
-    ).toBe('5');
+    ).toBe('05');
   });
 
   it('uses error color for market value when portfolioPnl is negative, regardless of leaderboard position', () => {
@@ -222,16 +237,16 @@ describe('CampaignStatsSummary', () => {
     ).toBe('-');
   });
 
-  it('handles negative rate of return', () => {
-    const negativePosition: CampaignLeaderboardPositionDto = {
-      ...MOCK_POSITION,
-      rateOfReturn: -0.05,
+  it('handles negative rate of return from portfolio', () => {
+    const negativeSummary: OndoGmPortfolioSummaryDto = {
+      ...MOCK_SUMMARY,
+      portfolioPnlPercent: '-0.05',
     };
 
     const { getByTestId } = render(
       <CampaignStatsSummary
         {...baseProps}
-        leaderboardPosition={negativePosition}
+        portfolioSummary={negativeSummary}
       />,
     );
 
@@ -274,16 +289,19 @@ describe('CampaignStatsSummary', () => {
     expect(getAllByText('Pending')).toHaveLength(2);
   });
 
-  it('renders Qualified tag only next to tier when qualified is true', () => {
-    const { getAllByTestId, getByText, queryAllByText } = render(
+  it('renders Qualified tag on tier cell and no Pending tags when qualified is true', () => {
+    const { getByTestId, getByText, queryAllByText, queryByTestId } = render(
       <CampaignStatsSummary {...baseProps} />,
     );
 
     expect(
-      getAllByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
-    ).toHaveLength(1);
-    expect(getByText('Qualified')).toBeDefined();
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.QUALIFIED_TAG),
+    ).toBeOnTheScreen();
+    expect(getByText('Qualified')).toBeOnTheScreen();
     expect(queryAllByText('Pending')).toHaveLength(0);
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
+    ).toBeNull();
   });
 
   it('does not render tags when leaderboardPosition is null', () => {
@@ -307,10 +325,10 @@ describe('CampaignStatsSummary', () => {
       />,
     );
 
-    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeNull();
+    // Return and market value still render since portfolio is fine
+    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeDefined();
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK)).toBeNull();
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER)).toBeNull();
-    // Market value still renders since portfolio is fine
     expect(
       queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
     ).toBeDefined();
@@ -326,10 +344,10 @@ describe('CampaignStatsSummary', () => {
 
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
-    ).toBe('+15.20%');
+    ).toBe('+7.01%');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
-    ).toBe('5');
+    ).toBe('05');
   });
 
   // ── Portfolio loading ─────────────────────────────────────────────
@@ -346,8 +364,9 @@ describe('CampaignStatsSummary', () => {
     expect(
       queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
     ).toBeNull();
+    // Return also shows skeleton since it now comes from portfolio
+    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeNull();
     // Leaderboard cells still render
-    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeDefined();
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK)).toBeDefined();
   });
 
@@ -577,5 +596,136 @@ describe('CampaignStatsSummary', () => {
       getByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
     );
     expect(mockOnQualifyPress).toHaveBeenCalledTimes(1);
+  });
+
+  // ── Ineligible state ──────────────────────────────────────────────
+
+  it('shows ineligible tags on both rank and tier cells when isIneligible=true', () => {
+    const pendingPosition: CampaignLeaderboardPositionDto = {
+      ...MOCK_POSITION,
+      qualified: false,
+      qualifiedDays: 0,
+    };
+    const { getAllByTestId, getAllByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={pendingPosition}
+        isIneligible
+      />,
+    );
+    expect(
+      getAllByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG),
+    ).toHaveLength(2);
+    expect(getAllByText('Ineligible')).toHaveLength(2);
+  });
+
+  it('shows dash for rank and tier when isIneligible=true even with leaderboard data', () => {
+    const { getByTestId } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={{
+          ...MOCK_POSITION,
+          rank: 5,
+          projectedTier: 'MID',
+        }}
+        isIneligible
+      />,
+    );
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
+    ).toBe('-');
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER).props.children,
+    ).toBe('-');
+  });
+
+  it('shows not-eligible banner when isIneligible=true', () => {
+    const { getByTestId, getByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={{
+          ...MOCK_POSITION,
+          qualified: false,
+          qualifiedDays: 0,
+        }}
+        isIneligible
+      />,
+    );
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
+    ).toBeOnTheScreen();
+    expect(getByText('Not eligible')).toBeOnTheScreen();
+  });
+
+  it('hides pending tags when isIneligible=true', () => {
+    const { queryAllByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={{
+          ...MOCK_POSITION,
+          qualified: false,
+          qualifiedDays: 0,
+        }}
+        isIneligible
+      />,
+    );
+    expect(queryAllByText('Pending')).toHaveLength(0);
+  });
+
+  it('hides qualify card when isIneligible=true even with tierMinDeposit set', () => {
+    const { queryByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={{
+          ...MOCK_POSITION,
+          qualified: false,
+          qualifiedDays: 3,
+        }}
+        tierMinDeposit={500}
+        isIneligible
+      />,
+    );
+    expect(
+      queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
+    ).toBeNull();
+  });
+
+  it('does not show ineligible tags when isIneligible=false', () => {
+    const { queryAllByText, queryByTestId } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={{
+          ...MOCK_POSITION,
+          qualified: false,
+          qualifiedDays: 0,
+        }}
+        isIneligible={false}
+      />,
+    );
+    expect(queryAllByText('Ineligible')).toHaveLength(0);
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
+    ).toBeNull();
+  });
+
+  it('does not show not-eligible banner when isIneligible defaults to false', () => {
+    const { queryByTestId } = render(<CampaignStatsSummary {...baseProps} />);
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
+    ).toBeNull();
+  });
+});
+
+describe('IneligibleTag', () => {
+  it('renders ineligible label', () => {
+    const { getByText } = render(<IneligibleTag />);
+    expect(getByText('Ineligible')).toBeOnTheScreen();
+  });
+
+  it('passes testID through', () => {
+    const { getByTestId } = render(
+      <IneligibleTag testID="test-ineligible-tag" />,
+    );
+    expect(getByTestId('test-ineligible-tag')).toBeOnTheScreen();
   });
 });

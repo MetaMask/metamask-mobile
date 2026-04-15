@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image } from 'react-native';
+import { Image, TouchableOpacity } from 'react-native';
 import {
   Box,
   Text,
@@ -7,7 +7,6 @@ import {
   FontWeight,
   TextColor,
   BoxAlignItems,
-  BoxJustifyContent,
   AvatarBase,
   AvatarBaseSize,
   Button,
@@ -22,6 +21,7 @@ import { formatPnl } from '../utils/formatPnl';
 export interface TopTraderCardProps {
   trader: TopTrader;
   onFollowPress: (traderId: string) => void;
+  onTraderPress?: (traderId: string, traderName: string) => void;
   testID?: string;
 }
 
@@ -36,6 +36,7 @@ const AVATAR_SIZE = 40;
 const TopTraderCard: React.FC<TopTraderCardProps> = ({
   trader,
   onFollowPress,
+  onTraderPress,
   testID,
 }) => {
   const tw = useTailwind();
@@ -52,70 +53,81 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
       testID={testID ?? `top-trader-card-${trader.id}`}
     >
       {/* Top content: avatar + name + stats */}
-      <Box alignItems={BoxAlignItems.Center} twClassName="flex-1 gap-2 mb-3">
-        {/* Avatar */}
-        {trader.avatarUri ? (
-          <Image
-            source={{ uri: trader.avatarUri }}
-            style={tw.style(
-              `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
-            )}
-            resizeMode="cover"
-            testID={`top-trader-avatar-${trader.id}`}
-          />
-        ) : (
-          <AvatarBase
-            size={AvatarBaseSize.Lg}
-            fallbackText={trader.username.charAt(0).toUpperCase()}
-          />
-        )}
+      <TouchableOpacity
+        activeOpacity={onTraderPress ? 0.7 : 1}
+        onPress={
+          onTraderPress
+            ? () => onTraderPress(trader.id, trader.username)
+            : undefined
+        }
+        disabled={!onTraderPress}
+        testID={`top-trader-card-pressable-${trader.id}`}
+      >
+        <Box alignItems={BoxAlignItems.Center} twClassName="flex-1 gap-2 mb-3">
+          {/* Avatar */}
+          {trader.avatarUri ? (
+            <Image
+              source={{ uri: trader.avatarUri }}
+              style={tw.style(
+                `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
+              )}
+              resizeMode="cover"
+              testID={`top-trader-avatar-${trader.id}`}
+            />
+          ) : (
+            <AvatarBase
+              size={AvatarBaseSize.Lg}
+              fallbackText={trader.username.charAt(0).toUpperCase()}
+            />
+          )}
 
-        {/* Username */}
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-        >
-          {trader.username}
-        </Text>
-
-        {/* Stats: +96.2% · +$963K 30D */}
-        <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Medium}>
+          {/* Username */}
           <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            twClassName={
-              isRoiPositive ? 'text-success-default' : 'text-error-default'
-            }
-          >
-            {roiText}
-          </Text>
-          <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
+            variant={TextVariant.HeadingSm}
+            fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
+            numberOfLines={1}
           >
-            {' \u00B7 '}
+            {trader.username}
           </Text>
-          <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            twClassName={
-              isPnlPositive ? 'text-success-default' : 'text-error-default'
-            }
-          >
-            {pnlText}
+
+          {/* Stats: +96.2% · +$963K 30D */}
+          <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Medium}>
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              twClassName={
+                isRoiPositive ? 'text-success-default' : 'text-error-default'
+              }
+            >
+              {roiText}
+            </Text>
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+            >
+              {' \u00B7 '}
+            </Text>
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              twClassName={
+                isPnlPositive ? 'text-success-default' : 'text-error-default'
+              }
+            >
+              {pnlText}
+            </Text>
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
+              {' 30D'}
+            </Text>
           </Text>
-          <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextMuted}
-          >
-            {' 30D'}
-          </Text>
-        </Text>
-      </Box>
+        </Box>
+      </TouchableOpacity>
 
       {/* Follow / Following button pinned to bottom */}
       <Button

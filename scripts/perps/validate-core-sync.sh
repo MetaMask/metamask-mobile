@@ -11,6 +11,7 @@
 # Options:
 #   --core-path <path>   Path to Core repo (required)
 #   --skip-build         Skip the build step for faster iteration
+#   --skip-test          Skip the test step for faster iteration
 #   --verbose            Show full command output for every step
 #   --help               Print this help message and exit
 #
@@ -24,13 +25,14 @@ set -euo pipefail
 MOBILE_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 CORE_PATH=""
 SKIP_BUILD=false
+SKIP_TEST=false
 VERBOSE=false
 
 PERPS_SRC="app/controllers/perps"
 PERPS_DEST="packages/perps-controller/src"
 WORKSPACE="@metamask/perps-controller"
 
-STEP_COUNT=9
+STEP_COUNT=12
 STEP_RESULTS=()
 STEP_TIMES=()
 STEP_LABELS=()
@@ -154,6 +156,7 @@ while (( $# )); do
   case "$1" in
     --core-path) CORE_PATH="$2"; shift 2 ;;
     --skip-build) SKIP_BUILD=true; shift ;;
+    --skip-test) SKIP_TEST=true; shift ;;
     --verbose) VERBOSE=true; shift ;;
     --help|-h) usage ;;
     *) die "Unknown option: $1" ;;
@@ -165,8 +168,12 @@ if [[ -z "$CORE_PATH" ]]; then
   die "Missing --core-path <path>. Example: ./scripts/perps/validate-core-sync.sh --core-path ~/dev/metamask/core"
 fi
 
+# Adjust step count for skipped steps
 if $SKIP_BUILD; then
-  STEP_COUNT=8
+  STEP_COUNT=$((STEP_COUNT - 1))
+fi
+if $SKIP_TEST; then
+  STEP_COUNT=$((STEP_COUNT - 1))
 fi
 
 # ─── Step functions ─────────────────────────────────────────────────────────────
@@ -462,12 +469,98 @@ step_build() {
   cd "$MOBILE_ROOT"
 }
 
+step_format_fix() {
+  cd "$CORE_PATH"
+
+  # Core uses oxfmt (via yarn lint:misc) for TS formatting, NOT prettier.
+  # Mobile uses different formatting rules, so synced files arrive with
+  # wrong formatting. Run oxfmt --write to fix them.
+  progress "  ├─ Running oxfmt on perps-controller source"
+  yarn lint:misc --write 2>&1 | grep -E "packages/perps-controller" || true
+
+  # Verify formatting is clean
+  local fmt_issues
+  fmt_issues=$(yarn lint:misc --check 2>&1 | grep -c "packages/perps-controller" || true)
+  if (( fmt_issues > 0 )); then
+    echo "FAIL: $fmt_issues perps-controller file(s) still have formatting issues after oxfmt"
+    yarn lint:misc --check 2>&1 | grep "packages/perps-controller"
+    cd "$MOBILE_ROOT"
+    return 1
+  fi
+
+  echo "OK: All perps-controller files pass oxfmt formatting"
+  cd "$MOBILE_ROOT"
+}
+
 step_lint() {
   cd "$CORE_PATH"
   # No workspace-level lint script exists; run eslint directly to verify
   # all violations are either fixed or suppressed (exit 0 = clean).
   yarn eslint 'packages/perps-controller/src/**/*.ts'
   cd "$MOBILE_ROOT"
+}
+
+step_test() {
+  cd "$CORE_PATH"
+  yarn workspace "$WORKSPACE" test
+  cd "$MOBILE_ROOT"
+}
+
+step_changelog_check() {
+  local changelog="$CORE_PATH/packages/perps-controller/CHANGELOG.md"
+
+  if [[ ! -f "$changelog" ]]; then
+    echo "FAIL: CHANGELOG.md not found at $changelog"
+    return 1
+  fi
+
+  # Check if CHANGELOG.md differs from origin/main in any way:
+  # unstaged, staged, or already committed on this branch.
+  local changelog_modified=0
+  (
+    cd "$CORE_PATH"
+    # Unstaged or staged changes
+    local worktree_changes
+    worktree_changes=$(git diff --name-only -- packages/perps-controller/CHANGELOG.md 2>/dev/null | wc -l | tr -d ' ')
+    local staged_changes
+    staged_changes=$(git diff --cached --name-only -- packages/perps-controller/CHANGELOG.md 2>/dev/null | wc -l | tr -d ' ')
+    # Already committed on branch vs origin/main
+    local committed_changes=0
+    if git rev-parse --verify origin/main >/dev/null 2>&1; then
+      committed_changes=$(git diff --name-only origin/main...HEAD -- packages/perps-controller/CHANGELOG.md 2>/dev/null | wc -l | tr -d ' ')
+    fi
+
+    if (( worktree_changes + staged_changes + committed_changes > 0 )); then
+      exit 0  # modified
+    else
+      exit 1  # not modified
+    fi
+  ) && changelog_modified=1
+
+  if (( changelog_modified == 0 )); then
+    echo "FAIL: packages/perps-controller/CHANGELOG.md has NOT been updated."
+    echo ""
+    echo "Core CI requires changelog entries for every changed package."
+    echo "Add entries under '## [Unreleased]' with sections:"
+    echo "  ### Added    — new features, exports, files"
+    echo "  ### Fixed    — bug fixes"
+    echo "  ### Changed  — refactors, dependency bumps"
+    echo ""
+    echo "Each entry must link to the PR, e.g.:"
+    echo "  - Add disk-backed cold-start cache ([#NNNN](https://github.com/MetaMask/core/pull/NNNN))"
+    return 1
+  fi
+
+  echo "OK: CHANGELOG.md has been updated"
+
+  # Validate changelog format (section ordering, link format, etc.)
+  local validate_output
+  if ! validate_output=$(cd "$CORE_PATH" && yarn workspace "$WORKSPACE" changelog:validate 2>&1); then
+    echo "FAIL: Changelog format validation failed:"
+    echo "$validate_output"
+    return 1
+  fi
+  echo "OK: CHANGELOG.md format is valid"
 }
 
 step_write_sync_state() {
@@ -522,6 +615,9 @@ main() {
   step=$((step + 1))
   run_step $step "ESLint auto-fix + suppressions" step_eslint_fix
 
+  step=$((step + 1))
+  run_step $step "Format fix (oxfmt)" step_format_fix
+
   if ! $SKIP_BUILD; then
     step=$((step + 1))
     run_step $step "Build" step_build
@@ -529,6 +625,14 @@ main() {
 
   step=$((step + 1))
   run_step $step "Lint" step_lint
+
+  if ! $SKIP_TEST; then
+    step=$((step + 1))
+    run_step $step "Test" step_test
+  fi
+
+  step=$((step + 1))
+  run_step $step "Changelog check" step_changelog_check
 
   step=$((step + 1))
   run_step $step "Write sync state" step_write_sync_state

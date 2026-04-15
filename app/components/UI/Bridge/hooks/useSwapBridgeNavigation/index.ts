@@ -123,10 +123,7 @@ export const useSwapBridgeNavigation = ({
   sourcePage: string;
   sourceToken?: BridgeToken;
   destToken?: BridgeToken;
-  /** Analytics context for A/B test attribution on page-viewed events */
-  abTestContext?: {
-    assetsASSETS2493AbtestTokenDetailsLayout?: string;
-  };
+  abTestContext?: Record<string, string>;
   /**
    * A/B test assignments for Transaction Added — passed through to the Bridge
    * route and stashed only when the user submits a transaction.

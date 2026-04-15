@@ -153,6 +153,19 @@ describe('useHomeViewedEvent', () => {
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
 
+    it('does not fire the immediate path when fireImmediateWhenNoView is false', () => {
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+          isLoading: false,
+          fireImmediateWhenNoView: false,
+        }),
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
     it('only fires once even after multiple re-renders with null ref', () => {
       const { rerender } = renderHook(() =>
         useHomeViewedEvent({
@@ -303,6 +316,41 @@ describe('useHomeViewedEvent', () => {
         triggerScroll();
       });
 
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not subscribe or fire while isLoading is true even with a ref', () => {
+      const mockRef = createMockRef(0, 200);
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: mockRef,
+          isLoading: true,
+        }),
+      );
+
+      expect(mockSubscribeToScroll).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('subscribes and fires after loading when ref is in viewport', () => {
+      const mockRef = createMockRef(0, 200);
+      const { rerender } = renderHook(
+        ({ loading }: { loading: boolean }) =>
+          useHomeViewedEvent({
+            ...defaultParams,
+            sectionRef: mockRef,
+            isLoading: loading,
+          }),
+        { initialProps: { loading: true } },
+      );
+
+      expect(mockSubscribeToScroll).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      rerender({ loading: false });
+
+      expect(mockSubscribeToScroll).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
 

@@ -198,6 +198,28 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   />
   <Screen
     component={[Function]}
+    name="BenefitFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="BenefitsFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     name="RampTokenSelection"
   />
   <Screen
@@ -417,6 +439,7 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
         },
         "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -621,6 +644,28 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   />
   <Screen
     component={[Function]}
+    name="BenefitFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="BenefitsFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     name="RampTokenSelection"
   />
   <Screen
@@ -840,6 +885,7 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
         },
         "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />
@@ -1044,6 +1090,28 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     component={[Function]}
+    name="BenefitFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="BenefitsFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     name="RampTokenSelection"
   />
   <Screen
@@ -1263,6 +1331,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
         },
         "cardStyleInterpolator": [Function],
         "headerShown": false,
+        "presentation": "transparentModal",
       }
     }
   />

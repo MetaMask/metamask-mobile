@@ -12,11 +12,7 @@ type TokenDetailsLayoutVariantName = 'control' | 'treatment';
 
 const DEFAULT_VARIANT: TokenDetailsLayoutVariantName = 'control';
 
-/**
- * Hook for Token Details Layout A/B test
- *
-
- */
+/** Hook for Token Details Layout A/B test */
 export function useTokenDetailsABTest() {
   const launchDarklyVariant = useSelector(selectTokenDetailsLayoutTestVariant);
 

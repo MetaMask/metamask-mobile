@@ -39,7 +39,6 @@ import {
   selectUnlockedRewardError,
   selectSeasonRewardById,
   selectPointsEvents,
-  selectSeasonShouldInstallNewVersion,
   selectBulkLinkState,
   selectBulkLinkIsRunning,
   selectBulkLinkTotalAccounts,
@@ -2512,46 +2511,6 @@ describe('Rewards selectors', () => {
     });
   });
 
-  describe('selectSeasonShouldInstallNewVersion', () => {
-    it('returns null when season should install new version is not set', () => {
-      const mockState = { rewards: { seasonShouldInstallNewVersion: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectSeasonShouldInstallNewVersion),
-      );
-      expect(result.current).toBeNull();
-    });
-
-    it('returns version string when set', () => {
-      const mockState = {
-        rewards: { seasonShouldInstallNewVersion: '1.2.3' },
-      };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectSeasonShouldInstallNewVersion),
-      );
-      expect(result.current).toBe('1.2.3');
-    });
-
-    describe('Direct selector calls', () => {
-      it('returns null when season should install new version is null', () => {
-        const state = createMockRootState({
-          seasonShouldInstallNewVersion: null,
-        });
-        expect(selectSeasonShouldInstallNewVersion(state)).toBeNull();
-      });
-
-      it('returns version string when set', () => {
-        const state = createMockRootState({
-          seasonShouldInstallNewVersion: '2.0.0',
-        });
-        expect(selectSeasonShouldInstallNewVersion(state)).toBe('2.0.0');
-      });
-    });
-  });
-
   describe('selectBulkLinkState', () => {
     it('returns bulk link state when set', () => {
       const mockState = {
@@ -3422,7 +3381,6 @@ describe('Rewards selectors', () => {
           },
         ],
         totalParticipants: 50,
-        minDeposit: 500,
       },
       MID: {
         entries: [
@@ -3435,7 +3393,6 @@ describe('Rewards selectors', () => {
           },
         ],
         totalParticipants: 30,
-        minDeposit: 1000,
       },
     },
   };
