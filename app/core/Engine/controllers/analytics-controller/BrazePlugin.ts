@@ -7,7 +7,7 @@ import {
 } from '@segment/analytics-react-native';
 import Braze from '@braze/react-native-sdk';
 import Logger from '../../../../util/Logger';
-import defaultAllowedEvents from './braze-allowed-events.json';
+import { captureException } from '@sentry/react-native';
 
 /**
  * Segment destination plugin that forwards events to the native Braze SDK
@@ -44,12 +44,14 @@ export class BrazePlugin extends DestinationPlugin {
     if (profileId !== undefined) {
       try {
         Braze.changeUser(profileId);
-        Logger.log('[BrazePlugin] Changed Braze user to profileId');
+        Logger.log('[BrazePlugin] Identified Braze user with profileId');
       } catch (error) {
-        Logger.error(
-          error as Error,
-          '[BrazePlugin] Failed to change Braze user',
-        );
+        captureException(error as Error, {
+          tags: {
+            plugin: 'BrazePlugin',
+            context: 'Failed to identify Braze user',
+          },
+        });
       }
     }
   }
@@ -81,10 +83,12 @@ export class BrazePlugin extends DestinationPlugin {
       try {
         this.setUserTraits(event.traits);
       } catch (error) {
-        Logger.error(
-          error as Error,
-          '[BrazePlugin] Failed to set user traits on Braze',
-        );
+        captureException(error as Error, {
+          tags: {
+            plugin: 'BrazePlugin',
+            context: 'Failed to set user traits on Braze',
+          },
+        });
       }
     }
     return event;
@@ -102,10 +106,12 @@ export class BrazePlugin extends DestinationPlugin {
     try {
       Braze.logCustomEvent(event.event, event.properties);
     } catch (error) {
-      Logger.error(
-        error as Error,
-        `[BrazePlugin] Failed to log custom event: ${event.event}`,
-      );
+      captureException(error as Error, {
+        tags: {
+          plugin: 'BrazePlugin',
+          context: 'Failed to log custom event',
+        },
+      });
     }
     return event;
   }
@@ -119,10 +125,12 @@ export class BrazePlugin extends DestinationPlugin {
       try {
         Braze.requestImmediateDataFlush();
       } catch (error) {
-        Logger.error(
-          error as Error,
-          '[BrazePlugin] Failed to flush Braze data',
-        );
+        captureException(error as Error, {
+          tags: {
+            plugin: 'BrazePlugin',
+            context: 'Failed to flush Braze data',
+          },
+        });
       }
     }
   }
