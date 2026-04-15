@@ -94,6 +94,9 @@ describe('V2KycProcessing', () => {
     expect(getByText('deposit.kyc_processing.heading')).toBeOnTheScreen();
     expect(getByText('deposit.kyc_processing.description')).toBeOnTheScreen();
 
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+    expect(mockGoBack).toHaveBeenCalled();
+
     await act(async () => {
       await Promise.resolve();
     });

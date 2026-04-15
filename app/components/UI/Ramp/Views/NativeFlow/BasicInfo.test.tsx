@@ -161,6 +161,14 @@ describe('V2BasicInfo', () => {
     };
   });
 
+  it('calls navigation.goBack when header back is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2BasicInfo />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('renders the form fields', () => {
     const { getByTestId } = renderWithTheme(<V2BasicInfo />);
 

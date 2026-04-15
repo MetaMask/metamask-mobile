@@ -69,6 +69,14 @@ describe('V2AdditionalVerification', () => {
     });
   });
 
+  it('calls navigation.goBack when header back is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2AdditionalVerification />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('renders the title and paragraphs', () => {
     const { getByText, getAllByText } = renderWithTheme(
       <V2AdditionalVerification />,

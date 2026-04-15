@@ -198,6 +198,14 @@ describe('V2EnterAddress', () => {
     });
   });
 
+  it('calls navigation.goBack when header back is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('tracks analytics event on form submission', async () => {
     mockPatchUser.mockResolvedValue({});
     mockRouteAfterAuthentication.mockResolvedValue(undefined);

@@ -48,6 +48,16 @@ jest.mock(
   () => 'mock-image',
 );
 
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: () => ({
+      addProperties: (props: object) => ({ build: () => ({ ...props }) }),
+    }),
+  }),
+}));
+
 const renderWithTheme = (component: React.ReactElement) =>
   render(
     <ThemeContext.Provider value={mockTheme}>
@@ -58,6 +68,15 @@ const renderWithTheme = (component: React.ReactElement) =>
 describe('V2VerifyIdentity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('calls navigation.goBack when header back is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2VerifyIdentity />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('navigates to enter email when submit button is pressed', async () => {

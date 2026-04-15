@@ -7,6 +7,7 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import Routes from '../../../../../../constants/navigation/Routes';
 import { Country, State, UserRegion } from '@metamask/ramps-controller';
 import { REGION_SELECTOR_TEST_IDS } from './RegionSelector.testIds';
+import { CommonSelectorsIDs } from '../../../../../../util/Common.testIds';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -215,6 +216,14 @@ describe('RegionSelector', () => {
 
     expect(searchInput.props.value).toBe('');
     expect(screen.getByText('United States')).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when header back is pressed on country list', () => {
+    render(RegionSelector);
+
+    fireEvent.press(screen.getByTestId(CommonSelectorsIDs.BACK_ARROW_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('navigates to states view when country with states is selected', () => {

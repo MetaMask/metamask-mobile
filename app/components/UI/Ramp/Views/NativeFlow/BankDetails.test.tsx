@@ -340,6 +340,23 @@ describe('V2BankDetails', () => {
     ).toBeOnTheScreen();
   });
 
+  it('calls navigation.goBack when header back is pressed', async () => {
+    mockGetOrderById.mockReturnValue(createMockV2Order());
+    mockGetOrder.mockResolvedValue(createMockDepositOrder());
+
+    const { getByTestId } = renderWithTheme(<V2BankDetails />);
+
+    await waitFor(() => {
+      expect(getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('deposit-back-navbar-button'));
+    });
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('toggles bank info when show/hide button is pressed', async () => {
     mockGetOrderById.mockReturnValue(
       createMockV2Order({

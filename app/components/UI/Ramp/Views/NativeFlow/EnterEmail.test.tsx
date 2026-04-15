@@ -42,6 +42,16 @@ jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: () => ({
+      addProperties: (props: object) => ({ build: () => ({ ...props }) }),
+    }),
+  }),
+}));
+
 jest.mock('../../Deposit/utils', () => ({
   ...jest.requireActual('../../Deposit/utils'),
   validateEmail: (email: string) => /\S+@\S+\.\S+/.test(email),
@@ -124,6 +134,15 @@ describe('V2EnterEmail', () => {
       queryByText('deposit.enter_email.validation_error'),
     ).toBeOnTheScreen();
     expect(mockSendUserOtp).not.toHaveBeenCalled();
+  });
+
+  it('calls navigation.goBack when header back is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2EnterEmail />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('shows error message when sendUserOtp fails', async () => {

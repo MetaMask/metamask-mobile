@@ -79,6 +79,16 @@ jest.mock('../../../../../util/trace', () => ({
   TraceName: { DepositInputOtp: 'DepositInputOtp' },
 }));
 
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: () => ({
+      addProperties: (props: object) => ({ build: () => ({ ...props }) }),
+    }),
+  }),
+}));
+
 jest.mock('@react-native-clipboard/clipboard', () => ({
   getString: jest.fn().mockResolvedValue(''),
 }));
@@ -150,6 +160,15 @@ describe('V2OtpCode', () => {
 
     expect(getByTestId('otp-code-input')).toBeOnTheScreen();
     expect(getByTestId('otp-code-submit-button')).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when header back is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('renders the submit button', () => {

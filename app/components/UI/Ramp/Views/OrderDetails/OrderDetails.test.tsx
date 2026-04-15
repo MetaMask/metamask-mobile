@@ -193,6 +193,19 @@ describe('OrderDetails', () => {
     expect(result[0]).toBe(Routes.RAMP.RAMPS_ORDER_DETAILS);
   });
 
+  it('calls navigation.goBack when header back is pressed with loaded order', async () => {
+    const { getByTestId } = render();
+
+    await waitFor(() => {
+      expect(getByTestId('order-content')).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByTestId('ramps-order-details-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
   it('shows error state with retry when initial callback fetch fails', async () => {
     mockUseParams.mockReturnValue({
       callbackUrl: 'metamask://on-ramp/providers/paypal?orderId=abc',

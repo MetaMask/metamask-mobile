@@ -84,6 +84,28 @@ describe('V2OrderProcessing', () => {
     expect(getByTestId('loader')).toBeOnTheScreen();
   });
 
+  it('calls navigation.goBack when header back is pressed while order is loading', () => {
+    mockOrder = null;
+    const { getByTestId } = renderWithTheme(<V2OrderProcessing />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('calls navigation.goBack when header back is pressed for pending order', () => {
+    mockOrder = {
+      id: 'test-order-id',
+      state: FIAT_ORDER_STATES.PENDING,
+      data: {},
+    };
+    const { getByTestId } = renderWithTheme(<V2OrderProcessing />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('renders main action button when order is pending', () => {
     mockOrder = {
       id: 'test-order-id',
