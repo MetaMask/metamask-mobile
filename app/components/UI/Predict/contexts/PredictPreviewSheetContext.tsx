@@ -206,6 +206,7 @@ export const PredictPreviewSheetProvider: React.FC<
       {bottomSheetEnabled && buyParams && (
         <PredictPreviewSheet
           ref={buySheetRef}
+          isFullscreen={false}
           title={buyParams.outcome?.groupItemTitle || buyParams.outcome?.title}
           image={buyParams.outcome?.image}
           subtitle={

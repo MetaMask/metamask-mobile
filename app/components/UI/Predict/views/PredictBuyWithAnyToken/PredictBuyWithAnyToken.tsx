@@ -230,7 +230,7 @@ const PredictBuyWithAnyToken = (
 
   const Wrapper = isSheetMode ? Box : SafeAreaView;
   const wrapperProps = isSheetMode
-    ? { twClassName: 'flex-1 bg-background-default' }
+    ? { twClassName: 'bg-background-default' }
     : { style: tw.style('flex-1 bg-background-default') };
 
   return (
@@ -243,16 +243,11 @@ const PredictBuyWithAnyToken = (
           preview={preview}
         />
       )}
-      <ScrollView
-        style={tw.style('flex-col')}
-        contentContainerStyle={tw.style('flex-grow justify-center')}
-        showsVerticalScrollIndicator={false}
-      >
+      {isSheetMode ? (
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="w-full"
+          twClassName="w-full py-4"
         >
           <PredictBuyAmountSection
             currentValueUSDString={currentValueUSDString}
@@ -266,11 +261,37 @@ const PredictBuyWithAnyToken = (
             isPlacingOrder={isPlacingOrder}
             hideAvailableBalance={isSheetMode}
           />
-          {payWithAnyTokenEnabled && !isSheetMode && (
-            <PredictPayWithRow disabled={isPlacingOrder} />
-          )}
         </Box>
-      </ScrollView>
+      ) : (
+        <ScrollView
+          style={tw.style('flex-col')}
+          contentContainerStyle={tw.style('flex-grow justify-center')}
+          showsVerticalScrollIndicator={false}
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Column}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            twClassName="w-full"
+          >
+            <PredictBuyAmountSection
+              currentValueUSDString={currentValueUSDString}
+              keypadRef={keypadRef}
+              isInputFocused={isInputFocused}
+              isBalanceLoading={isBalanceLoading}
+              isBalancePulsing={isBalancePulsing}
+              availableBalanceDisplay={availableBalanceDisplay}
+              toWin={toWin}
+              isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
+              isPlacingOrder={isPlacingOrder}
+              hideAvailableBalance={false}
+            />
+            {payWithAnyTokenEnabled && (
+              <PredictPayWithRow disabled={isPlacingOrder} />
+            )}
+          </Box>
+        </ScrollView>
+      )}
       <PredictBuyError errorMessage={errorMessage} />
       {!isSheetMode && (
         <PredictKeypad
