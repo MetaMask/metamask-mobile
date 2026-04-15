@@ -25,6 +25,7 @@ export class BrazePlugin extends EventPlugin {
   private brazeProfileId: string | undefined;
   private allowedEvents: Set<string> = new Set();
   private allowedTraits: Set<string> = new Set();
+  private pendingIdentifyTraits: Record<string, unknown> | undefined;
 
   /**
    * Set the Braze profile ID used for `Braze.changeUser()`.
@@ -48,6 +49,22 @@ export class BrazePlugin extends EventPlugin {
           },
         });
       }
+
+      if (this.pendingIdentifyTraits) {
+        try {
+          this.setUserTraits(this.pendingIdentifyTraits);
+        } catch (error) {
+          captureException(error as Error, {
+            tags: {
+              plugin: 'BrazePlugin',
+              context: 'Failed to set pending user traits on Braze',
+            },
+          });
+        }
+        this.pendingIdentifyTraits = undefined;
+      }
+    } else {
+      this.pendingIdentifyTraits = undefined;
     }
   }
 
@@ -74,17 +91,28 @@ export class BrazePlugin extends EventPlugin {
   }
 
   identify(event: IdentifyEventType): IdentifyEventType {
-    if (this.brazeProfileId !== undefined && event.traits) {
-      try {
-        this.setUserTraits(event.traits);
-      } catch (error) {
-        captureException(error as Error, {
-          tags: {
-            plugin: 'BrazePlugin',
-            context: 'Failed to set user traits on Braze',
-          },
-        });
-      }
+    if (!event.traits) {
+      return event;
+    }
+
+    // If we don't have a profileId yet, we buffer the traits and send them later when the profileId is set
+    if (this.brazeProfileId === undefined) {
+      this.pendingIdentifyTraits = {
+        ...this.pendingIdentifyTraits,
+        ...event.traits,
+      };
+      return event;
+    }
+
+    try {
+      this.setUserTraits(event.traits);
+    } catch (error) {
+      captureException(error as Error, {
+        tags: {
+          plugin: 'BrazePlugin',
+          context: 'Failed to set user traits on Braze',
+        },
+      });
     }
     return event;
   }
