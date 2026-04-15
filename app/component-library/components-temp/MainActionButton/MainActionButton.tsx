@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { Platform, Pressable, View, Animated } from 'react-native';
+import { Pressable, View, Animated } from 'react-native';
 
 // External dependencies.
 import Icon, { IconSize, IconColor } from '../../components/Icons/Icon';
@@ -46,7 +46,6 @@ const MainActionButton = ({
       style={[{ transform: [{ scale: scaleAnim }] }, containerStyle]}
     >
       <Pressable
-        accessible={Platform.OS === 'ios' ? true : undefined}
         testID={testID}
         style={({ pressed }) => [styles.base, pressed && styles.pressed]}
         onPress={!isDisabled ? onPress : undefined}

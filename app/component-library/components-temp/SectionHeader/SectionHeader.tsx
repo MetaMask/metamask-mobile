@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 // External dependencies.
 import {
@@ -75,7 +75,6 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
       {/* Arrow icon: visual indicator only, no touch handling */}
       {onPress && (
         <Icon
-          testID="section-header-arrow-icon"
           name={endIconName}
           size={IconSize.Md}
           color={endIconColor}
@@ -89,24 +88,14 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 
   if (onPress) {
     return (
-      <Pressable
-        accessible={Platform.OS === 'ios' ? true : undefined}
-        testID={testID}
-        onPress={onPress}
-        style={containerStyle}
-      >
+      <Pressable testID={testID} onPress={onPress} style={containerStyle}>
         {innerContent}
       </Pressable>
     );
   }
 
   return (
-    <View
-      accessible={Platform.OS === 'ios' ? true : undefined}
-      testID={testID}
-      accessibilityLabel={typeof title === 'string' ? title : undefined}
-      style={containerStyle}
-    >
+    <View testID={testID} style={containerStyle}>
       {innerContent}
     </View>
   );
