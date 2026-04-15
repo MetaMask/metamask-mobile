@@ -78,6 +78,7 @@ import BannerAlert from '../../../component-library/components/Banners/Banner/va
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import CustomText, {
   TextColor,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
 import {
@@ -1451,6 +1452,14 @@ const Wallet = ({
                   style={styles.headerAccountPickerStyle}
                 />
               </HeaderRoot>
+              <View style={styles.base}>
+                <CustomText
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Muted}
+                >
+                  this is ota update
+                </CustomText>
+              </View>
               <View
                 ref={containerViewRef}
                 style={styles.wrapper}
