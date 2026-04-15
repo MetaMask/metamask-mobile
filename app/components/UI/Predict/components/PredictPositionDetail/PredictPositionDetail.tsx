@@ -10,7 +10,7 @@ import {
   useIsFocused,
   useNavigation,
 } from '@react-navigation/native';
-import React, { useMemo } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import SensitiveText, {
@@ -28,7 +28,13 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import Logger from '../../../../../util/Logger';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPreviewSheet } from '../../contexts';
@@ -65,6 +71,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     navigation,
   });
   const { openSellSheet } = usePredictPreviewSheet();
+  const { toastRef } = useContext(ToastContext);
 
   // Only auto-refresh when the screen is focused to avoid duplicate fetches
   const isFocused = useIsFocused();
@@ -114,21 +121,39 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   const onCashOut = () => {
     executeGuardedAction(
       () => {
-        const _outcome = market?.outcomes.find(
-          (o) => o.id === position.outcomeId,
-        );
-        if (!_outcome) {
-          console.warn(
-            `[PredictPositionDetail] outcome not found for position ${position.id} (outcomeId: ${position.outcomeId})`,
+        try {
+          const _outcome = market?.outcomes.find(
+            (o) => o.id === position.outcomeId,
           );
-          return;
+          if (!_outcome) {
+            throw new Error(
+              `Outcome not found for position ${position.id} (outcomeId: ${position.outcomeId})`,
+            );
+          }
+          openSellSheet({
+            market,
+            position,
+            outcome: _outcome,
+            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          });
+        } catch (error) {
+          Logger.error(error as Error, {
+            component: 'PredictPositionDetail',
+            positionId: position.id,
+            outcomeId: position.outcomeId,
+          });
+          toastRef?.current?.showToast({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Danger,
+            labelOptions: [
+              {
+                label: strings('predict.order.cashout_failed'),
+                isBold: true,
+              },
+            ],
+            hasNoTimeout: false,
+          });
         }
-        openSellSheet({
-          market,
-          position,
-          outcome: _outcome,
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
     );

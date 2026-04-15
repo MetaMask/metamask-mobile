@@ -45,6 +45,11 @@ jest.mock('../PredictPositionDetail', () => {
 });
 jest.mock('../../hooks/usePredictActionGuard');
 
+const mockLoggerError = jest.fn();
+jest.mock('../../../../../util/Logger', () => ({
+  error: (...args: unknown[]) => mockLoggerError(...args),
+}));
+
 const mockOpenSellSheet = jest.fn();
 jest.mock('../../contexts', () => ({
   usePredictPreviewSheet: () => ({
@@ -567,7 +572,7 @@ describe('PredictPicks', () => {
       );
     });
 
-    it('does not call openSellSheet when outcomeId not found', () => {
+    it('logs error when outcomeId not found on cash out', () => {
       const market = createMockMarket();
       const position = createMockPosition({
         id: 'pos-1',
@@ -588,6 +593,14 @@ describe('PredictPicks', () => {
       );
 
       expect(mockOpenSellSheet).not.toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          component: 'PredictPicks',
+          positionId: 'pos-1',
+          outcomeId: 'non-existent-outcome',
+        }),
+      );
     });
 
     it('calls usePredictActionGuard with navigation only', () => {

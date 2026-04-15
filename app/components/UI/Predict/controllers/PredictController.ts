@@ -1892,7 +1892,6 @@ export class PredictController extends BaseController<
         disableHook: true,
         disableSequential: true,
         skipInitialGasEstimate: true,
-        gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
         transactions: depositAndOrderTransactions,
       });
 

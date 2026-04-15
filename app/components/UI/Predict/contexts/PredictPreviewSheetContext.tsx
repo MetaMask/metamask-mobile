@@ -62,7 +62,11 @@ const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
         />
       )}
       <Box twClassName="flex-1 min-w-0">
-        <Text variant={TextVariant.HeadingSm}>
+        <Text
+          variant={TextVariant.HeadingSm}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {position?.title ?? strings('predict.cash_out')}
         </Text>
         <Text

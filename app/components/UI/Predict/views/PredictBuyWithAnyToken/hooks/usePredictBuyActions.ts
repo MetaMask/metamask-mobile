@@ -20,6 +20,7 @@ import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import Logger from '../../../../../../util/Logger';
 
 /**
  * Rejects all unapproved transactions to prevent stale approvals from
@@ -173,22 +174,20 @@ export const usePredictBuyActions = ({
     didInitiateOrderRef.current = true;
     setIsConfirming(true);
 
-    let transactionId =
+    const transactionId =
       currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
         ? approvalRequest?.id
         : undefined;
 
-    // Fallback: if approval was lost (rejected/consumed) but we have the
-    // stored batchId, re-initialize to create a fresh approval.
     if (
       currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN &&
       !transactionId
     ) {
-      const result = await initPayWithAnyToken();
-      if (result?.success && result.response?.batchId) {
-        batchIdRef.current = result.response.batchId;
-        transactionId = result.response.batchId;
-      }
+      Logger.error(
+        new Error(
+          'usePredictBuyActions: PAY_WITH_ANY_TOKEN transactionId is missing — approval may have been rejected or consumed',
+        ),
+      );
     }
 
     if (currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
@@ -230,7 +229,6 @@ export const usePredictBuyActions = ({
     analyticsProperties,
     preview,
     onApprovalConfirm,
-    initPayWithAnyToken,
   ]);
 
   useEffect(() => {

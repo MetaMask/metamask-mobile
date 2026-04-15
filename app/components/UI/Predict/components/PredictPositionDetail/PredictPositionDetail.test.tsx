@@ -71,6 +71,11 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: jest.fn(),
 }));
 
+const mockLoggerError = jest.fn();
+jest.mock('../../../../../util/Logger', () => ({
+  error: (...args: unknown[]) => mockLoggerError(...args),
+}));
+
 const mockOpenSellSheet = jest.fn();
 jest.mock('../../contexts', () => ({
   usePredictPreviewSheet: () => ({
@@ -357,6 +362,31 @@ describe('PredictPositionDetail', () => {
       }),
     );
     expect(global.__mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('logs error when outcome is not found on cash out', () => {
+    const marketWithNoMatchingOutcome = {
+      ...baseMarket,
+      outcomes: [
+        {
+          ...baseMarket.outcomes[0],
+          id: 'different-outcome-id',
+        },
+      ],
+    };
+    renderComponent({ outcomeId: 'outcome-1' }, marketWithNoMatchingOutcome);
+
+    fireEvent.press(screen.getByText('Cash out'));
+
+    expect(mockOpenSellSheet).not.toHaveBeenCalled();
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        component: 'PredictPositionDetail',
+        positionId: 'pos-1',
+        outcomeId: 'outcome-1',
+      }),
+    );
   });
 
   describe('preview loading and error states', () => {

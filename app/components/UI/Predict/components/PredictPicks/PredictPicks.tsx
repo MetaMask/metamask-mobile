@@ -1,7 +1,14 @@
 import { Box } from '@metamask/design-system-react-native';
-import React from 'react';
+import React, { useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { strings } from '../../../../../../locales/i18n';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import Logger from '../../../../../util/Logger';
 import { usePredictLivePositions } from '../../hooks/usePredictLivePositions';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
@@ -40,6 +47,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
     navigation,
   });
   const { openSellSheet } = usePredictPreviewSheet();
+  const { toastRef } = useContext(ToastContext);
 
   const extendedLeagues = useSelector(selectExtendedSportsMarketsLeagues);
   const usePositionDetail = market.game?.league
@@ -49,21 +57,39 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
   const onCashOut = (position: PredictPosition) => {
     executeGuardedAction(
       () => {
-        const outcome = market?.outcomes.find(
-          (o) => o.id === position.outcomeId,
-        );
-        if (!outcome) {
-          console.warn(
-            `[PredictPicks] outcome not found for position ${position.id} (outcomeId: ${position.outcomeId})`,
+        try {
+          const outcome = market?.outcomes.find(
+            (o) => o.id === position.outcomeId,
           );
-          return;
+          if (!outcome) {
+            throw new Error(
+              `Outcome not found for position ${position.id} (outcomeId: ${position.outcomeId})`,
+            );
+          }
+          openSellSheet({
+            market,
+            position,
+            outcome,
+            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          });
+        } catch (error) {
+          Logger.error(error as Error, {
+            component: 'PredictPicks',
+            positionId: position.id,
+            outcomeId: position.outcomeId,
+          });
+          toastRef?.current?.showToast({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Danger,
+            labelOptions: [
+              {
+                label: strings('predict.order.cashout_failed'),
+                isBold: true,
+              },
+            ],
+            hasNoTimeout: false,
+          });
         }
-        openSellSheet({
-          market,
-          position,
-          outcome,
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
     );

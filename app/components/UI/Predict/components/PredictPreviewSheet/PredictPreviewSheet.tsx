@@ -90,10 +90,12 @@ const PredictPreviewSheet = forwardRef<
                   style={tw.style('w-12 h-12 rounded')}
                 />
               )}
-              <Box twClassName="flex-1 min-w-0">
+              <Box twClassName="flex-1 min-w-0 shrink">
                 <Text
                   variant={TextVariant.HeadingMd}
                   twClassName="text-default"
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
                 >
                   {title}
                 </Text>
@@ -102,6 +104,7 @@ const PredictPreviewSheet = forwardRef<
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
                     twClassName="font-medium"
+                    numberOfLines={1}
                   >
                     {subtitle}
                   </Text>
