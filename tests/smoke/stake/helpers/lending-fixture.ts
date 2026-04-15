@@ -134,30 +134,33 @@ export async function createLendingFixture(
     })
     .withNetworkEnabledMap({ eip155: { [CHAIN_IDS.MAINNET]: true } })
     .withMetaMetricsOptIn()
-    .withTokensForAllPopularNetworks([
-      {
-        address: toChecksumHexAddress(ETH_NATIVE),
-        symbol: 'ETH',
-        decimals: 18,
-        name: 'Ethereum',
-      },
-      {
-        address: toChecksumHexAddress(USDC_MAINNET),
-        symbol: 'USDC',
-        decimals: 6,
-        name: 'USDCoin',
-      },
-      ...(hasExistingPosition
-        ? [
-            {
-              address: toChecksumHexAddress(AAVE_USDC_OUTPUT_TOKEN),
-              symbol: 'aEthUSDC',
-              decimals: 6,
-              name: 'Aave Ethereum USDC',
-            },
-          ]
-        : []),
-    ])
+    .withTokens(
+      [
+        {
+          address: toChecksumHexAddress(ETH_NATIVE),
+          symbol: 'ETH',
+          decimals: 18,
+          name: 'Ethereum',
+        },
+        {
+          address: toChecksumHexAddress(USDC_MAINNET),
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USDCoin',
+        },
+        ...(hasExistingPosition
+          ? [
+              {
+                address: toChecksumHexAddress(AAVE_USDC_OUTPUT_TOKEN),
+                symbol: 'aEthUSDC',
+                decimals: 6,
+                name: 'Aave Ethereum USDC',
+              },
+            ]
+          : []),
+      ],
+      CHAIN_IDS.MAINNET,
+    )
     .withTokenRates(CHAIN_IDS.MAINNET, toChecksumHexAddress(ETH_NATIVE), 3000.0)
     .withTokenRates(
       CHAIN_IDS.MAINNET,

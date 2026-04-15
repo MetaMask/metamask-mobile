@@ -2,6 +2,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNode, LocalNodeType } from '../../framework/types';
 import { loginToApp } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
+import TokensView from '../../page-objects/wallet/TokensView';
 import StakeView from '../../page-objects/Stake/StakeView';
 import EarnLendingView from '../../page-objects/Earn/EarnLendingView';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
@@ -56,14 +57,10 @@ describe(SmokeTrade('Lending Deposit from Wallet'), (): void => {
         await loginToApp();
         await device.disableSynchronization();
         try {
-          await Assertions.expectElementToBeVisible(WalletView.lendingEarnCta, {
-            timeout: 45000,
-            description:
-              'USDC Earn CTA should be visible in token list secondary balance',
-          });
-          await Gestures.waitAndTap(WalletView.lendingEarnCta, {
-            elemDescription: 'USDC lending Earn CTA',
-          });
+          await WalletView.tapOnTokensSection();
+          await TokensView.tapNetworkFilter();
+          await TokensView.tapAllPopularNetworks();
+          await TokensView.tapEarnCta();
 
           await StakeView.enterAmount(DEPOSIT_AMOUNT);
           await StakeView.tapReview(15000);

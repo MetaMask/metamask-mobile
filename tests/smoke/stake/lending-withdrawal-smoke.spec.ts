@@ -2,6 +2,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNode, LocalNodeType } from '../../framework/types';
 import { loginToApp } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
+import TokensView from '../../page-objects/wallet/TokensView';
 import EarnLendingView from '../../page-objects/Earn/EarnLendingView';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
@@ -55,7 +56,10 @@ describe(SmokeTrade('Lending Withdrawal from Wallet'), (): void => {
         await loginToApp();
         await device.disableSynchronization();
         try {
-          await WalletView.tapOnToken('USDCoin');
+          await WalletView.tapOnTokensSection();
+          await TokensView.tapNetworkFilter();
+          await TokensView.tapAllPopularNetworks();
+          await TokensView.tapToken('USDC');
 
           await Assertions.expectElementToBeVisible(
             EarnLendingView.withdrawButton,
