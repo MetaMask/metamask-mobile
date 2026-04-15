@@ -7,6 +7,7 @@ import {
   Caip25CaveatType,
   KnownSessionProperties,
 } from '@metamask/chain-agnostic-permission';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import {
   EthAccountType,
   SolAccountType,
@@ -1659,7 +1660,7 @@ describe('BackgroundBridge', () => {
       bridge.multichainEngine = { emit: jest.fn() };
 
       PermissionController.getCaveat.mockImplementation(() => {
-        throw new Error('no permission');
+        throw new PermissionDoesNotExistError('clientId', 'endowment:caip25');
       });
 
       bridge.handleSessionChangedFromSelectedAccountGroupChanges();
