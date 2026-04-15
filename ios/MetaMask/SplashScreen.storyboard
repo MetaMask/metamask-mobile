@@ -42,8 +42,5 @@
     </scenes>
     <resources>
         <image name="fox-splash-screen" width="1000" height="1000"/>
-        <namedColor name="splashBackground">
-            <color red="0.99999994039535522" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </namedColor>
     </resources>
 </document>
