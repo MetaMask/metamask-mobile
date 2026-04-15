@@ -118,27 +118,56 @@ Only these 3 Detox smoke specs are active (not skipped). The 5 remaining benchma
 ### How to Run
 
 ```bash
-# 1. One-time: build Detox debug app (~15min)
-yarn test:e2e:ios:debug:build
+# 1. One-time: create dedicated Detox simulator
+xcrun simctl create "detox-benchmark" "iPhone 16 Pro"
 
-# 2. Start Metro (needed for agentic recipes)
-yarn start
+# 2. Build both app variants
+yarn test:e2e:ios:debug:build          # e2e build (for Detox)
+yarn a:setup:ios                       # dev build (for agentic, also sets up wallet)
 
-# 3. Run the benchmark (runs Detox specs then agentic recipes sequentially)
+# 3. Run the benchmark
 bash scripts/perps/agentic/run-timing-benchmark.sh
 
-# Custom simulator name (default: "iPhone 16 Pro" from .detoxrc.js)
-bash scripts/perps/agentic/run-timing-benchmark.sh --simulator "mm-2"
-
-# Or via env var
-IOS_SIMULATOR=mm-2 bash scripts/perps/agentic/run-timing-benchmark.sh
+# Override simulators:
+DETOX_SIMULATOR="my-detox" AGENTIC_SIMULATOR="my-dev" \
+  bash scripts/perps/agentic/run-timing-benchmark.sh
 ```
 
-The script appends a timestamped results table below after each run.
+Results are appended to this file after each run.
 
-### Key Differences
+### Dual-Simulator Architecture
 
-- **Detox** times include: app install, launch, fixture setup, mock server startup, test execution, teardown
-- **Agentic** times include: CDP connection, preflight checks, recipe execution, teardown
-- Both use the same simulator and same debug build artifact
-- Runs are sequential (both use the same simulator)
+Detox and agentic recipes require **different app builds and environments**, so the benchmark uses two separate simulators running sequentially:
+
+| | Detox (Phase 1) | Agentic (Phase 2) |
+|---|---|---|
+| **Simulator** | `detox-benchmark` (dedicated, safe to wipe) | `mm-2` (dev environment with real wallet) |
+| **Build** | e2e debug (`yarn test:e2e:ios:debug:build`) | dev debug (via `preflight.sh` / `expo run:ios`) |
+| **Metro port** | 8081 (Detox default) | `WATCHER_PORT` from `.js.env` (e.g. 8062) |
+| **Metro env** | `METAMASK_ENVIRONMENT=e2e` | `METAMASK_ENVIRONMENT=dev` |
+| **Accounts** | Mock (fixture-injected, $10k fake balance) | Real wallet (testnet balance) |
+| **API** | Mock server intercepts all calls | Real Hyperliquid testnet API |
+
+**Why two simulators?** Detox wipes app data (`launchApp({ delete: true })`) before each test. Using a dedicated simulator protects the dev wallet from being destroyed.
+
+### State Isolation
+
+- **Detox**: wipes app data before each test, injects state via fixture server. **Clean-room hermetic** — strong isolation but adds ~10-15s per test for reinstall + fixture load. Key strength for regression confidence.
+- **Agentic**: reuses live app with existing wallet. **Idempotent** via setup/teardown hooks that clean up positions and orders. Faster, but requires pre-configured wallet. Better for rapid iteration and dev-time validation.
+
+
+## Timing Run: Detox Only (2026-04-15)
+
+**Simulator:** mm-2 (iPhone 16 Pro)
+**Build:** Detox debug (ios.sim.main / `__DEV__=true`)
+**Metro:** `METAMASK_ENVIRONMENT=e2e`, `WATCHER_PORT=8062`
+
+| Spec | Detox (s) | Status |
+|------|-----------|--------|
+| perps-position | 117–126 | PASS |
+| perps-position-stop-loss | 113–118 | PASS |
+| perps-limit-long-fill | 109–116 | PASS |
+| **TOTAL** | **~350** | **3/3 PASS** |
+
+Agentic recipes need updating for the redesigned confirmations flow (`perps-amount-display-touchable` → `RedesignedConfirmations` route change). Full side-by-side comparison pending recipe fix.
+
