@@ -40,7 +40,7 @@ const GRADIENT_END = { x: 1, y: 0 };
 const styles = StyleSheet.create({
   gradientContainer: { flexDirection: 'row' },
   gradient: { flex: 1 },
-  row: { width: '100%' },
+  rowPressable: { flex: 1 },
 });
 
 const formatUsd = (value: number) =>
@@ -117,74 +117,80 @@ const TokenRow = ({
   const balanceDisplay = token.balanceInSelectedCurrency;
 
   return (
-    <Pressable onPress={onPress} style={styles.row}>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="px-4 py-3 gap-4"
-      >
-        <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            networkBadgeSource && (
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkBadgeSource}
-              />
-            )
-          }
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="px-4 py-3 gap-4"
+    >
+      <Pressable onPress={onPress} style={styles.rowPressable}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-4"
         >
-          <AssetLogo asset={token} />
-        </BadgeWrapper>
+          <BadgeWrapper
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={
+              networkBadgeSource && (
+                <Badge
+                  variant={BadgeVariant.Network}
+                  imageSource={networkBadgeSource}
+                />
+              )
+            }
+          >
+            <AssetLogo asset={token} />
+          </BadgeWrapper>
 
-        <Box twClassName="flex-1">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
-          >
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {token.symbol}
-            </Text>
-            {hasSubsidizedFee && (
-              <Box twClassName="rounded bg-muted px-1.5">
-                <Text
-                  variant={TextVariant.BodyXs}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('money.potential_earnings.no_fee')}
-                </Text>
-              </Box>
-            )}
-          </Box>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
-          >
-            <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-              {balanceDisplay}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.SuccessDefault}
+          <Box twClassName="flex-1">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-1"
             >
-              {`+${projected}`}
-            </Text>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {token.symbol}
+              </Text>
+              {hasSubsidizedFee && (
+                <Box twClassName="rounded bg-muted px-1.5">
+                  <Text
+                    variant={TextVariant.BodyXs}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('money.potential_earnings.no_fee')}
+                  </Text>
+                </Box>
+              )}
+            </Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-1"
+            >
+              <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+                {balanceDisplay}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.SuccessDefault}
+              >
+                {`+${projected}`}
+              </Text>
+            </Box>
           </Box>
         </Box>
+      </Pressable>
 
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Md}
-          onPress={onPress}
-        >
-          {strings('money.potential_earnings.convert')}
-        </Button>
-      </Box>
-    </Pressable>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Md}
+        onPress={onPress}
+      >
+        {strings('money.potential_earnings.convert')}
+      </Button>
+    </Box>
   );
 };
 

@@ -85,6 +85,8 @@ jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
     ),
   };
 });
+jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
 jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
   NetworkBadgeSource: jest.fn(() => null),
 }));
