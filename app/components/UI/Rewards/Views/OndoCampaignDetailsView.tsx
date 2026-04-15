@@ -53,6 +53,9 @@ import {
   ONDO_GM_REQUIRED_QUALIFIED_DAYS,
   isCampaignIneligible,
 } from '../utils/ondoCampaignConstants';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -67,6 +70,7 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
   const { campaignId } = route.params;
@@ -111,6 +115,11 @@ const OndoCampaignDetailsView: React.FC = () => {
     status: participantStatusData,
     isLoading: isParticipantStatusLoading,
   } = useGetCampaignParticipantStatus(campaignId);
+
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_detail',
+    campaign_id: campaignId,
+  });
 
   useEffect(() => {
     if (campaign && getCampaignStatus(campaign) === 'upcoming') {
@@ -223,7 +232,7 @@ const OndoCampaignDetailsView: React.FC = () => {
         !hasPositions &&
         getCampaignStatus(campaign) === 'active',
       showStatsSummarySection: hasPositions,
-      showPortfolioSection: isOptedIn,
+      showPortfolioSection: isOptedIn && hasPositions,
       showLeaderboardSection: true,
     };
   }, [campaign, isOptedIn, hasPositions]);
@@ -343,14 +352,25 @@ const OndoCampaignDetailsView: React.FC = () => {
                       isIneligible={notEligibleForCampaign}
                       onQualifyPress={
                         leaderboardPendingSheetPosition
-                          ? () =>
+                          ? () => {
+                              trackEvent(
+                                createEventBuilder(
+                                  MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+                                )
+                                  .addProperties({
+                                    button_type:
+                                      'ondo_campaign_qualify_for_rank',
+                                  })
+                                  .build(),
+                              );
                               navigation.navigate(
                                 Routes.MODAL.REWARDS_ONDO_PENDING_SHEET,
                                 {
                                   variant: 'own',
                                   ...leaderboardPendingSheetPosition,
                                 },
-                              )
+                              );
+                            }
                           : undefined
                       }
                     />
@@ -403,27 +423,26 @@ const OndoCampaignDetailsView: React.FC = () => {
                 </>
               )}
 
-              {(getCampaignStatus(campaign) === 'active' ||
-                showLeaderboardSection) && (
-                <Box twClassName="my-1 border-b border-border-muted" />
-              )}
-
               {getCampaignStatus(campaign) === 'active' && (
-                <Box twClassName="p-4">
-                  <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
-                    {strings('rewards.ondo_campaign_prize_pool.title')}
-                  </Text>
-                  <OndoPrizePool
-                    totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
-                    isLoading={isDepositsLoading}
-                    hasError={hasDepositsError}
-                    refetch={refetchDeposits}
-                  />
-                </Box>
+                <>
+                  <Box twClassName="my-1 border-b border-border-muted" />
+                  <Box twClassName="p-4">
+                    <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
+                      {strings('rewards.ondo_campaign_prize_pool.title')}
+                    </Text>
+                    <OndoPrizePool
+                      totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
+                      isLoading={isDepositsLoading}
+                      hasError={hasDepositsError}
+                      refetch={refetchDeposits}
+                    />
+                  </Box>
+                </>
               )}
 
               {showLeaderboardSection && (
                 <>
+                  <Box twClassName="my-1 border-b border-border-muted" />
                   <Box twClassName="py-4">
                     <Pressable
                       onPress={() =>
@@ -464,6 +483,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       currentUserReferralCode={referralCode}
                       userPosition={leaderboardUserPosition}
                       pendingSheetPosition={leaderboardPendingSheetPosition}
+                      campaignId={campaignId}
                     />
                   </Box>
                 </>

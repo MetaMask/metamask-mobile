@@ -148,31 +148,41 @@ describe('CampaignStatsSummary', () => {
     ).toBeDefined();
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
-    ).toBe('+15.20%');
+    ).toBe('+7.01%');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.children,
     ).toBe('$13,057.58');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
-    ).toBe('5');
+    ).toBe('05');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER).props.children,
     ).toBe('Silver');
   });
 
-  it('displays dash for return, rank, and tier when leaderboard position is null', () => {
+  it('displays dash for rank and tier when leaderboard position is null but return from portfolio', () => {
     const { getByTestId } = render(
       <CampaignStatsSummary {...baseProps} leaderboardPosition={null} />,
     );
 
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
-    ).toBe('-');
+    ).toBe('+7.01%');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
     ).toBe('-');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER).props.children,
+    ).toBe('-');
+  });
+
+  it('displays dash for return when portfolio summary is null', () => {
+    const { getByTestId } = render(
+      <CampaignStatsSummary {...baseProps} portfolioSummary={null} />,
+    );
+
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
     ).toBe('-');
   });
 
@@ -186,7 +196,7 @@ describe('CampaignStatsSummary', () => {
     ).toBe('-');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
-    ).toBe('5');
+    ).toBe('05');
   });
 
   it('uses error color for market value when portfolioPnl is negative, regardless of leaderboard position', () => {
@@ -227,16 +237,16 @@ describe('CampaignStatsSummary', () => {
     ).toBe('-');
   });
 
-  it('handles negative rate of return', () => {
-    const negativePosition: CampaignLeaderboardPositionDto = {
-      ...MOCK_POSITION,
-      rateOfReturn: -0.05,
+  it('handles negative rate of return from portfolio', () => {
+    const negativeSummary: OndoGmPortfolioSummaryDto = {
+      ...MOCK_SUMMARY,
+      portfolioPnlPercent: '-0.05',
     };
 
     const { getByTestId } = render(
       <CampaignStatsSummary
         {...baseProps}
-        leaderboardPosition={negativePosition}
+        portfolioSummary={negativeSummary}
       />,
     );
 
@@ -315,10 +325,10 @@ describe('CampaignStatsSummary', () => {
       />,
     );
 
-    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeNull();
+    // Return and market value still render since portfolio is fine
+    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeDefined();
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK)).toBeNull();
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER)).toBeNull();
-    // Market value still renders since portfolio is fine
     expect(
       queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
     ).toBeDefined();
@@ -334,10 +344,10 @@ describe('CampaignStatsSummary', () => {
 
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
-    ).toBe('+15.20%');
+    ).toBe('+7.01%');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
-    ).toBe('5');
+    ).toBe('05');
   });
 
   // ── Portfolio loading ─────────────────────────────────────────────
@@ -354,8 +364,9 @@ describe('CampaignStatsSummary', () => {
     expect(
       queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
     ).toBeNull();
+    // Return also shows skeleton since it now comes from portfolio
+    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeNull();
     // Leaderboard cells still render
-    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeDefined();
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK)).toBeDefined();
   });
 
