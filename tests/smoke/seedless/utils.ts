@@ -16,6 +16,9 @@ import LoginView from '../../page-objects/wallet/LoginView';
 import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
 import SettingsView from '../../page-objects/Settings/SettingsView';
 import ForgotPasswordModal from '../../page-objects/Common/ForgotPasswordModalView';
+import ProtectYourWalletModal from '../../page-objects/Onboarding/ProtectYourWalletModal';
+import SkipAccountSecurityModal from '../../page-objects/Onboarding/SkipAccountSecurityModal';
+import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import { loginToApp } from '../../flows/wallet.flow';
 
 export const TEST_PASSWORD = 'Test123!@#';
@@ -93,6 +96,35 @@ export const completeSocialLoginOnboarding = async (
     await OnboardingSuccessView.tapDone();
   } catch {
     // May go directly to home in some flows
+  }
+
+  try {
+    await Assertions.expectElementToBeVisible(
+      ProtectYourWalletModal.collapseWalletModal,
+      {
+        description: 'Protect Your Wallet modal',
+        timeout: 10000,
+      },
+    );
+    await ProtectYourWalletModal.tapRemindMeLaterButton();
+    await SkipAccountSecurityModal.proceedWithoutWalletSecure();
+  } catch {
+    // Modal may not appear in all flows
+  }
+
+  try {
+    await Assertions.expectElementToBeVisible(
+      asDetoxElement(PredictModalView.notNowButton),
+      {
+        description: 'Predict GTM modal',
+        timeout: 10000,
+      },
+    );
+    await Gestures.waitAndTap(asDetoxElement(PredictModalView.notNowButton), {
+      elemDescription: 'Predict Not Now Button',
+    });
+  } catch {
+    // Predict modal may not appear in all flows
   }
 
   await Assertions.expectElementToBeVisible(WalletView.container, {
@@ -173,4 +205,13 @@ export const resetWallet = async (): Promise<void> => {
     description: 'Onboarding screen should be visible after wallet reset',
     timeout: 30000,
   });
+};
+
+/**
+ * Locks the app and resets the wallet so the next screen is onboarding again.
+ * Use after a successful seedless registration to re-enter Create wallet with the same mock email.
+ */
+export const lockAndResetWalletToOnboarding = async (): Promise<void> => {
+  await lockApp();
+  await resetWallet();
 };

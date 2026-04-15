@@ -52,18 +52,6 @@ export const E2EOAuthHelpers = {
     };
   },
 
-  /**
-   * Configure for Google Existing User flow
-   */
-  configureGoogleExistingUser: (): void => {
-    currentConfig = {
-      loginProvider: E2ELoginProvider.GOOGLE,
-      scenario: E2EScenario.EXISTING_USER,
-      email: E2E_EMAILS.GOOGLE_EXISTING_USER,
-      shouldSucceed: true,
-    };
-  },
-
   // ============================================
   // APPLE CONFIGURATION
   // ============================================
@@ -76,18 +64,6 @@ export const E2EOAuthHelpers = {
       loginProvider: E2ELoginProvider.APPLE,
       scenario: E2EScenario.NEW_USER,
       email: E2E_EMAILS.APPLE_NEW_USER,
-      shouldSucceed: true,
-    };
-  },
-
-  /**
-   * Configure for Apple Existing User flow
-   */
-  configureAppleExistingUser: (): void => {
-    currentConfig = {
-      loginProvider: E2ELoginProvider.APPLE,
-      scenario: E2EScenario.EXISTING_USER,
-      email: E2E_EMAILS.APPLE_EXISTING_USER,
       shouldSucceed: true,
     };
   },

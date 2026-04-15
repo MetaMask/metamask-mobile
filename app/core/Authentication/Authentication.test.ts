@@ -1218,7 +1218,7 @@ describe('Authentication', () => {
         }
       });
 
-      it('skips createAndBackupSeedPhrase for OAuth when E2E_MOCK_OAUTH is true', async () => {
+      it('calls createAndBackupSeedPhrase for OAuth even when E2E_MOCK_OAUTH is true', async () => {
         mockIsE2EMockOAuth.mockReturnValue(true);
 
         const mockDispatchLocal = jest.fn();
@@ -1241,8 +1241,8 @@ describe('Authentication', () => {
           oauth2Login: true,
         });
 
-        expect(createWalletSpy).toHaveBeenCalledWith('password');
-        expect(backupSpy).not.toHaveBeenCalled();
+        expect(backupSpy).toHaveBeenCalledWith('password');
+        expect(createWalletSpy).not.toHaveBeenCalled();
 
         createWalletSpy.mockRestore();
         backupSpy.mockRestore();

@@ -31,17 +31,28 @@ function getMockGoogleOAuthClientId(): string {
 
 /**
  * Get the E2E mock email.
+ * The generated email is cached so the same identity is used across
+ * multiple login calls within a single app session
  */
+let cachedE2EMockEmail: string | null = null;
+
 function getE2EMockEmail(): string {
+  if (cachedE2EMockEmail) {
+    console.log('[E2E Mock] Using cached email:', cachedE2EMockEmail);
+    return cachedE2EMockEmail;
+  }
+
   const raw = LaunchArguments.value() as Record<string, unknown>;
   const launchArgEmail = raw?.mockOAuthEmail;
   if (typeof launchArgEmail === 'string' && launchArgEmail.length > 0) {
     console.log('[E2E Mock] Using email from launchArgs:', launchArgEmail);
+    cachedE2EMockEmail = launchArgEmail;
     return launchArgEmail;
   }
   const rand = QuickCrypto.randomBytes(4).toString('hex').slice(0, 8);
   const randomEmail = `${rand}${Date.now()}+e2e@web3auth.io`;
   console.log('[E2E Mock] Generated random email:', randomEmail);
+  cachedE2EMockEmail = randomEmail;
   return randomEmail;
 }
 

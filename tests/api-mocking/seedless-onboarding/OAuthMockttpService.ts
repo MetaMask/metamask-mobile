@@ -100,19 +100,6 @@ export class OAuthMockttpService {
   }
 
   /**
-   * Configure for Apple Existing User flow
-   * @returns this for method chaining
-   */
-  configureAppleExistingUser(): this {
-    this.config = {
-      loginProvider: E2ELoginProvider.APPLE,
-      scenario: E2EScenario.EXISTING_USER,
-      email: E2E_EMAILS.APPLE_EXISTING_USER,
-    };
-    return this;
-  }
-
-  /**
    * Configure for error scenario
    * @param errorType - Type of error to simulate
    * @returns this for method chaining
@@ -355,7 +342,6 @@ export class OAuthMockttpService {
           };
         } catch (error) {
           console.error('[E2E] Error proxying to backend QA mock:', error);
-          // Fallback to local mock tokens on network error
           console.log('[E2E] Using fallback mock tokens due to network error');
           const tokens = this.generateMockAuthResponse();
           return {
