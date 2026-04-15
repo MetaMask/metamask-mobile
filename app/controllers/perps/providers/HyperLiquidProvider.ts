@@ -5429,38 +5429,99 @@ export class HyperLiquidProvider implements PerpsProvider {
         params?.accountId,
       );
 
-      // HyperLiquid API requires startTime to be a number (not undefined)
-      // Default to configured days ago to get recent funding payments
-      // Using 0 (epoch) would return oldest 500 records, missing latest payments
-      const defaultStartTime =
-        Date.now() -
-        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.DEFAULT_FUNDING_HISTORY_DAYS *
-          24 *
-          60 *
-          60 *
-          1000;
-      const rawFunding = await infoClient.userFunding({
-        user: userAddress,
-        startTime: params?.startTime ?? defaultStartTime,
-        endTime: params?.endTime,
+      // On-demand loading: the default window is one 30-day page so the
+      // initial fetch costs exactly 1 API call (~24 weight vs 312 previously).
+      // When loadMoreFunding in usePerpsTransactionHistory passes explicit
+      // startTime/endTime for an older 30-day page the while-loop below still
+      // produces exactly 1 chunk. The 365-day max lookback is enforced by the
+      // caller.
+      //
+      // Each chunk is fetched via fetchWindowWithAutoSplit: if a call returns
+      // FUNDING_HISTORY_API_LIMIT records the window has hit the API cap and
+      // the oldest records would be silently dropped. The function splits the
+      // window in half and recurses until every sub-window is under the cap,
+      // guaranteeing complete results regardless of position count or activity.
+      const finalEndTime = params?.endTime ?? Date.now();
+      const pageWindowMs =
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_PAGE_WINDOW_DAYS *
+        24 *
+        60 *
+        60 *
+        1000;
+      const finalStartTime = params?.startTime ?? finalEndTime - pageWindowMs; // Default: most recent 30-day window only
+
+      const minSplitWindowMs =
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.MIN_SPLIT_WINDOW_MS;
+      const apiLimit =
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_API_LIMIT;
+
+      // Fetches a single window. If the result hits the API cap the window is
+      // split in half and both halves are fetched in parallel, recursively,
+      // until every sub-window is under the cap.
+      const fetchWindowWithAutoSplit = async (
+        windowStart: number,
+        windowEnd: number,
+      ): Promise<Awaited<ReturnType<typeof infoClient.userFunding>>> => {
+        const result = await infoClient.userFunding({
+          user: userAddress,
+          startTime: windowStart,
+          endTime: windowEnd,
+        });
+        const records = result ?? [];
+        if (
+          records.length >= apiLimit &&
+          windowEnd - windowStart > minSplitWindowMs
+        ) {
+          const mid = windowStart + Math.floor((windowEnd - windowStart) / 2);
+          const [left, right] = await Promise.all([
+            fetchWindowWithAutoSplit(windowStart, mid),
+            fetchWindowWithAutoSplit(mid, windowEnd),
+          ]);
+          return [...(left ?? []), ...(right ?? [])];
+        }
+        return records;
+      };
+
+      const chunks: { start: number; end: number }[] = [];
+      let chunkEnd = finalEndTime;
+      while (chunkEnd > finalStartTime) {
+        const chunkStart = Math.max(finalStartTime, chunkEnd - pageWindowMs);
+        chunks.push({ start: chunkStart, end: chunkEnd });
+        chunkEnd = chunkStart;
+      }
+
+      const pages = await Promise.all(
+        chunks.map((chunk) => fetchWindowWithAutoSplit(chunk.start, chunk.end)),
+      );
+
+      // Deduplicate at chunk boundaries — adjacent windows share their boundary
+      // timestamp (chunkEnd of N === chunkStart of N+1) and the API is
+      // inclusive on both sides, so a record can appear in both adjacent calls.
+      // Funding records share a zero hash, so we key on time + coin instead.
+      const seen = new Set<string>();
+      const allRaw = pages.flat().filter((record) => {
+        const key = `${record.time}-${record.delta.coin}`;
+        if (seen.has(key)) {
+          return false;
+        }
+        seen.add(key);
+        return true;
       });
+      allRaw.sort((a, b) => a.time - b.time);
 
       this.#deps.debugLogger.log('User funding received:', {
-        count: rawFunding?.length ?? 0,
+        count: allRaw.length,
+        chunks: chunks.length,
       });
 
       // Transform HyperLiquid funding to abstract Funding type
-      const funding: Funding[] = (rawFunding || []).map((rawFundingItem) => {
-        const { delta, hash, time } = rawFundingItem;
-
-        return {
-          symbol: delta.coin,
-          amountUsd: delta.usdc,
-          rate: delta.fundingRate,
-          timestamp: time,
-          transactionHash: hash,
-        };
-      });
+      const funding: Funding[] = allRaw.map(({ delta, hash, time }) => ({
+        symbol: delta.coin,
+        amountUsd: delta.usdc,
+        rate: delta.fundingRate,
+        timestamp: time,
+        transactionHash: hash,
+      }));
 
       return funding;
     } catch (error) {

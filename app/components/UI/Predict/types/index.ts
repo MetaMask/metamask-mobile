@@ -110,6 +110,7 @@ export type PredictMarket = {
   category: PredictCategory;
   tags: string[];
   outcomes: PredictOutcome[];
+  outcomeGroups?: PredictOutcomeGroup[];
   liquidity: number;
   volume: number;
   game?: PredictMarketGame;
@@ -259,6 +260,12 @@ export interface CryptoPriceUpdate {
   timestamp: number;
 }
 
+export type PredictOutcomeGroup = {
+  key: string;
+  outcomes: PredictOutcome[];
+  subgroups?: PredictOutcomeGroup[];
+};
+
 export type PredictOutcome = {
   id: string;
   providerId: string;
@@ -269,17 +276,14 @@ export type PredictOutcome = {
   status: 'open' | 'closed' | 'resolved';
   tokens: PredictOutcomeToken[];
   volume: number;
+  liquidity?: number;
   groupItemTitle: string;
   groupItemThreshold?: number;
   negRisk?: boolean;
   tickSize?: string;
+  sportsMarketType?: string;
   resolvedBy?: string;
   resolutionStatus?: string;
-};
-
-export type PredictOutcomeGroup = {
-  key: string;
-  outcomes: PredictOutcome[];
 };
 
 export type PredictOutcomeToken = {

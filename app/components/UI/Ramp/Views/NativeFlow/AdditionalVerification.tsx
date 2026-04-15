@@ -15,10 +15,9 @@ import { useNavigation } from '@react-navigation/native';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import additionalVerificationImage from '../../Deposit/assets/additional-verification.png';
 import { strings } from '../../../../../../locales/i18n';
+import { type TransakBuyQuote } from '@metamask/ramps-controller';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import type { TransakBuyQuote } from '@metamask/ramps-controller';
-
 interface V2AdditionalVerificationParams {
   quote: TransakBuyQuote;
   kycUrl: string;
@@ -29,8 +28,12 @@ interface V2AdditionalVerificationParams {
 
 const V2AdditionalVerification = () => {
   const navigation = useNavigation();
-  const { kycUrl, amount: userEnteredAmount } =
-    useParams<V2AdditionalVerificationParams>();
+  const {
+    quote,
+    kycUrl,
+    workFlowRunId,
+    amount: userEnteredAmount,
+  } = useParams<V2AdditionalVerificationParams>();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
@@ -49,8 +52,13 @@ const V2AdditionalVerification = () => {
   }, [navigation, theme]);
 
   const handleContinuePress = useCallback(() => {
-    navigateToKycWebview({ kycUrl, amount: userEnteredAmount });
-  }, [navigateToKycWebview, kycUrl, userEnteredAmount]);
+    navigateToKycWebview({
+      quote,
+      kycUrl,
+      workFlowRunId,
+      amount: userEnteredAmount,
+    });
+  }, [navigateToKycWebview, quote, kycUrl, workFlowRunId, userEnteredAmount]);
 
   return (
     <ScreenLayout>

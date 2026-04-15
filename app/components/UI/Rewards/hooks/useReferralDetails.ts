@@ -12,7 +12,11 @@ import type { SubscriptionSeasonReferralDetailState } from '../../../../core/Eng
 import { useFocusEffect } from '@react-navigation/native';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
-export const useReferralDetails = (): {
+export const useReferralDetails = ({
+  fetchOnMount = true,
+}: {
+  fetchOnMount?: boolean;
+} = {}): {
   fetchReferralDetails: () => Promise<void>;
 } => {
   const dispatch = useDispatch();
@@ -60,21 +64,25 @@ export const useReferralDetails = (): {
 
   useFocusEffect(
     useCallback(() => {
+      if (!fetchOnMount) {
+        return;
+      }
       fetchReferralDetails();
-    }, [fetchReferralDetails]),
+    }, [fetchReferralDetails, fetchOnMount]),
   );
 
   const invalidateEvents = useMemo(
     () =>
-      [
-        'RewardsController:accountLinked',
-        'RewardsController:rewardClaimed',
-        'RewardsController:balanceUpdated',
-      ] as const,
-    [],
+      fetchOnMount
+        ? [
+            'RewardsController:accountLinked' as const,
+            'RewardsController:rewardClaimed' as const,
+            'RewardsController:balanceUpdated' as const,
+          ]
+        : [],
+    [fetchOnMount],
   );
 
-  // Listen for events that should trigger a refetch of referral details
   useInvalidateByRewardEvents(invalidateEvents, fetchReferralDetails);
 
   return { fetchReferralDetails };

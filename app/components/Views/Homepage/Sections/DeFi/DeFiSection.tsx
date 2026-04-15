@@ -96,20 +96,21 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
-    // Always pass sectionViewRef once loading is done so the viewport check
-    // decides when to fire. When the section returns null (empty, no error),
-    // sectionViewRef.current is null and the viewport check returns early —
-    // no premature immediate fire via the null path.
-    const willRender = !isLoading;
+    // Only attach a ref when this section mounts a root View (loading skeleton,
+    // error UI, or positions). When empty after load we return null — pass null
+    // here and disable the hook's immediate-fire path so HOME_VIEWED is not sent.
+    const sectionMountsVisibleRoot =
+      isDeFiEnabled && !(isEmpty && !hasError && !isLoading);
 
     const { onLayout } = useHomeViewedEvent({
-      sectionRef: willRender ? sectionViewRef : null,
+      sectionRef: sectionMountsVisibleRoot ? sectionViewRef : null,
       isLoading,
       sectionName: HomeSectionNames.DEFI,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: isEmpty || hasError || !isDeFiEnabled,
       itemCount: isEmpty ? 0 : positions.length,
+      fireImmediateWhenNoView: false,
     });
 
     useSectionPerformance({
