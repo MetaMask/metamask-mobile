@@ -80,7 +80,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
       }
 
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
+        await asPlaywrightElement(WalletView.tokensSection),
       );
 
       const screen1Timer = new TimerHelper(

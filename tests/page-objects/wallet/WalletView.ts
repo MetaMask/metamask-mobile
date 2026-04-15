@@ -779,8 +779,8 @@ class WalletView {
             WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens'),
           ),
         ios: () =>
-          PlaywrightMatchers.getElementByIOSPredicate(
-            `identifier == "${WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}"`,
+          PlaywrightMatchers.getElementByAccessibilityId(
+            `${WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}`,
           ),
       },
     });

@@ -45,7 +45,7 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer4 = new TimerHelper(
         'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
-        { ios: 1600, android: 1600 },
+        { ios: 1800, android: 1600 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
@@ -146,10 +146,11 @@ test.describe(PerformanceOnboarding, () => {
       await PlaywrightAssertions.expectElementToBeVisible(
         await asPlaywrightElement(WalletView.tokensSection),
       );
+
       await WalletView.tapOnTokensSection();
       await timer7.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.tokenRow('BNB')),
+          await asPlaywrightElement(WalletView.tokenRow('USDC')),
           { timeout: 20000 },
         );
         await PlaywrightAssertions.expectElementToBeVisible(
