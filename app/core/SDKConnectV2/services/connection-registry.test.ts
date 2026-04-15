@@ -302,7 +302,6 @@ describe('ConnectionRegistry', () => {
       expect(trackedEvent.properties).toEqual(
         expect.objectContaining({
           remote_session_id: 'mock-conn-id',
-          platform: 'mobile',
           transport_type: TransportType.MWP,
           found_in_store: true,
         }),
@@ -332,7 +331,6 @@ describe('ConnectionRegistry', () => {
         expect(trackedEvent.properties).toEqual(
           expect.objectContaining({
             remote_session_id: 'mock-conn-id',
-            platform: 'mobile',
             transport_type: TransportType.MWP,
             found_in_store: false,
           }),
@@ -441,7 +439,6 @@ describe('ConnectionRegistry', () => {
       expect(trackedEvent.properties).toEqual(
         expect.objectContaining({
           remote_session_id: mockConnectionRequest.sessionRequest.id,
-          platform: 'mobile',
           transport_type: TransportType.MWP,
           sdk_version: '2.0.0',
           sdk_platform: 'JavaScript',
@@ -585,7 +582,6 @@ describe('ConnectionRegistry', () => {
       expect(failedEvent.properties).toEqual(
         expect.objectContaining({
           remote_session_id: mockConnectionRequest.sessionRequest.id,
-          platform: 'mobile',
           transport_type: TransportType.MWP,
           failure_reason: 'Connection failed',
         }),
