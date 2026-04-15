@@ -30,6 +30,7 @@ const Routes = {
     BANK_DETAILS: 'RampBankDetails',
     BANK_DETAILS_STANDALONE: 'RampBankDetailsStandalone',
     ADDITIONAL_VERIFICATION: 'RampAdditionalVerification',
+    KYC_WEBVIEW: 'RampKycWebview',
     ENTER_ADDRESS: 'RampEnterAddress',
     MODALS: {
       ID: 'RampModals',
@@ -48,6 +49,8 @@ const Routes = {
       ERROR_DETAILS: 'RampErrorDetailsModal',
       PROCESSING_INFO: 'RampProcessingInfoModal',
       SSN_INFO: 'RampSsnInfoModal',
+      STATE_SELECTOR: 'RampStateSelectorModal',
+      UNSUPPORTED_STATE: 'RampUnsupportedStateModal',
     },
   },
   DEPOSIT: {
@@ -351,6 +354,7 @@ const Routes = {
     ROOT: 'SocialLeaderboard',
     VIEW: 'TopTradersView',
     PROFILE: 'TraderProfileView',
+    POSITION: 'TraderPositionView',
   },
   PREDICT: {
     ROOT: 'Predict',

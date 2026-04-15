@@ -401,7 +401,8 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.campaigns_view.error_description': 'Please try again.',
       'rewards.campaigns_view.retry_button': 'Retry',
       'rewards.campaign_details.join_campaign': 'Join Campaign',
-      'rewards.campaign_details.ondo.open_position': 'Open Position',
+      'rewards.campaign_details.open_position': 'Open Position',
+      'rewards.campaign_details.swap_ondo_assets': 'Swap Ondo Assets',
       'rewards.campaign_details.ondo.entries_closed_title': 'Entries closed',
       'rewards.campaign_details.ondo.entries_closed_description':
         'You missed the opt-in window. Check back for more campaigns in the future.',
@@ -738,7 +739,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(getByText('Open Position')).toBeDefined();
     });
 
-    it('renders "Open Position" CTA when participant is opted in with positions', () => {
+    it('renders "Swap Ondo Assets" CTA when participant is opted in with positions', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
@@ -758,7 +759,7 @@ describe('OndoCampaignDetailsView', () => {
       });
       const { getByTestId, getByText } = render(<OndoCampaignDetailsView />);
       expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
-      expect(getByText('Open Position')).toBeDefined();
+      expect(getByText('Swap Ondo Assets')).toBeDefined();
     });
 
     it('hides the CTA while participant status is loading', () => {
@@ -965,11 +966,17 @@ describe('OndoCampaignDetailsView', () => {
         ...hookDefaults,
         campaigns: [createTestCampaign()],
       });
-      // Opted-in so the portfolio mock triggers onOpenAccountPicker
       mockUseGetCampaignParticipantStatus.mockReturnValue({
         status: { optedIn: true, participantCount: 1 },
         isLoading: false,
         hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
         refetch: jest.fn(),
       });
       const { getByTestId, queryByTestId } = render(
@@ -1051,6 +1058,112 @@ describe('OndoCampaignDetailsView', () => {
     });
   });
 
+  describe('ineligible state — isIneligible prop passed to CampaignStatsSummary', () => {
+    const setupWithPositions = () => {
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: jest.fn(),
+      });
+    };
+
+    it('passes isIneligible=true when campaign ends in fewer than 10 days', () => {
+      const now = new Date();
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const endDate = new Date(now);
+      endDate.setDate(endDate.getDate() + 5); // only 6 days available
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: yesterday.toISOString(),
+            endDate: endDate.toISOString(),
+          }),
+        ],
+      });
+      setupWithPositions();
+      render(<OndoCampaignDetailsView />);
+      expect(mockCampaignStatsSummary).toHaveBeenCalledWith(
+        expect.objectContaining({ isIneligible: true }),
+      );
+    });
+
+    it('passes isIneligible=false when campaign has 10 or more days remaining', () => {
+      const now = new Date();
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const endDate = new Date(now);
+      endDate.setDate(endDate.getDate() + 20); // 21 days available
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: yesterday.toISOString(),
+            endDate: endDate.toISOString(),
+          }),
+        ],
+      });
+      setupWithPositions();
+      render(<OndoCampaignDetailsView />);
+      expect(mockCampaignStatsSummary).toHaveBeenCalledWith(
+        expect.objectContaining({ isIneligible: false }),
+      );
+    });
+
+    it('passes isIneligible=false when user is already qualified', () => {
+      const now = new Date();
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const endDate = new Date(now);
+      endDate.setDate(endDate.getDate() + 5); // only 6 days — would be ineligible
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: yesterday.toISOString(),
+            endDate: endDate.toISOString(),
+          }),
+        ],
+      });
+      setupWithPositions();
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: {
+          rank: 1,
+          projectedTier: 'MID',
+          qualified: true,
+          qualifiedDays: 10,
+          totalInTier: 50,
+          rateOfReturn: 0.1,
+          currentUsdValue: 5000,
+          totalUsdDeposited: 5000,
+          netDeposit: 5000,
+          neighbors: [],
+          computedAt: '2024-01-01T00:00:00Z',
+        },
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: jest.fn(),
+      });
+      render(<OndoCampaignDetailsView />);
+      expect(mockCampaignStatsSummary).toHaveBeenCalledWith(
+        expect.objectContaining({ isIneligible: false }),
+      );
+    });
+  });
+
   describe('not-eligible sheet', () => {
     it('shows OndoNotEligibleSheet when portfolio triggers onNotEligible', () => {
       mockUseRewardCampaigns.mockReturnValue({
@@ -1061,6 +1174,13 @@ describe('OndoCampaignDetailsView', () => {
         status: { optedIn: true, participantCount: 1 },
         isLoading: false,
         hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
         refetch: jest.fn(),
       });
       const { getByTestId } = render(<OndoCampaignDetailsView />);
@@ -1077,6 +1197,13 @@ describe('OndoCampaignDetailsView', () => {
         status: { optedIn: true, participantCount: 1 },
         isLoading: false,
         hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
         refetch: jest.fn(),
       });
       const { getByTestId, queryByTestId } = render(

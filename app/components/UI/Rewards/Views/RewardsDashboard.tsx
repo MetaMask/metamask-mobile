@@ -205,7 +205,7 @@ const RewardsDashboard: React.FC = () => {
           showsVerticalScrollIndicator={false}
           style={tw.style('flex-1')}
         >
-          <Box twClassName="gap-4">
+          <Box twClassName="gap-3">
             <CampaignsPreview />
             <EarnRewardsPreview />
             <BenefitsPreview />
