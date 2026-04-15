@@ -12,6 +12,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -101,24 +102,25 @@ export const usePredictPreviewSheet = (): PredictPreviewSheetContextValue => {
   const ctx = useContext(PredictPreviewSheetContext);
   const navigation = useNavigation();
 
-  if (ctx) {
-    return ctx;
-  }
+  const fallback = useMemo(
+    () => ({
+      openBuySheet: (params: PredictBuyPreviewParams) => {
+        navigation.navigate(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params,
+        });
+      },
+      openSellSheet: (params: PredictSellPreviewParams) => {
+        navigation.navigate(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+          params,
+        });
+      },
+    }),
+    [navigation],
+  );
 
-  return {
-    openBuySheet: (params: PredictBuyPreviewParams) => {
-      navigation.navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-        params,
-      });
-    },
-    openSellSheet: (params: PredictSellPreviewParams) => {
-      navigation.navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-        params,
-      });
-    },
-  };
+  return ctx ?? fallback;
 };
 
 interface PredictPreviewSheetProviderProps {
