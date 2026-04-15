@@ -37,11 +37,15 @@ const mockUseOHLCVChart = jest.fn().mockReturnValue({
   ohlcvData: [
     { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
     { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+    { time: 3000, open: 105, high: 107, low: 104, close: 106, volume: 1 },
+    { time: 4000, open: 106, high: 108, low: 105, close: 107, volume: 1 },
+    { time: 5000, open: 107, high: 109, low: 106, close: 108, volume: 1 },
   ],
   isLoading: false,
   error: undefined,
   hasMore: false,
   nextCursor: null,
+  hasEmptyData: false,
 });
 
 jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
@@ -140,6 +144,7 @@ describe('Price Component', () => {
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      hasEmptyData: false,
     });
     const { queryByTestId } = renderWithProviders(
       <Price {...unifiedProps} isLoading={false} />,
