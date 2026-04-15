@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.73.0]
 
+### Uncategorized
+
+- fix ota version (#28769)
+- chore:cherry pick 28490 (#28556)
+- chore: cherry pick 28423 (#28540)
+- cherry pick 28368 (#28535)
+- chore: use push EAS directly (#28362) (#28362)
+- Null (#28510)
+
+---
+
 ### Added
 
 - Added runway production workflows (#27887)
@@ -11216,7 +11227,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.73.0...HEAD
 [7.73.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.1...v7.73.0
 [7.72.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.0...v7.72.1
 [7.72.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.1...v7.72.0
