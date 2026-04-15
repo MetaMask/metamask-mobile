@@ -3,7 +3,7 @@ import {
   MultichainBalancesControllerState,
   MultichainBalancesControllerMessenger,
 } from '@metamask/assets-controllers';
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 
 /**
  * Initialize the MultichainBalancesController.
@@ -11,7 +11,7 @@ import type { ControllerInitFunction } from '../../types';
  * @param request - The request object.
  * @returns The MultichainBalancesController.
  */
-export const multichainBalancesControllerInit: ControllerInitFunction<
+export const multichainBalancesControllerInit: MessengerClientInitFunction<
   MultichainBalancesController,
   MultichainBalancesControllerMessenger
 > = (request) => {

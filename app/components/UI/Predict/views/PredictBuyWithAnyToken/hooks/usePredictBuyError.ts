@@ -2,12 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import { MINIMUM_BET } from '../../../constants/transactions';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
+import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
 import { formatPrice } from '../../../utils/format';
 import { getPlaceOrderErrorOutcome } from '../../../utils/predictErrorHandler';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
-import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
-import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 
 interface UsePredictBuyInfoParams {
   preview?: OrderPreview | null;
@@ -19,6 +18,7 @@ interface UsePredictBuyInfoParams {
   maxBetAmount: number;
   isPayFeesLoading: boolean;
   isInputFocused: boolean;
+  blockingPayAlertMessage: string | null;
 }
 
 export const usePredictBuyError = ({
@@ -31,31 +31,28 @@ export const usePredictBuyError = ({
   maxBetAmount,
   isPayFeesLoading,
   isInputFocused,
+  blockingPayAlertMessage,
 }: UsePredictBuyInfoParams) => {
   const { activeOrder, clearOrderError } = usePredictActiveOrder();
   const { isBalanceLoading } = usePredictBuyAvailableBalance();
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
   const { isPredictBalanceSelected } = usePredictPaymentToken();
-  const [insufficientPayTokenBalanceAlert] =
-    useInsufficientPayTokenBalanceAlert();
 
   const errorResult = useMemo(() => {
     if (isBalanceLoading || isPlacingOrder || isConfirming || !preview) {
       return undefined;
     }
 
+    const ready =
+      !isPayFeesLoading && !isPredictBalanceSelected && !isInputFocused;
+
     // Suppress the alert while the user is actively editing the amount.
     // The deposit amount only syncs to TransactionPayController when the
     // input loses focus, so the alert may reflect an outdated amount.
-    if (
-      !isPayFeesLoading &&
-      !isPredictBalanceSelected &&
-      !isInputFocused &&
-      !!insufficientPayTokenBalanceAlert
-    ) {
+    if (ready && !!blockingPayAlertMessage) {
       return {
         status: 'error',
-        error: insufficientPayTokenBalanceAlert.message,
+        error: blockingPayAlertMessage,
       };
     }
 
@@ -73,7 +70,7 @@ export const usePredictBuyError = ({
     isPayFeesLoading,
     isPredictBalanceSelected,
     isInputFocused,
-    insufficientPayTokenBalanceAlert,
+    blockingPayAlertMessage,
     activeOrder?.error,
   ]);
 

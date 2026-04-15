@@ -22,20 +22,17 @@ import ErrorView from '../../Aggregator/components/ErrorView';
 import Logger from '../../../../../util/Logger';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
-import { useStyles } from '../../../../../component-library/hooks';
+import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
-import {
-  getCheckoutCallback,
-  removeCheckoutCallback,
-} from '../../utils/checkoutCallbackRegistry';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
 
 interface CheckoutParams {
@@ -59,12 +56,7 @@ interface CheckoutParams {
   cryptocurrency?: string;
   /** V2: the Redux provider type for this order. Defaults to AGGREGATOR. */
   providerType?: FIAT_ORDER_PROVIDERS;
-  /**
-   * Key into the checkout callback registry. Used by Transak/Deposit flows.
-   * The actual callback lives outside navigation state so that route params stay serializable.
-   */
-  callbackKey?: string;
-  /** Optional callback invoked on every navigation state change (e.g. to intercept redirect URLs). */
+  /** Optional callback invoked on navigation state changes after URL de-duplication (e.g. redirect URLs). */
   onNavigationStateChange?: (navState: { url: string }) => void;
 }
 
@@ -99,23 +91,12 @@ const Checkout = () => {
     network,
     userAgent,
     onNavigationStateChange,
-    callbackKey,
   } = params ?? {};
   const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 
   const initialUriRef = useRef(uri);
-  const callbackKeyRef = useRef(callbackKey);
   const registeredOrderIdsRef = useRef<Set<string>>(new Set());
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
-
-  useEffect(() => {
-    callbackKeyRef.current = callbackKey;
-    return () => {
-      if (callbackKey) {
-        removeCheckoutCallback(callbackKey);
-      }
-    };
-  }, [callbackKey]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -291,12 +272,10 @@ const Checkout = () => {
     (navState: { url: string }) => {
       if (navState.url !== previousUrlRef.current) {
         previousUrlRef.current = navState.url;
-        if (callbackKeyRef.current) {
-          getCheckoutCallback(callbackKeyRef.current)?.(navState);
-        }
+        onNavigationStateChange?.(navState);
       }
     },
-    [],
+    [onNavigationStateChange],
   );
 
   const handleShouldStartLoadWithRequest = useCallback(
@@ -318,7 +297,7 @@ const Checkout = () => {
     return (
       <BottomSheet
         ref={sheetRef}
-        shouldNavigateBack
+        goBack={navigation.goBack}
         isFullscreen
         keyboardAvoidingViewEnabled={false}
       >
@@ -344,7 +323,7 @@ const Checkout = () => {
     return (
       <BottomSheet
         ref={sheetRef}
-        shouldNavigateBack
+        goBack={navigation.goBack}
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
@@ -380,9 +359,9 @@ const Checkout = () => {
           onNavigationStateChange={
             hasCallbackFlow
               ? handleNavigationStateChange
-              : callbackKey
+              : onNavigationStateChange
                 ? handleNavigationStateChangeWithDedup
-                : onNavigationStateChange
+                : undefined
           }
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           testID={CHECKOUT_TEST_IDS.WEBVIEW}
@@ -394,7 +373,7 @@ const Checkout = () => {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={navigation.goBack}
       isFullscreen
       keyboardAvoidingViewEnabled={false}
     >

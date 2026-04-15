@@ -7,12 +7,12 @@ import { handleFetch } from '@metamask/controller-utils';
 import { fetch as expoFetch } from 'expo/fetch';
 
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import {
   getBridgeControllerMessenger,
   BridgeControllerInitMessenger,
 } from '../../messengers/bridge-controller-messenger';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import {
   bridgeControllerInit,
   handleBridgeFetch,
@@ -59,7 +59,7 @@ function buildTransactionControllerMock(
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     BridgeControllerMessenger,
     BridgeControllerInitMessenger
   >
@@ -72,7 +72,7 @@ function buildInitRequestMock(
   } as unknown as BridgeControllerInitMessenger;
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     controllerMessenger: getBridgeControllerMessenger(baseControllerMessenger),
     initMessenger: mockInitMessenger,
     ...initRequestProperties,

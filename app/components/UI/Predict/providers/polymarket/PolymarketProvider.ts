@@ -37,6 +37,7 @@ import {
   ClaimOrderParams,
   ClaimOrderResponse,
   ConnectionStatus,
+  CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
   GetAccountStateParams,
@@ -174,9 +175,12 @@ export class PolymarketProvider implements PredictProvider {
     return filterSupportedLeagues(liveSportsLeagues);
   }
 
+  #getExtendedSportsMarketsLeagues(): string[] {
+    return this.#getFeatureFlags().extendedSportsMarketsLeagues;
+  }
+
   #hasExtendedMarketsForLeague(league: string): boolean {
-    const { extendedSportsMarketsLeagues } = this.#getFeatureFlags();
-    return extendedSportsMarketsLeagues.includes(league);
+    return this.#getExtendedSportsMarketsLeagues().includes(league);
   }
 
   #createTeamLookup(
@@ -295,6 +299,7 @@ export class PolymarketProvider implements PredictProvider {
       const [parsedMarket] = parsePolymarketEvents([event], {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       });
 
       if (!parsedMarket) {
@@ -402,6 +407,7 @@ export class PolymarketProvider implements PredictProvider {
         category,
         sortMarketsBy: 'price',
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       });
 
       const markets = isSearch
@@ -468,6 +474,7 @@ export class PolymarketProvider implements PredictProvider {
       return parsePolymarketEvents(events, {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       });
     } catch (error) {
       DevLogger.log('Error fetching series events via Polymarket API:', error);
@@ -499,6 +506,7 @@ export class PolymarketProvider implements PredictProvider {
         category: 'trending',
         sortMarketsBy: 'price',
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       }).filter((m) => m.status === 'open' && m.outcomes.length > 0);
 
       return liveSportsEnabled
@@ -2023,11 +2031,22 @@ export class PolymarketProvider implements PredictProvider {
     );
   }
 
+  public subscribeToCryptoPrices(
+    symbols: string[],
+    callback: CryptoPriceUpdateCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToCryptoPrices(
+      symbols,
+      callback,
+    );
+  }
+
   public getConnectionStatus(): ConnectionStatus {
     const status = WebSocketManager.getInstance().getConnectionStatus();
     return {
       sportsConnected: status.sportsConnected,
       marketConnected: status.marketConnected,
+      rtdsConnected: status.rtdsConnected,
     };
   }
 }

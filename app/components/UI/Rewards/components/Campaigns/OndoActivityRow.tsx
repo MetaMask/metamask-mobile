@@ -12,6 +12,7 @@ import {
   Icon,
   IconName,
   IconSize,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import Badge, {
@@ -24,7 +25,13 @@ import type {
   ActivityEntryType,
   ActivityTokenDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { formatRewardsDate, getChainHex } from '../../utils/formatUtils';
+import {
+  formatRewardsDate,
+  formatRewardsTimeOnly,
+  formatSignedUsd,
+  getChainHex,
+  shortenAddress,
+} from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
 
 const ICON_MAP: Record<ActivityEntryType, IconName> = {
@@ -41,26 +48,20 @@ const LABEL_KEY_MAP: Record<ActivityEntryType, string> = {
   EXTERNAL_OUTFLOW: 'rewards.ondo_campaign_activity.type_external_outflow',
 };
 
-const formatUsdAmount = (raw: string | null): string => {
-  if (raw === null) return '—';
-  const num = parseFloat(raw);
-  if (Number.isNaN(num)) return raw;
-  const sign = num > 0 ? '+' : num < 0 ? '-' : '';
-  return `${sign}$${Math.abs(num).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-};
-
 const tokenLabel = (token: ActivityTokenDto): string =>
   token.tokenSymbol || token.tokenName;
 
 interface OndoActivityRowProps {
   entry: OndoGmActivityEntryDto;
+  timeOnly?: boolean;
   testID?: string;
 }
 
-const OndoActivityRow: React.FC<OndoActivityRowProps> = ({ entry, testID }) => {
+const OndoActivityRow: React.FC<OndoActivityRowProps> = ({
+  entry,
+  timeOnly,
+  testID,
+}) => {
   const entryType = entry.type as ActivityEntryType;
   const iconName = ICON_MAP[entryType] ?? IconName.Info;
   const labelKey = LABEL_KEY_MAP[entryType];
@@ -68,7 +69,9 @@ const OndoActivityRow: React.FC<OndoActivityRowProps> = ({ entry, testID }) => {
 
   const detail = entry.destToken
     ? `${tokenLabel(entry.srcToken)} → ${tokenLabel(entry.destToken)}`
-    : tokenLabel(entry.srcToken);
+    : entry.destAddress
+      ? `${tokenLabel(entry.srcToken)} → ${shortenAddress(entry.destAddress)}`
+      : tokenLabel(entry.srcToken);
 
   const chainHex = useMemo(
     () => getChainHex(entry.srcToken.tokenAsset),
@@ -106,7 +109,7 @@ const OndoActivityRow: React.FC<OndoActivityRowProps> = ({ entry, testID }) => {
           <Icon
             name={iconName}
             size={IconSize.Lg}
-            twClassName="text-icon-alternative"
+            twClassName="text-icon-default"
           />
         </Box>
       </BadgeWrapper>
@@ -116,9 +119,11 @@ const OndoActivityRow: React.FC<OndoActivityRowProps> = ({ entry, testID }) => {
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
         >
-          <Text variant={TextVariant.BodyMd}>{label}</Text>
-          <Text variant={TextVariant.BodyMd}>
-            {formatUsdAmount(entry.usdAmount)}
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {label}
+          </Text>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {formatSignedUsd(entry.usdAmount)}
           </Text>
         </Box>
 
@@ -135,7 +140,9 @@ const OndoActivityRow: React.FC<OndoActivityRowProps> = ({ entry, testID }) => {
             {detail}
           </Text>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {formatRewardsDate(new Date(entry.timestamp))}
+            {timeOnly
+              ? formatRewardsTimeOnly(new Date(entry.timestamp))
+              : formatRewardsDate(new Date(entry.timestamp))}
           </Text>
         </Box>
       </Box>
