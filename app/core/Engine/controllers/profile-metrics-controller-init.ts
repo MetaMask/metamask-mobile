@@ -23,23 +23,16 @@ export const profileMetricsControllerInit: MessengerClientInitFunction<
 > = ({
   controllerMessenger,
   persistedState,
-  getController,
   analyticsId,
   getState,
   initMessenger,
 }) => {
-  const remoteFeatureFlagController = getController(
-    'RemoteFeatureFlagController',
-  );
   const assertUserOptedIn = () => {
     const analyticsState = initMessenger.call('AnalyticsController:getState');
     const isEnabled =
       analyticsControllerSelectors.selectEnabled(analyticsState);
     return (
-      remoteFeatureFlagController.state.remoteFeatureFlags.extensionUxPna25 ===
-        true &&
-      isEnabled === true &&
-      getState().legalNotices.isPna25Acknowledged === true
+      isEnabled === true && getState().legalNotices.isPna25Acknowledged === true
     );
   };
 
