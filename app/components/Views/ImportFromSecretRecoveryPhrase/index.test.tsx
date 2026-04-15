@@ -13,7 +13,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { Alert, InteractionManager } from 'react-native';
+import { Alert, InteractionManager, TextInput } from 'react-native';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -1280,16 +1280,24 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       // Initially passwords should be hidden
-      expect(passwordInput.props.secureTextEntry).toBe(true);
-      expect(confirmPasswordInput.props.secureTextEntry).toBe(true);
+      expect(passwordInput.findByType(TextInput).props.secureTextEntry).toBe(
+        true,
+      );
+      expect(
+        confirmPasswordInput.findByType(TextInput).props.secureTextEntry,
+      ).toBe(true);
 
       // Toggle visibility for new password
       fireEvent.press(newPasswordVisibilityIcon);
-      expect(passwordInput.props.secureTextEntry).toBe(false);
+      expect(passwordInput.findByType(TextInput).props.secureTextEntry).toBe(
+        false,
+      );
 
       // Toggle visibility for confirm password
       fireEvent.press(confirmPasswordVisibilityIcon);
-      expect(confirmPasswordInput.props.secureTextEntry).toBe(false);
+      expect(
+        confirmPasswordInput.findByType(TextInput).props.secureTextEntry,
+      ).toBe(false);
     });
 
     it('error message is shown when passwords do not match', async () => {
@@ -1318,7 +1326,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      expect(confirmPasswordInput.props.editable).toBe(false);
+      expect(confirmPasswordInput.findByType(TextInput).props.editable).toBe(
+        false,
+      );
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -1326,7 +1336,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(passwordInput, 'StrongPass123!');
 
       await waitFor(() => {
-        expect(confirmPasswordInput.props.editable).toBe(true);
+        expect(confirmPasswordInput.findByType(TextInput).props.editable).toBe(
+          true,
+        );
       });
     });
 
@@ -1341,7 +1353,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.changeText(passwordInput, 'StrongPass123!');
       });
 
-      expect(passwordInput.props.value).toBe('StrongPass123!');
+      expect(passwordInput.findByType(TextInput).props.value).toBe(
+        'StrongPass123!',
+      );
 
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
@@ -1351,19 +1365,23 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
       });
 
-      expect(confirmPasswordInput.props.value).toBe('StrongPass123!');
+      expect(confirmPasswordInput.findByType(TextInput).props.value).toBe(
+        'StrongPass123!',
+      );
 
       await act(async () => {
         fireEvent.changeText(passwordInput, 'StrongPass12');
       });
 
-      expect(confirmPasswordInput.props.value).toBe('StrongPass123!');
+      expect(confirmPasswordInput.findByType(TextInput).props.value).toBe(
+        'StrongPass123!',
+      );
 
       await act(async () => {
         fireEvent.changeText(passwordInput, '');
       });
 
-      expect(confirmPasswordInput.props.value).toBe('');
+      expect(confirmPasswordInput.findByType(TextInput).props.value).toBe('');
     });
 
     it('minimum password length requirement message shown when create new password field value is less than 8 characters', async () => {
@@ -1508,8 +1526,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent(passwordInput, 'submitEditing');
 
       // Verify that confirm password field is enabled and ready for input
-      expect(confirmPasswordInput.props.editable).toBe(true);
-      expect(confirmPasswordInput.props.value).toBe('');
+      expect(confirmPasswordInput.findByType(TextInput).props.editable).toBe(
+        true,
+      );
+      expect(confirmPasswordInput.findByType(TextInput).props.value).toBe('');
     });
 
     it('navigates to Import Wallet UI when back button is pressed', async () => {
