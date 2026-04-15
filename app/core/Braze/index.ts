@@ -106,6 +106,10 @@ export async function setBrazeUser(): Promise<void> {
  * Call on sign-out to stop attributing events to the previous user.
  */
 export function clearBrazeUser(): void {
+  if (isE2E) {
+    return;
+  }
+
   getBrazePlugin().setBrazeProfileId(undefined);
   Logger.log('[Braze] Cleared Braze user identity');
 }
