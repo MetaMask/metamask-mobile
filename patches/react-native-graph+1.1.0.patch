@@ -1,0 +1,137 @@
+diff --git a/lib/module/AnimatedLineGraph.js b/lib/module/AnimatedLineGraph.js
+--- a/lib/module/AnimatedLineGraph.js
++++ b/lib/module/AnimatedLineGraph.js
+@@ -134,6 +134,43 @@
+     }
+     commands.value = path.toCmds();
+
++    const rebuildPathToMatch = (source, target) => {
++      const targetCmds = target.toCmds();
++      const sourceCmds = source.toCmds();
++      const rebuilt = Skia.Path.Make();
++      const srcBounds = source.getBounds();
++      const srcMidY = srcBounds.y + srcBounds.height / 2;
++      for (const cmd of targetCmds) {
++        switch (cmd[0]) {
++          case 0:
++            {
++              const tx = cmd[1];
++              rebuilt.moveTo(tx, getYForX(sourceCmds, tx) ?? srcMidY);
++              break;
++            }
++          case 1:
++            {
++              const tx = cmd[1];
++              rebuilt.lineTo(tx, getYForX(sourceCmds, tx) ?? srcMidY);
++              break;
++            }
++          case 4:
++            {
++              const cp1x = cmd[1];
++              const cp2x = cmd[3];
++              const endx = cmd[5];
++              rebuilt.cubicTo(cp1x, getYForX(sourceCmds, cp1x) ?? srcMidY, cp2x, getYForX(sourceCmds, cp2x) ?? srcMidY, endx, getYForX(sourceCmds, endx) ?? srcMidY);
++              break;
++            }
++          case 5:
++            rebuilt.close();
++            break;
++          default:
++            break;
++        }
++      }
++      return rebuilt;
++    };
+     if (gradientPath != null) {
+       const previous = gradientPaths.value;
+       let from = previous.to ?? straightLine;
+@@ -145,7 +182,7 @@
+         };
+       } else {
+         gradientPaths.value = {
+-          from: straightLine,
++          from: rebuildPathToMatch(from, gradientPath),
+           to: gradientPath
+         };
+       }
+@@ -160,7 +197,7 @@
+       };
+     } else {
+       paths.value = {
+-        from: straightLine,
++        from: rebuildPathToMatch(from, path),
+         to: path
+       };
+     }
+diff --git a/src/AnimatedLineGraph.tsx b/src/AnimatedLineGraph.tsx
+--- a/src/AnimatedLineGraph.tsx
++++ b/src/AnimatedLineGraph.tsx
+@@ -217,6 +217,50 @@
+     }
+
+     commands.value = path.toCmds();
++
++    // Rebuild a source path to match the target path's verb structure
++    // by sampling Y values from the source at the target's X positions.
++    // This guarantees interpolatability while preserving the visual shape.
++    // PathVerb: Move=0, Line=1, Cubic=4, Close=5
++    const rebuildPathToMatch = (source: SkPath, target: SkPath): SkPath => {
++      const targetCmds = target.toCmds();
++      const sourceCmds = source.toCmds();
++      const rebuilt = Skia.Path.Make();
++      const srcBounds = source.getBounds();
++      const srcMidY = srcBounds.y + srcBounds.height / 2;
++
++      for (const cmd of targetCmds) {
++        switch (cmd[0]) {
++          case 0: { // Move
++            const tx = cmd[1] as number;
++            rebuilt.moveTo(tx, getYForX(sourceCmds, tx) ?? srcMidY);
++            break;
++          }
++          case 1: { // Line
++            const tx = cmd[1] as number;
++            rebuilt.lineTo(tx, getYForX(sourceCmds, tx) ?? srcMidY);
++            break;
++          }
++          case 4: { // Cubic
++            const cp1x = cmd[1] as number;
++            const cp2x = cmd[3] as number;
++            const endx = cmd[5] as number;
++            rebuilt.cubicTo(
++              cp1x, getYForX(sourceCmds, cp1x) ?? srcMidY,
++              cp2x, getYForX(sourceCmds, cp2x) ?? srcMidY,
++              endx, getYForX(sourceCmds, endx) ?? srcMidY,
++            );
++            break;
++          }
++          case 5: // Close
++            rebuilt.close();
++            break;
++          default:
++            break;
++        }
++      }
++      return rebuilt;
++    };
+
+     if (gradientPath != null) {
+       const previous = gradientPaths.value;
+@@ -232,7 +276,7 @@
+         };
+       } else {
+         gradientPaths.value = {
+-          from: straightLine,
++          from: rebuildPathToMatch(from, gradientPath),
+           to: gradientPath,
+         };
+       }
+@@ -250,7 +294,7 @@
+       };
+     } else {
+       paths.value = {
+-        from: straightLine,
++        from: rebuildPathToMatch(from, path),
+         to: path,
+       };
+     }

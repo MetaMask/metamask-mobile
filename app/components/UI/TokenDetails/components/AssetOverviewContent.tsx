@@ -820,6 +820,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             currentPrice={currentPrice}
             comparePrice={comparePrice}
             isLoading={isLoading}
+            onTimePeriodChange={setTimePeriod as (period: string) => void}
           />
           {/* Same as main: chart period tabs under the legacy line chart. Omitted when the advanced chart is on (range selector lives inside Price). */}
           {!isTokenOverviewAdvancedChartEnabled && (

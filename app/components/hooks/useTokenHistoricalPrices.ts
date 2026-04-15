@@ -11,7 +11,7 @@ import { TokenI } from '../UI/Tokens/types';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectLastSelectedSolanaAccount } from '../../selectors/accountsController';
 
-export type TimePeriod = '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y' | 'all';
+export type TimePeriod = '1h' | '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y' | 'all';
 
 export type TokenPrice = [string, number];
 
@@ -19,6 +19,8 @@ const placeholderPrices = Array(289).fill(['0', 0] as TokenPrice);
 
 export const standardizeTimeInterval = (timePeriod: TimePeriod) => {
   switch (timePeriod) {
+    case '1h':
+      return 'PT1H';
     case '1d':
       return 'P1D';
     case '1w':

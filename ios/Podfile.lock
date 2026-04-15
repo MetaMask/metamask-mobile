@@ -2129,6 +2129,29 @@ PODS:
   - react-native-sdk (11.2.0):
     - React
     - VeriffSDK (= 8.12.0)
+  - react-native-skia (1.12.4):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React
+    - React-callinvoker
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-slider (4.5.6):
     - DoubleConversion
     - glog
@@ -3119,6 +3142,7 @@ DEPENDENCIES:
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-sdk (from `../node_modules/@veriff/react-native-sdk`)"
+  - "react-native-skia (from `../node_modules/@shopify/react-native-skia`)"
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - react-native-tcp-socket (from `../node_modules/react-native-tcp-socket`)
   - react-native-video (from `../node_modules/react-native-video`)
@@ -3412,6 +3436,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-sdk:
     :path: "../node_modules/@veriff/react-native-sdk"
+  react-native-skia:
+    :path: "../node_modules/@shopify/react-native-skia"
   react-native-slider:
     :path: "../node_modules/@react-native-community/slider"
   react-native-tcp-socket:
@@ -3661,6 +3687,7 @@ SPEC CHECKSUMS:
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: c68127652d8b9a26a28ac9597167a3ad90bcd713
   react-native-sdk: 6eb6c9de60e510a9ea93ddc09a3822cddf04f8cb
+  react-native-skia: 304147b8b355c1af97fcebf34efa5032c0e43b6a
   react-native-slider: e4b7f9d0616032ec2909ba073731eabcde242256
   react-native-tcp-socket: 120072c8020262032773f80f0daaf3964aaa08a1
   react-native-video: 3bb92b90b2774144fac7d43d52d11b936e8a14ec
@@ -3733,6 +3760,6 @@ SPEC CHECKSUMS:
   Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a
   YttriumWrapper: cbddb60c835ebc4232d9f57064084ab30686a18e
 
-PODFILE CHECKSUM: 3debf6fbed3b6fecab16001c02c028737e11786c
+PODFILE CHECKSUM: 50168721999c9691e799d4b19cf9563d45fc9141
 
 COCOAPODS: 1.16.2

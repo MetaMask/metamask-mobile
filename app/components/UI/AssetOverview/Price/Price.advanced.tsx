@@ -5,10 +5,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Dimensions, View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import Svg, { Path } from 'react-native-svg';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { addCurrencySymbol } from '../../../../util/number';
@@ -20,20 +19,12 @@ import { TokenI } from '../../Tokens/types';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { normalizeTokenAddress } from '../../Bridge/utils/tokenUtils';
-import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
-import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
-import {
-  ChartType,
-  type ChartInteractedPayload,
-  type CrosshairData,
-  type IndicatorType,
-} from '../../Charts/AdvancedChart/AdvancedChart.types';
+import { LineGraph, GraphPoint } from 'react-native-graph';
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
   type TimeRange,
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
-import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import {
   Box,
   FontWeight,
@@ -44,10 +35,7 @@ import {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
-import { setTokenOverviewChartType } from '../../../../actions/user';
 import { usePriceChart } from '../PriceChart/PriceChart.context';
-
-const EMPTY_INDICATORS: IndicatorType[] = [];
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1H': 'asset_overview.chart_time_period.1h',
@@ -57,10 +45,6 @@ const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1Y': 'asset_overview.chart_time_period.1y',
 };
 
-// SVG path from design for placeholder chart background
-const PLACEHOLDER_SVG_PATH =
-  'M351.975 96.2054L352.899 96.5884C352.742 96.9673 352.369 97.2118 351.959 97.2053C351.549 97.1988 351.185 96.9426 351.04 96.5589L351.975 96.2054ZM342.95 72.3234L342.05 71.888C342.224 71.5282 342.595 71.3066 342.995 71.3244C343.394 71.3422 343.744 71.5961 343.885 71.9699L342.95 72.3234ZM333.925 90.9827L334.825 91.4182C334.658 91.7634 334.309 91.9827 333.925 91.9827C333.541 91.9827 333.192 91.7634 333.025 91.4182L333.925 90.9827ZM324.9 72.3234L323.928 72.0884C324.027 71.6779 324.374 71.374 324.794 71.3291C325.213 71.2842 325.616 71.5079 325.8 71.888L324.9 72.3234ZM315.875 109.642L316.847 109.877C316.735 110.341 316.31 110.662 315.832 110.641C315.355 110.621 314.959 110.265 314.886 109.793L315.875 109.642ZM306.85 50.5543L305.926 50.1713C306.098 49.7568 306.525 49.5075 306.97 49.5615C307.416 49.6156 307.771 49.9597 307.839 50.4033L306.85 50.5543ZM297.825 72.3234L298.749 72.7064C298.594 73.0799 298.229 73.3234 297.825 73.3234C297.421 73.3234 297.056 73.0799 296.901 72.7064L297.825 72.3234ZM288.8 50.5543L287.824 50.3364C287.919 49.9107 288.279 49.5958 288.713 49.558C289.148 49.5203 289.557 49.7684 289.724 50.1713L288.8 50.5543ZM279.775 90.9827L280.751 91.2006C280.691 91.4679 280.525 91.699 280.29 91.84C280.055 91.981 279.773 92.0196 279.509 91.9467L279.775 90.9827ZM270.75 88.4907L269.754 88.4048C269.779 88.1087 269.935 87.8394 270.179 87.6697C270.423 87.5 270.73 87.4476 271.016 87.5267L270.75 88.4907ZM261.725 193.23L262.721 193.315C262.683 193.764 262.349 194.131 261.906 194.213C261.464 194.295 261.021 194.07 260.825 193.665L261.725 193.23ZM252.7 174.57L251.8 175.006C251.745 174.893 251.713 174.772 251.703 174.648L252.7 174.57ZM243.675 58.1152L244.627 57.8083C244.651 57.8828 244.666 57.9599 244.672 58.0379L243.675 58.1152ZM234.65 30.1263L233.654 30.0359C233.697 29.5626 234.067 29.1849 234.539 29.1324C235.012 29.0799 235.456 29.367 235.602 29.8194L234.65 30.1263ZM225.625 129.642L226.621 129.733C226.575 130.241 226.153 130.633 225.643 130.642C225.132 130.651 224.697 130.274 224.633 129.768L225.625 129.642ZM216.6 58.1152L215.66 57.7742C215.817 57.34 216.252 57.0701 216.711 57.1214C217.17 57.1727 217.534 57.5317 217.592 57.99L216.6 58.1152ZM207.575 82.9943L208.515 83.3353C208.372 83.7309 207.996 83.9943 207.575 83.9943C207.154 83.9943 206.778 83.7309 206.635 83.3353L207.575 82.9943ZM198.55 58.1152L197.61 57.7742C197.753 57.3786 198.129 57.1152 198.55 57.1152C198.971 57.1152 199.347 57.3786 199.49 57.7742L198.55 58.1152ZM189.525 82.9943L190.465 83.3353C190.31 83.7619 189.888 84.0308 189.436 83.9903C188.984 83.9497 188.616 83.6099 188.539 83.1625L189.525 82.9943ZM180.5 30.1263L179.548 29.8194C179.69 29.3811 180.112 29.0959 180.571 29.1288C181.031 29.1617 181.408 29.504 181.486 29.958L180.5 30.1263ZM171.475 58.1152L172.427 58.4221C172.377 58.5763 172.291 58.7161 172.175 58.8294L171.475 58.1152ZM162.45 66.9595L163.15 67.6737C162.88 67.9385 162.483 68.0281 162.126 67.9054C161.768 67.7827 161.51 67.4687 161.459 67.0939L162.45 66.9595ZM153.425 0.41748L152.449 0.198994C152.555 -0.273469 152.984 -0.602288 153.468 -0.581607C153.951 -0.560926 154.351 -0.196686 154.416 0.283082L153.425 0.41748ZM144.4 40.7265L143.403 40.6549C143.406 40.6055 143.413 40.5564 143.424 40.508L144.4 40.7265ZM135.375 166.475L136.372 166.547C136.337 167.041 135.945 167.434 135.452 167.472C134.958 167.51 134.511 167.181 134.4 166.698L135.375 166.475ZM126.35 127.044L125.36 126.905C125.427 126.427 125.825 126.066 126.307 126.045C126.789 126.024 127.217 126.351 127.325 126.821L126.35 127.044ZM117.325 191.354L118.315 191.493C118.251 191.948 117.886 192.301 117.429 192.349C116.972 192.396 116.542 192.127 116.385 191.695L117.325 191.354ZM108.3 166.475L107.33 166.232C107.437 165.805 107.81 165.499 108.249 165.476C108.688 165.454 109.09 165.721 109.24 166.134L108.3 166.475ZM99.275 202.417L100.245 202.661C100.125 203.14 99.6729 203.459 99.1813 203.413C98.6898 203.367 98.3055 202.969 98.2767 202.476L99.275 202.417ZM90.25 48.1818L89.8788 47.2532C90.1772 47.1339 90.5149 47.1653 90.7863 47.3377C91.0576 47.5101 91.2295 47.8024 91.2483 48.1233L90.25 48.1818ZM81.225 51.7901L80.3585 51.291C80.4706 51.0962 80.6451 50.945 80.8538 50.8615L81.225 51.7901ZM72.2 67.4581L71.2499 67.1461C71.2713 67.081 71.2993 67.0183 71.3335 66.9589L72.2 67.4581ZM63.175 94.9485L64.1251 95.2604C63.983 95.6932 63.5664 95.9753 63.1118 95.9465C62.6571 95.9176 62.2794 95.5852 62.1931 95.1379L63.175 94.9485ZM54.15 48.1818L53.1579 48.0561C53.2197 47.5686 53.6265 47.1982 54.1177 47.1823C54.6088 47.1664 55.0388 47.5098 55.1319 47.9923L54.15 48.1818ZM45.125 119.448L46.1171 119.573C46.0565 120.052 45.6625 120.419 45.1806 120.446C44.6988 120.473 44.2664 120.152 44.153 119.683L45.125 119.448ZM36.1 82.1291L35.128 81.8941C35.2366 81.4453 35.6383 81.1291 36.1 81.1291C36.5617 81.1291 36.9634 81.4453 37.072 81.8941L36.1 82.1291ZM27.075 119.448L28.047 119.683C27.9477 120.093 27.6013 120.397 27.1814 120.442C26.7615 120.487 26.3587 120.263 26.1748 119.883L27.075 119.448ZM18.05 100.788L17.0567 100.673C17.1079 100.231 17.4448 99.8765 17.8833 99.8024C18.3218 99.7283 18.7566 99.9526 18.9502 100.353L18.05 100.788ZM9.02499 178.535L10.0183 178.651C9.96408 179.118 9.59131 179.485 9.12302 179.531C8.65472 179.577 8.21765 179.29 8.07324 178.842L9.02499 178.535ZM-0.951752 150.853C-1.12125 150.328 -0.83252 149.764 -0.306885 149.595C0.21875 149.425 0.782257 149.714 0.951752 150.24L0 150.547L-0.951752 150.853ZM361 74.4363L361.924 74.8192L352.899 96.5884L351.975 96.2054L351.051 95.8225L360.076 74.0533L361 74.4363ZM351.975 96.2054L351.04 96.5589L342.015 72.6769L342.95 72.3234L343.885 71.9699L352.91 95.8519L351.975 96.2054ZM342.95 72.3234L343.85 72.7589L334.825 91.4182L333.925 90.9827L333.025 90.5473L342.05 71.888L342.95 72.3234ZM333.925 90.9827L333.025 91.4182L324 72.7589L324.9 72.3234L325.8 71.888L334.825 90.5473L333.925 90.9827ZM324.9 72.3234L325.872 72.5585L316.847 109.877L315.875 109.642L314.903 109.407L323.928 72.0884L324.9 72.3234ZM315.875 109.642L314.886 109.793L305.861 50.7052L306.85 50.5543L307.839 50.4033L316.864 109.491L315.875 109.642ZM306.85 50.5543L307.774 50.9372L298.749 72.7064L297.825 72.3234L296.901 71.9405L305.926 50.1713L306.85 50.5543ZM297.825 72.3234L296.901 72.7064L287.876 50.9372L288.8 50.5543L289.724 50.1713L298.749 71.9405L297.825 72.3234ZM288.8 50.5543L289.776 50.7721L280.751 91.2006L279.775 90.9827L278.799 90.7649L287.824 50.3364L288.8 50.5543ZM279.775 90.9827L279.509 91.9467L270.484 89.4546L270.75 88.4907L271.016 87.5267L280.041 90.0188L279.775 90.9827ZM270.75 88.4907L271.746 88.5765L262.721 193.315L261.725 193.23L260.729 193.144L269.754 88.4048L270.75 88.4907ZM261.725 193.23L260.825 193.665L251.8 175.006L252.7 174.57L253.6 174.135L262.625 192.794L261.725 193.23ZM252.7 174.57L251.703 174.648L242.678 58.1925L243.675 58.1152L244.672 58.0379L253.697 174.493L252.7 174.57ZM243.675 58.1152L242.723 58.4221L233.698 30.4331L234.65 30.1263L235.602 29.8194L244.627 57.8083L243.675 58.1152ZM234.65 30.1263L235.646 30.2166L226.621 129.733L225.625 129.642L224.629 129.552L233.654 30.0359L234.65 30.1263ZM225.625 129.642L224.633 129.768L215.608 58.2404L216.6 58.1152L217.592 57.99L226.617 129.517L225.625 129.642ZM216.6 58.1152L217.54 58.4562L208.515 83.3353L207.575 82.9943L206.635 82.6533L215.66 57.7742L216.6 58.1152ZM207.575 82.9943L206.635 83.3353L197.61 58.4562L198.55 58.1152L199.49 57.7742L208.515 82.6533L207.575 82.9943ZM198.55 58.1152L199.49 58.4562L190.465 83.3353L189.525 82.9943L188.585 82.6533L197.61 57.7742L198.55 58.1152ZM189.525 82.9943L188.539 83.1625L179.514 30.2945L180.5 30.1263L181.486 29.958L190.511 82.826L189.525 82.9943ZM180.5 30.1263L181.452 30.4331L172.427 58.4221L171.475 58.1152L170.523 57.8083L179.548 29.8194L180.5 30.1263ZM171.475 58.1152L172.175 58.8294L163.15 67.6737L162.45 66.9595L161.75 66.2453L170.775 57.401L171.475 58.1152ZM162.45 66.9595L161.459 67.0939L152.434 0.551878L153.425 0.41748L154.416 0.283082L163.441 66.8251L162.45 66.9595ZM153.425 0.41748L154.401 0.635967L145.376 40.945L144.4 40.7265L143.424 40.508L152.449 0.198994L153.425 0.41748ZM144.4 40.7265L145.397 40.7981L136.372 166.547L135.375 166.475L134.378 166.403L143.403 40.6549L144.4 40.7265ZM135.375 166.475L134.4 166.698L125.375 127.267L126.35 127.044L127.325 126.821L136.35 166.252L135.375 166.475ZM126.35 127.044L127.34 127.183L118.315 191.493L117.325 191.354L116.335 191.215L125.36 126.905L126.35 127.044ZM117.325 191.354L116.385 191.695L107.36 166.816L108.3 166.475L109.24 166.134L118.265 191.013L117.325 191.354ZM108.3 166.475L109.27 166.719L100.245 202.661L99.275 202.417L98.3051 202.174L107.33 166.232L108.3 166.475ZM99.275 202.417L98.2767 202.476L89.2517 48.2402L90.25 48.1818L91.2483 48.1233L100.273 202.359L99.275 202.417ZM90.25 48.1818L90.6212 49.1103L81.5963 52.7186L81.225 51.7901L80.8538 50.8615L89.8788 47.2532L90.25 48.1818ZM81.225 51.7901L82.0915 52.2892L73.0665 67.9572L72.2 67.4581L71.3335 66.9589L80.3585 51.291L81.225 51.7901ZM72.2 67.4581L73.1501 67.77L64.1251 95.2604L63.175 94.9485L62.2249 94.6365L71.2499 67.1461L72.2 67.4581ZM63.175 94.9485L62.1931 95.1379L53.1681 48.3712L54.15 48.1818L55.1319 47.9923L64.1569 94.759L63.175 94.9485ZM54.15 48.1818L55.1421 48.3074L46.1171 119.573L45.125 119.448L44.1329 119.322L53.1579 48.0561L54.15 48.1818ZM45.125 119.448L44.153 119.683L35.128 82.3642L36.1 82.1291L37.072 81.8941L46.097 119.213L45.125 119.448ZM36.1 82.1291L37.072 82.3642L28.047 119.683L27.075 119.448L26.103 119.213L35.128 81.8941L36.1 82.1291ZM27.075 119.448L26.1748 119.883L17.1497 101.224L18.05 100.788L18.9502 100.353L27.9753 119.012L27.075 119.448ZM18.05 100.788L19.0433 100.904L10.0183 178.651L9.02499 178.535L8.03168 178.42L17.0567 100.673L18.05 100.788ZM9.02499 178.535L8.07324 178.842L-0.951752 150.853L0 150.547L0.951752 150.24L9.97675 178.229L9.02499 178.535Z';
-
 export interface PriceAdvancedProps {
   asset: TokenI;
   priceDiff: number;
@@ -68,58 +52,8 @@ export interface PriceAdvancedProps {
   currentCurrency: string;
   comparePrice: number;
   isLoading: boolean;
+  onTimePeriodChange?: (period: string) => void;
 }
-
-interface NoDataOverlayProps {
-  hasInsufficientData: boolean;
-  styles: ReturnType<typeof styleSheet>;
-  chartPlaceholderFill: string;
-}
-
-const NoDataOverlay: React.FC<NoDataOverlayProps> = ({
-  hasInsufficientData,
-  styles,
-  chartPlaceholderFill,
-}) => {
-  const screenWidth = Dimensions.get('screen').width;
-
-  return (
-    <>
-      <Svg
-        width={screenWidth}
-        height={CHART_HEIGHT}
-        viewBox="0 0 362 202"
-        preserveAspectRatio="none"
-      >
-        <Path
-          d={PLACEHOLDER_SVG_PATH}
-          fill={chartPlaceholderFill}
-          opacity={0.85}
-        />
-      </Svg>
-
-      <View
-        style={styles.noDataOverlay}
-        testID={
-          hasInsufficientData
-            ? 'price-chart-insufficient-data'
-            : 'price-chart-no-data'
-        }
-      >
-        <Text variant={TextVariant.HeadingSm} twClassName="text-center">
-          {strings('asset_overview.no_chart_data.title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-        >
-          {strings('asset_overview.no_chart_data.description')}
-        </Text>
-      </View>
-    </>
-  );
-};
 
 const PriceAdvanced = ({
   asset,
@@ -128,20 +62,20 @@ const PriceAdvanced = ({
   currentCurrency,
   comparePrice,
   isLoading,
+  onTimePeriodChange,
 }: PriceAdvancedProps) => {
-  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const chartType = useSelector(selectTokenOverviewChartType);
-  const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
-    null,
-  );
   const { setIsChartBeingTouched } = usePriceChart();
 
-  const handleCrosshairMove = useCallback(
-    (data: CrosshairData | null) => setCrosshairData(data),
-    [],
-  );
+  // Scrub state: when the user pans the chart, show the scrubbed price
+  const [scrubPrice, setScrubPrice] = useState<number | null>(null);
+  const isScrubbing = scrubPrice !== null;
+
+  const handlePointSelected = useCallback((point: GraphPoint) => {
+    setScrubPrice(point.value);
+  }, []);
 
   const handleTouchStart = useCallback(() => {
     setIsChartBeingTouched(true);
@@ -149,42 +83,8 @@ const PriceAdvanced = ({
 
   const handleTouchEnd = useCallback(() => {
     setIsChartBeingTouched(false);
+    setScrubPrice(null);
   }, [setIsChartBeingTouched]);
-
-  const handleChartInteracted = useCallback(
-    (payload: ChartInteractedPayload) => {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
-          .addProperties({
-            interaction_type: payload.interaction_type,
-          })
-          .build(),
-      );
-    },
-    [createEventBuilder, trackEvent],
-  );
-
-  const handleChartTradingViewClicked = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CHART_TRADINGVIEW_CLICKED).build(),
-    );
-  }, [createEventBuilder, trackEvent]);
-
-  const toggleChartType = useCallback(() => {
-    const next =
-      chartType === ChartType.Candles ? ChartType.Line : ChartType.Candles;
-    if (next !== ChartType.Candles) {
-      setCrosshairData(null);
-    }
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CHART_TYPE_CHANGED)
-        .addProperties({
-          chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
-        })
-        .build(),
-    );
-    dispatch(setTokenOverviewChartType(next));
-  }, [chartType, createEventBuilder, trackEvent, dispatch]);
 
   const handleTimeRangeSelect = useCallback(
     (range: TimeRange) => {
@@ -199,14 +99,13 @@ const PriceAdvanced = ({
           .build(),
       );
       setTimeRange(range);
+      const config = TIME_RANGE_CONFIGS[range];
+      onTimePeriodChange?.(config.timePeriod);
     },
-    [createEventBuilder, timeRange, trackEvent],
+    [createEventBuilder, timeRange, trackEvent, onTimePeriodChange],
   );
 
   const assetId = useMemo(() => {
-    // Normalize Polygon's native token address (0x...001010) to zero address
-    // before formatting to CAIP-19 assetId. formatAddressToAssetId will convert
-    // zero address to proper SLIP-44 format (e.g., eip155:137/slip44:966 for Polygon)
     const normalizedAddress = normalizeTokenAddress(
       asset.address,
       asset.chainId as Hex,
@@ -217,21 +116,10 @@ const PriceAdvanced = ({
   }, [asset.address, asset.chainId]);
   const config = TIME_RANGE_CONFIGS[timeRange];
 
-  /**
-   * Used to make sure changing time range always sends a full SET_OHLCV_DATA
-   */
-  const ohlcvSeriesKey = useMemo(
-    () =>
-      `${assetId}|${config.timePeriod}|${config.interval}|${currentCurrency}`,
-    [assetId, config.timePeriod, config.interval, currentCurrency],
-  );
-
   const {
     ohlcvData,
     isLoading: chartLoading,
     error: chartError,
-    hasMore,
-    nextCursor,
   } = useOHLCVChart({
     assetId,
     timePeriod: config.timePeriod,
@@ -239,29 +127,102 @@ const PriceAdvanced = ({
     vsCurrency: currentCurrency,
   });
 
-  const ohlcvPagination = useMemo(
-    () => ({
-      nextCursor,
-      hasMore,
-      assetId,
-      vsCurrency: currentCurrency,
-    }),
-    [nextCursor, hasMore, assetId, currentCurrency],
+  // Normalize + trim helper (pure function, no hooks).
+  const NORMALIZED_POINT_COUNT = 100;
+
+  const buildGraphPoints = useCallback(
+    (data: typeof ohlcvData, durationMs: number): GraphPoint[] => {
+      if (data.length === 0) return [];
+
+      // Trim: the API may return more data than the requested range.
+      const lastTs = data[data.length - 1].time;
+      const cutoff = lastTs - durationMs;
+      const trimmed = data.filter((bar) => bar.time >= cutoff);
+      if (trimmed.length === 0) return [];
+
+      // Normalize to a fixed point count for smooth path-morph animations.
+      if (trimmed.length <= NORMALIZED_POINT_COUNT) {
+        const points = trimmed.map((bar) => ({
+          value: bar.close,
+          date: new Date(bar.time),
+        }));
+        if (points.length >= 2 && points.length < NORMALIZED_POINT_COUNT) {
+          const result: GraphPoint[] = [];
+          const step = (points.length - 1) / (NORMALIZED_POINT_COUNT - 1);
+          for (let i = 0; i < NORMALIZED_POINT_COUNT; i++) {
+            const rawIdx = i * step;
+            const lo = Math.floor(rawIdx);
+            const hi = Math.min(lo + 1, points.length - 1);
+            const t = rawIdx - lo;
+            result.push({
+              value: points[lo].value * (1 - t) + points[hi].value * t,
+              date: new Date(
+                points[lo].date.getTime() * (1 - t) +
+                  points[hi].date.getTime() * t,
+              ),
+            });
+          }
+          return result;
+        }
+        return points;
+      }
+      const result: GraphPoint[] = [];
+      const step = (trimmed.length - 1) / (NORMALIZED_POINT_COUNT - 1);
+      for (let i = 0; i < NORMALIZED_POINT_COUNT; i++) {
+        const idx = Math.round(i * step);
+        const bar = trimmed[idx];
+        result.push({ value: bar.close, date: new Date(bar.time) });
+      }
+      return result;
+    },
+    [],
   );
-  // This is to make sure we show only data relevant to selected timeframe even if api returns a lot more data than that
-  const visibleFromMs = useMemo(() => {
-    const lastBar = ohlcvData[ohlcvData.length - 1];
-    if (!lastBar) return undefined;
-    return lastBar.time - config.durationMs;
-  }, [ohlcvData, config.durationMs]);
+
+  // Only recompute when ohlcvData is a new array reference, meaning a
+  // fresh fetch completed. This prevents any intermediate re-renders
+  // (stale data + new timeRange) from updating the displayed graph.
+  const [graphPoints, setGraphPoints] = useState<GraphPoint[]>([]);
+  const lastDataRef = useRef<typeof ohlcvData | null>(null);
+
+  if (ohlcvData !== lastDataRef.current && ohlcvData.length > 0) {
+    lastDataRef.current = ohlcvData;
+    const next = buildGraphPoints(ohlcvData, config.durationMs);
+    setGraphPoints(next);
+  }
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
   const { styles, theme } = useStyles(styleSheet);
 
-  const hasChartData = ohlcvData.length > 1;
-  const hasInsufficientData = ohlcvData.length === 1;
+  const hasChartData = graphPoints.length > 1;
   const showEmptyState = !chartLoading && (!hasChartData || !!chartError);
+
+  // When scrubbing, compute price/diff from the scrubbed point vs first point in range
+  const firstPointPrice = graphPoints.length > 0 ? graphPoints[0].value : 0;
+  const displayPrice = isScrubbing ? scrubPrice : currentPrice;
+  const displayDiff = isScrubbing
+    ? scrubPrice - firstPointPrice
+    : priceDiff;
+  const displayCompare = isScrubbing ? firstPointPrice : comparePrice;
+
+  const chartColor =
+    displayDiff > 0
+      ? theme.colors.success.default
+      : displayDiff < 0
+        ? theme.colors.error.default
+        : theme.colors.text.alternative;
+
+  const gradientColors = useMemo(
+    () => [chartColor + '40', chartColor + '20', chartColor + '00'],
+    [chartColor],
+  );
+
+  // Only show skeleton loaders on the very first load, not on time range switches
+  const hasLoadedOnce = useRef(false);
+  if (!isLoading && currentPrice > 0) {
+    hasLoadedOnce.current = true;
+  }
+  const showPriceSkeleton = isLoading && !hasLoadedOnce.current;
 
   const hasTrackedEmptyRef = useRef(false);
 
@@ -282,12 +243,12 @@ const PriceAdvanced = ({
   return (
     <>
       <View style={styles.wrapper}>
-        {!isNaN(currentPrice) && (
+        {!isNaN(displayPrice) && (
           <Text
             testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
             variant={TextVariant.DisplayLg}
           >
-            {isLoading ? (
+            {showPriceSkeleton ? (
               <View style={styles.loadingPrice}>
                 <SkeletonPlaceholder
                   backgroundColor={theme.colors.background.section}
@@ -301,12 +262,12 @@ const PriceAdvanced = ({
                 </SkeletonPlaceholder>
               </View>
             ) : (
-              formatPriceWithSubscriptNotation(currentPrice, currentCurrency)
+              formatPriceWithSubscriptNotation(displayPrice, currentCurrency)
             )}
           </Text>
         )}
         <Text allowFontScaling={false}>
-          {isLoading ? (
+          {showPriceSkeleton ? (
             <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
               <SkeletonPlaceholder
                 backgroundColor={theme.colors.background.section}
@@ -324,20 +285,20 @@ const PriceAdvanced = ({
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={
-                priceDiff > 0
+                displayDiff > 0
                   ? TextColor.SuccessDefault
-                  : priceDiff < 0
+                  : displayDiff < 0
                     ? TextColor.ErrorDefault
                     : TextColor.TextAlternative
               }
               allowFontScaling={false}
             >
-              {priceDiff > 0 ? '+' : ''}
-              {addCurrencySymbol(priceDiff, currentCurrency, true)} (
-              {priceDiff > 0 ? '+' : ''}
-              {priceDiff === 0 || comparePrice === 0
+              {displayDiff > 0 ? '+' : ''}
+              {addCurrencySymbol(displayDiff, currentCurrency, true)} (
+              {displayDiff > 0 ? '+' : ''}
+              {displayDiff === 0 || displayCompare === 0
                 ? '0'
-                : ((priceDiff / comparePrice) * 100).toFixed(2)}
+                : ((displayDiff / displayCompare) * 100).toFixed(2)}
               %){' '}
               <Text
                 testID="price-label"
@@ -353,9 +314,6 @@ const PriceAdvanced = ({
         </Text>
       </View>
       <Box twClassName={showEmptyState ? 'mt-3 mb-6' : 'mt-3'}>
-        {crosshairData && chartType === ChartType.Candles && (
-          <OHLCVBar data={crosshairData} currency={currentCurrency} />
-        )}
         <View
           testID="advanced-chart-touch-container"
           style={[styles.chartContainer, { height: CHART_HEIGHT }]}
@@ -364,27 +322,32 @@ const PriceAdvanced = ({
           onTouchCancel={handleTouchEnd}
         >
           {showEmptyState ? (
-            <NoDataOverlay
-              hasInsufficientData={hasInsufficientData}
-              styles={styles}
-              chartPlaceholderFill={theme.colors.border.muted}
-            />
+            <View style={styles.noDataOverlay}>
+              <Text variant={TextVariant.HeadingSm} twClassName="text-center">
+                {strings('asset_overview.no_chart_data.title')}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                twClassName="text-center"
+              >
+                {strings('asset_overview.no_chart_data.description')}
+              </Text>
+            </View>
           ) : (
-            <AdvancedChart
-              ohlcvData={ohlcvData}
-              ohlcvSeriesKey={ohlcvSeriesKey}
-              height={CHART_HEIGHT}
-              showVolume={chartType === ChartType.Candles}
-              volumeOverlay
-              chartType={chartType}
-              indicators={EMPTY_INDICATORS}
-              lineChrome={advancedChartLineChromePresets.tokenOverview}
-              isLoading={chartLoading}
-              ohlcvPagination={ohlcvPagination}
-              visibleFromMs={visibleFromMs}
-              onCrosshairMove={handleCrosshairMove}
-              onChartInteracted={handleChartInteracted}
-              onChartTradingViewClicked={handleChartTradingViewClicked}
+            <LineGraph
+              animated
+              points={graphPoints}
+              color={chartColor}
+              gradientFillColors={gradientColors}
+              style={{ width: '100%', height: CHART_HEIGHT }}
+              enablePanGesture
+              enableIndicator
+              indicatorPulsating
+              enableFadeInMask
+              onPointSelected={handlePointSelected}
+              onGestureStart={handleTouchStart}
+              onGestureEnd={handleTouchEnd}
             />
           )}
         </View>
@@ -397,7 +360,7 @@ const PriceAdvanced = ({
               selected={timeRange}
               onSelect={handleTimeRangeSelect}
               chartType={chartType}
-              onChartTypeToggle={toggleChartType}
+              onChartTypeToggle={() => {}}
             />
           </View>
         </View>
