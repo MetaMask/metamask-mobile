@@ -252,7 +252,6 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.RemoteFeatureFlagController.rawRemoteFeatureFlags',
     'engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags',
     'engine.backgroundState.RemoteFeatureFlagController.thresholdCache',
-    'engine.backgroundState.TokenListController.tokensChainsCache',
     'engine.backgroundState.TokenRatesController.marketData',
     'engine.backgroundState.TokenSearchDiscoveryDataController',
 
