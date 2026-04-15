@@ -28,6 +28,11 @@ import {
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  BASE_DISPLAY_NAME,
+  MAINNET_DISPLAY_NAME,
+  SOLANA_DISPLAY_NAME,
+} from '../../../../core/Engine/constants';
 
 const SKELETON_COUNT = 5;
 const SKELETON_KEYS = Array.from(
@@ -42,9 +47,9 @@ const getChainFilters = (): { key: ChainFilter; label: string }[] => [
     key: 'all',
     label: strings('social_leaderboard.top_traders_view.chain_filter.all'),
   },
-  { key: 'base', label: 'Base' },
-  { key: 'solana', label: 'Solana' },
-  { key: 'ethereum', label: 'Ethereum' },
+  { key: 'base', label: BASE_DISPLAY_NAME },
+  { key: 'solana', label: SOLANA_DISPLAY_NAME },
+  { key: 'ethereum', label: MAINNET_DISPLAY_NAME },
 ];
 
 interface ChainPillProps {
