@@ -43,12 +43,11 @@ const MainActionButton = ({
 
   return (
     <Animated.View
-      accessible={Platform.OS === 'ios' ? true : undefined}
-      testID={testID}
-      accessibilityLabel={Platform.OS === 'ios' ? label : undefined}
       style={[{ transform: [{ scale: scaleAnim }] }, containerStyle]}
     >
       <Pressable
+        accessible={Platform.OS === 'ios' ? true : undefined}
+        testID={testID}
         style={({ pressed }) => [styles.base, pressed && styles.pressed]}
         onPress={!isDisabled ? onPress : undefined}
         onPressIn={!isDisabled ? handlePressIn : undefined}

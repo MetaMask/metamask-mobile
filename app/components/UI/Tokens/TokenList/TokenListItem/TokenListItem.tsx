@@ -562,182 +562,174 @@ export const TokenListItem = React.memo(
     }
 
     return (
-      <View
+      <Pressable
         accessible={Platform.OS === 'ios' ? true : undefined}
-        accessibilityLabel={
-          Platform.OS === 'ios'
-            ? `${asset.name || asset.symbol}, ${fiatBalance}, ${tokenBalance}`
-            : undefined
-        }
         {...generateTestId(Platform, getAssetTestId(asset.symbol))}
+        onPress={() => {
+          onItemPress?.(asset);
+        }}
+        onLongPress={() => {
+          const onLongPress =
+            asset.isNative || isMusdToken(asset.address)
+              ? null
+              : showRemoveMenu;
+          onLongPress?.(asset);
+        }}
+        style={styles.itemWrapper}
       >
-        <Pressable
-          onPress={() => {
-            onItemPress?.(asset);
-          }}
-          onLongPress={() => {
-            const onLongPress =
-              asset.isNative || isMusdToken(asset.address)
-                ? null
-                : showRemoveMenu;
-            onLongPress?.(asset);
-          }}
-          style={styles.itemWrapper}
+        {/* Column: 1 - Token logo */}
+        <BadgeWrapper
+          style={styles.badge}
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            networkBadgeSource && (
+              <Badge
+                variant={BadgeVariant.Network}
+                imageSource={networkBadgeSource}
+              />
+            )
+          }
         >
-          {/* Column: 1 - Token logo */}
-          <BadgeWrapper
-            style={styles.badge}
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              networkBadgeSource && (
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={networkBadgeSource}
-                />
-              )
-            }
+          <AssetLogo asset={asset} />
+        </BadgeWrapper>
+
+        {/* Column 2*/}
+        <Box twClassName="flex-1 ml-5">
+          {/* Row: 1 - Token name, label, earn CTA, stock badge */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="gap-2.5"
           >
-            <AssetLogo asset={asset} />
-          </BadgeWrapper>
-
-          {/* Column 2*/}
-          <Box twClassName="flex-1 ml-5">
-            {/* Row: 1 - Token name, label, earn CTA, stock badge */}
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              justifyContent={BoxJustifyContent.Between}
-              twClassName="gap-2.5"
-            >
-              {/*
-               * Token name and label
-               * The name of the token must callback to the symbol
-               * The reason for this is that the wallet_watchAsset doesn't return the name
-               * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
-               */}
-              <View style={styles.assetNameContainer}>
-                <View style={styles.assetName}>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    numberOfLines={1}
-                    style={styles.assetNameText}
-                  >
-                    {asset.name || asset.symbol}
-                  </Text>
-                  {label && (
-                    <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
-                  )}
-                </View>
-
-                {renderEarnCta()}
-
-                {isStockToken(asset as BridgeToken) && (
-                  <StockBadge
-                    style={styles.stockBadgeWrapper}
-                    token={asset as BridgeToken}
-                  />
-                )}
-              </View>
-
-              {/* Fiat Balance — or scam warning icon when native symbol is not original */}
-              {hideFiatForScamWarning ? (
-                <ScamWarningIcon
-                  asset={asset as TokenI & { chainId: string }}
-                  setShowScamWarningModal={setShowScamWarningModal}
-                />
-              ) : (
-                <SensitiveText
-                  variant={
-                    asset?.hasBalanceError ||
-                    asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
-                    hideFiatForTestnet
-                      ? CLTextVariant.BodySM
-                      : CLTextVariant.BodyMDMedium
-                  }
-                  isHidden={privacyMode}
-                  length={SensitiveTextLength.Medium}
-                  testID={BALANCE_TEST_ID}
+            {/*
+             * Token name and label
+             * The name of the token must callback to the symbol
+             * The reason for this is that the wallet_watchAsset doesn't return the name
+             * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
+             */}
+            <View style={styles.assetNameContainer}>
+              <View style={styles.assetName}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  numberOfLines={1}
+                  style={styles.assetNameText}
                 >
-                  {fiatBalanceDisplay}
-                </SensitiveText>
-              )}
-            </Box>
-
-            {/* Row: 2 - Token price and percentage change and token balance */}
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              justifyContent={BoxJustifyContent.Between}
-              twClassName="gap-2.5"
-            >
-              {/* Token price and percentage change — or claim bonus CTA */}
-              <View style={styles.percentageChange}>
-                {merklClaimData.isClaiming ? (
-                  <Spinner />
-                ) : (
-                  <>
-                    {!hasClaimableBonus && (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        fontWeight={FontWeight.Medium}
-                        color={TextColor.TextAlternative}
-                        twClassName="uppercase"
-                      >
-                        {tokenPriceInFiat && !hideFiatForScamWarning
-                          ? formatPriceWithSubscriptNotation(
-                              tokenPriceInFiat,
-                              currentCurrency,
-                            )
-                          : '-'}
-                        {' \u2022 '}
-                      </Text>
-                    )}
-
-                    {hideFiatForScamWarning ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        fontWeight={FontWeight.Medium}
-                        color={TextColor.TextAlternative}
-                        twClassName="uppercase"
-                      >
-                        {'-'}
-                      </Text>
-                    ) : (
-                      <TouchableOpacity
-                        accessible={false}
-                        onPress={secondaryBalanceDisplay.onPress}
-                        testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
-                      >
-                        <SensitiveText
-                          variant={CLTextVariant.BodySMMedium}
-                          color={secondaryBalanceDisplay.color}
-                          isHidden={false}
-                          length={SensitiveTextLength.Short}
-                          testID={SECONDARY_BALANCE_TEST_ID}
-                        >
-                          {secondaryBalanceDisplay.text || '-'}
-                        </SensitiveText>
-                      </TouchableOpacity>
-                    )}
-                  </>
+                  {asset.name || asset.symbol}
+                </Text>
+                {label && (
+                  <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
                 )}
               </View>
 
-              {/* Token balance */}
+              {renderEarnCta()}
+
+              {isStockToken(asset as BridgeToken) && (
+                <StockBadge
+                  style={styles.stockBadgeWrapper}
+                  token={asset as BridgeToken}
+                />
+              )}
+            </View>
+
+            {/* Fiat Balance — or scam warning icon when native symbol is not original */}
+            {hideFiatForScamWarning ? (
+              <ScamWarningIcon
+                asset={asset as TokenI & { chainId: string }}
+                setShowScamWarningModal={setShowScamWarningModal}
+              />
+            ) : (
               <SensitiveText
-                variant={CLTextVariant.BodySMMedium}
-                style={styles.secondaryBalance}
-                twClassName="shrink"
-                length={SensitiveTextLength.Short}
+                variant={
+                  asset?.hasBalanceError ||
+                  asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
+                  hideFiatForTestnet
+                    ? CLTextVariant.BodySM
+                    : CLTextVariant.BodyMDMedium
+                }
                 isHidden={privacyMode}
-                numberOfLines={1}
-                ellipsizeMode="tail"
+                length={SensitiveTextLength.Medium}
+                testID={BALANCE_TEST_ID}
               >
-                {tokenBalance}
+                {fiatBalanceDisplay}
               </SensitiveText>
-            </Box>
+            )}
           </Box>
-        </Pressable>
-      </View>
+
+          {/* Row: 2 - Token price and percentage change and token balance */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="gap-2.5"
+          >
+            {/* Token price and percentage change — or claim bonus CTA */}
+            <View style={styles.percentageChange}>
+              {merklClaimData.isClaiming ? (
+                <Spinner />
+              ) : (
+                <>
+                  {!hasClaimableBonus && (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                      twClassName="uppercase"
+                    >
+                      {tokenPriceInFiat && !hideFiatForScamWarning
+                        ? formatPriceWithSubscriptNotation(
+                            tokenPriceInFiat,
+                            currentCurrency,
+                          )
+                        : '-'}
+                      {' \u2022 '}
+                    </Text>
+                  )}
+
+                  {hideFiatForScamWarning ? (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                      twClassName="uppercase"
+                    >
+                      {'-'}
+                    </Text>
+                  ) : (
+                    <TouchableOpacity
+                      accessible={false}
+                      onPress={secondaryBalanceDisplay.onPress}
+                      testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
+                    >
+                      <SensitiveText
+                        variant={CLTextVariant.BodySMMedium}
+                        color={secondaryBalanceDisplay.color}
+                        isHidden={false}
+                        length={SensitiveTextLength.Short}
+                        testID={SECONDARY_BALANCE_TEST_ID}
+                      >
+                        {secondaryBalanceDisplay.text || '-'}
+                      </SensitiveText>
+                    </TouchableOpacity>
+                  )}
+                </>
+              )}
+            </View>
+
+            {/* Token balance */}
+            <SensitiveText
+              variant={CLTextVariant.BodySMMedium}
+              style={styles.secondaryBalance}
+              twClassName="shrink"
+              length={SensitiveTextLength.Short}
+              isHidden={privacyMode}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {tokenBalance}
+            </SensitiveText>
+          </Box>
+        </Box>
+      </Pressable>
     );
   },
 );
