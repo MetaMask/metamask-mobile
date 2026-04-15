@@ -37,7 +37,9 @@ const getTeamColor = (
 const getButtonVariant = (
   index: number,
   total: number,
+  moneyline: boolean,
 ): PredictBetButtonVariant => {
+  if (!moneyline) return 'draw';
   if (total === 3 && index === 1) return 'draw';
   return index === 0 ? 'yes' : 'no';
 };
@@ -46,16 +48,16 @@ const buildButtons = (
   outcome: PredictOutcome,
   game?: PredictMarketGame,
   sportsMarketType?: string,
-): PredictSportOutcomeButton[] =>
-  outcome.tokens.map((token, index) => ({
-    label: token.title,
+): PredictSportOutcomeButton[] => {
+  const moneyline = isMoneylineType(sportsMarketType);
+  return outcome.tokens.map((token, index) => ({
+    label: token.shortTitle ?? token.title,
     price: Math.round(token.price * 100),
     onPress: noop,
-    variant: getButtonVariant(index, outcome.tokens.length),
-    teamColor: isMoneylineType(sportsMarketType)
-      ? getTeamColor(token.title, game)
-      : undefined,
+    variant: getButtonVariant(index, outcome.tokens.length, moneyline),
+    teamColor: moneyline ? getTeamColor(token.title, game) : undefined,
   }));
+};
 
 const buildSubtitle = (outcome: PredictOutcome): string =>
   `$${formatVolume(outcome.volume)} Vol`;
@@ -172,7 +174,7 @@ const SubgroupCards = memo(
 
 SubgroupCards.displayName = 'SubgroupCards';
 
-const GroupContent = memo(
+const OutcomesContent = memo(
   ({
     group,
     game,
@@ -213,6 +215,6 @@ const GroupContent = memo(
   },
 );
 
-GroupContent.displayName = 'GroupContent';
+OutcomesContent.displayName = 'OutcomesContent';
 
-export default GroupContent;
+export default OutcomesContent;

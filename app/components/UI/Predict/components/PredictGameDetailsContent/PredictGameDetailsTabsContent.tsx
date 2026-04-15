@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type {
@@ -12,7 +12,7 @@ import PredictChipList, { type PredictChipItem } from '../PredictChipList';
 import PredictPicks from '../PredictPicks/PredictPicks';
 import { getOutcomeGroupLabel } from '../../utils/outcomeGroupLabel';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
-import GroupContent from './GroupContent';
+import OutcomesContent from './OutcomesContent';
 
 interface PredictGameDetailsTabsContentProps {
   market: PredictMarket;
@@ -27,7 +27,7 @@ interface PredictGameDetailsTabsContentProps {
 const toChips = (groups: PredictOutcomeGroup[]): PredictChipItem[] =>
   groups.map((g) => ({ key: g.key, label: getOutcomeGroupLabel(g.key) }));
 
-const OutcomesContent = memo(
+const OutcomesTab = memo(
   ({
     outcomeGroups,
     game,
@@ -55,7 +55,7 @@ const OutcomesContent = memo(
         />
         {selectedGroup && (
           <Box twClassName="px-4 pt-3">
-            <GroupContent group={selectedGroup} game={game} />
+            <OutcomesContent group={selectedGroup} game={game} />
           </Box>
         )}
       </Box>
@@ -63,7 +63,7 @@ const OutcomesContent = memo(
   },
 );
 
-OutcomesContent.displayName = 'OutcomesContent';
+OutcomesTab.displayName = 'OutcomesTab';
 
 const PredictGameDetailsTabsContent = memo(
   ({
@@ -114,7 +114,7 @@ const PredictGameDetailsTabsContent = memo(
 
     if (!showTabBar) {
       return (
-        <OutcomesContent
+        <OutcomesTab
           outcomeGroups={outcomeGroups}
           game={market.game}
           chips={chips}
@@ -142,7 +142,7 @@ const PredictGameDetailsTabsContent = memo(
           </Box>
         )}
         {currentKey === 'outcomes' && (
-          <OutcomesContent
+          <OutcomesTab
             outcomeGroups={outcomeGroups}
             game={market.game}
             chips={chips}

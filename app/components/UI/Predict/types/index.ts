@@ -290,6 +290,7 @@ export type PredictOutcome = {
 export type PredictOutcomeToken = {
   id: string;
   title: string;
+  shortTitle?: string;
   price: number;
 };
 
