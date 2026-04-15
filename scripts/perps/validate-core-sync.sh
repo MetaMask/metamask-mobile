@@ -32,7 +32,7 @@ PERPS_SRC="app/controllers/perps"
 PERPS_DEST="packages/perps-controller/src"
 WORKSPACE="@metamask/perps-controller"
 
-STEP_COUNT=12
+STEP_COUNT=13
 STEP_RESULTS=()
 STEP_TIMES=()
 STEP_LABELS=()
@@ -173,6 +173,9 @@ if $SKIP_BUILD; then
   STEP_COUNT=$((STEP_COUNT - 1))
 fi
 if $SKIP_TEST; then
+  STEP_COUNT=$((STEP_COUNT - 1))
+fi
+if $SKIP_BUILD; then
   STEP_COUNT=$((STEP_COUNT - 1))
 fi
 
@@ -469,6 +472,50 @@ step_build() {
   cd "$MOBILE_ROOT"
 }
 
+step_verify_publish_artifact() {
+  cd "$CORE_PATH"
+
+  local esm="packages/perps-controller/dist/PerpsController.mjs"
+  local cjs="packages/perps-controller/dist/PerpsController.cjs"
+  local pkg="packages/perps-controller/package.json"
+
+  for file in "$esm" "$cjs"; do
+    if [[ ! -f "$file" ]]; then
+      echo "FAIL: Built file missing: $file"
+      cd "$MOBILE_ROOT"
+      return 1
+    fi
+
+    if ! grep -q "webpackIgnore: true" "$file"; then
+      echo "FAIL: webpackIgnore magic comment missing from built artifact: $file"
+      echo "This usually means ts-bridge rewrote the import argument and stripped the comment."
+      cd "$MOBILE_ROOT"
+      return 1
+    fi
+  done
+
+  if [[ ! -f "$pkg" ]]; then
+    echo "FAIL: Package manifest missing: $pkg"
+    cd "$MOBILE_ROOT"
+    return 1
+  fi
+
+  if grep -q '!dist/providers/MYXProvider\*' "$pkg"; then
+    progress "  ├─ Package excludes MYXProvider files from publish output"
+    progress "  ├─ Verifying source and built artifacts keep the webpackIgnore safeguard"
+
+    if ! grep -q "const myxModulePath = './providers/MYXProvider'" \
+      "packages/perps-controller/src/PerpsController.ts"; then
+      echo "FAIL: Source safeguard missing: expected myxModulePath workaround in PerpsController.ts"
+      cd "$MOBILE_ROOT"
+      return 1
+    fi
+  fi
+
+  echo "OK: Built artifacts preserve webpackIgnore safeguard for MYXProvider dynamic import"
+  cd "$MOBILE_ROOT"
+}
+
 step_format_fix() {
   cd "$CORE_PATH"
 
@@ -621,6 +668,9 @@ main() {
   if ! $SKIP_BUILD; then
     step=$((step + 1))
     run_step $step "Build" step_build
+
+    step=$((step + 1))
+    run_step $step "Verify publish artifact" step_verify_publish_artifact
   fi
 
   step=$((step + 1))
