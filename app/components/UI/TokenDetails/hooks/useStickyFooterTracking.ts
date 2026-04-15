@@ -6,7 +6,7 @@ export type StickyFooterButtonAction = 'swap' | 'buy';
 
 interface TrackStickyBottomCtaClickedParams {
   ctaType: StickyFooterButtonAction;
-  isPrimary: boolean;
+  hasMoreThan100USD: boolean;
   tokenAddress: string;
   chainId: string;
 }
@@ -22,17 +22,15 @@ export function useStickyFooterTracking() {
   return useCallback(
     ({
       ctaType,
-      isPrimary,
+      hasMoreThan100USD,
       tokenAddress,
       chainId,
     }: TrackStickyBottomCtaClickedParams) => {
       trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.TOKEN_DETAILS_STICKY_BOTTOM_CTA_CLICKED,
-        )
+        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_CTA_CLICKED)
           .addProperties({
             cta_type: ctaType,
-            is_primary: isPrimary,
+            has_more_than_100_usd: hasMoreThan100USD,
             token_address: tokenAddress,
             chain_id: chainId,
           })

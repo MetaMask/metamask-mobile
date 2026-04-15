@@ -282,8 +282,8 @@ describe('TokenDetailsStickyFooter', () => {
   });
 
   describe('Sticky Footer Button Tapped tracking', () => {
-    it('tracks swap button tap with correct action and isPrimary when secondary', () => {
-      // balance < $100 → buy is primary, swap is secondary
+    it('tracks swap button tap with hasMoreThan100USD false when balance < $100', () => {
+      // balance < $100
       mockUseABTest.mockReturnValue({
         variant:
           STICKY_FOOTER_SWAP_LABEL_VARIANTS[
@@ -300,14 +300,14 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'swap',
-        isPrimary: false,
+        hasMoreThan100USD: false,
         tokenAddress: '0x123',
         chainId: '0x1',
       });
     });
 
-    it('tracks buy button tap with correct action and isPrimary', () => {
-      // balance < $100 → buy is primary
+    it('tracks buy button tap with hasMoreThan100USD false when balance < $100', () => {
+      // balance < $100
       mockUseABTest.mockReturnValue({
         variant:
           STICKY_FOOTER_SWAP_LABEL_VARIANTS[
@@ -324,13 +324,13 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'buy',
-        isPrimary: true,
+        hasMoreThan100USD: false,
         tokenAddress: '0x123',
         chainId: '0x1',
       });
     });
 
-    it('tracks swap as primary when balance >= $100 using convert variant', () => {
+    it('tracks swap tap with hasMoreThan100USD true when balance >= $100', () => {
       mockUseABTest.mockReturnValue({
         variant:
           STICKY_FOOTER_SWAP_LABEL_VARIANTS[
@@ -347,13 +347,13 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'swap',
-        isPrimary: true,
+        hasMoreThan100USD: true,
         tokenAddress: '0x123',
         chainId: '0x1',
       });
     });
 
-    it('tracks single swap button as primary when it is the only button', () => {
+    it('tracks single swap button with hasMoreThan100USD false when balance is undefined', () => {
       mockIsBuyable.mockReturnValue(false);
       mockUseABTest.mockReturnValue({
         variant:
@@ -371,7 +371,7 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'swap',
-        isPrimary: true,
+        hasMoreThan100USD: false,
         tokenAddress: '0x123',
         chainId: '0x1',
       });

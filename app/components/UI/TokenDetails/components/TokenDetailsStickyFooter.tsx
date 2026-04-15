@@ -215,7 +215,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           onPress={() => {
             trackStickyFooterTapped({
               ctaType: 'swap',
-              isPrimary: swapIsSuccess,
+              hasMoreThan100USD: balanceUsd >= BALANCE_THRESHOLD_USD,
               tokenAddress: token.address ?? '',
               chainId: token.chainId ?? '',
             });
@@ -244,7 +244,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           onPress={() => {
             trackStickyFooterTapped({
               ctaType: 'buy',
-              isPrimary: buyIsSuccess,
+              hasMoreThan100USD: balanceUsd >= BALANCE_THRESHOLD_USD,
               tokenAddress: token.address ?? '',
               chainId: token.chainId ?? '',
             });
