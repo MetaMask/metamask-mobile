@@ -6,10 +6,11 @@ export const PERPS_TRANSACTIONS_HISTORY_CONSTANTS = {
   FLASH_LIST_SCROLL_EVENT_THROTTLE: 16,
   LIST_ITEM_SELECTOR_OPACITY: 0.7,
   /**
-   * Default number of days to look back for funding history.
-   * HyperLiquid API requires a startTime and returns max 500 records per call.
-   * The full range is fetched in parallel page windows to ensure newest records
-   * are always included regardless of total history length.
+   * Maximum number of days to look back for funding history.
+   * Only the most recent 30-day window is fetched on initial load;
+   * older windows are fetched on-demand as the user scrolls.
+   * Pagination stops at the first empty window, so users with gaps
+   * in funding activity may not reach the full 365-day lookback.
    */
   DEFAULT_FUNDING_HISTORY_DAYS: 365,
   /**
