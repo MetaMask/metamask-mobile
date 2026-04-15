@@ -45,6 +45,9 @@ import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPositio
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import Routes from '../../../../constants/navigation/Routes';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectCampaignById } from '../../../../reducers/rewards/selectors';
 
 // ParamListBase requires an index signature, which interfaces don't support
@@ -68,6 +71,7 @@ const CheckIcon: React.FC = () => (
 const OndoCampaignStatsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<OndoCampaignStatsRouteParams, 'OndoCampaignStats'>>();
   const { campaignId } = route.params;
@@ -76,6 +80,12 @@ const OndoCampaignStatsView: React.FC = () => {
     () => selectCampaignById(campaignId),
     [campaignId],
   );
+
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_status',
+    campaign_id: campaignId,
+  });
+
   const campaign = useSelector(selectCampaign);
   const isCampaignActive =
     campaign != null && getCampaignStatus(campaign) === 'active';
@@ -340,6 +350,15 @@ const OndoCampaignStatsView: React.FC = () => {
               <Pressable
                 onPress={() => {
                   if (!leaderboardPosition || tierMinDeposit == null) return;
+                  trackEvent(
+                    createEventBuilder(
+                      MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+                    )
+                      .addProperties({
+                        button_type: 'ondo_campaign_qualify_for_rank',
+                      })
+                      .build(),
+                  );
                   navigation.navigate(Routes.MODAL.REWARDS_ONDO_PENDING_SHEET, {
                     variant: 'own',
                     tier: leaderboardPosition.projectedTier,

@@ -15,6 +15,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useRewardsToast from '../../hooks/useRewardsToast';
 import CampaignOptInCta, { CAMPAIGN_CTA_TEST_IDS } from './CampaignOptInCta';
 import OndoNotEligibleSheet from './OndoNotEligibleSheet';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface OndoCampaignCTAProps {
   campaign: CampaignDto;
@@ -43,23 +45,38 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
   notEligibleForCampaign = false,
 }) => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const [isNotEligibleSheetOpen, setIsNotEligibleSheetOpen] = useState(false);
   const pendingActionRef = useRef<(() => void) | null>(null);
 
   const navigateToOpenPosition = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: 'ondo_campaign_open_position',
+        })
+        .build(),
+    );
     navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR, {
       mode: 'open_position',
       campaignId,
     });
-  }, [navigation, campaignId]);
+  }, [navigation, campaignId, trackEvent, createEventBuilder]);
 
   const navigateToSwapAssets = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: 'ondo_campaign_swap_assets',
+        })
+        .build(),
+    );
     navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR, {
       mode: 'swap',
       campaignId,
     });
-  }, [navigation, campaignId]);
+  }, [navigation, campaignId, trackEvent, createEventBuilder]);
 
   const guardedNavigate = useCallback(
     (navigate: () => void) => {
@@ -142,6 +159,15 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
       <CampaignOptInCta
         campaign={campaign}
         participantStatus={participantStatus}
+        onJoinPress={() =>
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+              .addProperties({
+                button_type: 'ondo_campaign_join',
+              })
+              .build(),
+          )
+        }
       />
     );
   }
