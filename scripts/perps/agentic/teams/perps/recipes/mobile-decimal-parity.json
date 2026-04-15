@@ -1,0 +1,213 @@
+{
+  "title": "Mobile perps decimal parity reference",
+  "validate": {
+    "workflow": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.feature_enabled"
+      ],
+      "setup": [
+        {
+          "id": "setup-account",
+          "action": "call",
+          "ref": "perps/select-account",
+          "params": {
+            "address": "0x8dc623e964475d4d669da601fd15ea9125469003"
+          }
+        },
+        {
+          "id": "setup-testnet",
+          "action": "call",
+          "ref": "perps/setup-testnet"
+        },
+        {
+          "id": "setup-clear-eth",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});if(!p){return JSON.stringify({cleared:true});}return Engine.context.PerpsController.closePosition({symbol:'ETH'}).then(function(){return JSON.stringify({cleared:true});});})",
+          "assert": {
+            "operator": "eq",
+            "field": "cleared",
+            "value": true
+          }
+        },
+        {
+          "id": "setup-wait-no-eth",
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});return JSON.stringify({found:!!p});})",
+          "assert": {
+            "operator": "eq",
+            "field": "found",
+            "value": false
+          },
+          "timeout_ms": 10000
+        }
+      ],
+      "entry": "ac1-home",
+      "nodes": {
+        "ac1-home": {
+          "action": "navigate",
+          "target": "PerpsHomeView",
+          "next": "ac1-home-wait"
+        },
+        "ac1-home-wait": {
+          "action": "wait_for",
+          "route": "PerpsMarketListView",
+          "next": "ac1-home-shot"
+        },
+        "ac1-home-shot": {
+          "action": "screenshot",
+          "filename": "mobile-01-home.png",
+          "next": "ac2-market"
+        },
+        "ac2-market": {
+          "action": "call",
+          "ref": "perps/market-discovery",
+          "params": {
+            "symbol": "ETH"
+          },
+          "next": "ac2-market-shot"
+        },
+        "ac2-market-shot": {
+          "action": "screenshot",
+          "filename": "mobile-02-market-detail.png",
+          "next": "ac3-order-press"
+        },
+        "ac3-order-press": {
+          "action": "press",
+          "test_id": "perps-market-details-long-button",
+          "next": "ac3-order-wait"
+        },
+        "ac3-order-wait": {
+          "action": "wait_for",
+          "route": "RedesignedConfirmations",
+          "next": "ac3-order-shot"
+        },
+        "ac3-order-shot": {
+          "action": "screenshot",
+          "filename": "mobile-03-order-entry.png",
+          "next": "ac3-open-eth"
+        },
+        "ac3-open-eth": {
+          "action": "call",
+          "ref": "perps/trade-open-market",
+          "params": {
+            "symbol": "ETH",
+            "side": "long",
+            "usdAmount": "11",
+            "leverage": "2"
+          },
+          "next": "ac3-wait-eth"
+        },
+        "ac3-wait-eth": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});return JSON.stringify({found:!!p});})",
+          "assert": {
+            "operator": "eq",
+            "field": "found",
+            "value": true
+          },
+          "timeout_ms": 10000,
+          "next": "ac4-market-reset"
+        },
+        "ac4-market-reset": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "ETH",
+              "name": "ETH",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "ac4-margin-wait"
+        },
+        "ac4-margin-wait": {
+          "action": "wait_for",
+          "test_id": "position-card-margin-chevron",
+          "next": "ac4-margin-press"
+        },
+        "ac4-margin-press": {
+          "action": "press",
+          "test_id": "position-card-margin-chevron",
+          "next": "ac4-reduce-wait"
+        },
+        "ac4-reduce-wait": {
+          "action": "wait_for",
+          "test_id": "perps-adjust-margin-reduce-btn",
+          "next": "ac4-reduce-press"
+        },
+        "ac4-reduce-press": {
+          "action": "press",
+          "test_id": "perps-adjust-margin-reduce-btn",
+          "next": "ac4-adjust-wait"
+        },
+        "ac4-adjust-wait": {
+          "action": "wait_for",
+          "route": "PerpsAdjustMargin",
+          "next": "ac4-adjust-shot"
+        },
+        "ac4-adjust-shot": {
+          "action": "screenshot",
+          "filename": "mobile-04-adjust-margin.png",
+          "next": "ac5-market-reset"
+        },
+        "ac5-market-reset": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "ETH",
+              "name": "ETH",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "ac5-close-wait"
+        },
+        "ac5-close-wait": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-close-button",
+          "next": "ac5-close-press"
+        },
+        "ac5-close-press": {
+          "action": "press",
+          "test_id": "perps-market-details-close-button",
+          "next": "ac5-close-route"
+        },
+        "ac5-close-route": {
+          "action": "wait_for",
+          "route": "PerpsClosePosition",
+          "next": "ac5-close-shot"
+        },
+        "ac5-close-shot": {
+          "action": "screenshot",
+          "filename": "mobile-05-close-view.png",
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      },
+      "teardown": [
+        {
+          "id": "teardown-close-eth",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});if(!p){return JSON.stringify({cleared:true});}return Engine.context.PerpsController.closePosition({symbol:'ETH'}).then(function(){return JSON.stringify({cleared:true});});})",
+          "assert": {
+            "operator": "eq",
+            "field": "cleared",
+            "value": true
+          }
+        }
+      ]
+    }
+  }
+}
