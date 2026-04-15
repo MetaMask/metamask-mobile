@@ -556,6 +556,12 @@ export interface RootStackParamList extends ParamListBase {
   // Social Leaderboard routes
   TopTradersView: undefined;
   TraderProfileView: { traderId: string; traderName: string };
+  TraderPositionView: {
+    traderId: string;
+    traderName: string;
+    tokenSymbol: string;
+    position?: import('@metamask/social-controllers').Position;
+  };
 
   // Misc routes
   LockScreen: undefined;
