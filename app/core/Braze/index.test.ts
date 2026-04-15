@@ -11,6 +11,7 @@ const mockGetSessionProfile = jest.fn();
 const mockSetBrazeProfileId = jest.fn();
 const mockSetAllowedEvents = jest.fn();
 const mockSetAllowedTraits = jest.fn();
+const mockSetLanguage = jest.fn();
 
 jest.mock('../Engine/Engine', () => ({
   __esModule: true,
@@ -30,6 +31,7 @@ jest.mock('../Engine/controllers/analytics-controller/BrazePlugin', () => ({
     setBrazeProfileId: mockSetBrazeProfileId,
     setAllowedEvents: mockSetAllowedEvents,
     setAllowedTraits: mockSetAllowedTraits,
+    setLanguage: mockSetLanguage,
   })),
 }));
 

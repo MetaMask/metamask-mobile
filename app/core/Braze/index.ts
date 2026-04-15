@@ -17,7 +17,7 @@ let brazePlugin: BrazePlugin | undefined;
 export function getBrazePlugin(): BrazePlugin {
   if (!brazePlugin) {
     brazePlugin = new BrazePlugin();
-    brazePlugin.setLanguage(I18n.locale.substring(0, 2));
+    brazePlugin.setLanguage(I18n.locale);
     I18nEvents.addListener('localeChanged', (locale: string) => {
       brazePlugin?.setLanguage(locale);
     });
