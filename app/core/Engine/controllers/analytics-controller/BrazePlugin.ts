@@ -21,15 +21,11 @@ import { captureException } from '@sentry/react-native';
  */
 export class BrazePlugin extends DestinationPlugin {
   type = PluginType.destination;
-  key = 'Appboy';
+  key = 'Braze';
 
   private brazeProfileId: string | undefined;
-  private allowedEvents: Set<string> = new Set(
-    defaultAllowedEvents.allowedEvents,
-  );
-  private allowedTraits: Set<string> = new Set(
-    defaultAllowedEvents.allowedTraits,
-  );
+  private allowedEvents: Set<string> = new Set();
+  private allowedTraits: Set<string> = new Set();
 
   /**
    * Set the Braze profile ID used for `Braze.changeUser()`.

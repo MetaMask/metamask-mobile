@@ -4,7 +4,11 @@ import type {
   IdentifyEventType,
   TrackEventType,
 } from '@segment/analytics-react-native';
-import defaultAllowedEvents from './braze-allowed-events.json';
+
+const defaultAllowedEvents = {
+  allowedEvents: ['Allowed event 1', 'Allowed event 2'],
+  allowedTraits: ['allowed_trait_1', 'allowed_trait_2'],
+};
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -64,6 +68,7 @@ describe('BrazePlugin', () => {
   describe('track', () => {
     it('forwards allowed events to Braze when profileId is set', () => {
       plugin.setBrazeProfileId('profile-123');
+      plugin.setAllowedEvents(defaultAllowedEvents.allowedEvents);
       const allowedName = defaultAllowedEvents.allowedEvents[0];
       const event = makeTrackEvent(allowedName, { screen: 'home' });
 
@@ -95,6 +100,7 @@ describe('BrazePlugin', () => {
     });
 
     it('stops forwarding after profileId is cleared', () => {
+      plugin.setAllowedEvents(defaultAllowedEvents.allowedEvents);
       plugin.setBrazeProfileId('profile-123');
       plugin.setBrazeProfileId(undefined);
       const allowedName = defaultAllowedEvents.allowedEvents[0];
@@ -139,6 +145,7 @@ describe('BrazePlugin', () => {
   describe('identify', () => {
     it('forwards allowed custom attributes to Braze when profileId is set', () => {
       plugin.setBrazeProfileId('profile-123');
+      plugin.setAllowedTraits(defaultAllowedEvents.allowedTraits);
       const allowedTrait1 = defaultAllowedEvents.allowedTraits[0];
       const allowedTrait2 = defaultAllowedEvents.allowedTraits[1];
       const event = makeIdentifyEvent({
@@ -165,6 +172,7 @@ describe('BrazePlugin', () => {
     });
 
     it('does not set traits when profileId is not set', () => {
+      plugin.setAllowedTraits(defaultAllowedEvents.allowedTraits);
       const allowedTrait = defaultAllowedEvents.allowedTraits[0];
       const event = makeIdentifyEvent({ [allowedTrait]: true });
 
@@ -186,6 +194,7 @@ describe('BrazePlugin', () => {
 
     it('skips undefined trait values', () => {
       plugin.setBrazeProfileId('profile-123');
+      plugin.setAllowedTraits(defaultAllowedEvents.allowedTraits);
       const allowedTrait1 = defaultAllowedEvents.allowedTraits[0];
       const allowedTrait2 = defaultAllowedEvents.allowedTraits[1];
       const event = makeIdentifyEvent({
