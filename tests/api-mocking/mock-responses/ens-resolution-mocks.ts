@@ -52,11 +52,12 @@ const SUPPORTS_FALSE =
 const CONTENTHASH_RESULT =
   '0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000026e3010170122029f2d17be6139079dc48696d1f582a8530eb9805b561eda517e22a892c7e3f1f0000000000000000000000000000000000000000000000000000';
 
-// The CIDv1 base32 that the app will compute after decoding the contenthash
-const IPFS_CID = 'bafybeibj6lixxzqtsb45ysdjnupvqkufgdvzqbnvmhw2kf7cfkesy7r7d4';
+// The CIDv0 that contentHash.decode() returns (used by the app to construct gateway URL)
+const IPFS_CID_V0 = 'QmRAQB6YaCyidP37UdDnjFY5vQuiBrcqdyoW1CuDgwxkD4';
 
-// The IPFS gateway URL the app will construct and fetch
-const GATEWAY_URL_PREFIX = `https://dweb.link/ipfs/${IPFS_CID}`;
+// The IPFS CID path segment used to match gateway requests.
+// Works regardless of the gateway host (real dweb.link or mock localhost).
+const IPFS_CID_PATH = `/ipfs/${IPFS_CID_V0}`;
 
 // --- Fixture HTML content ---
 
@@ -177,33 +178,44 @@ export const ensResolutionMock: TestSpecificMock = async (
     });
 
   // Mock IPFS gateway — serves fixture HTML for the resolved CID.
-  // Matches both the validation fetch() and WebView page load.
-  // The default IPFS mocks only match #x-ipfs-companion-no-redirect URLs,
-  // so this won't conflict.
+  //
+  // Requires the test to override ipfsGateway in PreferencesController
+  // to point at the mock server (http://localhost:8000/ipfs/), so that
+  // the WebView loads content from the mock server instead of dweb.link.
+  //
+  // Two rules are needed because the app makes two distinct requests:
+  // 1. fetch() validation — goes through the /proxy endpoint
+  // 2. WebView navigation — hits the mock server directly
+
+  // Rule 1: Proxy-routed fetch() validation
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.startsWith(GATEWAY_URL_PREFIX);
+      return url.includes(IPFS_CID_PATH);
     })
     .asPriority(1000)
     .thenCallback(async (request) => {
       const url = getDecodedProxiedURL(request.url);
-
-      // Serve categories/general.html if the path matches
-      if (url.includes('/categories/general.html')) {
-        return {
-          statusCode: 200,
-          headers: { 'content-type': 'text/html' },
-          body: ENS_GENERAL_HTML,
-        };
-      }
-
-      // Default: serve the index page
       return {
         statusCode: 200,
         headers: { 'content-type': 'text/html' },
-        body: ENS_INDEX_HTML,
+        body: url.includes('/categories/general.html')
+          ? ENS_GENERAL_HTML
+          : ENS_INDEX_HTML,
       };
     });
+
+  // Rule 2: Direct WebView requests to /ipfs/<CID>/...
+  await mockServer
+    .forGet()
+    .matching((request) => request.path.includes(IPFS_CID_PATH))
+    .asPriority(1000)
+    .thenCallback(async (request) => ({
+        statusCode: 200,
+        headers: { 'content-type': 'text/html' },
+        body: request.path.includes('/categories/general.html')
+          ? ENS_GENERAL_HTML
+          : ENS_INDEX_HTML,
+      }));
 };

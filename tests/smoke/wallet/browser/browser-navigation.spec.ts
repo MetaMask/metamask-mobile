@@ -5,16 +5,40 @@ import { loginToApp } from '../../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../../flows/browser.flow';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { getDappUrl } from '../../../framework/fixtures/FixtureUtils';
+import {
+  getDappUrl,
+  getMockServerPortForFixture,
+} from '../../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../framework/Constants';
 import Browser from '../../../page-objects/Browser/BrowserView';
 import EnsWebsite from '../../../page-objects/Browser/ExternalWebsites/EnsWebsite';
-import RedirectWebsite from '../../../page-objects/Browser/ExternalWebsites/RedirectWebsite';
 import { Assertions } from '../../../framework';
+import { TestSpecificMock } from '../../../framework/types';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import TestHelpers from '../../../helpers.js';
 import { ensResolutionMock } from '../../../api-mocking/mock-responses/ens-resolution-mocks';
 
 const INVALID_URL = 'https://quackquakc.easq';
+
+/**
+ * Mocks the invalid URL request so it doesn't trigger the unmocked-request guard.
+ * Also provides a catch-all for background HyperLiquid API calls not covered by defaults.
+ */
+const invalidUrlMock: TestSpecificMock = async (mockServer) => {
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: INVALID_URL,
+    response: '',
+    responseCode: 404,
+  });
+
+  await setupMockRequest(mockServer, {
+    requestMethod: 'POST',
+    url: 'https://api.hyperliquid.xyz/info',
+    response: {},
+    responseCode: 200,
+  });
+};
 
 const NAVIGATION_FIXTURES_PATH = path.resolve(
   __dirname,
@@ -45,6 +69,7 @@ describe(SmokeWalletPlatform('Browser Navigation'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        testSpecificMock: invalidUrlMock,
       },
       async () => {
         await loginToApp();
@@ -58,21 +83,37 @@ describe(SmokeWalletPlatform('Browser Navigation'), () => {
   });
 
   it('should resolve and display ENS website (vitalik.eth)', async () => {
+    const ensTestMock: TestSpecificMock = async (mockServer) => {
+      await ensResolutionMock(mockServer);
+      await setupMockRequest(mockServer, {
+        requestMethod: 'POST',
+        url: 'https://api.hyperliquid.xyz/info',
+        response: {},
+        responseCode: 200,
+      });
+    };
+
+    // Point ipfsGateway at the mock server so the WebView loads our
+    // fixture HTML instead of fetching from the real dweb.link gateway.
+    // The port 8000 placeholder is replaced with the actual mock server
+    // port at runtime by updateMockServerUrlsInFixture.
+    const mockGateway = `http://localhost:${getMockServerPortForFixture()}/ipfs/`;
+
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder()
+          .withPreferencesController({ ipfsGateway: mockGateway })
+          .build(),
         restartDevice: true,
-        testSpecificMock: ensResolutionMock,
+        testSpecificMock: ensTestMock,
       },
       async () => {
         await loginToApp();
         await navigateToBrowserView();
         await Browser.tapUrlInputBox();
         await Browser.navigateToURL('vitalik.eth');
-        if (device.getPlatform() === 'android') {
-          // ENS resolution + IPFS redirect takes longer on Android
-          await TestHelpers.delay(1000);
-        }
+        // ENS resolution + IPFS gateway fetch takes time
+        await TestHelpers.delay(5000);
         await EnsWebsite.tapGeneralButton();
       },
     );
@@ -115,7 +156,16 @@ describe(SmokeWalletPlatform('Browser Navigation'), () => {
           },
         );
 
-        await RedirectWebsite.tapRedirectButton();
+        // Navigate via runScript — Detox's WebView tap() does not
+        // reliably fire JavaScript handlers on <button> elements.
+        const targetUrl = `${getDappUrl(1)}/redirect-target.html`;
+        const body = web(by.id('browser-webview')).element(
+          by.web.cssSelector('body'),
+        );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (body as any).runScript(
+          `(el) => { window.location.href = '${targetUrl}'; }`,
+        );
         await Assertions.expectElementToHaveText(
           Browser.urlInputBoxID,
           getOriginFromURL(getDappUrl(1)),
