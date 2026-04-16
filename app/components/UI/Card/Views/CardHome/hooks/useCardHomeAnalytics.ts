@@ -38,7 +38,7 @@ export function useCardHomeAnalytics({
       balanceFormatted !== TOKEN_BALANCE_LOADING &&
       balanceFormatted !== TOKEN_BALANCE_LOADING_UPPERCASE;
 
-    const hasPrimaryAsset = !!data?.primaryAsset;
+    const hasPrimaryAsset = !!data?.primaryFundingAsset;
     const isLoaded = hasPrimaryAsset ? hasValidBalance : !isLoading;
 
     if (isLoaded) {
@@ -59,7 +59,7 @@ export function useCardHomeAnalytics({
         createEventBuilder(MetaMetricsEvents.CARD_HOME_VIEWED)
           .addProperties({
             state: cardHomeState,
-            token_symbol_priority: data?.primaryAsset?.symbol,
+            token_symbol_priority: data?.primaryFundingAsset?.symbol,
             token_raw_balance_priority: hasPrimaryAsset
               ? rawTokenBalance !== undefined && isNaN(rawTokenBalance)
                 ? 0
@@ -70,7 +70,7 @@ export function useCardHomeAnalytics({
                 ? 0
                 : rawFiatNumber
               : undefined,
-            token_chain_id_priority: data?.primaryAsset?.chainId,
+            token_chain_id_priority: data?.primaryFundingAsset?.chainId,
           })
           .build(),
       );

@@ -3007,6 +3007,7 @@ var OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
  */
 function fetchOlderBars(pending) {
   var pag = window.ohlcvPagination;
+
   if (!pag.nextCursor || !pag.hasMore || !pag.assetId) {
     pending.onResult([], { noData: true });
     if (window.__mmLayoutSettlePending) {
@@ -3016,15 +3017,15 @@ function fetchOlderBars(pending) {
   }
 
   var gen = window.ohlcvGeneration;
-  var url =
-    OHLCV_BASE_URL +
-    '/' +
-    encodeURIComponent(pag.assetId) +
-    '?nextCursor=' +
-    encodeURIComponent(pag.nextCursor);
+  // Build URL using the same approach as RN: construct then add query params
+  // AssetId contains "/" which should be preserved in the path
+  var url = OHLCV_BASE_URL + '/' + pag.assetId;
+  var queryParams = [];
+  queryParams.push('nextCursor=' + encodeURIComponent(pag.nextCursor));
   if (pag.vsCurrency) {
-    url += '&vsCurrency=' + encodeURIComponent(pag.vsCurrency);
+    queryParams.push('vsCurrency=' + encodeURIComponent(pag.vsCurrency));
   }
+  url = url + '?' + queryParams.join('&');
 
   fetch(url)
     .then(function (response) {
