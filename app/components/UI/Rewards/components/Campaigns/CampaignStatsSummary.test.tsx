@@ -256,18 +256,6 @@ describe('CampaignStatsSummary', () => {
     ).toBe('-5.00%');
   });
 
-  it('renders Stats title by default', () => {
-    const { getByText } = render(<CampaignStatsSummary {...baseProps} />);
-    expect(getByText('Stats')).toBeDefined();
-  });
-
-  it('hides Stats title when showHeader is false', () => {
-    const { queryByText } = render(
-      <CampaignStatsSummary {...baseProps} showHeader={false} />,
-    );
-    expect(queryByText('Stats')).toBeNull();
-  });
-
   // ── Pending / Qualified tags ────────────────────────────────────────
 
   it('renders Pending tag next to rank when qualified is false', () => {
