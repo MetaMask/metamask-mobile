@@ -401,6 +401,9 @@ function createSummary(groupedResults) {
     });
   });
   
+  // Unique test count: each test counts once per device regardless of retries
+  const uniqueTestCount = Object.keys(testExecutions).length;
+
   // Second pass: determine final test status
   // A test is only considered failed if ALL executions failed (no successful retry)
   const failedTestsByTeam = {};
@@ -485,6 +488,7 @@ function createSummary(groupedResults) {
   
   const summary = {
     totalTests,
+    uniqueTests: uniqueTestCount,
     platforms,
     testsByPlatform,
     devices: summaryDevices,

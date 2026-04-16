@@ -1302,7 +1302,7 @@ const Wallet = ({
 
   const content = (
     <>
-      <View style={styles.banner}>
+      <View style={styles.banner} accessible={false}>
         {!basicFunctionalityEnabled ? (
           <BannerAlert
             severity={BannerAlertSeverity.Error}
@@ -1335,7 +1335,11 @@ const Wallet = ({
           containerTestID={WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER}
         />
 
-        {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+        {isCarouselBannersEnabled && (
+          <View accessible={false}>
+            <Carousel style={styles.carousel} />
+          </View>
+        )}
 
         {isHomepageSectionsV1Enabled ? (
           <>
@@ -1384,7 +1388,10 @@ const Wallet = ({
               <HeaderRoot
                 testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
                 endAccessory={
-                  <View style={styles.headerActionButtonsContainer}>
+                  <View
+                    style={styles.headerActionButtonsContainer}
+                    accessible={false}
+                  >
                     <AddressCopy
                       testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
                       hitSlop={touchAreaSlop}

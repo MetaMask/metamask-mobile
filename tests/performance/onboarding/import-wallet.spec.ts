@@ -8,6 +8,7 @@ import {
   PlatformDetector,
   PlaywrightAssertions,
   PlaywrightGestures,
+  withSnapshotSettings,
 } from '../../framework';
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';
@@ -142,17 +143,19 @@ test.describe(PerformanceOnboarding, () => {
         });
         await dismisspredictionsModalPlaywright();
       }
-      await WalletView.waitForBalanceToStabilize();
-      await WalletView.tapOnTokensSection();
-      await timer7.measure(async () => {
-        await PlaywrightAssertions.expectAllElementsToBeVisible(
-          [
-            asPlaywrightElement(WalletView.tokenRow('USDC')),
-            asPlaywrightElement(WalletView.tokenRow('SOL')),
-            asPlaywrightElement(WalletView.tokenRow('BTC')),
-          ],
-          { timeout: 20000 },
-        );
+      await withSnapshotSettings({ snapshotMaxDepth: 45 }, async () => {
+        await WalletView.waitForBalanceToStabilize();
+        await WalletView.tapOnTokensSection();
+        await timer7.measure(async () => {
+          await PlaywrightAssertions.expectAllElementsToBeVisible(
+            [
+              asPlaywrightElement(WalletView.tokenRow('USDC')),
+              asPlaywrightElement(WalletView.tokenRow('SOL')),
+              asPlaywrightElement(WalletView.tokenRow('BTC')),
+            ],
+            { timeout: 20000 },
+          );
+        });
       });
 
       performanceTracker.addTimers(

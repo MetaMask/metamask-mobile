@@ -279,6 +279,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
         marginBottom={8}
         paddingTop={6}
         testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
+        accessible={false}
       >
         {/* Cash — always first */}
         <CashSection
@@ -324,6 +325,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
       marginBottom={8}
       paddingTop={6}
       testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
+      accessible={false}
     >
       <CashSection
         ref={cashSectionRef}

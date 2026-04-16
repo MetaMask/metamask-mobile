@@ -53,6 +53,7 @@ import {
   getLeverageRiskLevel,
   LEVERAGE_COLORS,
 } from '../../constants/leverageColors';
+import { PerpsLeverageBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { LEVERAGE_SLIDER_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
@@ -844,6 +845,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           {quickSelectValues.map((value) => (
             <TouchableOpacity
               key={value}
+              testID={`${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT_BUTTON}-${value}x`}
+              accessible
+              accessibilityLabel={`${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT_BUTTON}-${value}x`}
               style={[
                 styles.quickSelectButton,
                 tempLeverage === value && styles.quickSelectButtonActive,
