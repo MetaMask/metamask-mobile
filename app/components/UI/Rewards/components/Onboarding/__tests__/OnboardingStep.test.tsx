@@ -102,20 +102,6 @@ jest.mock('react-native', () => {
   };
 });
 
-// Mock SVG components
-jest.mock(
-  '../../../../../images/rewards/rewards-onboarding-step1-bg.svg',
-  () => 'MockedSVGStep1',
-);
-jest.mock(
-  '../../../../../images/rewards/rewards-onboarding-step2-bg.svg',
-  () => 'MockedSVGStep2',
-);
-jest.mock(
-  '../../../../../images/rewards/rewards-onboarding-step3-bg.svg',
-  () => 'MockedSVGStep3',
-);
-
 describe('OnboardingStep - Skip and Swipe Functionality', () => {
   beforeEach(() => {
     jest.clearAllMocks();

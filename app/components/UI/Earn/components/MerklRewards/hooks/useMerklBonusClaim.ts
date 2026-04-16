@@ -15,6 +15,7 @@ import { selectNetworkConfigurationByChainId } from '../../../../../../selectors
 import { RootState } from '../../../../../../reducers';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { getUsdAmountRange } from '../../../../../../util/analytics/usdAmountRange';
 
 export interface MerklClaimData {
   /** Claimable reward string when amount >= MIN_CLAIMABLE_BONUS_USD; null otherwise (e.g. "< 0.01" or below threshold). */
@@ -41,16 +42,6 @@ const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
   isClaiming: false,
   error: null,
   claimRewards: async () => undefined,
-};
-
-const getBonusAmountRange = (bonusAmount: string): string => {
-  if (bonusAmount.startsWith('<')) return '< 0.01';
-  const value = parseFloat(bonusAmount);
-  if (value < 1) return '0.01 - 0.99';
-  if (value < 10) return '1.00 - 9.99';
-  if (value < 100) return '10.00 - 99.99';
-  if (value < 1000) return '100.00 - 999.99';
-  return '1000.00+';
 };
 
 /**
@@ -163,7 +154,7 @@ export const useMerklBonusClaim = (
           network_chain_id: asset?.chainId,
           network_name: network?.name,
           asset_symbol: asset?.symbol,
-          bonus_amount_range: getBonusAmountRange(claimableReward),
+          bonus_amount_range: getUsdAmountRange(claimableReward),
           has_claimed_before: hasClaimedBefore,
         })
         .build(),

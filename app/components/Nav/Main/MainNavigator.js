@@ -143,7 +143,6 @@ import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/Level
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
-import OndoPendingSheet from '../../UI/Rewards/components/Campaigns/OndoPendingSheet';
 
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
@@ -285,6 +284,7 @@ const TransactionsHome = () => {
       <Stack.Screen
         name={Routes.RAMP.RAMPS_ORDER_DETAILS}
         component={RampsOrderDetails}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.DEPOSIT.ORDER_DETAILS}
@@ -348,14 +348,6 @@ const RewardsHome = () => {
       <Stack.Screen
         name={Routes.MODAL.REWARDS_SELECT_SHEET}
         component={RewardsSelectSheet}
-        options={{
-          presentation: 'transparentModal',
-          cardStyle: { backgroundColor: 'transparent' },
-        }}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.REWARDS_ONDO_PENDING_SHEET}
-        component={OndoPendingSheet}
         options={{
           presentation: 'transparentModal',
           cardStyle: { backgroundColor: 'transparent' },
@@ -615,7 +607,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.REGION_SELECTOR}
         component={RegionSelector}
-        options={RegionSelector.navigationOptions}
+        options={{ headerShown: false }}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
