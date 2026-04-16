@@ -6,7 +6,7 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { ToastContext } from '../../../../../../component-library/components/Toast';
+import ToastService from '../../../../../../core/ToastService';
 import {
   getProviderToken,
   resetProviderToken,
@@ -84,14 +84,6 @@ const mockResetProviderToken = resetProviderToken as jest.MockedFunction<
   typeof resetProviderToken
 >;
 
-const mockShowToast = jest.fn();
-const mockToastRef = {
-  current: {
-    showToast: mockShowToast,
-    closeToast: jest.fn(),
-  },
-};
-
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
@@ -128,31 +120,21 @@ jest.mock('../../../hooks/useRampsProviders', () => ({
   }),
 }));
 
-jest.mock('../../../../../../component-library/components/Toast', () => {
-  const actualToast = jest.requireActual(
-    '../../../../../../component-library/components/Toast',
-  );
+jest.mock('../../../../../../core/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: jest.fn(),
+    closeToast: jest.fn(),
+  },
+}));
 
-  return {
-    ...actualToast,
-    ToastVariants: {
-      Icon: 'Icon',
-    },
-  };
-});
+const mockToastServiceShowToast = ToastService.showToast as jest.MockedFunction<
+  typeof ToastService.showToast
+>;
 
 function renderWithProvider(component: React.ComponentType) {
-  const WrappedComponent = () => {
-    const Component = component;
-    return (
-      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-        <Component />
-      </ToastContext.Provider>
-    );
-  };
-
   return renderScreen(
-    WrappedComponent,
+    component,
     {
       name: 'SettingsModal',
     },
@@ -282,7 +264,7 @@ describe('SettingsModal', () => {
       });
 
       expect(mockSetSelectedProvider).toHaveBeenCalledWith(null);
-      expect(mockShowToast).toHaveBeenCalledWith({
+      expect(mockToastServiceShowToast).toHaveBeenCalledWith({
         variant: 'Icon',
         labelOptions: [{ label: 'Successfully logged out' }],
         iconName: 'CheckBold',
@@ -306,7 +288,7 @@ describe('SettingsModal', () => {
         expect(mockResetProviderToken).toHaveBeenCalled();
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith({
+      expect(mockToastServiceShowToast).toHaveBeenCalledWith({
         variant: 'Icon',
         labelOptions: [{ label: 'Error logging out' }],
         iconName: 'CircleX',

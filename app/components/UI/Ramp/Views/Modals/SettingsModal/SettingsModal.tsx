@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useRef,
-  useContext,
-  useState,
-  useEffect,
-} from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import {
   BottomSheet,
@@ -19,10 +13,8 @@ import { createNavigationDetails } from '../../../../../../util/navigation/navUt
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../../component-library/components/Toast';
+import { ToastVariants } from '../../../../../../component-library/components/Toast/Toast.types';
+import ToastService from '../../../../../../core/ToastService';
 import Logger from '../../../../../../util/Logger';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import MenuItem from '../../../components/MenuItem';
@@ -53,7 +45,6 @@ function SettingsModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const { toastRef } = useContext(ToastContext);
   const { selectedProvider, setSelectedProvider } = useRampsProviders();
 
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
@@ -159,7 +150,7 @@ function SettingsModal() {
       setSelectedProvider(null);
 
       sheetRef.current?.onCloseBottomSheet();
-      toastRef?.current?.showToast({
+      ToastService.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
           {
@@ -175,7 +166,7 @@ function SettingsModal() {
       });
     } catch (error) {
       Logger.error(error as Error, 'Error logging out from provider:');
-      toastRef?.current?.showToast({
+      ToastService.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
           {
@@ -189,7 +180,7 @@ function SettingsModal() {
         hasNoTimeout: false,
       });
     }
-  }, [setSelectedProvider, toastRef, trackEvent, createEventBuilder]);
+  }, [setSelectedProvider, trackEvent, createEventBuilder]);
 
   const handleClosePress = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
