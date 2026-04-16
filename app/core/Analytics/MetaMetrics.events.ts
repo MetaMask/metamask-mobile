@@ -78,14 +78,11 @@ enum EVENT_NAME {
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
   TOKEN_DETAILS_CTA_CLICKED = 'Token Details CTA Clicked',
-  /** Token overview advanced chart: user switched line vs candlestick */
-  CHART_TYPE_CHANGED = 'chart_type_changed',
-  /** Token overview advanced chart: user selected a different timeframe */
-  CHART_TIMEFRAME_CHANGED = 'chart_timeframe_changed',
-  /** Advanced chart: user zoomed, panned, or used crosshair tooltip */
+  /**
+   * Token overview advanced chart: zoom, pan, tooltip, timeframe change, chart type
+   * toggle, or TradingView link (see `interaction_type` and optional properties).
+   */
   CHART_INTERACTED = 'chart_interacted',
-  /** Advanced chart: user tapped TradingView logo/link to open external chart */
-  CHART_TRADINGVIEW_CLICKED = 'chart_tradingview_clicked',
   /**
    * Token overview advanced chart: empty state shown (no usable chart data).
    * Triggered when no chart data is available.
@@ -1523,10 +1520,7 @@ const events = {
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
   TOKEN_DETAILS_CTA_CLICKED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED),
-  CHART_TYPE_CHANGED: generateOpt(EVENT_NAME.CHART_TYPE_CHANGED),
-  CHART_TIMEFRAME_CHANGED: generateOpt(EVENT_NAME.CHART_TIMEFRAME_CHANGED),
   CHART_INTERACTED: generateOpt(EVENT_NAME.CHART_INTERACTED),
-  CHART_TRADINGVIEW_CLICKED: generateOpt(EVENT_NAME.CHART_TRADINGVIEW_CLICKED),
   CHART_EMPTY_DISPLAYED: generateOpt(EVENT_NAME.CHART_EMPTY_DISPLAYED),
   SECURITY_TRUST_BOTTOM_SHEET_OPENED: generateOpt(
     EVENT_NAME.SECURITY_TRUST_BOTTOM_SHEET_OPENED,

@@ -7,6 +7,7 @@ import type { TokenI } from '../../Tokens/types';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
@@ -156,7 +157,9 @@ describe('PriceAdvanced', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(PriceLegacy).mockClear();
-    const analyticsHook = createMockUseAnalyticsHook();
+    const analyticsHook = createMockUseAnalyticsHook({
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+    });
     mockTrackEvent = analyticsHook.trackEvent as jest.Mock;
     jest.mocked(useAnalytics).mockReturnValue(analyticsHook);
   });
@@ -270,12 +273,20 @@ describe('PriceAdvanced', () => {
     expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
   });
 
-  it('tracks CHART_TIMEFRAME_CHANGED when a different time range is selected', () => {
+  it('tracks chart_interacted with timeframe_changed when a different time range is selected', () => {
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
     fireEvent.press(getByTestId('select-1W'));
 
-    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'chart_interacted',
+        properties: expect.objectContaining({
+          interaction_type: 'timeframe_changed',
+          chart_timeframe: '1W',
+        }),
+      }),
+    );
   });
 
   it('does not track when selecting the already-active time range', () => {
@@ -286,12 +297,20 @@ describe('PriceAdvanced', () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
-  it('tracks CHART_TYPE_CHANGED when chart type is toggled', () => {
+  it('tracks chart_interacted with chart_type_changed when chart type is toggled', () => {
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
     fireEvent.press(getByTestId('toggle-chart-type'));
 
-    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'chart_interacted',
+        properties: expect.objectContaining({
+          interaction_type: 'chart_type_changed',
+          chart_type: expect.stringMatching(/^(candlestick|line)$/),
+        }),
+      }),
+    );
   });
 
   it('passes correct OHLCV hook params based on selected time range', () => {
