@@ -8438,6 +8438,7 @@
       "bluetooth_off": "Please turn on Bluetooth to connect to your device",
       "bluetooth_scan_failed": "Failed to scan for devices. Please try again",
       "bluetooth_connection_failed": "The connection to your device failed. Please try again",
+      "camera_permission_denied": "Camera permission is required to scan QR codes. Please enable it in your device settings",
       "not_supported": "This operation is not supported",
       "unknown_error": "Make sure your {{device}} is set up with the Secret Recovery Phrase or passphrase for this account"
     },
@@ -8461,6 +8462,7 @@
       "location_permission_denied": "Location Permission Required",
       "nearby_devices_permission_denied": "Nearby Devices Permission Required",
       "scan_failed": "Scan Failed",
+      "camera_permission_denied": "Camera Permission Required",
       "something_went_wrong": "Something went wrong"
     },
     "device_selection": {

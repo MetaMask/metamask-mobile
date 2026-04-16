@@ -62,17 +62,28 @@ export async function executeHardwareWalletOperation({
       return false;
     }
 
-    showAwaitingConfirmation(operationType, () => {
-      // The UI callback is synchronous, so swallow async rejection here to
-      // avoid an unhandled promise rejection from caller-provided cleanup.
-      rejectOnce().catch(() => undefined);
-    });
+    // QR wallets use their own signing UI (QR modal) instead of the
+    // generic "awaiting confirmation" bottom sheet meant for BLE devices.
+    const isQrWallet = walletType === HardwareWalletType.Qr;
+
+    if (!isQrWallet) {
+      showAwaitingConfirmation(operationType, () => {
+        // The UI callback is synchronous, so swallow async rejection here to
+        // avoid an unhandled promise rejection from caller-provided cleanup.
+        rejectOnce().catch(() => undefined);
+      });
+    }
 
     await execute();
-    hideAwaitingConfirmation();
+
+    if (!isQrWallet) {
+      hideAwaitingConfirmation();
+    }
     return true;
   } catch (error) {
-    hideAwaitingConfirmation();
+    if (walletType !== HardwareWalletType.Qr) {
+      hideAwaitingConfirmation();
+    }
     const hasHandledError = (await onError?.(error)) ?? false;
 
     if (!hasRejected && !hasHandledError && !isUserCancellation(error)) {

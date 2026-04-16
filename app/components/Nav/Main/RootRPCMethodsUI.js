@@ -81,17 +81,6 @@ const RootRPCMethodsUI = (props) => {
         // for the next tick to make sure the approval request is present when auto-approve it
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        if (walletType === HardwareWalletType.Qr) {
-          props.navigation.navigate(
-            ...createQRSigningTransactionModalNavDetails({
-              transactionId: transactionMeta.id,
-              // eslint-disable-next-line no-empty-function
-              onConfirmationComplete: () => {},
-            }),
-          );
-          return;
-        }
-
         await executeHardwareWalletOperation({
           address: transactionMeta.txParams.from,
           operationType: 'transaction',
@@ -102,6 +91,24 @@ const RootRPCMethodsUI = (props) => {
           showHardwareWalletError,
           onError: trackCancelledTransaction,
           execute: async () => {
+            if (walletType === HardwareWalletType.Qr) {
+              await new Promise((resolve, reject) => {
+                props.navigation.navigate(
+                  ...createQRSigningTransactionModalNavDetails({
+                    transactionId: transactionMeta.id,
+                    onConfirmationComplete: (confirmed) => {
+                      if (confirmed) {
+                        resolve();
+                      } else {
+                        reject(new Error(KEYSTONE_TX_CANCELED));
+                      }
+                    },
+                  }),
+                );
+              });
+              return;
+            }
+
             await Engine.context.ApprovalController.acceptRequest(
               transactionMeta.id,
               undefined,

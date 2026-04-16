@@ -244,7 +244,9 @@ export const useDeviceConnectionFlow = ({
             DevLogger.log(
               '[HardwareWallet] No device ID but discovery not required - checking readiness',
             );
-            updateConnectionState({ status: ConnectionStatus.Connecting });
+            if (adapter.walletType !== HardwareWalletType.Qr) {
+              updateConnectionState({ status: ConnectionStatus.Connecting });
+            }
 
             (async () => {
               try {
@@ -317,13 +319,15 @@ export const useDeviceConnectionFlow = ({
     }
 
     if (deviceId && adapter) {
-      updateConnectionState({ status: ConnectionStatus.Connecting });
+      if (adapter.walletType !== HardwareWalletType.Qr) {
+        updateConnectionState({ status: ConnectionStatus.Connecting });
+      }
       try {
         await tryEnsureReady(adapter, deviceId);
       } catch (error) {
         handleError(error);
       }
-    } else {
+    } else if (adapter?.walletType !== HardwareWalletType.Qr) {
       updateConnectionState({ status: ConnectionStatus.Scanning });
     }
   }, [

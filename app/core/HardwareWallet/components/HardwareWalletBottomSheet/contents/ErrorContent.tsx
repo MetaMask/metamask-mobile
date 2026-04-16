@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { Linking, StyleSheet } from 'react-native';
 import {
   HardwareWalletError,
   HardwareWalletType,
@@ -86,9 +86,21 @@ export const ErrorContent: React.FC<ErrorContentProps> = ({
 
   const errorMessage = useMemo(() => error?.userMessage ?? null, [error]);
 
+  const buttonLabel = useMemo(() => {
+    if (recoveryAction === RecoveryAction.OPEN_SETTINGS) {
+      return strings('hardware_wallet.error.view_settings');
+    }
+    return strings('hardware_wallet.common.continue');
+  }, [recoveryAction]);
+
   const handleContinue = useCallback(async () => {
     if (recoveryAction === RecoveryAction.ACKNOWLEDGE) {
       onDismiss?.();
+      return;
+    }
+
+    if (recoveryAction === RecoveryAction.OPEN_SETTINGS) {
+      await Linking.openSettings();
       return;
     }
 
@@ -137,7 +149,7 @@ export const ErrorContent: React.FC<ErrorContentProps> = ({
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
-          label={strings('hardware_wallet.common.continue')}
+          label={buttonLabel}
           onPress={handleContinue}
           isDisabled={showLoading}
           loading={showLoading}

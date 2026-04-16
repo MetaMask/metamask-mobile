@@ -7,6 +7,10 @@ import {
   useParams,
 } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  getReplacementGasFeeParams,
+  type ReplacementTxParams,
+} from '../../../core/HardwareWallet/transactionReplacementParams';
 import { speedUpTransaction } from '../../../util/transaction-controller';
 
 export const createLedgerTransactionModalNavDetails =
@@ -17,17 +21,6 @@ export const createLedgerTransactionModalNavDetails =
 export enum LedgerReplacementTxTypes {
   SPEED_UP = 'speedUp',
   CANCEL = 'cancel',
-}
-
-export interface ReplacementTxParams {
-  type: LedgerReplacementTxTypes;
-  eip1559GasFee?: {
-    maxFeePerGas?: string;
-    maxPriorityFeePerGas?: string;
-  };
-  legacyGasFee?: {
-    gasPrice?: string;
-  };
 }
 
 export interface LedgerTransactionModalParams {
@@ -56,8 +49,7 @@ const LedgerTransactionModal = () => {
   }, [navigation]);
 
   const executeOnLedger = useCallback(async () => {
-    const gasFeeParams =
-      replacementParams?.legacyGasFee ?? replacementParams?.eip1559GasFee;
+    const gasFeeParams = getReplacementGasFeeParams(replacementParams);
 
     if (replacementParams?.type === LedgerReplacementTxTypes.SPEED_UP) {
       //@ts-expect-error Will defer this typescript issue to the hardware wallet team, confirmations or transactions team

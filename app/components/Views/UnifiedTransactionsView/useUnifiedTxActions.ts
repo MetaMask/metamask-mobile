@@ -25,15 +25,17 @@ import {
   speedUpTransaction as speedUpTx,
 } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
-import {
-  LedgerReplacementTxTypes,
-  type ReplacementTxParams,
-} from '../../UI/LedgerModals/LedgerTransactionModal';
+import { LedgerReplacementTxTypes } from '../../UI/LedgerModals/LedgerTransactionModal';
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 import {
   useHardwareWallet,
   executeHardwareWalletOperation,
 } from '../../../core/HardwareWallet';
+import {
+  getReplacementGasFeeParams,
+  type ReplacementTxParams,
+} from '../../../core/HardwareWallet/transactionReplacementParams';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 
 type Maybe<T> = T | null | undefined;
@@ -130,23 +132,9 @@ export function useUnifiedTxActions() {
         );
       }
 
-      let gasFeeParams: GasPriceValue | FeeMarketEIP1559Values | undefined;
-
-      if (transaction?.replacementParams?.legacyGasFee?.gasPrice) {
-        gasFeeParams = {
-          gasPrice: transaction.replacementParams.legacyGasFee.gasPrice,
-        };
-      } else if (
-        transaction?.replacementParams?.eip1559GasFee?.maxFeePerGas &&
-        transaction?.replacementParams?.eip1559GasFee?.maxPriorityFeePerGas
-      ) {
-        gasFeeParams = {
-          maxFeePerGas:
-            transaction.replacementParams.eip1559GasFee.maxFeePerGas,
-          maxPriorityFeePerGas:
-            transaction.replacementParams.eip1559GasFee.maxPriorityFeePerGas,
-        };
-      }
+      const gasFeeParams = getReplacementGasFeeParams(
+        transaction?.replacementParams,
+      );
 
       const didComplete = await executeHardwareWalletOperation({
         address: selectedAddress,
@@ -362,16 +350,49 @@ export function useUnifiedTxActions() {
 
   const signQRTransaction = useCallback(
     async (transactionMeta: TransactionMeta) => {
-      navigation.navigate(
-        ...createQRSigningTransactionModalNavDetails({
-          transactionId: transactionMeta.id,
-          onConfirmationComplete: () => {
-            // Modal handles confirmation/rejection internally
-          },
-        }),
-      );
+      if (!selectedAddress) {
+        throw new Error(
+          'Missing selected address for QR hardware wallet operation',
+        );
+      }
+
+      await executeHardwareWalletOperation({
+        address: selectedAddress,
+        operationType: 'transaction',
+        ensureDeviceReady,
+        setTargetWalletType,
+        showAwaitingConfirmation,
+        hideAwaitingConfirmation,
+        showHardwareWalletError,
+        execute: async () => {
+          await new Promise<void>((resolve, reject) => {
+            navigation.navigate(
+              ...createQRSigningTransactionModalNavDetails({
+                transactionId: transactionMeta.id,
+                onConfirmationComplete: (confirmed) => {
+                  if (confirmed) {
+                    resolve();
+                  } else {
+                    reject(new Error(KEYSTONE_TX_CANCELED));
+                  }
+                },
+              }),
+            );
+          });
+        },
+        onRejected: onSpeedUpCancelCompleted,
+      });
     },
-    [navigation],
+    [
+      selectedAddress,
+      navigation,
+      ensureDeviceReady,
+      setTargetWalletType,
+      showAwaitingConfirmation,
+      hideAwaitingConfirmation,
+      showHardwareWalletError,
+      onSpeedUpCancelCompleted,
+    ],
   );
 
   const cancelUnsignedQRTransaction = async (tx: TransactionMeta) => {

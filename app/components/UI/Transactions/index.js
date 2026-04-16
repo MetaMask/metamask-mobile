@@ -73,6 +73,7 @@ import {
   useHardwareWallet,
   executeHardwareWalletOperation,
 } from '../../../core/HardwareWallet';
+import { getReplacementGasFeeParams } from '../../../core/HardwareWallet/transactionReplacementParams';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 
 const createStyles = (colors) =>
@@ -655,9 +656,9 @@ class Transactions extends PureComponent {
       throw new Error('Missing selected address for hardware wallet operation');
     }
 
-    const gasFeeParams =
-      transaction?.replacementParams?.legacyGasFee ??
-      transaction?.replacementParams?.eip1559GasFee;
+    const gasFeeParams = getReplacementGasFeeParams(
+      transaction?.replacementParams,
+    );
 
     const didComplete = await executeHardwareWalletOperation({
       address: selectedAddress,
