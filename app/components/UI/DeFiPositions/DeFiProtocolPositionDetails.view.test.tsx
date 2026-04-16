@@ -67,6 +67,7 @@ const aaveV3PositionAggregate: GroupedDeFiPositions['protocols'][number] = {
                 symbol: 'WETH',
                 decimals: 18,
                 balance: 1e-5,
+                balanceRaw: '10000000000000',
                 marketValue: 0.3,
                 price: 1599.45,
                 type: 'underlying',
