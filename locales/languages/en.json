@@ -2463,6 +2463,14 @@
       "final": "Final"
     }
   },
+  "rwa": {
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Tokenized stocks and ETFs aren't available in your region due to legal restrictions.",
+      "link": "See Ondo eligibility requirements",
+      "button": "Got it"
+    }
+  },
   "receive": {
     "title": "Receive"
   },
@@ -8059,10 +8067,10 @@
     },
     "benefits": {
       "title": "Benefits",
-      "list_header":  "Available",
+      "list_header": "Available",
       "title_claim": "Claim Benefit",
       "action": "Claim",
-      "empty-list":  "You don’t have any benefits right now.",
+      "empty-list": "You don’t have any benefits right now.",
       "powered_by": "Powered by"
     },
     "end_of_season_rewards": {
@@ -8095,7 +8103,11 @@
       "opt_in_sheet_title": "Join the campaign",
       "geo_restriction_banner_title": "Not available in your region",
       "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations.",
-      "opt_in_success_toast": "You're in!"
+      "opt_in_success_toast": "You're in!",
+      "geo_locked_toast_title": "Not available in your region",
+      "geo_locked_toast_description": "This campaign isn't available where you are. Check back later for new campaigns.",
+      "geo_locked_cta": "Check eligibility",
+      "geo_loading": "Checking region..."
     },
     "campaign_mechanics": {
       "title": "Mechanics"
