@@ -459,13 +459,18 @@ const PredictionsSectionDefault = forwardRef<
     const hasError =
       !isLoadingPositions &&
       !isLoadingMarkets &&
+      !isLoadingClaimable &&
       !hasAnyPositions &&
       markets.length === 0 &&
       (positionsError || marketsError);
     const isEmpty =
       !isLoading && !hasAnyPositions && markets.length === 0 && !hasError;
     const willRender = isPredictEnabled && !isLoading && !isEmpty && !hasError;
-    const itemCount = hasAnyPositions ? positions.length : markets.length;
+    const itemCount = hasPositions
+      ? positions.length
+      : hasClaimablePositions
+        ? markets.length || 1
+        : markets.length;
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
@@ -595,7 +600,11 @@ const PredictionsSectionPositionsOnly = forwardRef<
     const hasAnyPositions = hasPositions || hasClaimablePositions;
     const isLoading = isLoadingPositions || isLoadingClaimable;
     const willRender = isPredictEnabled && !isLoading && hasAnyPositions;
-    const itemCount = hasAnyPositions ? positions.length : 0;
+    const itemCount = hasPositions
+      ? positions.length
+      : hasClaimablePositions
+        ? 1
+        : 0;
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
