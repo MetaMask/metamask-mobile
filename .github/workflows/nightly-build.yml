@@ -108,6 +108,12 @@ jobs:
           name: ios-xcarchive-main-rc
           path: ./build-artifacts/
 
+      - name: Unzip xcarchive
+        run: |
+          cd ./build-artifacts
+          unzip -q *.xcarchive.zip
+          rm -f *.xcarchive.zip
+
       - name: Upload to Sentry Size Analysis
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
