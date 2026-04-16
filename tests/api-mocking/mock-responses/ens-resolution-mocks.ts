@@ -212,10 +212,10 @@ export const ensResolutionMock: TestSpecificMock = async (
     .matching((request) => request.path.includes(IPFS_CID_PATH))
     .asPriority(1000)
     .thenCallback(async (request) => ({
-        statusCode: 200,
-        headers: { 'content-type': 'text/html' },
-        body: request.path.includes('/categories/general.html')
-          ? ENS_GENERAL_HTML
-          : ENS_INDEX_HTML,
-      }));
+      statusCode: 200,
+      headers: { 'content-type': 'text/html' },
+      body: request.path.includes('/categories/general.html')
+        ? ENS_GENERAL_HTML
+        : ENS_INDEX_HTML,
+    }));
 };
