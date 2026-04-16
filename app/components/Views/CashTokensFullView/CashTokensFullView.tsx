@@ -20,6 +20,10 @@ import Tokens from '../../UI/Tokens';
 import { useMusdBalance } from '../../UI/Earn/hooks/useMusdBalance';
 import { useMusdConversionTokens } from '../../UI/Earn/hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../UI/Earn/hooks/useMusdConversion';
+import {
+  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
+} from '../../UI/Earn/constants/musd';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../UI/Earn/types/musd.types';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import {
@@ -192,7 +196,14 @@ const CashTokensFullView = () => {
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 isFullWidth
-                onPress={() => goToBuy()}
+                onPress={() =>
+                  goToBuy({
+                    assetId:
+                      MUSD_TOKEN_ASSET_ID_BY_CHAIN[
+                        MUSD_CONVERSION_DEFAULT_CHAIN_ID
+                      ],
+                  })
+                }
               >
                 {strings('money.convert_stablecoins.buy')}
               </Button>

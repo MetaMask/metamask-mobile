@@ -5,8 +5,13 @@ import CashTokensFullView from './CashTokensFullView';
 import { useMerklBonusClaim } from '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { selectMoneyHubEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { AssetType } from '../confirmations/types/token';
+import {
+  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
+} from '../../UI/Earn/constants/musd';
 
 const mockGoBack = jest.fn();
+const mockGoToBuy = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -26,7 +31,7 @@ jest.mock('../../../core/NavigationService', () => ({
   default: { navigation: { navigate: jest.fn() } },
 }));
 jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: () => ({ goToBuy: jest.fn() }),
+  useRampNavigation: () => ({ goToBuy: mockGoToBuy }),
 }));
 jest.mock('../../UI/Earn/hooks/useMusdConversion', () => ({
   useMusdConversion: () => ({
@@ -237,5 +242,14 @@ describe('CashTokensFullView', () => {
     expect(screen.getByText('Swap')).toBeOnTheScreen();
     expect(screen.getByText('Buy')).toBeOnTheScreen();
     expect(screen.queryByText('Convert to mUSD')).not.toBeOnTheScreen();
+  });
+
+  it('empty-state Buy button passes mUSD assetId to goToBuy', () => {
+    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
+    renderWithProvider(<CashTokensFullView />);
+    fireEvent.press(screen.getByText('Buy'));
+    expect(mockGoToBuy).toHaveBeenCalledWith({
+      assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+    });
   });
 });
