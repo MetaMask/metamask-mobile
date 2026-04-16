@@ -1275,8 +1275,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         ),
       ).toBeOnTheScreen();
       expect(queryByText('+5.00%')).toBeNull();
-      // mUSD bonus layout swaps the row: token balance on the left, no price
-      // rail, and "3% bonus" on the right.
+      // Price rail must stay hidden on mUSD bonus rows per Figma.
       expect(queryByText(/\u2022/)).toBeNull();
     });
 

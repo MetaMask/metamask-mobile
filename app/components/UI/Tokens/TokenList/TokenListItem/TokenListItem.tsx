@@ -439,7 +439,7 @@ export const TokenListItem = React.memo(
 
       // mUSD rows always show the green "3% bonus" label (claim affordance
       // lives on the mUSD asset detail page, not the token row).
-      if (isMusdConversionFlowEnabled && isMusdGeoEligible && isMusdAsset) {
+      if (showMusdBonusRow) {
         return {
           text: strings('earn.musd_conversion.percentage_bonus', {
             percentage: MUSD_CONVERSION_APY,
@@ -491,8 +491,7 @@ export const TokenListItem = React.memo(
 
       return { text, color, onPress: undefined };
     }, [
-      isMusdConversionFlowEnabled,
-      isMusdGeoEligible,
+      showMusdBonusRow,
       hasClaimableBonus,
       shouldShowConvertToMusdCta,
       isStablecoinLendingEnabled,
@@ -561,9 +560,7 @@ export const TokenListItem = React.memo(
         }}
         onLongPress={() => {
           const onLongPress =
-            asset.isNative || isMusdToken(asset.address)
-              ? null
-              : showRemoveMenu;
+            asset.isNative || isMusdAsset ? null : showRemoveMenu;
           onLongPress?.(asset);
         }}
         style={styles.itemWrapper}
@@ -656,7 +653,6 @@ export const TokenListItem = React.memo(
           >
             {showMusdBonusRow ? (
               <>
-                {/* mUSD bonus layout: token balance on the left */}
                 <SensitiveText
                   variant={CLTextVariant.BodySMMedium}
                   color={CLTextColor.Alternative}
@@ -668,7 +664,6 @@ export const TokenListItem = React.memo(
                   {tokenBalance}
                 </SensitiveText>
 
-                {/* mUSD bonus layout: "3% bonus" label on the right */}
                 <Box twClassName="shrink">
                   <SensitiveText
                     variant={CLTextVariant.BodySMMedium}
@@ -677,7 +672,7 @@ export const TokenListItem = React.memo(
                     length={SensitiveTextLength.Short}
                     testID={SECONDARY_BALANCE_TEST_ID}
                   >
-                    {secondaryBalanceDisplay.text || '-'}
+                    {secondaryBalanceDisplay.text}
                   </SensitiveText>
                 </Box>
               </>
