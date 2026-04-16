@@ -35,7 +35,7 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
   }
 
   return (
-    <Box testID={testID} twClassName="py-4">
+    <Box testID={testID} twClassName="pt-3 pb-4">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

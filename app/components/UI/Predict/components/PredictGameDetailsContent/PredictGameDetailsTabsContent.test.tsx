@@ -132,6 +132,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
+          activeChipKey=""
         />,
       );
 
@@ -150,6 +151,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          activeChipKey=""
         />,
       );
 
@@ -168,6 +170,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          activeChipKey=""
         />,
       );
 
@@ -191,6 +194,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          activeChipKey=""
         />,
       );
 
@@ -213,6 +217,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
+          activeChipKey=""
         />,
       );
 
@@ -233,6 +238,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
+          activeChipKey=""
         />,
       );
 
@@ -253,6 +259,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
+          activeChipKey=""
         />,
       );
 
@@ -275,6 +282,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          activeChipKey=""
         />,
       );
 
@@ -302,6 +310,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          activeChipKey=""
         />,
       );
 
@@ -322,6 +331,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          activeChipKey=""
         />,
       );
 
@@ -345,6 +355,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          activeChipKey=""
         />,
       );
 

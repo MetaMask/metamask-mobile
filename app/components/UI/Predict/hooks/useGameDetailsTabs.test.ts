@@ -20,6 +20,7 @@ const defaultParams = {
   activePositions: [] as PredictPosition[],
   claimablePositions: [] as PredictPosition[],
   league: 'nba' as const,
+  outcomeGroups: [],
 };
 
 describe('useGameDetailsTabs', () => {

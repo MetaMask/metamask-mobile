@@ -525,9 +525,9 @@ export function buildOutcomeGroups(
       if (priorityDiff !== 0) {
         return priorityDiff;
       }
-      const aScore = (a.liquidity ?? 0) + a.volume;
-      const bScore = (b.liquidity ?? 0) + b.volume;
-      return bScore - aScore;
+      const volumeDiff = b.volume - a.volume;
+      if (volumeDiff !== 0) return volumeDiff;
+      return (b.liquidity ?? 0) - (a.liquidity ?? 0);
     });
   }
 

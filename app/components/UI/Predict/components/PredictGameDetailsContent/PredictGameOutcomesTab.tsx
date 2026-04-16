@@ -10,7 +10,6 @@ import type { PredictBetButtonVariant } from '../PredictActionButtons/PredictAct
 import PredictSportOutcomeCard, {
   type PredictSportOutcomeButton,
 } from '../PredictSportOutcomeCard';
-import PredictChipList, { type PredictChipItem } from '../PredictChipList';
 import { formatVolume } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
@@ -252,21 +251,12 @@ OutcomesContent.displayName = 'OutcomesContent';
 export interface OutcomesTabProps {
   outcomeGroups: PredictOutcomeGroup[];
   game?: PredictMarketGame;
-  chips: PredictChipItem[];
   activeChipKey: string;
-  onChipSelect: (key: string) => void;
   onBuyPress: (outcome: PredictOutcome, token: PredictOutcomeToken) => void;
 }
 
-const OutcomesTab = memo(
-  ({
-    outcomeGroups,
-    game,
-    chips,
-    activeChipKey,
-    onChipSelect,
-    onBuyPress,
-  }: OutcomesTabProps) => {
+const PredictGameOutcomesTab = memo(
+  ({ outcomeGroups, game, activeChipKey, onBuyPress }: OutcomesTabProps) => {
     const selectedGroup = useMemo(
       () => outcomeGroups.find((g) => g.key === activeChipKey),
       [outcomeGroups, activeChipKey],
@@ -274,13 +264,8 @@ const OutcomesTab = memo(
 
     return (
       <Box testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT}>
-        <PredictChipList
-          chips={chips}
-          activeChipKey={activeChipKey}
-          onChipSelect={onChipSelect}
-        />
         {selectedGroup && (
-          <Box twClassName="px-4 pt-3">
+          <Box twClassName="px-4">
             <OutcomesContent
               group={selectedGroup}
               onBuyPress={onBuyPress}
@@ -293,6 +278,6 @@ const OutcomesTab = memo(
   },
 );
 
-OutcomesTab.displayName = 'OutcomesTab';
+PredictGameOutcomesTab.displayName = 'PredictGameOutcomesTab';
 
-export default OutcomesTab;
+export default PredictGameOutcomesTab;
