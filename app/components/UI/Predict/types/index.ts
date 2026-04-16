@@ -193,7 +193,7 @@ export type PredictSportTeam = {
   logo: string;
   abbreviation: string; // e.g., "SEA", "DEN"
   color: string; // Team primary color (hex)
-  alias: string; // Team alias (e.g., "Seahawks")
+  alias?: string; // Team alias (e.g., "Seahawks")
 };
 
 // Parsed score data
