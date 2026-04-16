@@ -135,8 +135,7 @@ export const assetsControllerInit: MessengerClientInitFunction<
       assetsBalance: {},
     },
     isBasicFunctionality: () =>
-      selectBasicFunctionalityEnabled(store.getState()) &&
-      selectCompletedOnboarding(store.getState()),
+      selectBasicFunctionalityEnabled(store.getState()),
     isEnabled,
     queryApiClient: getApiClient(initMessenger),
     rpcDataSourceConfig: {

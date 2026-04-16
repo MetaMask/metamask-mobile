@@ -143,6 +143,7 @@ describe('assetsControllerInit', () => {
     jest.resetModules();
     jest.mocked(store.getState).mockReturnValue({
       settings: { basicFunctionalityEnabled: true },
+      onboarding: { completedOnboarding: false },
     } as ReturnType<typeof store.getState>);
   });
 
@@ -361,9 +362,10 @@ describe('assetsControllerInit', () => {
   });
 
   describe('isBasicFunctionality', () => {
-    it('returns value from Redux store (true when basicFunctionalityEnabled is true)', () => {
+    it('returns true when basicFunctionalityEnabled is true, regardless of onboarding state', () => {
       jest.mocked(store.getState).mockReturnValue({
         settings: { basicFunctionalityEnabled: true },
+        onboarding: { completedOnboarding: false },
       } as ReturnType<typeof store.getState>);
 
       assetsControllerInit(getInitRequestMock());
@@ -377,9 +379,10 @@ describe('assetsControllerInit', () => {
       expect(isBasicFunctionality?.()).toBe(true);
     });
 
-    it('returns value from Redux store (false when basicFunctionalityEnabled is false)', () => {
+    it('returns false when basicFunctionalityEnabled is false', () => {
       jest.mocked(store.getState).mockReturnValue({
         settings: { basicFunctionalityEnabled: false },
+        onboarding: { completedOnboarding: true },
       } as ReturnType<typeof store.getState>);
 
       assetsControllerInit(getInitRequestMock());
