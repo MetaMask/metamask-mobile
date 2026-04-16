@@ -4,6 +4,8 @@ import {
   StackNavigationOptions,
 } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
+import { Confirm } from '../../../Views/confirmations/components/confirm';
+import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import CardHome from '../Views/CardHome/CardHome';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
@@ -95,6 +97,7 @@ export const cardChooseYourCardNavigationOptions = ({
 const MainRoutes = () => {
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const isCardholder = useSelector(selectIsCardholder);
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
   const initialRouteName = useMemo(
     () =>
@@ -143,6 +146,11 @@ const MainRoutes = () => {
         name={Routes.CARD.ONBOARDING.ROOT}
         component={OnboardingNavigator}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+        options={emptyNavHeaderOptions}
+        component={Confirm}
       />
     </Stack.Navigator>
   );

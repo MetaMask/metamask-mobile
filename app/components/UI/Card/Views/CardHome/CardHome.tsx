@@ -28,7 +28,7 @@ import {
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useSelector , useDispatch } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Engine from '../../../../../core/Engine';
@@ -66,6 +66,10 @@ import CardHomeFooter from './components/CardHomeFooter';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
+import {
+  selectDelegationCompleted,
+  setDelegationCompleted,
+} from '../../../../../core/redux/slices/card';
 
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
@@ -89,6 +93,8 @@ const CardHome = () => {
   const theme = useTheme();
   const tw = useTailwind();
   const { toastRef } = useContext(ToastContext);
+  const dispatch = useDispatch();
+  const delegationCompleted = useSelector(selectDelegationCompleted);
 
   const isSwapEnabled = useIsSwapEnabledForPriorityToken(
     data?.primaryFundingAsset?.walletAddress,
@@ -177,6 +183,23 @@ const CardHome = () => {
       });
     }
   }, [route.params?.showDeeplinkToast, toastRef]);
+
+  // --- Delegation success toast ---
+  useEffect(() => {
+    if (delegationCompleted && toastRef?.current) {
+      dispatch(setDelegationCompleted(false));
+      toastRef.current.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('card.card_spending_limit.update_success') },
+        ],
+        iconName: IconName.Confirmation,
+        iconColor: theme.colors.success.default,
+        backgroundColor: theme.colors.success.muted,
+        hasNoTimeout: false,
+      });
+    }
+  }, [delegationCompleted, toastRef, dispatch, theme]);
 
   // --- Freeze error toast ---
   useEffect(() => {

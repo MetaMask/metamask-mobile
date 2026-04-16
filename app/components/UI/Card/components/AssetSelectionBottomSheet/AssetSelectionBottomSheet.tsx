@@ -282,7 +282,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
           await prepareCardDelegation({
             flow: 'manage',
             token,
-            canChangeToken: true,
+            canChangeToken: false,
           });
         });
       }

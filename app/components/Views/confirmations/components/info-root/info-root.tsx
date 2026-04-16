@@ -1,6 +1,7 @@
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
+import TransactionTypes from '../../../../../core/TransactionTypes';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import StakingClaim from '../../external/staking/info/staking-claim';
@@ -107,7 +108,7 @@ const Info = ({ route }: InfoProps) => {
 
   if (
     transactionMetadata &&
-    hasTransactionType(transactionMetadata, [TransactionType.cardDelegation])
+    transactionMetadata.origin === TransactionTypes.MMM_CARD
   ) {
     return <CardDelegationInfo />;
   }

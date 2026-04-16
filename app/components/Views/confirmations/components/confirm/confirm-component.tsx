@@ -35,6 +35,7 @@ import { useTransactionMetadataRequest } from '../../hooks/transactions/useTrans
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
+import { CardDelegationInfoSkeleton } from '../info/card-delegation-info/card-delegation-info';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -53,6 +54,7 @@ export enum ConfirmationLoader {
   CustomAmount = 'customAmount',
   PredictClaim = 'predictClaim',
   Transfer = 'transfer',
+  CardDelegation = 'cardDelegation',
 }
 
 export interface ConfirmationParams {
@@ -220,6 +222,14 @@ function Loader() {
     );
   }
 
+  if (loader === ConfirmationLoader.CardDelegation) {
+    return (
+      <InfoLoader testId="confirm-loader-card-delegation" loader={loader}>
+        <CardDelegationInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
   return (
     <View style={styles.spinnerContainer} testID="confirm-loader-default">
       <AnimatedSpinner size={SpinnerSize.MD} />
@@ -250,7 +260,8 @@ function InfoLoader({
       >
         {children}
       </ScrollView>
-      {loader === ConfirmationLoader.Transfer && <FooterSkeleton />}
+      {(loader === ConfirmationLoader.Transfer ||
+        loader === ConfirmationLoader.CardDelegation) && <FooterSkeleton />}
     </SafeAreaView>
   );
 }

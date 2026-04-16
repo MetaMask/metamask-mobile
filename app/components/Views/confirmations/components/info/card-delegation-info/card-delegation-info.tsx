@@ -1,17 +1,13 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { TouchableOpacity } from 'react-native';
 import {
   useFocusEffect,
   useNavigation,
   useRoute,
-  StackActions,
 } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
-  Button,
-  ButtonVariant,
-  ButtonSize,
   Icon,
   IconName,
   IconSize,
@@ -19,46 +15,35 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 
 import { strings } from '../../../../../../../locales/i18n';
 import InfoSection from '../../UI/info-row/info-section';
-import InfoRowDivider from '../../UI/info-row-divider';
-import AccountRow from '../../rows/transactions/account-row';
-import NetworkRow from '../../rows/transactions/network-row';
-import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
+import InfoRow from '../../UI/info-row';
+import GasFeesDetailsRow, {
+  GasFeesDetailsRowSkeleton,
+} from '../../rows/transactions/gas-fee-details-row';
+import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row';
+import AvatarAccount from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import useNavbar from '../../../hooks/ui/useNavbar';
-import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
-import { safeToChecksumAddress } from '../../../../../../util/address';
 import { toTokenMinimalUnit } from '../../../../../../util/number';
-import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
+import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
+import { useAccountGroupName } from '../../../../../hooks/multichainAccounts/useAccountGroupName';
 import { useCardSDK } from '../../../../../UI/Card/sdk';
-import { useNeedsGasFaucet } from '../../../../../UI/Card/hooks/useNeedsGasFaucet';
 import {
   selectCardDelegationState,
-  selectDelegationCredentials,
-  setDelegationCredentials,
-  clearDelegationCredentials,
-  resetDelegationState,
+  setDelegationSelectedToken,
+  setDelegationLimit,
 } from '../../../../../../core/redux/slices/card';
-import {
-  caipChainIdToNetwork,
-  BAANX_MAX_LIMIT,
-} from '../../../../../UI/Card/constants';
-import { generateSignatureMessage } from '../../../../../UI/Card/util/delegation';
+import { BAANX_MAX_LIMIT } from '../../../../../UI/Card/constants';
 import { createSpendingLimitOptionsNavigationDetails } from '../../../../../UI/Card/Views/SpendingLimit/components/SpendingLimitOptionsSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../../../../UI/Card/components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import type { LimitType, CardFundingToken } from '../../../../../UI/Card/types';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../../component-library/components/Toast';
-import { IconName as ComponentLibraryIconName } from '../../../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../../../util/theme';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { sanitizeCustomLimit } from '../../../../../UI/Card/util/sanitizeCustomLimit';
 import { buildTokenIconUrl } from '../../../../../UI/Card/util/buildTokenIconUrl';
@@ -82,34 +67,27 @@ interface RouteParams {
 }
 
 export function CardDelegationInfo() {
-  useNavbar(strings('confirm.title.card_delegation'));
+  useNavbar('');
 
-  const tw = useTailwind();
-  const theme = useTheme();
   const navigation = useNavigation();
   const route = useRoute();
   const dispatch = useDispatch();
-  const { toastRef } = useContext(ToastContext);
 
-  const { onConfirm, onReject } = useConfirmActions();
   const transactionMetadata = useTransactionMetadataRequest();
   const { sdk } = useCardSDK();
 
   const delegationState = useSelector(selectCardDelegationState);
-  const pendingCredentials = useSelector(selectDelegationCredentials);
-  const selectAccountByScope = useSelector(
-    selectSelectedInternalAccountByScope,
-  );
 
-  const { flow, canChangeToken } = delegationState;
+  const { canChangeToken } = delegationState;
   const [selectedToken, setSelectedToken] = useState<CardFundingToken | null>(
     delegationState.selectedToken,
   );
   const [limitType, setLimitType] = useState<LimitType>('full');
   const [customLimit, setCustomLimit] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { needsFaucet } = useNeedsGasFaucet(selectedToken);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const avatarAccountType = useSelector(selectAvatarAccountType);
+  const accountGroupName = useAccountGroupName();
 
   // Derived display values
   const tokenLabel = selectedToken
@@ -222,6 +200,7 @@ export function CardDelegationInfo() {
       if (params?.returnedSelectedToken) {
         const newToken = params.returnedSelectedToken;
         setSelectedToken(newToken);
+        dispatch(setDelegationSelectedToken(newToken));
         updateTransactionWithNewToken(newToken);
         navigation.setParams({
           returnedSelectedToken: undefined,
@@ -229,10 +208,22 @@ export function CardDelegationInfo() {
       }
 
       if (params?.returnedLimitType !== undefined) {
-        setLimitType(params.returnedLimitType);
-        const newCustomLimit = params.returnedCustomLimit ?? '';
-        setCustomLimit(sanitizeCustomLimit(newCustomLimit));
-        updateTransactionWithNewLimit(params.returnedLimitType, newCustomLimit);
+        const newLimitType = params.returnedLimitType;
+        const newCustomLimit = sanitizeCustomLimit(
+          params.returnedCustomLimit ?? '',
+        );
+        setLimitType(newLimitType);
+        setCustomLimit(newCustomLimit);
+        dispatch(
+          setDelegationLimit({
+            limitType: newLimitType,
+            customLimit: newCustomLimit,
+          }),
+        );
+        updateTransactionWithNewLimit(
+          newLimitType,
+          params.returnedCustomLimit ?? '',
+        );
         navigation.setParams({
           returnedLimitType: undefined,
           returnedCustomLimit: undefined,
@@ -242,93 +233,6 @@ export function CardDelegationInfo() {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route.params]),
   );
-
-  // Subscribe to transactionConfirmed to complete the delegation after tx is mined
-  useEffect(() => {
-    if (!transactionMetadata?.id || !pendingCredentials) return;
-
-    const transactionId = transactionMetadata.id;
-
-    const unsubscribe = Engine.controllerMessenger.subscribeOnceIf(
-      'TransactionController:transactionConfirmed',
-      async (meta) => {
-        try {
-          const { jwt, signature, signatureMessage } = pendingCredentials;
-          const address =
-            safeToChecksumAddress(selectAccountByScope('eip155:0')?.address) ??
-            '';
-          const network = selectedToken?.caipChainId
-            ? caipChainIdToNetwork[selectedToken.caipChainId]
-            : null;
-
-          if (sdk && network && meta.hash) {
-            await sdk.completeDelegation({
-              address,
-              network,
-              currency: selectedToken?.symbol?.toLowerCase() ?? '',
-              amount:
-                limitType === 'full' ? BAANX_MAX_LIMIT : customLimit || '0',
-              txHash: meta.hash,
-              sigHash: signature,
-              sigMessage: signatureMessage,
-              token: jwt,
-            });
-          }
-
-          dispatch(clearDelegationCredentials());
-
-          // Refresh card home data after delegation is complete
-          await Engine.context.CardController.fetchCardHomeData();
-
-          if (flow !== 'onboarding') {
-            toastRef?.current?.showToast({
-              variant: ToastVariants.Icon,
-              labelOptions: [
-                {
-                  label: strings('card.card_spending_limit.update_success'),
-                },
-              ],
-              iconName: ComponentLibraryIconName.Confirmation,
-              iconColor: theme.colors.success.default,
-              backgroundColor: theme.colors.success.muted,
-              hasNoTimeout: false,
-            });
-          }
-        } catch (error) {
-          Logger.error(
-            error as Error,
-            'CardDelegationInfo: Failed to complete delegation',
-          );
-        } finally {
-          dispatch(resetDelegationState());
-          // Navigate based on flow
-          if (flow === 'onboarding') {
-            navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
-          } else {
-            navigation.goBack();
-          }
-        }
-      },
-      (meta) => meta.id === transactionId,
-    );
-
-    return () => {
-      unsubscribe?.(transactionMetadata);
-    };
-  }, [
-    transactionMetadata,
-    pendingCredentials,
-    sdk,
-    selectedToken,
-    limitType,
-    customLimit,
-    flow,
-    dispatch,
-    navigation,
-    selectAccountByScope,
-    toastRef,
-    theme,
-  ]);
 
   const handleTokenSelect = useCallback(() => {
     const excludedTokens = selectedToken ? [selectedToken] : [];
@@ -353,105 +257,68 @@ export function CardDelegationInfo() {
     );
   }, [navigation, limitType, customLimit]);
 
-  const handleConfirm = useCallback(async () => {
-    if (!sdk || !selectedToken) return;
-
-    const network = selectedToken.caipChainId
-      ? caipChainIdToNetwork[selectedToken.caipChainId]
-      : null;
-
-    if (!network) {
-      Logger.error(
-        new Error('Unsupported network for card delegation'),
-        'CardDelegationInfo: Missing network',
-      );
-      return;
-    }
-
-    const userAccount = selectAccountByScope('eip155:0');
-    const address = safeToChecksumAddress(userAccount?.address);
-    if (!address) {
-      Logger.error(
-        new Error('No EVM account found'),
-        'CardDelegationInfo: handleConfirm',
-      );
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      // Step 1: Generate delegation JWT token
-      const { token: jwt, nonce } = await sdk.generateDelegationToken(
-        network,
-        address,
-        needsFaucet,
-      );
-
-      // Step 2: Sign SIWE message
-      const signatureMessage = generateSignatureMessage(
-        address,
-        nonce,
-        network,
-        selectedToken.caipChainId,
-      );
-      const signature =
-        await Engine.context.KeyringController.signPersonalMessage({
-          data: '0x' + Buffer.from(signatureMessage, 'utf8').toString('hex'),
-          from: address,
-        });
-
-      // Step 3: Store credentials so the transactionConfirmed listener can use them
-      dispatch(
-        setDelegationCredentials({
-          jwt,
-          signature,
-          signatureMessage,
-        }),
-      );
-
-      // Step 4: Approve the pending transaction (triggers mining)
-      await onConfirm();
-    } catch (error) {
-      setIsSubmitting(false);
-      Logger.error(error as Error, 'CardDelegationInfo: handleConfirm failed');
-    }
-  }, [
-    sdk,
-    selectedToken,
-    selectAccountByScope,
-    needsFaucet,
-    dispatch,
-    onConfirm,
-  ]);
-
-  const handleCancel = useCallback(async () => {
-    dispatch(resetDelegationState());
-    await onReject();
-  }, [dispatch, onReject]);
-
   return (
-    <View testID={ConfirmationInfoComponentIDs.CARD_DELEGATION}>
+    <Box testID={ConfirmationInfoComponentIDs.CARD_DELEGATION}>
+      {/* Page title — displayed in content, not navbar */}
+      <Text variant={TextVariant.HeadingMd} twClassName="mb-4">
+        {strings('confirm.title.card_delegation')}
+      </Text>
+
       {/* Token row */}
-      {canChangeToken && selectedToken && (
-        <InfoSection>
+      {selectedToken &&
+        (canChangeToken ? (
           <TouchableOpacity
             onPress={handleTokenSelect}
             activeOpacity={0.7}
             testID="card-delegation-token-row"
           >
-            <Box twClassName="flex-row items-center p-4">
-              <Text
-                variant={TextVariant.BodyMd}
-                twClassName="flex-1 text-text-alternative"
-              >
-                {strings('card.card_spending_limit.token_label')}
-              </Text>
-              <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
+            <InfoSection>
+              <InfoRow label={strings('card.card_spending_limit.token_label')}>
+                <Box twClassName="flex-row items-center gap-2 shrink">
+                  {tokenIconUrl && (
+                    <BadgeWrapper
+                      badgePosition={BadgePosition.BottomRight}
+                      badgeElement={
+                        <Badge
+                          variant={BadgeVariant.Network}
+                          imageSource={NetworkBadgeSource(
+                            safeFormatChainIdToHex(
+                              selectedToken.caipChainId ?? LINEA_CAIP_CHAIN_ID,
+                            ) as `0x${string}`,
+                          )}
+                        />
+                      }
+                    >
+                      <AvatarToken
+                        name={selectedToken.symbol ?? ''}
+                        imageSource={{ uri: tokenIconUrl }}
+                        size={AvatarSize.Xs}
+                      />
+                    </BadgeWrapper>
+                  )}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    numberOfLines={1}
+                    twClassName="shrink"
+                  >
+                    {tokenLabel}
+                  </Text>
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Sm}
+                    color={IconColor.IconDefault}
+                  />
+                </Box>
+              </InfoRow>
+            </InfoSection>
+          </TouchableOpacity>
+        ) : (
+          <InfoSection testID="card-delegation-token-row">
+            <InfoRow label={strings('card.card_spending_limit.token_label')}>
+              <Box twClassName="flex-row items-center gap-2 shrink">
                 {tokenIconUrl && (
                   <BadgeWrapper
                     badgePosition={BadgePosition.BottomRight}
-                    style={tw.style('self-center')}
                     badgeElement={
                       <Badge
                         variant={BadgeVariant.Network}
@@ -472,94 +339,102 @@ export function CardDelegationInfo() {
                 )}
                 <Text
                   variant={TextVariant.BodyMd}
-                  twClassName="text-text-default font-medium self-center shrink"
                   numberOfLines={1}
+                  twClassName="shrink"
                 >
                   {tokenLabel}
                 </Text>
-                <Icon
-                  name={IconName.ArrowDown}
-                  size={IconSize.Md}
-                  color={IconColor.IconDefault}
-                  style={tw.style('self-center shrink-0')}
-                />
               </Box>
+            </InfoRow>
+          </InfoSection>
+        ))}
+
+      {/* Account row — static display */}
+      {selectedAccount && (
+        <InfoSection testID="card-delegation-account-row">
+          <InfoRow label={strings('card.card_spending_limit.account_label')}>
+            <Box twClassName="flex-row items-center gap-2 shrink">
+              <AvatarAccount
+                type={avatarAccountType}
+                accountAddress={selectedAccount.address}
+                size={AvatarSize.Xs}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {accountGroupName ?? selectedAccount.metadata.name}
+              </Text>
             </Box>
-          </TouchableOpacity>
+          </InfoRow>
         </InfoSection>
       )}
 
-      {/* Account + network rows */}
-      <InfoSection>
-        <AccountRow label={strings('card.card_spending_limit.account_label')} />
-        <InfoRowDivider />
-        <NetworkRow />
-      </InfoSection>
-
       {/* Spending limit row */}
-      <InfoSection>
-        <TouchableOpacity
-          onPress={handleLimitSelect}
-          activeOpacity={0.7}
-          testID="card-delegation-limit-row"
-        >
-          <Box twClassName="flex-row items-center p-4">
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="flex-1 text-text-alternative"
-            >
-              {strings('card.card_spending_limit.restricted_limit_title')}
-            </Text>
-            <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
+      <TouchableOpacity
+        onPress={handleLimitSelect}
+        activeOpacity={0.7}
+        testID="card-delegation-limit-row"
+      >
+        <InfoSection>
+          <InfoRow
+            label={strings('card.card_spending_limit.restricted_limit_title')}
+          >
+            <Box twClassName="flex-row items-center gap-2 shrink">
               <Text
                 variant={TextVariant.BodyMd}
-                twClassName="text-text-default font-medium self-center shrink"
                 numberOfLines={1}
+                twClassName="shrink"
               >
                 {spendingLimitLabel}
               </Text>
               <Icon
                 name={IconName.ArrowDown}
-                size={IconSize.Md}
+                size={IconSize.Sm}
                 color={IconColor.IconDefault}
-                style={tw.style('self-center shrink-0')}
               />
             </Box>
-          </Box>
-        </TouchableOpacity>
-      </InfoSection>
+          </InfoRow>
+        </InfoSection>
+      </TouchableOpacity>
 
       {/* Gas fees */}
       <GasFeesDetailsRow />
 
-      {/* Custom confirm/cancel buttons */}
-      <Box twClassName="gap-3 mt-6 px-4 pb-4">
-        <Box twClassName="flex-row gap-3">
-          <Box twClassName="flex-1">
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              onPress={handleCancel}
-              isFullWidth
-              isDisabled={isSubmitting}
-            >
-              {strings('card.card_spending_limit.cancel')}
-            </Button>
-          </Box>
-          <Box twClassName="flex-1">
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              onPress={handleConfirm}
-              isFullWidth
-              isDisabled={isSubmitting || !selectedToken}
-              isLoading={isSubmitting}
-            >
-              {strings('card.card_spending_limit.confirm_new_limit')}
-            </Button>
-          </Box>
-        </Box>
+      {/* Advanced details */}
+      <AdvancedDetailsRow />
+    </Box>
+  );
+}
+
+export function CardDelegationInfoSkeleton() {
+  useNavbar('');
+
+  return (
+    <Box testID="card-delegation-info-skeleton">
+      <Box twClassName="mb-4">
+        <Skeleton height={28} width={200} />
       </Box>
-    </View>
+      <InfoSection>
+        <Box twClassName="flex-row justify-between px-2 py-3">
+          <Skeleton width={80} height={16} />
+          <Skeleton width={120} height={16} />
+        </Box>
+      </InfoSection>
+      <InfoSection>
+        <Box twClassName="flex-row justify-between px-2 py-3">
+          <Skeleton width={80} height={16} />
+          <Skeleton width={140} height={16} />
+        </Box>
+      </InfoSection>
+      <InfoSection>
+        <Box twClassName="flex-row justify-between px-2 py-3">
+          <Skeleton width={100} height={16} />
+          <Skeleton width={100} height={16} />
+        </Box>
+      </InfoSection>
+      <GasFeesDetailsRowSkeleton />
+    </Box>
   );
 }

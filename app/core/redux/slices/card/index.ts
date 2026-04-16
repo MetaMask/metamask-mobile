@@ -1,7 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
-import type { CardFundingToken } from '../../../../components/UI/Card/types';
+import type {
+  CardFundingToken,
+  LimitType,
+} from '../../../../components/UI/Card/types';
 
 export interface OnboardingState {
   onboardingId: string | null;
@@ -19,7 +22,10 @@ export interface CardDelegationState {
   flow: 'onboarding' | 'manage' | 'enable' | null;
   canChangeToken: boolean;
   selectedToken: CardFundingToken | null;
+  limitType: LimitType;
+  customLimit: string;
   pendingCredentials: CardDelegationCredentials | null;
+  delegationCompleted: boolean;
 }
 
 export interface CardSliceState {
@@ -41,7 +47,10 @@ export const initialState: CardSliceState = {
     flow: null,
     canChangeToken: true,
     selectedToken: null,
+    limitType: 'full',
+    customLimit: '',
     pendingCredentials: null,
+    delegationCompleted: false,
   },
 };
 
@@ -86,6 +95,19 @@ const slice = createSlice({
       state.delegation.canChangeToken = action.payload.canChangeToken;
       state.delegation.selectedToken = action.payload.selectedToken;
     },
+    setDelegationSelectedToken: (
+      state,
+      action: PayloadAction<CardFundingToken>,
+    ) => {
+      state.delegation.selectedToken = action.payload;
+    },
+    setDelegationLimit: (
+      state,
+      action: PayloadAction<{ limitType: LimitType; customLimit: string }>,
+    ) => {
+      state.delegation.limitType = action.payload.limitType;
+      state.delegation.customLimit = action.payload.customLimit;
+    },
     setDelegationCredentials: (
       state,
       action: PayloadAction<CardDelegationCredentials>,
@@ -94,6 +116,9 @@ const slice = createSlice({
     },
     clearDelegationCredentials: (state) => {
       state.delegation.pendingCredentials = null;
+    },
+    setDelegationCompleted: (state, action: PayloadAction<boolean>) => {
+      state.delegation.delegationCompleted = action.payload;
     },
     resetDelegationState: (state) => {
       state.delegation = initialState.delegation;
@@ -143,6 +168,11 @@ export const selectDelegationCredentials = createSelector(
   (card) => card.delegation.pendingCredentials,
 );
 
+export const selectDelegationCompleted = createSelector(
+  selectCardState,
+  (card) => card.delegation.delegationCompleted,
+);
+
 // Actions
 export const {
   resetCardState,
@@ -153,7 +183,10 @@ export const {
   resetOnboardingState,
   setIsDaimoDemo,
   setDelegationFlow,
+  setDelegationSelectedToken,
+  setDelegationLimit,
   setDelegationCredentials,
   clearDelegationCredentials,
+  setDelegationCompleted,
   resetDelegationState,
 } = actions;

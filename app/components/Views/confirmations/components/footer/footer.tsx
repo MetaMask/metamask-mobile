@@ -35,7 +35,9 @@ import {
   TRANSFER_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
 import { hasTransactionType } from '../../utils/transaction';
+import TransactionTypes from '../../../../../core/TransactionTypes';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
+import { CardDelegationFooter } from '../info/card-delegation-info/card-delegation-footer';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
@@ -192,6 +194,10 @@ export const Footer = () => {
 
   if (!isFooterVisible) {
     return null;
+  }
+
+  if (transactionMetadata?.origin === TransactionTypes.MMM_CARD) {
+    return <CardDelegationFooter />;
   }
 
   if (

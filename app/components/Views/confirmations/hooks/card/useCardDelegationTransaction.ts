@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import {
   TransactionType,
   WalletDevice,
@@ -17,6 +18,7 @@ import { BAANX_MAX_LIMIT } from '../../../../UI/Card/constants';
 import type { CardFundingToken } from '../../../../UI/Card/types';
 import { setDelegationFlow } from '../../../../../core/redux/slices/card';
 import { useConfirmNavigation } from '../useConfirmNavigation';
+import { ConfirmationLoader } from '../../components/confirm/confirm-component';
 
 export interface PrepareAndNavigateParams {
   flow: 'onboarding' | 'manage' | 'enable';
@@ -39,6 +41,7 @@ export interface PrepareAndNavigateParams {
 export function useCardDelegationTransaction() {
   const { sdk } = useCardSDK();
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
   const { navigateToConfirmation } = useConfirmNavigation();
   const selectAccountByScope = useSelector(
@@ -83,6 +86,9 @@ export function useCardDelegationTransaction() {
       }
 
       setIsLoading(true);
+
+      // Navigate immediately so the skeleton shows while we do async work
+      navigateToConfirmation({ loader: ConfirmationLoader.CardDelegation });
 
       try {
         // Resolve token
@@ -151,15 +157,13 @@ export function useCardDelegationTransaction() {
             selectedToken: token,
           }),
         );
-
-        // Navigate to the confirmations screen — CardDelegationInfo will render
-        // for TransactionType.cardDelegation
-        navigateToConfirmation({});
       } catch (error) {
         Logger.error(
           error as Error,
           'useCardDelegationTransaction: Failed to prepare delegation',
         );
+        // Go back from the skeleton screen since setup failed
+        navigation.goBack();
         throw error;
       } finally {
         setIsLoading(false);
@@ -172,6 +176,7 @@ export function useCardDelegationTransaction() {
       ensureNetworkExists,
       dispatch,
       navigateToConfirmation,
+      navigation,
     ],
   );
 

@@ -367,7 +367,7 @@ export function useCardHomeActions({
       await prepareCardDelegation({
         flow: 'manage',
         token: primaryToken ?? undefined,
-        canChangeToken: true,
+        canChangeToken: false,
       });
     } catch (error) {
       Logger.error(
