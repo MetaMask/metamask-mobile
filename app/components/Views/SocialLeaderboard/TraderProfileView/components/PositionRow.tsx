@@ -49,7 +49,9 @@ function formatPercent(value: number | null | undefined): string {
 const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
   const isClosed = position.positionAmount === 0 && position.soldUsd > 0;
 
-  const displayValue = isClosed ? position.soldUsd : position.currentValueUSD ?? null;
+  const displayValue = isClosed
+    ? position.soldUsd
+    : (position.currentValueUSD ?? null);
 
   const closedPnlPercent =
     isClosed && position.boughtUsd > 0
