@@ -305,8 +305,7 @@ describe('TokenDetailsStickyFooter', () => {
   });
 
   describe('Sticky Footer Button Tapped tracking', () => {
-    it('tracks swap button tap with hasMoreThan100USD false when balance < $100', () => {
-      // balance < $100
+    it('tracks swap button tap with usd_amount_range when balance < $100', () => {
       mockUseABTest.mockReturnValue({
         variant:
           STICKY_FOOTER_SWAP_LABEL_VARIANTS[
@@ -323,14 +322,13 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'swap',
-        hasMoreThan100USD: false,
+        balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
       });
     });
 
-    it('tracks buy button tap with hasMoreThan100USD false when balance < $100', () => {
-      // balance < $100
+    it('tracks buy button tap with usd_amount_range when balance < $100', () => {
       mockUseABTest.mockReturnValue({
         variant:
           STICKY_FOOTER_SWAP_LABEL_VARIANTS[
@@ -347,13 +345,13 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'buy',
-        hasMoreThan100USD: false,
+        balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
       });
     });
 
-    it('tracks swap tap with hasMoreThan100USD true when balance >= $100', () => {
+    it('tracks swap tap with usd_amount_range when balance >= $100', () => {
       mockUseABTest.mockReturnValue({
         variant:
           STICKY_FOOTER_SWAP_LABEL_VARIANTS[
@@ -370,13 +368,13 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'swap',
-        hasMoreThan100USD: true,
+        balanceFiatUsd: 150,
         tokenAddress: '0x123',
         chainId: '0x1',
       });
     });
 
-    it('tracks single swap button with hasMoreThan100USD false when balance is undefined', () => {
+    it('tracks single swap button with usd_amount_range when balance is undefined', () => {
       mockIsBuyable.mockReturnValue(false);
       mockUseABTest.mockReturnValue({
         variant:
@@ -387,14 +385,17 @@ describe('TokenDetailsStickyFooter', () => {
         isActive: true,
       });
       const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          balanceFiatUsd={undefined}
+        />,
       );
 
       fireEvent.press(getByText('Swap'));
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'swap',
-        hasMoreThan100USD: false,
+        balanceFiatUsd: undefined,
         tokenAddress: '0x123',
         chainId: '0x1',
       });
