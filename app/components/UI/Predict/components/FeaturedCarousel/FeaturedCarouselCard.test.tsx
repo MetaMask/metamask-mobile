@@ -353,4 +353,110 @@ describe('FeaturedCarouselCard', () => {
     ).toBeOnTheScreen();
     expect(queryByTestId('market-image')).not.toBeOnTheScreen();
   });
+
+  describe('binary market (single outcome with multiple tokens)', () => {
+    const createBinaryMarket = (
+      overrides: Partial<PredictMarket> = {},
+    ): PredictMarket =>
+      createMockMarket({
+        outcomes: [
+          createMockOutcome({
+            id: 'outcome-binary',
+            title: 'Binary Outcome',
+            groupItemTitle: 'Binary Outcome',
+            tokens: [
+              { id: 'token-yes', title: 'Yes', price: 0.65 },
+              { id: 'token-no', title: 'No', price: 0.35 },
+            ],
+          }),
+        ],
+        ...overrides,
+      });
+
+    it('renders two token-based buttons for a binary market', () => {
+      const market = createBinaryMarket();
+
+      const { getByTestId } = renderWithProvider(
+        <FeaturedCarouselCard market={market} index={0} />,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(0, 0)),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(0, 1)),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_BUY_BUTTON(0, 0)),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_BUY_BUTTON(0, 1)),
+      ).toBeOnTheScreen();
+    });
+
+    it('passes correct outcome and token when buying in a binary market', () => {
+      const market = createBinaryMarket();
+
+      const { getByTestId } = renderWithProvider(
+        <FeaturedCarouselCard market={market} index={0} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(
+        getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_BUY_BUTTON(0, 1)),
+      );
+
+      expect(mockNavigateToBuyPreview).toHaveBeenCalledWith(
+        expect.objectContaining({
+          market,
+          outcome: market.outcomes[0],
+          outcomeToken: market.outcomes[0].tokens[1],
+        }),
+        { throughRoot: true },
+      );
+    });
+
+    it('reports zero remaining options for a binary market', () => {
+      const market = createBinaryMarket();
+
+      const { queryByTestId } = renderWithProvider(
+        <FeaturedCarouselCard market={market} index={0} />,
+        { state: initialState },
+      );
+
+      expect(
+        queryByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(0, 2)),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('skips outcomes with no tokens in multi-outcome markets', () => {
+    const market = createMockMarket({
+      outcomes: [
+        createMockOutcome({
+          id: 'o-with-token',
+          groupItemTitle: 'Has Token',
+          tokens: [{ id: 't1', title: 'Yes', price: 0.7 }],
+        }),
+        createMockOutcome({
+          id: 'o-no-token',
+          groupItemTitle: 'No Token',
+          tokens: [],
+        }),
+      ],
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <FeaturedCarouselCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(0, 0)),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(0, 1)),
+    ).not.toBeOnTheScreen();
+  });
 });

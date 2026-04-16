@@ -15,6 +15,8 @@ self-hosted-runner:
     - "ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"
     - "ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl"
     - "low-priority"
+    - "bitrise_pool_name:DemoFA"
+    - "bitrise_pool_name:DemoFAXL"
 
 # Configuration variables in array of strings defined in your repository or
 # organization. `null` means disabling configuration variables check.
