@@ -193,7 +193,7 @@ export type PredictSportTeam = {
   logo: string;
   abbreviation: string; // e.g., "SEA", "DEN"
   color: string; // Team primary color (hex)
-  alias: string; // Team alias (e.g., "Seahawks")
+  alias?: string; // Team alias (e.g., "Seahawks")
 };
 
 // Parsed score data
@@ -370,6 +370,13 @@ export interface GetPriceHistoryParams {
   interval?: PredictPriceHistoryInterval;
   startTs?: number;
   endTs?: number;
+}
+
+export interface GetCryptoTargetPriceParams {
+  symbol: string;
+  eventStartTime: string;
+  variant: string;
+  endDate: string;
 }
 
 /**

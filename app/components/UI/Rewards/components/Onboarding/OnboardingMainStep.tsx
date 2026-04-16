@@ -306,7 +306,7 @@ const OnboardingMainStep: React.FC = () => {
         />
       )}
 
-      <Box twClassName="w-full gap-4">
+      <Box twClassName="w-full gap-2">
         <Text variant={TextVariant.HeadingLg} twClassName="text-center">
           {strings('rewards.onboarding.title')}
         </Text>
@@ -321,59 +321,63 @@ const OnboardingMainStep: React.FC = () => {
     </Box>
   );
 
-  const renderReferralSection = () => (
-    <Box twClassName="w-full items-center gap-2 mt-2">
-      {!showReferralInput && (
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="text-text-alternative my-2"
-          onPress={() => setShowReferralInput(true)}
-          testID="referral-prompt"
-        >
-          {strings('rewards.onboarding.referral_prompt')}
-        </Text>
-      )}
-
-      {showReferralInput && (
-        <Box twClassName="w-full gap-2">
-          <Box twClassName="gap-1">
-            <TextField
-              placeholder={strings('rewards.onboarding.referral_placeholder')}
-              value={referralCode}
-              autoCapitalize="characters"
-              maxLength={6}
-              onChangeText={handleReferralCodeChange}
-              isDisabled={optinLoading}
-              endAccessory={renderReferralIcon()}
-              testID="referral-input"
-              isError={
-                referralCode.length >= 6 &&
-                !referralCodeIsValid &&
-                !isValidatingReferralCode &&
-                !isUnknownErrorReferralCode
-              }
-            />
-            {referralCode.length >= 6 &&
+  const renderAboveCTA = () =>
+    showReferralInput ? (
+      <Box twClassName="w-full gap-2">
+        <Box twClassName="gap-1">
+          <TextField
+            placeholder={strings('rewards.onboarding.referral_placeholder')}
+            value={referralCode}
+            autoCapitalize="characters"
+            maxLength={6}
+            onChangeText={handleReferralCodeChange}
+            isDisabled={optinLoading}
+            endAccessory={renderReferralIcon()}
+            testID="referral-input"
+            isError={
+              referralCode.length >= 6 &&
               !referralCodeIsValid &&
               !isValidatingReferralCode &&
-              !isUnknownErrorReferralCode && (
-                <Text twClassName="text-error-default">
-                  {strings('rewards.onboarding.step4_referral_input_error')}
-                </Text>
-              )}
-          </Box>
-
-          {isUnknownErrorReferralCode && (
-            <RewardsErrorBanner
-              title={strings('rewards.referral_validation_unknown_error.title')}
-              description={strings(
-                'rewards.referral_validation_unknown_error.description',
-              )}
-            />
-          )}
+              !isUnknownErrorReferralCode
+            }
+          />
+          {referralCode.length >= 6 &&
+            !referralCodeIsValid &&
+            !isValidatingReferralCode &&
+            !isUnknownErrorReferralCode && (
+              <Text twClassName="text-error-default">
+                {strings('rewards.onboarding.step4_referral_input_error')}
+              </Text>
+            )}
         </Box>
-      )}
-    </Box>
+
+        {isUnknownErrorReferralCode && (
+          <RewardsErrorBanner
+            title={strings('rewards.referral_validation_unknown_error.title')}
+            description={strings(
+              'rewards.referral_validation_unknown_error.description',
+            )}
+          />
+        )}
+      </Box>
+    ) : null;
+
+  const renderBelowCTA = () => (
+    <Text
+      variant={TextVariant.BodyMd}
+      twClassName="text-text-alternative"
+      onPress={() => {
+        if (showReferralInput) {
+          handleReferralCodeChange('');
+        }
+        setShowReferralInput(!showReferralInput);
+      }}
+      testID="referral-prompt"
+    >
+      {showReferralInput
+        ? strings('rewards.onboarding.referral_hide')
+        : strings('rewards.onboarding.referral_prompt')}
+    </Text>
   );
 
   const renderLegalDisclaimer = () => (
@@ -419,7 +423,8 @@ const OnboardingMainStep: React.FC = () => {
       nextButtonText={strings('rewards.onboarding.sign_up')}
       renderStepImage={renderStepImage}
       renderStepInfo={renderStepInfo}
-      renderReferralSection={renderReferralSection}
+      renderAboveCTA={renderAboveCTA}
+      renderBelowCTA={renderBelowCTA}
       renderLegalDisclaimer={renderLegalDisclaimer}
       disableSwipe
       showProgressIndicator={false}

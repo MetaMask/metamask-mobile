@@ -83,6 +83,7 @@ export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
   CLOB_ENDPOINT: 'https://clob.polymarket.com',
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
+  CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
   HOMEPAGE_CAROUSEL_ENDPOINT: 'https://polymarket.com/api/homepage/carousel',
   CLOB_RELAYER:
