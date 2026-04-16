@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { StackActions } from '@react-navigation/native';
 import CampaignTourStepView from './CampaignTourStepView';
 import Routes from '../../../../constants/navigation/Routes';
 import { CAMPAIGN_TOUR_STEP_TEST_IDS } from '../components/Campaigns/tour/CampaignTourStep';
@@ -8,18 +9,20 @@ import {
   CampaignType,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 
-const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
+const mockDispatch = jest.fn();
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    goBack: mockGoBack,
-  }),
-  useRoute: () => ({
-    params: { campaignId: 'campaign-1' },
-  }),
-}));
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: () => ({
+      dispatch: mockDispatch,
+    }),
+    useRoute: () => ({
+      params: { campaignId: 'campaign-1' },
+    }),
+  };
+});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -212,9 +215,10 @@ describe('CampaignTourStepView', () => {
     fireEvent.press(getByTestId(CAMPAIGN_TOUR_STEP_TEST_IDS.NEXT_BUTTON));
     fireEvent.press(getByTestId(CAMPAIGN_TOUR_STEP_TEST_IDS.NEXT_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
-      { campaignId: 'campaign-1' },
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+        campaignId: 'campaign-1',
+      }),
     );
   });
 
@@ -223,9 +227,10 @@ describe('CampaignTourStepView', () => {
 
     fireEvent.press(getByTestId(CAMPAIGN_TOUR_STEP_TEST_IDS.SKIP_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
-      { campaignId: 'campaign-1' },
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+        campaignId: 'campaign-1',
+      }),
     );
   });
 
@@ -234,9 +239,10 @@ describe('CampaignTourStepView', () => {
 
     render(<CampaignTourStepView />);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
-      { campaignId: 'campaign-1' },
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+        campaignId: 'campaign-1',
+      }),
     );
   });
 

@@ -1,22 +1,23 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { CardTokenAllowance } from '../types';
+import { useQueryClient } from '@tanstack/react-query';
+import { CardFundingToken } from '../types';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { selectCardHomeData } from '../../../../selectors/cardController';
 import type { CardFundingAsset } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
-interface UseUpdateTokenPriorityParams {
+interface UseUpdateFundingPriorityParams {
   onSuccess?: () => void;
   onError?: (error: Error) => void;
 }
 
-function tokenAllowanceToFundingAsset(
-  token: CardTokenAllowance,
-  allAssets: CardFundingAsset[],
+function findFundingAsset(
+  token: CardFundingToken,
+  fundingAssets: CardFundingAsset[],
 ): CardFundingAsset | null {
   return (
-    allAssets.find(
+    fundingAssets.find(
       (a) =>
         a.walletAddress?.toLowerCase() === token.walletAddress?.toLowerCase() &&
         a.symbol.toLowerCase() === token.symbol?.toLowerCase() &&
@@ -25,47 +26,50 @@ function tokenAllowanceToFundingAsset(
   );
 }
 
-export const useUpdateTokenPriority = (
-  params?: UseUpdateTokenPriorityParams,
+export const useUpdateFundingPriority = (
+  params?: UseUpdateFundingPriorityParams,
 ) => {
   const cardHomeData = useSelector(selectCardHomeData);
+  const queryClient = useQueryClient();
   const { onSuccess, onError } = params || {};
 
-  const updateTokenPriority = useCallback(
+  const updateFundingPriority = useCallback(
     async (
-      token: CardTokenAllowance,
+      token: CardFundingToken,
       _externalWalletDetails?: unknown,
     ): Promise<boolean> => {
-      const allAssets = cardHomeData?.assets ?? [];
+      const fundingAssets = cardHomeData?.fundingAssets ?? [];
 
-      const selectedAsset = tokenAllowanceToFundingAsset(token, allAssets);
+      const selectedAsset = findFundingAsset(token, fundingAssets);
       if (!selectedAsset) {
-        const error = new Error('Selected token not found in current assets');
+        const error = new Error(
+          'Selected token not found in current funding assets',
+        );
         onError?.(error);
         return false;
       }
 
       try {
-        // Controller handles the optimistic update and rollback internally
         await Engine.context.CardController.updateAssetPriority(
           selectedAsset,
-          allAssets,
+          fundingAssets,
         );
+        queryClient.invalidateQueries({ queryKey: ['card', 'home'] });
         onSuccess?.();
         return true;
       } catch (error) {
         Logger.error(
           error as Error,
-          'useUpdateTokenPriority: Error updating wallet priority',
+          'useUpdateFundingPriority: Error updating funding priority',
         );
         onError?.(error as Error);
         return false;
       }
     },
-    [cardHomeData, onSuccess, onError],
+    [cardHomeData, queryClient, onSuccess, onError],
   );
 
   return {
-    updateTokenPriority,
+    updateFundingPriority,
   };
 };

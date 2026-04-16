@@ -41,7 +41,8 @@ interface OnboardingStepProps {
 
   // Button props
   nextButtonText?: string;
-  renderReferralSection?: () => ReactNode;
+  renderAboveCTA?: () => ReactNode;
+  renderBelowCTA?: () => ReactNode;
   renderLegalDisclaimer?: () => ReactNode;
 
   // Render props for customizable content
@@ -62,7 +63,8 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
   onNextLoadingText,
   onNextDisabled,
   nextButtonText,
-  renderReferralSection,
+  renderAboveCTA,
+  renderBelowCTA,
   renderLegalDisclaimer,
   renderStepImage,
   renderStepInfo,
@@ -141,6 +143,8 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
         </Box>
 
         <Box twClassName="w-full flex-col gap-4 items-center">
+          {renderAboveCTA?.()}
+
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -154,7 +158,7 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
             {nextButtonText || strings('rewards.onboarding.step_confirm')}
           </Button>
 
-          {renderReferralSection?.()}
+          {renderBelowCTA?.()}
 
           {onSkip && (
             <Button
