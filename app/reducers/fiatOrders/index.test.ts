@@ -59,6 +59,8 @@ import fiatOrderReducer, {
   getDetectedGeolocation,
   getRampRoutingDecision,
   setRampRoutingDecision,
+  setHasAgreedTransakNativePolicy,
+  selectHasAgreedTransakNativePolicy,
   UnifiedRampRoutingType,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
@@ -415,6 +417,19 @@ describe('fiatOrderReducer', () => {
     );
     expect(stateWithStartedTrue.getStartedDeposit).toEqual(true);
     expect(stateWithStartedFalse.getStartedDeposit).toEqual(false);
+  });
+
+  it('should set has agreed Transak native policy', () => {
+    const stateWithPolicyAgreed = fiatOrderReducer(
+      initialState,
+      setHasAgreedTransakNativePolicy(true),
+    );
+    const stateWithPolicyCleared = fiatOrderReducer(
+      stateWithPolicyAgreed,
+      setHasAgreedTransakNativePolicy(false),
+    );
+    expect(stateWithPolicyAgreed.hasAgreedTransakNativePolicy).toEqual(true);
+    expect(stateWithPolicyCleared.hasAgreedTransakNativePolicy).toEqual(false);
   });
 
   it('should set the selected region', () => {
@@ -1087,6 +1102,31 @@ describe('selectors', () => {
       });
 
       expect(fiatOrdersGetStartedDeposit(state)).toEqual(true);
+    });
+  });
+
+  describe('selectHasAgreedTransakNativePolicy', () => {
+    it('returns true when Transak native policy was agreed', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          hasAgreedTransakNativePolicy: true,
+        },
+      });
+
+      expect(selectHasAgreedTransakNativePolicy(state)).toEqual(true);
+    });
+
+    it('returns false when Transak native policy was not agreed', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          hasAgreedTransakNativePolicy: false,
+        },
+      });
+
+      expect(selectHasAgreedTransakNativePolicy(state)).toEqual(false);
+      expect(selectHasAgreedTransakNativePolicy(initialRootState)).toEqual(
+        false,
+      );
     });
   });
 

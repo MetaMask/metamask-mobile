@@ -1,8 +1,19 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { useDispatch } from 'react-redux';
 import V2VerifyIdentity from './VerifyIdentity';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { Linking } from 'react-native';
+import { setHasAgreedTransakNativePolicy } from '../../../../../reducers/fiatOrders';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const mockedUseDispatch = useDispatch as jest.MockedFunction<
+  typeof useDispatch
+>;
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -66,8 +77,12 @@ const renderWithTheme = (component: React.ReactElement) =>
   );
 
 describe('V2VerifyIdentity', () => {
+  let innerDispatch: jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    innerDispatch = jest.fn();
+    mockedUseDispatch.mockReturnValue(innerDispatch);
   });
 
   it('calls navigation.goBack when header back is pressed', () => {
@@ -84,6 +99,9 @@ describe('V2VerifyIdentity', () => {
 
     fireEvent.press(getByText('deposit.verify_identity.button'));
 
+    expect(innerDispatch).toHaveBeenCalledWith(
+      setHasAgreedTransakNativePolicy(true),
+    );
     expect(mockNavigate).toHaveBeenCalledWith(
       'RampEnterEmail',
       expect.objectContaining({

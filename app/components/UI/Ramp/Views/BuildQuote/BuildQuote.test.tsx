@@ -130,6 +130,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../../../../reducers/fiatOrders', () => ({
   getRampRoutingDecision: () => 'AGGREGATOR',
   UnifiedRampRoutingType: { AGGREGATOR: 'AGGREGATOR' },
+  selectHasAgreedTransakNativePolicy: jest.fn(() => false),
 }));
 
 jest.mock('../../hooks/useRampAccountAddress', () => ({
@@ -213,6 +214,12 @@ const mockUseAnalytics = jest.requireMock(
 const mockUseDebouncedValue = jest.requireMock(
   '../../../../hooks/useDebouncedValue',
 ).useDebouncedValue as jest.Mock;
+
+const mockFiatOrdersModule = jest.requireMock(
+  '../../../../../reducers/fiatOrders',
+) as {
+  selectHasAgreedTransakNativePolicy: jest.Mock;
+};
 
 const mockDeviceIsAndroid = jest.requireMock('../../../../../util/device')
   .isAndroid as jest.Mock;
@@ -416,6 +423,9 @@ const buildRampsControllerResult = (overrides = {}) => ({
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFiatOrdersModule.selectHasAgreedTransakNativePolicy.mockReturnValue(
+      false,
+    );
     mockUseParams.mockReturnValue({});
     mockUseRampsController.mockReturnValue(buildRampsControllerResult());
     mockUseDebouncedValue.mockImplementation((value: number) => value);
@@ -1290,7 +1300,34 @@ describe('BuildQuote', () => {
       expect(mockGetBuyQuote).not.toHaveBeenCalled();
       expect(mockRouteAfterAuth).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(
-        expect.any(String),
+        Routes.RAMP.VERIFY_IDENTITY,
+        expect.objectContaining({
+          amount: '100',
+          currency: 'USD',
+          assetId: 'eip155:1/slip44:60',
+        }),
+      );
+    });
+
+    it('navigates to Enter Email when user has no token but Transak native policy was already agreed', async () => {
+      mockCheckExistingToken.mockResolvedValue(false);
+      mockFiatOrdersModule.selectHasAgreedTransakNativePolicy.mockReturnValue(
+        true,
+      );
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      });
+
+      expect(mockCheckExistingToken).toHaveBeenCalled();
+      expect(mockGetBuyQuote).not.toHaveBeenCalled();
+      expect(mockRouteAfterAuth).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.RAMP.ENTER_EMAIL,
         expect.objectContaining({
           amount: '100',
           currency: 'USD',
