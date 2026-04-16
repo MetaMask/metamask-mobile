@@ -225,5 +225,13 @@ describe('PositionRow', () => {
       // -300 / 1200 * 100 = -25%
       expect(screen.getByText('-25%')).toBeOnTheScreen();
     });
+
+    it('uses realized PnL percent even when pnlPercent is 0', () => {
+      const position = { ...closedPosition, pnlPercent: 0 };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.getByText('+25%')).toBeOnTheScreen();
+    });
   });
 });
