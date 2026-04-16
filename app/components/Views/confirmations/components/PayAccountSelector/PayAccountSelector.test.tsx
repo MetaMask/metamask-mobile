@@ -1,14 +1,15 @@
 import React, { act } from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { Hex } from '@metamask/utils';
 import { merge } from 'lodash';
-import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
+
+import Engine from '../../../../../core/Engine';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
+import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
-import Engine from '../../../../../core/Engine';
 import PayAccountSelector, {
   PayAccountSelectorProps,
 } from './PayAccountSelector';

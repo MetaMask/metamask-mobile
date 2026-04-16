@@ -121,10 +121,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       undefined,
     );
 
-    const handleAccountSelected = useCallback((address: string) => {
-      setSelectedAccount(address);
-    }, []);
-
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
@@ -200,7 +196,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         <Box gap={16}>
           <AlertMessage alertMessage={alertMessage} />
           {!hidePayTokenAmount && (
-            <PayAccountSelector onAccountSelected={handleAccountSelected} />
+            <PayAccountSelector
+              selectedAccount={selectedAccount}
+              onSelectedAccountChange={setSelectedAccount}
+            />
           )}
           {!isResultReady && disablePay !== true && hasTokens && (
             <PayWithRow selectedAccount={selectedAccount} />

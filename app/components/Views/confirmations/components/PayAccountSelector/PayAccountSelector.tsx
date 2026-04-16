@@ -9,11 +9,13 @@ import { hasTransactionType } from '../../utils/transaction';
 import AccountSelector from '../AccountSelector';
 
 export interface PayAccountSelectorProps {
-  onAccountSelected?: (address: string) => void;
+  selectedAccount?: string;
+  onSelectedAccountChange?: (address: string) => void;
 }
 
 const PayAccountSelector: React.FC<PayAccountSelectorProps> = ({
-  onAccountSelected,
+  selectedAccount,
+  onSelectedAccountChange,
 }) => {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id;
@@ -25,8 +27,11 @@ const PayAccountSelector: React.FC<PayAccountSelectorProps> = ({
     TransactionType.moneyAccountDeposit,
   ]);
 
-  const [selectedAddress, setSelectedAddress] = useState<string | undefined>(
-    undefined,
+  const onAccountSelected = useCallback(
+    (address: string) => {
+      onSelectedAccountChange?.(address);
+    },
+    [onSelectedAccountChange],
   );
 
   const handleAccountSelected = useCallback(
@@ -42,7 +47,6 @@ const PayAccountSelector: React.FC<PayAccountSelectorProps> = ({
           },
         );
       }
-      setSelectedAddress(address);
       onAccountSelected?.(address);
     },
     [transactionId, isMoneyAccountWithdraw, onAccountSelected],
@@ -59,7 +63,7 @@ const PayAccountSelector: React.FC<PayAccountSelectorProps> = ({
   return (
     <AccountSelector
       label={label}
-      selectedAddress={selectedAddress}
+      selectedAddress={selectedAccount}
       onAccountSelected={handleAccountSelected}
     />
   );
