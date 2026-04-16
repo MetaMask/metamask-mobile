@@ -22,19 +22,30 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import { useTransactionPayToken } from '../../../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../../../../../Views/confirmations/utils/transaction';
-import { TokenIcon } from '../../../../../../Views/confirmations/components/token-icon';
+import {
+  TokenIcon,
+  TokenIconVariant,
+} from '../../../../../../Views/confirmations/components/token-icon';
 import { isHardwareAccount } from '../../../../../../../util/address';
 import { POLYGON_USDCE } from '../../../../../../Views/confirmations/constants/predict';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
 import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
 import { usePredictDefaultPaymentToken } from '../../hooks/usePredictDefaultPaymentToken';
 
+type PredictPayWithRowVariant = 'pill' | 'row';
+
 interface PredictPayWithRowProps {
   disabled?: boolean;
+  chevronRight?: boolean;
+  variant?: PredictPayWithRowVariant;
+  availableBalance?: string;
 }
 
 export function PredictPayWithRow({
   disabled = false,
+  chevronRight = false,
+  variant = 'pill',
+  availableBalance,
 }: PredictPayWithRowProps) {
   usePredictDefaultPaymentToken();
   const navigation = useNavigation();
@@ -69,6 +80,58 @@ export function PredictPayWithRow({
     ? PREDICT_BALANCE_CHAIN_ID
     : (payToken?.chainId as Hex | undefined);
 
+  if (variant === 'row') {
+    return (
+      <TouchableOpacity onPress={handlePress} disabled={!canEdit}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="px-4 pt-4 pb-2"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="font-medium"
+          >
+            {label}
+          </Text>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            {tokenIconAddress && tokenIconChainId && (
+              <TokenIcon
+                address={tokenIconAddress}
+                chainId={tokenIconChainId}
+                variant={TokenIconVariant.Row}
+              />
+            )}
+            <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+              {displaySymbol}
+            </Text>
+            {availableBalance && (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                ({availableBalance})
+              </Text>
+            )}
+            {canEdit && (
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.Alternative}
+              />
+            )}
+          </Box>
+        </Box>
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <Box
       flexDirection={BoxFlexDirection.Column}
@@ -91,7 +154,7 @@ export function PredictPayWithRow({
           </Text>
           {canEdit && (
             <Icon
-              name={IconName.ArrowDown}
+              name={chevronRight ? IconName.ArrowRight : IconName.ArrowDown}
               size={IconSize.Sm}
               color={IconColor.Alternative}
             />
