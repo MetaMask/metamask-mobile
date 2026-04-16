@@ -5,12 +5,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  NavigationProp,
-  useIsFocused,
-  useNavigation,
-} from '@react-navigation/native';
-import React, { useContext, useMemo } from 'react';
+import { useIsFocused } from '@react-navigation/native';
+import React, { useMemo } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import SensitiveText, {
@@ -28,25 +24,16 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import Logger from '../../../../../util/Logger';
-import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictPreviewSheet } from '../../contexts';
 import {
   PredictMarket,
   PredictMarketStatus,
   PredictPosition as PredictPositionType,
   Side,
 } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
+import { usePredictCashOut } from '../../hooks/usePredictCashOut';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -65,13 +52,10 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   const privacyMode = useSelector(selectPrivacyMode);
 
   const { icon, initialValue, outcome, title, optimistic, size } = position;
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { executeGuardedAction } = usePredictActionGuard({
-    navigation,
+  const { onCashOut } = usePredictCashOut({
+    market,
+    callerName: 'PredictPositionDetail',
   });
-  const { openSellSheet } = usePredictPreviewSheet();
-  const { toastRef } = useContext(ToastContext);
 
   // Only auto-refresh when the screen is focused to avoid duplicate fetches
   const isFocused = useIsFocused();
@@ -117,47 +101,6 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         o.tokens.find((t) => t.id === position.outcomeTokenId),
     )
     ?.tokens.find((t) => t.id === position.outcomeTokenId);
-
-  const onCashOut = () => {
-    executeGuardedAction(
-      () => {
-        try {
-          const _outcome = market?.outcomes.find(
-            (o) => o.id === position.outcomeId,
-          );
-          if (!_outcome) {
-            throw new Error(
-              `Outcome not found for position ${position.id} (outcomeId: ${position.outcomeId})`,
-            );
-          }
-          openSellSheet({
-            market,
-            position,
-            outcome: _outcome,
-            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-          });
-        } catch (error) {
-          Logger.error(error as Error, {
-            component: 'PredictPositionDetail',
-            positionId: position.id,
-            outcomeId: position.outcomeId,
-          });
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Icon,
-            iconName: IconName.Danger,
-            labelOptions: [
-              {
-                label: strings('predict.order.cashout_failed'),
-                isBold: true,
-              },
-            ],
-            hasNoTimeout: false,
-          });
-        }
-      },
-      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
-    );
-  };
 
   const renderValueText = () => {
     if (marketStatus === PredictMarketStatus.OPEN) {
@@ -272,7 +215,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             label={strings('predict.cash_out')}
-            onPress={onCashOut}
+            onPress={() => onCashOut(position)}
             isDisabled={optimistic}
           />
         </Box>

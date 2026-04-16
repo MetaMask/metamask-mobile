@@ -26,3 +26,5 @@ export {
   usePredictSearch,
   type UsePredictSearchResult,
 } from './usePredictSearch';
+
+export { usePredictCashOut } from './usePredictCashOut';

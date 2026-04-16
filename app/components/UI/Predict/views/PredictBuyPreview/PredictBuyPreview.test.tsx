@@ -40,6 +40,8 @@ let mockLoadingState = false;
 let mockPlaceOrderResult: { success: boolean; response?: unknown } | null =
   null;
 let mockPlaceOrderError: string | undefined;
+let mockIsOrderNotFilled = false;
+const mockResetOrderNotFilled = jest.fn();
 
 jest.mock('../../hooks/usePredictPlaceOrder', () => ({
   usePredictPlaceOrder: () => ({
@@ -47,8 +49,8 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
     isLoading: mockLoadingState,
     result: mockPlaceOrderResult,
     error: mockPlaceOrderError,
-    isOrderNotFilled: false,
-    resetOrderNotFilled: jest.fn(),
+    isOrderNotFilled: mockIsOrderNotFilled,
+    resetOrderNotFilled: mockResetOrderNotFilled,
   }),
 }));
 
@@ -66,30 +68,36 @@ let mockExpectedAmount = 120;
 let mockMetamaskFee = 0.5;
 let mockProviderFee = 1.0;
 let mockTotalFeePercentage = 4;
+let mockIsCalculating = false;
+let mockPreviewError: string | null = null;
+let mockPreviewOverride: Record<string, unknown> | null = null;
 jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: () => ({
-    preview: {
-      marketId: 'market-123',
-      outcomeId: 'outcome-456',
-      outcomeTokenId: 'outcome-token-789',
-      timestamp: Date.now(),
-      side: 'BUY',
-      sharePrice: 0.5,
-      maxAmountSpent: 100,
-      minAmountReceived: mockExpectedAmount,
-      slippage: 0.005,
-      tickSize: 0.01,
-      minOrderSize: 1,
-      negRisk: false,
-      fees: {
-        metamaskFee: mockMetamaskFee,
-        providerFee: mockProviderFee,
-        totalFee: mockMetamaskFee + mockProviderFee,
-        totalFeePercentage: mockTotalFeePercentage,
-      },
-    },
-    isCalculating: false,
-    error: null,
+    preview:
+      mockPreviewOverride !== null
+        ? mockPreviewOverride
+        : {
+            marketId: 'market-123',
+            outcomeId: 'outcome-456',
+            outcomeTokenId: 'outcome-token-789',
+            timestamp: Date.now(),
+            side: 'BUY',
+            sharePrice: 0.5,
+            maxAmountSpent: 100,
+            minAmountReceived: mockExpectedAmount,
+            slippage: 0.005,
+            tickSize: 0.01,
+            minOrderSize: 1,
+            negRisk: false,
+            fees: {
+              metamaskFee: mockMetamaskFee,
+              providerFee: mockProviderFee,
+              totalFee: mockMetamaskFee + mockProviderFee,
+              totalFeePercentage: mockTotalFeePercentage,
+            },
+          },
+    isCalculating: mockIsCalculating,
+    error: mockPreviewError,
   }),
 }));
 
@@ -252,11 +260,15 @@ describe('PredictBuyPreview', () => {
     mockLoadingState = false;
     mockPlaceOrderResult = null;
     mockPlaceOrderError = undefined;
+    mockIsOrderNotFilled = false;
     mockBalance = 1000;
     mockBalanceLoading = false;
     mockMetamaskFee = 0.5;
     mockProviderFee = 1.0;
     mockTotalFeePercentage = 4;
+    mockIsCalculating = false;
+    mockPreviewError = null;
+    mockPreviewOverride = null;
     mockRewardsEnabled = false;
     mockRewardsLoading = false;
     mockAccountOptedIn = null;
@@ -2179,6 +2191,84 @@ describe('PredictBuyPreview', () => {
     });
   });
 
+  describe('sheet mode rendering', () => {
+    const mockOnClose = jest.fn();
+    const sheetProps = {
+      mode: 'sheet' as const,
+      market: mockMarket,
+      outcome: mockMarket.outcomes[0],
+      outcomeToken: mockMarket.outcomes[0].tokens[0],
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      onClose: mockOnClose,
+    };
+
+    beforeEach(() => {
+      mockOnClose.mockClear();
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+    });
+
+    it('hides the header in sheet mode', () => {
+      renderWithProvider(<PredictBuyPreview {...sheetProps} />, {
+        state: initialState,
+      });
+
+      expect(screen.queryByTestId('back-button')).not.toBeOnTheScreen();
+    });
+
+    it('calls onClose when result is successful in sheet mode', () => {
+      mockPlaceOrderResult = { success: true };
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyPreview {...sheetProps} />,
+        { state: initialState },
+      );
+
+      rerender(<PredictBuyPreview {...sheetProps} />);
+
+      expect(mockOnClose).toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
+    });
+
+    it('renders available balance from props in sheet mode', () => {
+      renderWithProvider(<PredictBuyPreview {...sheetProps} />, {
+        state: initialState,
+      });
+
+      expect(screen.getByText('Available: $1,000.00')).toBeOnTheScreen();
+    });
+
+    it('displays to-win amount in sheet mode', () => {
+      renderWithProvider(<PredictBuyPreview {...sheetProps} />, {
+        state: initialState,
+      });
+
+      expect(screen.getByText('$120.00')).toBeOnTheScreen();
+    });
+
+    it('renders bottom content after pressing Done in sheet mode', () => {
+      renderWithProvider(<PredictBuyPreview {...sheetProps} />, {
+        state: initialState,
+      });
+
+      const doneButton = screen.getByText('Done');
+      fireEvent.press(doneButton);
+
+      expect(screen.getByText('Total')).toBeOnTheScreen();
+      expect(
+        screen.getByText(/By continuing, you accept Polymarket.s terms\./),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders with Box wrapper instead of SafeAreaView in sheet mode', () => {
+      renderWithProvider(<PredictBuyPreview {...sheetProps} />, {
+        state: initialState,
+      });
+
+      expect(screen.getByText('To win')).toBeOnTheScreen();
+    });
+  });
+
   describe('balance check removal', () => {
     beforeEach(() => {
       mockBalance = 1000;
@@ -2269,6 +2359,101 @@ describe('PredictBuyPreview', () => {
         screen.queryByText('predict.order.no_funds_enough'),
       ).not.toBeOnTheScreen();
       expect(screen.queryByText(/Not enough funds/)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('learn more link', () => {
+    it('renders learn more link that is pressable', () => {
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const doneButton = screen.getByText('Done');
+      fireEvent.press(doneButton);
+
+      const learnMore = screen.getByText('Learn more.');
+      fireEvent.press(learnMore);
+
+      expect(learnMore).toBeOnTheScreen();
+    });
+  });
+
+  describe('isOrderNotFilled error suppression', () => {
+    it('suppresses error message when order is not filled', () => {
+      mockIsOrderNotFilled = true;
+      mockPlaceOrderError = 'Order failed';
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const doneButton = screen.getByText('Done');
+      fireEvent.press(doneButton);
+
+      expect(screen.queryByText('Order failed')).not.toBeOnTheScreen();
+    });
+
+    it('displays preview error when order is not the unfilled type', () => {
+      mockIsOrderNotFilled = false;
+      mockPreviewError = 'Preview calculation error';
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const doneButton = screen.getByText('Done');
+      fireEvent.press(doneButton);
+
+      expect(screen.getByText('Preview calculation error')).toBeOnTheScreen();
+    });
+  });
+
+  describe('fee breakdown sheet visibility', () => {
+    beforeEach(() => {
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+    });
+
+    it('opens fee breakdown sheet when fee info button is pressed', () => {
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const doneButton = screen.getByText('Done');
+      fireEvent.press(doneButton);
+
+      const totalRows = screen.getAllByText('Total');
+      fireEvent.press(totalRows[0]);
+
+      expect(totalRows[0]).toBeOnTheScreen();
+    });
+  });
+
+  describe('minimum bet warning visibility', () => {
+    it('displays minimum bet warning when currentValue is between 0 and MINIMUM_BET', () => {
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const key0 = screen.getByText('0');
+      fireEvent.press(key0);
+      const dot = screen.getByText('.');
+      fireEvent.press(dot);
+      const key5 = screen.getByText('5');
+      fireEvent.press(key5);
+
+      expect(screen.getByText(/Minimum amount/)).toBeOnTheScreen();
+    });
+  });
+
+  describe('calculating state with user input', () => {
+    it('shows skeleton for to-win when calculating and user typed a value', () => {
+      mockIsCalculating = true;
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const $20Button = screen.getByText('$20');
+      fireEvent.press($20Button);
+
+      expect(screen.getByText('To win')).toBeOnTheScreen();
     });
   });
 });
