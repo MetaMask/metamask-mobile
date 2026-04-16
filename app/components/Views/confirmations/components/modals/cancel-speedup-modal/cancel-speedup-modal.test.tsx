@@ -325,6 +325,38 @@ describe('CancelSpeedupModal', () => {
     expect(mockOnConfirm).not.toHaveBeenCalled();
   });
 
+  it('calls updatePreviousGasParams with all gas fields for a legacy tx', async () => {
+    const { updatePreviousGasParams } = jest.requireMock(
+      '../../../../../../util/transaction-controller',
+    );
+
+    const legacyTx = {
+      id: 'legacy-tx',
+      chainId: '0x1',
+      txParams: {
+        gas: '0x5208',
+        gasPrice: '0xBA43B7400',
+      },
+    } as unknown as TransactionMeta;
+
+    renderWithProvider(<CancelSpeedupModal {...defaultProps} tx={legacyTx} />, {
+      state: baseState,
+    });
+
+    await waitFor(() => {
+      expect(updatePreviousGasParams).toHaveBeenCalled();
+    });
+
+    const callArgs = updatePreviousGasParams.mock.calls[0][1];
+    expect(Object.keys(callArgs)).toEqual(
+      expect.arrayContaining([
+        'maxFeePerGas',
+        'maxPriorityFeePerGas',
+        'gasLimit',
+      ]),
+    );
+  });
+
   it('calls onConfirm when isInitialGasReady is true', async () => {
     mockedUseCancelSpeedupGas.mockReturnValue({
       ...defaultGasValues,

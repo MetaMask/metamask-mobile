@@ -1,5 +1,9 @@
 import { providerErrors } from '@metamask/rpc-errors';
-import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
+import {
+  CANCEL_RATE,
+  SPEED_UP_RATE,
+  TransactionEnvelopeType,
+} from '@metamask/transaction-controller';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
@@ -865,7 +869,18 @@ class Transactions extends PureComponent {
 
   getCancelOrSpeedupValues() {
     const txParams = this.existingTx?.txParams;
-    const existingGasPriceHex = txParams?.gasPrice;
+    if (!txParams) return undefined;
+
+    if (txParams.type === TransactionEnvelopeType.feeMarket) {
+      const gasPriceHex = getMediumGasPriceHex(this.props.gasFeeEstimates);
+      if (!gasPriceHex) return undefined;
+      return {
+        maxFeePerGas: gasPriceHex,
+        maxPriorityFeePerGas: gasPriceHex,
+      };
+    }
+
+    const existingGasPriceHex = txParams.gasPrice;
     if (existingGasPriceHex !== undefined && existingGasPriceHex !== '0x0') {
       const existingGasPriceDecimal = parseInt(String(existingGasPriceHex), 16);
       if (existingGasPriceDecimal !== 0) {

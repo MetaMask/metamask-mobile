@@ -2,6 +2,7 @@ import { providerErrors } from '@metamask/rpc-errors';
 import {
   CANCEL_RATE,
   SPEED_UP_RATE,
+  TransactionEnvelopeType,
   type FeeMarketEIP1559Values,
   type GasPriceValue,
   type TransactionMeta,
@@ -140,7 +141,18 @@ export function useUnifiedTxActions() {
     | FeeMarketEIP1559Values
     | undefined => {
     const txParams = existingTx?.txParams;
-    const existingGasPriceHex = txParams?.gasPrice;
+    if (!txParams) return undefined;
+
+    if (txParams.type === TransactionEnvelopeType.feeMarket) {
+      const gasPriceHex = getGasPriceEstimate();
+      if (!gasPriceHex) return undefined;
+      return {
+        maxFeePerGas: gasPriceHex,
+        maxPriorityFeePerGas: gasPriceHex,
+      };
+    }
+
+    const existingGasPriceHex = txParams.gasPrice;
     if (existingGasPriceHex !== undefined && existingGasPriceHex !== '0x0') {
       const existingGasPriceDecimal = parseInt(String(existingGasPriceHex), 16);
       if (existingGasPriceDecimal !== 0) {

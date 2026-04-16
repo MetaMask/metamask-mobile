@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
 import {
-  isEIP1559Transaction,
   type FeeMarketEIP1559Values,
   type GasPriceValue,
   type TransactionMeta,
@@ -191,17 +190,11 @@ export function CancelSpeedupModal({
 
     const { txParams } = tx;
     if (txParams) {
-      if (isEIP1559Transaction(txParams)) {
-        updatePreviousGasParams(tx.id, {
-          maxFeePerGas: txParams.maxFeePerGas as string,
-          maxPriorityFeePerGas: txParams.maxPriorityFeePerGas as string,
-          gasLimit: (txParams.gasLimit ?? txParams.gas) as string,
-        });
-      } else {
-        updatePreviousGasParams(tx.id, {
-          gasLimit: (txParams.gasLimit ?? txParams.gas) as string,
-        });
-      }
+      updatePreviousGasParams(tx.id, {
+        maxFeePerGas: txParams.maxFeePerGas as string,
+        maxPriorityFeePerGas: txParams.maxPriorityFeePerGas as string,
+        gasLimit: (txParams.gasLimit ?? txParams.gas) as string,
+      });
     }
 
     const bumpResult = getBumpParamsForCancelSpeedup(

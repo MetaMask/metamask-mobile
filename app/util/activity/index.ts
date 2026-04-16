@@ -374,9 +374,9 @@ function isFilteredByMetaMaskPay(
 
   const requiredTransactionHashes = allTransactions
     ?.filter((t) => requiredTransactionIds?.includes(t.id) && t.hash)
-    .map((t) => t.hash?.toLowerCase());
+    ?.map((t) => t.hash?.toLowerCase());
 
-  if (requiredTransactionHashes?.includes(tx.hash?.toLowerCase())) {
+  if (requiredTransactionHashes?.includes(String(tx.hash).toLowerCase())) {
     return true;
   }
 

@@ -791,6 +791,30 @@ describe('Transaction Controller Util', () => {
     });
   });
 
+  describe('updateTransactionGasFees', () => {
+    it('passes gas values through to the controller without mutation', () => {
+      jest
+        .spyOn(Engine.context.TransactionController, 'getTransactions')
+        .mockReturnValue([EIP1559_TRANSACTION_META_MOCK]);
+
+      const gasValues = {
+        gasPrice: '0x1',
+        maxFeePerGas: '0x2',
+        maxPriorityFeePerGas: '0x3',
+      };
+
+      TransactionControllerUtils.updateTransactionGasFees(ID_MOCK, gasValues);
+
+      expect(
+        Engine.context.TransactionController.updateTransactionGasFees,
+      ).toHaveBeenCalledWith(ID_MOCK, {
+        gasPrice: '0x1',
+        maxFeePerGas: '0x2',
+        maxPriorityFeePerGas: '0x3',
+      });
+    });
+  });
+
   describe('updateSelectedGasFeeToken', () => {
     it('calls updateSelectedGasFeeToken with transactionId and selectedGasFeeToken', () => {
       const transactionId = '0xabcdef1234567890abcdef1234567890abcdef';
