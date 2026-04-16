@@ -1791,12 +1791,14 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
  */
 export function calcTokenAmount(value, decimals) {
   const divisor = new ScopedBigNumber(10).pow(decimals ?? 0);
-  return new ScopedBigNumber(String(value)).div(divisor);
+  const result = new ScopedBigNumber(String(value)).div(divisor);
+  return new BigNumber(result.toString());
 }
 
 export function calcTokenValue(value, decimals) {
   const multiplier = new ScopedBigNumber(10).pow(decimals ?? 0);
-  return new ScopedBigNumber(String(value)).times(multiplier);
+  const result = new ScopedBigNumber(String(value)).times(multiplier);
+  return new BigNumber(result.toString());
 }
 
 /**

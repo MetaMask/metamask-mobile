@@ -336,7 +336,7 @@ describe('Parity: safeNumberToBigInt vs safeNumberToBN', () => {
     'safeNumberToBigInt(%s) matches safeNumberToBN numerically',
     (value) => {
       const bigIntResult = safeNumberToBigInt(value).toString();
-      const bnResult = safeNumberToBN(value).toString(10);
+      const bnResult = safeNumberToBN(value).toString();
       expect(bigIntResult).toBe(bnResult);
     },
   );
@@ -372,7 +372,7 @@ describe('Parity: toHexadecimal', () => {
 });
 
 describe('Parity: isZeroValue', () => {
-  const CASES: (number | string | bigint)[] = [0, '0x0', 0x0, '0', 1, '0x1'];
+  const CASES: (number | string)[] = [0, '0x0', 0x0, '0', 1, '0x1'];
 
   it.each(CASES)('isZeroValue(%s) matches legacy', (value) => {
     expect(bigintIsZeroValue(value)).toBe(legacyIsZeroValue(value));
