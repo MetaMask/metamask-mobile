@@ -486,11 +486,18 @@ export const shortenAddress = (address: string): string => {
 const MAX_ONDO_TOKEN_NAME_LENGTH = 28;
 
 /**
- * Strips the "(Ondo Tokenized)" suffix from a token name and truncates to
+ * Strips Ondo branding from a token name and truncates to
  * MAX_ONDO_TOKEN_NAME_LENGTH characters with an ellipsis if needed.
+ *
+ * Handles two forms returned by Ondo APIs:
+ *  - Prefix (trending tokens):  "Ondo Tokenized Apple"  → "Apple"
+ *  - Suffix (portfolio):        "US Dollar (Ondo Tokenized)" → "US Dollar"
  */
 export function sanitizeOndoTokenName(raw: string): string {
-  const cleaned = raw.replace(/\(Ondo Tokenized\)/gi, '').trim();
+  const cleaned = raw
+    .replace(/^ondo\s+tokenized\s+/i, '')
+    .replace(/\s*\(ondo\s+tokenized\)/gi, '')
+    .trim();
   if (cleaned.length <= MAX_ONDO_TOKEN_NAME_LENGTH) return cleaned;
   return `${cleaned.slice(0, MAX_ONDO_TOKEN_NAME_LENGTH).trim()}...`;
 }

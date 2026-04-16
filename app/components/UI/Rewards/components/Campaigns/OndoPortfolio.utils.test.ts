@@ -114,10 +114,14 @@ describe('isPnlNonNegative', () => {
 });
 
 describe('sanitizeOndoTokenName', () => {
-  it('strips "(Ondo Tokenized)" and trims', () => {
+  it('strips "(Ondo Tokenized)" suffix and trims', () => {
     expect(sanitizeOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
       'US Dollar',
     );
+  });
+
+  it('strips "Ondo Tokenized " prefix (trending token API format)', () => {
+    expect(sanitizeOndoTokenName('Ondo Tokenized Apple')).toBe('Apple');
   });
 
   it('is case-insensitive', () => {

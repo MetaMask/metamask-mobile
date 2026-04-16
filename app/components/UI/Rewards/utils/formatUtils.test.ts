@@ -1606,8 +1606,16 @@ describe('formatUtils', () => {
       );
     });
 
-    it('is case-insensitive', () => {
+    it('strips "Ondo Tokenized " prefix (trending token API format)', () => {
+      expect(sanitizeOndoTokenName('Ondo Tokenized Apple')).toBe('Apple');
+    });
+
+    it('is case-insensitive for suffix form', () => {
       expect(sanitizeOndoTokenName('Token (ondo tokenized)')).toBe('Token');
+    });
+
+    it('is case-insensitive for prefix form', () => {
+      expect(sanitizeOndoTokenName('ONDO TOKENIZED Apple')).toBe('Apple');
     });
 
     it('truncates to 28 characters with ellipsis', () => {
@@ -1616,11 +1624,19 @@ describe('formatUtils', () => {
       );
     });
 
-    it('strips then truncates with ellipsis', () => {
+    it('strips suffix then truncates with ellipsis', () => {
       const long = 'Extremely Long Name Here That Keeps Going (Ondo Tokenized)';
       expect(sanitizeOndoTokenName(long)).toBe(
         'Extremely Long Name Here Tha...',
       );
+    });
+
+    it('strips prefix then truncates with ellipsis', () => {
+      expect(
+        sanitizeOndoTokenName(
+          'Ondo Tokenized Extremely Long Name That Exceeds',
+        ),
+      ).toBe('Extremely Long Name That Exc...');
     });
 
     it('does not add ellipsis when exactly 28 characters', () => {
