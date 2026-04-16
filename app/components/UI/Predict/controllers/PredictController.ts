@@ -1118,28 +1118,10 @@ export class PredictController extends BaseController<
       // Invalidate query cache (to avoid nonce issues)
       await this.invalidateQueryCache(provider.chainId);
 
-      console.warn(
-        '=== DEBUG === PredictController: calling provider.placeOrder',
-        {
-          side: preview.side,
-          marketId: analyticsProperties?.marketId,
-          maxAmountSpent: preview.maxAmountSpent,
-        },
-      );
-
       const result = await provider.placeOrder({
         ...params,
         signer,
       });
-
-      console.warn(
-        '=== DEBUG === PredictController: provider.placeOrder returned',
-        {
-          success: result.success,
-          error: !result.success ? result.error : undefined,
-          responseId: result.success ? result.response?.id : undefined,
-        },
-      );
 
       // Track Predict Action Completed or Failed
       const completionDuration = performance.now() - startTime;

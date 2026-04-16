@@ -155,13 +155,6 @@ export const usePredictBuyActions = ({
 
   const handlePlaceOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
-      console.warn(
-        '=== DEBUG === usePredictBuyActions: handlePlaceOrder called',
-        {
-          side: orderParams.preview?.side,
-          transactionId: orderParams.transactionId,
-        },
-      );
       try {
         const result = await placeOrder(orderParams);
         return { status: 'success', result };
