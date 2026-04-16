@@ -20,25 +20,22 @@ import {
 import { AreaChart } from 'react-native-svg-charts';
 
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { strings } from '../../../../../locales/i18n';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import Title from '../../../Base/Title';
-import { TOKEN_OVERVIEW_CHART_HEIGHT } from '../Price/tokenOverviewChart.constants';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  CHART_DATA_THRESHOLD,
+  TOKEN_OVERVIEW_CHART_HEIGHT,
+} from '../Price/tokenOverviewChart.constants';
 import styleSheet from './PriceChart.styles';
 import { placeholderData } from './utils';
 import PriceChartContext from './PriceChart.context';
+import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
+import { Box } from '@metamask/design-system-react-native';
 
 interface LineProps {
   line: string;
-  chartHasData: boolean;
+  lineStrokeActive: boolean;
 }
 
 interface TooltipProps {
@@ -68,6 +65,8 @@ const PriceChart = ({
   onChartIndexChange,
   chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
 }: PriceChartProps) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const emptyDisplayTrackedRef = useRef(false);
   const { setIsChartBeingTouched } = useContext(PriceChartContext);
 
   const [positionX, setPositionX] = useState(-1); // The currently selected X coordinate position
@@ -80,12 +79,7 @@ const PriceChart = ({
   }, [prices]);
 
   /** Align with AdvancedChart / TradingView line: success up, error down (not legacy primary blue). */
-  const chartColor =
-    priceDiff > 0
-      ? theme.colors.success.default
-      : priceDiff < 0
-        ? theme.colors.error.default
-        : theme.colors.text.alternative;
+  const chartColor = theme.colors.success.default;
 
   const apx = (size = 0) => {
     const width = Dimensions.get('window').width;
@@ -135,6 +129,24 @@ const PriceChart = ({
       yMax: medianPrice + halfRange + padding,
     };
   }, [priceList]);
+
+  const chartHasData = priceList.length >= CHART_DATA_THRESHOLD;
+  const hasInsufficientData =
+    priceList.length > 0 && priceList.length < CHART_DATA_THRESHOLD;
+
+  useEffect(() => {
+    if (chartHasData || isLoading) {
+      emptyDisplayTrackedRef.current = false;
+      return;
+    }
+    if (emptyDisplayTrackedRef.current) {
+      return;
+    }
+    emptyDisplayTrackedRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CHART_EMPTY_DISPLAYED).build(),
+    );
+  }, [chartHasData, isLoading, trackEvent, createEventBuilder]);
 
   const onActiveIndexChange = (index: number) => {
     setPositionX(index);
@@ -201,15 +213,15 @@ const PriceChart = ({
   );
 
   const Line = (props: Partial<LineProps>) => {
-    const { line, chartHasData } = props as LineProps;
+    const { line, lineStrokeActive } = props as LineProps;
     return (
       <Path
         key="line"
         d={line}
-        stroke={chartHasData ? chartColor : theme.colors.text.alternative}
+        stroke={lineStrokeActive ? chartColor : theme.colors.text.alternative}
         strokeWidth={apx(4)}
         fill="none"
-        opacity={chartHasData ? 1 : 0.85}
+        opacity={lineStrokeActive ? 1 : 0.85}
       />
     );
   };
@@ -254,50 +266,6 @@ const PriceChart = ({
     );
   };
 
-  const NoDataOverlay = () => {
-    const hasInsufficientData = priceList.length > 0 && priceList.length <= 1;
-
-    if (hasInsufficientData) {
-      // Show simplified message for 1 data point
-      return (
-        <View
-          style={styles.noDataOverlay}
-          testID="price-chart-insufficient-data"
-        >
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            style={styles.noDataOverlayText}
-          >
-            {strings('asset_overview.no_chart_data.insufficient_data')}
-          </Text>
-        </View>
-      );
-    }
-
-    // Show full overlay for no data
-    return (
-      <View style={styles.noDataOverlay} testID="price-chart-no-data">
-        <Text>
-          <Icon
-            name={IconName.Warning}
-            color={IconColor.Muted}
-            size={IconSize.Xl}
-            testID="price-chart-no-data-icon"
-          />
-        </Text>
-        <Title style={styles.noDataOverlayTitle}>
-          {strings('asset_overview.no_chart_data.title')}
-        </Title>
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          style={styles.noDataOverlayText}
-        >
-          {strings('asset_overview.no_chart_data.description')}
-        </Text>
-      </View>
-    );
-  };
-
   const Tooltip = ({ x, y, height: svgHeight }: Partial<TooltipProps>) => {
     if (positionX < 0) {
       return null;
@@ -330,7 +298,7 @@ const PriceChart = ({
 
   /** Last-point marker — TradingView-style line end dot. Requires right contentInset or SVG clips half the circle. */
   const EndDot = ({ x, y }: Partial<TooltipProps>) => {
-    if (priceList.length < 2 || x === undefined || y === undefined) {
+    if (!chartHasData || x === undefined || y === undefined) {
       return null;
     }
     const lastIdx = priceList.length - 1;
@@ -366,7 +334,7 @@ const PriceChart = ({
    * @see https://github.com/MetaMask/metamask-mobile/issues/20854
    */
   const LoadingOverlay = () => (
-    <View style={styles.noDataOverlay} testID="price-chart-loading">
+    <Box twClassName="justify-center items-center" testID="price-chart-loading">
       <SkeletonPlaceholder
         backgroundColor={theme.colors.background.section}
         highlightColor={theme.colors.background.subsection}
@@ -381,10 +349,8 @@ const PriceChart = ({
           borderRadius={6}
         ></SkeletonPlaceholder.Item>
       </SkeletonPlaceholder>
-    </View>
+    </Box>
   );
-
-  const chartHasData = priceList.length > 1;
 
   return (
     <View
@@ -401,8 +367,7 @@ const PriceChart = ({
         testID={chartHasData ? 'price-chart-area' : undefined}
         {...panResponder.current.panHandlers}
       >
-        {isLoading ? <LoadingOverlay /> : !chartHasData && <NoDataOverlay />}
-        {/* Chart is always rendered to avoid Android rendering bug; visible elements are conditionally hidden during loading. See: https://github.com/MetaMask/metamask-mobile/issues/20854 */}
+        {/* Chart is always rendered first (below overlays) to avoid Android rendering bug. See: https://github.com/MetaMask/metamask-mobile/issues/20854 */}
         <AreaChart
           style={styles.chartArea}
           data={chartHasData ? priceList : placeholderData}
@@ -415,11 +380,25 @@ const PriceChart = ({
           yMin={isStablecoin && chartHasData ? yMin : undefined}
           yMax={isStablecoin && chartHasData ? yMax : undefined}
         >
-          {!isLoading && <Line chartHasData={chartHasData} />}
+          {!isLoading && <Line lineStrokeActive={chartHasData} />}
           {chartHasData ? null : <NoDataGradient />}
-          {chartHasData ? <Tooltip /> : null}
-          {chartHasData ? <EndDot /> : null}
+          {chartHasData && !isLoading ? <Tooltip /> : null}
+          {chartHasData && !isLoading ? <EndDot /> : null}
         </AreaChart>
+        {isLoading && (
+          <View>
+            <LoadingOverlay />
+          </View>
+        )}
+        {!isLoading && !chartHasData && (
+          <View>
+            <NoDataOverlay
+              chartHeight={chartHeight}
+              chartPlaceholderFill={theme.colors.border.muted}
+              hasInsufficientData={hasInsufficientData}
+            />
+          </View>
+        )}
       </View>
     </View>
   );
