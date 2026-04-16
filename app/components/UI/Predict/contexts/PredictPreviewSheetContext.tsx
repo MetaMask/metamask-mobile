@@ -212,7 +212,12 @@ export const PredictPreviewSheetProvider: React.FC<
         <PredictPreviewSheet
           ref={buySheetRef}
           isFullscreen={false}
-          title={`${buyParams.outcomeToken?.title ?? ''} · ${buyParams.outcome?.groupItemTitle || buyParams.outcome?.title}`}
+          title={[
+            buyParams.outcomeToken?.title,
+            buyParams.outcome?.groupItemTitle || buyParams.outcome?.title,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
           image={buyParams.outcome?.image}
           subtitle={
             buyParams.outcomeToken

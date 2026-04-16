@@ -404,13 +404,12 @@ describe('FeaturedCarouselCard', () => {
         getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_BUY_BUTTON(0, 1)),
       );
 
-      expect(mockNavigateToBuyPreview).toHaveBeenCalledWith(
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
         expect.objectContaining({
           market,
           outcome: market.outcomes[0],
           outcomeToken: market.outcomes[0].tokens[1],
         }),
-        { throughRoot: true },
       );
     });
 
