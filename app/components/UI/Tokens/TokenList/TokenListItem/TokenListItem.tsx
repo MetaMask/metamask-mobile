@@ -241,6 +241,7 @@ export const TokenListItem = React.memo(
     const { claimRewards, claimableReward, hasPendingClaim } = merklClaimData;
 
     const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
+    const isMusdAsset = !!asset && isMusdToken(asset.address);
 
     const handleClaimBonus = useCallback(() => {
       trackEvent(
@@ -426,8 +427,6 @@ export const TokenListItem = React.memo(
     });
 
     const secondaryBalanceDisplay = useMemo(() => {
-      const isMusdAsset = !!asset && isMusdToken(asset.address);
-
       if (hasClaimableBonus && !isMusdAsset) {
         return {
           text: strings('earn.claim_bonus'),
@@ -498,7 +497,7 @@ export const TokenListItem = React.memo(
       earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
-      asset,
+      isMusdAsset,
       handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,
@@ -659,7 +658,7 @@ export const TokenListItem = React.memo(
                 <Spinner />
               ) : (
                 <>
-                  {!hasClaimableBonus && (
+                  {(!hasClaimableBonus || isMusdAsset) && (
                     <Text
                       variant={TextVariant.BodySm}
                       fontWeight={FontWeight.Medium}
