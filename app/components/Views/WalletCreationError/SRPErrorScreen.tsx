@@ -41,16 +41,21 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { Authentication } from '../../../core';
-import { WalletCreationErrorCtaType } from '../../../constants/onboarding';
+import {
+  AccountType,
+  WalletCreationErrorCtaType,
+} from '../../../constants/onboarding';
 
 interface SRPErrorScreenProps {
   error: Error;
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
+  accountType?: AccountType;
 }
 
 const SRPErrorScreen = ({
   error,
   saveOnboardingEvent,
+  accountType = AccountType.Metamask,
 }: SRPErrorScreenProps) => {
   const navigation = useNavigation();
   const tw = useTailwind();
@@ -72,14 +77,14 @@ const SRPErrorScreen = ({
         MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_VIEWED,
       )
         .addProperties({
-          account_type: 'srp',
+          account_type: accountType,
           error_type: error?.name || 'Unknown',
           error_message: error?.message || 'No message',
         })
         .build(),
       saveOnboardingEvent,
     );
-  }, [error, saveOnboardingEvent]);
+  }, [error, saveOnboardingEvent, accountType]);
 
   const errorReport = `View: ChoosePassword\nError: ${error?.name || 'Unknown'}\n${error?.message || 'No message'}`;
 
@@ -90,7 +95,7 @@ const SRPErrorScreen = ({
       )
         .addProperties({
           cta_type: WalletCreationErrorCtaType.Retry,
-          account_type: 'srp',
+          account_type: accountType,
         })
         .build(),
       saveOnboardingEvent,
@@ -100,7 +105,7 @@ const SRPErrorScreen = ({
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
     });
-  }, [navigation, saveOnboardingEvent]);
+  }, [navigation, saveOnboardingEvent, accountType]);
 
   const handleSendErrorReport = useCallback(() => {
     trackOnboarding(
@@ -109,7 +114,7 @@ const SRPErrorScreen = ({
       )
         .addProperties({
           cta_type: WalletCreationErrorCtaType.SendErrorReport,
-          account_type: 'srp',
+          account_type: accountType,
         })
         .build(),
       saveOnboardingEvent,
@@ -136,7 +141,7 @@ const SRPErrorScreen = ({
         },
       ],
     });
-  }, [navigation, error, saveOnboardingEvent]);
+  }, [navigation, error, saveOnboardingEvent, accountType]);
 
   const handleCopyError = useCallback(() => {
     Clipboard.setString(errorReport);
@@ -154,13 +159,13 @@ const SRPErrorScreen = ({
       )
         .addProperties({
           cta_type: WalletCreationErrorCtaType.ContactSupport,
-          account_type: 'srp',
+          account_type: accountType,
         })
         .build(),
       saveOnboardingEvent,
     );
     Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, [saveOnboardingEvent]);
+  }, [saveOnboardingEvent, accountType]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>

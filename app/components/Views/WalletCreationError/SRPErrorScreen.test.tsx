@@ -7,7 +7,10 @@ import SRPErrorScreen from './SRPErrorScreen';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { WalletCreationErrorCtaType } from '../../../constants/onboarding';
+import {
+  AccountType,
+  WalletCreationErrorCtaType,
+} from '../../../constants/onboarding';
 
 const mockTrackOnboarding = jest.fn();
 
@@ -77,9 +80,24 @@ describe('SRPErrorScreen', () => {
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({
-            account_type: 'srp',
+            account_type: AccountType.Metamask,
             error_type: 'WalletCreationError',
             error_message: 'Test wallet creation error',
+          }),
+        }),
+        expect.any(Function),
+      );
+    });
+
+    it('tracks screen viewed event with custom accountType when provided', () => {
+      renderWithProvider(
+        <SRPErrorScreen error={mockError} accountType={AccountType.Imported} />,
+      );
+
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            account_type: AccountType.Imported,
           }),
         }),
         expect.any(Function),
@@ -170,7 +188,7 @@ describe('SRPErrorScreen', () => {
         expect.objectContaining({
           properties: expect.objectContaining({
             cta_type: WalletCreationErrorCtaType.Retry,
-            account_type: 'srp',
+            account_type: AccountType.Metamask,
           }),
         }),
         expect.any(Function),
@@ -228,7 +246,7 @@ describe('SRPErrorScreen', () => {
         expect.objectContaining({
           properties: expect.objectContaining({
             cta_type: WalletCreationErrorCtaType.SendErrorReport,
-            account_type: 'srp',
+            account_type: AccountType.Metamask,
           }),
         }),
         expect.any(Function),
@@ -295,7 +313,7 @@ describe('SRPErrorScreen', () => {
         expect.objectContaining({
           properties: expect.objectContaining({
             cta_type: WalletCreationErrorCtaType.ContactSupport,
-            account_type: 'srp',
+            account_type: AccountType.Metamask,
           }),
         }),
         expect.any(Function),
