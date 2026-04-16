@@ -473,6 +473,7 @@ const PerpsTPSLView: React.FC = () => {
         contentContainerStyle={styles.content}
         onScrollBeginDrag={Keyboard.dismiss}
         showsVerticalScrollIndicator={false}
+        testID={PerpsTPSLViewSelectorsIDs.SCROLL_VIEW}
       >
         <View style={styles.scrollContent} testID="scroll-content">
           {/* Current price and liquidation price info */}
