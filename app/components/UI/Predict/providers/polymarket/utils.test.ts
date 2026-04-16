@@ -4,6 +4,7 @@ import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import Engine from '../../../../../core/Engine';
 import {
   PredictCategory,
+  PredictMarketGame,
   PredictOutcome,
   PredictPositionStatus,
   Side,
@@ -2265,6 +2266,267 @@ describe('polymarket utils', () => {
       // Team A should be sorted first based on event title
       expect(result.tokens[0].title).toBe('Team A +3.5');
       expect(result.tokens[1].title).toBe('Team B -3.5');
+    });
+
+    describe('with game (shortTitle generation)', () => {
+      const createGameData = (): PredictMarketGame => ({
+        id: 'game-1',
+        homeTeam: {
+          id: 'home-1',
+          name: 'Denver Broncos',
+          abbreviation: 'DEN',
+          color: TEST_HEX_COLORS.TEAM_DEN,
+          alias: 'Broncos',
+          logo: 'https://example.com/den.png',
+        },
+        awayTeam: {
+          id: 'away-1',
+          name: 'Seattle Seahawks',
+          abbreviation: 'SEA',
+          color: TEST_HEX_COLORS.TEAM_SEA,
+          alias: 'Seahawks',
+          logo: 'https://example.com/sea.png',
+        },
+        startTime: '2024-12-31T20:00:00Z',
+        status: 'scheduled' as const,
+        league: 'nfl' as const,
+        elapsed: null,
+        period: null,
+        score: null,
+      });
+
+      it('adds team abbreviation shortTitles for moneyline markets', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'moneyline',
+          outcomes: '["Denver Broncos", "Seattle Seahawks"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.6", "0.4"]',
+        });
+        const event = createTestEvent({
+          title: 'Denver Broncos vs. Seattle Seahawks',
+        });
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBe('DEN');
+        expect(result.tokens[1].shortTitle).toBe('SEA');
+      });
+
+      it('adds team abbreviation shortTitles using alias match', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'moneyline',
+          outcomes: '["Broncos", "Seahawks"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.6", "0.4"]',
+        });
+        const event = createTestEvent({ title: 'Broncos vs. Seahawks' });
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBe('DEN');
+        expect(result.tokens[1].shortTitle).toBe('SEA');
+      });
+
+      it('adds spread shortTitles with signed line values', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'spreads',
+          line: 3.5,
+          outcomes: '["Denver Broncos", "Seattle Seahawks"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.55", "0.45"]',
+        });
+        const event = createTestEvent({
+          title: 'Denver Broncos vs. Seattle Seahawks',
+        });
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBe('DEN -3.5');
+        expect(result.tokens[1].shortTitle).toBe('SEA +3.5');
+      });
+
+      it('returns abbreviation only for spread markets without line', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'spreads',
+          line: undefined as any,
+          outcomes: '["Denver Broncos", "Seattle Seahawks"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.5", "0.5"]',
+        });
+        const event = createTestEvent({
+          title: 'Denver Broncos vs. Seattle Seahawks',
+        });
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBe('DEN');
+        expect(result.tokens[1].shortTitle).toBe('SEA');
+      });
+
+      it('adds O/U shortTitles for over/under markets', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'totals',
+          groupItemTitle: 'O/U 45.5',
+          line: 45.5,
+          outcomes: '["Yes", "No"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.52", "0.48"]',
+        });
+        const event = createTestEvent();
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBe('O 45.5');
+        expect(result.tokens[1].shortTitle).toBe('U 45.5');
+      });
+
+      it('maps Yes/No to Over/Under titles for O/U markets', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'totals',
+          groupItemTitle: 'O/U 45.5',
+          outcomes: '["Yes", "No"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.52", "0.48"]',
+        });
+        const event = createTestEvent();
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].title).toBe('Over');
+        expect(result.tokens[1].title).toBe('Under');
+      });
+
+      it('omits shortTitle when outcome name does not match any team', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'moneyline',
+          outcomes: '["Unknown Team", "Seattle Seahawks"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.6", "0.4"]',
+        });
+        const event = createTestEvent({
+          title: 'Unknown Team vs. Seattle Seahawks',
+        });
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBeUndefined();
+        expect(result.tokens[1].shortTitle).toBe('SEA');
+      });
+
+      it('resolves negRisk moneyline shortTitles from groupItemTitle', () => {
+        const game = createGameData();
+        const market = createMarket({
+          negRisk: true,
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Denver Broncos',
+          outcomes: '["Yes", "No"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.6", "0.4"]',
+        });
+        const event = createTestEvent();
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBe('DEN');
+        expect(result.tokens[1].shortTitle).toBe('SEA');
+      });
+
+      it('skips negRisk shortTitles for draw markets', () => {
+        const game = createGameData();
+        const market = createMarket({
+          negRisk: true,
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Draw',
+          outcomes: '["Yes", "No"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.1", "0.9"]',
+        });
+        const event = createTestEvent();
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBeUndefined();
+        expect(result.tokens[1].shortTitle).toBeUndefined();
+      });
+
+      it('skips negRisk shortTitles when groupItemTitle does not match a team', () => {
+        const game = createGameData();
+        const market = createMarket({
+          negRisk: true,
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Some Other Option',
+          outcomes: '["Yes", "No"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.3", "0.7"]',
+        });
+        const event = createTestEvent();
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBeUndefined();
+        expect(result.tokens[1].shortTitle).toBeUndefined();
+      });
+
+      it('resolves negRisk shortTitles for away team groupItemTitle', () => {
+        const game = createGameData();
+        const market = createMarket({
+          negRisk: true,
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Seattle Seahawks',
+          outcomes: '["Yes", "No"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.4", "0.6"]',
+        });
+        const event = createTestEvent();
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBe('SEA');
+        expect(result.tokens[1].shortTitle).toBe('DEN');
+      });
+
+      it('skips shortTitle generation when game is not provided', () => {
+        const market = createMarket({
+          sportsMarketType: 'moneyline',
+          outcomes: '["Denver Broncos", "Seattle Seahawks"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.6", "0.4"]',
+        });
+        const event = createTestEvent({
+          title: 'Denver Broncos vs. Seattle Seahawks',
+        });
+
+        const result = parsePolymarketMarket(market, event);
+
+        expect(result.tokens[0].shortTitle).toBeUndefined();
+        expect(result.tokens[1].shortTitle).toBeUndefined();
+      });
+
+      it('omits shortTitle for spread outcome when name does not match', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'spreads',
+          line: 3.5,
+          outcomes: '["Unknown", "Seattle Seahawks"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.5", "0.5"]',
+        });
+        const event = createTestEvent({
+          title: 'Unknown vs. Seattle Seahawks',
+        });
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBeUndefined();
+        expect(result.tokens[1].shortTitle).toBe('SEA +3.5');
+      });
     });
   });
 

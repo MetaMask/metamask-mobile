@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
 import {
   PredictMarket,
@@ -22,11 +22,42 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
   }),
 }));
 
+const mockNavigateToBuyPreview = jest.fn();
 jest.mock('../../hooks/usePredictNavigation', () => ({
   usePredictNavigation: () => ({
-    navigateToBuyPreview: jest.fn(),
+    navigateToBuyPreview: mockNavigateToBuyPreview,
   }),
 }));
+
+jest.mock('./PredictGameOutcomesTab', () => {
+  const { View, Pressable, Text } = jest.requireActual('react-native');
+  const { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS: IDS } = jest.requireActual(
+    './PredictGameDetailsContent.testIds',
+  );
+  return {
+    __esModule: true,
+    default: (
+      props: Record<string, ((...args: unknown[]) => void) | undefined>,
+    ) => {
+      const mockBuyPress = props.onBuyPress;
+      return (
+        <View testID={IDS.OUTCOMES_CONTENT}>
+          <Pressable
+            testID="mock-buy-button"
+            onPress={() =>
+              mockBuyPress?.(
+                { id: 'outcome-1', title: 'Test' },
+                { id: 'token-1', title: 'Yes' },
+              )
+            }
+          >
+            <Text>Buy</Text>
+          </Pressable>
+        </View>
+      );
+    },
+  };
+});
 
 jest.mock('../PredictPicks/PredictPicks', () => {
   const { View } = jest.requireActual('react-native');
@@ -266,6 +297,33 @@ describe('PredictGameDetailsTabs', () => {
       expect(
         queryByText('predict.market_details.your_picks'),
       ).not.toBeOnTheScreen();
+    });
+
+    it('calls navigateToBuyPreview when buy button is pressed', () => {
+      const market = createMockMarket();
+
+      const { getByTestId } = render(
+        <PredictGameDetailsTabsContent
+          market={market}
+          activeTab={0}
+          tabs={[]}
+          enabled
+          showTabBar={false}
+          activePositions={[]}
+          claimablePositions={[]}
+          activeChipKey=""
+        />,
+      );
+
+      fireEvent.press(getByTestId('mock-buy-button'));
+
+      expect(mockNavigateToBuyPreview).toHaveBeenCalledWith(
+        expect.objectContaining({
+          market,
+          outcome: { id: 'outcome-1', title: 'Test' },
+          outcomeToken: { id: 'token-1', title: 'Yes' },
+        }),
+      );
     });
   });
 

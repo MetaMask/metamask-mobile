@@ -13,12 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import {
-  LayoutChangeEvent,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-} from 'react-native';
+import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -98,9 +93,12 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   const scrollRef = useRef<ScrollView>(null);
   const stickyHeaderY = useRef(0);
 
-  const handleStickyHeaderLayout = useCallback((e: LayoutChangeEvent) => {
-    stickyHeaderY.current = e.nativeEvent.layout.y;
-  }, []);
+  const handleStickyHeaderLayout = useCallback(
+    (e: { nativeEvent: { layout: { y: number } } }) => {
+      stickyHeaderY.current = e.nativeEvent.layout.y;
+    },
+    [],
+  );
 
   const onChipSelect = useCallback(
     (key: string) => {
