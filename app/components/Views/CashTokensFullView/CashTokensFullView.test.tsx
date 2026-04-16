@@ -1,12 +1,13 @@
 import React from 'react';
-import { InteractionManager } from 'react-native';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { InteractionManager, RefreshControl } from 'react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CashTokensFullView from './CashTokensFullView';
 import { CashTokensFullViewSkeletonTestIds } from './CashTokensFullViewSkeleton';
 import { useMerklBonusClaim } from '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { selectMoneyHubEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { AssetType } from '../confirmations/types/token';
+import { useCashTokensRefresh } from './useCashTokensRefresh';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
@@ -96,8 +97,13 @@ jest.mock(
   }),
 );
 
+jest.mock('./useCashTokensRefresh', () => ({
+  useCashTokensRefresh: jest.fn(),
+}));
+
 const mockUseMerklBonusClaim = jest.mocked(useMerklBonusClaim);
 const mockSelectMoneyHubEnabledFlag = jest.mocked(selectMoneyHubEnabledFlag);
+const mockUseCashTokensRefresh = jest.mocked(useCashTokensRefresh);
 jest.mock('../../../core/Engine', () => ({
   context: {},
 }));
@@ -116,9 +122,11 @@ jest.mock('../../UI/Tokens', () => {
   const MockTokens = ({
     isFullView,
     showOnlyMusd,
+    refreshControl,
   }: {
     isFullView?: boolean;
     showOnlyMusd?: boolean;
+    refreshControl?: React.ReactElement;
   }) =>
     createElement(
       View,
@@ -128,6 +136,7 @@ jest.mock('../../UI/Tokens', () => {
         { testID: 'tokens-props' },
         `isFullView=${isFullView} showOnlyMusd=${showOnlyMusd}`,
       ),
+      refreshControl,
     );
   return { __esModule: true, default: MockTokens };
 });
@@ -160,6 +169,10 @@ describe('CashTokensFullView', () => {
       isClaiming: false,
       error: null,
       claimRewards: mockClaimRewards,
+    });
+    mockUseCashTokensRefresh.mockReturnValue({
+      refreshing: false,
+      onRefresh: jest.fn().mockResolvedValue(undefined),
     });
   });
 
@@ -286,5 +299,31 @@ describe('CashTokensFullView', () => {
     expect(
       screen.getByTestId(CashTokensFullViewSkeletonTestIds.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('wires RefreshControl onRefresh to useCashTokensRefresh.onRefresh on the Tokens branch', async () => {
+    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: true });
+    const onRefresh = jest.fn().mockResolvedValue(undefined);
+    mockUseCashTokensRefresh.mockReturnValue({ refreshing: false, onRefresh });
+
+    const { UNSAFE_getByType } = renderWithProvider(<CashTokensFullView />);
+    const refreshControl = UNSAFE_getByType(RefreshControl);
+    await act(async () => {
+      refreshControl.props.onRefresh();
+    });
+    expect(onRefresh).toHaveBeenCalled();
+  });
+
+  it('wires RefreshControl onRefresh to useCashTokensRefresh.onRefresh on the empty-state branch', async () => {
+    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
+    const onRefresh = jest.fn().mockResolvedValue(undefined);
+    mockUseCashTokensRefresh.mockReturnValue({ refreshing: false, onRefresh });
+
+    const { UNSAFE_getByType } = renderWithProvider(<CashTokensFullView />);
+    const refreshControl = UNSAFE_getByType(RefreshControl);
+    await act(async () => {
+      refreshControl.props.onRefresh();
+    });
+    expect(onRefresh).toHaveBeenCalled();
   });
 });

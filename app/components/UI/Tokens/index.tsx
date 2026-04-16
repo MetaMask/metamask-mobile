@@ -57,6 +57,13 @@ interface TokensProps {
    */
   hasMusdBalanceOnAnyChain?: boolean;
   listFooterComponent?: React.ReactElement;
+  /**
+   * Optional external RefreshControl. When provided, overrides the internal
+   * refresh wiring so callers (e.g. the Money Hub) can compose their own
+   * refreshers. Applied to both the FlashList-backed list and the empty-state
+   * ScrollView.
+   */
+  refreshControl?: React.ReactElement;
 }
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
@@ -66,6 +73,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       showOnlyMusd = false,
       hasMusdBalanceOnAnyChain: hasMusdBalanceOnAnyChainProp,
       listFooterComponent,
+      refreshControl,
     },
     ref,
   ) => {
@@ -253,6 +261,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
               maxItems={maxItems}
               isFullView={isFullView}
               listFooterComponent={listFooterComponent}
+              refreshControl={refreshControl}
             />
           </>
         );
@@ -277,7 +286,11 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
       if (listFooterComponent) {
         return (
-          <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={tw`flex-1`}
+            showsVerticalScrollIndicator={false}
+            refreshControl={refreshControl}
+          >
             {emptyState}
             {listFooterComponent}
           </ScrollView>
@@ -300,6 +313,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       maxItems,
       isGeoEligible,
       listFooterComponent,
+      refreshControl,
     ]);
 
     return (

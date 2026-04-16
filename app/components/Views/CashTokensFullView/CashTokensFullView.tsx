@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { InteractionManager, Linking, ScrollView } from 'react-native';
+import {
+  InteractionManager,
+  Linking,
+  RefreshControl,
+  ScrollView,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -36,6 +41,7 @@ import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../Homepage/Sections/Cash/CashGe
 import CashGetMusdEmptyState from '../Homepage/Sections/Cash/CashGetMusdEmptyState';
 import SectionRow from '../Homepage/components/SectionRow/SectionRow';
 import CashTokensFullViewSkeleton from './CashTokensFullViewSkeleton';
+import { useCashTokensRefresh } from './useCashTokensRefresh';
 import { AssetType } from '../confirmations/types/token';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../../core/AppConstants';
@@ -64,6 +70,8 @@ const CashTokensFullView = () => {
     });
     return () => handle.cancel();
   }, []);
+
+  const { refreshing, onRefresh } = useCashTokensRefresh();
 
   const { initiateMaxConversion, initiateCustomConversion } =
     useMusdConversion();
@@ -173,9 +181,18 @@ const CashTokensFullView = () => {
           listFooterComponent={
             isMoneyHubEnabled ? bonusAndConvertSections : undefined
           }
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       ) : (
-        <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={tw`flex-1`}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
           <SectionRow>
             <CashGetMusdEmptyState isFullView />
           </SectionRow>
