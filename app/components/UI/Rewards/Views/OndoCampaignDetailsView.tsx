@@ -53,7 +53,6 @@ import {
   ONDO_GM_REQUIRED_QUALIFIED_DAYS,
   isCampaignIneligible,
 } from '../utils/ondoCampaignConstants';
-import useOndoGeoRestriction from '../hooks/useOndoGeoRestriction';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -196,8 +195,6 @@ const OndoCampaignDetailsView: React.FC = () => {
     () => isCampaignIneligible(campaign, leaderboardPosition?.qualified),
     [campaign, leaderboardPosition],
   );
-
-  const { isGeoRestricted } = useOndoGeoRestriction(campaign);
 
   const {
     showHowItWorksSection,
@@ -466,7 +463,6 @@ const OndoCampaignDetailsView: React.FC = () => {
             hasPositions={hasPositions}
             campaignId={campaignId}
             notEligibleForCampaign={notEligibleForCampaign}
-            isGeoRestricted={isGeoRestricted}
           />
         )}
 

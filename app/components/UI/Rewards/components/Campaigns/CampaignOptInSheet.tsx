@@ -18,7 +18,7 @@ import {
 import { type CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { useOptInToCampaign } from '../../hooks/useOptInToCampaign';
 import useRewardsToast from '../../hooks/useRewardsToast';
-import useOndoGeoRestriction from '../../hooks/useOndoGeoRestriction';
+import useCampaignGeoRestriction from '../../hooks/useCampaignGeoRestriction';
 import { strings } from '../../../../../../locales/i18n';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsInfoBanner from '../RewardsInfoBanner';
@@ -31,6 +31,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 interface CampaignOptInSheetProps {
   campaign: CampaignDto;
   onClose?: () => void;
+  customRestrictedCountries?: Set<string>;
 }
 
 /**
@@ -40,11 +41,15 @@ interface CampaignOptInSheetProps {
 const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   campaign,
   onClose,
+  customRestrictedCountries,
 }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { optInToCampaign, isOptingIn, optInError } = useOptInToCampaign();
   const { showToast, RewardsToastOptions } = useRewardsToast();
-  const { isGeoRestricted, isGeoLoading } = useOndoGeoRestriction(campaign);
+  const { isGeoRestricted, isGeoLoading } = useCampaignGeoRestriction(
+    campaign,
+    customRestrictedCountries,
+  );
 
   const handleOptIn = useCallback(async () => {
     try {

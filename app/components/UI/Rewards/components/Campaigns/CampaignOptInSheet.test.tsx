@@ -15,6 +15,7 @@ import {
   createMockEventBuilder,
 } from '../../../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { ONDO_RESTRICTED_COUNTRIES } from '../../../../../util/ondoGeoRestrictions';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -451,7 +452,10 @@ describe('CampaignOptInSheet', () => {
       mockGeolocation = 'US';
       setupSelectorMock();
       const { getByTestId } = render(
-        <CampaignOptInSheet campaign={createTestCampaign()} />,
+        <CampaignOptInSheet
+          campaign={createTestCampaign()}
+          customRestrictedCountries={ONDO_RESTRICTED_COUNTRIES}
+        />,
       );
       expect(
         getByTestId('campaign-opt-in-geo-restriction-banner'),
@@ -462,7 +466,10 @@ describe('CampaignOptInSheet', () => {
       mockGeolocation = 'US-CA';
       setupSelectorMock();
       const { getByTestId } = render(
-        <CampaignOptInSheet campaign={createTestCampaign()} />,
+        <CampaignOptInSheet
+          campaign={createTestCampaign()}
+          customRestrictedCountries={ONDO_RESTRICTED_COUNTRIES}
+        />,
       );
       expect(
         getByTestId('campaign-opt-in-geo-restriction-banner'),
@@ -473,7 +480,10 @@ describe('CampaignOptInSheet', () => {
       mockGeolocation = undefined;
       setupSelectorMock();
       const { getByTestId } = render(
-        <CampaignOptInSheet campaign={createTestCampaign()} />,
+        <CampaignOptInSheet
+          campaign={createTestCampaign()}
+          customRestrictedCountries={ONDO_RESTRICTED_COUNTRIES}
+        />,
       );
       expect(
         getByTestId('campaign-opt-in-geo-restriction-banner'),
@@ -485,7 +495,10 @@ describe('CampaignOptInSheet', () => {
       mockGeolocation = 'AU';
       setupSelectorMock();
       const { queryByTestId } = render(
-        <CampaignOptInSheet campaign={createTestCampaign()} />,
+        <CampaignOptInSheet
+          campaign={createTestCampaign()}
+          customRestrictedCountries={ONDO_RESTRICTED_COUNTRIES}
+        />,
       );
       expect(
         queryByTestId('campaign-opt-in-geo-restriction-banner'),
@@ -497,21 +510,9 @@ describe('CampaignOptInSheet', () => {
       mockGeolocation = 'US';
       setupSelectorMock();
       const { queryByTestId } = render(
-        <CampaignOptInSheet campaign={createTestCampaign()} />,
-      );
-      expect(
-        queryByTestId('campaign-opt-in-geo-restriction-banner'),
-      ).toBeNull();
-    });
-
-    it('ignores excludedRegions for ONDO_HOLDING (uses ONDO_RESTRICTED_COUNTRIES instead)', () => {
-      // AU is not in ONDO_RESTRICTED_COUNTRIES — banner should NOT show
-      // even if AU is in the campaign's excludedRegions
-      mockGeolocation = 'AU';
-      setupSelectorMock();
-      const { queryByTestId } = render(
         <CampaignOptInSheet
-          campaign={createTestCampaign({ excludedRegions: ['AU'] })}
+          campaign={createTestCampaign()}
+          customRestrictedCountries={ONDO_RESTRICTED_COUNTRIES}
         />,
       );
       expect(
@@ -519,11 +520,30 @@ describe('CampaignOptInSheet', () => {
       ).toBeNull();
     });
 
+    it('also checks excludedRegions when country is not in the custom list', () => {
+      // AU is not in ONDO_RESTRICTED_COUNTRIES but IS in excludedRegions —
+      // the hook checks both, so the banner should show.
+      mockGeolocation = 'AU';
+      setupSelectorMock();
+      const { getByTestId } = render(
+        <CampaignOptInSheet
+          campaign={createTestCampaign({ excludedRegions: ['AU'] })}
+          customRestrictedCountries={ONDO_RESTRICTED_COUNTRIES}
+        />,
+      );
+      expect(
+        getByTestId('campaign-opt-in-geo-restriction-banner'),
+      ).toBeDefined();
+    });
+
     it('disables the CTA when user is geo-restricted', () => {
       mockGeolocation = 'GB';
       setupSelectorMock();
       const { getByTestId } = render(
-        <CampaignOptInSheet campaign={createTestCampaign()} />,
+        <CampaignOptInSheet
+          campaign={createTestCampaign()}
+          customRestrictedCountries={ONDO_RESTRICTED_COUNTRIES}
+        />,
       );
       fireEvent.press(getByTestId('campaign-opt-in-cta'));
       expect(mockOptInToCampaign).not.toHaveBeenCalled();
@@ -534,7 +554,10 @@ describe('CampaignOptInSheet', () => {
       setupSelectorMock();
       mockOptInToCampaign.mockResolvedValue({ optedIn: true });
       const { getByTestId } = render(
-        <CampaignOptInSheet campaign={createTestCampaign()} />,
+        <CampaignOptInSheet
+          campaign={createTestCampaign()}
+          customRestrictedCountries={ONDO_RESTRICTED_COUNTRIES}
+        />,
       );
       fireEvent.press(getByTestId('campaign-opt-in-cta'));
       expect(mockOptInToCampaign).toHaveBeenCalledWith('campaign-1');

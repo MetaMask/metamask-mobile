@@ -27,10 +27,40 @@ jest.mock('./CampaignOptInSheet', () => {
   };
 });
 
+// Controlled per-test via mockIsGeoRestricted
+let mockIsGeoRestricted = false;
+jest.mock('../../hooks/useCampaignGeoRestriction', () => ({
+  __esModule: true,
+  default: () => ({
+    isGeoRestricted: mockIsGeoRestricted,
+    isGeoLoading: false,
+  }),
+}));
+
+const mockShowToast = jest.fn();
+const mockEntriesClosed = jest.fn(() => ({ variant: 'icon' }));
+
+jest.mock('../../hooks/useRewardsToast', () => ({
+  __esModule: true,
+  default: () => ({
+    showToast: mockShowToast,
+    RewardsToastOptions: {
+      success: jest.fn(),
+      error: jest.fn(),
+      entriesClosed: mockEntriesClosed,
+    },
+  }),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
       'rewards.campaign_details.join_campaign': 'Join Campaign',
+      'rewards.campaign_details.ondo.geo_locked_cta': 'Check eligibility',
+      'rewards.campaign_details.ondo.geo_locked_toast_title':
+        'Not available in your region',
+      'rewards.campaign_details.ondo.geo_locked_toast_description':
+        "This campaign isn't available where you are. Check back later for new campaigns.",
     };
     return map[key] ?? key;
   },
@@ -66,6 +96,7 @@ describe('CampaignOptInCta', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
     jest.clearAllMocks();
+    mockIsGeoRestricted = false;
   });
 
   afterEach(() => {
@@ -110,7 +141,7 @@ describe('CampaignOptInCta', () => {
     });
   });
 
-  describe('opt-in flow', () => {
+  describe('opt-in flow (not geo-restricted)', () => {
     it('renders the opt-in CTA button when active and not yet opted in', () => {
       const { getByTestId, getByText } = render(
         <CampaignOptInCta
@@ -134,6 +165,59 @@ describe('CampaignOptInCta', () => {
       expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
       fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
       expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
+    });
+  });
+
+  describe('geo-locked flow', () => {
+    beforeEach(() => {
+      mockIsGeoRestricted = true;
+    });
+
+    it('renders "Check eligibility" button with a lock icon when geo-restricted', () => {
+      const { getByTestId, getByText } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign()}
+          participantStatus={notOptedIn}
+        />,
+      );
+      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
+      expect(getByText('Check eligibility')).toBeOnTheScreen();
+    });
+
+    it('shows the geo-locked toast when the button is pressed', () => {
+      const { getByTestId } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign()}
+          participantStatus={notOptedIn}
+        />,
+      );
+      fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+      expect(mockEntriesClosed).toHaveBeenCalledWith(
+        'Not available in your region',
+        "This campaign isn't available where you are. Check back later for new campaigns.",
+      );
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not open the opt-in sheet when geo-restricted', () => {
+      const { getByTestId, queryByTestId } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign()}
+          participantStatus={notOptedIn}
+        />,
+      );
+      fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+      expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
+    });
+
+    it('returns null when already opted in, even if geo-restricted', () => {
+      const { queryByTestId } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign()}
+          participantStatus={optedIn}
+        />,
+      );
+      expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
   });
 });
