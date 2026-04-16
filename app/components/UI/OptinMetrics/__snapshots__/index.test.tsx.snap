@@ -195,7 +195,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                       style={
                         {
                           "backgroundColor": "#ffffff",
-                          "flex": 1,
+                          "flexBasis": "0%",
+                          "flexGrow": 1,
+                          "flexShrink": 1,
                           "paddingTop": 40,
                         }
                       }
@@ -207,9 +209,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                         scrollEventThrottle={150}
                         style={
                           {
-                            "backgroundColor": "#ffffff",
-                            "flex": 1,
-                            "paddingTop": 40,
+                            "flexBasis": "0%",
+                            "flexGrow": 1,
+                            "flexShrink": 1,
                           }
                         }
                         testID="meta-metrics-container"
@@ -217,35 +219,34 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                         <View>
                           <View
                             style={
-                              {
-                                "flex": 1,
-                                "flexDirection": "column",
-                                "marginHorizontal": 20,
-                                "paddingBottom": 80,
-                                "rowGap": 16,
-                              }
+                              [
+                                [Object],
+                                undefined,
+                              ]
                             }
                           >
                             <View
-                              style={[Object]}
+                              style={[Array]}
                             >
                               <Image … />
                             </View>
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={[Array]}
                               testID="optin-metrics-title-id"
                             >
                               Improve MetaMask
                             </Text>
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={[Array]}
                               testID="optin-metrics-privacy-policy-description"
                             >
                               We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
-                            <View>
+                            <View
+                              style={[Array]}
+                            >
                               <View … />
                               <View … />
                             </View>
@@ -254,20 +255,27 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                       </RCTScrollView>
                       <View
                         style={
-                          {
-                            "flexDirection": "row",
-                            "paddingHorizontal": 16,
-                            "paddingTop": 16,
-                          }
+                          [
+                            {
+                              "display": "flex",
+                              "flexDirection": "row",
+                              "paddingBottom": 8,
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "paddingTop": 8,
+                            },
+                            undefined,
+                          ]
                         }
                       >
                         <View
+                          accessibilityLabel="Continue"
                           accessibilityRole="button"
                           accessibilityState={
                             {
                               "busy": undefined,
                               "checked": undefined,
-                              "disabled": undefined,
+                              "disabled": false,
                               "expanded": undefined,
                               "selected": undefined,
                             }
@@ -283,7 +291,46 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                           accessible={true}
                           collapsable={false}
                           focusable={true}
+                          jestAnimatedProps={
+                            {
+                              "value": {},
+                            }
+                          }
+                          jestAnimatedStyle={
+                            {
+                              "value": {
+                                "transform": [Array],
+                              },
+                            }
+                          }
+                          jestInlineStyle={
+                            [
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#131416",
+                                "borderRadius": 12,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                              },
+                              {
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
+                            ]
+                          }
+                          nativeID="1"
+                          onBlur={[Function]}
                           onClick={[Function]}
+                          onFocus={[Function]}
                           onResponderGrant={[Function]}
                           onResponderMove={[Function]}
                           onResponderRelease={[Function]}
@@ -291,32 +338,43 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                           onResponderTerminationRequest={[Function]}
                           onStartShouldSetResponder={[Function]}
                           style={
-                            {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
-                              "backgroundColor": "#121314",
-                              "borderRadius": 12,
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "height": 48,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "overflow": "hidden",
-                              "paddingHorizontal": 16,
-                            }
+                            [
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#131416",
+                                "borderRadius": 12,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                              },
+                              {
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
+                              {
+                                "transform": [Array],
+                              },
+                            ]
                           }
                           testID="optin-metrics-continue-button-id"
                         >
                           <Text
                             accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
                             style={
-                              {
-                                "color": "#ffffff",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                [Object],
+                                undefined,
+                              ]
                             }
                           >
                             Continue
@@ -630,7 +688,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                       style={
                         {
                           "backgroundColor": "#ffffff",
-                          "flex": 1,
+                          "flexBasis": "0%",
+                          "flexGrow": 1,
+                          "flexShrink": 1,
                           "paddingTop": 40,
                         }
                       }
@@ -642,9 +702,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                         scrollEventThrottle={150}
                         style={
                           {
-                            "backgroundColor": "#ffffff",
-                            "flex": 1,
-                            "paddingTop": 40,
+                            "flexBasis": "0%",
+                            "flexGrow": 1,
+                            "flexShrink": 1,
                           }
                         }
                         testID="meta-metrics-container"
@@ -652,35 +712,34 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                         <View>
                           <View
                             style={
-                              {
-                                "flex": 1,
-                                "flexDirection": "column",
-                                "marginHorizontal": 20,
-                                "paddingBottom": 80,
-                                "rowGap": 16,
-                              }
+                              [
+                                [Object],
+                                undefined,
+                              ]
                             }
                           >
                             <View
-                              style={[Object]}
+                              style={[Array]}
                             >
                               <Image … />
                             </View>
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={[Array]}
                               testID="optin-metrics-title-id"
                             >
                               Improve MetaMask
                             </Text>
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={[Array]}
                               testID="optin-metrics-privacy-policy-description"
                             >
                               We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
-                            <View>
+                            <View
+                              style={[Array]}
+                            >
                               <View … />
                               <View … />
                             </View>
@@ -689,20 +748,27 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                       </RCTScrollView>
                       <View
                         style={
-                          {
-                            "flexDirection": "row",
-                            "paddingHorizontal": 16,
-                            "paddingTop": 16,
-                          }
+                          [
+                            {
+                              "display": "flex",
+                              "flexDirection": "row",
+                              "paddingBottom": 8,
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "paddingTop": 8,
+                            },
+                            undefined,
+                          ]
                         }
                       >
                         <View
+                          accessibilityLabel="Continue"
                           accessibilityRole="button"
                           accessibilityState={
                             {
                               "busy": undefined,
                               "checked": undefined,
-                              "disabled": undefined,
+                              "disabled": false,
                               "expanded": undefined,
                               "selected": undefined,
                             }
@@ -718,7 +784,46 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                           accessible={true}
                           collapsable={false}
                           focusable={true}
+                          jestAnimatedProps={
+                            {
+                              "value": {},
+                            }
+                          }
+                          jestAnimatedStyle={
+                            {
+                              "value": {
+                                "transform": [Array],
+                              },
+                            }
+                          }
+                          jestInlineStyle={
+                            [
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#131416",
+                                "borderRadius": 12,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                              },
+                              {
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
+                            ]
+                          }
+                          nativeID="2"
+                          onBlur={[Function]}
                           onClick={[Function]}
+                          onFocus={[Function]}
                           onResponderGrant={[Function]}
                           onResponderMove={[Function]}
                           onResponderRelease={[Function]}
@@ -726,32 +831,43 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                           onResponderTerminationRequest={[Function]}
                           onStartShouldSetResponder={[Function]}
                           style={
-                            {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
-                              "backgroundColor": "#121314",
-                              "borderRadius": 12,
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "height": 48,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "overflow": "hidden",
-                              "paddingHorizontal": 16,
-                            }
+                            [
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#131416",
+                                "borderRadius": 12,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                              },
+                              {
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
+                              {
+                                "transform": [Array],
+                              },
+                            ]
                           }
                           testID="optin-metrics-continue-button-id"
                         >
                           <Text
                             accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
                             style={
-                              {
-                                "color": "#ffffff",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                [Object],
+                                undefined,
+                              ]
                             }
                           >
                             Continue
@@ -1177,7 +1293,9 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                       style={
                         {
                           "backgroundColor": "#ffffff",
-                          "flex": 1,
+                          "flexBasis": "0%",
+                          "flexGrow": 1,
+                          "flexShrink": 1,
                           "paddingTop": 40,
                         }
                       }
@@ -1189,9 +1307,9 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                         scrollEventThrottle={150}
                         style={
                           {
-                            "backgroundColor": "#ffffff",
-                            "flex": 1,
-                            "paddingTop": 40,
+                            "flexBasis": "0%",
+                            "flexGrow": 1,
+                            "flexShrink": 1,
                           }
                         }
                         testID="meta-metrics-container"
@@ -1199,35 +1317,34 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                         <View>
                           <View
                             style={
-                              {
-                                "flex": 1,
-                                "flexDirection": "column",
-                                "marginHorizontal": 20,
-                                "paddingBottom": 80,
-                                "rowGap": 16,
-                              }
+                              [
+                                [Object],
+                                undefined,
+                              ]
                             }
                           >
                             <View
-                              style={[Object]}
+                              style={[Array]}
                             >
                               <Image … />
                             </View>
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={[Array]}
                               testID="optin-metrics-title-id"
                             >
                               Improve MetaMask
                             </Text>
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={[Array]}
                               testID="optin-metrics-privacy-policy-description"
                             >
                               We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
-                            <View>
+                            <View
+                              style={[Array]}
+                            >
                               <View … />
                               <View … />
                             </View>
@@ -1236,20 +1353,27 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                       </RCTScrollView>
                       <View
                         style={
-                          {
-                            "flexDirection": "row",
-                            "paddingHorizontal": 16,
-                            "paddingTop": 16,
-                          }
+                          [
+                            {
+                              "display": "flex",
+                              "flexDirection": "row",
+                              "paddingBottom": 8,
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "paddingTop": 8,
+                            },
+                            undefined,
+                          ]
                         }
                       >
                         <View
+                          accessibilityLabel="Continue"
                           accessibilityRole="button"
                           accessibilityState={
                             {
                               "busy": undefined,
                               "checked": undefined,
-                              "disabled": undefined,
+                              "disabled": false,
                               "expanded": undefined,
                               "selected": undefined,
                             }
@@ -1265,7 +1389,46 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                           accessible={true}
                           collapsable={false}
                           focusable={true}
+                          jestAnimatedProps={
+                            {
+                              "value": {},
+                            }
+                          }
+                          jestAnimatedStyle={
+                            {
+                              "value": {
+                                "transform": [Array],
+                              },
+                            }
+                          }
+                          jestInlineStyle={
+                            [
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#131416",
+                                "borderRadius": 12,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                              },
+                              {
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
+                            ]
+                          }
+                          nativeID="0"
+                          onBlur={[Function]}
                           onClick={[Function]}
+                          onFocus={[Function]}
                           onResponderGrant={[Function]}
                           onResponderMove={[Function]}
                           onResponderRelease={[Function]}
@@ -1273,32 +1436,43 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                           onResponderTerminationRequest={[Function]}
                           onStartShouldSetResponder={[Function]}
                           style={
-                            {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
-                              "backgroundColor": "#121314",
-                              "borderRadius": 12,
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "height": 48,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "overflow": "hidden",
-                              "paddingHorizontal": 16,
-                            }
+                            [
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#131416",
+                                "borderRadius": 12,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                              },
+                              {
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
+                              {
+                                "transform": [Array],
+                              },
+                            ]
                           }
                           testID="optin-metrics-continue-button-id"
                         >
                           <Text
                             accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
                             style={
-                              {
-                                "color": "#ffffff",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                [Object],
+                                undefined,
+                              ]
                             }
                           >
                             Continue

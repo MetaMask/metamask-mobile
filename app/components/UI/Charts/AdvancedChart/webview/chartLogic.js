@@ -38,6 +38,10 @@ window.ohlcvPagination = {
 };
 /** Bumped on each `SET_OHLCV_DATA` so in-flight fetches from a previous series are discarded. */
 window.ohlcvGeneration = 0;
+/** Visible-range start (ms) from RN; used to clip bars on first load so the chart auto-fits correctly. */
+window.visibleFromMs = null;
+/** Visible-range end (ms) from RN; anchors the timeframe `to` to the last candle instead of Date.now(). */
+window.visibleToMs = null;
 // Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
 window.currentChartType = 2;
 window.lineLastPriceShapeId = null;
@@ -423,6 +427,10 @@ function handleSetOHLCVData(payload) {
 
   var visibleFromMs =
     payload.visibleFromMs != null ? payload.visibleFromMs : null;
+  window.visibleFromMs = visibleFromMs;
+
+  var visibleToMs = payload.visibleToMs != null ? payload.visibleToMs : null;
+  window.visibleToMs = visibleToMs;
 
   var newResolution = detectResolution(window.ohlcvData);
 
@@ -441,10 +449,13 @@ function handleSetOHLCVData(payload) {
       var toSec = lastBar
         ? Math.ceil(lastBar.time / 1000)
         : Math.ceil(Date.now() / 1000);
+      // Pad `to` forward by 2 bar durations so the end dot clears the price axis.
+      // 1 bar was not enough for the 16px dot marker to fully clear the right edge.
+      var barPadSec = getApproxBarDurationSec() * 2;
       try {
         chart.setVisibleRange(
-          { from: fromSec, to: toSec },
-          { percentRightMargin: 5 },
+          { from: fromSec, to: toSec + barPadSec },
+          { percentRightMargin: 0 },
         );
       } catch (e) {
         // setVisibleRange can fail if chart is mid-teardown
@@ -743,7 +754,6 @@ function scheduleLineChartLayoutReflow() {
     if (!window.chartWidget || window.currentChartType !== 2) return;
     try {
       syncMainSeriesToRightScale();
-      syncTimeScaleRightMargin(true);
     } catch (e) {}
   }
   try {
@@ -789,7 +799,6 @@ function applyChartScaleLayout(type) {
 
   removeLineChartMarkupStyle();
   syncMainSeriesToRightScale();
-  syncTimeScaleRightMargin(isLineChart);
   if (isLineChart) {
     scheduleLineChartLayoutReflow();
   }
@@ -1408,27 +1417,6 @@ function subscribeLastCloseLabelUpdates() {
           scheduleLineEndDotAfterVisibleRangeChange();
         }
       });
-  } catch (e) {}
-}
-
-/**
- * Line chart: small right gap so the end dot isn’t flush/clipped against the pane edge.
- * Candle: small offset so createLastPriceLine isn’t clipped at the Y-axis.
- * https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.ITimeScaleApi/
- */
-var LINE_CHART_RIGHT_OFFSET_BARS = 1;
-var CANDLE_CHART_RIGHT_GAP_BARS = 1;
-
-function syncTimeScaleRightMargin(isLineChart) {
-  if (!window.chartWidget) return;
-  try {
-    var ts = window.chartWidget.activeChart().getTimeScale();
-    ts.usePercentageRightOffset().setValue(false);
-    var gap = isLineChart
-      ? LINE_CHART_RIGHT_OFFSET_BARS
-      : CANDLE_CHART_RIGHT_GAP_BARS;
-    ts.defaultRightOffset().setValue(gap);
-    ts.setRightOffset(gap);
   } catch (e) {}
 }
 
@@ -3019,6 +3007,7 @@ var OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
  */
 function fetchOlderBars(pending) {
   var pag = window.ohlcvPagination;
+
   if (!pag.nextCursor || !pag.hasMore || !pag.assetId) {
     pending.onResult([], { noData: true });
     if (window.__mmLayoutSettlePending) {
@@ -3028,15 +3017,15 @@ function fetchOlderBars(pending) {
   }
 
   var gen = window.ohlcvGeneration;
-  var url =
-    OHLCV_BASE_URL +
-    '/' +
-    encodeURIComponent(pag.assetId) +
-    '?nextCursor=' +
-    encodeURIComponent(pag.nextCursor);
+  // Build URL using the same approach as RN: construct then add query params
+  // AssetId contains "/" which should be preserved in the path
+  var url = OHLCV_BASE_URL + '/' + pag.assetId;
+  var queryParams = [];
+  queryParams.push('nextCursor=' + encodeURIComponent(pag.nextCursor));
   if (pag.vsCurrency) {
-    url += '&vsCurrency=' + encodeURIComponent(pag.vsCurrency);
+    queryParams.push('vsCurrency=' + encodeURIComponent(pag.vsCurrency));
   }
+  url = url + '?' + queryParams.join('&');
 
   fetch(url)
     .then(function (response) {
@@ -3299,9 +3288,25 @@ function initChart() {
       disabledFeatures.push('context_menus');
     }
 
+    var visibleToSec = Math.ceil(
+      (window.visibleToMs != null ? window.visibleToMs : Date.now()) / 1000,
+    );
+    // Pad `to` by 2 bar durations so the end dot clears the price axis.
+    // 1 bar was not enough for the 16px dot marker to fully clear the right edge.
+    var initBarPadSec = getApproxBarDurationSec() * 2;
+    var tfOption =
+      window.visibleFromMs != null
+        ? {
+            type: 'time-range',
+            from: Math.floor(window.visibleFromMs / 1000),
+            to: visibleToSec + initBarPadSec,
+          }
+        : undefined;
+
     window.chartWidget = new TradingView.widget({
       symbol: window.currentSymbol,
       interval: window.currentResolution || '5',
+      timeframe: tfOption,
       container: 'tv_chart_container',
       datafeed: customDatafeed,
       library_path: window.CONFIG.libraryUrl,
@@ -3418,7 +3423,6 @@ function initChart() {
                 applyChartContainerOverflowUnclip();
                 scheduleLastCloseLabelUpdate();
                 if (window.currentChartType === 2) {
-                  syncTimeScaleRightMargin(true);
                   try {
                     requestAnimationFrame(refreshLineChartOverlays);
                   } catch (rafDot) {}

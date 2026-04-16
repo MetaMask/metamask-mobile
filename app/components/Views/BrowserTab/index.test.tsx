@@ -1,10 +1,11 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import AppConstants from '../../../core/AppConstants';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockInjectJavaScript = jest.fn();
 
@@ -161,6 +162,24 @@ describe('BrowserTab', () => {
 
       const backButton = screen.getByTestId('browser-tab-close-button');
       expect(backButton).toBeTruthy();
+    });
+
+    it('goes back when close button is pressed and opened from benefit', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} fromBenefit />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      fireEvent.press(screen.getByTestId('browser-tab-close-button'));
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.TRENDING_VIEW,
+        expect.anything(),
+      );
     });
   });
 

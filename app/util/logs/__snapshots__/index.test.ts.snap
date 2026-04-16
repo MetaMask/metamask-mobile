@@ -72,6 +72,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "CardController": {
         "activeProviderId": "baanx",
+        "cardHomeDataStatus": "idle",
         "cardholderAccounts": [],
         "isAuthenticated": false,
         "providerData": {},
@@ -144,6 +145,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "pooled_staking": {
           "isEligible": false,
         },
+        "tron_staking": null,
       },
       "GasFeeController": {
         "estimatedGasFeeTimeBounds": {},
@@ -686,6 +688,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "campaigns": {},
         "offDeviceSubscriptionAccounts": {},
         "ondoCampaignActivity": {},
+        "ondoCampaignDeposits": {},
         "ondoCampaignLeaderboard": {},
         "ondoCampaignLeaderboardPositions": {},
         "ondoCampaignPortfolio": {},
@@ -785,6 +788,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "databaseUnavailable": false,
         "lastUpdated": null,
         "signature": null,
+      },
+      "SocialController": {
+        "followingAddresses": [],
+        "leaderboardEntries": [],
       },
       "SubjectMetadataController": {
         "subjectMetadata": {},
@@ -897,6 +904,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "CardController": {
         "activeProviderId": "baanx",
+        "cardHomeDataStatus": "idle",
         "cardholderAccounts": [],
         "isAuthenticated": false,
         "providerData": {},
@@ -969,6 +977,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "pooled_staking": {
           "isEligible": false,
         },
+        "tron_staking": null,
       },
       "GasFeeController": {
         "estimatedGasFeeTimeBounds": {},
@@ -1511,6 +1520,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "campaigns": {},
         "offDeviceSubscriptionAccounts": {},
         "ondoCampaignActivity": {},
+        "ondoCampaignDeposits": {},
         "ondoCampaignLeaderboard": {},
         "ondoCampaignLeaderboardPositions": {},
         "ondoCampaignPortfolio": {},
@@ -1593,6 +1603,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "databaseUnavailable": false,
         "lastUpdated": null,
         "signature": null,
+      },
+      "SocialController": {
+        "followingAddresses": [],
+        "leaderboardEntries": [],
       },
       "SubjectMetadataController": {
         "subjectMetadata": {},

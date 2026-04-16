@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -14,6 +14,9 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import useRewardsToast from '../../hooks/useRewardsToast';
 import CampaignOptInCta, { CAMPAIGN_CTA_TEST_IDS } from './CampaignOptInCta';
+import OndoNotEligibleSheet from './OndoNotEligibleSheet';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface OndoCampaignCTAProps {
   campaign: CampaignDto;
@@ -23,6 +26,7 @@ interface OndoCampaignCTAProps {
   >;
   hasPositions: boolean;
   campaignId: string;
+  notEligibleForCampaign?: boolean;
 }
 
 /**
@@ -38,23 +42,63 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
   participantStatus,
   hasPositions,
   campaignId,
+  notEligibleForCampaign = false,
 }) => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { showToast, RewardsToastOptions } = useRewardsToast();
+  const [isNotEligibleSheetOpen, setIsNotEligibleSheetOpen] = useState(false);
+  const pendingActionRef = useRef<(() => void) | null>(null);
 
-  const onOpenPosition = useCallback(() => {
+  const navigateToOpenPosition = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: 'ondo_campaign_open_position',
+        })
+        .build(),
+    );
     navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR, {
       mode: 'open_position',
       campaignId,
     });
-  }, [navigation, campaignId]);
+  }, [navigation, campaignId, trackEvent, createEventBuilder]);
 
-  const onSwapAssets = useCallback(() => {
+  const navigateToSwapAssets = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: 'ondo_campaign_swap_assets',
+        })
+        .build(),
+    );
     navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR, {
       mode: 'swap',
       campaignId,
     });
-  }, [navigation, campaignId]);
+  }, [navigation, campaignId, trackEvent, createEventBuilder]);
+
+  const guardedNavigate = useCallback(
+    (navigate: () => void) => {
+      if (notEligibleForCampaign) {
+        pendingActionRef.current = navigate;
+        setIsNotEligibleSheetOpen(true);
+        return;
+      }
+      navigate();
+    },
+    [notEligibleForCampaign],
+  );
+
+  const onOpenPosition = useCallback(
+    () => guardedNavigate(navigateToOpenPosition),
+    [guardedNavigate, navigateToOpenPosition],
+  );
+
+  const onSwapAssets = useCallback(
+    () => guardedNavigate(navigateToSwapAssets),
+    [guardedNavigate, navigateToSwapAssets],
+  );
 
   const campaignStatus = getCampaignStatus(campaign);
   const isLoading = participantStatus.isLoading;
@@ -96,42 +140,64 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
   }
 
   if (!isOptedIn) {
+    if (notEligibleForCampaign) {
+      return (
+        <Box twClassName="px-4 pt-2">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleEntriesClosedPress}
+            testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
+          >
+            {strings('rewards.campaign_details.join_campaign')}
+          </Button>
+        </Box>
+      );
+    }
     return (
       <CampaignOptInCta
         campaign={campaign}
         participantStatus={participantStatus}
+        onJoinPress={() =>
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+              .addProperties({
+                button_type: 'ondo_campaign_join',
+              })
+              .build(),
+          )
+        }
       />
     );
   }
 
-  if (hasPositions) {
-    return (
-      <Box twClassName="px-4 pt-2">
+  return (
+    <>
+      <Box twClassName="p-4 mb-2">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          onPress={onSwapAssets}
+          onPress={hasPositions ? onSwapAssets : onOpenPosition}
           testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
         >
-          {strings('rewards.campaign_details.ondo.open_position')}
+          {hasPositions
+            ? strings('rewards.campaign_details.swap_ondo_assets')
+            : strings('rewards.campaign_details.open_position')}
         </Button>
       </Box>
-    );
-  }
-
-  return (
-    <Box twClassName="px-4 pt-2">
-      <Button
-        variant={ButtonVariant.Primary}
-        size={ButtonSize.Lg}
-        isFullWidth
-        onPress={onOpenPosition}
-        testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
-      >
-        {strings('rewards.campaign_details.ondo.open_position')}
-      </Button>
-    </Box>
+      {isNotEligibleSheetOpen && (
+        <OndoNotEligibleSheet
+          onClose={() => setIsNotEligibleSheetOpen(false)}
+          onConfirm={() => {
+            setIsNotEligibleSheetOpen(false);
+            pendingActionRef.current?.();
+            pendingActionRef.current = null;
+          }}
+        />
+      )}
+    </>
   );
 };
 

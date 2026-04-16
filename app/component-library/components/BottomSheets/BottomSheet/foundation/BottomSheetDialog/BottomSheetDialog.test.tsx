@@ -95,6 +95,57 @@ describe('BottomSheetDialog', () => {
       expect(onCloseMock).toHaveBeenCalled();
     });
   });
+  it('calls onClose only once when onCloseDialog is invoked twice rapidly', () => {
+    const onCloseMock = jest.fn();
+    const TestComponent = () => {
+      const ref = useRef<BottomSheetDialogRef>(null);
+
+      useEffect(() => {
+        if (ref.current) {
+          act(() => {
+            ref.current?.onCloseDialog();
+            ref.current?.onCloseDialog();
+          });
+        }
+      }, []);
+
+      return (
+        <BottomSheetDialog ref={ref} onClose={onCloseMock}>
+          <Text>Test Child</Text>
+        </BottomSheetDialog>
+      );
+    };
+
+    render(<TestComponent />);
+    expect(onCloseMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows closing again after re-opening', () => {
+    const onCloseMock = jest.fn();
+    const onOpenMock = jest.fn();
+    const TestComponent = () => {
+      const ref = useRef<BottomSheetDialogRef>(null);
+
+      useEffect(() => {
+        if (ref.current) {
+          act(() => {
+            ref.current?.onCloseDialog();
+            ref.current?.onOpenDialog();
+            ref.current?.onCloseDialog();
+          });
+        }
+      }, []);
+
+      return (
+        <BottomSheetDialog ref={ref} onClose={onCloseMock} onOpen={onOpenMock}>
+          <Text>Test Child</Text>
+        </BottomSheetDialog>
+      );
+    };
+
+    render(<TestComponent />);
+    expect(onCloseMock).toHaveBeenCalledTimes(2);
+  });
   //   Note: Add Gesture tests when react-native-gesture-handler gets updated
 
   describe('panGestureHandlerProps', () => {

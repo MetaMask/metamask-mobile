@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import { BaanxProvider } from './BaanxProvider';
 import { CardApiError, type BaanxService } from '../services/BaanxService';
 import {
@@ -7,6 +8,8 @@ import {
   CardProviderErrorCode,
   type CardAuthTokens,
 } from '../provider-types';
+import Logger from '../../../../../util/Logger';
+import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 
 jest.mock('../../../../../util/Logger');
 jest.mock('../../../../../components/UI/Card/util/pkceHelpers', () => ({
@@ -187,11 +190,13 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddress', AUTH_TOKENS);
 
-      expect(result.primaryAsset).not.toBeNull();
-      expect(result.primaryAsset?.symbol).toBe('USDC');
-      expect(result.primaryAsset?.status).toBe(FundingAssetStatus.Active);
-      expect(result.primaryAsset?.allowance).toBe('999999999999');
-      expect(result.assets).toHaveLength(1);
+      expect(result.primaryFundingAsset).not.toBeNull();
+      expect(result.primaryFundingAsset?.symbol).toBe('USDC');
+      expect(result.primaryFundingAsset?.status).toBe(
+        FundingAssetStatus.Active,
+      );
+      expect(result.primaryFundingAsset?.spendingCap).toBe('999999999999');
+      expect(result.fundingAssets).toHaveLength(1);
       expect(result.card?.id).toBe('card-1');
       expect(result.card?.status).toBe(CardStatus.ACTIVE);
       expect(result.account?.verificationStatus).toBe('VERIFIED');
@@ -203,8 +208,8 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddress', AUTH_TOKENS);
 
-      expect(result.primaryAsset).toBeNull();
-      expect(result.assets).toHaveLength(0);
+      expect(result.primaryFundingAsset).toBeNull();
+      expect(result.fundingAssets).toHaveLength(0);
       expect(result.card).toBeNull();
     });
 
@@ -237,6 +242,156 @@ describe('BaanxProvider', () => {
       expect(result.alerts).toContainEqual(
         expect.objectContaining({ type: 'kyc_pending' }),
       );
+    });
+
+    it('builds kyc_pending alert for UNVERIFIED verification', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'card-1',
+            status: CardStatus.ACTIVE,
+            type: CardType.VIRTUAL,
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'UNVERIFIED',
+          });
+        }
+        return Promise.resolve([]);
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.alerts).toContainEqual(
+        expect.objectContaining({ type: 'kyc_pending' }),
+      );
+    });
+
+    it('builds card_provisioning alert when verified with no card but has assets', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({
+            networks: [
+              { network: 'linea', chainId: '59144', tokens: { USDC: {} } },
+            ],
+          });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.reject(new Error('no card'));
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([
+            {
+              id: 1,
+              walletAddress: '0xwallet',
+              currency: 'USDC',
+              balance: '100',
+              allowance: '500',
+              priority: 1,
+              tokenDetails: {
+                address: '0x1',
+                decimals: 6,
+                symbol: 'USDC',
+                name: 'USDC',
+              },
+              caipChainId: 'eip155:59144',
+              network: 'linea',
+            },
+          ]);
+        }
+        if (path === '/v1/wallet/external/priority') {
+          return Promise.resolve([
+            {
+              id: 1,
+              address: '0xwallet',
+              currency: 'USDC',
+              network: 'linea',
+              priority: 1,
+            },
+          ]);
+        }
+        return Promise.resolve({});
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.card).toBeNull();
+      expect(result.alerts).toContainEqual(
+        expect.objectContaining({ type: 'card_provisioning' }),
+      );
+      expect(result.actions).toHaveLength(0);
+    });
+
+    it('returns no actions when verified with no card but has assets (provisioning)', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({
+            networks: [
+              { network: 'linea', chainId: '59144', tokens: { USDC: {} } },
+            ],
+          });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.reject(new Error('no card'));
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([
+            {
+              id: 1,
+              walletAddress: '0xwallet',
+              currency: 'USDC',
+              balance: '100',
+              allowance: '500',
+              priority: 1,
+              tokenDetails: {
+                address: '0x1',
+                decimals: 6,
+                symbol: 'USDC',
+                name: 'USDC',
+              },
+              caipChainId: 'eip155:59144',
+              network: 'linea',
+            },
+          ]);
+        }
+        if (path === '/v1/wallet/external/priority') {
+          return Promise.resolve([
+            {
+              id: 1,
+              address: '0xwallet',
+              currency: 'USDC',
+              network: 'linea',
+              priority: 1,
+            },
+          ]);
+        }
+        return Promise.resolve({});
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.card).toBeNull();
+      expect(result.actions).toHaveLength(0);
     });
 
     it('builds enable_card action when verified but funding inactive', async () => {
@@ -296,6 +451,39 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
+      expect(result.actions).toContainEqual(
+        expect.objectContaining({ type: 'enable_card' }),
+      );
+    });
+
+    it('returns enable_card when verified with card but no assets', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'card-1',
+            status: CardStatus.ACTIVE,
+            type: CardType.VIRTUAL,
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        return Promise.resolve([]);
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.card).not.toBeNull();
+      expect(result.primaryFundingAsset).toBeNull();
       expect(result.actions).toContainEqual(
         expect.objectContaining({ type: 'enable_card' }),
       );
@@ -389,11 +577,402 @@ describe('BaanxProvider', () => {
     it('returns empty home data with add_funds action', async () => {
       const result = await provider.getOnChainAssets('0xaddr');
 
-      expect(result.primaryAsset).toBeNull();
-      expect(result.assets).toHaveLength(0);
+      expect(result.primaryFundingAsset).toBeNull();
+      expect(result.fundingAssets).toHaveLength(0);
       expect(result.actions).toContainEqual(
         expect.objectContaining({ type: 'add_funds', enabled: true }),
       );
+    });
+  });
+
+  describe('getOnChainAssets — #fetchOnChainAllowances, #pickOnChainPrimaryAsset, #findLastApprovedToken', () => {
+    const LINEA_CAIP = 'eip155:59144' as const;
+    const ownerAddr = '0x1234567890123456789012345678901234567890';
+    const tokenA = ethers.utils.getAddress(
+      '0x1111111111111111111111111111111111111111',
+    );
+    const tokenB = ethers.utils.getAddress(
+      '0x2222222222222222222222222222222222222222',
+    );
+    const foxGlobal = ethers.utils.getAddress(
+      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    );
+    const foxUs = ethers.utils.getAddress(
+      '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    );
+    const scannerAddr = ethers.utils.getAddress(
+      '0xcccccccccccccccccccccccccccccccccccccccc',
+    );
+
+    const cardFeatureFlag = {
+      chains: {
+        [LINEA_CAIP]: {
+          tokens: [
+            {
+              address: tokenA,
+              symbol: 'USDC',
+              name: 'USDC',
+              decimals: 6,
+              enabled: true,
+            },
+            {
+              address: tokenB,
+              symbol: 'USDT',
+              name: 'USDT',
+              decimals: 6,
+              enabled: true,
+            },
+          ],
+          foxConnectAddresses: { global: foxGlobal, us: foxUs },
+          balanceScannerAddress: scannerAddr,
+        },
+      },
+    } as unknown as CardFeatureFlag;
+
+    const limitedTuple = (human: string) => {
+      const bn = ethers.utils.parseUnits(human, 6);
+      const hex = bn.toHexString();
+      return [
+        [true, hex],
+        [true, hex],
+      ] as [boolean, string][];
+    };
+
+    let spendersMock: jest.Mock;
+    let getLogsMock: jest.Mock;
+    let providerSpy: jest.SpyInstance;
+    let contractSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      spendersMock = jest.fn();
+      getLogsMock = jest.fn();
+      providerSpy = jest
+        .spyOn(ethers.providers, 'JsonRpcProvider')
+        .mockImplementation(
+          () =>
+            ({
+              getLogs: getLogsMock,
+            }) as unknown as ethers.providers.JsonRpcProvider,
+        );
+      contractSpy = jest.spyOn(ethers, 'Contract').mockImplementation(
+        () =>
+          ({
+            spendersAllowancesForTokens: spendersMock,
+          }) as unknown as ethers.Contract,
+      );
+    });
+
+    afterEach(() => {
+      providerSpy.mockRestore();
+      contractSpy.mockRestore();
+    });
+
+    it('invokes balance scanner (#fetchOnChainAllowances) and picks sole limited token as primary', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('50'), limitedTuple('0')]);
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+      const result = await p.getOnChainAssets(ownerAddr);
+
+      expect(spendersMock).toHaveBeenCalledWith(
+        ownerAddr,
+        [tokenA, tokenB],
+        expect.arrayContaining([
+          [foxGlobal, foxUs],
+          [foxGlobal, foxUs],
+        ]),
+      );
+      expect(result.fundingAssets).toHaveLength(2);
+      expect(result.primaryFundingAsset?.address).toBe(tokenA);
+      expect(result.primaryFundingAsset?.status).toBe(
+        FundingAssetStatus.Limited,
+      );
+    });
+
+    it('uses #findLastApprovedToken when multiple tokens have non-zero allowance and prefers latest Approval log', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('10'), limitedTuple('20')]);
+
+      const iface = new ethers.utils.Interface([
+        'event Approval(address indexed owner, address indexed spender, uint256 value)',
+      ]);
+      const approvalTopic = iface.getEventTopic('Approval');
+      const ownerTopic = ethers.utils.hexZeroPad(ownerAddr.toLowerCase(), 32);
+      const spenderTopic = ethers.utils.hexZeroPad(foxGlobal.toLowerCase(), 32);
+      const valueEarly = ethers.utils.parseUnits('1', 6);
+      const valueLate = ethers.utils.parseUnits('2', 6);
+
+      getLogsMock.mockImplementation(
+        async ({ address }: { address: string }) => {
+          if (address.toLowerCase() === tokenA.toLowerCase()) {
+            return [
+              {
+                address: tokenA,
+                topics: [approvalTopic, ownerTopic, spenderTopic],
+                data: ethers.utils.defaultAbiCoder.encode(
+                  ['uint256'],
+                  [valueEarly],
+                ),
+                blockNumber: 100,
+                logIndex: 0,
+                transactionIndex: 0,
+                transactionHash: ethers.constants.HashZero,
+                blockHash: ethers.constants.HashZero,
+              },
+            ];
+          }
+          if (address.toLowerCase() === tokenB.toLowerCase()) {
+            return [
+              {
+                address: tokenB,
+                topics: [approvalTopic, ownerTopic, spenderTopic],
+                data: ethers.utils.defaultAbiCoder.encode(
+                  ['uint256'],
+                  [valueLate],
+                ),
+                blockNumber: 200,
+                logIndex: 0,
+                transactionIndex: 0,
+                transactionHash: ethers.constants.HashZero,
+                blockHash: ethers.constants.HashZero,
+              },
+            ];
+          }
+          return [];
+        },
+      );
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+      const result = await p.getOnChainAssets(ownerAddr);
+
+      expect(getLogsMock).toHaveBeenCalled();
+      expect(result.primaryFundingAsset?.address.toLowerCase()).toBe(
+        tokenB.toLowerCase(),
+      );
+    });
+
+    it('falls back to first non-zero asset when #findLastApprovedToken logs fail', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('5'), limitedTuple('5')]);
+      getLogsMock.mockRejectedValue(new Error('rpc down'));
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+      const result = await p.getOnChainAssets(ownerAddr);
+
+      expect(Logger.error).toHaveBeenCalled();
+      expect(result.primaryFundingAsset?.address.toLowerCase()).toBe(
+        tokenA.toLowerCase(),
+      );
+    });
+  });
+
+  describe('getCardHomeData — #fetchOriginalSpendingCap', () => {
+    const LINEA_CAIP = 'eip155:59144' as const;
+    const walletAddr = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+    const tokenAddr = ethers.utils.getAddress(
+      '0x3333333333333333333333333333333333333333',
+    );
+    const delegationContract = ethers.utils.getAddress(
+      '0xdddddddddddddddddddddddddddddddddddddddd',
+    );
+
+    let getLogsMock: jest.Mock;
+    let providerSpy: jest.SpyInstance;
+
+    const cardFeatureFlag = {
+      chains: {
+        [LINEA_CAIP]: {
+          tokens: [
+            {
+              address: tokenAddr,
+              symbol: 'USDC',
+              name: 'USDC',
+              decimals: 6,
+              enabled: true,
+            },
+          ],
+          foxConnectAddresses: {
+            global: ethers.constants.AddressZero,
+            us: ethers.constants.AddressZero,
+          },
+          balanceScannerAddress: ethers.constants.AddressZero,
+        },
+      },
+    } as unknown as CardFeatureFlag;
+
+    beforeEach(() => {
+      getLogsMock = jest.fn();
+      providerSpy = jest
+        .spyOn(ethers.providers, 'JsonRpcProvider')
+        .mockImplementation(
+          () =>
+            ({
+              getLogs: getLogsMock,
+            }) as unknown as ethers.providers.JsonRpcProvider,
+        );
+    });
+
+    afterEach(() => {
+      providerSpy.mockRestore();
+    });
+
+    it('sets originalSpendingCap from latest Approval log for Limited EVM assets', async () => {
+      const capWei = ethers.utils.parseUnits('750', 6);
+      const iface = new ethers.utils.Interface([
+        'event Approval(address indexed owner, address indexed spender, uint256 value)',
+      ]);
+      getLogsMock.mockResolvedValue([
+        {
+          address: tokenAddr,
+          topics: [
+            iface.getEventTopic('Approval'),
+            ethers.utils.hexZeroPad(walletAddr.toLowerCase(), 32),
+            ethers.utils.hexZeroPad(delegationContract.toLowerCase(), 32),
+          ],
+          data: ethers.utils.defaultAbiCoder.encode(['uint256'], [capWei]),
+          blockNumber: 300,
+          logIndex: 1,
+          transactionIndex: 0,
+          transactionHash: ethers.constants.HashZero,
+          blockHash: ethers.constants.HashZero,
+        },
+      ]);
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({
+            networks: [
+              {
+                network: 'linea',
+                environment: 'production',
+                chainId: '59144',
+                delegationContract,
+                tokens: {
+                  USDC: { symbol: 'USDC', decimals: 6, address: tokenAddr },
+                },
+              },
+            ],
+            count: 1,
+            _links: { self: '' },
+          });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'c1',
+            status: CardStatus.ACTIVE,
+            type: CardType.VIRTUAL,
+            panLast4: '4242',
+            holderName: 'T',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'u1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([
+            {
+              address: walletAddr,
+              currency: 'usdc',
+              balance: '100',
+              allowance: '500',
+              network: 'linea',
+            },
+          ]);
+        }
+        if (path === '/v1/wallet/external/priority') {
+          return Promise.resolve([]);
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await p.getCardHomeData(walletAddr, AUTH_TOKENS);
+
+      expect(getLogsMock).toHaveBeenCalled();
+      expect(
+        parseFloat(result.primaryFundingAsset?.originalSpendingCap ?? ''),
+      ).toBe(750);
+    });
+
+    it('does not fetch on-chain cap for SPENDING_LIMIT_UNSUPPORTED_TOKENS', async () => {
+      const flagAusdc = {
+        chains: {
+          [LINEA_CAIP]: {
+            tokens: [
+              {
+                address: tokenAddr,
+                symbol: 'AUSDC',
+                name: 'AUSDC',
+                decimals: 6,
+                enabled: true,
+              },
+            ],
+            foxConnectAddresses: {
+              global: ethers.constants.AddressZero,
+              us: ethers.constants.AddressZero,
+            },
+            balanceScannerAddress: ethers.constants.AddressZero,
+          },
+        },
+      } as unknown as CardFeatureFlag;
+      const p = new BaanxProvider({ service, cardFeatureFlag: flagAusdc });
+
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({
+            networks: [
+              {
+                network: 'linea',
+                environment: 'production',
+                chainId: '59144',
+                delegationContract,
+                tokens: {
+                  AUSDC: { symbol: 'AUSDC', decimals: 6, address: tokenAddr },
+                },
+              },
+            ],
+            count: 1,
+            _links: { self: '' },
+          });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'c1',
+            status: CardStatus.ACTIVE,
+            type: CardType.VIRTUAL,
+            panLast4: '4242',
+            holderName: 'T',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'u1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([
+            {
+              address: walletAddr,
+              currency: 'ausdc',
+              balance: '10',
+              allowance: '100',
+              network: 'linea',
+            },
+          ]);
+        }
+        if (path === '/v1/wallet/external/priority') {
+          return Promise.resolve([]);
+        }
+        return Promise.resolve(null);
+      });
+
+      await p.getCardHomeData(walletAddr, AUTH_TOKENS);
+
+      expect(getLogsMock).not.toHaveBeenCalled();
     });
   });
 
@@ -811,22 +1390,28 @@ describe('BaanxProvider', () => {
     });
   });
 
-  describe('getCardSecureView', () => {
+  describe('getCardDetailsView', () => {
     it('returns url and token from the details endpoint', async () => {
       service.post.mockResolvedValue({
-        url: 'https://secure.view/card',
+        imageUrl: 'https://secure.view/card',
         token: 'view-token-123',
       });
 
-      const result = await provider.getCardSecureView(AUTH_TOKENS, {
-        customCss: '.card { color: red }',
+      const result = await provider.getCardDetailsView(AUTH_TOKENS, {
+        customCss: {
+          card: 'color: red',
+        },
       });
 
       expect(result.url).toBe('https://secure.view/card');
       expect(result.token).toBe('view-token-123');
       expect(service.post).toHaveBeenCalledWith(
         '/v1/card/details/token',
-        { customCss: '.card { color: red }' },
+        {
+          customCss: {
+            card: 'color: red',
+          },
+        },
         AUTH_TOKENS,
       );
     });
@@ -837,7 +1422,7 @@ describe('BaanxProvider', () => {
       );
 
       await expect(
-        provider.getCardSecureView(AUTH_TOKENS, {}),
+        provider.getCardDetailsView(AUTH_TOKENS, {}),
       ).rejects.toThrow();
     });
   });
@@ -851,34 +1436,42 @@ describe('BaanxProvider', () => {
           symbol: 'USDC',
           name: 'USDC',
           address: '0x1',
+          walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:59144' as const,
-          balance: '100',
-          allowance: '999999999999',
+          spendableBalance: '100',
+          spendingCap: '999999999999',
           priority: 1,
           status: FundingAssetStatus.Active,
+          externalId: 1,
         },
         {
           symbol: 'mUSD',
           name: 'mUSD',
           address: '0x2',
+          walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:8453' as const,
-          balance: '50',
-          allowance: '999999999999',
+          spendableBalance: '50',
+          spendingCap: '999999999999',
           priority: 2,
           status: FundingAssetStatus.Active,
+          externalId: 2,
         },
       ];
 
       await provider.updateAssetPriority(assets[1], assets, AUTH_TOKENS);
 
+      // Sorted by original priority: [USDC(1), mUSD(2)]
+      // mUSD matches selected → priority 1; USDC doesn't → priority 2
       expect(service.put).toHaveBeenCalledWith(
         '/v1/wallet/external/priority',
-        [
-          { address: '0x1', currency: 'USDC', network: 'linea', priority: 2 },
-          { address: '0x2', currency: 'mUSD', network: 'base', priority: 1 },
-        ],
+        {
+          wallets: [
+            { id: 1, priority: 2 },
+            { id: 2, priority: 1 },
+          ],
+        },
         AUTH_TOKENS,
       );
     });
@@ -891,46 +1484,56 @@ describe('BaanxProvider', () => {
           symbol: 'USDC',
           name: 'USDC',
           address: '0x1',
+          walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:59144' as const,
-          balance: '100',
-          allowance: '999999999999',
+          spendableBalance: '100',
+          spendingCap: '999999999999',
           priority: 2,
           status: FundingAssetStatus.Active,
+          externalId: 1,
         },
         {
           symbol: 'mUSD',
           name: 'mUSD',
           address: '0x2',
+          walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:8453' as const,
-          balance: '50',
-          allowance: '999999999999',
+          spendableBalance: '50',
+          spendingCap: '999999999999',
           priority: 1,
           status: FundingAssetStatus.Active,
+          externalId: 2,
         },
         {
           symbol: 'USDT',
           name: 'USDT',
           address: '0x3',
+          walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:59144' as const,
-          balance: '25',
-          allowance: '999999999999',
+          spendableBalance: '25',
+          spendingCap: '999999999999',
           priority: 3,
           status: FundingAssetStatus.Active,
+          externalId: 3,
         },
       ];
 
       await provider.updateAssetPriority(assets[0], assets, AUTH_TOKENS);
 
+      // Sorted by original priority: [mUSD(1), USDC(2), USDT(3)]
+      // USDC matches selected → priority 1; mUSD and USDT don't → 2, 3
       expect(service.put).toHaveBeenCalledWith(
         '/v1/wallet/external/priority',
-        [
-          { address: '0x1', currency: 'USDC', network: 'linea', priority: 1 },
-          { address: '0x2', currency: 'mUSD', network: 'base', priority: 2 },
-          { address: '0x3', currency: 'USDT', network: 'linea', priority: 3 },
-        ],
+        {
+          wallets: [
+            { id: 2, priority: 2 },
+            { id: 1, priority: 1 },
+            { id: 3, priority: 3 },
+          ],
+        },
         AUTH_TOKENS,
       );
     });
@@ -1129,7 +1732,7 @@ describe('BaanxProvider', () => {
   });
 
   describe('getCardHomeData edge cases', () => {
-    it('builds close_to_spending_limit alert for Limited asset', async () => {
+    it('does not build close_to_spending_limit alert for Limited asset without on-chain data', async () => {
       service.get.mockImplementation((path: string) => {
         if (path === '/v1/delegation/chain/config') {
           return Promise.resolve({ networks: [] });
@@ -1178,7 +1781,61 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
-      expect(result.alerts).toContainEqual(
+      expect(result.alerts).not.toContainEqual(
+        expect.objectContaining({ type: 'close_to_spending_limit' }),
+      );
+    });
+
+    it('does not build close_to_spending_limit alert for unsupported tokens (AUSDC, AMUSD)', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'card-1',
+            status: CardStatus.ACTIVE,
+            type: CardType.VIRTUAL,
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([
+            {
+              id: 1,
+              walletAddress: '0xwallet',
+              currency: 'AUSDC',
+              balance: '50',
+              allowance: '100',
+              priority: 1,
+              tokenDetails: {
+                address: '0x1',
+                decimals: 6,
+                symbol: 'AUSDC',
+                name: 'AUSDC',
+              },
+              caipChainId: 'eip155:59144',
+              network: 'linea',
+            },
+          ]);
+        }
+        if (path === '/v1/wallet/external/priority') {
+          return Promise.resolve([]);
+        }
+        return Promise.resolve({});
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.alerts).not.toContainEqual(
         expect.objectContaining({ type: 'close_to_spending_limit' }),
       );
     });
@@ -1237,7 +1894,7 @@ describe('BaanxProvider', () => {
       );
     });
 
-    it('returns no actions when card is null', async () => {
+    it('returns enable_card when verified with no card and no assets', async () => {
       service.get.mockImplementation((path: string) => {
         if (path === '/v1/delegation/chain/config') {
           return Promise.resolve({ networks: [] });
@@ -1249,6 +1906,31 @@ describe('BaanxProvider', () => {
           return Promise.resolve({
             id: 'user-1',
             verificationState: 'VERIFIED',
+          });
+        }
+        return Promise.resolve([]);
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.card).toBeNull();
+      expect(result.actions).toContainEqual(
+        expect.objectContaining({ type: 'enable_card' }),
+      );
+    });
+
+    it('returns no actions when card is null and user is not verified', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.reject(new Error('no card'));
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'PENDING',
           });
         }
         return Promise.resolve([]);
@@ -1334,10 +2016,11 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
-      expect(result.assets).toHaveLength(2);
-      expect(result.assets[0].symbol).toBe('mUSD');
-      expect(result.assets[1].symbol).toBe('USDC');
-      expect(result.primaryAsset?.symbol).toBe('USDC');
+      expect(result.fundingAssets).toHaveLength(2);
+      // fetchWalletDetails uppercases currency when no matching token found in feature flags
+      expect(result.fundingAssets[0].symbol).toBe('MUSD');
+      expect(result.fundingAssets[1].symbol).toBe('USDC');
+      expect(result.primaryFundingAsset?.symbol).toBe('USDC');
     });
 
     it('uses user priority asset when no other asset has balance', async () => {
@@ -1414,7 +2097,88 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
-      expect(result.primaryAsset?.symbol).toBe('mUSD');
+      // fetchWalletDetails uppercases currency when no matching token found in feature flags
+      expect(result.primaryFundingAsset?.symbol).toBe('MUSD');
+    });
+
+    function setupProvisioningEligibilityMock(
+      svc: jest.Mocked<BaanxService>,
+      overrides: {
+        cardStatus?: CardStatus;
+        createdAt?: string | null;
+      } = {},
+    ) {
+      const { cardStatus = CardStatus.ACTIVE, createdAt } = overrides;
+      svc.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'card-1',
+            status: cardStatus,
+            type: CardType.VIRTUAL,
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            firstName: 'Test',
+            lastName: 'User',
+            verificationState: 'VERIFIED',
+            ...(createdAt !== undefined ? { createdAt } : {}),
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([]);
+        }
+        if (path === '/v1/wallet/external/priority') {
+          return Promise.resolve([]);
+        }
+        return Promise.resolve({});
+      });
+    }
+
+    it('sets provisioningEligible true for active card with account created after cutoff', async () => {
+      setupProvisioningEligibilityMock(service, {
+        createdAt: '2026-01-15T00:00:00.000Z',
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.account?.provisioningEligible).toBe(true);
+    });
+
+    it('sets provisioningEligible false for active card with account created before cutoff', async () => {
+      setupProvisioningEligibilityMock(service, {
+        createdAt: '2025-11-09T23:59:59.999Z',
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.account?.provisioningEligible).toBe(false);
+    });
+
+    it('sets provisioningEligible false when createdAt is missing', async () => {
+      setupProvisioningEligibilityMock(service);
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.account?.provisioningEligible).toBe(false);
+    });
+
+    it('sets provisioningEligible false when card is not active', async () => {
+      setupProvisioningEligibilityMock(service, {
+        cardStatus: CardStatus.FROZEN,
+        createdAt: '2026-01-15T00:00:00.000Z',
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.account?.provisioningEligible).toBe(false);
     });
   });
 
@@ -1707,6 +2471,327 @@ describe('BaanxProvider', () => {
           password: 'pass',
         }),
       ).rejects.toThrow('Invalid auth session');
+    });
+  });
+
+  describe('getCardPinView', () => {
+    it('returns url and token from the pin endpoint', async () => {
+      service.post.mockResolvedValue({
+        imageUrl: 'https://pin.example.com/view',
+        token: 'pin-view-tok',
+      });
+
+      const result = await provider.getCardPinView(AUTH_TOKENS, {
+        customCss: { card: 'color: blue' },
+      });
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/card/pin/token',
+        { customCss: { card: 'color: blue' } },
+        AUTH_TOKENS,
+      );
+      expect(result).toStrictEqual({
+        url: 'https://pin.example.com/view',
+        token: 'pin-view-tok',
+      });
+    });
+
+    it('propagates error when pin view request fails', async () => {
+      service.post.mockRejectedValue(new Error('pin service down'));
+
+      await expect(
+        provider.getCardPinView(AUTH_TOKENS, { customCss: {} }),
+      ).rejects.toThrow('pin service down');
+    });
+  });
+
+  describe('createGoogleWalletProvisioningRequest', () => {
+    it('returns opaquePaymentCard from Google endpoint', async () => {
+      service.post.mockResolvedValue({
+        success: true,
+        data: { opaquePaymentCard: 'opaque-card-data' },
+      });
+
+      const result =
+        await provider.createGoogleWalletProvisioningRequest(AUTH_TOKENS);
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/card/wallet/provision/google',
+        {},
+        AUTH_TOKENS,
+      );
+      expect(result).toStrictEqual({ opaquePaymentCard: 'opaque-card-data' });
+    });
+
+    it('throws when response is missing opaquePaymentCard', async () => {
+      service.post.mockResolvedValue({ success: true, data: {} });
+
+      await expect(
+        provider.createGoogleWalletProvisioningRequest(AUTH_TOKENS),
+      ).rejects.toThrow(
+        'Google Wallet provisioning response missing opaquePaymentCard',
+      );
+    });
+  });
+
+  describe('createApplePayProvisioningRequest', () => {
+    const appleParams = {
+      leafCertificate: 'leaf-cert',
+      intermediateCertificate: 'inter-cert',
+      nonce: 'nonce-123',
+      nonceSignature: 'nonce-sig',
+    };
+
+    it('returns provisioning data from nested response', async () => {
+      service.post.mockResolvedValue({
+        success: true,
+        data: {
+          encryptedPassData: 'enc-pass',
+          activationData: 'act-data',
+          ephemeralPublicKey: 'epk',
+        },
+      });
+
+      const result = await provider.createApplePayProvisioningRequest(
+        appleParams,
+        AUTH_TOKENS,
+      );
+
+      expect(result).toStrictEqual({
+        encryptedPassData: 'enc-pass',
+        activationData: 'act-data',
+        ephemeralPublicKey: 'epk',
+      });
+    });
+
+    it('returns provisioning data from flat response', async () => {
+      service.post.mockResolvedValue({
+        encryptedPassData: 'enc-pass-flat',
+        activationData: 'act-data-flat',
+        ephemeralPublicKey: 'epk-flat',
+      });
+
+      const result = await provider.createApplePayProvisioningRequest(
+        appleParams,
+        AUTH_TOKENS,
+      );
+
+      expect(result).toStrictEqual({
+        encryptedPassData: 'enc-pass-flat',
+        activationData: 'act-data-flat',
+        ephemeralPublicKey: 'epk-flat',
+      });
+    });
+
+    it('throws when required fields are missing', async () => {
+      service.post.mockResolvedValue({
+        success: true,
+        data: { encryptedPassData: 'enc' },
+      });
+
+      await expect(
+        provider.createApplePayProvisioningRequest(appleParams, AUTH_TOKENS),
+      ).rejects.toThrow(
+        'Apple Pay provisioning response missing required fields',
+      );
+    });
+  });
+
+  describe('getCashbackWallet', () => {
+    it('returns wallet data from reward endpoint', async () => {
+      const wallet = { id: 'w1', balance: '10', currency: 'musd' };
+      service.get.mockResolvedValue(wallet);
+
+      const result = await provider.getCashbackWallet(AUTH_TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/v1/wallet/reward',
+        AUTH_TOKENS,
+      );
+      expect(result).toStrictEqual(wallet);
+    });
+  });
+
+  describe('getCashbackWithdrawEstimation', () => {
+    it('returns estimation from endpoint', async () => {
+      const estimation = { estimatedAmount: '5', fee: '0.1' };
+      service.get.mockResolvedValue(estimation);
+
+      const result = await provider.getCashbackWithdrawEstimation(AUTH_TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/v1/wallet/reward/withdraw-estimation',
+        AUTH_TOKENS,
+      );
+      expect(result).toStrictEqual(estimation);
+    });
+  });
+
+  describe('withdrawCashback', () => {
+    it('posts withdrawal to endpoint', async () => {
+      const response = { txHash: '0xabc' };
+      service.post.mockResolvedValue(response);
+
+      const result = await provider.withdrawCashback(
+        { amount: '5', walletAddress: '0xaddr' } as never,
+        AUTH_TOKENS,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/wallet/reward/withdraw',
+        { amount: '5', walletAddress: '0xaddr' },
+        AUTH_TOKENS,
+      );
+      expect(result).toStrictEqual(response);
+    });
+  });
+
+  describe('getCardHomeData — error fallback', () => {
+    it('returns emptyCardHomeData when outer try/catch triggers', async () => {
+      service.get.mockRejectedValue(new Error('Network failure'));
+
+      const result = await provider.getCardHomeData('0xabc', AUTH_TOKENS);
+
+      expect(result).toStrictEqual({
+        primaryFundingAsset: null,
+        fundingAssets: [],
+        availableFundingAssets: [],
+        card: null,
+        account: null,
+        alerts: [],
+        actions: [],
+        delegationSettings: null,
+      });
+    });
+  });
+
+  describe('buildAlerts — additional edge cases', () => {
+    it('returns empty alerts for VERIFIED user with active card and active asset', async () => {
+      service.get.mockImplementation((url: string) => {
+        if (url === '/v1/delegation/chain/config')
+          return Promise.resolve({ networks: [] });
+        if (url === '/v1/card/status')
+          return Promise.resolve({
+            id: 'card-1',
+            status: CardStatus.ACTIVE,
+            type: 'VIRTUAL',
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        if (url === '/v1/user')
+          return Promise.resolve({ verificationState: 'VERIFIED' });
+        if (url === '/v1/wallet/external') return Promise.resolve([]);
+        if (url === '/v1/wallet/external/priority') return Promise.resolve([]);
+        return Promise.resolve(null);
+      });
+
+      const result = await provider.getCardHomeData('0xabc', AUTH_TOKENS);
+
+      expect(result.alerts).toStrictEqual([]);
+    });
+  });
+
+  describe('buildActions — additional edge cases', () => {
+    it('returns add_funds and change_asset for VERIFIED user with active card and active asset', async () => {
+      service.get.mockImplementation((url: string) => {
+        if (url === '/v1/delegation/chain/config')
+          return Promise.resolve({
+            networks: [
+              {
+                network: 'Linea',
+                chainId: 59144,
+                environment: 'production',
+                tokens: {
+                  USDC: {
+                    address: '0xusdc',
+                    symbol: 'USDC',
+                    decimals: 6,
+                  },
+                },
+              },
+            ],
+          });
+        if (url === '/v1/card/status')
+          return Promise.resolve({
+            id: 'card-1',
+            status: CardStatus.ACTIVE,
+            type: 'VIRTUAL',
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        if (url === '/v1/user')
+          return Promise.resolve({ verificationState: 'VERIFIED' });
+        if (url === '/v1/wallet/external')
+          return Promise.resolve([
+            {
+              address: '0xowner',
+              currency: 'USDC',
+              balance: '100',
+              allowance: '500000',
+              network: 'Linea',
+            },
+          ]);
+        if (url === '/v1/wallet/external/priority')
+          return Promise.resolve([
+            {
+              id: 1,
+              address: '0xowner',
+              currency: 'USDC',
+              network: 'Linea',
+              priority: 1,
+            },
+          ]);
+        return Promise.resolve(null);
+      });
+
+      const result = await provider.getCardHomeData('0xabc', AUTH_TOKENS);
+
+      expect(result.actions).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ type: 'add_funds' }),
+          expect.objectContaining({ type: 'change_asset' }),
+        ]),
+      );
+    });
+  });
+
+  describe('mapApiError edge cases via getCardDetails', () => {
+    it('maps 409 to Conflict', async () => {
+      service.get.mockRejectedValue(
+        new CardApiError(409, '/v1/card/status', 'Conflict'),
+      );
+
+      await expect(provider.getCardDetails(AUTH_TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Conflict,
+      });
+    });
+
+    it('maps 408 to Timeout', async () => {
+      service.get.mockRejectedValue(
+        new CardApiError(408, '/v1/card/status', 'Timeout'),
+      );
+
+      await expect(provider.getCardDetails(AUTH_TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Timeout,
+      });
+    });
+
+    it('maps statusCode 0 to Network', async () => {
+      service.get.mockRejectedValue(new CardApiError(0, '/v1/card/status', ''));
+
+      await expect(provider.getCardDetails(AUTH_TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Network,
+      });
+    });
+
+    it('maps generic Error to Unknown', async () => {
+      service.get.mockRejectedValue(new Error('something broke'));
+
+      await expect(provider.getCardDetails(AUTH_TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Unknown,
+      });
     });
   });
 });

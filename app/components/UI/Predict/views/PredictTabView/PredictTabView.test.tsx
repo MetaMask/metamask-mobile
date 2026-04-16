@@ -1,4 +1,4 @@
-import { render, act , fireEvent } from '@testing-library/react-native';
+import { render, act, fireEvent } from '@testing-library/react-native';
 import React, { Ref } from 'react';
 import { PredictTabViewSelectorsIDs } from '../../Predict.testIds';
 import { PredictHomePositionsHandle } from '../../components/PredictHome/PredictHomePositions';
@@ -106,36 +106,14 @@ jest.mock(
   },
 );
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
-
 const renderWithProviders = (component: React.ReactElement) =>
   render(component);
 
 import PredictTabView from './PredictTabView';
-import { useSelector } from 'react-redux';
-
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-
-let isHomepageRedesignEnabled = true;
 
 describe('PredictTabView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    isHomepageRedesignEnabled = true;
-    let callCount = 0;
-    mockUseSelector.mockImplementation(() => {
-      callCount++;
-      if (callCount === 1) {
-        return isHomepageRedesignEnabled;
-      }
-      if (callCount === 2) {
-        return true;
-      }
-      return '0x1';
-    });
   });
 
   afterEach(() => {
@@ -152,54 +130,6 @@ describe('PredictTabView', () => {
     const { getByTestId } = renderWithProviders(<PredictTabView />);
 
     expect(getByTestId('predict-add-funds-sheet')).toBeOnTheScreen();
-  });
-
-  it('invokes refresh on home positions component when pull-to-refresh executes', async () => {
-    isHomepageRedesignEnabled = false;
-    let callCount = 0;
-    mockUseSelector.mockImplementation(() => {
-      callCount++;
-      if (callCount === 1) {
-        return isHomepageRedesignEnabled;
-      }
-      if (callCount === 2) {
-        return true;
-      }
-      return '0x1';
-    });
-    mockRefreshFn.mockResolvedValue(undefined);
-
-    const { getByTestId } = renderWithProviders(<PredictTabView />);
-    const scrollView = getByTestId(PredictTabViewSelectorsIDs.SCROLL_VIEW);
-    const refreshControl = scrollView.props.refreshControl;
-
-    await act(async () => {
-      await refreshControl.props.onRefresh();
-    });
-
-    expect(mockRefreshFn).toHaveBeenCalledTimes(1);
-  });
-
-  it('sets refreshing state to false before pull-to-refresh executes', () => {
-    isHomepageRedesignEnabled = false;
-    let callCount = 0;
-    mockUseSelector.mockImplementation(() => {
-      callCount++;
-      if (callCount === 1) {
-        return isHomepageRedesignEnabled;
-      }
-      if (callCount === 2) {
-        return true;
-      }
-      return '0x1';
-    });
-    const { getByTestId } = renderWithProviders(<PredictTabView />);
-    const scrollView = getByTestId(PredictTabViewSelectorsIDs.SCROLL_VIEW);
-    const refreshControl = scrollView.props.refreshControl;
-
-    const initialRefreshingState = refreshControl.props.refreshing;
-
-    expect(initialRefreshingState).toBe(false);
   });
 
   describe('error handling', () => {

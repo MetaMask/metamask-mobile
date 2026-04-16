@@ -30,6 +30,8 @@ const mockReset = jest.fn();
 const mockDispatch = jest.fn();
 const mockAddListener = jest.fn(() => jest.fn());
 
+let mockRouteParams: Record<string, unknown> = {};
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -39,6 +41,7 @@ jest.mock('@react-navigation/native', () => ({
     dispatch: mockDispatch,
     addListener: mockAddListener,
   }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock('../../hooks/useCardAuth');
@@ -126,6 +129,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_otp_authentication.didnt_receive_code':
         "Didn't receive the code?",
       'card.card_otp_authentication.resend_verification': 'Resend',
+      'card.card_authentication.auth_prompt_info':
+        'Log in to your card account to access this feature.',
     };
     if (key === 'card.card_otp_authentication.description_with_phone_number') {
       return `We sent a code to ${params?.maskedPhoneNumber}`;
@@ -169,6 +174,7 @@ jest.useFakeTimers({ advanceTimers: true });
 describe('CardAuthentication Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = {};
 
     mockInitiateMutateAsync.mockResolvedValue(undefined);
     mockSubmitMutateAsync.mockResolvedValue({ done: true });
@@ -196,6 +202,17 @@ describe('CardAuthentication Component', () => {
       expect(screen.getByTestId('password-field')).toBeOnTheScreen();
       expect(
         screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders signup button and password toggle', () => {
+      render();
+
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.SIGNUP_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('password-visibility-toggle'),
       ).toBeOnTheScreen();
     });
   });
@@ -368,16 +385,32 @@ describe('CardAuthentication Component', () => {
       });
     });
 
-    it('calls setUserLocation when pressing US location button', () => {
+    it('does not call setUserLocation on flag press, defers to login', async () => {
       render();
       const usBox = screen.getByTestId('us-location-box');
-      const Engine = jest.requireMock('../../../../../core/Engine').default;
+      const EngineModule = jest.requireMock(
+        '../../../../../core/Engine',
+      ).default;
 
       fireEvent.press(usBox);
 
       expect(
-        Engine.context.CardController.setUserLocation,
-      ).toHaveBeenCalledWith('us');
+        EngineModule.context.CardController.setUserLocation,
+      ).not.toHaveBeenCalled();
+
+      const emailInput = screen.getByTestId('email-field');
+      const passwordInput = screen.getByTestId('password-field');
+      const loginButton = screen.getByTestId(
+        CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
+      );
+
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(passwordInput, 'password123');
+      fireEvent.press(loginButton);
+
+      await waitFor(() => {
+        expect(mockInitiateMutateAsync).toHaveBeenCalledWith('us');
+      });
     });
 
     it('navigates to card home on successful login', async () => {
@@ -704,6 +737,37 @@ describe('OTP Step - Submission', () => {
         index: 0,
         routes: [{ name: Routes.CARD.HOME }],
       });
+    });
+  });
+
+  describe('Auth Prompt Info Banner', () => {
+    it('shows info banner when showAuthPrompt param is true', () => {
+      mockRouteParams = { showAuthPrompt: true };
+      render();
+
+      expect(screen.getByTestId('card-message-box')).toBeOnTheScreen();
+      expect(
+        screen.getByText('Log in to your card account to access this feature.'),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not show info banner when showAuthPrompt param is absent', () => {
+      render();
+
+      expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
+    });
+
+    it('does not show info banner on OTP step even with showAuthPrompt param', () => {
+      mockRouteParams = { showAuthPrompt: true };
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+
+      render();
+
+      expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
     });
   });
 });
