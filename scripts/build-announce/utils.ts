@@ -5,7 +5,7 @@
  */
 
 import { Octokit } from '@octokit/rest';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { existsSync, unlinkSync, readFileSync } from 'fs';
 import { resolve, join } from 'path';
 import type { TestPlanResult } from './types';
@@ -127,9 +127,21 @@ export async function generateTestPlan(
   console.log(`Generating test plan for PR #${prNumber}, version ${version}...`);
 
   try {
-    // Run the e2e-ai-analyzer
-    execSync(
-      `node -r esbuild-register tests/tools/e2e-ai-analyzer --mode generate-test-plan --pr ${prNumber} --auto-ff -v ${version}`,
+    // Run the e2e-ai-analyzer using execFileSync to avoid command injection
+    execFileSync(
+      'node',
+      [
+        '-r',
+        'esbuild-register',
+        'tests/tools/e2e-ai-analyzer',
+        '--mode',
+        'generate-test-plan',
+        '--pr',
+        String(prNumber),
+        '--auto-ff',
+        '-v',
+        version,
+      ],
       {
         cwd: projectRoot,
         timeout: timeoutMs,
