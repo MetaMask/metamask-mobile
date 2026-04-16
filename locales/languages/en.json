@@ -7902,6 +7902,7 @@
       "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.",
       "intro_confirm_geo_loading": "Checking region...",
       "step_confirm": "Next",
+      "step_finish": "Let's go",
       "step_skip": "Skip",
       "step4_title_referral_validating": "Validating referral code...",
       "step4_referral_input_error": "Invalid referral code",
