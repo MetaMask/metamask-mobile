@@ -34,7 +34,6 @@ import Engine from '../../../../../core/Engine';
 import { selectSelectedAccountGroupId } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { isSmartContractAddress } from '../../../../../util/transactions';
 import {
-  COLLATERAL_OFFRAMP_ADDRESS,
   COLLATERAL_ONRAMP_ADDRESS,
   MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
@@ -43,7 +42,7 @@ import {
 import {
   aggregateTransaction,
   computeProxyAddress,
-  getProxyWalletAllowancesTransaction,
+  createAllowancesSafeTransaction,
   getSafeTransactionCallData,
   hasAllowances,
 } from '../../providers/polymarket/safe/utils';
@@ -58,7 +57,6 @@ import { Signer } from '../../providers/types';
 import {
   encodeApprove,
   encodeErc1155Approve,
-  encodeUnwrap,
   encodeWrap,
   getBalance,
 } from '../../providers/polymarket/utils';
@@ -335,11 +333,9 @@ const ClobV2Playground = () => {
   const [isUpgradeLoading, setIsUpgradeLoading] = useState(false);
   const [isDowngradeLoading, setIsDowngradeLoading] = useState(false);
 
-  useEffect(() => {
-    return () => {
+  useEffect(() => () => {
       isMountedRef.current = false;
-    };
-  }, []);
+    }, []);
 
   const signer = useMemo<Signer | null>(() => {
     if (!address) {
@@ -416,52 +412,47 @@ const ClobV2Playground = () => {
     setStatus('Submitting upgrade transactions...');
 
     try {
-      const allowanceTransaction = await getProxyWalletAllowancesTransaction({
-        signer,
+      const safeAddress = computeProxyAddress(address);
+      const allowanceSafeTxn = createAllowancesSafeTransaction({
         extraPusdSpenders: [PERMIT2_ADDRESS],
       });
-
-      await submitTransaction({
-        to: allowanceTransaction.params.to,
-        data: allowanceTransaction.params.data,
-        type: TransactionType.contractInteraction,
-      });
-
-      const safeAddress = computeProxyAddress(address);
       const usdcEBalance = await getErc20BalanceRaw({
         tokenAddress: USDC_E_ADDRESS,
         owner: safeAddress,
       });
 
+      const safeTxns = [allowanceSafeTxn];
+
       if (usdcEBalance > 0n) {
-        const wrapData = encodeWrap({
-          asset: USDC_E_ADDRESS,
-          to: safeAddress,
-          amount: usdcEBalance,
-        });
-
-        const wrapCallData = await getSafeTransactionCallData({
-          signer,
-          safeAddress,
-          txn: {
-            to: COLLATERAL_ONRAMP_ADDRESS,
-            data: wrapData,
-            operation: OperationType.Call,
-            value: '0',
-          },
-        });
-
-        await submitTransaction({
-          to: safeAddress,
-          data: wrapCallData,
-          type: TransactionType.contractInteraction,
+        safeTxns.push({
+          to: COLLATERAL_ONRAMP_ADDRESS,
+          data: encodeWrap({
+            asset: USDC_E_ADDRESS,
+            to: safeAddress,
+            amount: usdcEBalance,
+          }),
+          operation: OperationType.Call,
+          value: '0',
         });
       }
+
+      const batchedTxn = aggregateTransaction(safeTxns);
+      const callData = await getSafeTransactionCallData({
+        signer,
+        safeAddress,
+        txn: batchedTxn,
+      });
+
+      await submitTransaction({
+        to: safeAddress,
+        data: callData,
+        type: TransactionType.contractInteraction,
+      });
 
       if (isMountedRef.current) {
         setStatus(
           usdcEBalance > 0n
-            ? `Upgrade submitted — wrapping ${Number(usdcEBalance) / 1e6} USDC.e`
+            ? `Upgrade submitted — allowances + wrapping ${Number(usdcEBalance) / 1e6} USDC.e`
             : 'Upgrade submitted — allowances set (no USDC.e to wrap)',
         );
       }
@@ -491,7 +482,7 @@ const ClobV2Playground = () => {
 
     const confirmed = await confirmAction(
       'Downgrade to v1',
-      'This will unwrap pUSD into USDC.e and revoke v2 allowances.',
+      'This will revoke all v2 allowances. pUSD balance is kept (Offramp not yet operational).',
     );
 
     if (!confirmed) {
@@ -503,75 +494,55 @@ const ClobV2Playground = () => {
 
     try {
       const safeAddress = computeProxyAddress(address);
-      const pUsdBalance = await getErc20BalanceRaw({
-        tokenAddress: MATIC_CONTRACTS.collateral,
-        owner: safeAddress,
-      });
 
-      if (pUsdBalance > 0n) {
-        const unwrapData = encodeUnwrap({
-          asset: USDC_E_ADDRESS,
-          to: safeAddress,
-          amount: pUsdBalance,
-        });
+      const safeTxns: {
+        to: string;
+        data: string;
+        operation: OperationType;
+        value: string;
+      }[] = [];
 
-        const unwrapCallData = await getSafeTransactionCallData({
-          signer,
-          safeAddress,
-          txn: {
-            to: COLLATERAL_OFFRAMP_ADDRESS,
-            data: unwrapData,
-            operation: OperationType.Call,
-            value: '0',
-          },
-        });
-
-        await submitTransaction({
-          to: safeAddress,
-          data: unwrapCallData,
-          type: TransactionType.contractInteraction,
-        });
-      }
-
-      const revokeTransactions = [
-        ...usdcESpenders.map((spender) => ({
+      for (const spender of usdcESpenders) {
+        safeTxns.push({
           to: USDC_E_ADDRESS,
           data: encodeApprove({ spender, amount: 0n }),
           operation: OperationType.Call,
           value: '0',
-        })),
-        ...[...pUsdSpenders, PERMIT2_ADDRESS].map((spender) => ({
+        });
+      }
+
+      for (const spender of [...pUsdSpenders, PERMIT2_ADDRESS]) {
+        safeTxns.push({
           to: MATIC_CONTRACTS.collateral,
           data: encodeApprove({ spender, amount: 0n }),
           operation: OperationType.Call,
           value: '0',
-        })),
-        ...outcomeTokenSpenders.map((spender) => ({
+        });
+      }
+
+      for (const spender of outcomeTokenSpenders) {
+        safeTxns.push({
           to: MATIC_CONTRACTS.conditionalTokens,
           data: encodeErc1155Approve({ spender, approved: false }),
           operation: OperationType.Call,
           value: '0',
-        })),
-      ];
+        });
+      }
 
-      const revokeCallData = await getSafeTransactionCallData({
+      const callData = await getSafeTransactionCallData({
         signer,
         safeAddress,
-        txn: aggregateTransaction(revokeTransactions),
+        txn: aggregateTransaction(safeTxns),
       });
 
       await submitTransaction({
         to: safeAddress,
-        data: revokeCallData,
+        data: callData,
         type: TransactionType.contractInteraction,
       });
 
       if (isMountedRef.current) {
-        setStatus(
-          pUsdBalance > 0n
-            ? `Downgrade submitted — unwrapping ${Number(pUsdBalance) / 1e6} pUSD`
-            : 'Downgrade submitted — allowances revoked (no pUSD to unwrap)',
-        );
+        setStatus('Downgrade submitted — v2 allowances revoked');
       }
       await refresh();
     } catch (downgradeError) {
@@ -684,7 +655,7 @@ const ClobV2Playground = () => {
         <Section title="Upgrade / Downgrade">
           <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
             Upgrade sets v2 allowances and wraps USDC.e into pUSD. Downgrade
-            unwraps pUSD and revokes v2 approvals.
+            revokes v2 approvals (unwrap not yet available).
           </Text>
 
           <Box twClassName="gap-3">
