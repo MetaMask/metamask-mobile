@@ -67,6 +67,7 @@ enum EVENT_NAME {
 
   // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
   REMOTE_CONNECTION_REQUEST_RECEIVED = 'Remote Connection Request Received',
+  REMOTE_CONNECTION_REQUEST_FAILED = 'Remote Connection Request Failed',
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
   SDK_LEGACY_RPC_REQUEST_RECEIVED = 'SDK Legacy RPC Request Received',
@@ -684,10 +685,6 @@ enum EVENT_NAME {
 
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
-
-  // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
-  REMOTE_CONNECTION_REQUEST_RECEIVED = 'Remote Connection Request Received',
-  REMOTE_CONNECTION_REQUEST_FAILED = 'Remote Connection Request Failed',
 }
 
 export enum HARDWARE_WALLET_BUTTON_TYPE {
@@ -801,6 +798,9 @@ const events = {
   // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
   REMOTE_CONNECTION_REQUEST_RECEIVED: generateOpt(
     EVENT_NAME.REMOTE_CONNECTION_REQUEST_RECEIVED,
+  ),
+  REMOTE_CONNECTION_REQUEST_FAILED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_REQUEST_FAILED,
   ),
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
@@ -1778,14 +1778,6 @@ const events = {
   ),
   MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
-  ),
-
-  // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
-  REMOTE_CONNECTION_REQUEST_RECEIVED: generateOpt(
-    EVENT_NAME.REMOTE_CONNECTION_REQUEST_RECEIVED,
-  ),
-  REMOTE_CONNECTION_REQUEST_FAILED: generateOpt(
-    EVENT_NAME.REMOTE_CONNECTION_REQUEST_FAILED,
   ),
 };
 
