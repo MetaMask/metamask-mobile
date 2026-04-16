@@ -683,6 +683,17 @@ describe('OndoCampaignRwaSelectorView', () => {
       const { getByText } = render(<OndoCampaignRwaSelectorView />);
       expect(getByText('Ondo USD Yield')).toBeDefined();
     });
+
+    it('passes original unsanitized name to goToSwaps when token has Ondo prefix', () => {
+      const token = { ...buildToken('AAPL'), name: 'Ondo Tokenized Apple' };
+      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      fireEvent.press(getByTestId('token-row-AAPL'));
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ name: 'Ondo Tokenized Apple' }),
+      );
+    });
   });
 
   describe('page view tracking', () => {

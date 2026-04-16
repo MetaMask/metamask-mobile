@@ -283,10 +283,11 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     (asset: TrendingAsset) => {
       const parsed = parseCaip19(asset.assetId);
       if (!parsed) return;
+      const rawToken = rwaTokens.find((t) => t.assetId === asset.assetId);
       const destToken: BridgeToken = {
         address: parsed.assetReference,
         symbol: asset.symbol,
-        name: asset.name,
+        name: rawToken?.name ?? asset.name,
         decimals: asset.decimals,
         chainId: `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
         image: getTrendingTokenImageUrl(asset.assetId),
@@ -319,6 +320,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
       trackEvent,
       createEventBuilder,
       ondoUsdSrcToken,
+      rwaTokens,
     ],
   );
 
