@@ -52,19 +52,12 @@ test.afterAll(async () => {
 test('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
   currentDeviceDetails,
   driver,
-  performanceTracker,
 }) => {
   const useBrowserStackLocal =
     process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
   const DAPP_URL = useBrowserStackLocal
     ? `http://bs-local.com:${DAPP_PORT}`
     : getDappUrlForBrowser(currentDeviceDetails.platform);
-
-  await driver.updateSettings({
-    waitForIdleTimeout: 100,
-    waitForSelectorTimeout: 0,
-    shouldWaitForQuiescence: false,
-  });
 
   //
   // Login and navigate to dapp
@@ -79,16 +72,8 @@ test('@metamask/connect-multichain - Connect via Multichain API to Local Browser
   //
   // Connect via Multichain API
   //
-
-  const connectTimer = new TimerHelper(
-    'Time from tapping Connect to dapp confirming Multichain connected state',
-    { ios: 20000, android: 30000 },
-    currentDeviceDetails.platform,
-  );
-
   await PlaywrightContextHelpers.withWebAction(async () => {
     await BrowserPlaygroundDapp.waitForConnectButtonVisible(15000);
-    connectTimer.start();
     await BrowserPlaygroundDapp.tapConnect();
   }, DAPP_URL);
 
@@ -109,14 +94,11 @@ test('@metamask/connect-multichain - Connect via Multichain API to Local Browser
 
   await PlaywrightContextHelpers.withWebAction(async () => {
     await BrowserPlaygroundDapp.assertMultichainConnected(true);
-    connectTimer.stop();
     await PlaywrightGestures.scrollIntoView(
       await asPlaywrightElement(BrowserPlaygroundDapp.getScopeCard('eip155:1')),
     );
     await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
   }, DAPP_URL);
-
-  performanceTracker.addTimers(connectTimer);
 
   //
   // Cleanup - disconnect

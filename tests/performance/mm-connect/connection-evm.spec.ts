@@ -64,6 +64,7 @@ test.afterAll(async () => {
 
 test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser Playground', async ({
   currentDeviceDetails,
+  driver,
 }) => {
   const platform = currentDeviceDetails.platform;
   const useBrowserStackLocal =
