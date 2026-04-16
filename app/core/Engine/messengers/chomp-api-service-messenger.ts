@@ -4,6 +4,7 @@ import {
   type MessengerEvents,
 } from '@metamask/messenger';
 import type { ChompApiServiceMessenger } from '@metamask-previews/chomp-api-service';
+import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type { RootMessenger } from '../types';
 
 /**
@@ -27,6 +28,37 @@ export function getChompApiServiceMessenger(
   });
   rootMessenger.delegate({
     actions: ['AuthenticationController:getBearerToken'],
+    events: [],
+    messenger,
+  });
+  return messenger;
+}
+
+type AllowedInitializationActions = RemoteFeatureFlagControllerGetStateAction;
+
+export type ChompApiServiceInitMessenger = ReturnType<
+  typeof getChompApiServiceInitMessenger
+>;
+
+/**
+ * Get a messenger restricted to the actions and events that the
+ * CHOMP API service initialization is allowed to handle.
+ *
+ * @param rootMessenger - The root messenger.
+ * @returns The restricted init messenger.
+ */
+export function getChompApiServiceInitMessenger(rootMessenger: RootMessenger) {
+  const messenger = new Messenger<
+    'ChompApiServiceInitialization',
+    AllowedInitializationActions,
+    never,
+    RootMessenger
+  >({
+    namespace: 'ChompApiServiceInitialization',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: ['RemoteFeatureFlagController:getState'],
     events: [],
     messenger,
   });
