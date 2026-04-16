@@ -158,8 +158,8 @@ export class RPCBridgeAdapter
             platform:
               this.connInfo.metadata.sdk.platform ??
               AppConstants.MM_SDK.UNKNOWN_PARAM,
-            // TODO: pass remote_session_id once MWP connection metadata
-            // includes it (MetaMask/metamask-mobile#28470)
+            remote_session_id:
+              this.connInfo.metadata.analytics?.remote_session_id ?? '',
           },
         }),
       isMainFrame: true,
