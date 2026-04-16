@@ -489,9 +489,8 @@ const MAX_ONDO_TOKEN_NAME_LENGTH = 28;
  * Strips Ondo branding from a token name and truncates to
  * MAX_ONDO_TOKEN_NAME_LENGTH characters with an ellipsis if needed.
  *
- * Handles two forms returned by Ondo APIs:
- *  - Prefix (trending tokens):  "Ondo Tokenized Apple"  → "Apple"
- *  - Suffix (portfolio):        "US Dollar (Ondo Tokenized)" → "US Dollar"
+ * Handles two forms: prefix ("Ondo Tokenized Apple" → "Apple") and
+ * suffix ("US Dollar (Ondo Tokenized)" → "US Dollar").
  */
 export function sanitizeOndoTokenName(raw: string): string {
   const cleaned = raw

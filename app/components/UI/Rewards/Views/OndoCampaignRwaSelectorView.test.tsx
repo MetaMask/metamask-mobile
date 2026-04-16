@@ -690,7 +690,7 @@ describe('OndoCampaignRwaSelectorView', () => {
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
       fireEvent.press(getByTestId('token-row-AAPL'));
       expect(mockGoToSwaps).toHaveBeenCalledWith(
-        expect.anything(),
+        undefined,
         expect.objectContaining({ name: 'Ondo Tokenized Apple' }),
       );
     });
