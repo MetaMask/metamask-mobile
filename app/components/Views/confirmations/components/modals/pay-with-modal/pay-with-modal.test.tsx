@@ -180,7 +180,6 @@ function render({
     PayWithModal,
     {
       name: Routes.CONFIRMATION_PAY_WITH_MODAL,
-      params: selectedAccount ? { selectedAccount } : undefined,
     },
     {
       state: merge(
@@ -204,6 +203,7 @@ function render({
     },
     {
       minimumFiatBalance,
+      ...(selectedAccount ? { selectedAccount } : {}),
     },
   );
 }
