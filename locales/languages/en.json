@@ -1839,13 +1839,13 @@
       "market_hours": {
         "title": "Market hours",
         "closes_in": "Closes in {{time}}",
-        "content": "You're trading within regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "content": "You're trading within regular market hours (9:30 am to 4 pm EDT). When markets are closed, some assets may have lower liquidity."
       },
       "after_hours_trading": {
         "title": "After-hours trading",
         "reopens_in": "Reopens in {{time}}",
         "reopens_in_label": "Reopens in",
-        "content": "You're trading outside of regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "content": "You're trading outside of regular market hours (9:30 am to 4 pm EDT). When markets are closed, some assets may have lower liquidity."
       },
       "spread": {
         "title": "Spread",
