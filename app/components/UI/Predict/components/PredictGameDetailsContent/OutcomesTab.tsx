@@ -25,6 +25,14 @@ export const getSportsMarketTypeLabel = (type: string): string => {
 
 type BuyHandler = (outcome: PredictOutcome, token: PredictOutcomeToken) => void;
 
+const formatOutcomeCardTitle = (outcome: PredictOutcome): string => {
+  const raw = outcome.groupItemTitle || outcome.title;
+  if (raw.includes('O/U') && raw.includes(':')) {
+    return raw.split(':')[0].trim();
+  }
+  return raw;
+};
+
 const isMoneylineType = (type?: string): boolean =>
   type === 'moneyline' || type === 'first_half_moneyline';
 
@@ -60,7 +68,9 @@ const buildButtons = (
     price: Math.round(token.price * 100),
     onPress: onBuyPress ? () => onBuyPress(outcome, token) : () => undefined,
     variant: getButtonVariant(index, outcome.tokens.length, moneyline),
-    teamColor: moneyline ? getTeamColor(token.title, game) : undefined,
+    teamColor: moneyline
+      ? getTeamColor(token.shortTitle ?? token.title, game)
+      : undefined,
   }));
 };
 
@@ -225,7 +235,7 @@ const OutcomesContent = memo(
           <SimpleOutcomeCard
             key={outcome.id}
             outcome={outcome}
-            title={outcome.groupItemTitle || outcome.title}
+            title={formatOutcomeCardTitle(outcome)}
             onBuyPress={onBuyPress}
             game={game}
             sportsMarketType={outcome.sportsMarketType}
