@@ -80,6 +80,13 @@ jest.mock('./OndoNotEligibleSheet', () => {
   };
 });
 
+// CampaignOptInCta (rendered inline, not mocked) calls useCampaignGeoRestriction.
+// Default to non-restricted so the normal opt-in button is shown.
+jest.mock('../../hooks/useCampaignGeoRestriction', () => ({
+  __esModule: true,
+  default: () => ({ isGeoRestricted: false, isGeoLoading: false }),
+}));
+
 const mockShowToast = jest.fn();
 const mockEntriesClosed = jest.fn(() => ({ variant: 'icon' }));
 
