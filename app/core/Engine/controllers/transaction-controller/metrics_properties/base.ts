@@ -96,9 +96,7 @@ export function getTransactionTypeValue(
     }
 
     if (
-      hasTransactionType(transactionMeta, [
-        'musdRelayDeposit' as TransactionType,
-      ])
+      hasTransactionType(transactionMeta, [TransactionType.musdRelayDeposit])
     ) {
       return 'musd_conversion_batch';
     }
@@ -117,7 +115,7 @@ export function getTransactionTypeValue(
       return 'perps_deposit';
     case TransactionType.perpsDepositAndOrder:
       return 'perps_deposit_and_order';
-    case 'musdRelayDeposit' as TransactionType:
+    case TransactionType.musdRelayDeposit:
       return 'musd_relay_deposit';
     case TransactionType.perpsRelayDeposit:
       return 'perps_relay_deposit';

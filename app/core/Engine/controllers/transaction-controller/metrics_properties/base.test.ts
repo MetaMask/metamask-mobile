@@ -122,7 +122,7 @@ describe('getTransactionTypeValue', () => {
   it.each([
     ['perps_deposit_batch', TransactionType.perpsRelayDeposit],
     ['predict_deposit_batch', TransactionType.predictRelayDeposit],
-    ['musd_conversion_batch', 'musdRelayDeposit' as TransactionType],
+    ['musd_conversion_batch', TransactionType.musdRelayDeposit],
   ])(
     'returns %s for batch transaction with nested %s type',
     (expected, nestedType) => {
@@ -141,7 +141,7 @@ describe('getTransactionTypeValue', () => {
   );
 
   it.each([
-    ['musd_relay_deposit', 'musdRelayDeposit' as TransactionType],
+    ['musd_relay_deposit', TransactionType.musdRelayDeposit],
     ['perps_relay_deposit', TransactionType.perpsRelayDeposit],
     ['predict_relay_deposit', TransactionType.predictRelayDeposit],
   ])('returns %s for standalone relay deposit type %s', (expected, txType) => {
