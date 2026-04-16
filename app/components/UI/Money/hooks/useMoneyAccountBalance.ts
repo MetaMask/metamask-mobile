@@ -31,7 +31,7 @@ const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
  */
 export const getLiveVedaVaultExchangeRate = async () =>
   Engine.controllerMessenger
-    .call('MoneyAccountBalanceService:getExchangeRate')
+    .call('MoneyAccountBalanceService:getExchangeRate', { staleTime: 0 })
     .then(({ rate }) => rate);
 
 const useMoneyAccountBalance = (
