@@ -8109,6 +8109,7 @@
       "opting_in": "Opting in...",
       "opted_in": "You're opted in to this campaign",
       "opt_in_error": "Failed to opt in. Please try again.",
+      "geo_loading": "Checking region...",
       "join_campaign": "Join the campaign",
       "competition_closed_title": "Competition no longer open",
       "competition_closed_description": "Sorry, this competition is no longer open to join. You can follow the leaderboard below and check back for future campaigns.",

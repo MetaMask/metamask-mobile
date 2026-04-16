@@ -92,7 +92,7 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
           size={ButtonSize.Lg}
           isFullWidth
           isLoading={isGeoLoading}
-          isDisabled={isGeoLoading}
+          loadingText={strings('rewards.campaign_details.geo_loading')}
           onPress={() => {
             onJoinPress?.();
             setIsOptInSheetOpen(true);
