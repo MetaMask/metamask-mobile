@@ -8097,7 +8097,8 @@
       "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations.",
       "opt_in_success_toast": "You're in!",
       "geo_locked_toast_title": "Not available in your region",
-      "geo_locked_toast_description": "This campaign isn't available where you are. Check back later for new campaigns."
+      "geo_locked_toast_description": "This campaign isn't available where you are. Check back later for new campaigns.",
+      "geo_locked_cta": "Check eligibility"
     },
     "campaign_mechanics": {
       "title": "Mechanics"
@@ -8121,8 +8122,7 @@
       "ondo": {
         "entries_closed_title": "Entries closed",
         "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future."
-      },
-      "geo_locked_cta": "Check eligibility"
+      }
     },
     "ondo_campaign_prize_pool": {
       "title": "Prize Pool",
