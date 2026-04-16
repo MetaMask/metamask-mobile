@@ -13,6 +13,9 @@ const mockIsAtomicBatchSupported: jest.MockedFn<
   TransactionController['isAtomicBatchSupported']
 > = jest.fn();
 
+const mockGetNetworkClientById = jest.fn();
+const mockFindNetworkClientIdByChainId = jest.fn();
+
 jest.spyOn(Math, 'random').mockReturnValue(0);
 
 jest.mock('../../core/Engine', () => ({
@@ -21,6 +24,12 @@ jest.mock('../../core/Engine', () => ({
       getNonceLock: () => mockGetNonceLock(),
       isAtomicBatchSupported: (request: IsAtomicBatchSupportedRequest) =>
         mockIsAtomicBatchSupported(request),
+    },
+    NetworkController: {
+      getNetworkClientById: (...args: unknown[]) =>
+        mockGetNetworkClientById(...args),
+      findNetworkClientIdByChainId: (...args: unknown[]) =>
+        mockFindNetworkClientIdByChainId(...args),
     },
   },
 }));
@@ -32,8 +41,11 @@ const NONCE_MOCK = 123;
 const AUTHORIZATION_SIGNATURE_MOCK =
   '0xf85c827a6994663f3ad617193148711d28f5334ee4ed070166028080a040e292da533253143f134643a03405f1af1de1d305526f44ed27e62061368d4ea051cfb0af34e491aa4d6796dececf95569088322e116c4b2f312bb23f20699269';
 
+const NETWORK_CLIENT_ID_MOCK = 'mainnet';
+
 const TRANSACTION_META_MOCK = {
   chainId: '0x1' as Hex,
+  networkClientId: NETWORK_CLIENT_ID_MOCK,
   nestedTransactions: [
     {
       data: '0x123456781234' as Hex,
@@ -81,6 +93,10 @@ describe('Transaction Delegation Utils', () => {
     mockGetNonceLock.mockResolvedValue({
       nextNonce: NONCE_MOCK,
       releaseLock: jest.fn(),
+    });
+
+    mockGetNetworkClientById.mockReturnValue({
+      configuration: { chainId: TRANSACTION_META_MOCK.chainId },
     });
   });
 
@@ -170,6 +186,40 @@ describe('Transaction Delegation Utils', () => {
       await expect(
         getDelegationTransaction(messengerMock, TRANSACTION_META_MOCK),
       ).rejects.toThrow('Upgrade contract address not found');
+    });
+
+    it('resolves networkClientId when it does not match chainId', async () => {
+      const wrongNetworkClientId = 'arbitrum';
+      const correctNetworkClientId = 'mainnet-resolved';
+
+      mockGetNetworkClientById.mockReturnValue({
+        configuration: { chainId: '0xa4b1' },
+      });
+
+      mockFindNetworkClientIdByChainId.mockReturnValue(correctNetworkClientId);
+
+      await getDelegationTransaction(messengerMock, {
+        ...TRANSACTION_META_MOCK,
+        networkClientId: wrongNetworkClientId,
+      });
+
+      expect(mockGetNetworkClientById).toHaveBeenCalledWith(
+        wrongNetworkClientId,
+      );
+
+      expect(mockFindNetworkClientIdByChainId).toHaveBeenCalledWith(
+        TRANSACTION_META_MOCK.chainId,
+      );
+    });
+
+    it('uses original networkClientId when it matches chainId', async () => {
+      await getDelegationTransaction(messengerMock, TRANSACTION_META_MOCK);
+
+      expect(mockGetNetworkClientById).toHaveBeenCalledWith(
+        NETWORK_CLIENT_ID_MOCK,
+      );
+
+      expect(mockFindNetworkClientIdByChainId).not.toHaveBeenCalled();
     });
   });
 });

@@ -51,7 +51,14 @@ export async function getDelegationTransaction<
   messenger: MessengerType,
   transaction: TransactionMeta,
 ): Promise<DelegationTransaction> {
-  const { chainId } = transaction;
+  const resolvedNetworkClientId = resolveNetworkClientId(transaction);
+
+  const resolvedTransaction = {
+    ...transaction,
+    networkClientId: resolvedNetworkClientId,
+  };
+
+  const { chainId } = resolvedTransaction;
   const delegationEnvironment = getDeleGatorEnvironment(parseInt(chainId, 16));
 
   const delegationManagerAddress =
@@ -59,11 +66,11 @@ export async function getDelegationTransaction<
 
   const delegations = await buildDelegation(
     delegationEnvironment,
-    transaction,
+    resolvedTransaction,
     messenger,
   );
 
-  const executions = buildExecutions(transaction);
+  const executions = buildExecutions(resolvedTransaction);
 
   const modes: ExecutionMode[] = [
     executions[0].length > 1 ? BATCH_DEFAULT_MODE : SINGLE_DEFAULT_MODE,
@@ -78,7 +85,7 @@ export async function getDelegationTransaction<
   });
 
   const authorizationList = await buildAuthorizationList(
-    transaction,
+    resolvedTransaction,
     messenger,
   );
 
@@ -95,7 +102,7 @@ async function buildAuthorizationList<MessengerType extends SignMessenger>(
   messenger: MessengerType,
 ): Promise<AuthorizationList | undefined> {
   const { TransactionController } = Engine.context;
-  const { chainId, networkClientId, txParams } = transactionMeta;
+  const { chainId, txParams } = transactionMeta;
   const { from } = txParams;
 
   const atomicBatchResult = await TransactionController.isAtomicBatchSupported({
@@ -135,7 +142,7 @@ async function buildAuthorizationList<MessengerType extends SignMessenger>(
 
   const nonceLock = await TransactionController.getNonceLock(
     from,
-    networkClientId,
+    transactionMeta.networkClientId,
   );
 
   const nonce = nonceLock.nextNonce;
@@ -270,6 +277,39 @@ function buildCaveats(
   caveatBuilder.addCaveat(limitedCalls, 1);
 
   return caveatBuilder.build();
+}
+
+// The transaction meta may carry a networkClientId for the target chain
+// rather than the source chain. Verify it matches the expected chainId.
+function resolveNetworkClientId(transactionMeta: TransactionMeta): string {
+  const { NetworkController } = Engine.context;
+  const { chainId, networkClientId } = transactionMeta;
+
+  log('Resolving networkClientId', { chainId, networkClientId });
+
+  const networkClientChainId =
+    NetworkController.getNetworkClientById(networkClientId).configuration
+      .chainId;
+
+  log('Network client chain lookup', { networkClientId, networkClientChainId });
+
+  if (networkClientChainId.toLowerCase() === chainId.toLowerCase()) {
+    log('networkClientId matches chainId, no resolution needed');
+    return networkClientId;
+  }
+
+  const resolved = NetworkController.findNetworkClientIdByChainId(
+    chainId as Hex,
+  );
+
+  log('networkClientId chain mismatch, resolved to correct client', {
+    chainId,
+    networkClientChainId,
+    original: networkClientId,
+    resolved,
+  });
+
+  return resolved;
 }
 
 function decodeAuthorizationSignature(signature: Hex) {
