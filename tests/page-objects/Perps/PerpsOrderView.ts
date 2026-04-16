@@ -19,11 +19,7 @@ import {
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import {
-  element as detoxElement,
-  by as detoxBy,
-  waitFor as detoxWaitFor,
-} from 'detox';
+import { element as detoxElement, by as detoxBy } from 'detox';
 import {
   encapsulatedAction,
   PlatformDetector,
@@ -257,19 +253,6 @@ class PerpsOrderView {
     );
 
     const input = Matchers.getElementByID(inputTestId) as DetoxElement;
-
-    // Native-stack screens leave a UITransitionView overlay that causes
-    // Detox's pixel-based visibility check to fail for tap(). Scrolling
-    // the container forces iOS to re-composite the view hierarchy, which
-    // clears the occlusion. We scroll down then back up to ensure the
-    // element is visible and the overlay is resolved.
-    const scrollView = detoxElement(
-      detoxBy.id(PerpsTPSLViewSelectorsIDs.SCROLL_VIEW),
-    );
-    await detoxWaitFor(scrollView).toBeVisible().withTimeout(5000);
-    await scrollView.scroll(50, 'down');
-    await scrollView.scroll(50, 'up');
-
     await Gestures.waitAndTap(input, {
       elemDescription: focusInputElemDescription,
       checkEnabled: false,

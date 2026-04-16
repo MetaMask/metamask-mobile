@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   Keyboard,
+  Pressable,
   ScrollView,
   TextInput,
   TouchableOpacity,
@@ -473,7 +474,6 @@ const PerpsTPSLView: React.FC = () => {
         contentContainerStyle={styles.content}
         onScrollBeginDrag={Keyboard.dismiss}
         showsVerticalScrollIndicator={false}
-        testID={PerpsTPSLViewSelectorsIDs.SCROLL_VIEW}
       >
         <View style={styles.scrollContent} testID="scroll-content">
           {/* Current price and liquidation price info */}
@@ -584,12 +584,18 @@ const PerpsTPSLView: React.FC = () => {
 
             {/* Input row */}
             <View style={styles.inputRow}>
-              {/* Price Input */}
-              <View
+              {/* Price Input — Pressable wrapper so Detox can tap the
+                 visible container (solid background) instead of the
+                 transparent TextInput, which fails native-stack's
+                 pixel visibility check. */}
+              <Pressable
                 style={[
                   styles.inputContainer,
                   !isValid && takeProfitError && styles.inputError,
                 ]}
+                testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT}
+                onPress={() => takeProfitPriceRef.current?.focus()}
+                accessible={false}
               >
                 <Text
                   variant={TextVariant.BodyMD}
@@ -599,7 +605,6 @@ const PerpsTPSLView: React.FC = () => {
                 </Text>
                 <TextInput
                   ref={takeProfitPriceRef}
-                  testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT}
                   style={styles.input}
                   value={takeProfitPrice}
                   onChangeText={(text) => {
@@ -621,7 +626,7 @@ const PerpsTPSLView: React.FC = () => {
                   selectionColor={colors.primary.default}
                   cursorColor={colors.primary.default}
                 />
-              </View>
+              </Pressable>
 
               {/* RoE Percentage Input */}
               <View
@@ -755,12 +760,15 @@ const PerpsTPSLView: React.FC = () => {
 
             {/* Input row */}
             <View style={styles.inputRow}>
-              {/* Price Input */}
-              <View
+              {/* Price Input — same Pressable pattern as Take Profit */}
+              <Pressable
                 style={[
                   styles.inputContainer,
                   !isValid && stopLossError && styles.inputError,
                 ]}
+                testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT}
+                onPress={() => stopLossPriceRef.current?.focus()}
+                accessible={false}
               >
                 <Text
                   variant={TextVariant.BodyMD}
@@ -770,7 +778,6 @@ const PerpsTPSLView: React.FC = () => {
                 </Text>
                 <TextInput
                   ref={stopLossPriceRef}
-                  testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT}
                   style={styles.input}
                   value={stopLossPrice}
                   onChangeText={(text) => {
@@ -792,7 +799,7 @@ const PerpsTPSLView: React.FC = () => {
                   selectionColor={colors.primary.default}
                   cursorColor={colors.primary.default}
                 />
-              </View>
+              </Pressable>
 
               {/* Percentage Input */}
               <View
