@@ -12,6 +12,7 @@ import ContentfulRichText, {
 } from '../components/ContentfulRichText/ContentfulRichText';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -37,6 +38,11 @@ const CampaignMechanicsView: React.FC = () => {
     () => campaigns.find((c) => c.id === campaignId) ?? null,
     [campaigns, campaignId],
   );
+
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_help',
+    campaign_id: campaignId,
+  });
 
   const howItWorks = campaign?.details?.howItWorks ?? null;
   const notes = howItWorks?.notes ?? null;

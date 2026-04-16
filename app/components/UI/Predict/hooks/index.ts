@@ -1,3 +1,6 @@
+export { useCryptoTargetPrice } from './useCryptoTargetPrice';
+export type { UseCryptoTargetPriceParams } from './useCryptoTargetPrice';
+
 export {
   useLiveGameUpdates,
   type UseLiveGameUpdatesOptions,
