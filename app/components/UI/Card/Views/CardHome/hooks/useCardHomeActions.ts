@@ -296,8 +296,11 @@ export function useCardHomeActions({
     const walletAddress = data?.primaryFundingAsset?.walletAddress;
     if (!walletAddress) return;
 
-    const selectedAddress = evmAccount?.address ?? solanaAccount?.address;
-    if (selectedAddress?.toLowerCase() === walletAddress.toLowerCase()) return;
+    const isAlreadySelected =
+      walletAddress.toLowerCase() === evmAccount?.address?.toLowerCase() ||
+      walletAddress === solanaAccount?.address;
+
+    if (isAlreadySelected) return;
 
     Engine.setSelectedAddress(walletAddress);
   }, [
