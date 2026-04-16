@@ -136,24 +136,25 @@ const OndoLeaderboardView: React.FC = () => {
         >
           {/* User position */}
           {position && (
-            <Box twClassName="p-4">
-              <LeaderboardPositionHeader
-                rank={String(position.rank).padStart(2, '0')}
-                tier={formatTierDisplayName(position.projectedTier)}
-                isLoading={isPositionLoading}
-                isPending={isPending}
-                isQualified={isQualified}
-                showReturn
-                returnValue={returnValue}
-                returnColor={returnColor}
-                showPrizePool
-                prizePoolValue={prizePoolValue}
-                prizePoolLoading={isDepositsLoading && !deposits}
-              />
-            </Box>
+            <>
+              <Box twClassName="p-4">
+                <LeaderboardPositionHeader
+                  rank={String(position.rank).padStart(2, '0')}
+                  tier={formatTierDisplayName(position.projectedTier)}
+                  isLoading={isPositionLoading}
+                  isPending={isPending}
+                  isQualified={isQualified}
+                  showReturn
+                  returnValue={returnValue}
+                  returnColor={returnColor}
+                  showPrizePool
+                  prizePoolValue={prizePoolValue}
+                  prizePoolLoading={isDepositsLoading && !deposits}
+                />
+              </Box>
+              <Box twClassName="my-1 border-b border-border-muted" />
+            </>
           )}
-          {/* ── Divider ── */}
-          <Box twClassName="my-1 border-b border-border-muted" />
           {/* Full leaderboard */}
           <Box twClassName="py-4">
             <OndoLeaderboard

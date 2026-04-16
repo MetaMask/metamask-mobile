@@ -195,6 +195,7 @@ describe('OndoLeaderboardView', () => {
       portfolio: null,
       isLoading: false,
       hasError: false,
+      hasFetched: false,
       refetch: jest.fn(),
     });
     mockUseGetOndoCampaignDeposits.mockReturnValue({
