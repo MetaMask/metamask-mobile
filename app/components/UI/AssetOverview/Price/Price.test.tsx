@@ -173,4 +173,124 @@ describe('Price Component', () => {
 
     expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
   });
+
+  describe('shouldFallbackToLegacy logic', () => {
+    beforeEach(() => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectTokenOverviewAdvancedChartEnabled) {
+          return true;
+        }
+        if (selector === selectTokenOverviewChartType) {
+          return ChartType.Line;
+        }
+        return undefined;
+      });
+    });
+
+    it('falls back to legacy when OHLCV data length is below threshold (< 5)', () => {
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+
+      expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
+    });
+
+    it('falls back to legacy when hasEmptyData is true', () => {
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+          { time: 3000, open: 105, high: 107, low: 104, close: 106, volume: 1 },
+          { time: 4000, open: 106, high: 108, low: 105, close: 107, volume: 1 },
+          { time: 5000, open: 107, high: 109, low: 106, close: 108, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: true,
+      });
+
+      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+
+      expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
+    });
+
+    it('falls back to legacy when chartError is present', () => {
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+          { time: 3000, open: 105, high: 107, low: 104, close: 106, volume: 1 },
+          { time: 4000, open: 106, high: 108, low: 105, close: 107, volume: 1 },
+          { time: 5000, open: 107, high: 109, low: 106, close: 108, volume: 1 },
+        ],
+        isLoading: false,
+        error: new Error('Failed to fetch OHLCV data'),
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+
+      expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
+    });
+
+    it('does NOT fall back to legacy when chart is still loading', () => {
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [],
+        isLoading: true,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProviders(
+        <Price {...unifiedProps} isLoading={false} />,
+      );
+
+      // Should show advanced chart loading state, not fallback to legacy
+      expect(queryByTestId('mock-legacy-price-chart')).toBeNull();
+      expect(getByTestId('token-price')).toBeTruthy();
+    });
+
+    it('does NOT fall back to legacy when OHLCV data is sufficient (>= 5)', () => {
+      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+
+      expect(getByTestId('mock-advanced-chart')).toBeTruthy();
+    });
+
+    it('falls back to legacy when OHLCV data is exactly at threshold (5) but hasEmptyData is true', () => {
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+          { time: 3000, open: 105, high: 107, low: 104, close: 106, volume: 1 },
+          { time: 4000, open: 106, high: 108, low: 105, close: 107, volume: 1 },
+          { time: 5000, open: 107, high: 109, low: 106, close: 108, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: true,
+      });
+
+      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+
+      expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
+    });
+  });
 });
