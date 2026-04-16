@@ -253,16 +253,12 @@ describe('AccountSelector', () => {
       );
       fireEvent.press(addButton);
 
-      // Footer button and overlay header both show "Add wallet" in full-page mode
-      expect(screen.getAllByText('Add wallet')).toHaveLength(2);
-
-      // Import SRP button should be visible
-      expect(
-        screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
-      ).toBeOnTheScreen();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_WALLET);
 
-      // Account list remains visible behind the add-wallet overlay
+      // Footer still shows a single "Add wallet" label; add-wallet UI opens via navigation
+      expect(screen.getByText('Add wallet')).toBeOnTheScreen();
+
+      // Account list remains on this screen (navigation is mocked)
       expect(
         screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
       ).toBeOnTheScreen();
@@ -570,12 +566,8 @@ describe('AccountSelector', () => {
       );
       fireEvent.press(addButton);
 
-      // Footer button and overlay header both show "Add wallet" in full-page mode
-      expect(screen.getAllByText('Add wallet')).toHaveLength(2);
-
-      // Import wallet option should be visible
-      expect(screen.getByText('Import a wallet')).toBeOnTheScreen();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_WALLET);
+      expect(screen.getByText('Add wallet')).toBeOnTheScreen();
 
       jest.useFakeTimers();
     });
