@@ -7750,8 +7750,6 @@
     "auth_fail_title": "Unknown error.",
     "auth_fail_description": "An unknown error occurred while authenticating this account with MetaMask Rewards. Try again later.",
     "failed_to_authenticate": "Failed to authenticate with MetaMask Rewards",
-    "not_implemented": "Coming soon",
-    "not_implemented_season_summary": "Season summary coming soon",
     "optin_error": {
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
@@ -7768,8 +7766,7 @@
     },
     "season_status_error": {
       "error_fetching_title": "Season balance couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_description": "Check your connection and try again."
     },
     "active_boosts_error": {
       "error_fetching_title": "Boosts couldn’t be loaded",
@@ -7787,8 +7784,7 @@
     },
     "upcoming_rewards_error": {
       "error_fetching_title": "Rewards couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_description": "Check your connection and try again."
     },
     "referral_details_error": {
       "error_fetching_title": "Referral details couldn’t be loaded",
@@ -7823,7 +7819,6 @@
       "title": "Failed to claim reward"
     },
     "metal_card_claim": {
-      "title": "Redeem your reward",
       "description": "The MetaMask Metal Card is subject to eligibility and isn't available in all regions. If you don't qualify, you'll receive an exclusive premium merch reward instead.",
       "contact_info": "Share your contact info and you'll hear back within 2 weeks from @MidwitMilhouse on Telegram or christian.montoya@consensys.net.",
       "email_label": "Email",
@@ -7836,21 +7831,14 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
-    "referral_rewards_title": "Referrals",
-    "level": "Level",
-    "season_ends": "Season ends",
-    "season_ended": "Season ended",
     "main_title": "Rewards",
     "referral_title": "Referrals",
-    "tab_overview_title": "Overview",
-    "tab_activity_title": "Activity",
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
     "loading_activity": "Loading activity...",
     "error_loading_activity": "Error loading activity",
     "activity_empty_title": "No recent activity.",
     "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
-    "activity_empty_link": "See ways to earn",
     "filter_title": "Filter by activity type",
     "filter_all": "All",
     "events": {
@@ -7889,19 +7877,10 @@
     },
     "previous_season_summary": {
       "title": "{{seasonName}} Results",
-      "update_metamask_version": "Update MetaMask to {{version}}",
-      "to_claim_rewards": " to claim rewards",
-      "check_back_soon": "Check back soon to claim your rewards",
       "point_earned": "point earned",
       "points_earned": "points earned",
       "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
       "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
-    },
-    "previous_season_view": {
-      "title": "Previous Season"
-    },
-    "season_status": {
-      "points_earned": "Points earned"
     },
     "onboarding": {
       "not_supported_region_title": "Region not supported",
@@ -7968,8 +7947,7 @@
       "description_linked": "Invite code is now linked, so your referrer will earn rewards when you trade.",
       "description_not_linked": "Signed up before your friend could send you their code? Enter it below and you'll be linked.",
       "input_placeholder": "Enter referral code",
-      "invalid_code": "Invalid referral code",
-      "apply_button": "Apply referral code"
+      "invalid_code": "Invalid referral code"
     },
     "bonus_code": {
       "input_placeholder": "Enter bonus code",
@@ -8143,26 +8121,7 @@
       "error_description": "There was an error loading the prize pool. Please try again.",
       "retry_button": "Retry"
     },
-    "ondo_campaign_leaderboard_position": {
-      "title": "Your Position",
-      "rank": "My Rank",
-      "tier": "My Tier",
-      "rate_of_return": "Return",
-      "total_deposited": "Total Deposited",
-      "current_value": "Current Value",
-      "not_found": "Not on the leaderboard yet. Please check back later.",
-      "updated_at": "Last updated: {{time}}",
-      "error_loading": "Failed to load your position",
-      "error_loading_description": "There was an error loading your leaderboard position. Please try again.",
-      "retry": "Retry"
-    },
     "ondo_campaign_portfolio": {
-      "total_value": "Total value",
-      "portfolio_pnl": "P&L",
-      "portfolio_pnl_percent": "P&L (%)",
-      "summary_cost_basis": "Cost basis",
-      "summary_net_deposit": "Net deposit",
-      "summary_cashed_out": "Cashed out",
       "position_current_value": "Value",
       "position_unrealized_pnl": "P&L",
       "updated_at": "Last updated: {{time}}",
@@ -8190,7 +8149,6 @@
     },
     "ondo_campaign_leaderboard": {
       "title": "Leaderboard",
-      "of_total": "of {{total}} participants",
       "total_participants": "{{count}} participants",
       "updated_at": "Last updated: {{time}}",
       "error_loading": "Failed to load leaderboard",
@@ -8216,13 +8174,9 @@
       "retry": "Retry",
       "label_return": "Return",
       "label_market_value": "Market Value",
-      "label_net_deposited": "Net deposited",
-      "label_cashed_out": "Cashed out",
       "label_rank": "Rank",
       "label_tier": "Tier",
-      "label_your_return": "Your return",
       "label_your_rank": "Your rank",
-      "label_net_deposit": "Net deposit",
       "label_portfolio": "Portfolio",
       "label_net_inflow": "Net inflow",
       "label_outflow": "Outflow",
