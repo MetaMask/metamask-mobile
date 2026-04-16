@@ -46,31 +46,31 @@ export const StatCell: React.FC<StatCellProps> = ({
   const tw = useTailwind();
   return (
     <Box style={CELL_STYLE} twClassName="gap-0.5">
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextAlternative}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-1.5"
       >
-        {label}
-      </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
+          {label}
+        </Text>
+        {!isLoading && suffix}
+      </Box>
       {isLoading ? (
         <Skeleton style={tw.style('h-5 w-20 rounded')} />
       ) : (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={valueColor}
+          testID={testID}
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={valueColor}
-            testID={testID}
-          >
-            {value}
-          </Text>
-          {suffix}
-        </Box>
+          {value}
+        </Text>
       )}
     </Box>
   );
