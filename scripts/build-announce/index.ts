@@ -148,6 +148,10 @@ async function main(): Promise<void> {
         console.log(`  - High Risk Scenarios: ${testPlan.scenarios.filter((s) => s.riskLevel === 'high').length}`);
         console.log(`  - Medium Risk Scenarios: ${testPlan.scenarios.filter((s) => s.riskLevel === 'medium').length}`);
         console.log(`  - Teams Signed Off: ${testPlan.signOffs.signedOff.length}/${testPlan.signOffs.signedOff.length + testPlan.signOffs.needsAttention.length}`);
+      } else {
+        // generateTestPlan returns null on failure (doesn't throw)
+        testPlanError = 'Test plan generation failed - check logs for details';
+        console.log('Continuing with build links only...');
       }
     } catch (error) {
       testPlan = null;
