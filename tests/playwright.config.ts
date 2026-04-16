@@ -135,6 +135,7 @@ export default defineConfig({
     {
       name: 'mm-connect-ios-browserstack',
       testMatch: '**/performance/mm-connect/**/*.spec.ts',
+      timeout: 12 * 60 * 1000, // BrowserStack session creation (~1min) counts against test time until driver fixture is worker-scoped
       use: {
         platform: Platform.IOS,
         device: {
@@ -151,6 +152,7 @@ export default defineConfig({
     {
       name: 'mm-connect-ios-local',
       testMatch: '**/performance/mm-connect/**/*.spec.ts',
+      timeout: 12 * 60 * 1000,
       use: {
         platform: Platform.IOS,
         device: {
@@ -166,6 +168,7 @@ export default defineConfig({
     {
       name: 'mm-connect-android-browserstack',
       testMatch: '**/performance/mm-connect/**/*.spec.ts',
+      timeout: 12 * 60 * 1000,
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -183,6 +186,7 @@ export default defineConfig({
     {
       name: 'mm-connect-android-local',
       testMatch: '**/performance/mm-connect/**/*.spec.ts',
+      timeout: 12 * 60 * 1000,
       use: {
         platform: Platform.ANDROID,
         device: {
