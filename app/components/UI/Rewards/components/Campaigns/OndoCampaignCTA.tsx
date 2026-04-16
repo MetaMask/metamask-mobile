@@ -33,8 +33,7 @@ interface OndoCampaignCTAProps {
  * Bottom CTA for the Ondo campaign details page.
  * Renders one of four states depending on campaign/participant status:
  * - Delegates to CampaignCTA for the opt-in flow (active, not opted in, eligible)
- * - "Entries closed" button (with Lock icon + toast) when the user cannot enter — either
- *   because the campaign is complete, or because the user is not eligible for the campaign
+ * - "Entries closed" button (with Lock icon + toast) when the user cannot enter — either because the campaign is complete, or because the user is not eligible for the campaign
  * - "Open Position" button when the user has opted in but has no portfolio positions
  * - "Swap Ondo Assets" button when the user has opted in and has portfolio positions
  */
