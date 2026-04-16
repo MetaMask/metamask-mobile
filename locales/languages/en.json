@@ -2463,6 +2463,14 @@
       "final": "Final"
     }
   },
+  "rwa": {
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Tokenized stocks and ETFs aren't available in your region due to legal restrictions.",
+      "link": "See Ondo eligibility requirements",
+      "button": "Got it"
+    }
+  },
   "receive": {
     "title": "Receive"
   },
