@@ -188,6 +188,74 @@ describe('useMoneyAccountPayToken', () => {
     });
   });
 
+  it('does not call setPayToken again on deposit when accountTokens refreshes after initial selection', () => {
+    hasTransactionTypeMock.mockImplementation((_meta, types) =>
+      (types as TransactionType[]).includes(
+        TransactionType.moneyAccountDeposit,
+      ),
+    );
+    useTransactionAccountOverrideMock.mockReturnValue(
+      '0xSelectedAccount' as never,
+    );
+    useAccountTokensMock.mockReturnValue([
+      { address: '0xTokenA', chainId: '0x1', symbol: 'USDC', decimals: 6 },
+    ] as never);
+
+    const { rerender } = renderHook(() => useMoneyAccountPayToken());
+
+    expect(setPayTokenMock).toHaveBeenCalledTimes(1);
+
+    useAccountTokensMock.mockReturnValue([
+      { address: '0xTokenA', chainId: '0x1', symbol: 'USDC', decimals: 6 },
+      { address: '0xTokenB', chainId: '0x1', symbol: 'DAI', decimals: 18 },
+    ] as never);
+
+    rerender({});
+
+    expect(setPayTokenMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call setPayToken again on withdraw when accountTokens refreshes after initial selection', () => {
+    hasTransactionTypeMock.mockImplementation((_meta, types) =>
+      (types as TransactionType[]).includes(
+        TransactionType.moneyAccountWithdraw,
+      ),
+    );
+    useTransactionAccountOverrideMock.mockReturnValue(
+      '0xSelectedAccount' as never,
+    );
+
+    const { rerender } = renderHook(() => useMoneyAccountPayToken());
+
+    expect(setPayTokenMock).toHaveBeenCalledTimes(1);
+
+    rerender({});
+
+    expect(setPayTokenMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls setPayToken again when accountOverride changes to a new account', () => {
+    hasTransactionTypeMock.mockImplementation((_meta, types) =>
+      (types as TransactionType[]).includes(
+        TransactionType.moneyAccountDeposit,
+      ),
+    );
+    useTransactionAccountOverrideMock.mockReturnValue('0xAccountA' as never);
+    useAccountTokensMock.mockReturnValue([
+      { address: '0xTokenA', chainId: '0x1', symbol: 'USDC', decimals: 6 },
+    ] as never);
+
+    const { rerender } = renderHook(() => useMoneyAccountPayToken());
+
+    expect(setPayTokenMock).toHaveBeenCalledTimes(1);
+
+    useTransactionAccountOverrideMock.mockReturnValue('0xAccountB' as never);
+
+    rerender({});
+
+    expect(setPayTokenMock).toHaveBeenCalledTimes(2);
+  });
+
   it('does not call setPayToken when accountOverride is undefined', () => {
     hasTransactionTypeMock.mockImplementation((_meta, types) =>
       (types as TransactionType[]).includes(

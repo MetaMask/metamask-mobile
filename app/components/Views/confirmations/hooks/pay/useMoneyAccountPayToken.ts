@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
@@ -38,8 +38,13 @@ export function useMoneyAccountPayToken() {
   const isAwaitingAccountSelection =
     (isMoneyAccountDeposit || isMoneyAccountWithdraw) && !accountOverride;
 
+  const initializedForAccountOverride = useRef<string | undefined>();
+
   useEffect(() => {
-    if (!accountOverride) {
+    if (
+      !accountOverride ||
+      initializedForAccountOverride.current === accountOverride
+    ) {
       return;
     }
 
@@ -48,6 +53,7 @@ export function useMoneyAccountPayToken() {
         address: MUSD_TOKEN_ADDRESS,
         chainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
       });
+      initializedForAccountOverride.current = accountOverride;
       return;
     }
 
@@ -60,6 +66,7 @@ export function useMoneyAccountPayToken() {
           address: firstEvmToken.address as Hex,
           chainId: firstEvmToken.chainId as Hex,
         });
+        initializedForAccountOverride.current = accountOverride;
       }
     }
   }, [
