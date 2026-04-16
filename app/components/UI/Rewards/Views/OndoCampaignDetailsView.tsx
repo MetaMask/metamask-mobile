@@ -136,7 +136,7 @@ const OndoCampaignDetailsView: React.FC = () => {
 
   useTrackRewardsPageView({
     page_type: 'ondo_campaign_detail',
-    campaign_id: campaignId,
+    campaign_id: effectiveCampaignId,
   });
 
   useEffect(() => {
@@ -503,7 +503,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       currentUserReferralCode={referralCode}
                       userPosition={leaderboardUserPosition}
                       pendingSheetPosition={leaderboardPendingSheetPosition}
-                      campaignId={campaignId}
+                      campaignId={effectiveCampaignId}
                     />
                   </Box>
                 </>
