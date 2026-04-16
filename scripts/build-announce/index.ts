@@ -150,6 +150,7 @@ async function main(): Promise<void> {
         console.log(`  - Teams Signed Off: ${testPlan.signOffs.signedOff.length}/${testPlan.signOffs.signedOff.length + testPlan.signOffs.needsAttention.length}`);
       }
     } catch (error) {
+      testPlan = null;
       testPlanError = error instanceof Error ? error.message : String(error);
       console.error(`\nTest plan generation failed: ${testPlanError}`);
       console.log('Continuing with build links only...');
