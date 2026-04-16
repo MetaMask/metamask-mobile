@@ -75,7 +75,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'We had a problem loading your stats. Please try again later.',
       'rewards.ondo_campaign_stats.retry': 'Retry',
       'rewards.ondo_campaign_stats.label_return': 'Return',
-      'rewards.ondo_campaign_stats.label_market_value': 'Market Value',
+      'rewards.ondo_campaign_stats.label_market_value': 'Market value',
       'rewards.ondo_campaign_stats.label_rank': 'Rank',
       'rewards.ondo_campaign_stats.label_tier': 'Tier',
     };
