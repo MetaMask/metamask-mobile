@@ -3,8 +3,8 @@ import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   Box,
-  BoxFlexDirection,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -13,17 +13,15 @@ import { useSelector } from 'react-redux';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
-import {
-  StatCell,
-  PendingTag,
-} from '../components/Campaigns/CampaignStatsSummary';
-import {
-  formatTierDisplayName,
-  getTierMinNetDeposit,
-} from '../components/Campaigns/OndoLeaderboard.utils';
+import LeaderboardPositionHeader from '../components/Campaigns/LeaderboardPositionHeader';
+import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
+import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
+import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
+import { getCurrentPrize } from '../components/Campaigns/OndoPrizePool';
+import { formatPercentChange, formatUsd } from '../utils/formatUtils';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -68,7 +66,29 @@ const OndoLeaderboardView: React.FC = () => {
   const { position, isLoading: isPositionLoading } =
     useGetOndoLeaderboardPosition(isOptedIn ? campaignId : undefined);
 
+  const { portfolio: portfolioData, isLoading: isPortfolioLoading } =
+    useGetOndoPortfolioPosition(isOptedIn ? campaignId : undefined);
+
+  const { deposits, isLoading: isDepositsLoading } =
+    useGetOndoCampaignDeposits(campaignId);
+
   const isPending = position != null && !position.qualified;
+  const isQualified = position != null && position.qualified;
+
+  const returnValue = portfolioData?.summary
+    ? formatPercentChange(portfolioData.summary.portfolioPnlPercent)
+    : undefined;
+
+  const returnColor = portfolioData?.summary
+    ? parseFloat(portfolioData.summary.portfolioPnlPercent) < 0
+      ? TextColor.ErrorDefault
+      : TextColor.SuccessDefault
+    : TextColor.TextDefault;
+
+  const prizePoolValue = deposits?.totalUsdDeposited
+    ? formatUsd(getCurrentPrize(parseFloat(deposits.totalUsdDeposited)))
+    : undefined;
+
   const {
     leaderboard: leaderboardData,
     selectedTier,
@@ -116,25 +136,26 @@ const OndoLeaderboardView: React.FC = () => {
         >
           {/* User position */}
           {position && (
-            <Box twClassName="p-4 gap-3">
-              <Box flexDirection={BoxFlexDirection.Row}>
-                <StatCell
-                  label="Rank"
-                  value={String(position.rank).padStart(2, '0')}
-                  isLoading={isPositionLoading}
-                  suffix={isPending ? <PendingTag /> : undefined}
-                />
-                <StatCell
-                  label="Tier"
-                  value={formatTierDisplayName(position.projectedTier)}
-                  isLoading={isPositionLoading}
-                />
-              </Box>
+            <Box twClassName="p-4">
+              <LeaderboardPositionHeader
+                rank={String(position.rank).padStart(2, '0')}
+                tier={formatTierDisplayName(position.projectedTier)}
+                isLoading={isPositionLoading}
+                isPending={isPending}
+                isQualified={isQualified}
+                showReturn
+                returnValue={returnValue}
+                returnColor={returnColor}
+                showPrizePool
+                prizePoolValue={prizePoolValue}
+                prizePoolLoading={isDepositsLoading && !deposits}
+              />
             </Box>
           )}
-
+          {/* ── Divider ── */}
+          <Box twClassName="my-1 border-b border-border-muted" />
           {/* Full leaderboard */}
-          <Box>
+          <Box twClassName="py-4">
             <OndoLeaderboard
               tierNames={tierNames}
               selectedTier={selectedTier}
