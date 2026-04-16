@@ -19,7 +19,6 @@ import { AssetType, TokenStandard } from '../../types/token';
 import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { selectTransactionPayAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import type { RootState } from '../../../../../reducers';
 
 export interface EnrichTokenRequest {
@@ -29,14 +28,10 @@ export interface EnrichTokenRequest {
 
 const EMPTY_REQUESTS: EnrichTokenRequest[] = [];
 
-function useFromAccountGroupAssets() {
+function useFromAccountGroupAssets(accountAddress?: string) {
   const transactionMeta = useTransactionMetadataRequest();
-  const transactionId = transactionMeta?.id ?? '';
-  const accountOverride = useSelector((state: RootState) =>
-    selectTransactionPayAccountOverrideByTransactionId(state, transactionId),
-  );
   const fromAddress =
-    accountOverride ?? (transactionMeta?.txParams?.from as string | undefined);
+    accountAddress ?? (transactionMeta?.txParams?.from as string | undefined);
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
 
@@ -61,16 +56,18 @@ function useFromAccountGroupAssets() {
 }
 
 export function useAccountTokens({
+  accountAddress,
   includeNoBalance = false,
   tokenFilter,
   enrichTokenRequests = EMPTY_REQUESTS,
 }: {
+  accountAddress?: string;
   includeNoBalance?: boolean;
   tokenFilter?: (chainId: string, address: string) => boolean;
   enrichTokenRequests?: EnrichTokenRequest[];
 } = {}): AssetType[] {
   const globalAssets = useSelector(selectAssetsBySelectedAccountGroup);
-  const fromAccountAssets = useFromAccountGroupAssets();
+  const fromAccountAssets = useFromAccountGroupAssets(accountAddress);
   const assets = fromAccountAssets ?? globalAssets;
   const fiatCurrency = useSelector(selectCurrentCurrency);
 

@@ -1,67 +1,68 @@
 import React, { ReactNode, memo, useCallback, useState } from 'react';
-import { toCaipAssetType } from '@metamask/utils';
-import { TransactionType } from '@metamask/transaction-controller';
-import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
-import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
-import { BridgeFeeRow } from '../../rows/bridge-fee-row';
-import { BridgeTimeRow } from '../../rows/bridge-time-row';
-import { TotalRow } from '../../rows/total-row';
-import { ReceiveRow } from '../../rows/receive-row';
-import { PercentageRow } from '../../rows/percentage-row';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import {
-  DepositKeyboard,
-  DepositKeyboardSkeleton,
-} from '../../deposit-keyboard';
-import { Box } from '../../../../../UI/Box/Box';
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
+import { TransactionType } from '@metamask/transaction-controller';
+import { toCaipAssetType } from '@metamask/utils';
+
+import { strings } from '../../../../../../../locales/i18n';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import Engine from '../../../../../../core/Engine';
+import EngineService from '../../../../../../core/EngineService';
 import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from './custom-amount-info.styles';
-import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
-import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
-import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
+import { Box } from '../../../../../UI/Box/Box';
+import { AlignItems } from '../../../../../UI/Box/box.types';
+import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
+import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
+import { AlertKeys } from '../../../constants/alerts';
+import { useAlerts } from '../../../context/alert-system-context';
 import {
   SetPayTokenRequest,
   useAutomaticTransactionPayToken,
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
-import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
-import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
-import { AlertMessage } from '../../alerts/alert-message';
-import {
-  CustomAmount,
-  CustomAmountSkeleton,
-} from '../../transactions/custom-amount';
 import {
   useIsTransactionPayLoading,
   useTransactionPayFiatPayment,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
-import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
-import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
-import { AlignItems } from '../../../../../UI/Box/box.types';
-import { strings } from '../../../../../../../locales/i18n';
-import { hasTransactionType } from '../../../utils/transaction';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import {
-  Button,
-  ButtonSize,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
-import { useAlerts } from '../../../context/alert-system-context';
-import { AlertKeys } from '../../../constants/alerts';
-import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
-import EngineService from '../../../../../../core/EngineService';
-import Engine from '../../../../../../core/Engine';
-import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
+import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
+import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
+import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
+import { hasTransactionType } from '../../../utils/transaction';
+import { AlertMessage } from '../../alerts/alert-message';
+import {
+  DepositKeyboard,
+  DepositKeyboardSkeleton,
+} from '../../deposit-keyboard';
 import PayAccountSelector from '../../PayAccountSelector';
+import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
+import { BridgeFeeRow } from '../../rows/bridge-fee-row';
+import { BridgeTimeRow } from '../../rows/bridge-time-row';
+import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
+import { PercentageRow } from '../../rows/percentage-row';
+import { ReceiveRow } from '../../rows/receive-row';
+import { TotalRow } from '../../rows/total-row';
+import {
+  CustomAmount,
+  CustomAmountSkeleton,
+} from '../../transactions/custom-amount';
+import styleSheet from './custom-amount-info.styles';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -122,14 +123,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
-    const [hasSelectedAccount, setHasSelectedAccount] = useState(false);
+    const [selectedAccount, setSelectedAccount] = useState<string | undefined>(
+      undefined,
+    );
 
-    const handleAccountSelected = useCallback(() => {
-      setHasSelectedAccount(true);
+    const handleAccountSelected = useCallback((address: string) => {
+      setSelectedAccount(address);
     }, []);
 
     const isAccountMissing =
-      (isMoneyAccountWithdraw || isMoneyAccountDeposit) && !hasSelectedAccount;
+      (isMoneyAccountWithdraw || isMoneyAccountDeposit) && !selectedAccount;
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
@@ -198,7 +201,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {!hidePayTokenAmount && disablePay !== true && (
+          {!hidePayTokenAmount && disablePay !== true && !isAccountMissing && (
             <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
           )}
           {!hidePayTokenAmount && children}
@@ -221,10 +224,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               )}
             </>
           )}
-          {!isResultReady && disablePay !== true && hasTokens && <PayWithRow />}
+          {!isResultReady && disablePay !== true && hasTokens && (
+            <PayWithRow selectedAccount={selectedAccount} />
+          )}
           {isResultReady && (
             <Box>
-              {disablePay !== true && hasTokens && <PayWithRow />}
+              {disablePay !== true && hasTokens && (
+                <PayWithRow selectedAccount={selectedAccount} />
+              )}
               {showPaymentDetails && (
                 <>
                   <BridgeFeeRow />
