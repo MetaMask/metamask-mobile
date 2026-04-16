@@ -78,26 +78,26 @@ describe('StatsRow', () => {
   });
 
   describe('avg. hold time', () => {
-    it('renders a dash when avgHoldMinutes is null', () => {
-      renderWithProvider(<StatsRow stats={baseStats} avgHoldMinutes={null} />);
+    it('renders a dash when holdTimeMinutes is null', () => {
+      renderWithProvider(<StatsRow stats={baseStats} holdTimeMinutes={null} />);
 
       expect(screen.getByText('\u2014')).toBeOnTheScreen();
     });
 
-    it('renders minutes when avgHoldMinutes is less than 60', () => {
-      renderWithProvider(<StatsRow stats={baseStats} avgHoldMinutes={45} />);
+    it('renders minutes when holdTimeMinutes is less than 60', () => {
+      renderWithProvider(<StatsRow stats={baseStats} holdTimeMinutes={45} />);
 
       expect(screen.getByText('45m')).toBeOnTheScreen();
     });
 
-    it('renders hours when avgHoldMinutes is 60 or more but less than 1440', () => {
-      renderWithProvider(<StatsRow stats={baseStats} avgHoldMinutes={90} />);
+    it('renders hours when holdTimeMinutes is 60 or more but less than 1440', () => {
+      renderWithProvider(<StatsRow stats={baseStats} holdTimeMinutes={90} />);
 
       expect(screen.getByText('1.5 hrs')).toBeOnTheScreen();
     });
 
-    it('renders days when avgHoldMinutes is 1440 or more', () => {
-      renderWithProvider(<StatsRow stats={baseStats} avgHoldMinutes={2880} />);
+    it('renders days when holdTimeMinutes is 1440 or more', () => {
+      renderWithProvider(<StatsRow stats={baseStats} holdTimeMinutes={2880} />);
 
       expect(screen.getByText('2 days')).toBeOnTheScreen();
     });

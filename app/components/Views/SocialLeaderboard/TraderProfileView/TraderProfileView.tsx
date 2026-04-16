@@ -185,7 +185,7 @@ const TraderProfileView = () => {
             ) : (
               <StatsRow
                 stats={profile.stats}
-                avgHoldMinutes={profile.stats.medianHoldMinutes}
+                holdTimeMinutes={profile.stats.medianHoldMinutes}
               />
             )}
 
