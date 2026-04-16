@@ -308,15 +308,6 @@ jobs:
           # Clean up temporary node_modules
           rm -rf node_modules temp-deps
 
-      - name: Extract per-file timing data for shard balancing
-        if: ${{ !cancelled() }}
-        env:
-          PLATFORM: ${{ inputs.platform }}
-          JUNIT_REPORT_PATH: tests/reports/junit.xml
-          TIMINGS_FILE: tests/e2e-test-timings.json
-        run: |
-          node .github/scripts/e2e-update-test-timings.mjs || echo "⚠️  Timing extraction failed (non-blocking)"
-
       # Merge previous test results with current results to preserve pass/fail history across re-runs.
       # Without this, tests that passed in attempt N but were skipped in attempt N+1 would have no
       # results in the artifact, causing them to be re-run in attempt N+2.

@@ -27,26 +27,9 @@ jobs:
       keystore_target: 'qa'
     secrets: inherit
 
-  setup-env-android:
-    name: 'Pre-warm Android E2E environment'
-    needs: [build-android-apks]
-    runs-on: 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up E2E environment
-        timeout-minutes: 15
-        uses: ./.github/actions/setup-e2e-env
-        with:
-          platform: android
-          setup-simulator: false
-          android-api-level: 36
-          configure-keystores: false
-
   regression-confirmations-android:
     name: 'Confirmations Regression (Android) - ${{ matrix.split }}'
-    needs: [build-android-apks, setup-env-android]
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -62,7 +45,7 @@ jobs:
 
   regression-trade-android:
     name: 'Trade Regression (Android) - ${{ matrix.split }}'
-    needs: [build-android-apks, setup-env-android]
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -78,7 +61,7 @@ jobs:
 
   regression-wallet-platform-android:
     name: 'Wallet Platform Regression (Android) - ${{ matrix.split }}'
-    needs: [build-android-apks, setup-env-android]
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -94,7 +77,7 @@ jobs:
 
   regression-accounts-android:
     name: 'Accounts Regression (Android) - ${{ matrix.split }}'
-    needs: [build-android-apks, setup-env-android]
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -110,7 +93,7 @@ jobs:
 
   regression-network-abstraction-android:
     name: 'Network Abstraction Regression (Android) - ${{ matrix.split }}'
-    needs: [build-android-apks, setup-env-android]
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -126,7 +109,7 @@ jobs:
 
   regression-network-expansion-android:
     name: 'Network Expansion Regression (Android) - ${{ matrix.split }}'
-    needs: [build-android-apks, setup-env-android]
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -142,7 +125,7 @@ jobs:
 
   regression-assets-android:
     name: 'Assets Regression (Android) - ${{ matrix.split }}'
-    needs: [build-android-apks, setup-env-android]
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2]
@@ -158,7 +141,7 @@ jobs:
 
   regression-ux-android:
     name: 'UX Regression (Android) - ${{ matrix.split }}'
-    needs: [build-android-apks, setup-env-android]
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1]
@@ -178,7 +161,6 @@ jobs:
     if: always()
     needs:
       - build-android-apks
-      - setup-env-android
       - regression-confirmations-android
       - regression-trade-android
       - regression-wallet-platform-android

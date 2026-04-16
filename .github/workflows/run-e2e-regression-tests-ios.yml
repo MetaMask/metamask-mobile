@@ -25,31 +25,9 @@ jobs:
     uses: ./.github/workflows/build-ios-e2e.yml
     secrets: inherit
 
-  setup-env-ios:
-    name: 'Pre-warm iOS E2E environment'
-    needs: [build-ios-apps]
-    runs-on: 'ghcr.io/cirruslabs/macos-runner:tahoe'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up E2E environment
-        timeout-minutes: 15
-        uses: ./.github/actions/setup-e2e-env
-        with:
-          platform: ios
-          setup-simulator: false
-          configure-keystores: false
-
-      - name: Build Detox framework cache
-        run: |
-          echo "Building Detox framework cache for iOS..."
-          yarn detox clean-framework-cache
-          yarn detox build-framework-cache
-
   regression-confirmations-ios:
     name: 'Confirmations Regression (iOS) - ${{ matrix.split }}'
-    needs: [build-ios-apps, setup-env-ios]
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -65,7 +43,7 @@ jobs:
 
   regression-trade-ios:
     name: 'Trade Regression (iOS) - ${{ matrix.split }}'
-    needs: [build-ios-apps, setup-env-ios]
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -81,7 +59,7 @@ jobs:
 
   regression-wallet-platform-ios:
     name: 'Wallet Platform Regression (iOS) - ${{ matrix.split }}'
-    needs: [build-ios-apps, setup-env-ios]
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -97,7 +75,7 @@ jobs:
 
   regression-accounts-ios:
     name: 'Accounts Regression (iOS) - ${{ matrix.split }}'
-    needs: [build-ios-apps, setup-env-ios]
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -113,7 +91,7 @@ jobs:
 
   regression-network-abstraction-ios:
     name: 'Network Abstraction Regression (iOS) - ${{ matrix.split }}'
-    needs: [build-ios-apps, setup-env-ios]
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -129,7 +107,7 @@ jobs:
 
   regression-network-expansion-ios:
     name: 'Network Expansion Regression (iOS) - ${{ matrix.split }}'
-    needs: [build-ios-apps, setup-env-ios]
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -145,7 +123,7 @@ jobs:
 
   regression-assets-ios:
     name: 'Assets Regression (iOS) - ${{ matrix.split }}'
-    needs: [build-ios-apps, setup-env-ios]
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1, 2]
@@ -161,7 +139,7 @@ jobs:
 
   regression-ux-ios:
     name: 'UX Regression (iOS) - ${{ matrix.split }}'
-    needs: [build-ios-apps, setup-env-ios]
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1]
@@ -180,7 +158,6 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs:
-      - setup-env-ios
       - regression-confirmations-ios
       - regression-trade-ios
       - regression-wallet-platform-ios

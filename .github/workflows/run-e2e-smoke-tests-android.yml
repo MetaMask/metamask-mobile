@@ -21,20 +21,6 @@ permissions:
   actions: read
 
 jobs:
-  # CI pipeline sanity check — runs a single minimal navigation test.
-  # Only triggered when selected_tags contains 'CiSanityCheck'.
-  ci-sanity-check-android:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'CiSanityCheck')
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: ci-sanity-check-android
-      platform: android
-      test_suite_tag: 'CiSanityCheck'
-      split_number: 1
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-    secrets: inherit
-
   trade-android-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeTrade')
     strategy:
@@ -215,7 +201,7 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeMultiChainAPI')
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -223,7 +209,7 @@ jobs:
       platform: android
       test_suite_tag: 'SmokeMultiChainAPI'
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 1
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
@@ -264,7 +250,6 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
     needs:
-      - ci-sanity-check-android
       - trade-android-smoke
       - perps-android-smoke
       - wallet-platform-android-smoke
