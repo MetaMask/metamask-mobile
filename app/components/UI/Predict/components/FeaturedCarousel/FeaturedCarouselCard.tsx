@@ -27,7 +27,7 @@ import {
 import { formatPercentage } from '../../utils/format';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictNavigation } from '../../hooks/usePredictNavigation';
+import { usePredictPreviewSheet } from '../../contexts';
 import FeaturedCarouselSportCard from './FeaturedCarouselSportCard';
 import FeaturedCarouselCardFooter from './FeaturedCarouselCardFooter';
 import FeaturedCarouselPayoutRow from './FeaturedCarouselPayoutRow';
@@ -48,7 +48,7 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { navigateToBuyPreview } = usePredictNavigation();
+  const { openBuySheet } = usePredictPreviewSheet();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
 
   const handleCardPress = useCallback(() => {
@@ -67,20 +67,17 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
     (outcome: PredictOutcome, token: PredictOutcomeToken) => {
       executeGuardedAction(
         () => {
-          navigateToBuyPreview(
-            {
-              market,
-              outcome,
-              outcomeToken: token,
-              entryPoint,
-            },
-            { throughRoot: true },
-          );
+          openBuySheet({
+            market,
+            outcome,
+            outcomeToken: token,
+            entryPoint,
+          });
         },
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT },
       );
     },
-    [market, entryPoint, executeGuardedAction, navigateToBuyPreview],
+    [market, entryPoint, executeGuardedAction, openBuySheet],
   );
 
   if (market.game) {
