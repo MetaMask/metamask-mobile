@@ -58,7 +58,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
       ? (position.realizedPnl / position.boughtUsd) * 100
       : null;
 
-  const displayPnlPercent = position.pnlPercent ?? closedPnlPercent;
+  const displayPnlPercent = isClosed ? closedPnlPercent : position.pnlPercent;
   const hasPnl = displayPnlPercent != null;
   const isPnlPositive = hasPnl && (displayPnlPercent ?? 0) >= 0;
   const testID = `position-row-${position.tokenSymbol}`;
