@@ -30,6 +30,7 @@ Always prioritize @metamask/design-system-react-native components and Tailwind C
    - **Rule**: If it exists in the design system, you MUST use it
 
 2. **SECOND**: Use `app/component-library` ONLY if design system lacks it
+   - **Use for**: Tabs, Cells, Modal, Overlay, Toast, Pickers, Select, Sheet/SheetHeader, etc.
    - **Rule**: These are MetaMask-specific implementations not (yet) in the design system
    - **Important**: component-library components should themselves use design system primitives internally
 
