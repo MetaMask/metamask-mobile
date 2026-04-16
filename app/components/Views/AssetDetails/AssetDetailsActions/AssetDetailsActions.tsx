@@ -141,7 +141,11 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   }, [withNavigationLock, onReceive]);
 
   return (
-    <View style={styles.activitiesButton} testID={containerTestID}>
+    <View
+      style={styles.activitiesButton}
+      testID={containerTestID}
+      accessible={false}
+    >
       {displayBuyButton && (
         <MainActionButton
           iconName={IconName.AttachMoney}

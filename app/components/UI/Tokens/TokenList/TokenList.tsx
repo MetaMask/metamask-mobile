@@ -185,6 +185,7 @@ const TokenListComponent = ({
     <Box
       twClassName={'bg-default'}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
+      accessible={false}
     >
       {displayTokenKeys.map((item, index) => (
         <TokenListItem

@@ -1,7 +1,11 @@
 import { test as perfTest } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import {
+  asPlaywrightElement,
+  PlaywrightAssertions,
+  withSnapshotSettings,
+} from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import {
@@ -23,8 +27,10 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await WalletView.tapOnTokensSection();
-      await WalletView.tapOnToken('USDC');
+      await withSnapshotSettings({ snapshotMaxDepth: 45 }, async () => {
+        await WalletView.tapOnTokensSection();
+        await WalletView.tapOnToken('USDC');
+      });
 
       const priceChartDotEnd = asPlaywrightElement(
         TokenOverview.priceChartDotEnd,

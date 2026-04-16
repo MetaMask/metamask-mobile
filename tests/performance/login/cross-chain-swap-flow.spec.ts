@@ -2,6 +2,7 @@ import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper.js';
 import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import { withSnapshotSettings } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import QuoteView from '../../page-objects/swaps/QuoteView.js';
 
@@ -19,7 +20,9 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await WalletView.tapWalletSwapButton();
+      await withSnapshotSettings({ snapshotMaxDepth: 45 }, async () => {
+        await WalletView.tapWalletSwapButton();
+      });
       await timer1.measure(() => QuoteView.isVisible());
 
       await QuoteView.selectNetworkAndTokenTo('Solana', 'SOL');
