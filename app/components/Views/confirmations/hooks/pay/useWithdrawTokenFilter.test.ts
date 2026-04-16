@@ -85,11 +85,9 @@ const mockUseSendTokens = jest.mocked(useSendTokens);
 function runHook({
   type,
   postQuoteFlags,
-  accountAddress,
 }: {
   type?: TransactionType;
   postQuoteFlags?: Record<string, unknown>;
-  accountAddress?: string;
 } = {}) {
   const mockState = cloneDeep(STATE_MOCK);
 
@@ -107,7 +105,7 @@ function runHook({
     },
   } as never;
 
-  return renderHookWithProvider(() => useWithdrawTokenFilter(accountAddress), {
+  return renderHookWithProvider(() => useWithdrawTokenFilter(), {
     state: mockState,
   });
 }
@@ -263,22 +261,6 @@ describe('useWithdrawTokenFilter', () => {
     expect(filter).toBeDefined();
     expect(filter?.('0x89', nativeAddress)).toBe(true);
     expect(filter?.('0x89', '0xrandom')).toBe(false);
-  });
-
-  it('forwards accountAddress to useSendTokens when withdraw allowlist is present', () => {
-    const accountAddress = '0xSelectedAccount1234567890abcdef12345678';
-
-    runHook({
-      type: TransactionType.predictWithdraw,
-      postQuoteFlags: {
-        default: { enabled: true, tokens: { '0x1': ['0xaaa'] } },
-      },
-      accountAddress,
-    });
-
-    expect(mockUseSendTokens).toHaveBeenCalledWith(
-      expect.objectContaining({ accountAddress }),
-    );
   });
 
   it('does not pass native addresses in enrichTokenRequests', () => {

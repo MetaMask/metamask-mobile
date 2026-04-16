@@ -69,21 +69,10 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 jest.mock('../../PayAccountSelector', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
-      onAccountSelected,
-    }: {
-      onAccountSelected?: (address: string) => void;
-    }) => (
-      <TouchableOpacity
-        testID="pay-account-selector"
-        onPress={() => onAccountSelected?.('0xTestAccount')}
-      >
-        <Text>Select account</Text>
-      </TouchableOpacity>
-    ),
+    default: () => <View testID="pay-account-selector" />,
   };
 });
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({

@@ -47,10 +47,8 @@ const STATE_MOCK = {
   },
 };
 
-function render({ selectedAccount }: { selectedAccount?: string } = {}) {
-  return renderWithProvider(<PayWithRow selectedAccount={selectedAccount} />, {
-    state: STATE_MOCK,
-  });
+function render() {
+  return renderWithProvider(<PayWithRow />, { state: STATE_MOCK });
 }
 
 describe('PayWithRow', () => {
@@ -129,21 +127,6 @@ describe('PayWithRow', () => {
 
     expect(navigateMock).toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_MODAL,
-      { selectedAccount: undefined },
-    );
-  });
-
-  it('passes selectedAccount as route param when navigating to token picker', async () => {
-    const SELECTED_ACCOUNT = '0xSelectedAccount1234567890abcdef12345678';
-    const { getByText } = render({ selectedAccount: SELECTED_ACCOUNT });
-
-    await act(() => {
-      fireEvent.press(getByText(`${ADDRESS_MOCK} ${CHAIN_ID_MOCK}`));
-    });
-
-    expect(navigateMock).toHaveBeenCalledWith(
-      Routes.CONFIRMATION_PAY_WITH_MODAL,
-      { selectedAccount: SELECTED_ACCOUNT },
     );
   });
 
@@ -271,7 +254,6 @@ describe('PayWithRow', () => {
 
       expect(navigateMock).toHaveBeenCalledWith(
         Routes.CONFIRMATION_PAY_WITH_MODAL,
-        { selectedAccount: undefined },
       );
     });
   });
@@ -329,16 +311,6 @@ describe('PayWithRow', () => {
         getByText(`${MONEY_ACCOUNT_ADDRESS} ${MONEY_ACCOUNT_CHAIN_ID}`),
       ).toBeOnTheScreen();
     });
-
-    it('passes selectedAccount to useMoneyAccountPayToken', () => {
-      const SELECTED_ACCOUNT = '0xSelectedAccount1234567890abcdef12345678';
-
-      render({ selectedAccount: SELECTED_ACCOUNT });
-
-      expect(useMoneyAccountPayTokenMock).toHaveBeenCalledWith(
-        SELECTED_ACCOUNT,
-      );
-    });
   });
 
   describe('from address change', () => {
@@ -365,7 +337,6 @@ describe('PayWithRow', () => {
 
       expect(navigateMock).toHaveBeenCalledWith(
         Routes.CONFIRMATION_PAY_WITH_MODAL,
-        { selectedAccount: undefined },
       );
     });
 

@@ -1,19 +1,24 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 
 import { useMoneyAccountPayToken } from './useMoneyAccountPayToken';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useAccountTokens } from '../send/useAccountTokens';
 import { hasTransactionType } from '../../utils/transaction';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('../transactions/useTransactionAccountOverride');
 jest.mock('./useTransactionPayToken');
 jest.mock('../send/useAccountTokens');
 jest.mock('../../utils/transaction');
 
 const useTransactionMetadataRequestMock = jest.mocked(
   useTransactionMetadataRequest,
+);
+const useTransactionAccountOverrideMock = jest.mocked(
+  useTransactionAccountOverride,
 );
 const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
 const useAccountTokensMock = jest.mocked(useAccountTokens);
@@ -32,6 +37,8 @@ describe('useMoneyAccountPayToken', () => {
       type: TransactionType.simpleSend,
       txParams: { from: '0xabc' },
     } as never);
+
+    useTransactionAccountOverrideMock.mockReturnValue(undefined);
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
@@ -76,7 +83,7 @@ describe('useMoneyAccountPayToken', () => {
     expect(result.current.isMoneyAccountDeposit).toBe(true);
   });
 
-  it('returns isAwaitingAccountSelection true when money account type and no selectedAccount', () => {
+  it('returns isAwaitingAccountSelection true when money account type and no accountOverride', () => {
     hasTransactionTypeMock.mockImplementation((_meta, types) =>
       (types as TransactionType[]).includes(
         TransactionType.moneyAccountDeposit,
@@ -88,28 +95,32 @@ describe('useMoneyAccountPayToken', () => {
     expect(result.current.isAwaitingAccountSelection).toBe(true);
   });
 
-  it('returns isAwaitingAccountSelection false when selectedAccount is provided', () => {
+  it('returns isAwaitingAccountSelection false when accountOverride is set', () => {
     hasTransactionTypeMock.mockImplementation((_meta, types) =>
       (types as TransactionType[]).includes(
         TransactionType.moneyAccountDeposit,
       ),
     );
-
-    const { result } = renderHook(() =>
-      useMoneyAccountPayToken('0xSelectedAccount'),
+    useTransactionAccountOverrideMock.mockReturnValue(
+      '0xSelectedAccount' as never,
     );
+
+    const { result } = renderHook(() => useMoneyAccountPayToken());
 
     expect(result.current.isAwaitingAccountSelection).toBe(false);
   });
 
-  it('sets MUSD pay token on withdraw when selectedAccount is provided', () => {
+  it('sets MUSD pay token on withdraw when accountOverride is set', () => {
     hasTransactionTypeMock.mockImplementation((_meta, types) =>
       (types as TransactionType[]).includes(
         TransactionType.moneyAccountWithdraw,
       ),
     );
+    useTransactionAccountOverrideMock.mockReturnValue(
+      '0xSelectedAccount' as never,
+    );
 
-    renderHook(() => useMoneyAccountPayToken('0xSelectedAccount'));
+    renderHook(() => useMoneyAccountPayToken());
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
       address: MUSD_TOKEN_ADDRESS,
@@ -117,11 +128,14 @@ describe('useMoneyAccountPayToken', () => {
     });
   });
 
-  it('sets first EVM token on deposit when selectedAccount is provided', () => {
+  it('sets first EVM token on deposit when accountOverride is set', () => {
     hasTransactionTypeMock.mockImplementation((_meta, types) =>
       (types as TransactionType[]).includes(
         TransactionType.moneyAccountDeposit,
       ),
+    );
+    useTransactionAccountOverrideMock.mockReturnValue(
+      '0xSelectedAccount' as never,
     );
 
     useAccountTokensMock.mockReturnValue([
@@ -133,7 +147,7 @@ describe('useMoneyAccountPayToken', () => {
       },
     ] as never);
 
-    renderHook(() => useMoneyAccountPayToken('0xSelectedAccount'));
+    renderHook(() => useMoneyAccountPayToken());
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
       address: '0xTokenA',
@@ -146,6 +160,9 @@ describe('useMoneyAccountPayToken', () => {
       (types as TransactionType[]).includes(
         TransactionType.moneyAccountDeposit,
       ),
+    );
+    useTransactionAccountOverrideMock.mockReturnValue(
+      '0xSelectedAccount' as never,
     );
 
     useAccountTokensMock.mockReturnValue([
@@ -163,7 +180,7 @@ describe('useMoneyAccountPayToken', () => {
       },
     ] as never);
 
-    renderHook(() => useMoneyAccountPayToken('0xSelectedAccount'));
+    renderHook(() => useMoneyAccountPayToken());
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
       address: '0xMainnetToken',
@@ -171,7 +188,7 @@ describe('useMoneyAccountPayToken', () => {
     });
   });
 
-  it('does not call setPayToken when selectedAccount is undefined', () => {
+  it('does not call setPayToken when accountOverride is undefined', () => {
     hasTransactionTypeMock.mockImplementation((_meta, types) =>
       (types as TransactionType[]).includes(
         TransactionType.moneyAccountWithdraw,
@@ -230,10 +247,11 @@ describe('useMoneyAccountPayToken', () => {
         TransactionType.moneyAccountDeposit,
       ),
     );
-
-    const { result } = renderHook(() =>
-      useMoneyAccountPayToken('0xSelectedAccount'),
+    useTransactionAccountOverrideMock.mockReturnValue(
+      '0xSelectedAccount' as never,
     );
+
+    const { result } = renderHook(() => useMoneyAccountPayToken());
 
     expect(result.current.displayToken).toBeUndefined();
   });

@@ -172,10 +172,7 @@ const MUSD_ALLOWLIST_MOCK = {
   [CHAIN_ID_1_MOCK]: ['USDC'],
 };
 
-function render({
-  minimumFiatBalance,
-  selectedAccount,
-}: { minimumFiatBalance?: number; selectedAccount?: string } = {}) {
+function render({ minimumFiatBalance }: { minimumFiatBalance?: number } = {}) {
   return renderScreen(
     PayWithModal,
     {
@@ -203,7 +200,6 @@ function render({
     },
     {
       minimumFiatBalance,
-      ...(selectedAccount ? { selectedAccount } : {}),
     },
   );
 }
@@ -442,12 +438,10 @@ describe('PayWithModal', () => {
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
 
-    it('passes selectedAccount route param to useWithdrawTokenFilter', () => {
-      const selectedAccount = '0xSelectedAccount1234567890abcdef12345678';
+    it('calls useWithdrawTokenFilter with no arguments', () => {
+      render();
 
-      render({ selectedAccount });
-
-      expect(useWithdrawTokenFilterMock).toHaveBeenCalledWith(selectedAccount);
+      expect(useWithdrawTokenFilterMock).toHaveBeenCalledWith();
     });
 
     it('awaits addTokens before calling setPayToken for zero-balance withdraw token', async () => {

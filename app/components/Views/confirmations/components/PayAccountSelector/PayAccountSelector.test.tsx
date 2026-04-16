@@ -10,11 +10,11 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
-import PayAccountSelector, {
-  PayAccountSelectorProps,
-} from './PayAccountSelector';
+import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
+import PayAccountSelector from './PayAccountSelector';
 
 jest.mock('../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../hooks/transactions/useTransactionAccountOverride');
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -53,13 +53,16 @@ jest.mock('../AccountSelector', () => {
 const useTransactionMetadataRequestMock = jest.mocked(
   useTransactionMetadataRequest,
 );
+const useTransactionAccountOverrideMock = jest.mocked(
+  useTransactionAccountOverride,
+);
 
 const setTransactionConfigMock = jest.mocked(
   Engine.context.TransactionPayController.setTransactionConfig,
 );
 
-function render(props: PayAccountSelectorProps = {}) {
-  return renderWithProvider(<PayAccountSelector {...props} />, {
+function render() {
+  return renderWithProvider(<PayAccountSelector />, {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
@@ -78,6 +81,8 @@ describe('PayAccountSelector', () => {
       type: TransactionType.moneyAccountDeposit,
       txParams: { from: '0x123' },
     } as never);
+
+    useTransactionAccountOverrideMock.mockReturnValue(undefined);
   });
 
   it('returns null for non-money-account transactions', () => {
@@ -91,11 +96,23 @@ describe('PayAccountSelector', () => {
     expect(queryByTestId('account-selector')).toBeNull();
   });
 
-  it('renders with no pre-selected address', () => {
+  it('renders with no pre-selected address when accountOverride is undefined', () => {
     const { getByTestId } = render();
 
     expect(getByTestId('account-selector-address')).toHaveTextContent(
       'No selection',
+    );
+  });
+
+  it('renders with pre-selected address from accountOverride', () => {
+    useTransactionAccountOverrideMock.mockReturnValue(
+      '0xOverrideAddress' as Hex,
+    );
+
+    const { getByTestId } = render();
+
+    expect(getByTestId('account-selector-address')).toHaveTextContent(
+      '0xOverrideAddress',
     );
   });
 
@@ -185,28 +202,5 @@ describe('PayAccountSelector', () => {
     });
 
     expect(setTransactionConfigMock).not.toHaveBeenCalled();
-  });
-
-  it('invokes onAccountSelected callback with selected address', async () => {
-    const onAccountSelected = jest.fn();
-    const { getByTestId } = render({ onAccountSelected });
-
-    await act(async () => {
-      fireEvent.press(getByTestId('account-selector'));
-    });
-
-    expect(onAccountSelected).toHaveBeenCalledWith('0xSelectedAddress');
-  });
-
-  it('updates selected address in AccountSelector after selection', async () => {
-    const { getByTestId } = render();
-
-    await act(async () => {
-      fireEvent.press(getByTestId('account-selector'));
-    });
-
-    expect(getByTestId('account-selector-address')).toHaveTextContent(
-      '0xSelectedAddress',
-    );
   });
 });
