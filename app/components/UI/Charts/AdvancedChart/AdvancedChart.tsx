@@ -400,6 +400,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           prevChartTypeRef.current = undefined;
           prevOhlcvDataRef.current = [];
           prevOhlcvSeriesKeyRef.current = undefined;
+          ohlcvSeriesStaleSnapshotRef.current = null;
           webViewRef.current?.reload();
         },
       }),

@@ -250,6 +250,59 @@ describe('AdvancedChart', () => {
     expect(realtimeCalls).toHaveLength(0);
   });
 
+  it('reset() clears stale series snapshot so OHLCV sync runs after reload with the same data ref', () => {
+    const staleBars: OHLCVBar[] = [
+      { time: 1000000, open: 10, high: 12, low: 9, close: 11, volume: 100 },
+    ];
+    const ref = React.createRef<AdvancedChartRef>();
+    const { getByTestId, rerender } = render(
+      <AdvancedChart
+        ref={ref}
+        ohlcvData={staleBars}
+        ohlcvSeriesKey="range-a"
+      />,
+    );
+
+    const webViewInitial = getByTestId('mock-webview');
+    act(() => {
+      webViewInitial.props.onLoadEnd();
+    });
+
+    rerender(
+      <AdvancedChart
+        ref={ref}
+        ohlcvData={staleBars}
+        ohlcvSeriesKey="range-b"
+      />,
+    );
+
+    const webViewAfterKeyChange = getByTestId('mock-webview');
+    act(() => {
+      webViewAfterKeyChange.props.onLoadEnd();
+    });
+
+    mockPostMessage.mockClear();
+
+    act(() => {
+      ref.current?.reset();
+    });
+
+    const webViewAfterReset = getByTestId('mock-webview');
+    act(() => {
+      webViewAfterReset.props.onLoadEnd();
+    });
+
+    expect(
+      mockPostMessage.mock.calls.some((call) => {
+        try {
+          return JSON.parse(call[0] as string).type === 'SET_OHLCV_DATA';
+        } catch {
+          return false;
+        }
+      }),
+    ).toBe(true);
+  });
+
   it('exposes addIndicator via ref', () => {
     const ref = React.createRef<AdvancedChartRef>();
     render(<AdvancedChart ref={ref} ohlcvData={MOCK_BARS} />);
