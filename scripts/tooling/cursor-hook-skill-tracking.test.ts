@@ -35,6 +35,8 @@ afterEach(() => {
   stdoutWrite.mockRestore();
   jest.mocked(execFileSync).mockReset();
   jest.mocked(createInterface).mockReset();
+  delete process.env.CI;
+  delete process.env.TOOL_USAGE_COLLECTION_OPT_IN;
 });
 
 describe('extractSkillName', () => {
@@ -69,7 +71,7 @@ describe('extractSkillName', () => {
 });
 
 describe('main', () => {
-  it('outputs {"permission":"allow"} and calls execFileSync for a matching skill path', async () => {
+  it('allows file read and tracks the skill when the path matches a skill file', async () => {
     jest.mocked(createInterface).mockReturnValue(
       makeRl(stdinPayload({ file_path: '/repo/.agents/skills/pr-create/SKILL.md' })) as ReturnType<typeof createInterface>,
     );
@@ -84,7 +86,7 @@ describe('main', () => {
     );
   });
 
-  it('outputs allow and does NOT call execFileSync for a non-skill path', async () => {
+  it('allows file read without tracking when the path is not a skill file', async () => {
     jest.mocked(createInterface).mockReturnValue(
       makeRl(stdinPayload({ file_path: '/repo/src/components/Button.tsx' })) as ReturnType<typeof createInterface>,
     );
@@ -95,7 +97,7 @@ describe('main', () => {
     expect(execFileSync).not.toHaveBeenCalled();
   });
 
-  it('outputs allow and does NOT call execFileSync when file_path is absent', async () => {
+  it('allows file read without tracking when file_path is absent', async () => {
     jest.mocked(createInterface).mockReturnValue(
       makeRl(stdinPayload({ other: 'field' })) as ReturnType<typeof createInterface>,
     );
@@ -106,7 +108,7 @@ describe('main', () => {
     expect(execFileSync).not.toHaveBeenCalled();
   });
 
-  it('outputs allow and does NOT call execFileSync when file_path is not a string', async () => {
+  it('allows file read without tracking when file_path is not a string', async () => {
     jest.mocked(createInterface).mockReturnValue(
       makeRl(stdinPayload({ file_path: 42 })) as ReturnType<typeof createInterface>,
     );
@@ -117,7 +119,7 @@ describe('main', () => {
     expect(execFileSync).not.toHaveBeenCalled();
   });
 
-  it('outputs allow even when stdin contains malformed JSON', async () => {
+  it('allows file read without tracking when stdin contains malformed JSON', async () => {
     jest.mocked(createInterface).mockReturnValue(
       makeRl(['not valid json }{']) as ReturnType<typeof createInterface>,
     );
@@ -128,7 +130,7 @@ describe('main', () => {
     expect(execFileSync).not.toHaveBeenCalled();
   });
 
-  it('outputs allow even when execFileSync throws (best-effort tracking)', async () => {
+  it('allows file read even when the tracking call fails', async () => {
     jest.mocked(createInterface).mockReturnValue(
       makeRl(stdinPayload({ file_path: '/repo/.agents/skills/pr-create/SKILL.md' })) as ReturnType<typeof createInterface>,
     );
@@ -159,5 +161,25 @@ describe('main', () => {
         '--agent', 'cursor',
       ]),
     );
+  });
+
+  it('allows file read without tracking when running in CI', async () => {
+    process.env.CI = 'true';
+
+    await main();
+
+    expect(stdoutWrite).toHaveBeenCalledWith('{"permission":"allow"}\n');
+    expect(execFileSync).not.toHaveBeenCalled();
+    expect(createInterface).not.toHaveBeenCalled();
+  });
+
+  it('allows file read without tracking when collection is opted out', async () => {
+    process.env.TOOL_USAGE_COLLECTION_OPT_IN = 'false';
+
+    await main();
+
+    expect(stdoutWrite).toHaveBeenCalledWith('{"permission":"allow"}\n');
+    expect(execFileSync).not.toHaveBeenCalled();
+    expect(createInterface).not.toHaveBeenCalled();
   });
 });

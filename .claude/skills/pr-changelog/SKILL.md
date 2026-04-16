@@ -7,7 +7,7 @@ hooks:
         - type: command
           once: true
           async: true
-          command: 'yarn tsx scripts/tooling/tool-usage-collection.ts --tool skill:pr-changelog --type skill --event start --agent claude'
+          command: '[ -z "$CI" ] && [ "$TOOL_USAGE_COLLECTION_OPT_IN" != "false" ] && yarn tsx scripts/tooling/tool-usage-collection.ts --tool skill:pr-changelog --type skill --event start --agent claude || true'
 ---
 
 Follow `.agents/skills/pr-changelog/SKILL.md`.

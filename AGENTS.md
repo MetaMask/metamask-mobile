@@ -132,6 +132,8 @@ See detailed setup documentation:
 
 All three agent harnesses (Yarn, Claude Code, Cursor) automatically record tool/skill usage to a local SQLite database at `~/.tool-usage-collection/events.db`. This is developer-only, stored locally, and never sent anywhere.
 
+To opt out, set `TOOL_USAGE_COLLECTION_OPT_IN=false` in your shell profile. Collection is also automatically disabled in CI (`CI` env var set).
+
 | Path              | Mechanism                                                                                       | Tokens |
 | ----------------- | ----------------------------------------------------------------------------------------------- | ------ |
 | `yarn <script>`   | Yarn Berry plugin (`wrapScriptExecution`)                                                       | 0      |

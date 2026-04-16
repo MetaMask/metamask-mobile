@@ -2,24 +2,32 @@
 
 Automatically records how AI agent tooling (Yarn scripts, Claude Code skills, Cursor skills) is used, into a local SQLite database. Developer-only, stored locally at `~/.tool-usage-collection/events.db`, never sent anywhere.
 
+## Skip conditions
+
+Collection is **disabled** when either of these is true:
+
+| Condition                            | How to trigger                                         |
+|--------------------------------------|--------------------------------------------------------|
+| `CI` env var is set                  | Automatic on GitHub Actions and most CI systems        |
+| `TOOL_USAGE_COLLECTION_OPT_IN=false` | Set in your shell profile or `.env` to opt out locally |
+
+All three collection paths (Yarn plugin, Claude hook, Cursor hook) respect both conditions.
+
 ## Architecture
 
-```
-~/.tool-usage-collection/events.db
-        ▲               ▲               ▲
-        │               │               │
-Yarn Berry plugin   Claude Code     Cursor hook
-(wrapScriptExecution)  PreToolUse    beforeReadFile
-        │           hook in .claude/  hook in .cursor/
-        │           skills/<s>/       hooks.json
-        │           SKILL.md          │
-        └───────────────┴─────────────┘
-                        │
-              tool-usage-collection.ts (CLI)
-                        │
-                    events.ts
-                        │
-                      db.ts
+```mermaid
+flowchart BT
+    db[db.ts]
+    events[events.ts]
+    cli[tool-usage-collection.ts CLI]
+    yarn[Yarn Berry plugin wrapScriptExecution]
+    claude[Claude Code PreToolUse hook .claude/skills/s/SKILL.md]
+    cursor[Cursor hook beforeReadFile .cursor/hooks.json]
+    sqlite[(~/.tool-usage-collection/events.db)]
+
+    db --> events --> cli
+    cli --> yarn & claude & cursor
+    yarn & claude & cursor --> sqlite
 ```
 
 ## Files

@@ -9,9 +9,9 @@
 'use strict';
 
 // CJS modules are wrapped in a function by Node.js, so `return` is valid here.
-// In CI (process.env.CI is set by GitHub Actions and most CI systems), export
-// an empty plugin immediately — no hooks registered, no filesystem access, no spawning.
-if (process.env.CI) {
+// Skip entirely in CI or when the developer has opted out — no hooks registered,
+// no filesystem access, no spawning.
+if (process.env.CI || process.env.TOOL_USAGE_COLLECTION_OPT_IN === 'false') {
   module.exports = { name: 'plugin-usage-tracking', factory: () => ({}) };
   return;
 }
