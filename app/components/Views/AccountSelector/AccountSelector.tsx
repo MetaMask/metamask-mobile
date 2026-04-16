@@ -280,7 +280,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           />
         ) : null}
         {!disableAddAccountButton && (
-          <View style={[styles.accountSelectorFooter, styles.sheet]}>
+          <View
+            style={[
+              styles.accountSelectorFooter,
+              styles.accountSelectorFooterContent,
+            ]}
+          >
             {addAccountButtonProps.map((buttonProp, index) => (
               <Button
                 key={index}
@@ -301,7 +306,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       _onSelectMultichainAccount,
       disableAddAccountButton,
       addAccountButtonProps,
-      styles.sheet,
+      styles.accountSelectorFooterContent,
       styles.accountSelectorFooter,
       styles.footerButton,
       styles.footerButtonSubsequent,
