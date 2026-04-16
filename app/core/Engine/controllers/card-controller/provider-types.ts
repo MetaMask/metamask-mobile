@@ -124,8 +124,9 @@ export interface CardFundingAsset {
   walletAddress: string;
   decimals: number;
   chainId: CaipChainId;
-  balance: string;
-  allowance: string;
+  spendableBalance: string;
+  spendingCap: string;
+  originalSpendingCap?: string;
   priority: number;
   status: FundingAssetStatus;
   stagingTokenAddress?: string;
@@ -199,9 +200,9 @@ export type CardAction =
 // -- Card Home Data --
 
 export interface CardHomeData {
-  primaryAsset: CardFundingAsset | null;
-  assets: CardFundingAsset[];
-  supportedTokens: CardFundingAsset[];
+  primaryFundingAsset: CardFundingAsset | null;
+  fundingAssets: CardFundingAsset[];
+  availableFundingAssets: CardFundingAsset[];
   card: CardDetails | null;
   account: CardAccountStatus | null;
   alerts: CardAlert[];
@@ -211,9 +212,9 @@ export interface CardHomeData {
 
 export function emptyCardHomeData(): CardHomeData {
   return {
-    primaryAsset: null,
-    assets: [],
-    supportedTokens: [],
+    primaryFundingAsset: null,
+    fundingAssets: [],
+    availableFundingAssets: [],
     card: null,
     account: null,
     alerts: [],

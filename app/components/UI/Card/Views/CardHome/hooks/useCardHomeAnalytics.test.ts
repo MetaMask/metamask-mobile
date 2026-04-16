@@ -18,20 +18,20 @@ const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 
 const mockData: CardHomeData = {
-  primaryAsset: {
+  primaryFundingAsset: {
     address: '0xtoken',
     name: 'USD Coin',
     symbol: 'USDC',
     decimals: 6,
     walletAddress: '0xwallet',
     chainId: 'eip155:59144' as `eip155:${number}`,
-    balance: '100',
-    allowance: '100',
+    spendableBalance: '100',
+    spendingCap: '100',
     priority: 1,
     status: 'active' as never,
   },
-  assets: [],
-  supportedTokens: [],
+  fundingAssets: [],
+  availableFundingAssets: [],
   card: null,
   account: null,
   alerts: [],
@@ -165,9 +165,9 @@ describe('useCardHomeAnalytics', () => {
     );
   });
 
-  it('sets token balance fields to undefined when there is no primaryAsset', () => {
+  it('sets token balance fields to undefined when there is no primaryFundingAsset', () => {
     setupHook({
-      data: { ...mockData, primaryAsset: null },
+      data: { ...mockData, primaryFundingAsset: null },
       balanceFormatted: undefined,
       rawTokenBalance: undefined,
       rawFiatNumber: undefined,
