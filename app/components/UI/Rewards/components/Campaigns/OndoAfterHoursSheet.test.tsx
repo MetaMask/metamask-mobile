@@ -5,7 +5,8 @@ import OndoAfterHoursSheet from './OndoAfterHoursSheet';
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactActual = jest.requireActual('react');
-  const { View, Pressable } = jest.requireActual('react-native');
+  const { View, Pressable, Text, TouchableOpacity } =
+    jest.requireActual('react-native');
   return {
     ...actual,
     BottomSheet: ({
@@ -24,11 +25,49 @@ jest.mock('@metamask/design-system-react-native', () => {
           onPress: onClose,
         }),
       ),
+    // Icon uses SVGs which are unavailable in the test environment
+    Icon: ({ name }: { name?: string }) =>
+      ReactActual.createElement(View, { testID: `icon-${name ?? 'unknown'}` }),
+    ButtonIcon: ({
+      onPress,
+      testID,
+    }: {
+      onPress?: () => void;
+      testID?: string;
+    }) => ReactActual.createElement(TouchableOpacity, { onPress, testID }),
+    // Text/Box pass-throughs so i18n strings are visible
+    Text: ({
+      children,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(Text, { testID }, children),
+    Box: ({ children }: { children?: React.ReactNode }) =>
+      ReactActual.createElement(View, null, children),
+    Button: ({
+      children,
+      onPress,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      onPress?: () => void;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(
+        TouchableOpacity,
+        { onPress, testID },
+        ReactActual.createElement(Text, null, children),
+      ),
   };
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+  useTailwind: () => {
+    const tw = () => ({});
+    tw.style = (..._args: unknown[]) => ({});
+    return tw;
+  },
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({

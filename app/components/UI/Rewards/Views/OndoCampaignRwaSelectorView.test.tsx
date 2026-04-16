@@ -55,6 +55,19 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
 }));
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    // Skeleton is not exported in the installed version of the design-system
+    // package — stub it so the loading skeleton test doesn't throw.
+    Skeleton: ({ style }: { style?: unknown }) =>
+      ReactActual.createElement(View, { testID: 'skeleton', style }),
+  };
+});
+
 jest.mock(
   '../../../../component-library/components-temp/HeaderCompactStandard',
   () => {
@@ -119,6 +132,16 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
 }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
+// Mock core/Analytics to avoid the deep import chain:
+// Analytics → store → Engine → assets-controller-init → @metamask/assets-controller
+jest.mock('../../../../core/Analytics', () => ({
+  MetaMetricsEvents: {
+    REWARDS_PAGE_BUTTON_CLICKED: 'REWARDS_PAGE_BUTTON_CLICKED',
+    REWARDS_PAGE_VIEWED: 'REWARDS_PAGE_VIEWED',
+    REWARDS_CAMPAIGN_PAGE_VIEWED: 'REWARDS_CAMPAIGN_PAGE_VIEWED',
+  },
+}));
 
 jest.mock('../components/Campaigns/OndoAfterHoursSheet', () => {
   const ReactActual = jest.requireActual('react');
@@ -226,6 +249,32 @@ jest.mock('../../../../util/theme', () => ({
 
 jest.mock('../../AssetOverview/Balance/Balance', () => ({
   NetworkBadgeSource: jest.fn(() => ({ uri: 'https://mock.icon' })),
+}));
+
+// Mock Badge and Avatar to avoid deep import chain via component-library
+// that pulls in @metamask/assets-controller through Engine
+jest.mock('../../../../component-library/components/Badges/Badge', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ children }: { children?: React.ReactNode }) =>
+      ReactActual.createElement(View, null, children),
+    BadgeVariant: { Network: 'Network', Status: 'Status', Count: 'Count' },
+  };
+});
+
+jest.mock('../../../../component-library/components/Avatars/Avatar', () => ({
+  __esModule: true,
+  default: () => null,
+  AvatarSize: {
+    Xs: 'xs',
+    Sm: 'sm',
+    Md: 'md',
+    Lg: 'lg',
+    Xl: 'xl',
+  },
+  AvatarVariant: { Account: 'account', Favicon: 'favicon', Network: 'network' },
 }));
 
 jest.mock('../../Trending/components/TrendingTokenLogo', () => {
@@ -517,6 +566,90 @@ describe('OndoCampaignRwaSelectorView', () => {
       );
       expect(queryByTestId('token-row-NIOon')).toBeNull();
       expect(getByTestId('token-row-AAPL')).toBeDefined();
+    });
+  });
+
+  describe('after-hours sheet', () => {
+    const token = buildToken('AAPL');
+
+    beforeEach(() => {
+      mockIsTokenTradingOpen = jest.fn(() => false);
+      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
+    });
+
+    it('shows the after-hours sheet proactively on load when first token market is closed', () => {
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      expect(getByTestId('after-hours-sheet')).toBeOnTheScreen();
+    });
+
+    it('does not show after-hours sheet proactively when tokens list is empty', () => {
+      mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
+      const { queryByTestId } = render(<OndoCampaignRwaSelectorView />);
+      expect(queryByTestId('after-hours-sheet')).not.toBeOnTheScreen();
+    });
+
+    it('does not show after-hours sheet proactively when market is open', () => {
+      mockIsTokenTradingOpen = jest.fn(() => true);
+      const { queryByTestId } = render(<OndoCampaignRwaSelectorView />);
+      expect(queryByTestId('after-hours-sheet')).not.toBeOnTheScreen();
+    });
+
+    it('only shows proactive sheet once — does not re-open on token list update', () => {
+      const { rerender, getByTestId, queryByTestId } = render(
+        <OndoCampaignRwaSelectorView />,
+      );
+      // Sheet is shown on first load
+      expect(getByTestId('after-hours-sheet')).toBeOnTheScreen();
+      // Close the sheet
+      fireEvent.press(getByTestId('after-hours-close'));
+      expect(queryByTestId('after-hours-sheet')).not.toBeOnTheScreen();
+      // Even if rwaTokens changes (e.g. search update), sheet must not re-open
+      mockUseRwaTokens.mockReturnValue({
+        data: [buildToken('MSFT')],
+        isLoading: false,
+      });
+      rerender(<OndoCampaignRwaSelectorView />);
+      expect(queryByTestId('after-hours-sheet')).not.toBeOnTheScreen();
+    });
+
+    it('closes the after-hours sheet without navigating when onClose is called', () => {
+      const { getByTestId, queryByTestId } = render(
+        <OndoCampaignRwaSelectorView />,
+      );
+
+      fireEvent.press(getByTestId('token-row-AAPL'));
+      expect(getByTestId('after-hours-sheet')).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId('after-hours-close'));
+
+      expect(queryByTestId('after-hours-sheet')).not.toBeOnTheScreen();
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+    });
+
+    it('tracks REWARDS_PAGE_BUTTON_CLICKED and calls goToSwaps when onConfirm is called', () => {
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+
+      fireEvent.press(getByTestId('token-row-AAPL'));
+
+      act(() => {
+        fireEvent.press(getByTestId('after-hours-confirm'));
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+      );
+      const buttonClickIndex = mockCreateEventBuilder.mock.calls.findIndex(
+        (call: unknown[]) =>
+          call[0] === MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+      );
+      const builder =
+        mockCreateEventBuilder.mock.results[buttonClickIndex]?.value;
+      expect(builder?.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          button_type: 'ondo_campaign_swap_aapl',
+        }),
+      );
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
     });
   });
 

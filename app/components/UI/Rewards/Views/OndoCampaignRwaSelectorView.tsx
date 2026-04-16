@@ -246,6 +246,28 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
 
   const { isTokenTradingOpen } = useRWAToken();
 
+  // Proactive first-token check: if the first RWA token's market is closed
+  // when the list loads, immediately surface the after-hours sheet so the
+  // user is informed before they tap anything.
+  const hasShownAfterHoursRef = useRef(false);
+  useEffect(() => {
+    if (hasShownAfterHoursRef.current || !rwaTokens.length) return;
+    const firstToken: BridgeToken = {
+      ...rwaTokens[0],
+      rwaData: rwaTokens[0].rwaData as BridgeToken['rwaData'],
+    };
+    if (!isTokenTradingOpen(firstToken)) {
+      const rawNextOpen = firstToken.rwaData?.market?.nextOpen;
+      const nextOpenDate = rawNextOpen ? new Date(String(rawNextOpen)) : null;
+      setAfterHoursNextOpen(
+        nextOpenDate && !isNaN(nextOpenDate.getTime()) ? nextOpenDate : null,
+      );
+      setAfterHoursPendingToken(firstToken);
+      setIsAfterHoursSheetOpen(true);
+      hasShownAfterHoursRef.current = true;
+    }
+  }, [rwaTokens, isTokenTradingOpen]);
+
   useTrackRewardsPageView({
     page_type:
       mode === 'swap' ? 'ondo_campaign_swap' : 'ondo_campaign_open_position',
