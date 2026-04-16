@@ -362,7 +362,10 @@ describe('TokenDetailsStickyFooter', () => {
         isActive: true,
       });
       const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          balanceFiatUsd={undefined}
+        />,
       );
 
       fireEvent.press(getByText('Swap'));
