@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
 import {
   STICKY_FOOTER_SWAP_LABEL_VARIANTS,
@@ -24,8 +25,30 @@ jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
 }));
 
 const mockIsTokenTradingOpen = jest.fn(() => true);
+const mockIsStockToken = jest.fn(() => false);
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
-  useRWAToken: () => ({ isTokenTradingOpen: mockIsTokenTradingOpen }),
+  useRWAToken: () => ({
+    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isStockToken: mockIsStockToken,
+  }),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../../reducers/fiatOrders', () => ({
+  getDetectedGeolocation: jest.fn(),
+}));
+
+jest.mock('../../../../util/ondoGeoRestrictions', () => ({
+  ONDO_RESTRICTED_COUNTRIES: new Set(['US', 'GB']),
+}));
+
+jest.mock('./RwaUnavailableBottomSheet/RwaUnavailableBottomSheet', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
 }));
 
 jest.mock('../../../../util/theme', () => {
@@ -376,6 +399,60 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
       });
+    });
+  });
+
+  describe('RWA geo-restriction', () => {
+    it('blocks the buy action when token is a geo-restricted stock', () => {
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('US');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(defaultProps.onBuy).not.toHaveBeenCalled();
+    });
+
+    it('blocks the swap action when token is a geo-restricted stock', () => {
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('GB');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(defaultProps.onSwap).not.toHaveBeenCalled();
+    });
+
+    it('proceeds normally for a stock token in a non-restricted country', () => {
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('AR');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(defaultProps.onBuy).toHaveBeenCalled();
+    });
+
+    it('proceeds normally for a non-stock token even if in a restricted country', () => {
+      mockIsStockToken.mockReturnValue(false);
+      (useSelector as jest.Mock).mockReturnValue('US');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(defaultProps.onBuy).toHaveBeenCalled();
     });
   });
 });

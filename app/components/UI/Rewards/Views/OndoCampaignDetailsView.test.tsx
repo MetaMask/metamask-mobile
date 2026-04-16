@@ -33,11 +33,23 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  return { ...actual };
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  // Skeleton is absent from the installed design-system version; stub it so
+  // the loading-state render doesn't throw "Element type is invalid".
+  const Skeleton = (props: Record<string, unknown>) =>
+    ReactActual.createElement(View, { testID: 'skeleton', ...props });
+  return { ...actual, Skeleton };
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+  useTailwind: () => {
+    // Box uses tagged-template-literal syntax (tw`...`), so the return value
+    // must be callable. .style() is used by the view layer itself.
+    const tw = () => ({});
+    tw.style = (..._args: unknown[]) => ({});
+    return tw;
+  },
 }));
 
 jest.mock(
@@ -302,6 +314,39 @@ jest.mock('../../Trending/components/TrendingTokenLogo', () => {
     default: () => ReactActual.createElement(View, null),
   };
 });
+
+jest.mock('../hooks/useOndoAccountPicker', () => ({
+  __esModule: true,
+  useOndoAccountPicker: () => {
+    const { useState } = jest.requireActual('react');
+    const [pendingPicker, setPendingPicker] = useState(null);
+    return {
+      pendingPicker,
+      setPendingPicker,
+      sheetRef: { current: null },
+      handleGroupSelect: jest.fn(),
+    };
+  },
+}));
+
+// OndoCampaignCTA imports useAnalytics and MetaMetricsEvents which pull in
+// the full redux store chain.  Mock both at their resolved paths so the deep
+// import chain is never loaded in this test file.
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(() => ({})),
+    })),
+    isEnabled: jest.fn(() => true),
+  }),
+}));
+
+jest.mock('../../../../core/Analytics', () => ({
+  MetaMetricsEvents: {},
+  EVENT_NAME: {},
+}));
 
 // OndoPortfolio named exports used by the account picker bottom sheet
 jest.mock('../components/Campaigns/OndoPortfolio', () => {
