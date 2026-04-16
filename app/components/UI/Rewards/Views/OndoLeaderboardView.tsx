@@ -16,7 +16,6 @@ import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import {
   StatCell,
   PendingTag,
-  QualifiedTag,
 } from '../components/Campaigns/CampaignStatsSummary';
 import {
   formatTierDisplayName,
@@ -26,10 +25,13 @@ import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import {
   selectReferralCode,
   selectCampaignById,
 } from '../../../../reducers/rewards/selectors';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -54,6 +56,11 @@ const OndoLeaderboardView: React.FC = () => {
   );
   const campaign = useSelector(selectCampaign);
 
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_leaderboard',
+    campaign_id: campaignId,
+  });
+
   const { status: participantStatus } =
     useGetCampaignParticipantStatus(campaignId);
   const isOptedIn = participantStatus?.optedIn === true;
@@ -62,7 +69,6 @@ const OndoLeaderboardView: React.FC = () => {
     useGetOndoLeaderboardPosition(isOptedIn ? campaignId : undefined);
 
   const isPending = position != null && !position.qualified;
-  const isQualified = position != null && position.qualified;
   const {
     leaderboard: leaderboardData,
     selectedTier,
@@ -81,21 +87,6 @@ const OndoLeaderboardView: React.FC = () => {
     [campaign],
   );
 
-  const pendingSheetPosition = useMemo(() => {
-    if (!position || position.qualified) return null;
-    const tierMinDeposit = getTierMinNetDeposit(
-      campaign?.details?.tiers,
-      position.projectedTier,
-    );
-    if (tierMinDeposit == null) return null;
-    return {
-      tier: position.projectedTier,
-      netDeposit: position.netDeposit,
-      qualifiedDays: position.qualifiedDays,
-      tierMinDeposit,
-    };
-  }, [position, campaign]);
-
   return (
     <ErrorBoundary navigation={navigation} view="OndoLeaderboardView">
       <SafeAreaView
@@ -108,6 +99,14 @@ const OndoLeaderboardView: React.FC = () => {
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'ondo-leaderboard-back-button' }}
+          endButtonIconProps={getCampaignMechanicsButtonProps(
+            campaign != null,
+            () =>
+              navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
+                campaignId,
+              }),
+            'leaderboard-mechanics-button',
+          )}
           includesTopInset
         />
 
@@ -121,7 +120,7 @@ const OndoLeaderboardView: React.FC = () => {
               <Box flexDirection={BoxFlexDirection.Row}>
                 <StatCell
                   label="Rank"
-                  value={`${position.rank}`}
+                  value={String(position.rank).padStart(2, '0')}
                   isLoading={isPositionLoading}
                   suffix={isPending ? <PendingTag /> : undefined}
                 />
@@ -129,13 +128,6 @@ const OndoLeaderboardView: React.FC = () => {
                   label="Tier"
                   value={formatTierDisplayName(position.projectedTier)}
                   isLoading={isPositionLoading}
-                  suffix={
-                    isPending ? (
-                      <PendingTag />
-                    ) : isQualified ? (
-                      <QualifiedTag />
-                    ) : undefined
-                  }
                 />
               </Box>
             </Box>
@@ -154,7 +146,7 @@ const OndoLeaderboardView: React.FC = () => {
               isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
               onRetry={refetchLeaderboard}
               currentUserReferralCode={referralCode}
-              pendingSheetPosition={pendingSheetPosition}
+              campaignId={campaignId}
             />
           </Box>
         </ScrollView>
