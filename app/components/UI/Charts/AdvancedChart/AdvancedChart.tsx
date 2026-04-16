@@ -185,6 +185,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setLayoutSettling(false);
       clearLayoutSettleTimeout();
       ohlcvSeriesStaleSnapshotRef.current = null;
+      activeIndicatorsRef.current.clear();
+      prevPositionLinesRef.current = undefined;
+      prevChartTypeRef.current = undefined;
     }, [ohlcvSeriesKey, clearLayoutSettleTimeout]);
 
     useEffect(
