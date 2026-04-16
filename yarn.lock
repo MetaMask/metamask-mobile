@@ -9470,23 +9470,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/notification-services-controller@npm:^22.0.0":
-  version: 22.0.0
-  resolution: "@metamask/notification-services-controller@npm:22.0.0"
+"@metamask/notification-services-controller@npm:^23.1.0":
+  version: 23.1.0
+  resolution: "@metamask/notification-services-controller@npm:23.1.0"
   dependencies:
     "@contentful/rich-text-html-renderer": "npm:^16.5.2"
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.18.0"
-    "@metamask/keyring-controller": "npm:^25.1.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/profile-sync-controller": "npm:^27.1.0"
+    "@metamask/base-controller": "npm:^9.0.1"
+    "@metamask/controller-utils": "npm:^11.20.0"
+    "@metamask/keyring-controller": "npm:^25.2.0"
+    "@metamask/messenger": "npm:^1.1.1"
+    "@metamask/profile-sync-controller": "npm:^28.0.2"
     "@metamask/utils": "npm:^11.9.0"
     bignumber.js: "npm:^9.1.2"
     firebase: "npm:^11.2.0"
+    lodash: "npm:^4.17.21"
     loglevel: "npm:^1.8.1"
     semver: "npm:^7.6.3"
     uuid: "npm:^8.3.2"
-  checksum: 10/edeaae4a61ce1ecce5ee5a2bbe30649f70ec0b7a68071e05d1cbc0ab99d62bd094640ca9f40b294052c5175084b7e1fd44c30ff43a20eb57a6ef7562134311ad
+  checksum: 10/a6381830bd121a5d89478df0f09aa08ad6952d78b76e2ce733ebea39b5c1c0744e347a0f41030fa41cfacf6911bc83c76c458dc3a71a320b486a733cee594f3a
   languageName: node
   linkType: hard
 
@@ -35937,7 +35938,7 @@ __metadata:
     "@metamask/native-utils": "npm:^0.8.0"
     "@metamask/network-controller": "npm:^30.0.0"
     "@metamask/network-enablement-controller": "npm:^4.2.0"
-    "@metamask/notification-services-controller": "npm:^22.0.0"
+    "@metamask/notification-services-controller": "npm:^23.1.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^12.2.1"
     "@metamask/phishing-controller": "npm:^17.1.1"

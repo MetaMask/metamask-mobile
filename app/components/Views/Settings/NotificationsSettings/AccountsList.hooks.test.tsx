@@ -97,6 +97,7 @@ const arrangeMockUseAccounts = () => {
       type: AccountGroupType.SingleAccount,
       metadata: {
         hidden: false,
+        lastSelected: 0,
         name: id,
         pinned: false,
       },
