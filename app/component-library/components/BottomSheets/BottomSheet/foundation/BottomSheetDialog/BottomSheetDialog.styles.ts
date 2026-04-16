@@ -3,7 +3,7 @@
 import { Platform, StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../../../util/theme/models';
+import { AppThemeKey, Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
 import { BottomSheetDialogStyleSheetVars } from './BottomSheetDialog.types';
@@ -21,7 +21,7 @@ const styleSheet = (params: {
   vars: BottomSheetDialogStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const { colors, shadows } = theme;
+  const { colors, shadows, themeAppearance } = theme;
   const { isFullscreen, maxSheetHeight, screenBottomPadding, style } = vars;
 
   return StyleSheet.create({
@@ -33,7 +33,10 @@ const styleSheet = (params: {
     } as ViewStyle) as ViewStyle,
     sheet: Object.assign(
       {
-        backgroundColor: colors.background.default,
+        backgroundColor:
+          themeAppearance === AppThemeKey.dark
+            ? colors.background.section
+            : colors.background.default,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         maxHeight: maxSheetHeight,
