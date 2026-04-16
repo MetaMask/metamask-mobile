@@ -426,7 +426,9 @@ export const TokenListItem = React.memo(
     });
 
     const secondaryBalanceDisplay = useMemo(() => {
-      if (hasClaimableBonus) {
+      const isMusdAsset = !!asset && isMusdToken(asset.address);
+
+      if (hasClaimableBonus && !isMusdAsset) {
         return {
           text: strings('earn.claim_bonus'),
           color: CLTextColor.Primary,
@@ -434,13 +436,9 @@ export const TokenListItem = React.memo(
         };
       }
 
-      // mUSD with no claimable bonus: show green "3% bonus" (not clickable)
-      if (
-        isMusdConversionFlowEnabled &&
-        isMusdGeoEligible &&
-        asset &&
-        isMusdToken(asset.address)
-      ) {
+      // mUSD rows always show the green "3% bonus" label (claim affordance
+      // lives on the mUSD asset detail page, not the token row).
+      if (isMusdConversionFlowEnabled && isMusdGeoEligible && isMusdAsset) {
         return {
           text: strings('earn.musd_conversion.percentage_bonus', {
             percentage: MUSD_CONVERSION_APY,

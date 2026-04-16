@@ -117,10 +117,11 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     ? `+$${estimatedAnnualBonus.toFixed(2)}`
     : '+$0.00';
 
-  // Lifetime bonus
-  const formattedLifetimeBonus = lifetimeBonusClaimed
+  // Lifetime bonus: white $0.00 until first claim, then green +$X.
+  const hasLifetimeBonus = Number(lifetimeBonusClaimed) > 0;
+  const formattedLifetimeBonus = hasLifetimeBonus
     ? `+$${lifetimeBonusClaimed}`
-    : '+$0.00';
+    : '$0.00';
 
   // CTA state
   const { ctaLabel, ctaDisabled } = useMemo(() => {
@@ -315,7 +316,11 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            color={TextColor.SuccessDefault}
+            color={
+              hasLifetimeBonus
+                ? TextColor.SuccessDefault
+                : TextColor.TextDefault
+            }
             testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.LIFETIME_VALUE}
           >
             {formattedLifetimeBonus}

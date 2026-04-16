@@ -1248,11 +1248,12 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       isStaked: false,
     };
 
-    it('shows "Claim bonus" replacing percentage when claimableReward exists', () => {
+    it('shows green "3% bonus" instead of "Claim bonus" when claimableReward exists on mUSD', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 5.0,
         claimableReward: '1000000000000000000',
+        isMusdConversionEnabled: true,
       });
 
       const { getByText, queryByText } = renderWithProvider(
@@ -1265,101 +1266,15 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
+      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
+      expect(
+        getByText(
+          strings('earn.musd_conversion.percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+        ),
+      ).toBeOnTheScreen();
       expect(queryByText('+5.00%')).toBeNull();
-    });
-
-    it('tracks mUSD Claim Bonus Button Clicked event when claim bonus is pressed', async () => {
-      prepareMocks({
-        asset: claimableAsset,
-        pricePercentChange1d: 5.0,
-        claimableReward: '1000000000000000000',
-      });
-
-      const { getByTestId, getByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
-        />,
-      );
-
-      await waitFor(
-        () => {
-          expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
-        },
-        { timeout: 3000 },
-      );
-
-      mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
-      mockAddProperties.mockClear();
-      mockBuild.mockClear();
-
-      await act(async () => {
-        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
-      });
-
-      await waitFor(
-        () => {
-          expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
-        },
-        { timeout: 3000 },
-      );
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
-      );
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledTimes(1);
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        location: 'token_list_item',
-        action_type: 'claim_bonus',
-        button_text: strings('earn.claim_bonus'),
-        network_chain_id: claimableAsset.chainId,
-        network_name: 'Ethereum Mainnet',
-        asset_symbol: claimableAsset.symbol,
-      });
-
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
-    }, 10000);
-
-    it('calls claimRewards when claim bonus is pressed', async () => {
-      prepareMocks({
-        asset: claimableAsset,
-        pricePercentChange1d: 5.0,
-        claimableReward: '1000000000000000000',
-      });
-
-      const { getByTestId, getByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
-        />,
-      );
-
-      await waitFor(
-        () => {
-          expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
-        },
-        { timeout: 3000 },
-      );
-
-      mockClaimRewards.mockClear();
-
-      await act(async () => {
-        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
-      });
-
-      expect(mockClaimRewards).toHaveBeenCalledTimes(1);
     });
 
     it('shows green "3% bonus" when mUSD and claimableReward is null', () => {
