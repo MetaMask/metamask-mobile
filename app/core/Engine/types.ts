@@ -461,6 +461,7 @@ import {
 import {
   ChompApiService,
   ChompApiServiceActions,
+  type ChompApiServiceEvents,
 } from '@metamask-previews/chomp-api-service';
 import { captureException } from '@sentry/react-native';
 
@@ -682,7 +683,8 @@ type GlobalEvents =
   | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents
-  | TransakServiceEvents;
+  | TransakServiceEvents
+  | ChompApiServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
