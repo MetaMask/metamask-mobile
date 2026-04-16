@@ -42,11 +42,7 @@ import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayW
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import styleSheet from './pay-with-row.styles';
-interface PayWithRowProps {
-  selectedAccount?: string;
-}
-
-export function PayWithRow({ selectedAccount }: PayWithRowProps = {}) {
+export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
@@ -66,7 +62,7 @@ export function PayWithRow({ selectedAccount }: PayWithRowProps = {}) {
     displayToken: moneyAccountDisplayToken,
     isAwaitingAccountSelection,
     isMoneyAccountWithdraw,
-  } = useMoneyAccountPayToken(selectedAccount);
+  } = useMoneyAccountPayToken();
 
   const canEdit = !isHardwareAccount(from ?? '');
   const isDisabled = !canEdit || isAwaitingAccountSelection;
@@ -78,10 +74,8 @@ export function PayWithRow({ selectedAccount }: PayWithRowProps = {}) {
         mm_pay_token_list_opened: true,
       },
     });
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
-      selectedAccount,
-    });
-  }, [isDisabled, navigation, selectedAccount, setConfirmationMetric]);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+  }, [isDisabled, navigation, setConfirmationMetric]);
 
   const label = isWithdraw
     ? strings('confirm.label.receive_as')

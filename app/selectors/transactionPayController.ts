@@ -62,3 +62,8 @@ export const selectTransactionPayTransactionData = createSelector(
   selectTransactionPayControllerState,
   (state) => state.transactionData,
 );
+
+export const selectAccountOverrideByTransactionId = createSelector(
+  selectTransactionDataByTransactionId,
+  (transactionData) => transactionData?.accountOverride,
+);

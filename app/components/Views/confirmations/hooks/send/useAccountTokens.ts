@@ -19,6 +19,7 @@ import { AssetType, TokenStandard } from '../../types/token';
 import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import type { RootState } from '../../../../../reducers';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 
 export interface EnrichTokenRequest {
   chainId: Hex;
@@ -27,7 +28,7 @@ export interface EnrichTokenRequest {
 
 const EMPTY_REQUESTS: EnrichTokenRequest[] = [];
 
-function useAccountGroupAssets(accountAddress?: string) {
+function useAccountGroupAssets(accountAddress?: string | null) {
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
 
@@ -52,18 +53,17 @@ function useAccountGroupAssets(accountAddress?: string) {
 }
 
 export function useAccountTokens({
-  accountAddress,
   includeNoBalance = false,
   tokenFilter,
   enrichTokenRequests = EMPTY_REQUESTS,
 }: {
-  accountAddress?: string;
   includeNoBalance?: boolean;
   tokenFilter?: (chainId: string, address: string) => boolean;
   enrichTokenRequests?: EnrichTokenRequest[];
 } = {}): AssetType[] {
+  const accountOverride = useTransactionAccountOverride();
   const globalAssets = useSelector(selectAssetsBySelectedAccountGroup);
-  const accountAssets = useAccountGroupAssets(accountAddress);
+  const accountAssets = useAccountGroupAssets(accountOverride);
   const assets = accountAssets ?? globalAssets;
   const fiatCurrency = useSelector(selectCurrentCurrency);
 

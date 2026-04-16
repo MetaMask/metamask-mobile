@@ -10,6 +10,7 @@ import {
 import { isTestNet } from '../../../../../util/networks';
 import { useAccountTokens } from '../send/useAccountTokens';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayToken } from './useTransactionPayToken';
 
@@ -20,9 +21,10 @@ const MUSD_FALLBACK_TOKEN = {
   decimals: MUSD_TOKEN.decimals,
 } as const;
 
-export function useMoneyAccountPayToken(selectedAccount?: string) {
+export function useMoneyAccountPayToken() {
   const transactionMeta = useTransactionMetadataRequest();
   const { payToken, setPayToken } = useTransactionPayToken();
+  const accountOverride = useTransactionAccountOverride();
 
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
@@ -31,15 +33,13 @@ export function useMoneyAccountPayToken(selectedAccount?: string) {
     TransactionType.moneyAccountDeposit,
   ]);
 
-  const accountTokens = useAccountTokens({
-    accountAddress: selectedAccount,
-  });
+  const accountTokens = useAccountTokens();
 
   const isAwaitingAccountSelection =
-    (isMoneyAccountDeposit || isMoneyAccountWithdraw) && !selectedAccount;
+    (isMoneyAccountDeposit || isMoneyAccountWithdraw) && !accountOverride;
 
   useEffect(() => {
-    if (!selectedAccount) {
+    if (!accountOverride) {
       return;
     }
 
@@ -63,10 +63,10 @@ export function useMoneyAccountPayToken(selectedAccount?: string) {
       }
     }
   }, [
+    accountOverride,
     accountTokens,
     isMoneyAccountDeposit,
     isMoneyAccountWithdraw,
-    selectedAccount,
     setPayToken,
   ]);
 
