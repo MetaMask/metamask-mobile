@@ -248,7 +248,7 @@ describe('BridgeTransactionDetails', () => {
 
     // Should display "1.00000 SEI" (from pricingData.amountSent),
     // not "0.99125 SEI" (from srcTokenAmount)
-    expect(getByText(/1\.00000\s+SEI/)).toBeTruthy();
+    expect(getByText(/1\.00000\s+SEI/)).toBeOnTheScreen();
   });
 
   it('shows "Paid by MetaMask" when gas is sponsored and sender is not a hardware wallet', () => {
