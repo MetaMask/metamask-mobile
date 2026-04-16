@@ -12,6 +12,7 @@ import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
 /**
  * Build a mock for the MessengerClientInitRequest.
  *
+ * @param controllerMessenger - The root messenger to use.
  * @returns A mocked MessengerClientInitRequest.
  */
 export function buildMessengerClientInitRequestMock(
@@ -20,7 +21,7 @@ export function buildMessengerClientInitRequestMock(
   return {
     codefiTokenApiV2: jest.fn() as unknown as CodefiTokenPricesServiceV2,
     controllerMessenger: controllerMessenger as unknown as ControllerMessenger,
-    getController: jest.fn(),
+    getMessengerClient: jest.fn(),
     getGlobalChainId: jest.fn(),
     analyticsId: '59710bcf-06cc-4247-9386-12425e7fc905',
     getState: jest.fn(),
@@ -32,21 +33,24 @@ export function buildMessengerClientInitRequestMock(
 }
 
 /**
- * Create a generic mock controller init function
+ * Create a generic mock messenger client init function.
  *
- * @template T - The controller type
+ * @template T - The messenger client type
  * @template M - The messenger type
- * @returns A mock controller init function
+ * @param requiredMessengerClient - Optional name of a required dependency.
+ * @returns A mock messenger client init function
  */
 export function createMockMessengerClientInitFunction<
   T extends MessengerClient,
   M extends ControllerMessenger,
->(requiredController?: string): MessengerClientInitFunction<T, M> {
+>(requiredMessengerClient?: string): MessengerClientInitFunction<T, M> {
   return (request) => {
-    const { getController } = request;
+    const { getMessengerClient } = request;
 
-    if (requiredController) {
-      getController(requiredController as unknown as MessengerClientName);
+    if (requiredMessengerClient) {
+      getMessengerClient(
+        requiredMessengerClient as unknown as MessengerClientName,
+      );
     }
 
     return {

@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { TouchableOpacity } from 'react-native';
 import {
   Box,
   Text,
@@ -18,10 +19,12 @@ import { addThousandsSeparator } from '../../utils/numberFormatting';
 import {
   formatPerpsFiat,
   formatPercentage,
+  formatOrderCardDate,
 } from '../../../../UI/Perps/utils/formatUtils';
 
 export interface PositionRowProps {
   position: Position;
+  onPress?: (position: Position) => void;
 }
 
 function formatUsd(value: number | null | undefined): string {
@@ -43,9 +46,22 @@ function formatPercent(value: number | null | undefined): string {
   return formatPercentage(value, 0);
 }
 
-const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
-  const hasPnl = position.pnlPercent != null;
-  const isPnlPositive = hasPnl && (position.pnlPercent ?? 0) >= 0;
+const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
+  const isClosed = position.positionAmount === 0 && position.soldUsd > 0;
+
+  const displayValue = isClosed
+    ? position.soldUsd
+    : (position.currentValueUSD ?? null);
+
+  const closedPnlPercent =
+    isClosed && position.boughtUsd > 0
+      ? (position.realizedPnl / position.boughtUsd) * 100
+      : null;
+
+  const displayPnlPercent = isClosed ? closedPnlPercent : position.pnlPercent;
+  const hasPnl = displayPnlPercent != null;
+  const isPnlPositive = hasPnl && (displayPnlPercent ?? 0) >= 0;
+  const testID = `position-row-${position.tokenSymbol}`;
 
   const tokenImageUrl = useMemo(() => {
     const chainId = chainNameToId(position.chain);
@@ -53,13 +69,13 @@ const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
     return getAssetImageUrl(position.tokenAddress, chainId);
   }, [position.chain, position.tokenAddress]);
 
-  return (
+  const content = (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
       twClassName="px-4 py-3"
-      testID={`position-row-${position.tokenSymbol}`}
+      testID={onPress ? undefined : testID}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -87,7 +103,9 @@ const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
             color={TextColor.TextAlternative}
             numberOfLines={1}
           >
-            {`${formatTokenAmount(position.positionAmount)} ${position.tokenSymbol}`}
+            {isClosed
+              ? formatOrderCardDate(position.lastTradeAt)
+              : `${formatTokenAmount(position.positionAmount)} ${position.tokenSymbol}`}
           </Text>
         </Box>
       </Box>
@@ -98,7 +116,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
         >
-          {formatUsd(position.currentValueUSD)}
+          {formatUsd(displayValue)}
         </Text>
         <Text
           variant={TextVariant.BodySm}
@@ -111,11 +129,21 @@ const PositionRow: React.FC<PositionRowProps> = ({ position }) => {
               : undefined
           }
         >
-          {formatPercent(position.pnlPercent)}
+          {formatPercent(displayPnlPercent)}
         </Text>
       </Box>
     </Box>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity onPress={() => onPress(position)} testID={testID}>
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
 };
 
 export default PositionRow;

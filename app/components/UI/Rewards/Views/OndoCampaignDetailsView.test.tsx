@@ -33,11 +33,23 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  return { ...actual };
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  // Skeleton is absent from the installed design-system version; stub it so
+  // the loading-state render doesn't throw "Element type is invalid".
+  const Skeleton = (props: Record<string, unknown>) =>
+    ReactActual.createElement(View, { testID: 'skeleton', ...props });
+  return { ...actual, Skeleton };
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+  useTailwind: () => {
+    // Box uses tagged-template-literal syntax (tw`...`), so the return value
+    // must be callable. .style() is used by the view layer itself.
+    const tw = () => ({});
+    tw.style = (..._args: unknown[]) => ({});
+    return tw;
+  },
 }));
 
 jest.mock(
@@ -148,6 +160,11 @@ jest.mock('../hooks/useRewardsToast', () => ({
       entriesClosed: jest.fn(() => ({ variant: 'icon' })),
     },
   }),
+}));
+
+jest.mock('../hooks/useCampaignGeoRestriction', () => ({
+  __esModule: true,
+  default: () => ({ isGeoRestricted: false, isGeoLoading: false }),
 }));
 
 jest.mock('../components/Campaigns/CampaignOptInSheet', () => {
@@ -298,6 +315,39 @@ jest.mock('../../Trending/components/TrendingTokenLogo', () => {
   };
 });
 
+jest.mock('../hooks/useOndoAccountPicker', () => ({
+  __esModule: true,
+  useOndoAccountPicker: () => {
+    const { useState } = jest.requireActual('react');
+    const [pendingPicker, setPendingPicker] = useState(null);
+    return {
+      pendingPicker,
+      setPendingPicker,
+      sheetRef: { current: null },
+      handleGroupSelect: jest.fn(),
+    };
+  },
+}));
+
+// OndoCampaignCTA imports useAnalytics and MetaMetricsEvents which pull in
+// the full redux store chain.  Mock both at their resolved paths so the deep
+// import chain is never loaded in this test file.
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(() => ({})),
+    })),
+    isEnabled: jest.fn(() => true),
+  }),
+}));
+
+jest.mock('../../../../core/Analytics', () => ({
+  MetaMetricsEvents: {},
+  EVENT_NAME: {},
+}));
+
 // OndoPortfolio named exports used by the account picker bottom sheet
 jest.mock('../components/Campaigns/OndoPortfolio', () => {
   const ReactActual = jest.requireActual('react');
@@ -401,7 +451,8 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.campaigns_view.error_description': 'Please try again.',
       'rewards.campaigns_view.retry_button': 'Retry',
       'rewards.campaign_details.join_campaign': 'Join Campaign',
-      'rewards.campaign_details.ondo.open_position': 'Open Position',
+      'rewards.campaign_details.open_position': 'Open Position',
+      'rewards.campaign_details.swap_ondo_assets': 'Swap Ondo Assets',
       'rewards.campaign_details.ondo.entries_closed_title': 'Entries closed',
       'rewards.campaign_details.ondo.entries_closed_description':
         'You missed the opt-in window. Check back for more campaigns in the future.',
@@ -738,7 +789,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(getByText('Open Position')).toBeDefined();
     });
 
-    it('renders "Open Position" CTA when participant is opted in with positions', () => {
+    it('renders "Swap Ondo Assets" CTA when participant is opted in with positions', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
@@ -758,7 +809,7 @@ describe('OndoCampaignDetailsView', () => {
       });
       const { getByTestId, getByText } = render(<OndoCampaignDetailsView />);
       expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
-      expect(getByText('Open Position')).toBeDefined();
+      expect(getByText('Swap Ondo Assets')).toBeDefined();
     });
 
     it('hides the CTA while participant status is loading', () => {
@@ -965,11 +1016,17 @@ describe('OndoCampaignDetailsView', () => {
         ...hookDefaults,
         campaigns: [createTestCampaign()],
       });
-      // Opted-in so the portfolio mock triggers onOpenAccountPicker
       mockUseGetCampaignParticipantStatus.mockReturnValue({
         status: { optedIn: true, participantCount: 1 },
         isLoading: false,
         hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
         refetch: jest.fn(),
       });
       const { getByTestId, queryByTestId } = render(
@@ -1169,6 +1226,13 @@ describe('OndoCampaignDetailsView', () => {
         hasError: false,
         refetch: jest.fn(),
       });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: jest.fn(),
+      });
       const { getByTestId } = render(<OndoCampaignDetailsView />);
       fireEvent.press(getByTestId('ondo-campaign-portfolio-not-eligible'));
       expect(getByTestId('ondo-not-eligible-sheet')).toBeDefined();
@@ -1183,6 +1247,13 @@ describe('OndoCampaignDetailsView', () => {
         status: { optedIn: true, participantCount: 1 },
         isLoading: false,
         hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
         refetch: jest.fn(),
       });
       const { getByTestId, queryByTestId } = render(

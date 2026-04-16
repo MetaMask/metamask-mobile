@@ -123,6 +123,130 @@ describe('MainNavigator', () => {
       // Then the tab bar should be visible
       expect(toJSON()).toMatchSnapshot();
     });
+
+    describe('Rewards sub-page tab bar visibility', () => {
+      const getHomeTabsComponent = (): React.ComponentType<
+        Record<string, unknown>
+      > => {
+        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const homeScreen = mainRoot.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
+        )[0];
+        return homeScreen?.props?.component;
+      };
+
+      const getTabBarFn = (
+        HomeTabsComponent: React.ComponentType<Record<string, unknown>>,
+      ) => {
+        const { root: homeRoot } = renderWithProvider(
+          <HomeTabsComponent route={{ params: {} }} />,
+          { state: initialRootState },
+        );
+        const tabNavigatorNode = homeRoot.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabNavigator',
+        )[0];
+        return tabNavigatorNode?.props?.tabBar as (args: {
+          state: {
+            routes: { name: string; state?: unknown }[];
+            index: number;
+          };
+          descriptors: Record<string, unknown>;
+          navigation: Record<string, unknown>;
+        }) => React.ReactNode;
+      };
+
+      // rewardsViewRoute is found via .find(r => r.name === Routes.REWARDS_VIEW),
+      // so the inner route that wraps the nested nav state must carry that name.
+      const buildRewardsState = (activeRouteName: string | undefined) => ({
+        routes: [
+          {
+            name: Routes.REWARDS_VIEW,
+            state: activeRouteName
+              ? {
+                  routes: [
+                    {
+                      name: Routes.REWARDS_VIEW,
+                      state: {
+                        index: 0,
+                        routes: [{ name: activeRouteName }],
+                      },
+                    },
+                  ],
+                }
+              : undefined,
+          },
+        ],
+        index: 0,
+      });
+
+      it('hides tab bar when navigated to a rewards sub-page', () => {
+        // Given HomeTabs is rendered and the active route is a rewards sub-page
+        const HomeTabs = getHomeTabsComponent();
+        const renderTabBar = getTabBarFn(HomeTabs);
+
+        // When renderTabBar is called for a rewards sub-page
+        const result = renderTabBar({
+          state: buildRewardsState('OndoCampaignDetails'),
+          descriptors: {},
+          navigation: {},
+        });
+
+        // Then the tab bar should be hidden
+        expect(result).toBeNull();
+      });
+
+      it('shows tab bar when on the rewards dashboard', () => {
+        // Given HomeTabs is rendered and the active route is the rewards dashboard
+        const HomeTabs = getHomeTabsComponent();
+        const renderTabBar = getTabBarFn(HomeTabs);
+
+        // When renderTabBar is called for the rewards dashboard
+        const result = renderTabBar({
+          state: buildRewardsState(Routes.REWARDS_DASHBOARD),
+          descriptors: {},
+          navigation: {},
+        });
+
+        // Then the tab bar should be visible
+        expect(result).not.toBeNull();
+      });
+
+      it('shows tab bar when on the rewards onboarding flow', () => {
+        // Given HomeTabs is rendered and the active route is the onboarding flow
+        const HomeTabs = getHomeTabsComponent();
+        const renderTabBar = getTabBarFn(HomeTabs);
+
+        // When renderTabBar is called for the onboarding flow
+        const result = renderTabBar({
+          state: buildRewardsState(Routes.REWARDS_ONBOARDING_FLOW),
+          descriptors: {},
+          navigation: {},
+        });
+
+        // Then the tab bar should be visible
+        expect(result).not.toBeNull();
+      });
+
+      it('shows tab bar when rewards route has no nested navigation state yet', () => {
+        // Given HomeTabs is rendered and the rewards route has no nested state
+        const HomeTabs = getHomeTabsComponent();
+        const renderTabBar = getTabBarFn(HomeTabs);
+
+        // When renderTabBar is called with no nested rewards state (activeRouteName undefined)
+        const result = renderTabBar({
+          state: buildRewardsState(undefined),
+          descriptors: {},
+          navigation: {},
+        });
+
+        // Then the tab bar should be visible (default to home page)
+        expect(result).not.toBeNull();
+      });
+    });
   });
 
   it('includes SampleFeature screen in the navigation stack', () => {

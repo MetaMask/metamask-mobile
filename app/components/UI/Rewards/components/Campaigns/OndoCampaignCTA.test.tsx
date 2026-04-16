@@ -25,6 +25,22 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    })),
+  }),
+}));
+
+jest.mock('../../../../../core/Analytics', () => ({
+  MetaMetricsEvents: {
+    REWARDS_PAGE_BUTTON_CLICKED: 'REWARDS_PAGE_BUTTON_CLICKED',
+  },
+}));
+
 jest.mock('./CampaignOptInSheet', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -64,6 +80,13 @@ jest.mock('./OndoNotEligibleSheet', () => {
   };
 });
 
+// CampaignOptInCta (rendered inline, not mocked) calls useCampaignGeoRestriction.
+// Default to non-restricted so the normal opt-in button is shown.
+jest.mock('../../hooks/useCampaignGeoRestriction', () => ({
+  __esModule: true,
+  default: () => ({ isGeoRestricted: false, isGeoLoading: false }),
+}));
+
 const mockShowToast = jest.fn();
 const mockEntriesClosed = jest.fn(() => ({ variant: 'icon' }));
 
@@ -83,7 +106,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
       'rewards.campaign_details.join_campaign': 'Join Campaign',
-      'rewards.campaign_details.ondo.open_position': 'Swap Ondo assets',
+      'rewards.campaign_details.open_position': 'Open Position',
+      'rewards.campaign_details.swap_ondo_assets': 'Swap Ondo Assets',
       'rewards.campaign_details.ondo.entries_closed_title': 'Entries closed',
       'rewards.campaign_details.ondo.entries_closed_description':
         'You missed the opt-in window. Check back for more campaigns in the future.',
@@ -215,7 +239,7 @@ describe('OndoCampaignCTA', () => {
   });
 
   describe('opted in, no portfolio positions', () => {
-    it('renders the "Swap Ondo assets" button', () => {
+    it('renders the "Open Position" button', () => {
       const { getByTestId, getByText } = render(
         <OndoCampaignCTA
           campaign={buildCampaign()}
@@ -226,7 +250,7 @@ describe('OndoCampaignCTA', () => {
       );
 
       expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
-      expect(getByText('Swap Ondo assets')).toBeOnTheScreen();
+      expect(getByText('Open Position')).toBeOnTheScreen();
     });
 
     it('navigates to RWA asset selector in open_position mode when pressed', () => {
@@ -248,7 +272,7 @@ describe('OndoCampaignCTA', () => {
   });
 
   describe('opted in, with portfolio positions', () => {
-    it('renders the "Swap Ondo assets" button', () => {
+    it('renders the "Swap Ondo Assets" button', () => {
       const { getByTestId, getByText } = render(
         <OndoCampaignCTA
           campaign={buildCampaign()}
@@ -259,7 +283,7 @@ describe('OndoCampaignCTA', () => {
       );
 
       expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
-      expect(getByText('Swap Ondo assets')).toBeOnTheScreen();
+      expect(getByText('Swap Ondo Assets')).toBeOnTheScreen();
     });
 
     it('navigates to RWA asset selector in swap mode when pressed', () => {
@@ -282,7 +306,7 @@ describe('OndoCampaignCTA', () => {
 
   describe('notEligibleForCampaign', () => {
     describe('not opted in + notEligibleForCampaign=true', () => {
-      it('shows the Join Campaign button', () => {
+      it('shows the Entries closed button', () => {
         const { getByTestId, getByText } = render(
           <OndoCampaignCTA
             campaign={buildCampaign()}
@@ -292,7 +316,7 @@ describe('OndoCampaignCTA', () => {
           />,
         );
         expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
-        expect(getByText('Join Campaign')).toBeOnTheScreen();
+        expect(getByText('Entries closed')).toBeOnTheScreen();
       });
 
       it('fires entries-closed toast (not the opt-in sheet) when pressed', () => {
