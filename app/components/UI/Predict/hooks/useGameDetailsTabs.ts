@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectExtendedSportsMarketsLeagues } from '../selectors/featureFlags';
@@ -61,6 +61,13 @@ export function useGameDetailsTabs({
   const [activeChipKey, setActiveChipKey] = useState(
     outcomeGroups[0]?.key ?? '',
   );
+
+  useEffect(() => {
+    const exists = outcomeGroups.some((g) => g.key === activeChipKey);
+    if (!exists) {
+      setActiveChipKey(outcomeGroups[0]?.key ?? '');
+    }
+  }, [outcomeGroups, activeChipKey]);
 
   const handleChipSelect = useCallback((key: string) => {
     setActiveChipKey(key);

@@ -16,9 +16,19 @@ import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsConte
 
 const I18N_PREFIX = 'predict.sports_market_types';
 
+const toTitleCase = (str: string): string =>
+  str
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
 export const getSportsMarketTypeLabel = (type: string): string => {
   const i18nKey = `${I18N_PREFIX}.${type}`;
   const label = strings(i18nKey);
+  // strings() returns the key itself when no translation exists
+  if (label === i18nKey) {
+    return toTitleCase(type);
+  }
   return label;
 };
 
@@ -26,8 +36,8 @@ type BuyHandler = (outcome: PredictOutcome, token: PredictOutcomeToken) => void;
 
 const formatOutcomeCardTitle = (outcome: PredictOutcome): string => {
   const raw = outcome.groupItemTitle || outcome.title;
-  if (raw.includes('O/U') && raw.includes(':')) {
-    return raw.split(':')[0].trim();
+  if (raw.includes('O/U') && raw.includes(': ')) {
+    return raw.split(': ')[0].trim();
   }
   return raw;
 };

@@ -14,6 +14,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
+  InteractionManager,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -122,12 +123,13 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   useEffect(() => {
     if (!pendingChipScroll.current) return;
     pendingChipScroll.current = false;
-    requestAnimationFrame(() => {
+    const handle = InteractionManager.runAfterInteractions(() => {
       scrollRef.current?.scrollTo({
         y: stickyHeaderY.current,
         animated: false,
       });
     });
+    return () => handle.cancel();
   }, [activeChipKey]);
 
   const showStickyHeader = showTabBar || showChips;
@@ -228,7 +230,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           </Box>
         )}
 
-        <Box style={{ minHeight: windowHeight }}>
+        <Box style={{ minHeight: windowHeight - stickyHeaderY.current }}>
           <PredictGameDetailsTabsContent
             market={market}
             activeTab={activeTab}

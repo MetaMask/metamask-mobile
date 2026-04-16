@@ -187,10 +187,8 @@ describe('PredictGameOutcomesTab', () => {
       expect(getSportsMarketTypeLabel('moneyline')).toBe('Moneyline');
     });
 
-    it('returns i18n key for unknown type', () => {
-      expect(getSportsMarketTypeLabel('unknown_type')).toBe(
-        'predict.sports_market_types.unknown_type',
-      );
+    it('returns title-cased fallback for unknown type', () => {
+      expect(getSportsMarketTypeLabel('unknown_type')).toBe('Unknown Type');
     });
   });
 
@@ -287,6 +285,25 @@ describe('PredictGameOutcomesTab', () => {
       );
 
       expect(mockCapturedCards[0].title).toBe('O/U 45.5');
+    });
+
+    it('extracts player name from O/U title with colon separator', () => {
+      const outcome = createOutcome({
+        id: 'o-player-ou',
+        groupItemTitle: 'Dean Wade: Points O/U 0.5',
+      });
+      const groups = [createGroup({ key: 'points', outcomes: [outcome] })];
+
+      render(
+        <PredictGameOutcomesTab
+          outcomeGroups={groups}
+          game={mockGame}
+          activeChipKey="points"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].title).toBe('Dean Wade');
     });
 
     it('preserves title when no O/U colon pattern exists', () => {
