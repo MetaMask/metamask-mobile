@@ -20,7 +20,6 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
 import { InteractionManager, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
-import { WalletSetupType } from '../../../constants/onboarding';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 import { passwordRequirementsMet } from '../../../util/password';
 
@@ -549,7 +548,7 @@ describe('ChoosePassword', () => {
         .calls[0][0] as AnalyticsTrackingEvent;
       expect(trackingEvent.name).toBe(EVENT_NAME.WALLET_SETUP_FAILURE);
       expect(trackingEvent.properties).toEqual({
-        wallet_setup_type: WalletSetupType.New,
+        wallet_setup_type: 'import',
         error_type: strings('choose_password.password_length_error'),
       });
     });

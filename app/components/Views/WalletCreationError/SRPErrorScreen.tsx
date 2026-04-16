@@ -38,6 +38,7 @@ import { IconName as CLibIconName } from '../../../component-library/components/
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import { AccountType } from '../../../constants/onboarding';
 import AppConstants from '../../../core/AppConstants';
 import { Authentication } from '../../../core';
 
@@ -71,6 +72,7 @@ const SRPErrorScreen = ({
       )
         .addProperties({
           flow_type: 'srp',
+          account_type: AccountType.Metamask,
           error_name: error?.name || 'Unknown',
           error_message: error?.message || 'No message',
         })

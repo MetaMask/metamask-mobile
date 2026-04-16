@@ -33,7 +33,6 @@ import {
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useDispatch } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
-import { WalletSetupType } from '../../../constants/onboarding';
 import {
   passwordSet as passwordSetAction,
   passwordUnset as passwordUnsetAction,
@@ -240,14 +239,10 @@ const ChoosePassword = () => {
   );
 
   const validatePasswordSubmission = useCallback(() => {
-    const isSocialLogin = getOauth2LoginSuccess();
     const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = isSocialLogin
+    const canSubmit = getOauth2LoginSuccess()
       ? passwordsMatch
       : passwordsMatch && isSelected;
-    const walletSetupType = isSocialLogin
-      ? WalletSetupType.Social
-      : WalletSetupType.New;
 
     if (loading) return { valid: false, shouldTrack: false };
 
@@ -259,7 +254,7 @@ const ChoosePassword = () => {
 
       if (shouldTrackMismatch) {
         track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-          wallet_setup_type: walletSetupType,
+          wallet_setup_type: 'import',
           error_type: strings('choose_password.password_dont_match'),
         });
       }
@@ -268,7 +263,7 @@ const ChoosePassword = () => {
 
     if (!passwordRequirementsMet(password)) {
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-        wallet_setup_type: walletSetupType,
+        wallet_setup_type: 'import',
         error_type: strings('choose_password.password_length_error'),
       });
       return { valid: false, shouldTrack: false };
@@ -398,7 +393,7 @@ const ChoosePassword = () => {
       setLoading(false);
 
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-        wallet_setup_type: WalletSetupType.New,
+        wallet_setup_type: 'new',
         error_type: caughtError.toString(),
       });
 
@@ -485,7 +480,7 @@ const ChoosePassword = () => {
         account_type: accountType,
       });
       track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
-        wallet_setup_type: WalletSetupType.New,
+        wallet_setup_type: 'new',
         new_wallet: true,
         account_type: accountType,
       });

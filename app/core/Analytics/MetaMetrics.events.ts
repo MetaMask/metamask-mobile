@@ -149,7 +149,7 @@ enum EVENT_NAME {
   ONBOARDING_TOUR_STARTED = 'Onboarding Tour Started',
   ONBOARDING_TOUR_SKIPPED = 'Onboarding Tour Skipped',
   ONBOARDING_TOUR_STEP_COMPLETED = 'Onboarding Tour Step Completed',
-  ONBOARDING_TOUR_STEP_REVISITED = 'Onboarding Tour Step Revisited',
+  ONBOARDING_TOUR_STEP_REVISITED = 'Onboarding Tour Step Completed',
   ONBOARDING_TOUR_COMPLETED = 'Onboarding Tour Completed',
 
   // Wallet Setup
