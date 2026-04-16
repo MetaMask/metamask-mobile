@@ -5,7 +5,6 @@ import {
   MoneyAccountBalanceServiceMessenger,
 } from '@metamask/money-account-balance-service';
 
-// TODO: Replace with remote feature flag config.
 const VEDA_TEST_VAULT = '0xB5F07d769dD60fE54c97dd53101181073DDf21b2';
 const VEDA_TEST_ACCOUNTANT = '0x800ebc3B74F67EaC27C9CCE4E4FF28b17CdCA173';
 const ARB_USDC_ADDRESS = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
