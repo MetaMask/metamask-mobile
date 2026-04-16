@@ -84,6 +84,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const awaitingConfirmationRejectRef = useRef<(() => void) | null>(null);
   const operationTypeRef = useRef<'transaction' | 'message' | null>(null);
+  const qrScanRetryHandlerRef = useRef<(() => void) | null>(null);
 
   const [analyticsFlow, setAnalyticsFlow] = useState(
     HardwareWalletAnalyticsFlow.Connection,
@@ -180,6 +181,11 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     }
     await retryEnsureDeviceReady();
   }, [handleCloseFlow, retryEnsureDeviceReady]);
+
+  const setQrScanRetryHandler = useCallback((handler: (() => void) | null) => {
+    qrScanRetryHandlerRef.current = handler;
+  }, []);
+
   const handleAwaitingConfirmationCancel = useCallback(() => {
     DevLogger.log('[HardwareWallet] handleAwaitingConfirmationCancel');
     // eslint-disable-next-line no-empty-function
@@ -192,6 +198,25 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     hideAwaitingConfirmation();
   }, [hideAwaitingConfirmation, refs.adapterRef]);
 
+  const handleRetryQrScan = useCallback(() => {
+    if (operationTypeRef.current === null) {
+      const retryHandler = qrScanRetryHandlerRef.current;
+      if (!retryHandler) {
+        return;
+      }
+
+      updateConnectionState({ status: ConnectionStatus.Disconnected });
+      retryHandler();
+      return;
+    }
+
+    updateConnectionState({
+      status: ConnectionStatus.AwaitingConfirmation,
+      deviceId: deviceId ?? 'unknown',
+      operationType: operationTypeRef.current,
+    });
+  }, [deviceId, updateConnectionState]);
+
   const contextValue = useMemo(
     () => ({
       walletType: effectiveWalletType,
@@ -201,6 +226,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       ensureDeviceReady,
       setTargetWalletType: setters.setTargetWalletType,
       showHardwareWalletError,
+      setQrScanRetryHandler,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
     }),
@@ -212,6 +238,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       ensureDeviceReady,
       setters.setTargetWalletType,
       showHardwareWalletError,
+      setQrScanRetryHandler,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
     ],
@@ -228,6 +255,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
           deviceSelection={deviceSelection}
           walletType={effectiveWalletType}
           retryEnsureDeviceReady={handleRetryOrClose}
+          onRetryQrScan={handleRetryQrScan}
           selectDevice={selectDevice}
           rescan={rescan}
           connect={connect}

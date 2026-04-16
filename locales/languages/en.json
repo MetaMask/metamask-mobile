@@ -8392,7 +8392,9 @@
     },
     "common": {
       "cancel": "Cancel",
-      "continue": "Continue"
+      "continue": "Continue",
+      "learn_more": "Learn more",
+      "try_again": "Try again"
     },
     "connecting": {
       "title": "Connecting your {{device}}...",
@@ -8464,6 +8466,32 @@
       "scan_failed": "Scan Failed",
       "camera_permission_denied": "Camera Permission Required",
       "something_went_wrong": "Something went wrong"
+    },
+    "qr_scan_errors": {
+      "non_ur_qr_scanned": {
+        "pair": {
+          "title": "Scan wallet sync QR code",
+          "body": "Go back to your hardware wallet and find the option to share or export your accounts, choose MetaMask, then scan the QR code."
+        },
+        "sign": {
+          "title": "Scan signature QR code",
+          "body": "Go back to your hardware wallet and approve the transaction, then scan the QR code it shows."
+        }
+      },
+      "wrong_ur_type": {
+        "pair": {
+          "title": "Wrong QR code",
+          "body": "Go back to your hardware wallet, choose MetaMask as the wallet type, then generate and scan a new QR code."
+        },
+        "sign": {
+          "title": "Wrong QR code",
+          "body": "Go back to your hardware wallet and approve the transaction, then scan the QR code it shows."
+        }
+      },
+      "ur_decode_error": {
+        "title": "Couldn't read QR code",
+        "body": "Make sure the QR code is fully visible and well-lit, and try again. If the issue continues, you may need to update your hardware wallet's firmware."
+      }
     },
     "device_selection": {
       "title": "Select {{device}}",

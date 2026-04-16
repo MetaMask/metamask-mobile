@@ -25,6 +25,8 @@ export interface HardwareWalletContextValue {
   setTargetWalletType: (walletType: HardwareWalletType | null) => void;
   /** Show a hardware wallet error in the bottom sheet. Use after ensureDeviceReady succeeds. */
   showHardwareWalletError: (error: unknown) => void;
+  /** Register a retry handler for QR scan errors outside the provider-managed flows. */
+  setQrScanRetryHandler?: (handler: (() => void) | null) => void;
   /** Show "awaiting confirmation" bottom sheet. */
   showAwaitingConfirmation: (
     operationType: 'transaction' | 'message',

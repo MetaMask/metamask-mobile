@@ -26,6 +26,8 @@ import {
   getIconColorForErrorCode,
   getTitleForErrorCode,
   getRecoveryActionForErrorCode,
+  getQRHardwareScanErrorTitle,
+  isQRHardwareScanError,
   RecoveryAction,
 } from '../../../errors';
 import { ContentLayout } from './ContentLayout';
@@ -36,6 +38,11 @@ export const ERROR_CONTENT_TITLE_TEST_ID = 'error-content-title';
 export const ERROR_CONTENT_MESSAGE_TEST_ID = 'error-content-message';
 export const ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID =
   'error-content-continue-button';
+export const ERROR_CONTENT_LEARN_MORE_BUTTON_TEST_ID =
+  'error-content-learn-more-button';
+
+const QR_HARDWARE_LEARN_MORE_URL =
+  'https://support.metamask.io/more-web3/wallets/hardware-wallet-hub/#qr-codean-gapped-wallets';
 
 const styles = StyleSheet.create({
   message: {
@@ -76,24 +83,42 @@ export const ErrorContent: React.FC<ErrorContentProps> = ({
     return getRecoveryActionForErrorCode(error.code);
   }, [error]);
 
+  const isQrScanError = useMemo(
+    () => Boolean(error && isQRHardwareScanError(error)),
+    [error],
+  );
+
   const showLoading =
-    recoveryAction === RecoveryAction.RETRY && (isLoading || isRetrying);
+    !isQrScanError &&
+    recoveryAction === RecoveryAction.RETRY &&
+    (isLoading || isRetrying);
 
   const errorTitle = useMemo(() => {
     if (!error) return strings('hardware_wallet.error.something_went_wrong');
+    if (isQRHardwareScanError(error)) {
+      return getQRHardwareScanErrorTitle(error);
+    }
     return getTitleForErrorCode(error.code, deviceType);
   }, [error, deviceType]);
 
   const errorMessage = useMemo(() => error?.userMessage ?? null, [error]);
 
   const buttonLabel = useMemo(() => {
+    if (isQrScanError) {
+      return strings('hardware_wallet.common.try_again');
+    }
     if (recoveryAction === RecoveryAction.OPEN_SETTINGS) {
       return strings('hardware_wallet.error.view_settings');
     }
     return strings('hardware_wallet.common.continue');
-  }, [recoveryAction]);
+  }, [isQrScanError, recoveryAction]);
 
   const handleContinue = useCallback(async () => {
+    if (isQrScanError) {
+      await onContinue?.();
+      return;
+    }
+
     if (recoveryAction === RecoveryAction.ACKNOWLEDGE) {
       onDismiss?.();
       return;
@@ -112,7 +137,11 @@ export const ErrorContent: React.FC<ErrorContentProps> = ({
     } finally {
       setIsRetrying(false);
     }
-  }, [onContinue, onDismiss, recoveryAction, showLoading]);
+  }, [isQrScanError, onContinue, onDismiss, recoveryAction, showLoading]);
+
+  const handleLearnMore = useCallback(async () => {
+    await Linking.openURL(QR_HARDWARE_LEARN_MORE_URL);
+  }, []);
 
   if (!error) {
     return null;
@@ -123,12 +152,14 @@ export const ErrorContent: React.FC<ErrorContentProps> = ({
       testID={ERROR_CONTENT_TEST_ID}
       titleTestID={ERROR_CONTENT_TITLE_TEST_ID}
       icon={
-        <Icon
-          testID={ERROR_CONTENT_ICON_TEST_ID}
-          name={getIconForErrorCode(error.code)}
-          size={IconSize.Xl}
-          color={getIconColorForErrorCode(error.code)}
-        />
+        isQrScanError ? undefined : (
+          <Icon
+            testID={ERROR_CONTENT_ICON_TEST_ID}
+            name={getIconForErrorCode(error.code)}
+            size={IconSize.Xl}
+            color={getIconColorForErrorCode(error.code)}
+          />
+        )
       }
       title={errorTitle}
       body={
@@ -144,16 +175,28 @@ export const ErrorContent: React.FC<ErrorContentProps> = ({
         ) : undefined
       }
       footer={
-        <Button
-          testID={ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID}
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={buttonLabel}
-          onPress={handleContinue}
-          isDisabled={showLoading}
-          loading={showLoading}
-        />
+        <>
+          {isQrScanError ? (
+            <Button
+              testID={ERROR_CONTENT_LEARN_MORE_BUTTON_TEST_ID}
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={strings('hardware_wallet.common.learn_more')}
+              onPress={handleLearnMore}
+            />
+          ) : null}
+          <Button
+            testID={ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID}
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label={buttonLabel}
+            onPress={handleContinue}
+            isDisabled={showLoading}
+            loading={showLoading}
+          />
+        </>
       }
     />
   );
