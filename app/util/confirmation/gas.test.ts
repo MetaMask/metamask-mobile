@@ -10,6 +10,7 @@ import {
   getMediumPriorityFeeGwei,
   gasEstimateGreaterThanGasUsedPlusTenPercent,
   getGasValuesForReplacement,
+  normalizeReplacementGasFeeParams,
   type GasFeeEstimatesInput,
 } from './gas';
 
@@ -261,6 +262,46 @@ describe('getMediumPriorityFeeGwei', () => {
       expect(getMediumPriorityFeeGwei(estimates)).toBe(expected);
     },
   );
+});
+
+describe('normalizeReplacementGasFeeParams', () => {
+  it('returns a legacy gas price object without unexpected properties', () => {
+    const result = normalizeReplacementGasFeeParams({
+      legacyGasFee: {
+        gasPrice: '0x123',
+        unexpected: 'ignored',
+      },
+    });
+
+    expect(result).toEqual({
+      gasPrice: '0x123',
+    });
+  });
+
+  it('returns an eip1559 gas object when both fee fields are present', () => {
+    const result = normalizeReplacementGasFeeParams({
+      eip1559GasFee: {
+        maxFeePerGas: '0x456',
+        maxPriorityFeePerGas: '0x789',
+        unexpected: 'ignored',
+      },
+    });
+
+    expect(result).toEqual({
+      maxFeePerGas: '0x456',
+      maxPriorityFeePerGas: '0x789',
+    });
+  });
+
+  it('returns undefined for incomplete eip1559 gas fees', () => {
+    const result = normalizeReplacementGasFeeParams({
+      eip1559GasFee: {
+        maxFeePerGas: '0x456',
+      },
+    });
+
+    expect(result).toBeUndefined();
+  });
 });
 
 describe('gasEstimateGreaterThanGasUsedPlusTenPercent', () => {

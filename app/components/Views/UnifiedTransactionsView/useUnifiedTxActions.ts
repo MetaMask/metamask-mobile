@@ -19,6 +19,7 @@ import { isHardwareAccount } from '../../../util/address';
 import {
   getGasValuesForReplacement,
   getMediumGasPriceHex,
+  normalizeReplacementGasFeeParams,
 } from '../../../util/confirmation/gas';
 import {
   getPreviousGasFromController,
@@ -130,23 +131,9 @@ export function useUnifiedTxActions() {
         );
       }
 
-      let gasFeeParams: GasPriceValue | FeeMarketEIP1559Values | undefined;
-
-      if (transaction?.replacementParams?.legacyGasFee?.gasPrice) {
-        gasFeeParams = {
-          gasPrice: transaction.replacementParams.legacyGasFee.gasPrice,
-        };
-      } else if (
-        transaction?.replacementParams?.eip1559GasFee?.maxFeePerGas &&
-        transaction?.replacementParams?.eip1559GasFee?.maxPriorityFeePerGas
-      ) {
-        gasFeeParams = {
-          maxFeePerGas:
-            transaction.replacementParams.eip1559GasFee.maxFeePerGas,
-          maxPriorityFeePerGas:
-            transaction.replacementParams.eip1559GasFee.maxPriorityFeePerGas,
-        };
-      }
+      const gasFeeParams = normalizeReplacementGasFeeParams(
+        transaction?.replacementParams,
+      );
 
       const didComplete = await executeHardwareWalletOperation({
         address: selectedAddress,

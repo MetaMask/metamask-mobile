@@ -57,6 +57,7 @@ import {
 import {
   getGasValuesForReplacement,
   getMediumGasPriceHex,
+  normalizeReplacementGasFeeParams,
 } from '../../../util/confirmation/gas';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
@@ -655,9 +656,9 @@ class Transactions extends PureComponent {
       throw new Error('Missing selected address for hardware wallet operation');
     }
 
-    const gasFeeParams =
-      transaction?.replacementParams?.legacyGasFee ??
-      transaction?.replacementParams?.eip1559GasFee;
+    const gasFeeParams = normalizeReplacementGasFeeParams(
+      transaction?.replacementParams,
+    );
 
     const didComplete = await executeHardwareWalletOperation({
       address: selectedAddress,
