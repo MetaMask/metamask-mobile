@@ -163,8 +163,7 @@ describe(SmokeWalletPlatform('Browser Navigation'), () => {
           },
         );
 
-        const targetUrl = `${getDappUrl(1)}/redirect-target.html`;
-        await RedirectWebsite.navigateToTargetUrl(targetUrl);
+        await RedirectWebsite.tapRedirectButton();
         await Assertions.expectElementToHaveText(
           Browser.urlInputBoxID,
           getOriginFromURL(getDappUrl(1)),
