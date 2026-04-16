@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore:cherry pick 28490 (#28556)
 - chore: cherry pick 28423 (#28540)
 - cherry pick 28368 (#28535)
-- chore: use push EAS directly (#28362) (#28362)
+- chore: use push EAS directly (#28362)
 - Null (#28510)
 
 ---
