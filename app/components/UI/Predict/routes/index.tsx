@@ -16,6 +16,7 @@ import PredictActivityDetail from '../components/PredictActivityDetail/PredictAc
 import { PredictNavigationParamList } from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
 import PredictFeed from '../views/PredictFeed';
+import ClobV2Playground from '../views/ClobV2Playground';
 import PredictGTMModal from '../components/PredictGTMModal';
 import { Dimensions } from 'react-native';
 import { selectPredictWithAnyTokenEnabledFlag } from '../selectors/featureFlags';
@@ -167,6 +168,26 @@ const PredictScreenStack = () => {
             headerShown: false,
             transitionSpec: getConfirmationTransitionSpec(disableOpenAnimation),
           };
+        }}
+      />
+
+      <Stack.Screen
+        name={Routes.PREDICT.DEV_PLAYGROUND}
+        component={ClobV2Playground}
+        options={{
+          headerShown: false,
+          cardStyleInterpolator: ({ current }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [Dimensions.get('window').width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
         }}
       />
 

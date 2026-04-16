@@ -361,6 +361,7 @@ const Routes = {
     MARKET_LIST: 'PredictMarketList',
     MARKET_DETAILS: 'PredictMarketDetails',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
+    DEV_PLAYGROUND: 'PredictDevPlayground',
     MODALS: {
       ROOT: 'PredictModals',
       BUY_PREVIEW: 'PredictBuyPreview',

@@ -72,4 +72,5 @@ export interface PredictNavigationParamList extends ParamListBase {
   PredictSellPreview: PredictSellPreviewParams;
   PredictBuyPreview: PredictBuyPreviewParams;
   PredictActivityDetail: PredictActivityDetailParams;
+  PredictDevPlayground: undefined;
 }

@@ -99,11 +99,28 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList as unknown as React.ComponentType<PredictFlashListProps>,
 ) as unknown as React.ComponentType<PredictFlashListProps>;
 
-const PredictFeedHeader: React.FC = () => (
-  <Box twClassName="py-4">
-    <PredictBalance />
-  </Box>
-);
+const PredictFeedHeader: React.FC = () => {
+  const navigation = useNavigation();
+  return (
+    <Box twClassName="py-4 gap-2">
+      <PredictBalance />
+      <Pressable
+        accessibilityRole="button"
+        onPress={() =>
+          navigation.navigate(Routes.PREDICT.DEV_PLAYGROUND as never)
+        }
+        style={({ pressed }) => ({
+          alignSelf: 'center',
+          opacity: pressed ? 0.7 : 1,
+        })}
+      >
+        <Text variant={TextVariant.BodySm} color={TextColor.PrimaryDefault}>
+          🧪 CLOB v2 Playground
+        </Text>
+      </Pressable>
+    </Box>
+  );
+};
 
 interface PredictFeedTabBarProps {
   tabs: FeedTab[];

@@ -411,6 +411,19 @@ export const encodeWrap = ({
     'function wrap(address _asset, address _to, uint256 _amount)',
   ]).encodeFunctionData('wrap', [asset, to, amount]) as Hex;
 
+export const encodeUnwrap = ({
+  asset,
+  to,
+  amount,
+}: {
+  asset: string;
+  to: string;
+  amount: bigint | string;
+}): Hex =>
+  new Interface([
+    'function unwrap(address _asset, address _to, uint256 _amount)',
+  ]).encodeFunctionData('unwrap', [asset, to, amount]) as Hex;
+
 function replaceAll(s: string, search: string, replace: string) {
   return s.split(search).join(replace);
 }
