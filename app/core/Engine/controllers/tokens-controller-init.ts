@@ -18,8 +18,13 @@ export const tokensControllerInit: MessengerClientInitFunction<
   TokensController,
   TokensControllerMessenger,
   TokensControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, persistedState, getController }) => {
-  const networkController = getController('NetworkController');
+> = ({
+  controllerMessenger,
+  initMessenger,
+  persistedState,
+  getMessengerClient,
+}) => {
+  const networkController = getMessengerClient('NetworkController');
   const { provider } =
     initMessenger.call('NetworkController:getSelectedNetworkClient') ?? {};
 
