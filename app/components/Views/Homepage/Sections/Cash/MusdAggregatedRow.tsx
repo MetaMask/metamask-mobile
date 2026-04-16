@@ -31,6 +31,7 @@ import {
 } from '../../../../UI/Earn/constants/musd';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
@@ -45,6 +46,9 @@ const MusdAggregatedRow = () => {
   const navigation = useNavigation();
   const privacyMode = useSelector(selectPrivacyMode);
   const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
+  const hasSeenConversionEducationScreen = useSelector(
+    selectMusdConversionEducationSeen,
+  );
   const { tokenBalanceAggregated, fiatBalanceAggregatedFormatted } =
     useMusdBalance();
   const { claimableReward, hasPendingClaim, isClaiming, claimRewards } =
@@ -75,10 +79,16 @@ const MusdAggregatedRow = () => {
   const handleTokenRowPress = useCallback(() => {
     if (isMoneyHomeEnabled) {
       navigation.navigate(Routes.MONEY.ROOT);
-    } else {
-      navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW);
+      return;
     }
-  }, [navigation, isMoneyHomeEnabled]);
+    if (!hasSeenConversionEducationScreen) {
+      navigation.navigate(Routes.EARN.MUSD.CONVERSION_EDUCATION, {
+        returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
+      });
+      return;
+    }
+    navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW);
+  }, [navigation, isMoneyHomeEnabled, hasSeenConversionEducationScreen]);
 
   const tokenBalanceDisplay = `${getIntlNumberFormatter(I18n.locale, {
     minimumFractionDigits: 0,
