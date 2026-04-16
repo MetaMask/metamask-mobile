@@ -25,11 +25,15 @@ import {
   limitToMaximumDecimalPlaces,
   localizeLargeNumber,
   renderFiat,
+  renderFiatAddition,
   renderFromTokenMinimalUnit,
   renderFromWei,
+  renderSmallNumber,
   renderNumber,
+  renderWei,
   safeBigIntToHex,
   safeNumberToBigInt,
+  toBigInt,
   toGwei,
   toHexadecimal,
   toTokenMinimalUnit,
@@ -62,6 +66,9 @@ describe('Number utils :: fromWei', () => {
 
   it('fromWei using BN number', () => {
     expect(fromWei(BigInt('1337'))).toEqual('0.000000000000001337');
+  });
+  it('defaults to 0 when called with no arguments', () => {
+    expect(fromWei()).toEqual('0');
   });
 });
 
@@ -295,6 +302,31 @@ describe('Number utils :: toTokenMinimalUnit', () => {
   });
 });
 
+describe('Number utils :: renderSmallNumber', () => {
+  it('returns "< 0.00001" for tiny positive values', () => {
+    expect(renderSmallNumber(0.000001)).toEqual('< 0.00001');
+    expect(renderSmallNumber(0.000009999)).toEqual('< 0.00001');
+  });
+
+  it('rounds to the given decimal places', () => {
+    expect(renderSmallNumber(1.123456, 3)).toEqual('1.123');
+    expect(renderSmallNumber(1.6789, 2)).toEqual('1.68');
+  });
+
+  it('returns whole numbers as-is', () => {
+    expect(renderSmallNumber(42)).toEqual('42');
+    expect(renderSmallNumber(0)).toEqual('0');
+  });
+
+  it('handles negative values normally', () => {
+    expect(renderSmallNumber(-0.5, 2)).toEqual('-0.5');
+  });
+
+  it('defaults to 5 decimal places', () => {
+    expect(renderSmallNumber(1.1234567)).toEqual('1.12346');
+  });
+});
+
 describe('Number utils :: renderFromTokenMinimalUnit', () => {
   it('renderFromTokenMinimalUnit using number', () => {
     expect(renderFromTokenMinimalUnit(1337, 6)).toEqual('0.00134');
@@ -405,6 +437,18 @@ describe('Number utils :: hexToBigInt', () => {
   it('handles non-string values', () => {
     const newBN = BigInt(1);
     expect(hexToBigInt(newBN)).toBe(newBN);
+  });
+  it('returns BigInt(0) for an empty string', () => {
+    expect(hexToBigInt('')).toBe(BigInt(0));
+  });
+});
+
+describe('Number utils :: toBigInt', () => {
+  it('hex converts a hex string to bigint', () => {
+    expect(toBigInt.hex('0x539')).toBe(BigInt(1337));
+  });
+  it('hex converts a non-prefixed hex string to bigint', () => {
+    expect(toBigInt.hex('ff')).toBe(BigInt(255));
   });
 });
 
@@ -616,6 +660,30 @@ describe('Number utils :: renderFiat', () => {
   it('places the minus before the currency symbol for negative amounts', () => {
     expect(renderFiat(-5, 'usd')).toEqual('-$5');
     expect(renderFiat(-0.5, 'usd')).toEqual('-$0.5');
+  });
+});
+
+describe('Number utils :: renderFiatAddition', () => {
+  it('adds transfer and fee with known currency symbol', () => {
+    expect(renderFiatAddition(1.5, 0.5, 'usd')).toEqual('$2');
+  });
+  it('returns minimal unit string for very small positive sums', () => {
+    expect(renderFiatAddition(0.000001, 0.000002, 'usd')).toEqual('$< 0.00001');
+  });
+  it('rounds to the specified decimal places', () => {
+    expect(renderFiatAddition(1.123456, 0, 'usd', 3)).toEqual('$1.123');
+  });
+  it('falls back to currency code suffix for unknown currencies', () => {
+    expect(
+      renderFiatAddition(
+        10,
+        5,
+        'xyz' as Parameters<typeof renderFiatAddition>[2],
+      ),
+    ).toEqual('15 xyz');
+  });
+  it('handles zero values', () => {
+    expect(renderFiatAddition(0, 0, 'usd')).toEqual('$0');
   });
 });
 
@@ -923,6 +991,26 @@ describe('Number utils :: addHexPrefix', () => {
 
   it('prepends -0x to a negative hex string without prefix', () => {
     expect(addHexPrefix('-1a2b')).toBe('-0x1a2b');
+  });
+});
+
+describe('Number utils :: renderWei', () => {
+  it('returns "0" for null', () => {
+    expect(renderWei(null)).toEqual('0');
+  });
+  it('returns "0" for undefined', () => {
+    expect(renderWei(undefined)).toEqual('0');
+  });
+  it('returns "0" for BigInt(0)', () => {
+    expect(renderWei(BigInt(0))).toEqual('0');
+  });
+  it('converts a bigint wei value back to its wei string', () => {
+    expect(renderWei(BigInt('1000000000000000000'))).toEqual(
+      '1000000000000000000',
+    );
+  });
+  it('handles small wei values', () => {
+    expect(renderWei(BigInt(1337))).toEqual('1337');
   });
 });
 

@@ -250,6 +250,22 @@ export function toTokenMinimalUnit(
 }
 
 /**
+ * Rounds a number to the given decimal places, returning '< 0.00001' for
+ * tiny positive values that would otherwise display as zero.
+ *
+ * @param value - The numeric value to format
+ * @param decimalsToShow - Maximum decimal places (default 5)
+ * @returns Formatted string
+ */
+export function renderSmallNumber(value: number, decimalsToShow = 5): string {
+  if (value < 0.00001 && value > 0) {
+    return '< 0.00001';
+  }
+  const base = Math.pow(10, decimalsToShow);
+  return (Math.round(value * base) / base).toString();
+}
+
+/**
  * Converts some token minimal unit to render format string, showing 5 decimals
  *
  * @param {Number|String|bigint} tokenValue - Token value to convert
@@ -264,17 +280,7 @@ export function renderFromTokenMinimalUnit(
   decimalsToShow = 5,
 ): string {
   const minimalUnit = fromTokenMinimalUnit(tokenValue || 0, decimals);
-  const minimalUnitNumber = parseFloat(minimalUnit);
-  let renderMinimalUnit;
-  if (minimalUnitNumber < 0.00001 && minimalUnitNumber > 0) {
-    renderMinimalUnit = '< 0.00001';
-  } else {
-    const base = Math.pow(10, decimalsToShow);
-    renderMinimalUnit = (
-      Math.round(minimalUnitNumber * base) / base
-    ).toString();
-  }
-  return renderMinimalUnit;
+  return renderSmallNumber(parseFloat(minimalUnit), decimalsToShow);
 }
 
 /**
@@ -293,18 +299,14 @@ export function renderFiatAddition(
   currentCurrency: CurrencyCode,
   decimalsToShow = 5,
 ): string {
-  const addition = transferFiat + feeFiat;
-  let renderMinimalUnit;
-  if (addition < 0.00001 && addition > 0) {
-    renderMinimalUnit = '< 0.00001';
-  } else {
-    const base = Math.pow(10, decimalsToShow);
-    renderMinimalUnit = (Math.round(addition * base) / base).toString();
-  }
+  const formattedSum = renderSmallNumber(
+    transferFiat + feeFiat,
+    decimalsToShow,
+  );
   if (currencySymbols[currentCurrency]) {
-    return `${currencySymbols[currentCurrency]}${renderMinimalUnit}`;
+    return `${currencySymbols[currentCurrency]}${formattedSum}`;
   }
-  return `${renderMinimalUnit} ${currentCurrency}`;
+  return `${formattedSum} ${currentCurrency}`;
 }
 
 /**
@@ -360,19 +362,8 @@ export function renderFromWei(
   value: number | string | bigint,
   decimalsToShow = 5,
 ): string {
-  let weiDisplay = '0';
-  // avoid undefined
-  if (value) {
-    const wei = fromWei(value);
-    const weiNumber = parseFloat(wei);
-    if (weiNumber < 0.00001 && weiNumber > 0) {
-      weiDisplay = '< 0.00001';
-    } else {
-      const base = Math.pow(10, decimalsToShow);
-      weiDisplay = (Math.round(weiNumber * base) / base).toString();
-    }
-  }
-  return weiDisplay;
+  if (!value) return '0';
+  return renderSmallNumber(parseFloat(fromWei(value)), decimalsToShow);
 }
 
 /**
