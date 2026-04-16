@@ -4,7 +4,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Text,
   Box,
-  BoxAlignItems,
   BoxJustifyContent,
   TextColor,
   TextVariant,
@@ -56,9 +55,8 @@ const CampaignTourStep: React.FC<CampaignTourStepProps> = ({ step }) => {
 
         {step.image && (
           <Box
-            twClassName="flex-1"
+            twClassName="flex-1 w-full"
             justifyContent={BoxJustifyContent.Center}
-            alignItems={BoxAlignItems.Center}
           >
             <RewardsThemeImageComponent
               themeImage={step.image}
