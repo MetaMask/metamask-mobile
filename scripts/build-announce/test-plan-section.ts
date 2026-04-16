@@ -169,12 +169,15 @@ export function buildTestPlanSection(testPlan: TestPlanResult): string {
     md += buildExecutiveSummarySection(testPlan.executiveSummary);
   }
 
-  // All scenarios in one collapsible section
+  // All scenarios in one collapsible section (only high/medium risk are rendered)
   const allScenarios = testPlan.scenarios;
+  const renderedScenarios = allScenarios.filter(
+    (s) => s.riskLevel === 'high' || s.riskLevel === 'medium',
+  );
 
-  if (allScenarios.length > 0) {
+  if (renderedScenarios.length > 0) {
     md += `<details>\n`;
-    md += `<summary><strong>Release Scenarios (${allScenarios.length})</strong></summary>\n\n`;
+    md += `<summary><strong>Release Scenarios (${renderedScenarios.length})</strong></summary>\n\n`;
     md += formatScenariosByRisk(allScenarios);
     md += `</details>\n\n`;
   }
