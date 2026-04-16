@@ -53,6 +53,9 @@ import {
   ONDO_GM_REQUIRED_QUALIFIED_DAYS,
   isCampaignIneligible,
 } from '../utils/ondoCampaignConstants';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -67,6 +70,7 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
   const { campaignId } = route.params;
@@ -111,6 +115,11 @@ const OndoCampaignDetailsView: React.FC = () => {
     status: participantStatusData,
     isLoading: isParticipantStatusLoading,
   } = useGetCampaignParticipantStatus(campaignId);
+
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_detail',
+    campaign_id: campaignId,
+  });
 
   useEffect(() => {
     if (campaign && getCampaignStatus(campaign) === 'upcoming') {
@@ -180,21 +189,6 @@ const OndoCampaignDetailsView: React.FC = () => {
           )
         : null,
     [campaign, leaderboardPosition],
-  );
-
-  const leaderboardPendingSheetPosition = useMemo(
-    () =>
-      leaderboardPosition &&
-      !leaderboardPosition.qualified &&
-      tierMinDeposit != null
-        ? {
-            tier: leaderboardPosition.projectedTier,
-            netDeposit: leaderboardPosition.netDeposit,
-            qualifiedDays: leaderboardPosition.qualifiedDays,
-            tierMinDeposit,
-          }
-        : null,
-    [leaderboardPosition, tierMinDeposit],
   );
 
   const notEligibleForCampaign = useMemo(
@@ -341,18 +335,6 @@ const OndoCampaignDetailsView: React.FC = () => {
                       showHeader={false}
                       tierMinDeposit={tierMinDeposit}
                       isIneligible={notEligibleForCampaign}
-                      onQualifyPress={
-                        leaderboardPendingSheetPosition
-                          ? () =>
-                              navigation.navigate(
-                                Routes.MODAL.REWARDS_ONDO_PENDING_SHEET,
-                                {
-                                  variant: 'own',
-                                  ...leaderboardPendingSheetPosition,
-                                },
-                              )
-                          : undefined
-                      }
                     />
                   </Box>
                 </>
@@ -462,7 +444,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       maxEntries={5}
                       currentUserReferralCode={referralCode}
                       userPosition={leaderboardUserPosition}
-                      pendingSheetPosition={leaderboardPendingSheetPosition}
+                      campaignId={campaignId}
                     />
                   </Box>
                 </>

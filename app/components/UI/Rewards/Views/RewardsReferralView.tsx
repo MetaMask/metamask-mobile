@@ -22,6 +22,7 @@ import {
   selectReferralDetailsLoading,
 } from '../../../../reducers/rewards/selectors';
 import { buildReferralUrl, RewardsMetricsButtons } from '../utils';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
 const ReferralRewardsView: React.FC = () => {
   const tw = useTailwind();
@@ -31,6 +32,8 @@ const ReferralRewardsView: React.FC = () => {
 
   const referralCode = useSelector(selectReferralCode);
   const referralDetailsLoading = useSelector(selectReferralDetailsLoading);
+
+  useTrackRewardsPageView({ page_type: 'referrals' });
 
   useEffect(() => {
     if (!hasTrackedReferralsViewed.current) {

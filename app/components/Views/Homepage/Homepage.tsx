@@ -21,7 +21,7 @@ import { SectionRefreshHandle } from './types';
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
-import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
+import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectWhatsHappeningEnabled } from '../../../selectors/featureFlagController/whatsHappening';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
@@ -61,7 +61,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
+  const isDeFiEnabled = useSelector(selectDeFiPositionsSectionEnabled);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
   const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
   const isMusdConversionEnabled = useSelector(
