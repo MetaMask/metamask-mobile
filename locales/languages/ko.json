@@ -1836,13 +1836,13 @@
       "market_hours": {
         "title": "시장 시간",
         "closes_in": "{{time}} 후 마감",
-        "content": "You're trading within regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "content": "You're trading within regular market hours (9:30 am to 4 pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
       },
       "after_hours_trading": {
         "title": "시간 외 거래",
         "reopens_in": "{{time}} 후 재개장",
         "reopens_in_label": "Reopens in",
-        "content": "You're trading outside of regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "content": "You're trading outside of regular market hours (9:30 am to 4 pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
       },
       "spread": {
         "title": "스프레드",
@@ -8238,7 +8238,7 @@
     "ondo_campaign_after_hours_trading": {
       "title": "시간 외 거래",
       "reopens_in_label": "Reopens in",
-      "content": "You're trading outside of regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates.",
+      "content": "You're trading outside of regular market hours (9:30 am to 4 pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates.",
       "got_it_button": "컨펌"
     },
     "ondo_campaign_not_eligible": {

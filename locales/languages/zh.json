@@ -1836,13 +1836,13 @@
       "market_hours": {
         "title": "交易时段",
         "closes_in": "距收盘 {{time}}",
-        "content": "You're trading within regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "content": "You're trading within regular market hours (9:30 am to 4 pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
       },
       "after_hours_trading": {
         "title": "非交易时段交易",
         "reopens_in": "距开盘 {{time}}",
         "reopens_in_label": "Reopens in",
-        "content": "You're trading outside of regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "content": "You're trading outside of regular market hours (9:30 am to 4 pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
       },
       "spread": {
         "title": "买卖差价",
@@ -8238,7 +8238,7 @@
     "ondo_campaign_after_hours_trading": {
       "title": "非交易时段交易",
       "reopens_in_label": "Reopens in",
-      "content": "You're trading outside of regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates.",
+      "content": "You're trading outside of regular market hours (9:30 am to 4 pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates.",
       "got_it_button": "知道了"
     },
     "ondo_campaign_not_eligible": {
