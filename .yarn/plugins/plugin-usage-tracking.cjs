@@ -8,16 +8,26 @@
 
 'use strict';
 
+// CJS modules are wrapped in a function by Node.js, so `return` is valid here.
+// In CI (process.env.CI is set by GitHub Actions and most CI systems), export
+// an empty plugin immediately — no hooks registered, no filesystem access, no spawning.
+if (process.env.CI) {
+  module.exports = { name: 'plugin-usage-tracking', factory: () => ({}) };
+  return;
+}
+
 const { spawn } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-// Resolve tsx from the project's node_modules so the plugin works regardless
-// of global tool availability.
-const TSX_BIN = path.join(process.cwd(), 'node_modules', '.bin', 'tsx');
+// Resolve paths relative to this plugin file so the plugin works correctly
+// regardless of which directory yarn is invoked from (e.g. .github/scripts in CI).
+const PLUGIN_DIR = path.dirname(__filename);
+const REPO_ROOT = path.resolve(PLUGIN_DIR, '..', '..');
+const TSX_BIN = path.join(REPO_ROOT, 'node_modules', '.bin', 'tsx');
 const COLLECTION_SCRIPT = path.join(
-  process.cwd(),
+  REPO_ROOT,
   'scripts',
   'tooling',
   'tool-usage-collection.ts',
@@ -49,14 +59,31 @@ function track(scriptName, eventType, extra) {
     args.push('--duration', String(extra.duration_ms));
   }
 
+  // Guard: if tsx or the collection script are missing, skip silently.
+  // This happens when yarn is invoked from a subdirectory (e.g. .github/scripts in CI)
+  // where node_modules/.bin/tsx does not exist relative to that cwd.
+  if (!fs.existsSync(TSX_BIN) || !fs.existsSync(COLLECTION_SCRIPT)) {
+    debugLog(
+      `skipping tracking — tsx or script not found\n` +
+      `  tsx_bin=${TSX_BIN}\n` +
+      `  script=${COLLECTION_SCRIPT}`,
+    );
+    return;
+  }
+
   // Fire-and-forget: detach immediately so the subprocess never blocks the
   // user's terminal. The child writes its own DB errors to stderr (ignored
-  // here); spawn-level failures (e.g. tsx not found) are logged to the debug
-  // log file since that's the only information available before unref().
+  // here); spawn-level failures are logged to the debug log file.
   const child = spawn(TSX_BIN, args, {
     detached: true,
     stdio: 'ignore',
-    cwd: process.cwd(),
+    cwd: REPO_ROOT,
+  });
+
+  // Attach a no-op error handler to prevent unhandled 'error' events from
+  // crashing Yarn when spawn fails (e.g. ENOENT on the binary).
+  child.on('error', (err) => {
+    debugLog(`spawn error: ${err.message}`);
   });
 
   if (child.pid === undefined) {

@@ -149,8 +149,6 @@ sqlite3 ~/.tool-usage-collection/events.db \
 
 See [`scripts/tooling/README.md`](./scripts/tooling/README.md) for full implementation details.
 
-**Cursor MCP setup (one-time):** enable the `tooling` MCP server in **Settings → MCP → enable `tooling`**. The config is already in `.cursor/mcp.json`.
-
 ## Key Patterns
 
 ### State Management

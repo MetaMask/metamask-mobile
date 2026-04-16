@@ -30,7 +30,6 @@ Yarn Berry plugin   Claude Code     Cursor hook
 | `events.ts` | `trackEvent()` — writes a single event row |
 | `tool-usage-collection.ts` | CLI entry point (`--tool`, `--type`, `--event`, `--agent`, …) |
 | `cursor-hook-skill-tracking.ts` | Cursor `beforeReadFile` hook adapter — reads JSON from stdin, extracts skill name from path, calls the CLI |
-| `tooling-mcp-server.ts` | MCP server exposing `track_event` tool (used by Cursor agent via `.cursor/mcp.json`) |
 
 ## Collection paths
 

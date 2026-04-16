@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "tooling": {
-      "command": "yarn",
-      "args": ["tsx", "scripts/tooling/tooling-mcp-server.ts"]
-    }
-  }
-}

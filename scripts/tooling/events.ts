@@ -24,24 +24,14 @@ export interface TrackEventParams {
 // The current project repo, needed if the DB is ever used by other projects
 const REPO = 'MetaMask/metamask-mobile';
 
-export interface TrackEventResult {
-  event_id: string;
-  created_at: string;
-}
-
 /**
  * Writes a single tool-usage event to the local SQLite database.
  *
- * Never throws — DB failures are written to stderr and the caller receives
- * `false` so callers that need accurate acknowledgement (e.g. the MCP server)
- * can distinguish a successful write from a silent failure.
- *
- * @returns The written `{ event_id, created_at }` on success, `false` on failure.
+ * Intentionally silent on failure — this function must never interrupt
+ * a developer workflow regardless of DB state or filesystem issues.
  */
-export function trackEvent(params: TrackEventParams): TrackEventResult | false {
+export function trackEvent(params: TrackEventParams): void {
   let db: Database.Database | undefined;
-  const event_id = randomUUID();
-  const created_at = new Date().toISOString();
   try {
     db = openDb(params.dbPath);
 
@@ -51,7 +41,7 @@ export function trackEvent(params: TrackEventParams): TrackEventResult | false {
       VALUES
         (@event_id, @session_id, @tool_name, @tool_type, @event_type, @repo, @agent_vendor, @success, @duration_ms, @metadata, @created_at)
     `).run({
-      event_id,
+      event_id: randomUUID(),
       session_id: params.session_id ?? null,
       tool_name: params.tool_name,
       tool_type: params.tool_type,
@@ -62,15 +52,13 @@ export function trackEvent(params: TrackEventParams): TrackEventResult | false {
       success: params.success != null ? (params.success ? 1 : 0) : null,
       duration_ms: params.duration_ms ?? null,
       metadata: params.metadata != null ? JSON.stringify(params.metadata) : null,
-      created_at,
+      created_at: new Date().toISOString(),
     });
-    return { event_id, created_at };
   } catch (err) {
     // Write to stderr so failures are observable without interrupting any workflow
     process.stderr.write(
       `tool-usage-collection error: ${err instanceof Error ? err.message : String(err)}\n`,
     );
-    return false;
   } finally {
     // Always close — prevents descriptor leaks and WAL lock contention on repeated failures
     db?.close();
