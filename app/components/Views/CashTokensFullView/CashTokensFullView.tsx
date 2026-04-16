@@ -34,12 +34,16 @@ import SectionRow from '../Homepage/components/SectionRow/SectionRow';
 import { AssetType } from '../confirmations/types/token';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../../core/AppConstants';
+import { selectMoneyHubEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import { useSelector } from 'react-redux';
 
 const CashTokensFullView = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const { hasMusdBalanceOnAnyChain } = useMusdBalance();
   const { tokens: conversionTokens } = useMusdConversionTokens();
+
+  const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
 
   const hasConversionTokens = conversionTokens.length > 0;
 
@@ -144,14 +148,16 @@ const CashTokensFullView = () => {
           isFullView
           showOnlyMusd
           hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
-          listFooterComponent={bonusAndConvertSections}
+          listFooterComponent={
+            isMoneyHubEnabled ? bonusAndConvertSections : undefined
+          }
         />
       ) : (
         <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
           <SectionRow>
             <CashGetMusdEmptyState isFullView />
           </SectionRow>
-          {bonusAndConvertSections}
+          {isMoneyHubEnabled ? bonusAndConvertSections : undefined}
         </ScrollView>
       )}
       {hasConversionTokens ? (
