@@ -94,6 +94,7 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
           isLoading={isGeoLoading}
           loadingText={strings('rewards.campaign_details.geo_loading')}
           onPress={() => {
+            if (isGeoLoading) return;
             onJoinPress?.();
             setIsOptInSheetOpen(true);
           }}

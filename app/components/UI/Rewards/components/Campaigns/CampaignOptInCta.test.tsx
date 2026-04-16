@@ -27,13 +27,14 @@ jest.mock('./CampaignOptInSheet', () => {
   };
 });
 
-// Controlled per-test via mockIsGeoRestricted
+// Controlled per-test via these variables
 let mockIsGeoRestricted = false;
+let mockIsGeoLoading = false;
 jest.mock('../../hooks/useCampaignGeoRestriction', () => ({
   __esModule: true,
   default: () => ({
     isGeoRestricted: mockIsGeoRestricted,
-    isGeoLoading: false,
+    isGeoLoading: mockIsGeoLoading,
   }),
 }));
 
@@ -98,6 +99,7 @@ describe('CampaignOptInCta', () => {
     jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
     jest.clearAllMocks();
     mockIsGeoRestricted = false;
+    mockIsGeoLoading = false;
   });
 
   afterEach(() => {
@@ -166,6 +168,46 @@ describe('CampaignOptInCta', () => {
       expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
       fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
       expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
+    });
+  });
+
+  describe('geo loading flow', () => {
+    beforeEach(() => {
+      mockIsGeoLoading = true;
+    });
+
+    it('renders the join button in loading state while geo is loading', () => {
+      const { getByTestId } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign()}
+          participantStatus={notOptedIn}
+        />,
+      );
+      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
+    });
+
+    it('does not open the opt-in sheet when tapped while geo is loading', () => {
+      const { getByTestId, queryByTestId } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign()}
+          participantStatus={notOptedIn}
+        />,
+      );
+      fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+      expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
+    });
+
+    it('does not call onJoinPress when tapped while geo is loading', () => {
+      const onJoinPress = jest.fn();
+      const { getByTestId } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign()}
+          participantStatus={notOptedIn}
+          onJoinPress={onJoinPress}
+        />,
+      );
+      fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+      expect(onJoinPress).not.toHaveBeenCalled();
     });
   });
 
