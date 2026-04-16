@@ -78,14 +78,11 @@ enum EVENT_NAME {
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
   TOKEN_DETAILS_CTA_CLICKED = 'Token Details CTA Clicked',
-  /** Token overview advanced chart: user switched line vs candlestick */
-  CHART_TYPE_CHANGED = 'chart_type_changed',
-  /** Token overview advanced chart: user selected a different timeframe */
-  CHART_TIMEFRAME_CHANGED = 'chart_timeframe_changed',
-  /** Advanced chart: user zoomed, panned, or used crosshair tooltip */
+  /**
+   * Token overview advanced chart: zoom, pan, tooltip, timeframe change, chart type
+   * toggle, or TradingView link (see `interaction_type` and optional properties).
+   */
   CHART_INTERACTED = 'chart_interacted',
-  /** Advanced chart: user tapped TradingView logo/link to open external chart */
-  CHART_TRADINGVIEW_CLICKED = 'chart_tradingview_clicked',
   /**
    * Token overview advanced chart: empty state shown (no usable chart data).
    * Triggered when no chart data is available.
@@ -164,9 +161,7 @@ enum EVENT_NAME {
   WALLET_GOOGLE_IOS_WARNING_VIEWED = 'Wallet Google Ios Warning Viewed',
   WALLET_GOOGLE_IOS_ERROR_VIEWED = 'Wallet Google Ios Error Viewed',
   WALLET_CREATION_ERROR_SCREEN_VIEWED = 'Wallet Creation Error Screen Viewed',
-  WALLET_CREATION_ERROR_RETRY_CLICKED = 'Wallet Creation Error Retry Clicked',
-  WALLET_CREATION_ERROR_REPORT_SENT = 'Wallet Creation Error Report Sent',
-  WALLET_CREATION_ERROR_SUPPORT_CLICKED = 'Wallet Creation Error Support Clicked',
+  WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED = 'Wallet Creation Error Screen CTA Clicked',
   WALLET_SETUP_COMPLETED = 'Wallet Setup Completed',
   SOCIAL_LOGIN_COMPLETED = 'Social Login Completed',
   SOCIAL_LOGIN_FAILED = 'Social Login Failed',
@@ -901,14 +896,8 @@ const events = {
   WALLET_CREATION_ERROR_SCREEN_VIEWED: generateOpt(
     EVENT_NAME.WALLET_CREATION_ERROR_SCREEN_VIEWED,
   ),
-  WALLET_CREATION_ERROR_RETRY_CLICKED: generateOpt(
-    EVENT_NAME.WALLET_CREATION_ERROR_RETRY_CLICKED,
-  ),
-  WALLET_CREATION_ERROR_REPORT_SENT: generateOpt(
-    EVENT_NAME.WALLET_CREATION_ERROR_REPORT_SENT,
-  ),
-  WALLET_CREATION_ERROR_SUPPORT_CLICKED: generateOpt(
-    EVENT_NAME.WALLET_CREATION_ERROR_SUPPORT_CLICKED,
+  WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED: generateOpt(
+    EVENT_NAME.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
   ),
   WALLET_SETUP_COMPLETED: generateOpt(EVENT_NAME.WALLET_SETUP_COMPLETED),
   SOCIAL_LOGIN_COMPLETED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_COMPLETED),
@@ -1527,10 +1516,7 @@ const events = {
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
   TOKEN_DETAILS_CTA_CLICKED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED),
-  CHART_TYPE_CHANGED: generateOpt(EVENT_NAME.CHART_TYPE_CHANGED),
-  CHART_TIMEFRAME_CHANGED: generateOpt(EVENT_NAME.CHART_TIMEFRAME_CHANGED),
   CHART_INTERACTED: generateOpt(EVENT_NAME.CHART_INTERACTED),
-  CHART_TRADINGVIEW_CLICKED: generateOpt(EVENT_NAME.CHART_TRADINGVIEW_CLICKED),
   CHART_EMPTY_DISPLAYED: generateOpt(EVENT_NAME.CHART_EMPTY_DISPLAYED),
   SECURITY_TRUST_BOTTOM_SHEET_OPENED: generateOpt(
     EVENT_NAME.SECURITY_TRUST_BOTTOM_SHEET_OPENED,
