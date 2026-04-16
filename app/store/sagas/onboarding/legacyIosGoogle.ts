@@ -1,6 +1,9 @@
 import { call, delay, put, select, take } from 'redux-saga/effects';
 import NavigationService from '../../../core/NavigationService';
-import { presentIosGoogleLoginVersionWarningSheetReminder } from '../../../components/Views/Onboarding/OnboardingIosPrompt';
+import {
+  presentIosGoogleLoginVersionErrorSheetReminder,
+  presentIosGoogleLoginVersionWarningSheetReminder,
+} from '../../../components/Views/Onboarding/OnboardingIosPrompt';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import { UserActionType } from '../../../actions/user';
@@ -26,14 +29,23 @@ export const IOS_GOOGLE_WARNING_SHEET_REMINDER_INTERVAL_MS =
 /**
  * Presents the iOS Google login version reminder sheet using the current root navigation.
  */
-const promptIosGoogleWarningSheet = async function () {
+const promptIosGoogleWarningSheet = async function (
+  googleLoginIosUnsupportedBlockingEnabled: boolean,
+) {
   const navigation = NavigationService.navigation;
-  await presentIosGoogleLoginVersionWarningSheetReminder(navigation);
+
+  if (googleLoginIosUnsupportedBlockingEnabled) {
+    await presentIosGoogleLoginVersionErrorSheetReminder(navigation);
+  } else {
+    await presentIosGoogleLoginVersionWarningSheetReminder(navigation);
+  }
 
   if (analytics.isEnabled()) {
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED,
+        googleLoginIosUnsupportedBlockingEnabled
+          ? MetaMetricsEvents.WALLET_GOOGLE_IOS_ERROR_VIEWED
+          : MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED,
       )
         .addProperties({ location: 'ios_google_warning_saga' })
         .build(),
@@ -56,9 +68,6 @@ export function* promptIosGoogleWarningSheetSaga() {
     yield delay(5000);
 
     try {
-      const googleLoginIosUnsupportedBlockingEnabled: boolean = yield select(
-        selectGoogleLoginIosUnsupportedBlockingEnabled,
-      );
       // check if the user is on the seedless Google login flow
       const isSeedlessLoginFlow: boolean = yield select(
         selectSeedlessOnboardingLoginFlow,
@@ -67,11 +76,7 @@ export function* promptIosGoogleWarningSheetSaga() {
         selectSeedlessOnboardingAuthConnection,
       );
 
-      if (
-        googleLoginIosUnsupportedBlockingEnabled ||
-        !isSeedlessLoginFlow ||
-        authConnection !== AuthConnection.Google
-      ) {
+      if (!isSeedlessLoginFlow || authConnection !== AuthConnection.Google) {
         return;
       }
 
@@ -87,7 +92,13 @@ export function* promptIosGoogleWarningSheetSaga() {
         return;
       }
 
-      yield call(promptIosGoogleWarningSheet);
+      const googleLoginIosUnsupportedBlockingEnabled: boolean = yield select(
+        selectGoogleLoginIosUnsupportedBlockingEnabled,
+      );
+      yield call(
+        promptIosGoogleWarningSheet,
+        googleLoginIosUnsupportedBlockingEnabled,
+      );
       const dismissedAt = Date.now();
       yield put(setIosGoogleWarningSheetLastDismissedAt(dismissedAt));
     } catch (error) {

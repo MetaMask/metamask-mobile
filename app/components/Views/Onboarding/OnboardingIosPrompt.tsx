@@ -9,6 +9,15 @@ import {
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
+const BoldIosVersion = () => {
+  const tw = useTailwind();
+  return (
+    <Text style={tw.style('text-pretty font-bold')}>
+      {strings('error_sheet.ios_need_update_description_version')}
+    </Text>
+  );
+};
+
 /** Body copy for the blocking sheet when Google login is unsupported on this iOS version. */
 const IosGoogleLoginUnsupportedBlockingSheetDescription = () => {
   const tw = useTailwind();
@@ -78,14 +87,46 @@ export const IosGoogleLoginVersionWarningDescriptionReminder = () => {
     <Box gap={4}>
       <Text style={tw.style('text-pretty')}>
         {strings('error_sheet.ios_need_update_reminder_description')}
-        <Text style={tw.style('text-pretty')}>
-          {strings('error_sheet.ios_need_update_reminder_description_version')}
-        </Text>
+        <BoldIosVersion />
         {strings('error_sheet.ios_need_update_reminder_description_end')}
       </Text>
       <Text style={tw.style('text-pretty')}>
         {strings('error_sheet.ios_need_update_reminder_description_2')}
       </Text>
+    </Box>
+  );
+};
+
+/** Body copy for the error sheet when Google login is unsupported on this iOS version. */
+export const IosGoogleLoginVersionErrorDescription = () => {
+  const tw = useTailwind();
+  return (
+    <Box gap={4}>
+      <Text style={tw.style('text-pretty')}>
+        {strings('error_sheet.ios_google_login_unsupported_error_description')}
+        <BoldIosVersion />
+        {strings(
+          'error_sheet.ios_google_login_unsupported_error_description_2',
+        )}
+      </Text>
+      <Text style={tw.style('text-pretty')}>
+        {strings(
+          'error_sheet.ios_google_login_unsupported_error_description_3',
+        )}
+      </Text>
+      <Box>
+        <Text style={tw.style('text-pretty')}>
+          {strings(
+            'error_sheet.ios_google_login_unsupported_error_description_4',
+          )}
+          <BoldIosVersion />
+        </Text>
+        <Text style={tw.style('text-pretty')}>
+          {strings(
+            'error_sheet.ios_google_login_unsupported_error_description_5',
+          )}
+        </Text>
+      </Box>
     </Box>
   );
 };
@@ -169,6 +210,28 @@ export async function presentIosGoogleLoginVersionWarningSheetReminder(
     title: strings('error_sheet.ios_need_update_reminder_title'),
     description: <IosGoogleLoginVersionWarningDescriptionReminder />,
     primaryButtonLabel: strings('error_sheet.ios_need_update_reminder_button'),
+    closeOnPrimaryButtonPress: true,
+    isInteractable: false,
+  });
+}
+
+/**
+ * Presents the error sheet for the "update iOS" warning (e.g. after login when eligible).
+ *
+ * @param navigation - App navigation used to push the success/error sheet.
+ */
+export async function presentIosGoogleLoginVersionErrorSheetReminder(
+  navigation: AppNavigationProp,
+): Promise<void> {
+  await navigateToSuccessErrorSheetPromise(navigation, {
+    type: 'error',
+    icon: IconName.Warning,
+    iconColor: IconColor.Warning,
+    title: strings('error_sheet.ios_google_login_unsupported_error_title'),
+    description: <IosGoogleLoginVersionErrorDescription />,
+    primaryButtonLabel: strings(
+      'error_sheet.ios_google_login_unsupported_error_button',
+    ),
     closeOnPrimaryButtonPress: true,
     isInteractable: false,
   });
