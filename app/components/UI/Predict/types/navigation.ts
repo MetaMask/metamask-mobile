@@ -26,7 +26,8 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON
   | typeof PredictEventValues.ENTRY_POINT.BACKGROUND
   | typeof PredictEventValues.ENTRY_POINT.TRENDING_SEARCH
-  | typeof PredictEventValues.ENTRY_POINT.TRENDING;
+  | typeof PredictEventValues.ENTRY_POINT.TRENDING
+  | typeof PredictEventValues.ENTRY_POINT.HOME_SECTION;
 
 /** Predict market list parameters */
 export interface PredictMarketListParams {
