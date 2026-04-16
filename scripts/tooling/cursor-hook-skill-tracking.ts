@@ -45,7 +45,8 @@ export async function main(): Promise<void> {
     return;
   }
 
-  const skillName = extractSkillName(input.file_path);
+  const skillName =
+    typeof input.file_path === 'string' ? extractSkillName(input.file_path) : null;
   if (skillName) {
     try {
       execFileSync(
@@ -62,5 +63,7 @@ export async function main(): Promise<void> {
 }
 
 if (require.main === module) {
-  main().then(() => process.exit(0));
+  main()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(0));
 }
