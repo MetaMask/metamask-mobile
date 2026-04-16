@@ -144,7 +144,7 @@ import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/R
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 import OndoPendingSheet from '../../UI/Rewards/components/Campaigns/OndoPendingSheet';
-import CampaignTourStepView from '../../UI/Rewards/Views/CampaignTourStepView';
+
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
@@ -285,6 +285,7 @@ const TransactionsHome = () => {
       <Stack.Screen
         name={Routes.RAMP.RAMPS_ORDER_DETAILS}
         component={RampsOrderDetails}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.DEPOSIT.ORDER_DETAILS}
@@ -615,7 +616,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.REGION_SELECTOR}
         component={RegionSelector}
-        options={RegionSelector.navigationOptions}
+        options={{ headerShown: false }}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
@@ -1391,11 +1392,6 @@ const MainNavigator = () => {
         ///: END:ONLY_INCLUDE_IF
       }
       <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
-      <Stack.Screen
-        name={Routes.REWARDS_CAMPAIGN_TOUR_STEP}
-        component={CampaignTourStepView}
-        options={{ headerShown: false }}
-      />
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}

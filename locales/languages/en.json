@@ -6244,31 +6244,37 @@
   "money": {
     "title": "Money",
     "apy_label": "{{percentage}}% APY",
+    "apy_info_label": "APY info",
+    "onboarding": {
+      "step_progress": "Step {{current}} of {{total}}",
+      "title": "Add money",
+      "description": "Buy mUSD and start earning APY today.",
+      "add": "Add"
+    },
     "action": {
       "add": "Add",
       "transfer": "Transfer",
       "card": "Card"
     },
-    "your_position": {
-      "title": "Your position",
-      "current_rate": "Current rate",
-      "lifetime_earnings": "Lifetime earnings",
-      "available_balance": "Avail. balance"
+    "earnings": {
+      "title": "Earnings",
+      "lifetime": "Lifetime earnings",
+      "projected": "Projected earnings"
     },
     "how_it_works": {
       "title": "How it works",
-      "description": "Hold mUSD in a Money Account and earn automatically. It's dollar-backed, always liquid, and ready to spend, trade, or send anytime.",
-      "musd_name": "MetaMask USD",
-      "musd_symbol": "mUSD",
+      "description_prefix": "Hold mUSD in your Money Account and auto-earn ",
+      "description_suffix": ". It's dollar-backed, always liquid, and ready to spend, trade, or send anytime."
+    },
+    "musd_row": {
       "add": "Add"
     },
     "potential_earnings": {
-      "title": "Potential earnings",
-      "amount": "+$26,800",
+      "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "convert": "Convert",
-      "no_fee": "No fee",
-      "see_earnings": "See potential earnings"
+      "no_fee": "No MetaMask fee",
+      "view_all": "View all"
     },
     "metamask_card": {
       "title": "MetaMask Card",
@@ -6278,14 +6284,15 @@
       "cashback": "{{percentage}}% cashback",
       "get_now": "Get now"
     },
-    "why_metamask_money": {
-      "title": "Why MetaMask Money?",
+    "what_you_get": {
+      "title": "What you get",
       "benefit_auto_earn": "Auto-earn ",
-      "benefit_dollar_backed": "Your money is held in mUSD, a 1:1 dollar-backed stablecoin",
-      "benefit_liquidity": "Full liquidity with no lockups, so you can trade or withdraw anytime",
+      "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
+      "benefit_liquidity": "Get full liquidity with no lockups, so you can trade or withdraw anytime",
       "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
       "benefit_spend_cashback": "1-3% cashback",
-      "benefit_global": "Send and receive money globally with no middle man",
+      "benefit_transfer": "Transfer money to any of your wallets across MetaMask",
+      "benefit_global": "Send and receive money globally",
       "learn_more": "Learn more"
     },
     "footer": {
@@ -7916,7 +7923,8 @@
       "legal_disclaimer_3": ". All accounts on this device will be opted in.",
       "legal_disclaimer_4": "Learn more",
       "referral_prompt": "Have a referral code?",
-      "referral_placeholder": "Optional referral code",
+      "referral_hide": "Hide code",
+      "referral_placeholder": "Referral code (optional)",
       "referral_label": "Referral code"
     },
     "settings": {
