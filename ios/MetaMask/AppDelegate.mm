@@ -45,11 +45,11 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
   NSDictionary *initProps = [self prepareInitialProps];
   UIView *rootView = RCTAppSetupDefaultRootView(bridge, @"MetaMask", initProps);
 
-  // Match the splash screen background in both light and dark mode.
-  // systemBackgroundColor resolves to black in dark mode, causing a visible
-  // flash between the native launch screen and the first React Native frame.
-  UIColor *splashBackground = [UIColor colorNamed:@"splashBackground"];
-  rootView.backgroundColor = splashBackground ?: [UIColor whiteColor];
+  // Both the launch storyboard and the expo-splash-screen overlay use
+  // systemBackgroundColor, so the root view must match to avoid a color
+  // mismatch as the overlay dissolves. systemBackgroundColor is always
+  // white in light mode and near-black in dark mode — no asset lookup needed.
+  rootView.backgroundColor = UIColor.systemBackgroundColor;
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];

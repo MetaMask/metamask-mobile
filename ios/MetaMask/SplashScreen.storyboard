@@ -28,7 +28,7 @@
                                 </constraints>
                             </imageView>
                         </subviews>
-                        <color key="backgroundColor" name="splashBackground"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="Rmq-1b-Way" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="fox-center-x-constraint"/>
                             <constraint firstItem="Rmq-1b-Way" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="fox-center-y-constraint"/>

@@ -5,7 +5,7 @@ import { StyleSheet, Platform } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 // Fox size matched to the native splash asset across all tested devices:
-export const FOX_SIZE = Platform.OS === 'android' ? 142 : 126;
+export const FOX_SIZE = Platform.OS === 'android' ? 143 : 126;
 // Static fox PNG size — matches the fox asset's natural dimensions
 const STATIC_FOX_SIZE = Platform.OS === 'android' ? 98 : 88;
 
