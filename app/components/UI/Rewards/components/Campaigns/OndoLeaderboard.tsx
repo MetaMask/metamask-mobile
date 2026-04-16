@@ -108,7 +108,7 @@ const LeaderboardEntryRow: React.FC<{
         twClassName="gap-3"
       >
         <Text variant={TextVariant.BodyMd} color={textColor} twClassName="w-8">
-          {String(entry.rank).padStart(2, '0')}.
+          {String(entry.rank).padStart(2, '0')}
         </Text>
         <Box twClassName="flex-row items-center gap-1">
           <Text
@@ -360,35 +360,6 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
           </Box>
         </Pressable>
       ) : null}
-
-      {/* Error banner when has error but no data to display */}
-      {hasError && !isLoading && entries.length === 0 && (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR}
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            twClassName="flex-1"
-          >
-            {strings('rewards.ondo_campaign_leaderboard.error_loading')}
-          </Text>
-          {onRetry && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.ErrorDefault}
-              fontWeight={FontWeight.Medium}
-              onPress={onRetry}
-              twClassName="ml-2"
-            >
-              {strings('rewards.ondo_campaign_leaderboard.retry')}
-            </Text>
-          )}
-        </Box>
-      )}
 
       {/* Leaderboard list */}
       {visibleEntries.length > 0 ? (
