@@ -44,7 +44,15 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useRwaTokens } from '../../Trending/hooks/useRwaTokens/useRwaTokens';
 import TrendingTokenRowItem from '../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { getTrendingTokenImageUrl } from '../../Trending/utils/getTrendingTokenImageUrl';
-import { parseCaip19, caipChainIdToHex } from '../utils/formatUtils';
+import {
+  parseCaip19,
+  caipChainIdToHex,
+  sanitizeOndoTokenName,
+} from '../utils/formatUtils';
+import { RWA_NETWORKS_LIST } from '../../Trending/utils/trendingNetworksList';
+import { TrendingTokenNetworkBottomSheet } from '../../Trending/components/TrendingTokensBottomSheet';
+import { FilterButton } from '../../Trending/components/FilterBar/FilterBar';
+import { useNetworkName } from '../../Trending/hooks/useNetworkName/useNetworkName';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
@@ -108,6 +116,10 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   } = route.params;
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedChainId, setSelectedChainId] = useState<CaipChainId>(
+    RWA_NETWORKS_LIST[0].caipChainId,
+  );
+  const [showNetworkSheet, setShowNetworkSheet] = useState(false);
   const [isAfterHoursSheetOpen, setIsAfterHoursSheetOpen] = useState(false);
   const [afterHoursNextOpen, setAfterHoursNextOpen] = useState<Date | null>(
     null,
@@ -139,13 +151,17 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     );
   }, [srcTokenAsset]);
 
-  // In swap mode, filter to same chain as src asset
-  const chainIds = useMemo((): CaipChainId[] | undefined => {
-    if (mode !== 'swap' || !srcTokenAsset) return undefined;
-    const parsed = parseCaip19(srcTokenAsset);
-    if (!parsed) return undefined;
-    return [`${parsed.namespace}:${parsed.chainId}` as CaipChainId];
-  }, [mode, srcTokenAsset]);
+  // open_position: show one chain at a time (user-selected, defaults to Ethereum).
+  // swap: lock to the src asset's chain.
+  const chainIds = useMemo((): CaipChainId[] => {
+    if (mode === 'swap' && srcTokenAsset) {
+      const parsed = parseCaip19(srcTokenAsset);
+      if (parsed) {
+        return [`${parsed.namespace}:${parsed.chainId}` as CaipChainId];
+      }
+    }
+    return [selectedChainId];
+  }, [mode, srcTokenAsset, selectedChainId]);
 
   const { data: rwaTokens, isLoading } = useRwaTokens({
     searchQuery,
@@ -208,6 +224,10 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   }, [rwaTokens]);
 
   const showSkeleton = isLoading || isFiltering;
+
+  const selectedNetworkName = useNetworkName(
+    mode === 'open_position' ? [selectedChainId] : null,
+  );
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { isTokenTradingOpen } = useRWAToken();
@@ -316,7 +336,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   const renderItem = ({ item }: { item: TrendingAsset }) => (
     <View style={styles.row}>
       <TrendingTokenRowItem
-        token={item}
+        token={{ ...item, name: sanitizeOndoTokenName(item.name) }}
         selectedTimeOption={TimeOption.TwentyFourHours}
         onPress={handleAssetSelect}
       />
@@ -390,6 +410,17 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
           </View>
         </View>
 
+        {/* Network filter — only in open_position mode */}
+        {mode === 'open_position' && (
+          <View style={tw.style('px-4 pb-2')}>
+            <FilterButton
+              testID="network-filter-button"
+              label={selectedNetworkName}
+              onPress={() => setShowNetworkSheet(true)}
+            />
+          </View>
+        )}
+
         <View
           style={[styles.divider, { backgroundColor: colors.border.muted }]}
         />
@@ -406,6 +437,17 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
             ListEmptyComponent={renderEmpty}
           />
         )}
+        <TrendingTokenNetworkBottomSheet
+          isVisible={mode === 'open_position' && showNetworkSheet}
+          onClose={() => setShowNetworkSheet(false)}
+          onNetworkSelect={(chainIds) => {
+            if (chainIds?.[0]) setSelectedChainId(chainIds[0]);
+            setShowNetworkSheet(false);
+          }}
+          selectedNetwork={[selectedChainId]}
+          networks={RWA_NETWORKS_LIST}
+          hideAllNetworks
+        />
         {isAfterHoursSheetOpen && (
           <OndoAfterHoursSheet
             onClose={() => {

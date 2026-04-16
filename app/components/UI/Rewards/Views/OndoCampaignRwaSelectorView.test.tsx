@@ -176,6 +176,7 @@ jest.mock(
             onPress: () => onPress(token),
           },
           ReactActual.createElement(Text, null, token.symbol),
+          ReactActual.createElement(Text, null, token.name),
         ),
     };
   },
@@ -187,6 +188,69 @@ jest.mock(
     TimeOption: { TwentyFourHours: '24H', OneWeek: '1W', OneMonth: '1M' },
   }),
 );
+
+const mockOnNetworkSelect = jest.fn();
+
+jest.mock('../../Trending/components/TrendingTokensBottomSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    TrendingTokenNetworkBottomSheet: ({
+      isVisible,
+      onNetworkSelect,
+    }: {
+      isVisible: boolean;
+      onNetworkSelect: (chainIds: string[] | null) => void;
+      onClose: () => void;
+    }) => {
+      if (!isVisible) return null;
+      mockOnNetworkSelect.mockImplementation(onNetworkSelect);
+      return ReactActual.createElement(
+        View,
+        { testID: 'network-bottom-sheet' },
+        ReactActual.createElement(TouchableOpacity, {
+          testID: 'select-bnb-network',
+          onPress: () => onNetworkSelect(['eip155:56']),
+        }),
+      );
+    },
+    NetworkOption: { AllNetworks: 'all' },
+  };
+});
+
+jest.mock('../../Trending/components/FilterBar/FilterBar', () => {
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    FilterButton: ({
+      testID,
+      label,
+      onPress,
+    }: {
+      testID: string;
+      label: string;
+      onPress: () => void;
+    }) =>
+      ReactActual.createElement(
+        TouchableOpacity,
+        { testID, onPress },
+        ReactActual.createElement(Text, null, label),
+      ),
+  };
+});
+
+jest.mock('../../Trending/utils/trendingNetworksList', () => ({
+  RWA_NETWORKS_LIST: [
+    { caipChainId: 'eip155:1', name: 'Ethereum' },
+    { caipChainId: 'eip155:56', name: 'BNB Chain' },
+  ],
+}));
+
+jest.mock('../../Trending/hooks/useNetworkName/useNetworkName', () => ({
+  useNetworkName: jest.fn(() => 'Ethereum'),
+}));
 
 // Silence utility mocks
 jest.mock('../../Trending/utils/getTrendingTokenImageUrl', () => ({
@@ -537,6 +601,70 @@ describe('OndoCampaignRwaSelectorView', () => {
       expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
       const [srcArg] = mockGoToSwaps.mock.calls[0];
       expect(srcArg).toBeUndefined();
+    });
+  });
+
+  describe('network filter (open_position mode)', () => {
+    it('shows the network filter button in open_position mode', () => {
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      expect(getByTestId('network-filter-button')).toBeDefined();
+    });
+
+    it('does not show the network filter button in swap mode', () => {
+      mockRouteParams = {
+        mode: 'swap',
+        campaignId: 'campaign-1',
+        srcTokenAsset: 'eip155:1/erc20:0xabc',
+        srcTokenSymbol: 'USDC',
+        srcTokenDecimals: 6,
+      };
+      const { queryByTestId } = render(<OndoCampaignRwaSelectorView />);
+      expect(queryByTestId('network-filter-button')).toBeNull();
+    });
+
+    it('opens the network bottom sheet when the filter button is pressed', () => {
+      const { getByTestId, queryByTestId } = render(
+        <OndoCampaignRwaSelectorView />,
+      );
+      expect(queryByTestId('network-bottom-sheet')).toBeNull();
+      fireEvent.press(getByTestId('network-filter-button'));
+      expect(getByTestId('network-bottom-sheet')).toBeDefined();
+    });
+
+    it('calls useRwaTokens with Ethereum chainId by default', () => {
+      render(<OndoCampaignRwaSelectorView />);
+      const lastCall =
+        mockUseRwaTokens.mock.calls[mockUseRwaTokens.mock.calls.length - 1][0];
+      expect(lastCall.chainIds).toEqual(['eip155:1']);
+    });
+
+    it('updates chainIds when a different network is selected', () => {
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      fireEvent.press(getByTestId('network-filter-button'));
+      fireEvent.press(getByTestId('select-bnb-network'));
+      const lastCall =
+        mockUseRwaTokens.mock.calls[mockUseRwaTokens.mock.calls.length - 1][0];
+      expect(lastCall.chainIds).toEqual(['eip155:56']);
+    });
+  });
+
+  describe('token name sanitization', () => {
+    it('strips "Ondo Tokenized " prefix from token names in list rows', () => {
+      const token = {
+        ...buildToken('AAPL'),
+        name: 'Ondo Tokenized Apple',
+      };
+      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
+      const { getByText, queryByText } = render(<OndoCampaignRwaSelectorView />);
+      expect(getByText('Apple')).toBeDefined();
+      expect(queryByText('Ondo Tokenized Apple')).toBeNull();
+    });
+
+    it('leaves unrelated token names unchanged', () => {
+      const token = { ...buildToken('USDY'), name: 'Ondo USD Yield' };
+      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
+      const { getByText } = render(<OndoCampaignRwaSelectorView />);
+      expect(getByText('Ondo USD Yield')).toBeDefined();
     });
   });
 
