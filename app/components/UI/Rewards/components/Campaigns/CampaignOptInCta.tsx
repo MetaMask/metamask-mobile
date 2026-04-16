@@ -107,7 +107,6 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
         <CampaignOptInSheet
           campaign={campaign}
           onClose={() => setIsOptInSheetOpen(false)}
-          customRestrictedCountries={customRestrictedCountries}
         />
       )}
     </>
