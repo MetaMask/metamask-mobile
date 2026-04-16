@@ -330,7 +330,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             if (__DEV__) {
               // WebView console is not the Metro / Xcode log; chartLogic mirrors here via DEBUG.
               // eslint-disable-next-line no-console -- intentional dev bridge from WebView
-              console.log(message.payload.message);
+              console.log('[AdvancedChart]', message.payload);
             }
             break;
 
