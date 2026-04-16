@@ -161,10 +161,6 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const isFeaturedCarouselEnabled = useSelector(
-    selectPredictFeaturedCarouselEnabledFlag,
-  );
-
   const animatedContainerStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: headerTranslateY.value }],
   }));
@@ -195,11 +191,6 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
         onLayout={onHeaderLayout}
       >
         <PredictFeedHeader />
-        {isFeaturedCarouselEnabled && (
-          <Box twClassName="pb-3">
-            <FeaturedCarousel />
-          </Box>
-        )}
       </Animated.View>
       <View ref={tabBarRef} onLayout={onTabBarLayout}>
         <PredictFeedTabBar
@@ -232,6 +223,7 @@ interface PredictTabContentProps {
   tabBarHeight: number;
   headerHidden: boolean;
   customQueryParams?: string;
+  showCarousel?: boolean;
 }
 
 const PredictTabContent: React.FC<PredictTabContentProps> = ({
@@ -242,6 +234,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   tabBarHeight,
   headerHidden,
   customQueryParams,
+  showCarousel,
 }) => {
   const tw = useTailwind();
   const listRef = useRef<PredictFlashListRef>(null);
@@ -346,6 +339,16 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     [tw, contentInsetTop, headerHidden, tabBarHeight],
   );
 
+  const renderListHeader = useCallback(
+    () =>
+      showCarousel ? (
+        <Box twClassName="pb-3 pt-2 -mx-4">
+          <FeaturedCarousel />
+        </Box>
+      ) : null,
+    [showCarousel],
+  );
+
   if (!hasEverBeenActive || (isFetching && !isRefreshing && !isFetchingMore)) {
     return (
       <Box twClassName="flex-1 px-4" style={{ paddingTop: currentPaddingTop }}>
@@ -396,6 +399,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
       keyExtractor={keyExtractor}
       onEndReached={handleEndReached}
       onEndReachedThreshold={0.7}
+      ListHeaderComponent={renderListHeader}
       ListFooterComponent={renderFooter}
       scrollEventThrottle={50}
       onScroll={isActive ? (scrollHandler as never) : undefined}
@@ -426,6 +430,7 @@ interface PredictFeedTabsProps {
   headerHidden: boolean;
   hotTabQueryParams?: string;
   initialPage: number;
+  showCarousel?: boolean;
 }
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
@@ -438,6 +443,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   headerHidden,
   hotTabQueryParams,
   initialPage,
+  showCarousel,
 }) => {
   const tw = useTailwind();
   const pagerRef = useRef<PagerView>(null);
@@ -478,6 +484,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
             customQueryParams={
               tab.key === 'hot' ? hotTabQueryParams : undefined
             }
+            showCarousel={index === 0 && showCarousel}
           />
         </View>
       ))}
@@ -637,6 +644,10 @@ const PredictFeed: React.FC = () => {
     hotTabQueryParams,
   } = usePredictTabs();
 
+  const isFeaturedCarouselEnabled = useSelector(
+    selectPredictFeaturedCarouselEnabledFlag,
+  );
+
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation();
@@ -784,6 +795,7 @@ const PredictFeed: React.FC = () => {
               headerHidden={headerHidden}
               hotTabQueryParams={hotTabQueryParams}
               initialPage={activeIndex}
+              showCarousel={isFeaturedCarouselEnabled}
             />
           )}
         </Box>

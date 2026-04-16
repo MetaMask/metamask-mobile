@@ -214,4 +214,79 @@ describe('useFeaturedCarouselData', () => {
 
     expect(result.current.markets).toHaveLength(2);
   });
+
+  it('filters out sports markets with ended games', async () => {
+    mockUpDownEnabled = true;
+    const { Wrapper } = createWrapper();
+    const mockMarkets = [
+      createMockMarket({ id: 'active-market' }),
+      createMockMarket({
+        id: 'ended-game-market',
+        game: {
+          id: 'game-1',
+          startTime: '2026-04-10T18:00:00Z',
+          status: 'ended',
+          league: 'epl',
+          elapsed: null,
+          period: null,
+          score: null,
+          homeTeam: {
+            id: '1',
+            name: 'Team A',
+            logo: '',
+            abbreviation: 'TA',
+            color: 'rgb(0,0,0)',
+          },
+          awayTeam: {
+            id: '2',
+            name: 'Team B',
+            logo: '',
+            abbreviation: 'TB',
+            color: 'rgb(255,255,255)',
+          },
+        },
+      }),
+      createMockMarket({
+        id: 'live-game-market',
+        game: {
+          id: 'game-2',
+          startTime: '2026-04-15T18:00:00Z',
+          status: 'ongoing',
+          league: 'epl',
+          elapsed: '45',
+          period: '1H',
+          score: { away: 0, home: 1, raw: '0-1' },
+          homeTeam: {
+            id: '3',
+            name: 'Team C',
+            logo: '',
+            abbreviation: 'TC',
+            color: 'rgb(0,0,0)',
+          },
+          awayTeam: {
+            id: '4',
+            name: 'Team D',
+            logo: '',
+            abbreviation: 'TD',
+            color: 'rgb(255,255,255)',
+          },
+        },
+      }),
+    ];
+    mockGetCarouselMarkets.mockResolvedValue(mockMarkets);
+
+    const { result } = renderHook(() => useFeaturedCarouselData(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.markets).toHaveLength(2);
+    expect(result.current.markets.map((m) => m.id)).toEqual([
+      'active-market',
+      'live-game-market',
+    ]);
+  });
 });

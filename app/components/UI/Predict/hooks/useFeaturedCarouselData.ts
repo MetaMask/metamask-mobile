@@ -41,10 +41,11 @@ export const useFeaturedCarouselData = (): UseFeaturedCarouselDataResult => {
 
   const markets = useMemo(() => {
     const data = query.data ?? [];
-    if (upDownEnabled) {
-      return data;
-    }
-    return data.filter((market) => !isCryptoUpDown(market));
+    return data.filter((market) => {
+      if (market.game?.status === 'ended') return false;
+      if (!upDownEnabled && isCryptoUpDown(market)) return false;
+      return true;
+    });
   }, [query.data, upDownEnabled]);
 
   return {
