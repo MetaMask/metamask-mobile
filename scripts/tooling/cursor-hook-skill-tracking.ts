@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { join } from 'path';
 import { createInterface } from 'readline';
 
@@ -48,8 +48,9 @@ export async function main(): Promise<void> {
   const skillName = extractSkillName(input.file_path);
   if (skillName) {
     try {
-      execSync(
-        `yarn tsx ${join(__dirname, 'tool-usage-collection.ts')} --tool skill:${skillName} --type skill --event start --agent cursor`,
+      execFileSync(
+        'yarn',
+        ['tsx', join(__dirname, 'tool-usage-collection.ts'), '--tool', `skill:${skillName}`, '--type', 'skill', '--event', 'start', '--agent', 'cursor'],
         { stdio: 'ignore' },
       );
     } catch {
