@@ -97,8 +97,15 @@ const FoxLoader = ({
   useEffect(() => {
     if (isPlaying) {
       startAnimation();
-      staticFoxOpacity.setValue(0);
+      // Show Rive immediately, then fade the static fox out over a short duration.
+      // Instant setValue(0) causes a single blank frame on Android because Rive's
+      // canvas needs a frame or two to composite after onPlay fires.
       riveOpacity.setValue(1);
+      Animated.timing(staticFoxOpacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
     }
   }, [isPlaying, startAnimation, staticFoxOpacity, riveOpacity]);
 
