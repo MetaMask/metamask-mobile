@@ -191,21 +191,6 @@ const OndoCampaignDetailsView: React.FC = () => {
     [campaign, leaderboardPosition],
   );
 
-  const leaderboardPendingSheetPosition = useMemo(
-    () =>
-      leaderboardPosition &&
-      !leaderboardPosition.qualified &&
-      tierMinDeposit != null
-        ? {
-            tier: leaderboardPosition.projectedTier,
-            netDeposit: leaderboardPosition.netDeposit,
-            qualifiedDays: leaderboardPosition.qualifiedDays,
-            tierMinDeposit,
-          }
-        : null,
-    [leaderboardPosition, tierMinDeposit],
-  );
-
   const notEligibleForCampaign = useMemo(
     () => isCampaignIneligible(campaign, leaderboardPosition?.qualified),
     [campaign, leaderboardPosition],
@@ -350,29 +335,6 @@ const OndoCampaignDetailsView: React.FC = () => {
                       showHeader={false}
                       tierMinDeposit={tierMinDeposit}
                       isIneligible={notEligibleForCampaign}
-                      onQualifyPress={
-                        leaderboardPendingSheetPosition
-                          ? () => {
-                              trackEvent(
-                                createEventBuilder(
-                                  MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
-                                )
-                                  .addProperties({
-                                    button_type:
-                                      'ondo_campaign_qualify_for_rank',
-                                  })
-                                  .build(),
-                              );
-                              navigation.navigate(
-                                Routes.MODAL.REWARDS_ONDO_PENDING_SHEET,
-                                {
-                                  variant: 'own',
-                                  ...leaderboardPendingSheetPosition,
-                                },
-                              );
-                            }
-                          : undefined
-                      }
                     />
                   </Box>
                 </>
@@ -482,7 +444,6 @@ const OndoCampaignDetailsView: React.FC = () => {
                       maxEntries={5}
                       currentUserReferralCode={referralCode}
                       userPosition={leaderboardUserPosition}
-                      pendingSheetPosition={leaderboardPendingSheetPosition}
                       campaignId={campaignId}
                     />
                   </Box>
