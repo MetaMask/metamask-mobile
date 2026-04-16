@@ -43,6 +43,7 @@ import { useTransactionConfirm } from '../../../hooks/transactions/useTransactio
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { hasTransactionType } from '../../../utils/transaction';
 import { AlertMessage } from '../../alerts/alert-message';
@@ -121,10 +122,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const transactionMeta = useTransactionMetadataRequest();
     const transactionId = transactionMeta?.id;
-
-    const [selectedAccount, setSelectedAccount] = useState<string | undefined>(
-      undefined,
-    );
+    const accountOverride = useTransactionAccountOverride();
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
@@ -184,7 +182,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, []);
 
     const isAccountSelectionNeeded =
-      supportAccountSelection && !selectedAccount;
+      supportAccountSelection && !accountOverride;
 
     return (
       <Box style={styles.container}>
@@ -206,20 +204,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         </Box>
         <Box gap={16}>
           <AlertMessage alertMessage={alertMessage} />
-          {supportAccountSelection && (
-            <PayAccountSelector
-              selectedAccount={selectedAccount}
-              onSelectedAccountChange={setSelectedAccount}
-            />
-          )}
-          {!isResultReady && disablePay !== true && hasTokens && (
-            <PayWithRow selectedAccount={selectedAccount} />
-          )}
+          {supportAccountSelection && <PayAccountSelector />}
+          {!isResultReady && disablePay !== true && hasTokens && <PayWithRow />}
           {isResultReady && (
             <Box>
-              {disablePay !== true && hasTokens && (
-                <PayWithRow selectedAccount={selectedAccount} />
-              )}
+              {disablePay !== true && hasTokens && <PayWithRow />}
               {showPaymentDetails && (
                 <>
                   <BridgeFeeRow />

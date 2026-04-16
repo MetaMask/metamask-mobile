@@ -13,6 +13,15 @@ import { useSendTokens } from '../send/useSendTokens';
 import { AssetType } from '../../types/token';
 import { RootState } from '../../../../../reducers';
 
+/**
+ * Returns a token filter for withdraw transactions, following the same pattern
+ * as `usePerpsBalanceTokenFilter` and `useMusdConversionTokens`.
+ *
+ * Wallet tokens matching the allowlist are returned via `tokenFilter` delegation
+ * to `useSendTokens`. For allowlisted tokens the user does not hold, metadata
+ * is fetched from the tokens API (via `enrichTokenRequests` in `useAccountTokens`)
+ * so they still appear as zero-balance options.
+ */
 export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
   const transactionMeta = useTransactionMetadataRequest();
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
@@ -61,6 +70,10 @@ export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
   );
 }
 
+/**
+ * Pre-computes a Map<chainId, Set<address>> from the allowlist for O(1) lookups.
+ * Expands zero-address entries to also include the chain-specific native address.
+ */
 function buildAllowlistLookup(
   allowlist: Record<Hex, Hex[]>,
 ): Map<string, Set<string>> {

@@ -283,20 +283,6 @@ describe('useSendTokens', () => {
     });
   });
 
-  it('forwards accountAddress to useAccountTokens', () => {
-    mockUseAccountTokens.mockReturnValue([mockEvmToken]);
-    const accountAddress = '0xSelectedAccount1234567890abcdef12345678';
-
-    renderHook(() => useSendTokens({ accountAddress }));
-
-    expect(mockUseAccountTokens).toHaveBeenCalledWith({
-      accountAddress,
-      includeNoBalance: false,
-      tokenFilter: undefined,
-      enrichTokenRequests: undefined,
-    });
-  });
-
   it('prioritizes first matching account type when multiple are true', () => {
     createMockUseSendType({
       isPredefinedEvm: true,

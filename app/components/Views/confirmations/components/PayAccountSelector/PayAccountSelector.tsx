@@ -1,24 +1,18 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
 import { hasTransactionType } from '../../utils/transaction';
 import AccountSelector from '../AccountSelector';
 
-export interface PayAccountSelectorProps {
-  selectedAccount?: string;
-  onSelectedAccountChange?: (address: string) => void;
-}
-
-const PayAccountSelector: React.FC<PayAccountSelectorProps> = ({
-  selectedAccount,
-  onSelectedAccountChange,
-}) => {
+const PayAccountSelector: React.FC = () => {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id;
+  const accountOverride = useTransactionAccountOverride();
 
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
@@ -26,13 +20,6 @@ const PayAccountSelector: React.FC<PayAccountSelectorProps> = ({
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
   ]);
-
-  const onAccountSelected = useCallback(
-    (address: string) => {
-      onSelectedAccountChange?.(address);
-    },
-    [onSelectedAccountChange],
-  );
 
   const handleAccountSelected = useCallback(
     (address: string) => {
@@ -47,9 +34,8 @@ const PayAccountSelector: React.FC<PayAccountSelectorProps> = ({
           },
         );
       }
-      onAccountSelected?.(address);
     },
-    [transactionId, isMoneyAccountWithdraw, onAccountSelected],
+    [transactionId, isMoneyAccountWithdraw],
   );
 
   if (!isMoneyAccountDeposit && !isMoneyAccountWithdraw) {
@@ -63,7 +49,7 @@ const PayAccountSelector: React.FC<PayAccountSelectorProps> = ({
   return (
     <AccountSelector
       label={label}
-      selectedAddress={selectedAccount}
+      selectedAddress={accountOverride}
       onAccountSelected={handleAccountSelected}
     />
   );
