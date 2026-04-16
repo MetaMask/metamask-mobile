@@ -992,12 +992,6 @@ export class PredictController extends BaseController<
   }
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
-    console.warn('=== DEBUG === PredictController.placeOrder ENTERED', {
-      side: params.preview?.side,
-      marketId: params.analyticsProperties?.marketId,
-      transactionId: params.transactionId,
-      address: params.address,
-    });
     const activeOrderAddress = params.address ?? this.getEvmAccountAddress();
     const { predictWithAnyTokenEnabled } = this.resolveFeatureFlags();
     const isBuyWithAnyToken =
@@ -1226,14 +1220,6 @@ export class PredictController extends BaseController<
         error instanceof Error
           ? error.message
           : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED;
-
-      console.warn('=== DEBUG === PredictController: placeOrder FAILED', {
-        errorMessage,
-        stack: error instanceof Error ? error.stack : undefined,
-        side: preview.side,
-        marketId: analyticsProperties?.marketId,
-        completionDuration,
-      });
 
       // Track Predict Trade Transaction with failed status (fire and forget)
       this.trackPredictOrderEvent({
@@ -2129,11 +2115,6 @@ export class PredictController extends BaseController<
     address: string,
     transactionMeta: TransactionMeta,
   ): void {
-    console.warn('=== DEBUG === handleTransactionSideEffects', {
-      type,
-      status,
-      transactionId: transactionMeta.id,
-    });
     const isTerminal =
       status === 'confirmed' || status === 'failed' || status === 'rejected';
 
@@ -2146,11 +2127,6 @@ export class PredictController extends BaseController<
       const pendingOrder = transactionId
         ? this.pendingOrderPreviews[transactionId]
         : null;
-
-      console.warn('=== DEBUG === depositAndOrder CONFIRMED', {
-        transactionId,
-        hasPendingOrder: !!pendingOrder,
-      });
 
       if (!pendingOrder) {
         return;
@@ -2178,10 +2154,6 @@ export class PredictController extends BaseController<
     }
 
     if (type === 'depositAndOrder' && status === 'failed') {
-      console.warn('=== DEBUG === depositAndOrder FAILED', {
-        transactionId: transactionMeta.id,
-        error: transactionMeta.error?.message,
-      });
       const transactionId = transactionMeta.id;
 
       // Extract market context before deleting the pending order preview
@@ -2236,9 +2208,6 @@ export class PredictController extends BaseController<
     }
 
     if (type === 'depositAndOrder' && status === 'rejected') {
-      console.warn('=== DEBUG === depositAndOrder REJECTED', {
-        transactionId: transactionMeta.id,
-      });
       const transactionId = transactionMeta.id;
       if (transactionId) {
         delete this.pendingOrderPreviews[transactionId];

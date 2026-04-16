@@ -179,11 +179,6 @@ export const usePredictBuyActions = ({
   );
 
   const handleConfirm = useCallback(async () => {
-    console.warn('=== DEBUG === usePredictBuyActions: handleConfirm called', {
-      currentState,
-      hasApprovalRequest: !!approvalRequest?.id,
-      hasPreview: !!preview,
-    });
     didInitiateOrderRef.current = true;
     setIsConfirming(true);
 
