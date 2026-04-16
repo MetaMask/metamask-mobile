@@ -5,6 +5,8 @@ import OndoCampaignPortfolioView, {
 } from './OndoCampaignPortfolioView';
 import { useGetOndoCampaignActivity } from '../hooks/useGetOndoCampaignActivity';
 import type { OndoGmActivityEntryDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -122,6 +124,8 @@ jest.mock('../components/RewardsInfoBanner', () => {
 jest.mock('../hooks/useGetOndoCampaignActivity');
 const mockUseGetOndoCampaignActivity = jest.mocked(useGetOndoCampaignActivity);
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
@@ -164,6 +168,7 @@ const activityDefaults = {
 describe('OndoCampaignPortfolioView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     mockUseGetOndoCampaignActivity.mockReturnValue(activityDefaults);
   });
 

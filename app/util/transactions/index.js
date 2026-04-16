@@ -637,6 +637,10 @@ export async function getTransactionActionKey(transaction, chainId) {
     return SMART_CONTRACT_INTERACTION_ACTION_KEY;
   }
 
+  if (type === TransactionType.simpleSend) {
+    return SEND_ETHER_ACTION_KEY;
+  }
+
   const toSmartContract =
     transaction.toSmartContract !== undefined
       ? transaction.toSmartContract

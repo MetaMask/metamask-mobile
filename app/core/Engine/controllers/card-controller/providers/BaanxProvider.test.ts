@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import { BaanxProvider } from './BaanxProvider';
 import { CardApiError, type BaanxService } from '../services/BaanxService';
 import {
@@ -7,6 +8,8 @@ import {
   CardProviderErrorCode,
   type CardAuthTokens,
 } from '../provider-types';
+import Logger from '../../../../../util/Logger';
+import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 
 jest.mock('../../../../../util/Logger');
 jest.mock('../../../../../components/UI/Card/util/pkceHelpers', () => ({
@@ -187,11 +190,13 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddress', AUTH_TOKENS);
 
-      expect(result.primaryAsset).not.toBeNull();
-      expect(result.primaryAsset?.symbol).toBe('USDC');
-      expect(result.primaryAsset?.status).toBe(FundingAssetStatus.Active);
-      expect(result.primaryAsset?.allowance).toBe('999999999999');
-      expect(result.assets).toHaveLength(1);
+      expect(result.primaryFundingAsset).not.toBeNull();
+      expect(result.primaryFundingAsset?.symbol).toBe('USDC');
+      expect(result.primaryFundingAsset?.status).toBe(
+        FundingAssetStatus.Active,
+      );
+      expect(result.primaryFundingAsset?.spendingCap).toBe('999999999999');
+      expect(result.fundingAssets).toHaveLength(1);
       expect(result.card?.id).toBe('card-1');
       expect(result.card?.status).toBe(CardStatus.ACTIVE);
       expect(result.account?.verificationStatus).toBe('VERIFIED');
@@ -203,8 +208,8 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddress', AUTH_TOKENS);
 
-      expect(result.primaryAsset).toBeNull();
-      expect(result.assets).toHaveLength(0);
+      expect(result.primaryFundingAsset).toBeNull();
+      expect(result.fundingAssets).toHaveLength(0);
       expect(result.card).toBeNull();
     });
 
@@ -478,7 +483,7 @@ describe('BaanxProvider', () => {
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
       expect(result.card).not.toBeNull();
-      expect(result.primaryAsset).toBeNull();
+      expect(result.primaryFundingAsset).toBeNull();
       expect(result.actions).toContainEqual(
         expect.objectContaining({ type: 'enable_card' }),
       );
@@ -572,11 +577,402 @@ describe('BaanxProvider', () => {
     it('returns empty home data with add_funds action', async () => {
       const result = await provider.getOnChainAssets('0xaddr');
 
-      expect(result.primaryAsset).toBeNull();
-      expect(result.assets).toHaveLength(0);
+      expect(result.primaryFundingAsset).toBeNull();
+      expect(result.fundingAssets).toHaveLength(0);
       expect(result.actions).toContainEqual(
         expect.objectContaining({ type: 'add_funds', enabled: true }),
       );
+    });
+  });
+
+  describe('getOnChainAssets — #fetchOnChainAllowances, #pickOnChainPrimaryAsset, #findLastApprovedToken', () => {
+    const LINEA_CAIP = 'eip155:59144' as const;
+    const ownerAddr = '0x1234567890123456789012345678901234567890';
+    const tokenA = ethers.utils.getAddress(
+      '0x1111111111111111111111111111111111111111',
+    );
+    const tokenB = ethers.utils.getAddress(
+      '0x2222222222222222222222222222222222222222',
+    );
+    const foxGlobal = ethers.utils.getAddress(
+      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    );
+    const foxUs = ethers.utils.getAddress(
+      '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    );
+    const scannerAddr = ethers.utils.getAddress(
+      '0xcccccccccccccccccccccccccccccccccccccccc',
+    );
+
+    const cardFeatureFlag = {
+      chains: {
+        [LINEA_CAIP]: {
+          tokens: [
+            {
+              address: tokenA,
+              symbol: 'USDC',
+              name: 'USDC',
+              decimals: 6,
+              enabled: true,
+            },
+            {
+              address: tokenB,
+              symbol: 'USDT',
+              name: 'USDT',
+              decimals: 6,
+              enabled: true,
+            },
+          ],
+          foxConnectAddresses: { global: foxGlobal, us: foxUs },
+          balanceScannerAddress: scannerAddr,
+        },
+      },
+    } as unknown as CardFeatureFlag;
+
+    const limitedTuple = (human: string) => {
+      const bn = ethers.utils.parseUnits(human, 6);
+      const hex = bn.toHexString();
+      return [
+        [true, hex],
+        [true, hex],
+      ] as [boolean, string][];
+    };
+
+    let spendersMock: jest.Mock;
+    let getLogsMock: jest.Mock;
+    let providerSpy: jest.SpyInstance;
+    let contractSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      spendersMock = jest.fn();
+      getLogsMock = jest.fn();
+      providerSpy = jest
+        .spyOn(ethers.providers, 'JsonRpcProvider')
+        .mockImplementation(
+          () =>
+            ({
+              getLogs: getLogsMock,
+            }) as unknown as ethers.providers.JsonRpcProvider,
+        );
+      contractSpy = jest.spyOn(ethers, 'Contract').mockImplementation(
+        () =>
+          ({
+            spendersAllowancesForTokens: spendersMock,
+          }) as unknown as ethers.Contract,
+      );
+    });
+
+    afterEach(() => {
+      providerSpy.mockRestore();
+      contractSpy.mockRestore();
+    });
+
+    it('invokes balance scanner (#fetchOnChainAllowances) and picks sole limited token as primary', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('50'), limitedTuple('0')]);
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+      const result = await p.getOnChainAssets(ownerAddr);
+
+      expect(spendersMock).toHaveBeenCalledWith(
+        ownerAddr,
+        [tokenA, tokenB],
+        expect.arrayContaining([
+          [foxGlobal, foxUs],
+          [foxGlobal, foxUs],
+        ]),
+      );
+      expect(result.fundingAssets).toHaveLength(2);
+      expect(result.primaryFundingAsset?.address).toBe(tokenA);
+      expect(result.primaryFundingAsset?.status).toBe(
+        FundingAssetStatus.Limited,
+      );
+    });
+
+    it('uses #findLastApprovedToken when multiple tokens have non-zero allowance and prefers latest Approval log', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('10'), limitedTuple('20')]);
+
+      const iface = new ethers.utils.Interface([
+        'event Approval(address indexed owner, address indexed spender, uint256 value)',
+      ]);
+      const approvalTopic = iface.getEventTopic('Approval');
+      const ownerTopic = ethers.utils.hexZeroPad(ownerAddr.toLowerCase(), 32);
+      const spenderTopic = ethers.utils.hexZeroPad(foxGlobal.toLowerCase(), 32);
+      const valueEarly = ethers.utils.parseUnits('1', 6);
+      const valueLate = ethers.utils.parseUnits('2', 6);
+
+      getLogsMock.mockImplementation(
+        async ({ address }: { address: string }) => {
+          if (address.toLowerCase() === tokenA.toLowerCase()) {
+            return [
+              {
+                address: tokenA,
+                topics: [approvalTopic, ownerTopic, spenderTopic],
+                data: ethers.utils.defaultAbiCoder.encode(
+                  ['uint256'],
+                  [valueEarly],
+                ),
+                blockNumber: 100,
+                logIndex: 0,
+                transactionIndex: 0,
+                transactionHash: ethers.constants.HashZero,
+                blockHash: ethers.constants.HashZero,
+              },
+            ];
+          }
+          if (address.toLowerCase() === tokenB.toLowerCase()) {
+            return [
+              {
+                address: tokenB,
+                topics: [approvalTopic, ownerTopic, spenderTopic],
+                data: ethers.utils.defaultAbiCoder.encode(
+                  ['uint256'],
+                  [valueLate],
+                ),
+                blockNumber: 200,
+                logIndex: 0,
+                transactionIndex: 0,
+                transactionHash: ethers.constants.HashZero,
+                blockHash: ethers.constants.HashZero,
+              },
+            ];
+          }
+          return [];
+        },
+      );
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+      const result = await p.getOnChainAssets(ownerAddr);
+
+      expect(getLogsMock).toHaveBeenCalled();
+      expect(result.primaryFundingAsset?.address.toLowerCase()).toBe(
+        tokenB.toLowerCase(),
+      );
+    });
+
+    it('falls back to first non-zero asset when #findLastApprovedToken logs fail', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('5'), limitedTuple('5')]);
+      getLogsMock.mockRejectedValue(new Error('rpc down'));
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+      const result = await p.getOnChainAssets(ownerAddr);
+
+      expect(Logger.error).toHaveBeenCalled();
+      expect(result.primaryFundingAsset?.address.toLowerCase()).toBe(
+        tokenA.toLowerCase(),
+      );
+    });
+  });
+
+  describe('getCardHomeData — #fetchOriginalSpendingCap', () => {
+    const LINEA_CAIP = 'eip155:59144' as const;
+    const walletAddr = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+    const tokenAddr = ethers.utils.getAddress(
+      '0x3333333333333333333333333333333333333333',
+    );
+    const delegationContract = ethers.utils.getAddress(
+      '0xdddddddddddddddddddddddddddddddddddddddd',
+    );
+
+    let getLogsMock: jest.Mock;
+    let providerSpy: jest.SpyInstance;
+
+    const cardFeatureFlag = {
+      chains: {
+        [LINEA_CAIP]: {
+          tokens: [
+            {
+              address: tokenAddr,
+              symbol: 'USDC',
+              name: 'USDC',
+              decimals: 6,
+              enabled: true,
+            },
+          ],
+          foxConnectAddresses: {
+            global: ethers.constants.AddressZero,
+            us: ethers.constants.AddressZero,
+          },
+          balanceScannerAddress: ethers.constants.AddressZero,
+        },
+      },
+    } as unknown as CardFeatureFlag;
+
+    beforeEach(() => {
+      getLogsMock = jest.fn();
+      providerSpy = jest
+        .spyOn(ethers.providers, 'JsonRpcProvider')
+        .mockImplementation(
+          () =>
+            ({
+              getLogs: getLogsMock,
+            }) as unknown as ethers.providers.JsonRpcProvider,
+        );
+    });
+
+    afterEach(() => {
+      providerSpy.mockRestore();
+    });
+
+    it('sets originalSpendingCap from latest Approval log for Limited EVM assets', async () => {
+      const capWei = ethers.utils.parseUnits('750', 6);
+      const iface = new ethers.utils.Interface([
+        'event Approval(address indexed owner, address indexed spender, uint256 value)',
+      ]);
+      getLogsMock.mockResolvedValue([
+        {
+          address: tokenAddr,
+          topics: [
+            iface.getEventTopic('Approval'),
+            ethers.utils.hexZeroPad(walletAddr.toLowerCase(), 32),
+            ethers.utils.hexZeroPad(delegationContract.toLowerCase(), 32),
+          ],
+          data: ethers.utils.defaultAbiCoder.encode(['uint256'], [capWei]),
+          blockNumber: 300,
+          logIndex: 1,
+          transactionIndex: 0,
+          transactionHash: ethers.constants.HashZero,
+          blockHash: ethers.constants.HashZero,
+        },
+      ]);
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({
+            networks: [
+              {
+                network: 'linea',
+                environment: 'production',
+                chainId: '59144',
+                delegationContract,
+                tokens: {
+                  USDC: { symbol: 'USDC', decimals: 6, address: tokenAddr },
+                },
+              },
+            ],
+            count: 1,
+            _links: { self: '' },
+          });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'c1',
+            status: CardStatus.ACTIVE,
+            type: CardType.VIRTUAL,
+            panLast4: '4242',
+            holderName: 'T',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'u1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([
+            {
+              address: walletAddr,
+              currency: 'usdc',
+              balance: '100',
+              allowance: '500',
+              network: 'linea',
+            },
+          ]);
+        }
+        if (path === '/v1/wallet/external/priority') {
+          return Promise.resolve([]);
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await p.getCardHomeData(walletAddr, AUTH_TOKENS);
+
+      expect(getLogsMock).toHaveBeenCalled();
+      expect(
+        parseFloat(result.primaryFundingAsset?.originalSpendingCap ?? ''),
+      ).toBe(750);
+    });
+
+    it('does not fetch on-chain cap for SPENDING_LIMIT_UNSUPPORTED_TOKENS', async () => {
+      const flagAusdc = {
+        chains: {
+          [LINEA_CAIP]: {
+            tokens: [
+              {
+                address: tokenAddr,
+                symbol: 'AUSDC',
+                name: 'AUSDC',
+                decimals: 6,
+                enabled: true,
+              },
+            ],
+            foxConnectAddresses: {
+              global: ethers.constants.AddressZero,
+              us: ethers.constants.AddressZero,
+            },
+            balanceScannerAddress: ethers.constants.AddressZero,
+          },
+        },
+      } as unknown as CardFeatureFlag;
+      const p = new BaanxProvider({ service, cardFeatureFlag: flagAusdc });
+
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({
+            networks: [
+              {
+                network: 'linea',
+                environment: 'production',
+                chainId: '59144',
+                delegationContract,
+                tokens: {
+                  AUSDC: { symbol: 'AUSDC', decimals: 6, address: tokenAddr },
+                },
+              },
+            ],
+            count: 1,
+            _links: { self: '' },
+          });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'c1',
+            status: CardStatus.ACTIVE,
+            type: CardType.VIRTUAL,
+            panLast4: '4242',
+            holderName: 'T',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'u1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([
+            {
+              address: walletAddr,
+              currency: 'ausdc',
+              balance: '10',
+              allowance: '100',
+              network: 'linea',
+            },
+          ]);
+        }
+        if (path === '/v1/wallet/external/priority') {
+          return Promise.resolve([]);
+        }
+        return Promise.resolve(null);
+      });
+
+      await p.getCardHomeData(walletAddr, AUTH_TOKENS);
+
+      expect(getLogsMock).not.toHaveBeenCalled();
     });
   });
 
@@ -1043,8 +1439,8 @@ describe('BaanxProvider', () => {
           walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:59144' as const,
-          balance: '100',
-          allowance: '999999999999',
+          spendableBalance: '100',
+          spendingCap: '999999999999',
           priority: 1,
           status: FundingAssetStatus.Active,
           externalId: 1,
@@ -1056,8 +1452,8 @@ describe('BaanxProvider', () => {
           walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:8453' as const,
-          balance: '50',
-          allowance: '999999999999',
+          spendableBalance: '50',
+          spendingCap: '999999999999',
           priority: 2,
           status: FundingAssetStatus.Active,
           externalId: 2,
@@ -1091,8 +1487,8 @@ describe('BaanxProvider', () => {
           walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:59144' as const,
-          balance: '100',
-          allowance: '999999999999',
+          spendableBalance: '100',
+          spendingCap: '999999999999',
           priority: 2,
           status: FundingAssetStatus.Active,
           externalId: 1,
@@ -1104,8 +1500,8 @@ describe('BaanxProvider', () => {
           walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:8453' as const,
-          balance: '50',
-          allowance: '999999999999',
+          spendableBalance: '50',
+          spendingCap: '999999999999',
           priority: 1,
           status: FundingAssetStatus.Active,
           externalId: 2,
@@ -1117,8 +1513,8 @@ describe('BaanxProvider', () => {
           walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:59144' as const,
-          balance: '25',
-          allowance: '999999999999',
+          spendableBalance: '25',
+          spendingCap: '999999999999',
           priority: 3,
           status: FundingAssetStatus.Active,
           externalId: 3,
@@ -1336,7 +1732,7 @@ describe('BaanxProvider', () => {
   });
 
   describe('getCardHomeData edge cases', () => {
-    it('builds close_to_spending_limit alert for Limited asset', async () => {
+    it('does not build close_to_spending_limit alert for Limited asset without on-chain data', async () => {
       service.get.mockImplementation((path: string) => {
         if (path === '/v1/delegation/chain/config') {
           return Promise.resolve({ networks: [] });
@@ -1385,7 +1781,61 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
-      expect(result.alerts).toContainEqual(
+      expect(result.alerts).not.toContainEqual(
+        expect.objectContaining({ type: 'close_to_spending_limit' }),
+      );
+    });
+
+    it('does not build close_to_spending_limit alert for unsupported tokens (AUSDC, AMUSD)', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'card-1',
+            status: CardStatus.ACTIVE,
+            type: CardType.VIRTUAL,
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([
+            {
+              id: 1,
+              walletAddress: '0xwallet',
+              currency: 'AUSDC',
+              balance: '50',
+              allowance: '100',
+              priority: 1,
+              tokenDetails: {
+                address: '0x1',
+                decimals: 6,
+                symbol: 'AUSDC',
+                name: 'AUSDC',
+              },
+              caipChainId: 'eip155:59144',
+              network: 'linea',
+            },
+          ]);
+        }
+        if (path === '/v1/wallet/external/priority') {
+          return Promise.resolve([]);
+        }
+        return Promise.resolve({});
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.alerts).not.toContainEqual(
         expect.objectContaining({ type: 'close_to_spending_limit' }),
       );
     });
@@ -1566,11 +2016,11 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
-      expect(result.assets).toHaveLength(2);
+      expect(result.fundingAssets).toHaveLength(2);
       // fetchWalletDetails uppercases currency when no matching token found in feature flags
-      expect(result.assets[0].symbol).toBe('MUSD');
-      expect(result.assets[1].symbol).toBe('USDC');
-      expect(result.primaryAsset?.symbol).toBe('USDC');
+      expect(result.fundingAssets[0].symbol).toBe('MUSD');
+      expect(result.fundingAssets[1].symbol).toBe('USDC');
+      expect(result.primaryFundingAsset?.symbol).toBe('USDC');
     });
 
     it('uses user priority asset when no other asset has balance', async () => {
@@ -1648,7 +2098,7 @@ describe('BaanxProvider', () => {
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
       // fetchWalletDetails uppercases currency when no matching token found in feature flags
-      expect(result.primaryAsset?.symbol).toBe('MUSD');
+      expect(result.primaryFundingAsset?.symbol).toBe('MUSD');
     });
 
     function setupProvisioningEligibilityMock(
@@ -2203,9 +2653,9 @@ describe('BaanxProvider', () => {
       const result = await provider.getCardHomeData('0xabc', AUTH_TOKENS);
 
       expect(result).toStrictEqual({
-        primaryAsset: null,
-        assets: [],
-        supportedTokens: [],
+        primaryFundingAsset: null,
+        fundingAssets: [],
+        availableFundingAssets: [],
         card: null,
         account: null,
         alerts: [],

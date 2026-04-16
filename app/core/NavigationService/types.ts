@@ -3,6 +3,7 @@ import type {
   NavigationProp,
   NavigationState,
 } from '@react-navigation/native';
+import type { Position } from '@metamask/social-controllers';
 
 // ============================================================================
 // Import types from their source files
@@ -560,7 +561,7 @@ export interface RootStackParamList extends ParamListBase {
     traderId: string;
     traderName: string;
     tokenSymbol: string;
-    position?: import('@metamask/social-controllers').Position;
+    position?: Position;
   };
 
   // Misc routes

@@ -310,14 +310,28 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
       enabledNetworksSelector,
       selectTokenSortConfig,
       selectStakedAssets,
+      selectHideZeroBalanceTokens,
     ],
-    (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
+    (
+      bip44Assets,
+      enabledNetworks,
+      tokenSortConfig,
+      stakedAssets,
+      hideZeroBalance,
+    ) => {
       const filteredAssets = Object.entries(bip44Assets)
         .filter(([networkId]) => enabledNetworks.includes(networkId))
         .flatMap(([_, chainAssets]) =>
-          chainAssets.filter(
-            (asset) => !isTronSpecialAsset(asset.chainId, asset.symbol),
-          ),
+          chainAssets.filter((asset) => {
+            if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (
+              hideZeroBalance &&
+              !asset.isNative &&
+              parseFloat(asset.balance ?? '0') === 0
+            )
+              return false;
+            return true;
+          }),
         );
       return mergeStakedSortAndDedupeAssets(
         filteredAssets,

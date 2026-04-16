@@ -150,6 +150,11 @@ jest.mock('../hooks/useRewardsToast', () => ({
   }),
 }));
 
+jest.mock('../hooks/useCampaignGeoRestriction', () => ({
+  __esModule: true,
+  default: () => ({ isGeoRestricted: false, isGeoLoading: false }),
+}));
+
 jest.mock('../components/Campaigns/CampaignOptInSheet', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');

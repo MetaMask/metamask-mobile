@@ -585,6 +585,122 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
     ]);
   });
 
+  it('includes zero-balance non-native tokens when hideZeroBalanceTokens is false', () => {
+    const state = {
+      ...mockState(),
+      settings: { hideZeroBalanceTokens: false },
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          TokenBalancesController: {
+            tokenBalances: {
+              '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
+                '0x1': {
+                  // stETH has zero balance
+                  '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': '0x0',
+                  '0x6B175474E89094C44Da98b954EedeAC495271d0F':
+                    '0xAD78EBC5AC6200000',
+                },
+                '0xa': {
+                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3B9ACA00',
+                },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectSortedAssetsBySelectedAccountGroup(state);
+    const addresses = result.map((r) => r.address);
+
+    // stETH zero-balance token should still be present when flag is off
+    expect(addresses).toContain('0xae7ab96520de3a18e5e111b5eaab095312d7fe84');
+  });
+
+  it('filters out zero-balance non-native tokens when hideZeroBalanceTokens is true', () => {
+    const state = {
+      ...mockState(),
+      settings: { hideZeroBalanceTokens: true },
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          TokenBalancesController: {
+            tokenBalances: {
+              '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
+                '0x1': {
+                  // stETH has zero balance
+                  '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': '0x0',
+                  // DAI has non-zero balance
+                  '0x6B175474E89094C44Da98b954EedeAC495271d0F':
+                    '0xAD78EBC5AC6200000',
+                },
+                '0xa': {
+                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3B9ACA00',
+                },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectSortedAssetsBySelectedAccountGroup(state);
+    const addresses = result.map((r) => r.address);
+
+    // stETH (zero balance, non-native) should be filtered out
+    expect(addresses).not.toContain(
+      '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+    );
+    // DAI (non-zero balance) should remain
+    expect(addresses).toContain('0x6B175474E89094C44Da98b954EedeAC495271d0F');
+    // USDC (non-zero balance) should remain
+    expect(addresses).toContain('0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85');
+  });
+
+  it('keeps native tokens with zero balance when hideZeroBalanceTokens is true', () => {
+    const state = {
+      ...mockState(),
+      settings: { hideZeroBalanceTokens: true },
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
+                  // Native ETH on 0x1 has zero balance
+                  balance: '0x0',
+                  stakedBalance: '0x0',
+                },
+              },
+              '0xa': {
+                '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
+                  balance: '0xDE0B6B3A7640000',
+                },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectSortedAssetsBySelectedAccountGroup(state);
+
+    // Native ETH on 0x1 must still appear despite zero balance
+    expect(
+      result.find(
+        (r) =>
+          r.address === '0x0000000000000000000000000000000000000000' &&
+          r.chainId === '0x1' &&
+          !r.isStaked,
+      ),
+    ).toBeDefined();
+  });
+
   it('filters out Tron special assets from the sorted asset list', () => {
     const stateWithTronAssets = {
       ...mockState(),
