@@ -12,8 +12,7 @@ import {
   onboardingFlowImportSRPPlaywright,
 } from '../../../flows/wallet.flow';
 import TimerHelper from '../../../framework/TimerHelper';
-import WalletView from '../../../page-objects/wallet/WalletView';
-
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
     'Cold Start after importing a wallet',
@@ -42,7 +41,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
       );
       await timer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.hamburgerMenuButton),
+          await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
         );
       });
 
