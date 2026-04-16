@@ -494,14 +494,26 @@ export const selectAccountByDevice = async (
  * @function dismisspredictionsModalPlaywright
  * @returns {Promise<void>} Resolves when the predictions modal is dismissed.
  */
-export const dismisspredictionsModalPlaywright = async (): Promise<void> => {
-  try {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      await asPlaywrightElement(PredictModalView.notNowButton),
-    );
-    await PredictModalView.tapNotNowButton();
-  } catch {
-    logger.error('Predict Modal Not Now Button is not visible');
+export const dismisspredictionsModalPlaywright = async (
+  maxRetries = 3,
+): Promise<void> => {
+  const btn = await asPlaywrightElement(PredictModalView.notNowButton);
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await btn.unwrap().click();
+    } catch {
+      return;
+    }
+    try {
+      await btn.waitForDisplayed({ reverse: true, timeout: 5000 });
+      return;
+    } catch {
+      if (attempt === maxRetries) {
+        logger.error(
+          `Predict modal not dismissed after ${maxRetries} attempts`,
+        );
+      }
+    }
   }
 };
 

@@ -85,17 +85,17 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
 
       const screen1Timer = new TimerHelper(
         'Time since the user clicks on "Account list" button until the account list is visible',
-        { ios: 3000, android: 3000 },
+        { ios: 2000, android: 2000 },
         currentDeviceDetails.platform,
       );
       const screen2Timer = new TimerHelper(
         'Time since the user clicks on "Create account" button until the account is in the account list',
-        { ios: 1300, android: 2000 },
+        { ios: 1500, android: 1500 },
         currentDeviceDetails.platform,
       );
       const screen3Timer = new TimerHelper(
         'Time since the user clicks on new account created until the Token list is visible',
-        { ios: 3000, android: 3000 },
+        { ios: 1000, android: 1000 },
         currentDeviceDetails.platform,
       );
 
@@ -120,22 +120,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
 
       await AccountListBottomSheet.tapAccountByName('Account 2');
       await screen3Timer.measure(async () => {
-        const timeout = 10_000;
-        const interval = 100;
-        const start = Date.now();
-        while (Date.now() - start < timeout) {
-          try {
-            const accountEl = await asPlaywrightElement(
-              WalletView.accountNameLabelText,
-            );
-            const text = await accountEl.textContent();
-            if (text === 'Account 2') return;
-          } catch {
-            // Element not found yet, continue polling
-          }
-          await new Promise((resolve) => setTimeout(resolve, interval));
-        }
-        throw new Error('Expected account "Account 2" to be visible after 10s');
+        await WalletView.checkActiveAccount('Account 2');
       });
 
       performanceTracker.addTimers(screen1Timer, screen2Timer, screen3Timer);

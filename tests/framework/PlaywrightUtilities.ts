@@ -142,6 +142,40 @@ export function boxedStep<This, Args extends unknown[], Return>(
   return replacementMethod;
 }
 
+/**
+ * Lightweight Appium overhead accumulator for performance measurements.
+ *
+ * Problem: every WebDriver HTTP call (findElement, isExisting, click …) adds
+ * infrastructure latency — on BrowserStack this can be 3-18 s per command.
+ * Without compensation a 3 s app-load would be reported as 20+ s.
+ *
+ * Solution: framework methods call `addOverhead(ms)` for operations whose
+ * duration is *pure infra cost* (element resolution, post-detection probes).
+ * `TimerHelper.measure()` activates tracking before the action and subtracts
+ * the accumulated value after the timer stops.
+ *
+ * When no `measure()` is active (`_tracking === false`) all functions are
+ * no-ops, so regular (non-performance) tests pay zero cost.
+ */
+let _overheadMs = 0;
+let _tracking = false;
+
+export function startOverheadTracking(): void {
+  _overheadMs = 0;
+  _tracking = true;
+}
+
+export function addOverhead(ms: number): void {
+  if (_tracking) _overheadMs += ms;
+}
+
+export function stopOverheadTracking(): number {
+  _tracking = false;
+  const result = _overheadMs;
+  _overheadMs = 0;
+  return result;
+}
+
 class PlaywrightUtilities {
   /**
    * Get the device screen size.

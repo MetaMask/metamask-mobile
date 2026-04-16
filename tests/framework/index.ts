@@ -16,6 +16,9 @@ export {
   boxedStep,
   getDriver,
   withSnapshotSettings,
+  startOverheadTracking,
+  addOverhead,
+  stopOverheadTracking,
 } from './PlaywrightUtilities.ts';
 
 // Mock server utilities

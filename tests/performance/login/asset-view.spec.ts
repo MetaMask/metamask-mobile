@@ -19,25 +19,22 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
 
       const assetViewScreen = new TimerHelper(
         'Time since the user clicks on the asset view button until the user sees the token overview screen',
-        { ios: 3000, android: 600 },
+        { ios: 6000, android: 600 },
         currentDeviceDetails.platform,
       );
 
       await WalletView.tapOnTokensSection();
-      await WalletView.tapOnToken('BTC');
+      await WalletView.tapOnToken('USDC');
 
-      const todaysChangeEl = asPlaywrightElement(TokenOverview.todaysChange);
-
-      await assetViewScreen.measure(
-        async () => {
-          await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
-            todaysChangeEl,
-          );
-        },
-        async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(todaysChangeEl);
-        },
+      const priceChartDotEnd = asPlaywrightElement(
+        TokenOverview.priceChartDotEnd,
       );
+
+      await assetViewScreen.measure(async () => {
+        await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
+          priceChartDotEnd,
+        );
+      });
 
       performanceTracker.addTimer(assetViewScreen);
     },

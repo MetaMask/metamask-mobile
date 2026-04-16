@@ -1,6 +1,10 @@
 import { Device } from 'appwright';
 import TimerStore from './TimerStore';
 import AppwrightSelectors from './AppwrightSelectors';
+import {
+  startOverheadTracking,
+  stopOverheadTracking,
+} from './PlaywrightUtilities';
 
 /** Platform-specific threshold values in milliseconds. */
 export interface PlatformThreshold {
@@ -119,27 +123,36 @@ class TimerHelper {
   }
 
   /**
-   * Measures the execution time of an async action.
-   * Starts the timer before the action and stops it after completion (or failure).
+   * Measures the execution time of an async action and automatically
+   * subtracts Appium infrastructure overhead to approximate real app latency.
+   *
+   * ### How it works
+   *
+   * 1. Activates overhead tracking (`startOverheadTracking`).
+   * 2. Runs the action while the timer is running.
+   * 3. During the action, framework methods (e.g. `expectElementToBeVisible`,
+   * `waitAndTap`) call `addOverhead()` to register time spent on WebDriver
+   * HTTP calls that represent pure infra cost — not app work.
+   * 4. After stopping the timer the accumulated overhead is subtracted so the
+   * reported duration is closer to what a human would observe visually.
+   *
+   * Overhead is only tracked while a `measure()` call is active; outside of
+   * it `addOverhead()` is a no-op.
    *
    * @param action - Async function to measure
-   * @param overheadProbe - Optional async function that exercises the same element lookup on an already-visible element. Executed after the timer stops; its duration is subtracted to isolate real app latency from Appium overhead.
    * @returns This TimerHelper instance for chaining
    */
-  async measure(
-    action: () => Promise<void>,
-    overheadProbe?: () => Promise<void>,
-  ): Promise<TimerHelper> {
+  async measure(action: () => Promise<void>): Promise<TimerHelper> {
+    startOverheadTracking();
     this.start();
     try {
       await action();
     } finally {
       this.stop();
     }
-    if (overheadProbe) {
-      const probeStart = Date.now();
-      await overheadProbe();
-      this.subtractOverhead(Date.now() - probeStart);
+    const overhead = stopOverheadTracking();
+    if (overhead > 0) {
+      this.subtractOverhead(overhead);
     }
     return this;
   }

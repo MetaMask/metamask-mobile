@@ -67,6 +67,17 @@ class TokenOverview {
     });
   }
 
+  get priceChartDotEnd(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TokenOverviewSelectorsIDs.PRICE_CHART_DOT_END),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TokenOverviewSelectorsIDs.PRICE_CHART_DOT_END,
+        ),
+    });
+  }
+
   get unstakeButton(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.UNSTAKE_BUTTON);
   }

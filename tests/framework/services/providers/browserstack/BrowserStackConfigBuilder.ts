@@ -67,7 +67,7 @@ export class BrowserStackConfigBuilder {
       port: 443,
       path: '/wd/hub',
       protocol: 'https',
-      logLevel: 'debug' as const,
+      logLevel: 'warn' as const,
       user: username,
       key: accessKey,
       hostname: 'hub.browserstack.com',

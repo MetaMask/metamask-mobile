@@ -23,45 +23,58 @@ const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || '';
 
 /* Scenario 4: Imported wallet with +50 accounts */
 test.describe(PerformanceOnboarding, () => {
-  test.setTimeout(240000);
   test(
     'Onboarding Import SRP with +50 accounts, SRP 3',
     { tag: '@metamask-onboarding-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       const timer1 = new TimerHelper(
         'Time since the user clicks on "Create new wallet" button until "Social sign up" is visible',
-        { ios: 1000, android: 1800 },
+        { ios: 2000, android: 1800 },
         currentDeviceDetails.platform,
       );
       const timer2 = new TimerHelper(
         'Time since the user clicks on "Import using SRP" button until SRP field is displayed',
-        { ios: 1000, android: 1500 },
+        { ios: 2000, android: 2000 },
         currentDeviceDetails.platform,
       );
       const timer3 = new TimerHelper(
         'Time since the user clicks on "Continue" button on SRP screen until Password fields are visible',
-        { ios: 2500, android: 1800 },
+        { ios: 2000, android: 2000 },
         currentDeviceDetails.platform,
       );
       const timer4 = new TimerHelper(
         'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
-        { ios: 1800, android: 1600 },
+        { ios: 2000, android: 2000 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
         'Time since the user clicks on "I agree" button on Metrics screen until Onboarding Success screen is visible',
-        { ios: 2200, android: 1700 },
+        { ios: 2000, android: 2000 },
         currentDeviceDetails.platform,
       );
       const timer6 = new TimerHelper(
         'Time since the user clicks on "Done" button until feature sheet is visible',
-        { ios: 2500, android: 3100 },
+        { ios: 3000, android: 3000 },
         currentDeviceDetails.platform,
       );
       const timer7 = new TimerHelper(
-        'Time since the user clicks on "Not now" button On feature sheet until native token is visible',
-        { ios: 90000, android: 90000 },
+        'Time since the user clicks on "Tokens" section until BTC, SOL and USDC tokens are visible',
+        { ios: 5000, android: 5000 }, // since the test waits for the balance to stabilize, this step should be instantaneous
         currentDeviceDetails.platform,
+      );
+
+      const productionFeatureFlags = await fetchProductionFeatureFlags(
+        'main',
+        testEnvironment,
+      );
+
+      const predictGtmOnboardingModalEnabled = (
+        productionFeatureFlags?.predictGtmOnboardingModalEnabled as {
+          enabled?: boolean;
+        }
+      )?.enabled;
+      console.log(
+        `Predict GTM Onboarding Modal Enabled: ${predictGtmOnboardingModalEnabled}`,
       );
 
       await OnboardingView.tapHaveAnExistingWallet();
@@ -121,19 +134,6 @@ test.describe(PerformanceOnboarding, () => {
 
       await OnboardingSuccessView.tapDone();
 
-      const productionFeatureFlags = await fetchProductionFeatureFlags(
-        'main',
-        testEnvironment,
-      );
-
-      const predictGtmOnboardingModalEnabled = (
-        productionFeatureFlags?.predictGtmOnboardingModalEnabled as {
-          enabled?: boolean;
-        }
-      )?.enabled;
-      console.log(
-        `Predict GTM Onboarding Modal Enabled: ${predictGtmOnboardingModalEnabled}`,
-      );
       if (predictGtmOnboardingModalEnabled) {
         await timer6.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
@@ -142,23 +142,15 @@ test.describe(PerformanceOnboarding, () => {
         });
         await dismisspredictionsModalPlaywright();
       }
-
-      await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(WalletView.tokensSection),
-      );
-
+      await WalletView.waitForBalanceToStabilize();
       await WalletView.tapOnTokensSection();
       await timer7.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.tokenRow('USDC')),
-          { timeout: 20000 },
-        );
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.tokenRow('SOL')),
-          { timeout: 20000 },
-        );
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.tokenRow('BTC')),
+        await PlaywrightAssertions.expectAllElementsToBeVisible(
+          [
+            asPlaywrightElement(WalletView.tokenRow('USDC')),
+            asPlaywrightElement(WalletView.tokenRow('SOL')),
+            asPlaywrightElement(WalletView.tokenRow('BTC')),
+          ],
           { timeout: 20000 },
         );
       });

@@ -215,6 +215,17 @@ class WalletView {
     );
   }
 
+  async checkActiveAccount(
+    expectedName: string,
+    timeout = 10_000,
+  ): Promise<void> {
+    await PlaywrightAssertions.expectElementText(
+      asPlaywrightElement(this.accountNameLabelText),
+      expectedName,
+      { timeout },
+    );
+  }
+
   get accountNameLabelInput(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>

@@ -1,7 +1,7 @@
 import { CurrentDeviceDetails } from './fixture';
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement } from './PlaywrightAdapter';
-import { boxedStep, getDriver } from './PlaywrightUtilities';
+import { boxedStep, getDriver, addOverhead } from './PlaywrightUtilities';
 
 /**
  * PlaywrightGestures - Gesture helpers for WebdriverIO/Playwright
@@ -71,20 +71,36 @@ export default class PlaywrightGestures {
     elem: PlaywrightElement,
     options?: {
       delay?: number;
+      timeout?: number;
       checkForDisplayed?: boolean;
       checkForEnabled?: boolean;
       checkForStable?: boolean;
     },
   ): Promise<void> {
     const {
-      delay = 500,
+      delay = 0,
+      timeout = 10000,
       checkForDisplayed = true,
-      checkForEnabled = true,
+      checkForEnabled = false,
       checkForStable = false,
     } = options || {};
 
     if (checkForDisplayed) {
-      await elem.unwrap().waitForDisplayed({ timeout: 10000 });
+      const interval = 300;
+      const start = Date.now();
+      while (Date.now() - start < timeout) {
+        try {
+          const t0 = Date.now();
+          const exists = await elem.unwrap().isExisting();
+          if (exists) {
+            addOverhead(Date.now() - t0);
+            break;
+          }
+        } catch {
+          // not ready yet
+        }
+        await new Promise((resolve) => setTimeout(resolve, interval));
+      }
     }
 
     if (checkForEnabled) {
