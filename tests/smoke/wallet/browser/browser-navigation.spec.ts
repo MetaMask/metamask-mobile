@@ -164,11 +164,16 @@ describe(SmokeWalletPlatform('Browser Navigation'), () => {
         );
 
         await RedirectWebsite.tapRedirectButton();
+
+        // After in-page redirect, the URL bar TextInput is hidden (unfocused).
+        // Focus it so the text becomes visible and readable by Detox.
+        await Browser.tapUrlInputBox();
         await Assertions.expectElementToHaveText(
           Browser.urlInputBoxID,
-          getOriginFromURL(getDappUrl(1)),
+          `${getDappUrl(1)}/redirect-target.html`,
           {
-            description: 'URL bar shows the origin of the redirect target page',
+            description:
+              'URL bar shows the redirect target page URL after redirect',
           },
         );
       },
