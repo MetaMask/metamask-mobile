@@ -9,7 +9,7 @@ import path from 'path';
 const getDbPath = (): string => {
   const env: Record<string, string | undefined> = process.env;
   return (
-    env.TOOL_USAGE_COLLECTION_DB_PATH ??
+    env.TOOL_USAGE_COLLECTION_DB_PATH ||
     path.join(os.homedir(), '.tool-usage-collection', 'events.db')
   );
 };
