@@ -180,6 +180,7 @@ describe('PriceAdvanced', () => {
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      hasEmptyData: false,
     });
     const { queryByTestId } = render(<PriceAdvanced {...baseProps} />);
     expect(queryByTestId('loading-price-diff')).not.toBeOnTheScreen();
@@ -227,6 +228,8 @@ describe('PriceAdvanced', () => {
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      // One candle is not an empty API response; fallback is candle count < threshold
+      hasEmptyData: false,
     });
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
@@ -378,6 +381,7 @@ describe('PriceAdvanced', () => {
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      hasEmptyData: false,
     });
 
     const { getByText } = render(
@@ -395,6 +399,8 @@ describe('PriceAdvanced', () => {
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      // Same as useOHLCVChart when the API returns an empty data array
+      hasEmptyData: true,
     });
 
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
@@ -458,6 +464,7 @@ describe('PriceAdvanced', () => {
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      hasEmptyData: false,
     });
 
     const { getByText, rerender } = render(
@@ -492,6 +499,7 @@ describe('PriceAdvanced', () => {
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      hasEmptyData: false,
     });
 
     rerender(<PriceAdvanced {...baseProps} currentPrice={105} />);
@@ -554,6 +562,7 @@ describe('PriceAdvanced', () => {
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      hasEmptyData: false,
     });
 
     const { getByText, getByTestId } = render(
@@ -625,6 +634,7 @@ describe('PriceAdvanced', () => {
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      hasEmptyData: false,
     });
 
     const { getByText } = render(

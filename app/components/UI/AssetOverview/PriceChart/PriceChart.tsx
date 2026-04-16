@@ -79,12 +79,7 @@ const PriceChart = ({
   }, [prices]);
 
   /** Align with AdvancedChart / TradingView line: success up, error down (not legacy primary blue). */
-  const chartColor =
-    priceDiff > 0
-      ? theme.colors.success.default
-      : priceDiff < 0
-        ? theme.colors.error.default
-        : theme.colors.text.alternative;
+  const chartColor = theme.colors.success.default;
 
   const apx = (size = 0) => {
     const width = Dimensions.get('window').width;
