@@ -129,7 +129,11 @@ const PriceAdvanced = ({
 
   const handleChartTradingViewClicked = useCallback(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CHART_TRADINGVIEW_CLICKED).build(),
+      createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+        .addProperties({
+          interaction_type: 'tradingview_clicked',
+        })
+        .build(),
     );
   }, [createEventBuilder, trackEvent]);
 
@@ -140,8 +144,9 @@ const PriceAdvanced = ({
       setCrosshairData(null);
     }
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CHART_TYPE_CHANGED)
+      createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
         .addProperties({
+          interaction_type: 'chart_type_changed',
           chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
         })
         .build(),
@@ -155,8 +160,9 @@ const PriceAdvanced = ({
         return;
       }
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CHART_TIMEFRAME_CHANGED)
+        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
           .addProperties({
+            interaction_type: 'timeframe_changed',
             chart_timeframe: range,
           })
           .build(),
