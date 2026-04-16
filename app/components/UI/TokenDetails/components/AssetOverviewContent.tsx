@@ -340,7 +340,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       case 'Verified':
         return {
           icon: IconName.VerifiedFilled,
-          iconColor: IconColor.IconDefault,
+          iconColor: IconColor.PrimaryDefault,
           label: null,
           bg: null,
           textColor: undefined,
@@ -656,7 +656,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   </Text>
                 </Box>
                 {securityBadge && securityBadge.label === null && (
-                  <Box twClassName="shrink-0">
+                  <Box twClassName="shrink-0 pb-[2px]">
                     <TouchableOpacity
                       onPress={handleSecurityBadgePress}
                       testID="security-badge-verified"
@@ -670,7 +670,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   </Box>
                 )}
                 {securityBadge && securityBadge.label !== null && (
-                  <Box twClassName="shrink-0">
+                  <Box twClassName="shrink-0 pb-[2px]">
                     <TouchableOpacity
                       onPress={handleSecurityBadgePress}
                       testID={
