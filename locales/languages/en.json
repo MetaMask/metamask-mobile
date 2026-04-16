@@ -8119,9 +8119,9 @@
       "how_it_works": "How it works",
       "ondo": {
         "entries_closed_title": "Entries closed",
-        "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future.",
-        "geo_locked_cta": "Check eligibility"
-      }
+        "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future."
+      },
+      "geo_locked_cta": "Check eligibility"
     },
     "ondo_campaign_prize_pool": {
       "title": "Prize Pool",

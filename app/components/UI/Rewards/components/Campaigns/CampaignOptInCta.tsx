@@ -78,7 +78,7 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
           onPress={handleGeoLockedPress}
           testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
         >
-          {strings('rewards.campaign_details.ondo.geo_locked_cta')}
+          {strings('rewards.campaign_details.geo_locked_cta')}
         </Button>
       </Box>
     );

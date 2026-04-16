@@ -56,10 +56,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
       'rewards.campaign_details.join_campaign': 'Join Campaign',
-      'rewards.campaign_details.ondo.geo_locked_cta': 'Check eligibility',
-      'rewards.campaign_details.ondo.geo_locked_toast_title':
+      'rewards.campaign_details.geo_locked_cta': 'Check eligibility',
+      'rewards.campaign.geo_locked_toast_title':
         'Not available in your region',
-      'rewards.campaign_details.ondo.geo_locked_toast_description':
+      'rewards.campaign.geo_locked_toast_description':
         "This campaign isn't available where you are. Check back later for new campaigns.",
     };
     return map[key] ?? key;
