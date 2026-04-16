@@ -194,7 +194,6 @@ export interface CardAlert {
 
 export type CardAction =
   | { type: 'add_funds'; enabled: boolean }
-  | { type: 'change_asset' }
   | { type: 'enable_card' };
 
 // -- Card Home Data --
