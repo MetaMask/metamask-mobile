@@ -58,16 +58,20 @@ export function useGameDetailsTabs({
 
   const chips = useMemo(() => toChips(outcomeGroups), [outcomeGroups]);
 
+  const groupMap = useMemo(
+    () => new Map(outcomeGroups.map((g) => [g.key, g])),
+    [outcomeGroups],
+  );
+
   const [activeChipKey, setActiveChipKey] = useState(
     outcomeGroups[0]?.key ?? '',
   );
 
   useEffect(() => {
-    const exists = outcomeGroups.some((g) => g.key === activeChipKey);
-    if (!exists) {
+    if (!groupMap.has(activeChipKey)) {
       setActiveChipKey(outcomeGroups[0]?.key ?? '');
     }
-  }, [outcomeGroups, activeChipKey]);
+  }, [outcomeGroups, activeChipKey, groupMap]);
 
   const handleChipSelect = useCallback((key: string) => {
     setActiveChipKey(key);
@@ -85,6 +89,7 @@ export function useGameDetailsTabs({
     activeTab,
     handleTabPress,
     chips,
+    groupMap,
     activeChipKey,
     handleChipSelect,
     showChips,

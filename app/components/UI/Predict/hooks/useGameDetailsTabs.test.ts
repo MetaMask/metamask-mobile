@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useGameDetailsTabs } from './useGameDetailsTabs';
-import type { PredictPosition } from '../types';
+import type { PredictOutcomeGroup, PredictPosition } from '../types';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -16,11 +16,16 @@ const mockUseSelector = useSelector as jest.Mock;
 const createMockPosition = (id = 'pos-1'): PredictPosition =>
   ({ id }) as PredictPosition;
 
+const createGroup = (key: string): PredictOutcomeGroup => ({
+  key,
+  outcomes: [],
+});
+
 const defaultParams = {
   activePositions: [] as PredictPosition[],
   claimablePositions: [] as PredictPosition[],
   league: 'nba' as const,
-  outcomeGroups: [],
+  outcomeGroups: [] as PredictOutcomeGroup[],
 };
 
 describe('useGameDetailsTabs', () => {
@@ -213,6 +218,170 @@ describe('useGameDetailsTabs', () => {
       );
 
       expect(result.current.showTabBar).toBe(true);
+    });
+  });
+
+  describe('groupMap', () => {
+    beforeEach(() => {
+      mockUseSelector.mockReturnValue(['nba']);
+    });
+
+    it('returns a Map keyed by group key', () => {
+      const groups = [createGroup('game_lines'), createGroup('touchdowns')];
+
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({ ...defaultParams, outcomeGroups: groups }),
+      );
+
+      expect(result.current.groupMap).toBeInstanceOf(Map);
+      expect(result.current.groupMap.size).toBe(2);
+      expect(result.current.groupMap.get('game_lines')).toBe(groups[0]);
+      expect(result.current.groupMap.get('touchdowns')).toBe(groups[1]);
+    });
+
+    it('returns empty Map when no outcomeGroups', () => {
+      const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
+
+      expect(result.current.groupMap.size).toBe(0);
+    });
+  });
+
+  describe('chips', () => {
+    beforeEach(() => {
+      mockUseSelector.mockReturnValue(['nba']);
+    });
+
+    it('returns chip items derived from outcomeGroups', () => {
+      const groups = [createGroup('game_lines'), createGroup('touchdowns')];
+
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({ ...defaultParams, outcomeGroups: groups }),
+      );
+
+      expect(result.current.chips).toEqual([
+        { key: 'game_lines', label: 'Game Lines' },
+        { key: 'touchdowns', label: 'Touchdowns' },
+      ]);
+    });
+
+    it('returns empty array when no outcomeGroups', () => {
+      const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
+
+      expect(result.current.chips).toEqual([]);
+    });
+  });
+
+  describe('activeChipKey', () => {
+    beforeEach(() => {
+      mockUseSelector.mockReturnValue(['nba']);
+    });
+
+    it('initializes to first group key', () => {
+      const groups = [createGroup('game_lines'), createGroup('touchdowns')];
+
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({ ...defaultParams, outcomeGroups: groups }),
+      );
+
+      expect(result.current.activeChipKey).toBe('game_lines');
+    });
+
+    it('initializes to empty string when no groups', () => {
+      const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
+
+      expect(result.current.activeChipKey).toBe('');
+    });
+
+    it('updates when handleChipSelect is called', () => {
+      const groups = [createGroup('game_lines'), createGroup('touchdowns')];
+
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({ ...defaultParams, outcomeGroups: groups }),
+      );
+
+      act(() => {
+        result.current.handleChipSelect('touchdowns');
+      });
+
+      expect(result.current.activeChipKey).toBe('touchdowns');
+    });
+
+    it('resets to first group key when selected key no longer exists', () => {
+      const initialGroups = [
+        createGroup('game_lines'),
+        createGroup('touchdowns'),
+      ];
+
+      const { result, rerender } = renderHook(
+        (props) => useGameDetailsTabs(props),
+        { initialProps: { ...defaultParams, outcomeGroups: initialGroups } },
+      );
+
+      act(() => {
+        result.current.handleChipSelect('touchdowns');
+      });
+      expect(result.current.activeChipKey).toBe('touchdowns');
+
+      rerender({
+        ...defaultParams,
+        outcomeGroups: [createGroup('game_lines')],
+      });
+
+      expect(result.current.activeChipKey).toBe('game_lines');
+    });
+
+    it('preserves activeChipKey when key still exists after rerender', () => {
+      const groups = [createGroup('game_lines'), createGroup('touchdowns')];
+
+      const { result, rerender } = renderHook(
+        (props) => useGameDetailsTabs(props),
+        { initialProps: { ...defaultParams, outcomeGroups: groups } },
+      );
+
+      act(() => {
+        result.current.handleChipSelect('touchdowns');
+      });
+      expect(result.current.activeChipKey).toBe('touchdowns');
+
+      rerender({
+        ...defaultParams,
+        outcomeGroups: [createGroup('game_lines'), createGroup('touchdowns')],
+      });
+
+      expect(result.current.activeChipKey).toBe('touchdowns');
+    });
+  });
+
+  describe('showChips', () => {
+    beforeEach(() => {
+      mockUseSelector.mockReturnValue(['nba']);
+    });
+
+    it('returns true when enabled with chips and outcomes visible', () => {
+      const groups = [createGroup('game_lines')];
+
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({ ...defaultParams, outcomeGroups: groups }),
+      );
+
+      expect(result.current.showChips).toBe(true);
+    });
+
+    it('returns false when no outcomeGroups', () => {
+      const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
+
+      expect(result.current.showChips).toBe(false);
+    });
+
+    it('returns false when disabled', () => {
+      mockUseSelector.mockReturnValue([]);
+      const groups = [createGroup('game_lines')];
+
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({ ...defaultParams, outcomeGroups: groups }),
+      );
+
+      expect(result.current.showChips).toBe(false);
     });
   });
 });

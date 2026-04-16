@@ -150,6 +150,10 @@ const createGroup = (
   ...overrides,
 });
 
+const toGroupMap = (
+  groups: PredictOutcomeGroup[],
+): Map<string, PredictOutcomeGroup> => new Map(groups.map((g) => [g.key, g]));
+
 const mockGame: PredictMarketGame = {
   id: 'game-1',
   homeTeam: {
@@ -198,7 +202,7 @@ describe('PredictGameOutcomesTab', () => {
 
       const { getByTestId } = render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -215,7 +219,7 @@ describe('PredictGameOutcomesTab', () => {
 
       const { getByTestId, queryByTestId } = render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="nonexistent_key"
           onBuyPress={mockOnBuyPress}
@@ -236,7 +240,7 @@ describe('PredictGameOutcomesTab', () => {
 
       const { getByTestId } = render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -257,7 +261,7 @@ describe('PredictGameOutcomesTab', () => {
 
       const { getByTestId } = render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="points"
           onBuyPress={mockOnBuyPress}
@@ -277,7 +281,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="points"
           onBuyPress={mockOnBuyPress}
@@ -296,7 +300,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="points"
           onBuyPress={mockOnBuyPress}
@@ -315,7 +319,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="points"
           onBuyPress={mockOnBuyPress}
@@ -335,7 +339,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="points"
           onBuyPress={mockOnBuyPress}
@@ -364,7 +368,7 @@ describe('PredictGameOutcomesTab', () => {
 
       const { getByTestId } = render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -388,7 +392,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -416,7 +420,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -441,7 +445,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -460,7 +464,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -480,7 +484,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -497,7 +501,7 @@ describe('PredictGameOutcomesTab', () => {
 
       const { getByTestId } = render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -523,7 +527,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -550,7 +554,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -574,7 +578,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -606,7 +610,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="first_half"
           onBuyPress={mockOnBuyPress}
@@ -636,7 +640,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -658,7 +662,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -677,7 +681,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={undefined}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -695,7 +699,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -711,7 +715,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -740,7 +744,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -766,7 +770,7 @@ describe('PredictGameOutcomesTab', () => {
 
       render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -808,7 +812,7 @@ describe('PredictGameOutcomesTab', () => {
 
       const { getByTestId } = render(
         <PredictGameOutcomesTab
-          outcomeGroups={groups}
+          groupMap={toGroupMap(groups)}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}
@@ -828,7 +832,7 @@ describe('PredictGameOutcomesTab', () => {
     it('renders container with empty groups array', () => {
       const { getByTestId } = render(
         <PredictGameOutcomesTab
-          outcomeGroups={[]}
+          groupMap={toGroupMap([])}
           game={mockGame}
           activeChipKey="game_lines"
           onBuyPress={mockOnBuyPress}

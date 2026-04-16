@@ -23,13 +23,9 @@ const toTitleCase = (str: string): string =>
     .join(' ');
 
 export const getSportsMarketTypeLabel = (type: string): string => {
-  const i18nKey = `${I18N_PREFIX}.${type}`;
-  const label = strings(i18nKey);
-  // strings() returns the key itself when no translation exists
-  if (label === i18nKey) {
-    return toTitleCase(type);
-  }
-  return label;
+  const key = `${I18N_PREFIX}.${type}`;
+  const label = strings(key);
+  return label === key ? toTitleCase(type) : label;
 };
 
 type BuyHandler = (outcome: PredictOutcome, token: PredictOutcomeToken) => void;
@@ -259,18 +255,15 @@ const OutcomesContent = memo(
 OutcomesContent.displayName = 'OutcomesContent';
 
 export interface OutcomesTabProps {
-  outcomeGroups: PredictOutcomeGroup[];
+  groupMap: Map<string, PredictOutcomeGroup>;
   game?: PredictMarketGame;
   activeChipKey: string;
   onBuyPress: (outcome: PredictOutcome, token: PredictOutcomeToken) => void;
 }
 
 const PredictGameOutcomesTab = memo(
-  ({ outcomeGroups, game, activeChipKey, onBuyPress }: OutcomesTabProps) => {
-    const selectedGroup = useMemo(
-      () => outcomeGroups.find((g) => g.key === activeChipKey),
-      [outcomeGroups, activeChipKey],
-    );
+  ({ groupMap, game, activeChipKey, onBuyPress }: OutcomesTabProps) => {
+    const selectedGroup = groupMap.get(activeChipKey);
 
     return (
       <Box testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT}>

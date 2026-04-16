@@ -86,6 +86,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     activeTab,
     handleTabPress,
     chips,
+    groupMap,
     activeChipKey,
     handleChipSelect,
     showChips,
@@ -239,6 +240,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             showTabBar={showTabBar}
             activePositions={activePositions}
             claimablePositions={claimablePositions}
+            groupMap={groupMap}
             activeChipKey={activeChipKey}
           />
         </Box>

@@ -140,6 +140,8 @@ const createMockMarket = (
 
 const mockActivePositions = [{ id: 'pos-1' }] as PredictPosition[];
 
+const emptyGroupMap = new Map();
+
 const positionsTabs: { label: string; key: PredictMarketDetailsTabKey }[] = [
   { label: 'Positions', key: 'positions' },
   { label: 'Outcomes', key: 'outcomes' },
@@ -163,6 +165,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
           activeChipKey=""
         />,
       );
@@ -182,6 +185,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
           activeChipKey=""
         />,
       );
@@ -201,6 +205,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
           activeChipKey=""
         />,
       );
@@ -225,6 +230,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
           activeChipKey=""
         />,
       );
@@ -248,6 +254,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
           activeChipKey=""
         />,
       );
@@ -269,6 +276,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
           activeChipKey=""
         />,
       );
@@ -290,6 +298,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
           activeChipKey=""
         />,
       );
@@ -311,6 +320,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
           activeChipKey=""
         />,
       );
@@ -340,6 +350,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
           activeChipKey=""
         />,
       );
@@ -368,6 +379,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
           activeChipKey=""
         />,
       );
@@ -389,6 +401,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
           activeChipKey=""
         />,
       );
@@ -413,6 +426,7 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
           activeChipKey=""
         />,
       );
