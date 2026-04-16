@@ -238,7 +238,22 @@ const TopTradersView = () => {
       </ScrollView>
 
       {isLoading ? (
-        SKELETON_KEYS.map((key) => <TraderRowSkeleton key={key} />)
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={tw.style('pb-6')}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+            />
+          }
+        >
+          {SKELETON_KEYS.map((key) => (
+            <TraderRowSkeleton key={key} />
+          ))}
+        </ScrollView>
       ) : (
         <FlatList
           data={filteredTraders}
