@@ -47,6 +47,8 @@ const newOverrides = [
       'app/selectors/featureFlagController/legacyIosGoogleConfig/index.test.ts',
       'app/selectors/featureFlagController/googleLoginIosUnsupportedBlocking/index.ts',
       'app/selectors/featureFlagController/googleLoginIosUnsupportedBlocking/index.test.ts',
+      'scripts/tooling/cursor-hook-skill-tracking.ts',
+      'scripts/tooling/cursor-hook-skill-tracking.test.ts',
       'app/util/environment.ts',
       'app/util/environment.test.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',
