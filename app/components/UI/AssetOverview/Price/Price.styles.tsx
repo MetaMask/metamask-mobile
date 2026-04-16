@@ -49,6 +49,14 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       zIndex: 2,
     } as ViewStyle,
+    chartNavigationWrapper: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      paddingHorizontal: 10,
+      paddingTop: 20,
+      marginBottom: 16,
+    } as ViewStyle,
   });
 };
 
