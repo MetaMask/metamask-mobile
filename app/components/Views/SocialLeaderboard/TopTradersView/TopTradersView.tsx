@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text as RNText,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -40,7 +47,7 @@ const SKELETON_KEYS = Array.from(
   (_, i) => `top-trader-skeleton-${i}`,
 );
 
-type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum';
+type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum' | string;
 
 const getChainFilters = (): { key: ChainFilter; label: string }[] => [
   {
@@ -51,6 +58,33 @@ const getChainFilters = (): { key: ChainFilter; label: string }[] => [
   { key: 'solana', label: SOLANA_DISPLAY_NAME },
   { key: 'ethereum', label: MAINNET_DISPLAY_NAME },
 ];
+
+const styles = StyleSheet.create({
+  filterRow: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pill: {
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 38,
+  },
+  pillBorder: {
+    borderWidth: 1,
+  },
+  pillText: {
+    fontSize: 14,
+    fontWeight: FontWeight.Medium,
+  },
+});
 
 interface ChainPillProps {
   filterKey: ChainFilter;
@@ -64,23 +98,32 @@ const ChainPill: React.FC<ChainPillProps> = ({
   label,
   isSelected,
   onPress,
-}) => (
-  <TouchableOpacity onPress={onPress} testID={`chain-filter-${filterKey}`}>
-    <Box
-      twClassName={`px-4 py-2 rounded-xl border ${
-        isSelected ? 'bg-default border-white' : 'border-muted'
-      }`}
+}) => {
+  const { colors } = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      testID={`chain-filter-${filterKey}`}
+      accessibilityRole="button"
+      accessibilityState={{ selected: isSelected }}
+      style={[
+        styles.pill,
+        isSelected
+          ? { backgroundColor: colors.icon.default }
+          : [styles.pillBorder, { borderColor: colors.border.muted }],
+      ]}
     >
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={isSelected ? TextColor.TextDefault : TextColor.TextAlternative}
+      <RNText
+        style={[
+          styles.pillText,
+          { color: isSelected ? colors.primary.inverse : colors.text.default },
+        ]}
       >
         {label}
-      </Text>
-    </Box>
-  </TouchableOpacity>
-);
+      </RNText>
+    </Pressable>
+  );
+};
 
 const TopTradersView = () => {
   const navigation = useNavigation();
@@ -168,7 +211,7 @@ const TopTradersView = () => {
         />
       </Box>
 
-      <Box twClassName="px-4 pt-2 pb-3">
+      <Box twClassName="px-4 pt-2 pb-3 mb-2">
         <Text
           variant={TextVariant.HeadingLg}
           color={TextColor.TextDefault}
@@ -178,9 +221,10 @@ const TopTradersView = () => {
         </Text>
       </Box>
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        twClassName="px-4 pb-3 justify-between"
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterRow}
       >
         {getChainFilters().map(({ key, label }) => (
           <ChainPill
@@ -191,7 +235,7 @@ const TopTradersView = () => {
             onPress={() => setSelectedChain(key)}
           />
         ))}
-      </Box>
+      </ScrollView>
 
       {isLoading ? (
         SKELETON_KEYS.map((key) => <TraderRowSkeleton key={key} />)
