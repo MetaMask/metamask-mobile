@@ -5,7 +5,7 @@ import React, {
   useRef,
 } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Box } from '@metamask/design-system-react-native';
@@ -18,7 +18,7 @@ import { SectionRefreshHandle } from '../../types';
 import { useDeFiPositionsForHomepage, DeFiPositionEntry } from './hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import DeFiPositionsListItem from '../../../../UI/DeFiPositions/DeFiPositionsListItem';
-import { selectAssetsDefiPositionsEnabled } from '../../../../../selectors/featureFlagController/assetsDefiPositions';
+import { selectDeFiPositionsSectionEnabled } from '../../../../../selectors/deFiPositionsSectionEnabled';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -78,7 +78,18 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
     const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation();
-    const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
+    const isDeFiEnabled = useSelector(selectDeFiPositionsSectionEnabled);
+
+    useFocusEffect(
+      useCallback(() => {
+        if (!isDeFiEnabled) {
+          return;
+        }
+        Engine.context.DeFiPositionsController?._executePoll()?.catch(
+          () => undefined,
+        );
+      }, [isDeFiEnabled]),
+    );
     const privacyMode = useSelector(selectPrivacyMode);
     const title = strings('homepage.sections.defi');
 

@@ -5,10 +5,10 @@ import {
   BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
+  FontWeight,
   IconColor,
   IconName,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -39,31 +39,39 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
   };
 
   return (
-    <Box
-      twClassName="bg-muted rounded-lg px-4 py-1 border border-solid border-muted"
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-    >
-      <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-          {label}
-        </Text>
-        {valueLoading ? (
-          <Skeleton height={24} width={75} />
-        ) : (
-          <Text variant={TextVariant.BodyMd}>{value || '-'}</Text>
-        )}
+    <Box twClassName="flex-col gap-1">
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        {label}
+      </Text>
+      <Box
+        twClassName="flex-1 bg-muted rounded-lg px-4 py-1 border border-solid border-muted"
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+      >
+        <Box twClassName="min-w-0 flex-1">
+          {valueLoading ? (
+            <Skeleton height={24} width={75} />
+          ) : (
+            <Text
+              variant={TextVariant.BodyMd}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {value || '-'}
+            </Text>
+          )}
+        </Box>
+        <ButtonIcon
+          iconName={isCopied ? IconName.Confirmation : IconName.Copy}
+          size={ButtonIconSize.Md}
+          onPress={handleCopy}
+          isDisabled={!value}
+          accessibilityLabel={isCopied ? 'Copied' : 'Copy'}
+          accessibilityRole="button"
+          testID="copy-button"
+          iconProps={isCopied ? { color: IconColor.SuccessDefault } : undefined}
+        />
       </Box>
-      <ButtonIcon
-        iconName={isCopied ? IconName.Confirmation : IconName.Copy}
-        size={ButtonIconSize.Md}
-        onPress={handleCopy}
-        isDisabled={!value}
-        accessibilityLabel={isCopied ? 'Copied' : 'Copy'}
-        accessibilityRole="button"
-        testID="copy-button"
-        iconProps={isCopied ? { color: IconColor.SuccessDefault } : undefined}
-      />
     </Box>
   );
 };
