@@ -464,7 +464,6 @@ const OndoCampaignDetailsView: React.FC = () => {
                       maxEntries={5}
                       currentUserReferralCode={referralCode}
                       userPosition={leaderboardUserPosition}
-                      pendingSheetPosition={leaderboardPendingSheetPosition}
                       campaignId={effectiveCampaignId}
                     />
                   </Box>
