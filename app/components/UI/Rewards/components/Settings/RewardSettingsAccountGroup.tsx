@@ -179,7 +179,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-4"
+          twClassName="gap-2"
           testID={`rewards-account-group-actions-${accountGroup.id}`}
         >
           {/* Menu button to show account addresses */}
@@ -189,7 +189,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
             onPress={handleShowAddresses}
             isDisabled={isLoading}
             testID={`rewards-account-addresses-${accountGroup.id}`}
-            twClassName="bg-subsection rounded-xl"
+            twClassName="rounded-xl"
           />
 
           {isLoading ? (
