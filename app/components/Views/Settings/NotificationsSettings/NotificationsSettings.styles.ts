@@ -31,6 +31,9 @@ const styleSheet = (params: { theme: Theme }) =>
       marginTop: 16,
       marginLeft: -16,
     },
+    accountCellContainer: {
+      paddingHorizontal: 16,
+    },
     clearHistoryConfirm: {
       marginTop: 18,
     },

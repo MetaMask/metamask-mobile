@@ -134,7 +134,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextMuted}
+                color={TextColor.TextAlternative}
               >
                 {' 30D'}
               </Text>
@@ -159,4 +159,4 @@ const TraderRow: React.FC<TraderRowProps> = ({
   );
 };
 
-export default TraderRow;
+export default React.memo(TraderRow);
