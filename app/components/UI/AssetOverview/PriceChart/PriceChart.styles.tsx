@@ -33,11 +33,9 @@ const styleSheet = (params: {
       ...StyleSheet.absoluteFillObject,
       justifyContent: 'center',
       alignItems: 'center',
-      zIndex: 10,
     },
     noDataOverlayContainer: {
       ...StyleSheet.absoluteFillObject,
-      zIndex: 5,
     },
     chartLoading: {
       width: '100%',
