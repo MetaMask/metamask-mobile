@@ -64,6 +64,9 @@ import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesContr
 const USDY_CAIP19 =
   'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c' as const;
 const USDY_DECIMALS = 18;
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -101,6 +104,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     srcTokenSymbol,
     srcTokenName,
     srcTokenDecimals,
+    campaignId,
   } = route.params;
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -205,7 +209,14 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
 
   const showSkeleton = isLoading || isFiltering;
 
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { isTokenTradingOpen } = useRWAToken();
+
+  useTrackRewardsPageView({
+    page_type:
+      mode === 'swap' ? 'ondo_campaign_swap' : 'ondo_campaign_open_position',
+    campaign_id: campaignId,
+  });
 
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.Rewards,
@@ -249,9 +260,22 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
         return;
       }
 
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+          .addProperties({
+            button_type: `ondo_campaign_swap_${asset.symbol.toLowerCase()}`,
+          })
+          .build(),
+      );
       goToSwaps(ondoUsdSrcToken, destToken);
     },
-    [goToSwaps, isTokenTradingOpen, ondoUsdSrcToken],
+    [
+      goToSwaps,
+      isTokenTradingOpen,
+      trackEvent,
+      createEventBuilder,
+      ondoUsdSrcToken,
+    ],
   );
 
   const title =
@@ -393,6 +417,15 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
               setIsAfterHoursSheetOpen(false);
               setAfterHoursNextOpen(null);
               if (afterHoursPendingToken) {
+                trackEvent(
+                  createEventBuilder(
+                    MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+                  )
+                    .addProperties({
+                      button_type: `ondo_campaign_swap_${afterHoursPendingToken.symbol.toLowerCase()}`,
+                    })
+                    .build(),
+                );
                 goToSwaps(ondoUsdSrcToken, afterHoursPendingToken);
               }
               setAfterHoursPendingToken(null);

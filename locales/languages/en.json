@@ -3582,6 +3582,7 @@
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
+    "convert": "Convert",
     "bridge": "Bridge",
     "earn": "Earn",
     "convert_to_musd": "Convert to mUSD",
@@ -6005,6 +6006,7 @@
     "account_name_existed": "Account {{accountName}} already exists"
   },
   "account_actions": {
+    "add_wallet": "Add a wallet",
     "edit_name": "Edit account name",
     "add_account_or_hardware_wallet": "Add account or hardware wallet",
     "connect_hardware_wallet": "Connect an account",
@@ -6254,31 +6256,37 @@
   "money": {
     "title": "Money",
     "apy_label": "{{percentage}}% APY",
+    "apy_info_label": "APY info",
+    "onboarding": {
+      "step_progress": "Step {{current}} of {{total}}",
+      "title": "Add money",
+      "description": "Buy mUSD and start earning APY today.",
+      "add": "Add"
+    },
     "action": {
       "add": "Add",
       "transfer": "Transfer",
       "card": "Card"
     },
-    "your_position": {
-      "title": "Your position",
-      "current_rate": "Current rate",
-      "lifetime_earnings": "Lifetime earnings",
-      "available_balance": "Avail. balance"
+    "earnings": {
+      "title": "Earnings",
+      "lifetime": "Lifetime earnings",
+      "projected": "Projected earnings"
     },
     "how_it_works": {
       "title": "How it works",
-      "description": "Hold mUSD in a Money Account and earn automatically. It's dollar-backed, always liquid, and ready to spend, trade, or send anytime.",
-      "musd_name": "MetaMask USD",
-      "musd_symbol": "mUSD",
+      "description_prefix": "Hold mUSD in your Money Account and auto-earn ",
+      "description_suffix": ". It's dollar-backed, always liquid, and ready to spend, trade, or send anytime."
+    },
+    "musd_row": {
       "add": "Add"
     },
     "potential_earnings": {
-      "title": "Potential earnings",
-      "amount": "+$26,800",
+      "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "convert": "Convert",
-      "no_fee": "No fee",
-      "see_earnings": "See potential earnings"
+      "no_fee": "No MetaMask fee",
+      "view_all": "View all"
     },
     "metamask_card": {
       "title": "MetaMask Card",
@@ -6288,14 +6296,15 @@
       "cashback": "{{percentage}}% cashback",
       "get_now": "Get now"
     },
-    "why_metamask_money": {
-      "title": "Why MetaMask Money?",
+    "what_you_get": {
+      "title": "What you get",
       "benefit_auto_earn": "Auto-earn ",
-      "benefit_dollar_backed": "Your money is held in mUSD, a 1:1 dollar-backed stablecoin",
-      "benefit_liquidity": "Full liquidity with no lockups, so you can trade or withdraw anytime",
+      "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
+      "benefit_liquidity": "Get full liquidity with no lockups, so you can trade or withdraw anytime",
       "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
       "benefit_spend_cashback": "1-3% cashback",
-      "benefit_global": "Send and receive money globally with no middle man",
+      "benefit_transfer": "Transfer money to any of your wallets across MetaMask",
+      "benefit_global": "Send and receive money globally",
       "learn_more": "Learn more"
     },
     "footer": {
@@ -7068,6 +7077,9 @@
       "confirm_button": "Confirm"
     },
     "add_wallet": "Add wallet",
+    "add_wallet_srp_description": "Using a 12, 18 or 24-word seed phrase",
+    "add_wallet_private_key_description": "Via a private key",
+    "add_wallet_hardware_description": "Using Bluetooth or a QR Code",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
     "account_details": {
@@ -7921,7 +7933,8 @@
       "legal_disclaimer_3": ". All accounts on this device will be opted in.",
       "legal_disclaimer_4": "Learn more",
       "referral_prompt": "Have a referral code?",
-      "referral_placeholder": "Optional referral code",
+      "referral_hide": "Hide code",
+      "referral_placeholder": "Referral code (optional)",
       "referral_label": "Referral code"
     },
     "settings": {
@@ -8191,16 +8204,9 @@
       "tier_upper": "Platinum",
       "select_tier": "Select Tier",
       "pending": "Pending",
-      "qualified": "Qualified",
-      "ineligible": "Ineligible",
-      "pending_sheet_title": "Pending",
-      "pending_sheet_tier_label": "Tier",
-      "pending_sheet_net_deposit_label": "Net Deposit",
-      "pending_sheet_own_body": "Hold a minimum balance of {{minNetDeposit}} for {{daysRemaining}} more day(s) to qualify for this tier.",
-      "pending_sheet_other_body": "This participant hasn't yet met the holding requirement for their projected tier.",
-      "pending_sheet_cta": "Got it",
+      "ineligible": "Not eligible",
       "qualify_for_rank_title": "Qualify for this rank",
-      "qualify_for_rank_description": "Keep your deposit above {{minNetDeposit}} for {{daysRemaining}} more days, including the final day."
+      "qualify_for_rank_description": "Keep your net inflow above {{minNetDeposit}} for {{daysRemaining}} more days to stay eligible for this competition."
     },
     "ondo_campaign_stats": {
       "title": "Stats",
@@ -8216,9 +8222,12 @@
       "label_your_return": "Your return",
       "label_your_rank": "Your rank",
       "label_net_deposit": "Net deposit",
+      "label_portfolio": "Portfolio",
+      "label_net_inflow": "Net inflow",
+      "label_outflow": "Outflow",
       "label_days_held": "Days held",
       "qualified_title": "You're qualified",
-      "qualified_description": "Keep your net deposit above {{minNetDeposit}} through the final day to stay eligible.",
+      "qualified_description": "Increase your net inflows to reach a higher tier and have a chance at a larger payout.",
       "not_eligible_title": "Not eligible",
       "not_eligible_description": "Trades opened too late to meet the {{days}}-day hold requirement won't count toward your rank or tier."
     },
