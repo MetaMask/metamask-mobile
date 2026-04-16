@@ -1275,9 +1275,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         ),
       ).toBeOnTheScreen();
       expect(queryByText('+5.00%')).toBeNull();
-      // Price rail must remain visible alongside the "3% bonus" label so the
-      // mUSD row layout stays consistent with the no-claimable-bonus state.
-      expect(getByText(/\u2022/)).toBeOnTheScreen();
+      // mUSD bonus layout swaps the row: token balance on the left, no price
+      // rail, and "3% bonus" on the right.
+      expect(queryByText(/\u2022/)).toBeNull();
     });
 
     it('shows green "3% bonus" when mUSD and claimableReward is null', () => {

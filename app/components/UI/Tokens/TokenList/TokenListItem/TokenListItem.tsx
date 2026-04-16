@@ -242,6 +242,8 @@ export const TokenListItem = React.memo(
 
     const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
     const isMusdAsset = !!asset && isMusdToken(asset.address);
+    const showMusdBonusRow =
+      isMusdAsset && isMusdConversionFlowEnabled && isMusdGeoEligible;
 
     const handleClaimBonus = useCallback(() => {
       trackEvent(
@@ -652,72 +654,103 @@ export const TokenListItem = React.memo(
             justifyContent={BoxJustifyContent.Between}
             twClassName="gap-2.5"
           >
-            {/* Token price and percentage change — or claim bonus CTA */}
-            <View style={styles.percentageChange}>
-              {merklClaimData.isClaiming ? (
-                <Spinner />
-              ) : (
-                <>
-                  {(!hasClaimableBonus || isMusdAsset) && (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                      twClassName="uppercase"
-                    >
-                      {tokenPriceInFiat && !hideFiatForScamWarning
-                        ? formatPriceWithSubscriptNotation(
-                            tokenPriceInFiat,
-                            currentCurrency,
-                          )
-                        : '-'}
-                      {' \u2022 '}
-                    </Text>
-                  )}
+            {showMusdBonusRow ? (
+              <>
+                {/* mUSD bonus layout: token balance on the left */}
+                <SensitiveText
+                  variant={CLTextVariant.BodySMMedium}
+                  color={CLTextColor.Alternative}
+                  length={SensitiveTextLength.Short}
+                  isHidden={privacyMode}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {tokenBalance}
+                </SensitiveText>
 
-                  {hideFiatForScamWarning ? (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                      twClassName="uppercase"
-                    >
-                      {'-'}
-                    </Text>
+                {/* mUSD bonus layout: "3% bonus" label on the right */}
+                <Box twClassName="shrink">
+                  <SensitiveText
+                    variant={CLTextVariant.BodySMMedium}
+                    color={secondaryBalanceDisplay.color}
+                    isHidden={false}
+                    length={SensitiveTextLength.Short}
+                    testID={SECONDARY_BALANCE_TEST_ID}
+                  >
+                    {secondaryBalanceDisplay.text || '-'}
+                  </SensitiveText>
+                </Box>
+              </>
+            ) : (
+              <>
+                {/* Token price and percentage change — or claim bonus CTA */}
+                <View style={styles.percentageChange}>
+                  {merklClaimData.isClaiming ? (
+                    <Spinner />
                   ) : (
-                    <TouchableOpacity
-                      disabled={!secondaryBalanceDisplay.onPress}
-                      onPress={secondaryBalanceDisplay.onPress}
-                      testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
-                    >
-                      <SensitiveText
-                        variant={CLTextVariant.BodySMMedium}
-                        color={secondaryBalanceDisplay.color}
-                        isHidden={false}
-                        length={SensitiveTextLength.Short}
-                        testID={SECONDARY_BALANCE_TEST_ID}
-                      >
-                        {secondaryBalanceDisplay.text || '-'}
-                      </SensitiveText>
-                    </TouchableOpacity>
-                  )}
-                </>
-              )}
-            </View>
+                    <>
+                      {!hasClaimableBonus && (
+                        <Text
+                          variant={TextVariant.BodySm}
+                          fontWeight={FontWeight.Medium}
+                          color={TextColor.TextAlternative}
+                          twClassName="uppercase"
+                        >
+                          {tokenPriceInFiat && !hideFiatForScamWarning
+                            ? formatPriceWithSubscriptNotation(
+                                tokenPriceInFiat,
+                                currentCurrency,
+                              )
+                            : '-'}
+                          {' \u2022 '}
+                        </Text>
+                      )}
 
-            {/* Token balance */}
-            <Box twClassName="shrink">
-              <SensitiveText
-                variant={CLTextVariant.BodySMMedium}
-                style={styles.secondaryBalance}
-                length={SensitiveTextLength.Short}
-                isHidden={privacyMode}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {tokenBalance}
-              </SensitiveText>
-            </Box>
+                      {hideFiatForScamWarning ? (
+                        <Text
+                          variant={TextVariant.BodySm}
+                          fontWeight={FontWeight.Medium}
+                          color={TextColor.TextAlternative}
+                          twClassName="uppercase"
+                        >
+                          {'-'}
+                        </Text>
+                      ) : (
+                        <TouchableOpacity
+                          disabled={!secondaryBalanceDisplay.onPress}
+                          onPress={secondaryBalanceDisplay.onPress}
+                          testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
+                        >
+                          <SensitiveText
+                            variant={CLTextVariant.BodySMMedium}
+                            color={secondaryBalanceDisplay.color}
+                            isHidden={false}
+                            length={SensitiveTextLength.Short}
+                            testID={SECONDARY_BALANCE_TEST_ID}
+                          >
+                            {secondaryBalanceDisplay.text || '-'}
+                          </SensitiveText>
+                        </TouchableOpacity>
+                      )}
+                    </>
+                  )}
+                </View>
+
+                {/* Token balance */}
+                <Box twClassName="shrink">
+                  <SensitiveText
+                    variant={CLTextVariant.BodySMMedium}
+                    style={styles.secondaryBalance}
+                    length={SensitiveTextLength.Short}
+                    isHidden={privacyMode}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {tokenBalance}
+                  </SensitiveText>
+                </Box>
+              </>
+            )}
           </Box>
         </Box>
       </TouchableOpacity>
