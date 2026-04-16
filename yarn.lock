@@ -8099,14 +8099,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-controller@npm:^9.0.0, @metamask/base-controller@npm:^9.0.1":
-  version: 9.0.1
-  resolution: "@metamask/base-controller@npm:9.0.1"
+"@metamask/base-controller@npm:^9.0.0, @metamask/base-controller@npm:^9.0.1, @metamask/base-controller@npm:^9.1.0":
+  version: 9.1.0
+  resolution: "@metamask/base-controller@npm:9.1.0"
   dependencies:
-    "@metamask/messenger": "npm:^1.0.0"
+    "@metamask/messenger": "npm:^1.1.1"
     "@metamask/utils": "npm:^11.9.0"
     immer: "npm:^9.0.6"
-  checksum: 10/bc5052c9a38c21a52003e9a79de1f609ff127d939c87eb7b9ebe01cdf05ce2a9ee8e4635dd96f193e9951983e9554d9381af303fbadaae740445ffb2424698e8
+  checksum: 10/752b70b35026fdf31ea8feef638f06286dbbde8d17e1ba804085fdbedbb076d900d2d7b6db3d2af284b3aa8fa84c95a0ceea6a3a46ee7b7e29433f037e9afc69
   languageName: node
   linkType: hard
 
@@ -9678,14 +9678,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^13.1.0":
-  version: 13.1.0
-  resolution: "@metamask/ramps-controller@npm:13.1.0"
+"@metamask/ramps-controller@npm:^13.1.0, @metamask/ramps-controller@npm:^13.2.0":
+  version: 13.2.0
+  resolution: "@metamask/ramps-controller@npm:13.2.0"
   dependencies:
-    "@metamask/base-controller": "npm:^9.0.1"
+    "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^11.20.0"
     "@metamask/messenger": "npm:^1.1.1"
-  checksum: 10/e2994b535470794109322025d0414347577cf116109206fadd449af805dcba4ffc5f12352c0576b09aefefb044e789dc227980652d830b4ee36a9785de2350cf
+  checksum: 10/17ce6e74c5a2894c7fbe3ee3a6c39cd820212de04a7dda86324293f9f09fdf03e9ccc11d9d29cd7131f01ec62073eb4cc8e7cb321de40c956bb52b1dce774f95
   languageName: node
   linkType: hard
 
@@ -35917,7 +35917,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^3.1.0"
     "@metamask/profile-sync-controller": "npm:^28.0.2"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^13.1.0"
+    "@metamask/ramps-controller": "npm:^13.2.0"
     "@metamask/react-data-query": "npm:^0.2.0"
     "@metamask/react-native-acm": "npm:1.2.0"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
