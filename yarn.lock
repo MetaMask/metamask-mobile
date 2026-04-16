@@ -9111,14 +9111,14 @@ __metadata:
 
 "@metamask/mpc-libs-react-native@file:./metamask-mpc-libs-react-native-0.1.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.1.0
-  resolution: "@metamask/mpc-libs-react-native@file:./metamask-mpc-libs-react-native-0.1.0.tgz#./metamask-mpc-libs-react-native-0.1.0.tgz::hash=96e12a&locator=metamask%40workspace%3A."
+  resolution: "@metamask/mpc-libs-react-native@file:./metamask-mpc-libs-react-native-0.1.0.tgz#./metamask-mpc-libs-react-native-0.1.0.tgz::hash=b08f6c&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/mpc-libs-interface": "workspace:*"
     uniffi-bindgen-react-native: "npm:^0.31.0-2"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/e3e3f0bba609d8c872245b294a594c83fee81f84ac72c34f868c0dc8c6b6019a8dfe947396da94a692b332c86aa0a3daa452c061a07d8f2b8709f709ba12a785
+  checksum: 10/91e126611caaa4b72bac5fd3e786b1c23832e488a5041db0aeda5478e67da0b66a85ad5eb0bcf86fb1588f51a07960d8ef553285aa0f11c19752deaa062e7b43
   languageName: node
   linkType: hard
 
