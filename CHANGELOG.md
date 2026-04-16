@@ -7,6 +7,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.74.0-ota.0]
+
+### Uncategorized
+
+- Unify USD amount range bucketing for balance tracking (#28914)
+- Bump assets controller v5.0.0 (#28569)
+- Update CSS layout spacing for legacy and advanced charts (#28920)
+- Removed geo-restrictions for RWA tokens in the Stocks view (#28872)
+- Fix showing outline pill on advanced charts on old history when chart head is visible. (#28837)
+- Consolidates chart events (#28902)
+- Fallback to legacy chart if new ohlcv api returns empty result (#28728)
+- Update badge color and position (#28857)
+- Rewards campaign emit events (#28794)
+- No-changelog (#28859)
+- Remove token details v2 flag (#28823)
+- chore: remove axios from yarnrc (#28828)
+- Updated the mUSD bonus tooltip to clarify that the estimated annual bonus rate is variable and may change. (#28669)
+
+### Added
+
+- Added new `selectMoneyHubEnabledFlag` selector to control conditional rendering of the new Money hub screen. (#28934)
+- Null (#28710)
+- Create unfunded state on CardHome (#28891)
+- Updated multichain private key list to open as a full screen instead of a bottom sheet (#28703)
+- Closed positions now show realized PnL % (#28875)
+- New reward campaign deeplinks + musd (#28802)
+- Updated Token Details sticky footer buttons with green success styling and A/B test for swap label (#28729)
+- Improved unified buy and ramp order screens so headers are shown once and match the rest of the in-app flow. (#28883)
+- Add native token send in transaction activity for gas fees sponsored (#28876)
+- Add new add wallet screen. (#28018)
+- Fixed candlestick chart 429 rate limiting during rapid market navigation by routing historical candle fetches over HTTP (#28865)
+- Hide zero balance tokens native exempt (#28721)
+- Added trader position view (#28848)
+- Add gas fees sponsored message in the transaction activity tab (#28822)
+- Fixed KYC flow to automatically close the verification webview after document submission and return the user to the processing (#28595)
+  screen
+- Added a Benefits summary in Reward page, displaying top 3 (#27515)
+  added a FullView to list available benefits for a
+  subscription
+  added a FullView to display the detail of the benefit
+  added a claim button that navigate the user to a third
+  party website through the in-app browser
+- Added Leaderboard profile page (#28583)
+
+### Fixed
+
+- Fixed a crash in the featured carousel when sport team alias data was missing (#28937)
+- Display correct amount in swap native in transaction display for gas fees sponsored trx (#28930)
+- Fixed a bug that was causing reverse position orders in Perps to fail when stale entry pricing was used during order placement (#28897)
+- fix: changed location prop name for cash account event (#28882)
+- UseHasInsufficientBalance to skip native balance checks on Tempo (#28817)
+- Fixed truncated words in the Secret Recovery Phrase grid so all words are fully visible (#28908)
+- fix: only fire APP_OPENED on background → active transition (#27463)
+- Fixed deposit on-ramp navigation header transparency that caused visual glitches during transitions. (#28874)
+- Fixed the mUSD estimated annual bonus so it reflects the user's combined mUSD balance across Ethereum mainnet and Linea (#28663)
+  instead of only the chain currently being viewed.
+- Fixed the Swap Max quick-pick button overflowing on smaller screens (#28858)
+- Polish token selector for Buy, Swap and Send (#28711)
+- Fixed missing recent perpetuals funding payments — `getFunding` now fetches the most recent 30-day window by default (1 API (#28671)
+  call) and loads older history on demand as the user scrolls, replacing
+  the previous 365-day call that silently dropped recent records past the
+  500-record cap.
+- Fixed a bug where "Paid by MetaMask" was incorrectly shown in transaction details for failed hardware wallet swaps on MON (#28584)
+  network
+- Fixed a bug that showed erc20 approvals as nft approvals (#28732)
+- Fixed a bug where out-of-bounds amounts on the V2 Buy screen showed a generic error instead of the provider's minimum/maximum (#28174)
+  amount message. Added client-side limit validation to skip unnecessary
+  quote API calls.
+- Fixed unified buy Build Quote header overlapping the token selection screen during navigation transitions (#28826)
+- Fixed the order details processing info sheet so the backdrop is translucent and the order screen remains visible behind it. (#28825)
+- Fixed the state/province input in the buy/sell KYC address form to be editable instead of read-only (#28532)
+
+## **Related issues**
+
+- Fixed percentage display on advanced charts (#28574)
+- Fixed a bug where the swap confirm button remained active after changing tokens while a stale quote was still loading (#28759)
+- Fixed a race condition in the Transak OTP screen where the input could be modified while a verification request was in-flight (#28343)
+- Removed the network filter from the Money (mUSD) tokens view. (#28673)
+- Fixed a bug where tapping the confirmation overlay during its close animation could navigate the user to the home screen (#27974)
+- Fixed a bug where sport-related prediction markets were incorrectly sorted using game-specific ordering instead of standard (#28760)
+  sorting
+- Fixed the info icon color next to the "Your bonus" heading and in the mUSD conversion navbar to match the design spec. (#28718)
+
 ## [7.72.1]
 
 ### Fixed
@@ -11162,7 +11245,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.74.0-ota.0...HEAD
+[7.74.0-ota.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.1...v7.74.0-ota.0
 [7.72.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.0...v7.72.1
 [7.72.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.1...v7.72.0
 [7.71.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.0...v7.71.1
