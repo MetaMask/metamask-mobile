@@ -4,6 +4,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import CashTokensFullView from './CashTokensFullView';
 import { useMerklBonusClaim } from '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { selectMoneyHubEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import { AssetType } from '../confirmations/types/token';
 
 const mockGoBack = jest.fn();
 
@@ -36,8 +37,11 @@ jest.mock('../../UI/Earn/hooks/useMusdConversion', () => ({
     hasSeenConversionEducationScreen: true,
   }),
 }));
+const mockUseMusdConversionTokens = jest.fn(() => ({
+  tokens: [] as AssetType[],
+}));
 jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: () => ({ tokens: [] }),
+  useMusdConversionTokens: () => mockUseMusdConversionTokens(),
 }));
 jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
   useSwapBridgeNavigation: () => ({ goToSwaps: jest.fn() }),
@@ -125,6 +129,7 @@ describe('CashTokensFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
+    mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
     mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: null,
@@ -199,5 +204,38 @@ describe('CashTokensFullView', () => {
     expect(
       screen.getByTestId('money-convert-stablecoins-container'),
     ).toBeOnTheScreen();
+  });
+
+  it('does not render CTA buttons when Money Hub flag is disabled', () => {
+    mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
+
+    renderWithProvider(<CashTokensFullView />);
+
+    expect(screen.queryByText('Convert to mUSD')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Swap')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Buy')).not.toBeOnTheScreen();
+  });
+
+  it('renders Convert CTA when Money Hub is enabled and conversion tokens exist', () => {
+    mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
+    mockUseMusdConversionTokens.mockReturnValue({
+      tokens: [{ address: '0xabc', chainId: '0x1' } as AssetType],
+    });
+
+    renderWithProvider(<CashTokensFullView />);
+
+    expect(screen.getByText('Convert to mUSD')).toBeOnTheScreen();
+    expect(screen.queryByText('Swap')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Buy')).not.toBeOnTheScreen();
+  });
+
+  it('renders Swap and Buy CTAs when Money Hub is enabled and no conversion tokens exist', () => {
+    mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
+
+    renderWithProvider(<CashTokensFullView />);
+
+    expect(screen.getByText('Swap')).toBeOnTheScreen();
+    expect(screen.getByText('Buy')).toBeOnTheScreen();
+    expect(screen.queryByText('Convert to mUSD')).not.toBeOnTheScreen();
   });
 });
