@@ -24,8 +24,30 @@ jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
 }));
 
 const mockIsTokenTradingOpen = jest.fn(() => true);
+const mockIsStockToken = jest.fn(() => false);
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
-  useRWAToken: () => ({ isTokenTradingOpen: mockIsTokenTradingOpen }),
+  useRWAToken: () => ({
+    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isStockToken: mockIsStockToken,
+  }),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../../reducers/fiatOrders', () => ({
+  getDetectedGeolocation: jest.fn(),
+}));
+
+jest.mock('../../../../util/ondoGeoRestrictions', () => ({
+  ONDO_RESTRICTED_COUNTRIES: new Set(['US', 'GB']),
+}));
+
+jest.mock('./RwaUnavailableBottomSheet/RwaUnavailableBottomSheet', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
 }));
 
 jest.mock('../../../../util/theme', () => {
