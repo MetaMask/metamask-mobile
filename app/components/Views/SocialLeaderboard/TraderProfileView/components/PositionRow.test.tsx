@@ -14,6 +14,14 @@ jest.mock('../../utils/chainMapping', () => ({
   ),
 }));
 
+jest.mock('../../../../UI/Perps/utils/formatUtils', () => {
+  const actual = jest.requireActual('../../../../UI/Perps/utils/formatUtils');
+  return {
+    ...actual,
+    formatOrderCardDate: jest.fn().mockReturnValue('Apr 15 at 2:00 PM'),
+  };
+});
+
 const basePosition: Position = {
   tokenSymbol: 'STARKBOT',
   tokenName: 'Starkbot',
@@ -29,6 +37,16 @@ const basePosition: Position = {
   currentValueUSD: 2259.96,
   pnlValueUsd: 1059.96,
   pnlPercent: 182,
+};
+
+const closedPosition: Position = {
+  ...basePosition,
+  positionAmount: 0,
+  soldUsd: 1500,
+  realizedPnl: 300,
+  boughtUsd: 1200,
+  currentValueUSD: 0,
+  pnlPercent: null,
 };
 
 describe('PositionRow', () => {
@@ -161,5 +179,51 @@ describe('PositionRow', () => {
     renderWithProvider(<PositionRow position={position} />);
 
     expect(screen.getByTestId('position-row-PEPE')).toBeOnTheScreen();
+  });
+
+  describe('closed position', () => {
+    it('renders soldUsd as the value', () => {
+      renderWithProvider(<PositionRow position={closedPosition} />);
+
+      expect(screen.getByText('$1,500.00')).toBeOnTheScreen();
+    });
+
+    it('renders formatted closed date as subtitle instead of token amount', () => {
+      renderWithProvider(<PositionRow position={closedPosition} />);
+
+      expect(screen.getByText('Apr 15 at 2:00 PM')).toBeOnTheScreen();
+    });
+
+    it('renders realized PnL percent', () => {
+      renderWithProvider(<PositionRow position={closedPosition} />);
+
+      // realizedPnl (300) / boughtUsd (1200) * 100 = 25%
+      expect(screen.getByText('+25%')).toBeOnTheScreen();
+    });
+
+    it('renders dash for PnL when boughtUsd is zero', () => {
+      const position = { ...closedPosition, boughtUsd: 0 };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.getByText('\u2014')).toBeOnTheScreen();
+    });
+
+    it('renders soldUsd as value even when currentValueUSD is zero', () => {
+      const position = { ...closedPosition, currentValueUSD: 0 };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.getByText('$1,500.00')).toBeOnTheScreen();
+    });
+
+    it('renders negative realized PnL percent', () => {
+      const position = { ...closedPosition, realizedPnl: -300 };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      // -300 / 1200 * 100 = -25%
+      expect(screen.getByText('-25%')).toBeOnTheScreen();
+    });
   });
 });

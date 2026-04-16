@@ -12,7 +12,6 @@ import {
   AvatarToken,
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
-import { DateTime } from 'luxon';
 import type { Position } from '@metamask/social-controllers';
 import { getAssetImageUrl } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { chainNameToId } from '../../utils/chainMapping';
@@ -20,6 +19,7 @@ import { addThousandsSeparator } from '../../utils/numberFormatting';
 import {
   formatPerpsFiat,
   formatPercentage,
+  formatOrderCardDate,
 } from '../../../../UI/Perps/utils/formatUtils';
 
 export interface PositionRowProps {
@@ -46,17 +46,10 @@ function formatPercent(value: number | null | undefined): string {
   return formatPercentage(value, 0);
 }
 
-function formatClosedDate(timestamp: number): string {
-  const dt = DateTime.fromSeconds(timestamp);
-  const time = dt.toFormat('h:mma').toLowerCase();
-  return `${dt.toFormat('MMMM d')} at ${time}`;
-}
-
 const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
   const isClosed = position.positionAmount === 0 && position.soldUsd > 0;
 
-  const displayValue =
-    position.currentValueUSD ?? (isClosed ? position.soldUsd : null);
+  const displayValue = isClosed ? position.soldUsd : position.currentValueUSD ?? null;
 
   const closedPnlPercent =
     isClosed && position.boughtUsd > 0
@@ -109,7 +102,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
             numberOfLines={1}
           >
             {isClosed
-              ? formatClosedDate(position.lastTradeAt)
+              ? formatOrderCardDate(position.lastTradeAt)
               : `${formatTokenAmount(position.positionAmount)} ${position.tokenSymbol}`}
           </Text>
         </Box>
