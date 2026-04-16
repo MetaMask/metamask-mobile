@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import OndoLeaderboardView, {
   ONDO_LEADERBOARD_VIEW_TEST_IDS,
 } from './OndoLeaderboardView';
+import { useSelector } from 'react-redux';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
@@ -53,9 +54,11 @@ jest.mock(
 );
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => null),
+  useSelector: jest.fn(),
   useDispatch: jest.fn(() => jest.fn()),
 }));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
@@ -84,6 +87,14 @@ jest.mock('../components/Campaigns/OndoLeaderboard', () => {
 
 jest.mock('../components/Campaigns/OndoLeaderboard.utils', () => ({
   formatTierDisplayName: (tier: string) => tier,
+  getTierMinNetDeposit: jest.fn(
+    (
+      tiers: { name: string; minNetDeposit: number }[] | undefined,
+      name: string,
+    ) =>
+      tiers?.find((t: { name: string }) => t.name === name)?.minNetDeposit ??
+      null,
+  ),
 }));
 
 jest.mock('../hooks/useGetOndoLeaderboard');
@@ -109,7 +120,7 @@ const hookDefaults = {
   isLeaderboardNotYetComputed: false,
   tierNames: ['STARTER', 'MID'],
   selectedTier: 'STARTER',
-  selectedTierData: { entries: [], totalParticipants: 10, minDeposit: 500 },
+  selectedTierData: { entries: [], totalParticipants: 10 },
   computedAt: '2024-03-20T12:00:00.000Z',
   setSelectedTier: jest.fn(),
   refetch: jest.fn(),
@@ -128,8 +139,38 @@ describe('OndoLeaderboardView', () => {
     refetch: jest.fn(),
   };
 
+  const mockCampaign = {
+    id: 'campaign-ondo-123',
+    type: 'ONDO_HOLDING' as const,
+    name: 'Test Campaign',
+    startDate: '2024-01-01T00:00:00Z',
+    endDate: '2099-12-31T23:59:59Z',
+    termsAndConditions: null,
+    excludedRegions: [],
+    statusLabel: '',
+    image: null,
+    featured: false,
+    details: {
+      howItWorks: { title: '', description: '', steps: [] },
+      tiers: [
+        { name: 'STARTER', minNetDeposit: 500 },
+        { name: 'MID', minNetDeposit: 1000 },
+      ],
+    },
+  };
+
+  const mockState = {
+    rewards: {
+      referralCode: null,
+      campaigns: [mockCampaign],
+    },
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) =>
+      selector(mockState),
+    );
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: null,
       isLoading: false,
@@ -251,30 +292,7 @@ describe('OndoLeaderboardView', () => {
     const { getAllByText } = render(<OndoLeaderboardView />);
     expect(
       getAllByText('rewards.ondo_campaign_leaderboard.pending'),
-    ).toHaveLength(2);
-  });
-
-  it('shows Qualified tag when position is qualified', () => {
-    mockUseGetOndoLeaderboardPosition.mockReturnValue({
-      ...positionDefaults,
-      position: {
-        rank: 5,
-        projectedTier: 'STARTER',
-        qualified: true,
-        qualifiedDays: 10,
-        totalInTier: 100,
-        rateOfReturn: 0.1,
-        currentUsdValue: 12500,
-        totalUsdDeposited: 10000,
-        netDeposit: 8500,
-        neighbors: [],
-        computedAt: '2024-01-01T00:00:00Z',
-      },
-    });
-    const { getByText } = render(<OndoLeaderboardView />);
-    expect(
-      getByText('rewards.ondo_campaign_leaderboard.qualified'),
-    ).toBeDefined();
+    ).toHaveLength(1);
   });
 
   it('does not show position section when position is null', () => {
@@ -312,136 +330,5 @@ describe('OndoLeaderboardView', () => {
       'campaign-ondo-123',
       expect.objectContaining({ defaultTier: 'MID' }),
     );
-  });
-
-  describe('pendingSheetPosition', () => {
-    it('passes pendingSheetPosition to OndoLeaderboard when position is pending and tier has minDeposit', () => {
-      mockUseGetCampaignParticipantStatus.mockReturnValue({
-        status: { optedIn: true, participantCount: 1 },
-        isLoading: false,
-        hasError: false,
-        refetch: jest.fn(),
-      });
-      mockUseGetOndoLeaderboardPosition.mockReturnValue({
-        ...positionDefaults,
-        position: {
-          rank: 8,
-          projectedTier: 'STARTER',
-          qualified: false,
-          qualifiedDays: 3,
-          totalInTier: 100,
-          rateOfReturn: 0.05,
-          currentUsdValue: 5000,
-          totalUsdDeposited: 4000,
-          netDeposit: 3500,
-          neighbors: [],
-          computedAt: '2024-01-01T00:00:00Z',
-        },
-      });
-      mockUseGetOndoLeaderboard.mockReturnValue({
-        ...hookDefaults,
-        leaderboard: {
-          campaignId: 'campaign-ondo-123',
-          tiers: {
-            STARTER: {
-              minDeposit: 500,
-              entries: [],
-              totalParticipants: 100,
-            },
-          },
-          computedAt: '2024-01-01T00:00:00Z',
-        },
-      });
-
-      render(<OndoLeaderboardView />);
-
-      expect(mockOndoLeaderboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          pendingSheetPosition: {
-            tier: 'STARTER',
-            netDeposit: 3500,
-            qualifiedDays: 3,
-            tierMinDeposit: 500,
-          },
-        }),
-      );
-    });
-
-    it('passes pendingSheetPosition as null when position is qualified', () => {
-      mockUseGetCampaignParticipantStatus.mockReturnValue({
-        status: { optedIn: true, participantCount: 1 },
-        isLoading: false,
-        hasError: false,
-        refetch: jest.fn(),
-      });
-      mockUseGetOndoLeaderboardPosition.mockReturnValue({
-        ...positionDefaults,
-        position: {
-          rank: 3,
-          projectedTier: 'MID',
-          qualified: true,
-          qualifiedDays: 10,
-          totalInTier: 100,
-          rateOfReturn: 0.1,
-          currentUsdValue: 12500,
-          totalUsdDeposited: 10000,
-          netDeposit: 8500,
-          neighbors: [],
-          computedAt: '2024-01-01T00:00:00Z',
-        },
-      });
-      mockUseGetOndoLeaderboard.mockReturnValue({
-        ...hookDefaults,
-        leaderboard: {
-          campaignId: 'campaign-ondo-123',
-          tiers: {
-            MID: { minDeposit: 1000, entries: [], totalParticipants: 50 },
-          },
-          computedAt: '2024-01-01T00:00:00Z',
-        },
-      });
-
-      render(<OndoLeaderboardView />);
-
-      expect(mockOndoLeaderboard).toHaveBeenCalledWith(
-        expect.objectContaining({ pendingSheetPosition: null }),
-      );
-    });
-
-    it('passes pendingSheetPosition as null when leaderboard has no tier minDeposit', () => {
-      mockUseGetCampaignParticipantStatus.mockReturnValue({
-        status: { optedIn: true, participantCount: 1 },
-        isLoading: false,
-        hasError: false,
-        refetch: jest.fn(),
-      });
-      mockUseGetOndoLeaderboardPosition.mockReturnValue({
-        ...positionDefaults,
-        position: {
-          rank: 8,
-          projectedTier: 'STARTER',
-          qualified: false,
-          qualifiedDays: 3,
-          totalInTier: 100,
-          rateOfReturn: 0.05,
-          currentUsdValue: 5000,
-          totalUsdDeposited: 4000,
-          netDeposit: 3500,
-          neighbors: [],
-          computedAt: '2024-01-01T00:00:00Z',
-        },
-      });
-      // leaderboard has no tiers data → minDeposit is null
-      mockUseGetOndoLeaderboard.mockReturnValue({
-        ...hookDefaults,
-        leaderboard: null,
-      });
-
-      render(<OndoLeaderboardView />);
-
-      expect(mockOndoLeaderboard).toHaveBeenCalledWith(
-        expect.objectContaining({ pendingSheetPosition: null }),
-      );
-    });
   });
 });

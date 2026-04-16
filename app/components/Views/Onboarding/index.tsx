@@ -37,7 +37,6 @@ import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePna25Acknowledged as storePna25AcknowledgedAction,
 } from '../../../actions/legalNotices';
-import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
 import { selectGoogleLoginIosUnsupportedBlockingEnabled } from '../../../selectors/featureFlagController/googleLoginIosUnsupportedBlocking';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -161,7 +160,6 @@ const Onboarding = () => {
   const loadingMsg = useSelector(
     (state: RootState) => state.user.loadingMsg || '',
   );
-  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
   const isGoogleLoginIosUnsupportedBlockingEnabled = useSelector(
     selectGoogleLoginIosUnsupportedBlockingEnabled,
   );
@@ -1040,12 +1038,9 @@ const Onboarding = () => {
   }, [updateNavBar]);
 
   useEffect(() => {
-    // When a new user has onboarded and the PNA25 feature flag is on,
-    // set the PNA25 acknowledgement as true to prevent the toast from showing
-    if (isPna25FlagEnabled) {
-      storePna25Acknowledged();
-    }
-  }, [isPna25FlagEnabled, storePna25Acknowledged]);
+    // When a user onboards set the PNA25 acknowledgement as true to prevent the toast from showing
+    storePna25Acknowledged();
+  }, [storePna25Acknowledged]);
 
   const { errorToThrow, startFoxAnimation } = state;
 

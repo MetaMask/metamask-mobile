@@ -1,10 +1,15 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import { act, screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TopTradersView from './TopTradersView';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hooks/useTopTraders';
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
+import Logger from '../../../../util/Logger';
+
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -53,7 +58,7 @@ const mockUseTopTraders: UseTopTradersResult = {
   traders: fixtureTraders,
   isLoading: false,
   error: null,
-  refresh: mockRefresh,
+  refresh: mockRefresh as () => Promise<void>,
   toggleFollow: mockToggleFollow,
 };
 
@@ -128,6 +133,44 @@ describe('TopTradersView', () => {
     const followButtons = screen.getAllByText('Follow');
     fireEvent.press(followButtons[0]);
     expect(mockToggleFollow).toHaveBeenCalledWith(fixtureTraders[0].id);
+  });
+
+  it('renders a RefreshControl with the correct props on the trader list', () => {
+    renderWithProvider(<TopTradersView />);
+
+    const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+    const { refreshControl } = list.props;
+
+    expect(typeof refreshControl.props.onRefresh).toBe('function');
+    expect(typeof refreshControl.props.refreshing).toBe('boolean');
+  });
+
+  it('calls refresh when the scroll view is pulled down', async () => {
+    mockRefresh.mockResolvedValue(undefined);
+    renderWithProvider(<TopTradersView />);
+    const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+
+    await act(async () => {
+      await list.props.refreshControl.props.onRefresh();
+    });
+
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('logs an error when refresh fails', async () => {
+    const refreshError = new Error('fetch failed');
+    mockRefresh.mockRejectedValue(refreshError);
+    renderWithProvider(<TopTradersView />);
+    const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+
+    await act(async () => {
+      await list.props.refreshControl.props.onRefresh();
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      refreshError,
+      'TopTradersView: pull-to-refresh failed',
+    );
   });
 
   it('navigates back when the feature flag is disabled', () => {
