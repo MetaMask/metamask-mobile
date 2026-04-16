@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [7.74.0-ota.0]
+## [7.74.0]
 
 ### Uncategorized
 
