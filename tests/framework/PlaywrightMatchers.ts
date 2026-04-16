@@ -145,6 +145,24 @@ export default class PlaywrightMatchers {
   }
 
   /**
+   * Get a lazy element reference by XPath without requiring the element to
+   * exist in the DOM. Unlike getElementByXPath, this does NOT throw when the
+   * element is absent — use this for negative assertions where the element may
+   * never have been rendered (e.g. waitForDisplayed({ reverse: true })).
+   *
+   * @param xpath - The XPath selector to search for
+   * @returns The wrapped element reference
+   */
+  static async getLazyElementByXPath(
+    xpath: string,
+  ): Promise<PlaywrightElement> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+    const element = await drv.$(xpath);
+    return wrapElement(element);
+  }
+
+  /**
    * Get element by class name
    * @param className - The class name to search for
    * @returns The wrapped element

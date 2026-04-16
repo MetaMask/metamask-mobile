@@ -5,16 +5,15 @@ import {
 } from '../../framework/EncapsulatedElement';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 
 class SwitchChainModal {
   get connectButton(): EncapsulatedElementType {
     return encapsulated({
       appium: () =>
-        PlaywrightMatchers.getElementById(
-          ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
-        ),
+        PlaywrightMatchers.getElementById(CommonSelectorsIDs.CONNECT_BUTTON, {
+          exact: true,
+        }),
     });
   }
 
@@ -28,7 +27,15 @@ class SwitchChainModal {
   }
 
   async tapConnectButton(): Promise<void> {
-    await UnifiedGestures.tap(this.connectButton);
+    await encapsulatedAction({
+      appium: async () => {
+        const element = await asPlaywrightElement(this.connectButton);
+        await element.waitForDisplayed({
+          timeoutMsg: 'SwitchChainModal: connect button not visible',
+        });
+        await element.click();
+      },
+    });
   }
 
   async assertNetworkText(network: string): Promise<void> {

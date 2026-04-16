@@ -22,7 +22,8 @@ export default class PlaywrightContextHelpers {
 
   static async switchToWebViewContext(dappUrl: string): Promise<void> {
     // Strategy B: Try WebdriverIO's built-in URL matching first.
-    // Falls back to manual polling only on LavaMoat scuttling errors.
+    // Falls back to manual polling on any failure (LavaMoat scuttling,
+    // stale URL metadata on BrowserStack, platform quirks, etc.).
     try {
       await getDriver().switchContext({
         url: new RegExp(dappUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
@@ -30,11 +31,9 @@ export default class PlaywrightContextHelpers {
       });
       return;
     } catch (err) {
-      if (!LAVAMOAT_PATTERN.test(this.getErrorMessage(err))) {
-        throw err;
-      }
       console.log(
-        'WebdriverIO switchContext hit LavaMoat scuttling, falling back to manual polling',
+        'WebdriverIO switchContext failed, falling back to manual polling:',
+        this.getErrorMessage(err).slice(0, 300),
       );
     }
 
@@ -87,7 +86,7 @@ export default class PlaywrightContextHelpers {
 
     const filtered = webviews.filter((ctx) => {
       const shouldAvoid =
-        /chrome|devtools/i.test(ctx.id) ||
+        /devtools/i.test(ctx.id) ||
         (ctx.url && /chrome|devtools|localhost/i.test(ctx.url));
       return !shouldAvoid;
     });

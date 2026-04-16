@@ -10,6 +10,7 @@ import { getDriver } from '../../framework/PlaywrightUtilities';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds';
 import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import { CellComponentSelectorsIDs } from '../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
+import { sleep } from '../../framework';
 
 class DappConnectionModal {
   get connectButton(): EncapsulatedElementType {
@@ -84,8 +85,13 @@ class DappConnectionModal {
     });
   }
 
-  async tapConnectButton(): Promise<void> {
-    await UnifiedGestures.tap(this.connectButton);
+  async tapConnectButton({
+    shouldCooldown = false,
+  }: { shouldCooldown?: boolean } = {}): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.connectButton);
+    if (shouldCooldown) {
+      await sleep(750);
+    }
   }
 
   async tapEditAccountsButton(): Promise<void> {

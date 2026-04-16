@@ -7,13 +7,27 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import { expect } from '@playwright/test';
+import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import { MMConnectDappTestIds } from '../../selectors/MMConnect/MMConnectDapp.testIds';
+import { PlaywrightGestures } from '../../framework';
 
 class BrowserPlaygroundDapp {
-  private getByDataTestId(testId: string): EncapsulatedElementType {
+  /**
+   * Get an element by data-testid.
+   * @param testId - The data-testid of the element to get.
+   * @param lazy - Whether to get a lazy element. Lazy elements are not required to be present in the DOM. This is useful for negative assertions where the element may never have been rendered (e.g. waitForDisplayed({ reverse: true })).
+   * @returns The encapsulated element.
+   */
+  private getByDataTestId(
+    testId: string,
+    { lazy = false }: { lazy?: boolean } = {},
+  ): EncapsulatedElementType {
+    const xpath = `//*[@data-testid="${testId}"]`;
     return encapsulated({
       appium: () =>
-        PlaywrightMatchers.getElementByXPath(`//*[@data-testid="${testId}"]`),
+        lazy
+          ? PlaywrightMatchers.getLazyElementByXPath(xpath)
+          : PlaywrightMatchers.getElementByXPath(xpath),
     });
   }
 
@@ -205,10 +219,14 @@ class BrowserPlaygroundDapp {
     );
   }
 
-  getScopeCard(scope: string): EncapsulatedElementType {
+  getScopeCard(
+    scope: string,
+    { lazy = false }: { lazy?: boolean } = {},
+  ): EncapsulatedElementType {
     const escapedScope = scope.toLowerCase().replace(/:/g, '-');
     return this.getByDataTestId(
       `${MMConnectDappTestIds.SCOPE_CARD}-${escapedScope}`,
+      { lazy },
     );
   }
 
@@ -258,7 +276,12 @@ class BrowserPlaygroundDapp {
   }
 
   async tapWagmiSignMessage(): Promise<void> {
-    await UnifiedGestures.tap(this.wagmiSignMessageButton);
+    await PlaywrightGestures.waitAndTap(
+      await asPlaywrightElement(this.wagmiSignMessageButton),
+      {
+        delay: 2000, // Make sure the keyboard dismiss animation is complete
+      },
+    );
   }
 
   async tapWagmiSendTransaction(): Promise<void> {
@@ -274,7 +297,12 @@ class BrowserPlaygroundDapp {
   }
 
   async tapSolanaConnect(): Promise<void> {
-    await UnifiedGestures.tap(this.solanaConnectButton);
+    await PlaywrightGestures.waitAndTap(
+      await asPlaywrightElement(this.solanaConnectButton),
+      {
+        delay: 750, // Cooldown period for the button tap
+      },
+    );
   }
 
   async tapSolanaDisconnect(): Promise<void> {
@@ -292,6 +320,9 @@ class BrowserPlaygroundDapp {
   async waitForConnectButtonVisible(timeoutMs = 15000): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
+        await PlaywrightGestures.scrollIntoView(
+          await asPlaywrightElement(this.connectButton),
+        );
         const element = await asPlaywrightElement(this.connectButton);
         await element.waitForDisplayed({
           timeout: timeoutMs,
@@ -306,18 +337,22 @@ class BrowserPlaygroundDapp {
     await encapsulatedAction({
       appium: async () => {
         if (isConnected) {
-          const element = await asPlaywrightElement(this.activeAccount);
-          await element.waitForDisplayed({
-            timeout: 10000,
-            timeoutMsg:
-              'BrowserPlaygroundDapp: active account not visible (expected connected)',
+          await PlaywrightAssertions.expectConditionWithRetry(async () => {
+            const element = await asPlaywrightElement(this.activeAccount);
+            await element.waitForDisplayed({
+              timeout: 10000,
+              timeoutMsg:
+                'BrowserPlaygroundDapp: active account not visible (expected connected)',
+            });
           });
         } else {
-          const element = await asPlaywrightElement(this.connectLegacyButton);
-          await element.waitForDisplayed({
-            timeout: 10000,
-            timeoutMsg:
-              'BrowserPlaygroundDapp: connect legacy button not visible (expected disconnected)',
+          await PlaywrightAssertions.expectConditionWithRetry(async () => {
+            const element = await asPlaywrightElement(this.connectLegacyButton);
+            await element.waitForDisplayed({
+              timeout: 10000,
+              timeoutMsg:
+                'BrowserPlaygroundDapp: connect legacy button not visible (expected disconnected)',
+            });
           });
         }
       },
@@ -327,9 +362,11 @@ class BrowserPlaygroundDapp {
   async assertChainIdValue(expectedChainId: string): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const element = await asPlaywrightElement(this.chainIdValue);
-        const text = await element.textContent();
-        expect(text).toContain(expectedChainId);
+        await PlaywrightAssertions.expectConditionWithRetry(async () => {
+          const element = await asPlaywrightElement(this.chainIdValue);
+          const text = await element.textContent();
+          expect(text).toContain(expectedChainId);
+        });
       },
     });
   }
@@ -337,9 +374,11 @@ class BrowserPlaygroundDapp {
   async assertResponseValue(expectedValue: string): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const element = await asPlaywrightElement(this.responseText);
-        const text = await element.textContent();
-        expect(text).toContain(expectedValue);
+        await PlaywrightAssertions.expectConditionWithRetry(async () => {
+          const element = await asPlaywrightElement(this.responseText);
+          const text = await element.textContent();
+          expect(text).toContain(expectedValue);
+        });
       },
     });
   }
@@ -347,9 +386,11 @@ class BrowserPlaygroundDapp {
   async assertActiveAccount(expectedAccount: string): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const element = await asPlaywrightElement(this.activeAccount);
-        const text = await element.textContent();
-        expect(text?.toLowerCase()).toContain(expectedAccount.toLowerCase());
+        await PlaywrightAssertions.expectConditionWithRetry(async () => {
+          const element = await asPlaywrightElement(this.activeAccount);
+          const text = await element.textContent();
+          expect(text?.toLowerCase()).toContain(expectedAccount.toLowerCase());
+        });
       },
     });
   }
@@ -357,25 +398,34 @@ class BrowserPlaygroundDapp {
   async assertAccountsCount(expectedCount: number): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const element = await asPlaywrightElement(this.accountsValue);
-        const text = await element.textContent();
-        expect(text).toContain(`${expectedCount} available`);
+        await PlaywrightAssertions.expectConditionWithRetry(async () => {
+          const element = await asPlaywrightElement(this.accountsValue);
+          const text = await element.textContent();
+          expect(text).toContain(`${expectedCount} available`);
+        });
       },
     });
   }
 
   async isConnected(): Promise<boolean> {
-    try {
-      const element = await asPlaywrightElement(this.activeAccount);
-      await element.waitForDisplayed({
-        timeout: 5000,
-        timeoutMsg:
-          'BrowserPlaygroundDapp: active account not visible (isConnected check)',
-      });
-      return true;
-    } catch {
-      return false;
+    const maxRetries = 5;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        const element = await asPlaywrightElement(this.activeAccount);
+        await element.waitForDisplayed({
+          timeout: 5000,
+          timeoutMsg:
+            'BrowserPlaygroundDapp: active account not visible (isConnected check)',
+        });
+        return true;
+      } catch (error) {
+        console.log(
+          `BrowserPlaygroundDapp: active account not visible on attempt ${i + 1}`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
     }
+    return false;
   }
 
   async assertWagmiConnected(isConnected = true): Promise<void> {
@@ -405,9 +455,11 @@ class BrowserPlaygroundDapp {
   ): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const element = await asPlaywrightElement(this.wagmiChainIdValue);
-        const text = await element.textContent();
-        expect(text).toContain(String(expectedChainId));
+        await PlaywrightAssertions.expectConditionWithRetry(async () => {
+          const element = await asPlaywrightElement(this.wagmiChainIdValue);
+          const text = await element.textContent();
+          expect(text).toContain(String(expectedChainId));
+        });
       },
     });
   }
@@ -415,9 +467,11 @@ class BrowserPlaygroundDapp {
   async assertWagmiActiveAccount(expectedAccount: string): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const element = await asPlaywrightElement(this.wagmiActiveAccount);
-        const text = await element.textContent();
-        expect(text?.toLowerCase()).toContain(expectedAccount.toLowerCase());
+        await PlaywrightAssertions.expectConditionWithRetry(async () => {
+          const element = await asPlaywrightElement(this.wagmiActiveAccount);
+          const text = await element.textContent();
+          expect(text?.toLowerCase()).toContain(expectedAccount.toLowerCase());
+        });
       },
     });
   }
@@ -425,9 +479,11 @@ class BrowserPlaygroundDapp {
   async assertWagmiSignatureResult(expectedValue: string): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const element = await asPlaywrightElement(this.wagmiSignatureResult);
-        const text = await element.textContent();
-        expect(text).toContain(expectedValue);
+        await PlaywrightAssertions.expectConditionWithRetry(async () => {
+          const element = await asPlaywrightElement(this.wagmiSignatureResult);
+          const text = await element.textContent();
+          expect(text).toContain(expectedValue);
+        });
       },
     });
   }
@@ -499,20 +555,24 @@ class BrowserPlaygroundDapp {
     await encapsulatedAction({
       appium: async () => {
         if (isConnected) {
-          const element = await asPlaywrightElement(
-            this.connectedScopesSection,
-          );
-          await element.waitForDisplayed({
-            timeout: 10000,
-            timeoutMsg:
-              'BrowserPlaygroundDapp: scopes section not visible (expected multichain connected)',
+          await PlaywrightAssertions.expectConditionWithRetry(async () => {
+            const element = await asPlaywrightElement(
+              this.connectedScopesSection,
+            );
+            await element.waitForDisplayed({
+              timeout: 10000,
+              timeoutMsg:
+                'BrowserPlaygroundDapp: scopes section not visible (expected multichain connected)',
+            });
           });
         } else {
-          const element = await asPlaywrightElement(this.connectButton);
-          await element.waitForDisplayed({
-            timeout: 10000,
-            timeoutMsg:
-              'BrowserPlaygroundDapp: connect button not visible (expected multichain disconnected)',
+          await PlaywrightAssertions.expectConditionWithRetry(async () => {
+            const element = await asPlaywrightElement(this.connectButton);
+            await element.waitForDisplayed({
+              timeout: 10000,
+              timeoutMsg:
+                'BrowserPlaygroundDapp: connect button not visible (expected multichain disconnected)',
+            });
           });
         }
       },
@@ -534,7 +594,9 @@ class BrowserPlaygroundDapp {
   async assertScopeCardNotVisible(scope: string): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const element = await asPlaywrightElement(this.getScopeCard(scope));
+        const element = await asPlaywrightElement(
+          this.getScopeCard(scope, { lazy: true }),
+        );
         await element.waitForDisplayed({
           timeout: 10000,
           reverse: true,

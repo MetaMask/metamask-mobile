@@ -95,7 +95,7 @@ export class BrowserStackConfigBuilder {
           appProfiling: true,
           selfHeal: true,
           networkProfile: '4g-lte-advanced-good',
-          geoLocation: process.env.BROWSERSTACK_GEO_LOCATION || 'ES',
+          // geoLocation: process.env.BROWSERSTACK_GEO_LOCATION || 'ES',
           enableCameraImageInjection: device.enableCameraImageInjection,
           ...(process.env.BROWSERSTACK_LOCAL_IDENTIFIER
             ? { localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER }
@@ -113,6 +113,8 @@ export class BrowserStackConfigBuilder {
               'appium:bundleId': this.project.use.app?.appId,
             }),
         'appium:newCommandTimeout': 300,
+        'appium:automationName':
+          platformName === 'android' ? 'UiAutomator2' : 'XCUITest',
         'appium:autoGrantPermissions': true,
         'appium:app': appBsUrl,
         'appium:autoAcceptAlerts': true,

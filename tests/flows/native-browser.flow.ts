@@ -43,20 +43,10 @@ const dismissChromeNotificationsIfPresent = async () => {
 };
 
 /**
- * Launches the mobile browser
- * @returns A promise that resolves when the launch is complete
+ * Safely onboard the Chrome browser
+ * @returns void
  */
-export const launchMobileBrowser = async () => {
-  if (await PlatformDetector.isIOS()) {
-    await PlaywrightGestures.activateApp(undefined, 'com.apple.mobilesafari');
-    return;
-  }
-
-  PlaywrightUtilities.setupChromeDisableFre();
-  PlaywrightUtilities.clearChromeData();
-
-  await PlaywrightGestures.activateApp(undefined, CHROME_PACKAGE);
-
+const safelyOnboardChromeBrowser = async () => {
   try {
     await withTimeout(
       ChromeBrowserView.tapOnboardingChromeWithoutAccount(),
@@ -93,6 +83,27 @@ export const launchMobileBrowser = async () => {
     );
   } catch {
     // No "Chrome notifications" modal or timed out — continue
+  }
+};
+
+/**
+ * Launches the mobile browser
+ * @returns A promise that resolves when the launch is complete
+ */
+export const launchMobileBrowser = async ({
+  safelyOnboardChrome = false,
+}: { safelyOnboardChrome?: boolean } = {}) => {
+  if (await PlatformDetector.isIOS()) {
+    await PlaywrightGestures.activateApp(undefined, 'com.apple.mobilesafari');
+    return;
+  }
+
+  PlaywrightUtilities.setupChromeDisableFre();
+  PlaywrightUtilities.clearChromeData();
+
+  await PlaywrightGestures.activateApp(undefined, CHROME_PACKAGE);
+  if (safelyOnboardChrome) {
+    await safelyOnboardChromeBrowser();
   }
   await new Promise((r) => setTimeout(r, CHROME_UI_SETTLE_MS));
 };
