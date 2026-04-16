@@ -18,6 +18,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import Video from 'react-native-video';
+import LinearGradient from 'react-native-linear-gradient';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MarketInsightsBackgroundVideoLight = require('../../animations/market-insights-background-light.mp4');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
@@ -657,7 +658,7 @@ const MarketInsightsView: React.FC = () => {
         showsVerticalScrollIndicator={false}
         testID={MarketInsightsSelectorsIDs.VIEW_SCROLL}
       >
-        <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
+        <Box twClassName="w-full" style={{ aspectRatio: 786 / 240 }}>
           {showLastFrame && (
             <Image
               source={lastFrameImage}
@@ -680,6 +681,13 @@ const MarketInsightsView: React.FC = () => {
               testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
             />
           )}
+          <LinearGradient
+            colors={[
+              `${theme.colors.background.default}00`,
+              theme.colors.background.default,
+            ]}
+            style={tw.style('absolute bottom-0 left-0 right-0 h-16')}
+          />
         </Box>
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
           <Box twClassName="px-4 pt-4 pb-3">

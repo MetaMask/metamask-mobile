@@ -30,7 +30,7 @@ const MarketInsightsViewSkeleton: React.FC<MarketInsightsViewSkeletonProps> = ({
       >
         <Skeleton
           width="100%"
-          style={tw.style('w-full', { aspectRatio: 786 / 340 })}
+          style={tw.style('w-full', { aspectRatio: 786 / 240 })}
         />
 
         <Box twClassName="px-4 pt-4 pb-3" gap={2}>
