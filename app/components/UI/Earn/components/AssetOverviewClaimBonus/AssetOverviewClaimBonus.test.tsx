@@ -23,11 +23,13 @@ import { MUSD_TOKEN_ADDRESS } from '../../constants/musd';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
-const mockNavigate = jest.fn();
+const mockOpenTooltipModal = jest.fn();
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: mockNavigate }),
+jest.mock('../../../../hooks/useTooltipModal', () => ({
+  __esModule: true,
+  default: () => ({
+    openTooltipModal: mockOpenTooltipModal,
+  }),
 }));
 
 jest.mock('../MerklRewards/hooks/useMerklBonusClaim');
@@ -450,14 +452,14 @@ describe('AssetOverviewClaimBonus', () => {
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.INFO_BUTTON),
       );
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockOpenTooltipModal).toHaveBeenCalledTimes(1);
 
-      const [, navArgs] = mockNavigate.mock.calls[0];
-      const { params } = navArgs;
+      const [title, , footerText, buttonText] =
+        mockOpenTooltipModal.mock.calls[0];
 
-      expect(params.title).toBe('Your bonus');
-      expect(params.footerText).toBeUndefined();
-      expect(params.buttonText).toBe('Learn more');
+      expect(title).toBe('Your bonus');
+      expect(footerText).toBeUndefined();
+      expect(buttonText).toBe('Learn more');
     });
 
     it('fires TOOLTIP_OPENED analytics on info button press', () => {
@@ -492,13 +494,13 @@ describe('AssetOverviewClaimBonus', () => {
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.INFO_BUTTON),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          params: expect.objectContaining({
-            dismissOnButtonPress: false,
-          }),
-        }),
+      expect(mockOpenTooltipModal).toHaveBeenCalledWith(
+        'Your bonus',
+        expect.anything(),
+        undefined,
+        'Learn more',
+        expect.any(Function),
+        false,
       );
     });
   });
@@ -719,7 +721,7 @@ describe('AssetOverviewClaimBonus', () => {
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.INFO_BUTTON),
       );
 
-      const tooltipDescription = mockNavigate.mock.calls[0][1].params.tooltip;
+      const tooltipDescription = mockOpenTooltipModal.mock.calls[0][1];
 
       const { getByText } = renderWithProvider(tooltipDescription, {
         state: mockInitialState,

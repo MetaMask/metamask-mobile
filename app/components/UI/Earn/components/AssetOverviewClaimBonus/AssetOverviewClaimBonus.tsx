@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Linking, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import {
   Box,
@@ -24,7 +23,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { TokenI } from '../../../Tokens/types';
 import { useMerklBonusClaim } from '../MerklRewards/hooks/useMerklBonusClaim';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import Routes from '../../../../../constants/navigation/Routes';
+import useTooltipModal from '../../../../hooks/useTooltipModal';
 import { MetaMetricsEvents, EVENT_NAME } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
 import AppConstants from '../../../../../core/AppConstants';
@@ -65,7 +64,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     claimRewards,
   } = useMerklBonusClaim(asset, EVENT_LOCATIONS.ASSET_OVERVIEW);
 
-  const { navigate } = useNavigation();
+  const { openTooltipModal } = useTooltipModal();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const isClaimPressedRef = useRef(false);
@@ -178,45 +177,40 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
         .build(),
     );
 
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.TOOLTIP_MODAL,
-      params: {
-        title: strings('earn.your_bonus'),
-        tooltip: (
-          <Text variant={TextVariant.BodyMd}>
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-              {strings('earn.your_bonus_tooltip_your_bonus')}
-            </Text>
-            {strings('earn.your_bonus_tooltip_your_bonus_desc', {
-              percentage: MUSD_CONVERSION_APY,
-            })}
-            <Text
-              variant={TextVariant.BodyMd}
-              onPress={handleTermsPress}
-              twClassName="underline"
-            >
-              {strings('earn.musd_conversion.education.terms_apply')}
-            </Text>
-            {'\n\n'}
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-              {strings('earn.your_bonus_tooltip_annual_bonus')}
-            </Text>
-            {strings('earn.your_bonus_tooltip_annual_bonus_desc')}
-            {'\n\n'}
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-              {strings('earn.your_bonus_tooltip_lifetime_bonus')}
-            </Text>
-            {strings('earn.your_bonus_tooltip_lifetime_bonus_desc')}
-          </Text>
-        ),
-        footerText: undefined,
-        buttonText: strings('earn.learn_more'),
-        onButtonPress: handleLearnMorePress,
-        dismissOnButtonPress: false,
-      },
-    });
+    openTooltipModal(
+      strings('earn.your_bonus'),
+      <Text variant={TextVariant.BodyMd}>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+          {strings('earn.your_bonus_tooltip_your_bonus')}
+        </Text>
+        {strings('earn.your_bonus_tooltip_your_bonus_desc', {
+          percentage: MUSD_CONVERSION_APY,
+        })}
+        <Text
+          variant={TextVariant.BodyMd}
+          onPress={handleTermsPress}
+          twClassName="underline"
+        >
+          {strings('earn.musd_conversion.education.terms_apply')}
+        </Text>
+        {'\n\n'}
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+          {strings('earn.your_bonus_tooltip_annual_bonus')}
+        </Text>
+        {strings('earn.your_bonus_tooltip_annual_bonus_desc')}
+        {'\n\n'}
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+          {strings('earn.your_bonus_tooltip_lifetime_bonus')}
+        </Text>
+        {strings('earn.your_bonus_tooltip_lifetime_bonus_desc')}
+      </Text>,
+      undefined,
+      strings('earn.learn_more'),
+      handleLearnMorePress,
+      false,
+    );
   }, [
-    navigate,
+    openTooltipModal,
     handleTermsPress,
     handleLearnMorePress,
     trackEvent,
