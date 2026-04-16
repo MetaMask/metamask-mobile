@@ -643,9 +643,13 @@ const buildNameToAbbreviation = (
   game: PredictMarketGame,
 ): Record<string, string> => ({
   [game.homeTeam.name]: game.homeTeam.abbreviation,
-  [game.homeTeam.alias]: game.homeTeam.abbreviation,
+  ...(game.homeTeam.alias && {
+    [game.homeTeam.alias]: game.homeTeam.abbreviation,
+  }),
   [game.awayTeam.name]: game.awayTeam.abbreviation,
-  [game.awayTeam.alias]: game.awayTeam.abbreviation,
+  ...(game.awayTeam.alias && {
+    [game.awayTeam.alias]: game.awayTeam.abbreviation,
+  }),
 });
 
 const formatOutcomeShortTitles = (
