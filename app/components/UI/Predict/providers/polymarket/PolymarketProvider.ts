@@ -1558,12 +1558,30 @@ export class PolymarketProvider implements PredictProvider {
         apiKey: signerApiKey,
       });
 
+      console.warn('=== DEBUG === PolymarketProvider: submitting CLOB order', {
+        side,
+        outcomeTokenId,
+        orderType,
+        hasFeeAuth: !!feeAuthorization,
+        hasExecutor: !!executor,
+        hasAllowancesTx: !!allowancesTx,
+      });
+
       const orderResult = await submitClobOrder({
         headers,
         clobOrder,
         feeAuthorization,
         executor,
         allowancesTx,
+      });
+
+      console.warn('=== DEBUG === PolymarketProvider: CLOB order result', {
+        success: orderResult.success,
+        error: !orderResult.success ? orderResult.error : undefined,
+        hasResponse: orderResult.success ? !!orderResult.response : false,
+        orderID: orderResult.success
+          ? orderResult.response?.orderID
+          : undefined,
       });
 
       if (!orderResult.success) {

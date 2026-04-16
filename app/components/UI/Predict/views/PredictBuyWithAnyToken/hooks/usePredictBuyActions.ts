@@ -155,6 +155,13 @@ export const usePredictBuyActions = ({
 
   const handlePlaceOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
+      console.warn(
+        '=== DEBUG === usePredictBuyActions: handlePlaceOrder called',
+        {
+          side: orderParams.preview?.side,
+          transactionId: orderParams.transactionId,
+        },
+      );
       try {
         const result = await placeOrder(orderParams);
         return { status: 'success', result };
@@ -172,6 +179,11 @@ export const usePredictBuyActions = ({
   );
 
   const handleConfirm = useCallback(async () => {
+    console.warn('=== DEBUG === usePredictBuyActions: handleConfirm called', {
+      currentState,
+      hasApprovalRequest: !!approvalRequest?.id,
+      hasPreview: !!preview,
+    });
     didInitiateOrderRef.current = true;
     setIsConfirming(true);
 
@@ -181,6 +193,11 @@ export const usePredictBuyActions = ({
           deleteAfterResult: true,
           waitForResult: true,
           handleErrors: false,
+        })?.catch((err: unknown) => {
+          Logger.log(
+            'usePredictBuyActions: onApprovalConfirm rejected',
+            err instanceof Error ? err.message : String(err),
+          );
         });
       } else {
         Logger.log(

@@ -1116,8 +1116,8 @@ describe('PolymarketProvider', () => {
       expect(result).toMatchObject({
         success: true,
         response: expect.any(Object),
-        error: undefined,
       });
+      expect(result).not.toHaveProperty('error');
     });
 
     it('successfully places a sell order and returns correct result', async () => {
@@ -1137,8 +1137,8 @@ describe('PolymarketProvider', () => {
       expect(result).toMatchObject({
         success: true,
         response: expect.any(Object),
-        error: undefined,
       });
+      expect(result).not.toHaveProperty('error');
     });
 
     it('handles order submission failure', async () => {

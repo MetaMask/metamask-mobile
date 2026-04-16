@@ -169,6 +169,11 @@ export function usePredictPlaceOrder(
 
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
+      console.warn('=== DEBUG === usePredictPlaceOrder: placeOrder called', {
+        side: orderParams.preview?.side,
+        maxAmountSpent: orderParams.preview?.maxAmountSpent,
+        balance,
+      });
       const {
         preview: { minAmountReceived, side, maxAmountSpent, fees },
       } = orderParams;
