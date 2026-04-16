@@ -26,9 +26,15 @@ const MOCK_GOOGLE_OAUTH_CLIENT_ID_ANDROID =
   '387141446914-olajr83p1bbvabh1u8tfglt1k4u6jlcb.apps.googleusercontent.com';
 
 function getMockGoogleOAuthClientId(): string {
-  return Platform.OS === 'ios'
-    ? MOCK_GOOGLE_OAUTH_CLIENT_ID_IOS
-    : MOCK_GOOGLE_OAUTH_CLIENT_ID_ANDROID;
+  const clientId =
+    Platform.OS === 'ios'
+      ? MOCK_GOOGLE_OAUTH_CLIENT_ID_IOS
+      : MOCK_GOOGLE_OAUTH_CLIENT_ID_ANDROID;
+  console.log(
+    `[E2E Mock] clientId for QA mock token API (${Platform.OS}):`,
+    clientId,
+  );
+  return clientId;
 }
 
 /**
