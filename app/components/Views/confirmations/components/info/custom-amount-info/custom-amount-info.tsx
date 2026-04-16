@@ -183,6 +183,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       setIsKeyboardVisible(true);
     }, []);
 
+    const isAccountSelectionNeeded =
+      supportAccountSelection && !selectedAccount;
+
     return (
       <Box style={styles.container}>
         <Box style={styles.inputContainer}>
@@ -196,9 +199,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!hidePayTokenAmount && disablePay !== true && (
             <PayTokenAmount
               amountHuman={amountHuman}
-              disabled={
-                !hasTokens || (supportAccountSelection && !selectedAccount)
-              }
+              disabled={!hasTokens || isAccountSelectionNeeded}
             />
           )}
           {!hidePayTokenAmount && children}
@@ -258,9 +259,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
-              disableConfirm={
-                disableConfirm || (supportAccountSelection && !selectedAccount)
-              }
+              disableConfirm={disableConfirm || isAccountSelectionNeeded}
             />
           )}
         </Box>

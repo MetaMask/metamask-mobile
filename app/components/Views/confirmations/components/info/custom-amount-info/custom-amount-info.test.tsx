@@ -404,10 +404,16 @@ describe('CustomAmountInfo', () => {
     expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
   });
 
-  it('renders PayAccountSelector', () => {
-    const { getByTestId } = render();
+  it('renders PayAccountSelector when supportAccountSelection is true', () => {
+    const { getByTestId } = render({ supportAccountSelection: true });
 
     expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
+  });
+
+  it('does not render PayAccountSelector when supportAccountSelection is false', () => {
+    const { queryByTestId } = render({ supportAccountSelection: false });
+
+    expect(queryByTestId('pay-account-selector')).toBeNull();
   });
 
   it('renders no funds alert message for moneyAccountDeposit when alert is present', () => {
