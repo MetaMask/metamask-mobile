@@ -3,6 +3,7 @@ import type {
   NavigationProp,
   NavigationState,
 } from '@react-navigation/native';
+import type { Position } from '@metamask/social-controllers';
 
 // ============================================================================
 // Import types from their source files
@@ -556,6 +557,12 @@ export interface RootStackParamList extends ParamListBase {
   // Social Leaderboard routes
   TopTradersView: undefined;
   TraderProfileView: { traderId: string; traderName: string };
+  TraderPositionView: {
+    traderId: string;
+    traderName: string;
+    tokenSymbol: string;
+    position?: Position;
+  };
 
   // Misc routes
   LockScreen: undefined;
