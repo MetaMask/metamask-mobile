@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
 import { SmokeNetworkAbstractions } from '../../../tags';
 import WalletView from '../../../page-objects/wallet/WalletView';
 import TokenOverview from '../../../page-objects/wallet/TokenOverview';
@@ -47,7 +48,8 @@ const navigateToMarketInsightsView = async () => {
 describe(
   SmokeNetworkAbstractions('View Market Insights on Asset Details'),
   () => {
-    it('displays market insights content and navigates to swap', async () => {
+    // Moved to cv tests (MarketInsightsView.view.test.tsx)
+    it.skip('displays market insights content and navigates to swap', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
@@ -84,7 +86,8 @@ describe(
       );
     });
 
-    it('does not display entry card when API returns no data', async () => {
+    // Moved to cv tests (AssetDetails.view.test.tsx)
+    it.skip('does not display entry card when API returns no data', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
@@ -117,7 +120,8 @@ describe(
       );
     });
 
-    it('does not display entry card when feature flag is disabled', async () => {
+    // Moved to cv tests (AssetDetails.view.test.tsx)
+    it.skip('does not display entry card when feature flag is disabled', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
@@ -150,7 +154,31 @@ describe(
       );
     });
 
-    it('shows sources bottom sheet when tapping a trend item', async () => {
+    // Moved to cv tests (MarketInsightsView.view.test.tsx)
+    it.skip('navigates to buy screen when tapping Buy button', async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().build(),
+          restartDevice: true,
+          testSpecificMock: mockWithDataAndRamps,
+          languageAndLocale: { language: 'en', locale: 'en_US' },
+        },
+        async () => {
+          await navigateToMarketInsightsView();
+          await MarketInsightsView.tapBuyButton();
+          await Assertions.expectElementToBeVisible(
+            BuildQuoteView.continueButton,
+            {
+              description:
+                'Buy/Ramp BuildQuote screen is visible after tapping Buy',
+            },
+          );
+        },
+      );
+    });
+
+    // Moved to cv tests (PerpsMarketDetailsView.view.test.tsx)
+    it.skip('shows sources bottom sheet when tapping a trend item', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
@@ -169,7 +197,8 @@ describe(
       );
     });
 
-    it('can tap thumbs up feedback button', async () => {
+    // Moved to cv tests (MarketInsightsView.view.test.tsx)
+    it.skip('can tap thumbs up feedback button', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),

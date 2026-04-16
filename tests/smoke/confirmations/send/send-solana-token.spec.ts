@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
 import TokenOverview from '../../../page-objects/wallet/TokenOverview';
 import WalletView from '../../../page-objects/wallet/WalletView';
 import { SmokeConfirmations } from '../../../tags';
@@ -11,7 +12,8 @@ import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 // const RECIPIENT = '4Nd1mZyJY5ZqzR3n8bQF7h5L2Q9gY1yTtM6nQhc7P1Dp';
 
 describe(SmokeConfirmations('Send SOL token'), () => {
-  it('should send solana to an address', async () => {
+  // Moved to cv tests (send.view.test.tsx)
+  it.skip('should send solana to an address', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),

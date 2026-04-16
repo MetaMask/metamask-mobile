@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../../framework/fixtures/FixtureBuilder';
@@ -19,7 +20,8 @@ import { validateTransactionHashInTransactionFinalizedEvent } from './metricsVal
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
 describe(SmokeConfirmations('Send native asset'), () => {
-  it('should send ETH to an address', async () => {
+  // Moved to cv tests (send.view.test.tsx)
+  it.skip('should send ETH to an address', async () => {
     await withFixtures(
       {
         dapps: [
