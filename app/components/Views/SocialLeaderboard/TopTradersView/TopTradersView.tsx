@@ -47,7 +47,7 @@ const SKELETON_KEYS = Array.from(
   (_, i) => `top-trader-skeleton-${i}`,
 );
 
-type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum' | string;
+type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum';
 
 const getChainFilters = (): { key: ChainFilter; label: string }[] => [
   {
