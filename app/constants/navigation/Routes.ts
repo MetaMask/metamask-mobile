@@ -459,7 +459,6 @@ const Routes = {
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
-    SPENDING_LIMIT: 'CardSpendingLimit',
     CHANGE_ASSET: 'CardChangeAsset',
     VERIFYING_REGISTRATION: 'VerifyingRegistration',
     CHOOSE_YOUR_CARD: 'ChooseYourCard',

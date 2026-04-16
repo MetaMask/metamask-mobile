@@ -20,6 +20,7 @@ import { CardActions, CardScreens } from '../../util/metrics';
 import { OrderCompletedSelectors } from './OrderCompleted.testIds';
 import MM_METAL_CARD from '../../../../../images/metal-card.png';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { useCardDelegationTransaction } from '../../../../Views/confirmations/hooks/card/useCardDelegationTransaction';
 
 export interface OrderCompletedParams {
   paymentMethod?: string;
@@ -44,7 +45,10 @@ const OrderCompleted: React.FC = () => {
     );
   }, [trackEvent, createEventBuilder, fromUpgrade]);
 
-  const handleSetUpCard = useCallback(() => {
+  const { prepareAndNavigate: prepareCardDelegation } =
+    useCardDelegationTransaction();
+
+  const handleSetUpCard = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
@@ -57,13 +61,15 @@ const OrderCompleted: React.FC = () => {
     if (fromUpgrade) {
       navigation.navigate(Routes.CARD.HOME);
     } else {
-      navigation.dispatch(
-        StackActions.replace(Routes.CARD.SPENDING_LIMIT, {
-          flow: 'onboarding',
-        }),
-      );
+      await prepareCardDelegation({ flow: 'onboarding' });
     }
-  }, [navigation, trackEvent, createEventBuilder, fromUpgrade]);
+  }, [
+    navigation,
+    prepareCardDelegation,
+    trackEvent,
+    createEventBuilder,
+    fromUpgrade,
+  ]);
 
   const buttonLabel = fromUpgrade
     ? strings('card.order_completed.back_to_card_button')

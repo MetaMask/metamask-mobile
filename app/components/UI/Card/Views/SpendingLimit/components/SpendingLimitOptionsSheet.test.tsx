@@ -76,7 +76,7 @@ describe('SpendingLimitOptionsSheet', () => {
     mockUseParams.mockReturnValue({
       currentLimitType: 'full',
       currentCustomLimit: '',
-      callerRoute: Routes.CARD.SPENDING_LIMIT,
+      callerRoute: Routes.CARD.HOME,
       callerParams: { foo: 'bar' },
     });
   });
@@ -85,7 +85,7 @@ describe('SpendingLimitOptionsSheet', () => {
     const details = createSpendingLimitOptionsNavigationDetails({
       currentLimitType: 'restricted',
       currentCustomLimit: '100',
-      callerRoute: Routes.CARD.SPENDING_LIMIT,
+      callerRoute: Routes.CARD.HOME,
       callerParams: { a: 1 },
     });
     expect(details).toEqual([
@@ -95,7 +95,7 @@ describe('SpendingLimitOptionsSheet', () => {
         params: {
           currentLimitType: 'restricted',
           currentCustomLimit: '100',
-          callerRoute: Routes.CARD.SPENDING_LIMIT,
+          callerRoute: Routes.CARD.HOME,
           callerParams: { a: 1 },
         },
       },
@@ -113,7 +113,7 @@ describe('SpendingLimitOptionsSheet', () => {
     fireEvent.press(getByText('Confirm'));
 
     expect(mockCloseSheet).toHaveBeenCalledWith(expect.any(Function));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME, {
       foo: 'bar',
       returnedLimitType: 'full',
       returnedCustomLimit: '',
@@ -124,7 +124,7 @@ describe('SpendingLimitOptionsSheet', () => {
     mockUseParams.mockReturnValue({
       currentLimitType: 'restricted',
       currentCustomLimit: '50',
-      callerRoute: Routes.CARD.SPENDING_LIMIT,
+      callerRoute: Routes.CARD.HOME,
       callerParams: undefined,
     });
 
@@ -141,7 +141,7 @@ describe('SpendingLimitOptionsSheet', () => {
     );
     fireEvent.press(getByText('Confirm'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME, {
       returnedLimitType: 'restricted',
       returnedCustomLimit: '123.45',
     });
@@ -165,7 +165,7 @@ describe('SpendingLimitOptionsSheet', () => {
     mockUseParams.mockReturnValue({
       currentLimitType: 'restricted',
       currentCustomLimit: '100',
-      callerRoute: Routes.CARD.SPENDING_LIMIT,
+      callerRoute: Routes.CARD.HOME,
       callerParams: { baz: 'qux' },
     });
 
@@ -179,7 +179,7 @@ describe('SpendingLimitOptionsSheet', () => {
     fireEvent.press(getByTestId('limit-option-full'));
     fireEvent.press(getByText('Confirm'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME, {
       baz: 'qux',
       returnedLimitType: 'full',
       returnedCustomLimit: '100',
@@ -190,7 +190,7 @@ describe('SpendingLimitOptionsSheet', () => {
     mockUseParams.mockReturnValue({
       currentLimitType: 'restricted',
       currentCustomLimit: '',
-      callerRoute: Routes.CARD.SPENDING_LIMIT,
+      callerRoute: Routes.CARD.HOME,
       callerParams: undefined,
     });
 
@@ -207,7 +207,7 @@ describe('SpendingLimitOptionsSheet', () => {
     );
     fireEvent.press(getByText('Confirm'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME, {
       returnedLimitType: 'restricted',
       returnedCustomLimit: expect.stringMatching(/^[\d.]*$/),
     });

@@ -9,7 +9,6 @@ import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
-import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
 import ChooseYourCard from '../Views/ChooseYourCard/ChooseYourCard';
 import ReviewOrder from '../Views/ReviewOrder/ReviewOrder';
 import OnboardingNavigator from './OnboardingNavigator';
@@ -29,6 +28,7 @@ import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
 import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
+// Note: SpendingLimitOptionsSheet stays as a modal for limit selection from CardDelegationInfo
 import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
@@ -64,49 +64,6 @@ export const cardDefaultNavigationOptions = ({
   headerTitle: () => <View />,
   headerRight: () => <View />,
 });
-
-export const cardSpendingLimitNavigationOptions = ({
-  navigation,
-  route,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-  route: { params?: { flow?: 'manage' | 'enable' | 'onboarding' } };
-}): StackNavigationOptions => {
-  const flow = route.params?.flow || 'manage';
-  const isOnboardingFlow = flow === 'onboarding';
-
-  return {
-    headerLeft: () =>
-      isOnboardingFlow ? (
-        <View />
-      ) : (
-        <ButtonIcon
-          style={headerStyle.icon}
-          size={ButtonIconSize.Md}
-          iconName={IconName.ArrowLeft}
-          onPress={() => navigation.goBack()}
-        />
-      ),
-    headerTitle: () => <View />,
-    headerRight: () =>
-      isOnboardingFlow ? (
-        <ButtonIcon
-          style={headerStyle.icon}
-          size={ButtonIconSize.Md}
-          iconName={IconName.Close}
-          onPress={() =>
-            navigation.reset({
-              index: 0,
-              routes: [{ name: Routes.CARD.HOME }],
-            })
-          }
-        />
-      ) : (
-        <View />
-      ),
-    gestureEnabled: !isOnboardingFlow,
-  };
-};
 
 export const cardChooseYourCardNavigationOptions = ({
   navigation,
@@ -181,11 +138,6 @@ const MainRoutes = () => {
         name={Routes.CARD.AUTHENTICATION}
         component={CardAuthentication}
         options={cardDefaultNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.SPENDING_LIMIT}
-        component={SpendingLimit}
-        options={cardSpendingLimitNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.ROOT}

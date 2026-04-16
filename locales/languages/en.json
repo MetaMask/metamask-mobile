@@ -6645,7 +6645,8 @@
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
       "money_account_deposit": "Add funds",
-      "money_account_withdraw": "Withdraw funds"
+      "money_account_withdraw": "Withdraw funds",
+      "card_delegation": "Set spending limit"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",

@@ -11,6 +11,7 @@ export const SIGNATURE_APPROVAL_TYPES = [
 
 export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.batch,
+  TransactionType.cardDelegation,
   TransactionType.contractInteraction,
   TransactionType.deployContract,
   TransactionType.moneyAccountDeposit,
@@ -49,6 +50,7 @@ export const TRANSFER_TRANSACTION_TYPES = [
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
+  TransactionType.cardDelegation,
   TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
   TransactionType.musdConversion,

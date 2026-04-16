@@ -43,6 +43,7 @@ import { CardType, CardStatus } from '../../types';
 import CardImage from '../../components/CardImage/CardImage';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { ShippingAddress } from '../ReviewOrder';
+import { useCardDelegationTransaction } from '../../../../Views/confirmations/hooks/card/useCardDelegationTransaction';
 
 export type ChooseYourCardFlow = 'onboarding' | 'upgrade' | 'home';
 
@@ -65,6 +66,8 @@ const ItemSeparator = ({ width }: { width: number }) => (
 const ChooseYourCard = () => {
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { prepareAndNavigate: prepareCardDelegation } =
+    useCardDelegationTransaction();
   const tw = useTailwind();
   const { width: screenWidth } = useWindowDimensions();
   const flatListRef = useRef<FlatList>(null);
@@ -228,7 +231,7 @@ const ChooseYourCard = () => {
     stopPeekAnimation,
   ]);
 
-  const handleContinue = useCallback(() => {
+  const handleContinue = useCallback(async () => {
     stopPeekAnimation();
     const selectedCard = cardOptions[activeIndex];
 
@@ -243,9 +246,8 @@ const ChooseYourCard = () => {
     );
 
     if (selectedCard.id === CardType.VIRTUAL) {
-      navigate(Routes.CARD.SPENDING_LIMIT, {
-        flow: flow === 'onboarding' ? 'onboarding' : 'manage',
-      });
+      const delegationFlow = flow === 'onboarding' ? 'onboarding' : 'manage';
+      await prepareCardDelegation({ flow: delegationFlow });
     } else {
       navigate(Routes.CARD.REVIEW_ORDER, {
         shippingAddress,
@@ -256,6 +258,7 @@ const ChooseYourCard = () => {
     activeIndex,
     cardOptions,
     navigate,
+    prepareCardDelegation,
     trackEvent,
     createEventBuilder,
     flow,

@@ -49,6 +49,7 @@ import {
   useParams,
 } from '../../../../../util/navigation/navUtils';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
+import { useCardDelegationTransaction } from '../../../../Views/confirmations/hooks/card/useCardDelegationTransaction';
 
 interface AssetSelectionModalNavigationDetails {
   navigateToCardHomeOnPriorityToken?: boolean;
@@ -81,6 +82,8 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const tw = useTailwind();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { prepareAndNavigate: prepareCardDelegation } =
+    useCardDelegationTransaction();
 
   // Read card data from state instead of navigation params
   const {
@@ -275,10 +278,11 @@ const AssetSelectionBottomSheet: React.FC = () => {
       ) {
         await updatePriority(token);
       } else {
-        closeBottomSheetAndNavigate(() => {
-          navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+        closeBottomSheetAndNavigate(async () => {
+          await prepareCardDelegation({
             flow: 'manage',
-            selectedToken: token,
+            token,
+            canChangeToken: true,
           });
         });
       }
@@ -293,6 +297,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
       closeBottomSheetAndNavigate,
       navigation,
       updatePriority,
+      prepareCardDelegation,
     ],
   );
 

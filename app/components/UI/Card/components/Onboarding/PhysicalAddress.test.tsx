@@ -40,6 +40,17 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   })),
 }));
 
+const mockPrepareAndNavigate = jest.fn();
+jest.mock(
+  '../../../../Views/confirmations/hooks/card/useCardDelegationTransaction',
+  () => ({
+    useCardDelegationTransaction: () => ({
+      prepareAndNavigate: mockPrepareAndNavigate,
+      isLoading: false,
+    }),
+  }),
+);
+
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
@@ -905,7 +916,7 @@ describe('PhysicalAddress Component', () => {
       );
     });
 
-    it('navigates to SPENDING_LIMIT when metal card checkout flag is disabled for US users', async () => {
+    it('calls prepareAndNavigate when metal card checkout flag is disabled for US users', async () => {
       // Disable the metal card checkout feature flag
       mockSelectMetalCardCheckoutFeatureFlag.mockReturnValue(false);
 
@@ -1004,17 +1015,11 @@ describe('PhysicalAddress Component', () => {
         });
       });
 
-      // When feature flag is disabled, US users should go to SPENDING_LIMIT instead of CHOOSE_YOUR_CARD
+      // When feature flag is disabled, US users should call prepareAndNavigate instead of CHOOSE_YOUR_CARD
       await waitFor(
         () => {
-          expect(mockReset).toHaveBeenCalledWith({
-            index: 0,
-            routes: [
-              {
-                name: Routes.CARD.SPENDING_LIMIT,
-                params: { flow: 'onboarding' },
-              },
-            ],
+          expect(mockPrepareAndNavigate).toHaveBeenCalledWith({
+            flow: 'onboarding',
           });
         },
         { timeout: 5000 },

@@ -1,6 +1,8 @@
 import { CaipChainId } from '@metamask/utils';
 import type { TokenI } from '../Tokens/types';
 
+export type LimitType = 'full' | 'restricted';
+
 /**
  * Funding status for card tokens
  */

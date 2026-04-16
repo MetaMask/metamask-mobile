@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
+import type { CardFundingToken } from '../../../../components/UI/Card/types';
 
 export interface OnboardingState {
   onboardingId: string | null;
@@ -8,10 +9,24 @@ export interface OnboardingState {
   consentSetId: string | null;
 }
 
+export interface CardDelegationCredentials {
+  jwt: string;
+  signature: string;
+  signatureMessage: string;
+}
+
+export interface CardDelegationState {
+  flow: 'onboarding' | 'manage' | 'enable' | null;
+  canChangeToken: boolean;
+  selectedToken: CardFundingToken | null;
+  pendingCredentials: CardDelegationCredentials | null;
+}
+
 export interface CardSliceState {
   hasViewedCardButton: boolean;
   onboarding: OnboardingState;
   isDaimoDemo: boolean;
+  delegation: CardDelegationState;
 }
 
 export const initialState: CardSliceState = {
@@ -22,6 +37,12 @@ export const initialState: CardSliceState = {
     consentSetId: null,
   },
   isDaimoDemo: false,
+  delegation: {
+    flow: null,
+    canChangeToken: true,
+    selectedToken: null,
+    pendingCredentials: null,
+  },
 };
 
 const name = 'card';
@@ -52,6 +73,30 @@ const slice = createSlice({
         contactVerificationId: null,
         consentSetId: null,
       };
+    },
+    setDelegationFlow: (
+      state,
+      action: PayloadAction<{
+        flow: CardDelegationState['flow'];
+        canChangeToken: boolean;
+        selectedToken: CardFundingToken | null;
+      }>,
+    ) => {
+      state.delegation.flow = action.payload.flow;
+      state.delegation.canChangeToken = action.payload.canChangeToken;
+      state.delegation.selectedToken = action.payload.selectedToken;
+    },
+    setDelegationCredentials: (
+      state,
+      action: PayloadAction<CardDelegationCredentials>,
+    ) => {
+      state.delegation.pendingCredentials = action.payload;
+    },
+    clearDelegationCredentials: (state) => {
+      state.delegation.pendingCredentials = null;
+    },
+    resetDelegationState: (state) => {
+      state.delegation = initialState.delegation;
     },
   },
 });
@@ -88,6 +133,16 @@ export const selectConsentSetId = createSelector(
   (card) => card.onboarding.consentSetId,
 );
 
+export const selectCardDelegationState = createSelector(
+  selectCardState,
+  (card) => card.delegation,
+);
+
+export const selectDelegationCredentials = createSelector(
+  selectCardState,
+  (card) => card.delegation.pendingCredentials,
+);
+
 // Actions
 export const {
   resetCardState,
@@ -97,4 +152,8 @@ export const {
   setConsentSetId,
   resetOnboardingState,
   setIsDaimoDemo,
+  setDelegationFlow,
+  setDelegationCredentials,
+  clearDelegationCredentials,
+  resetDelegationState,
 } = actions;

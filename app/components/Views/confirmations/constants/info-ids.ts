@@ -1,5 +1,6 @@
 export const ConfirmationInfoComponentIDs = {
   APPROVE: 'approve-info',
+  CARD_DELEGATION: 'card-delegation-info',
   CONTRACT_INTERACTION: 'contract-interaction-info',
   CONTRACT_DEPLOYMENT: 'contract-deployment-info',
   PERSONAL_SIGN: 'personal-sign-info',

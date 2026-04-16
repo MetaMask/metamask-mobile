@@ -18,7 +18,7 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
-import { LimitType } from '../../../hooks/useSpendingLimit';
+import { LimitType } from '../../../types';
 import { sanitizeCustomLimit } from '../../../util/sanitizeCustomLimit';
 import LimitOptionItem from './LimitOptionItem';
 import { AppNavigationProp } from '../../../../../../core/NavigationService/types';

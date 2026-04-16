@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
+import Logger from '../../../../../../util/Logger';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectIsCardAuthenticated } from '../../../../../../selectors/cardController';
@@ -27,6 +28,7 @@ import useCardDetailsToken from '../../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../../hooks/useCardPinToken';
 import { useOpenSwaps } from '../../../hooks/useOpenSwaps';
 import { useNavigateToCardPage } from '../../../hooks/useNavigateToCardPage';
+import { useCardDelegationTransaction } from '../../../../../Views/confirmations/hooks/card/useCardDelegationTransaction';
 import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 import type { CardFundingTokenWithBalance } from '../../../types';
 
@@ -65,6 +67,8 @@ export function useCardHomeActions({
     reset: resetPinToken,
   } = useCardPinToken();
   const { openSwaps } = useOpenSwaps({ priorityToken: primaryToken });
+  const { prepareAndNavigate: prepareCardDelegation } =
+    useCardDelegationTransaction();
 
   // --- Freeze ---
 
@@ -323,31 +327,56 @@ export function useCardHomeActions({
     }
   }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
 
-  const enableCardAction = useCallback(() => {
+  const enableCardAction = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({ action: CardActions.OPEN_ONBOARDING_DELEGATION_FLOW })
         .build(),
     );
-    navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
-      flow: 'manage',
-    });
-  }, [navigation, trackEvent, createEventBuilder]);
+    try {
+      await prepareCardDelegation({
+        flow: 'manage',
+        token: primaryToken ?? undefined,
+        canChangeToken: true,
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'enableCardAction: Failed to prepare delegation',
+      );
+    }
+  }, [prepareCardDelegation, primaryToken, trackEvent, createEventBuilder]);
 
-  const manageSpendingLimitAction = useCallback(() => {
+  const manageSpendingLimitAction = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({ action: CardActions.MANAGE_SPENDING_LIMIT_BUTTON })
         .build(),
     );
-    if (isAuthenticated) {
-      navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
-        flow: 'enable',
-      });
-    } else {
+    if (!isAuthenticated) {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+      return;
     }
-  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
+    try {
+      await prepareCardDelegation({
+        flow: 'enable',
+        token: primaryToken ?? undefined,
+        canChangeToken: false,
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'manageSpendingLimitAction: Failed to prepare delegation',
+      );
+    }
+  }, [
+    isAuthenticated,
+    navigation,
+    prepareCardDelegation,
+    primaryToken,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const logoutAction = useCallback(() => {
     Alert.alert(
