@@ -15,6 +15,7 @@ const mockTraders = [
     imageUrl: 'https://example.com/avatar1.png',
     pnl30d: 963146.8,
     roiPercent30d: 0.43,
+    pnlPerChain: { base: 963146.8 },
   },
   {
     rank: 2,
@@ -23,6 +24,7 @@ const mockTraders = [
     imageUrl: 'https://example.com/avatar2.png',
     pnl30d: 474751.45,
     roiPercent30d: 3.59,
+    pnlPerChain: { ethereum: 474751.45 },
   },
   {
     rank: 3,
@@ -31,6 +33,7 @@ const mockTraders = [
     imageUrl: 'https://example.com/avatar3.png',
     pnl30d: 374735.16,
     roiPercent30d: 6.17,
+    pnlPerChain: { solana: 374735.16 },
   },
 ];
 
@@ -92,6 +95,7 @@ describe('useTopTraders', () => {
         avatarUri: first.imageUrl,
         percentageChange: first.roiPercent30d * 100,
         pnlValue: first.pnl30d,
+        pnlPerChain: first.pnlPerChain ?? {},
         isFollowing: false,
       });
     });
