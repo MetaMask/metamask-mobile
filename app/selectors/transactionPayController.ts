@@ -58,6 +58,12 @@ export const selectTransactionPayFiatPaymentByTransactionId = createSelector(
   (transactionData) => transactionData?.fiatPayment,
 );
 
+export const selectTransactionPayAccountOverrideByTransactionId =
+  createSelector(
+    selectTransactionDataByTransactionId,
+    (transactionData) => transactionData?.accountOverride,
+  );
+
 export const selectTransactionPayTransactionData = createSelector(
   selectTransactionPayControllerState,
   (state) => state.transactionData,

@@ -19,6 +19,7 @@ import { AssetType, TokenStandard } from '../../types/token';
 import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { selectTransactionPayAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import type { RootState } from '../../../../../reducers';
 
 export interface EnrichTokenRequest {
@@ -30,7 +31,12 @@ const EMPTY_REQUESTS: EnrichTokenRequest[] = [];
 
 function useFromAccountGroupAssets() {
   const transactionMeta = useTransactionMetadataRequest();
-  const fromAddress = transactionMeta?.txParams?.from as string | undefined;
+  const transactionId = transactionMeta?.id ?? '';
+  const accountOverride = useSelector((state: RootState) =>
+    selectTransactionPayAccountOverrideByTransactionId(state, transactionId),
+  );
+  const fromAddress =
+    accountOverride ?? (transactionMeta?.txParams?.from as string | undefined);
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
 

@@ -17,6 +17,7 @@ import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectTransactionPayAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -56,6 +57,10 @@ jest.mock(
     selectAccountToGroupMap: jest.fn(),
   }),
 );
+
+jest.mock('../../../../../selectors/transactionPayController', () => ({
+  selectTransactionPayAccountOverrideByTransactionId: jest.fn(() => undefined),
+}));
 
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
   selectAssetsBySelectedAccountGroup: jest.fn(),
@@ -817,8 +822,12 @@ describe('useAccountTokens', () => {
 
     it('uses from account assets when txParams.from resolves to an account group', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'mock-tx-id',
         txParams: { from: '0xFromAddress' },
       } as ReturnType<typeof useTransactionMetadataRequest>);
+
+      let inlineCallIndex = 0;
+      const inlineReturnValues = [undefined, overrideAssets];
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectAssetsBySelectedAccountGroup) {
@@ -837,7 +846,7 @@ describe('useAccountTokens', () => {
             'acc-1': { id: 'group-from' },
           };
         }
-        return overrideAssets;
+        return inlineReturnValues[inlineCallIndex++];
       });
 
       const { result } = renderHook(() => useAccountTokens());
