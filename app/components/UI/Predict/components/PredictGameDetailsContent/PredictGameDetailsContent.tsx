@@ -12,7 +12,13 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   InteractionManager,
   Pressable,
@@ -99,12 +105,12 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const { height: windowHeight } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
-  const stickyHeaderY = useRef(0);
+  const [stickyHeaderY, setStickyHeaderY] = useState(0);
   const pendingChipScroll = useRef(false);
 
   const handleStickyHeaderLayout = useCallback(
     (e: { nativeEvent: { layout: { y: number } } }) => {
-      stickyHeaderY.current = e.nativeEvent.layout.y;
+      setStickyHeaderY(e.nativeEvent.layout.y);
     },
     [],
   );
@@ -112,26 +118,29 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   const onChipSelect = useCallback(
     (key: string) => {
       scrollRef.current?.scrollTo({
-        y: stickyHeaderY.current,
+        y: stickyHeaderY,
         animated: false,
       });
       handleChipSelect(key);
       pendingChipScroll.current = true;
     },
-    [handleChipSelect],
+    [handleChipSelect, stickyHeaderY],
   );
 
+  // Guard: only scroll after an explicit chip selection (pendingChipScroll is
+  // set to true in onChipSelect). This prevents scrolling on initial render
+  // or when stickyHeaderY updates from layout measurements.
   useEffect(() => {
     if (!pendingChipScroll.current) return;
     pendingChipScroll.current = false;
     const handle = InteractionManager.runAfterInteractions(() => {
       scrollRef.current?.scrollTo({
-        y: stickyHeaderY.current,
+        y: stickyHeaderY,
         animated: false,
       });
     });
     return () => handle.cancel();
-  }, [activeChipKey]);
+  }, [activeChipKey, stickyHeaderY]);
 
   const showStickyHeader = showTabBar || showChips;
   const stickyHeaderIndices = useMemo(
@@ -231,7 +240,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           </Box>
         )}
 
-        <Box style={{ minHeight: windowHeight - stickyHeaderY.current }}>
+        <Box style={{ minHeight: windowHeight - stickyHeaderY }}>
           <PredictGameDetailsTabsContent
             market={market}
             activeTab={activeTab}

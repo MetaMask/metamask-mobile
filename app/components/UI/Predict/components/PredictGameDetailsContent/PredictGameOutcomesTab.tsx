@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useState } from 'react';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type {
   PredictMarketGame,
@@ -13,6 +13,8 @@ import PredictSportOutcomeCard, {
 import { formatVolume } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
+
+const noop = () => undefined;
 
 const I18N_PREFIX = 'predict.sports_market_types';
 
@@ -30,11 +32,18 @@ export const getSportsMarketTypeLabel = (type: string): string => {
 
 type BuyHandler = (outcome: PredictOutcome, token: PredictOutcomeToken) => void;
 
+const O_U_PLAYER_PATTERN = /^(.+?):\s+\w+ O\/U/;
+
 const formatOutcomeCardTitle = (outcome: PredictOutcome): string => {
   const raw = outcome.groupItemTitle || outcome.title;
-  if (raw.includes('O/U') && raw.includes(': ')) {
-    return raw.split(': ')[0].trim();
-  }
+  if (!raw.includes('O/U')) return raw;
+
+  const match = raw.match(O_U_PLAYER_PATTERN);
+  if (match) return match[1].trim();
+
+  const colonIdx = raw.indexOf(': ');
+  if (colonIdx !== -1) return raw.slice(0, colonIdx).trim();
+
   return raw;
 };
 
@@ -71,7 +80,7 @@ const buildButtons = (
   return outcome.tokens.map((token, index) => ({
     label: token.shortTitle ?? token.title,
     price: Math.round(token.price * 100),
-    onPress: onBuyPress ? () => onBuyPress(outcome, token) : () => undefined,
+    onPress: onBuyPress ? () => onBuyPress(outcome, token) : noop,
     variant: getButtonVariant(index, outcome.tokens.length, moneyline),
     teamColor: moneyline
       ? getTeamColor(token.shortTitle ?? token.title, game)
@@ -135,6 +144,10 @@ const LineOutcomeCard = memo(
     );
 
     const [selectedLine, setSelectedLine] = useState(outcomes[0]?.line);
+
+    useEffect(() => {
+      setSelectedLine(outcomes[0]?.line);
+    }, [outcomes]);
 
     const selectedOutcome = useMemo(
       () => outcomes.find((o) => o.line === selectedLine) ?? outcomes[0],
