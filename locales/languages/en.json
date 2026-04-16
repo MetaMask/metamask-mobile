@@ -2238,6 +2238,7 @@
       "corners": "Corners"
     },
     "sell_position": "Sell position",
+    "odds": "Odds",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
     "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
@@ -2399,6 +2400,8 @@
       "view": "View",
       "yes_buy": "Yes, buy",
       "yes_sell": "Yes, sell",
+      "confirm": "Confirm",
+      "cashout_failed": "Failed to cash out",
       "predict_balance_first": "Your Predict balance will be used first"
     },
     "withdraw": {

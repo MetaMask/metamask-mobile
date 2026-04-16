@@ -28,7 +28,7 @@ import {
 import { formatPercentage } from '../../utils/format';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictNavigation } from '../../hooks/usePredictNavigation';
+import { usePredictPreviewSheet } from '../../contexts';
 import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
 import { isDrawCapableLeague } from '../../constants/sports';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
@@ -59,7 +59,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { navigateToBuyPreview } = usePredictNavigation();
+  const { openBuySheet } = usePredictPreviewSheet();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
 
   const game = market.game as PredictMarketGame;
@@ -137,15 +137,12 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
       if (!outcome) return;
       executeGuardedAction(
         () => {
-          navigateToBuyPreview(
-            { market, outcome, outcomeToken: token, entryPoint },
-            { throughRoot: true },
-          );
+          openBuySheet({ market, outcome, outcomeToken: token, entryPoint });
         },
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT },
       );
     },
-    [market, outcome, entryPoint, executeGuardedAction, navigateToBuyPreview],
+    [market, outcome, entryPoint, executeGuardedAction, openBuySheet],
   );
 
   const totalVolume = calculateTotalVolume(market.outcomes);
