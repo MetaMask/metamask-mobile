@@ -8158,17 +8158,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-controller@npm:^9.1.0":
-  version: 9.1.0
-  resolution: "@metamask/base-controller@npm:9.1.0"
-  dependencies:
-    "@metamask/messenger": "npm:^1.1.1"
-    "@metamask/utils": "npm:^11.9.0"
-    immer: "npm:^9.0.6"
-  checksum: 10/752b70b35026fdf31ea8feef638f06286dbbde8d17e1ba804085fdbedbb076d900d2d7b6db3d2af284b3aa8fa84c95a0ceea6a3a46ee7b7e29433f037e9afc69
-  languageName: node
-  linkType: hard
-
 "@metamask/base-data-service@npm:^0.1.0, @metamask/base-data-service@npm:^0.1.1":
   version: 0.1.1
   resolution: "@metamask/base-data-service@npm:0.1.1"
@@ -10521,6 +10510,8 @@ __metadata:
     "@types/debug": "npm:^4.1.7"
     debug: "npm:^4.3.4"
     semver: "npm:^7.5.4"
+  checksum: 10/68a42a55f7dc750b75467fb7c05a496c20dac073a2753e0f4d9642c4d8dcb3f9ddf51a09d30337e11637f1777f3dfe22e15b5159dbafb0fdb7bd8c9236056153
+  languageName: node
   linkType: hard
 
 "@metamask/utils@npm:^9.0.0, @metamask/utils@npm:^9.1.0":
