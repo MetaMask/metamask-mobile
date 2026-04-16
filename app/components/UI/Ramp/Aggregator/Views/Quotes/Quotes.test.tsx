@@ -880,20 +880,18 @@ describe('Quotes', () => {
   });
 
   it('does not fetch new quotes while a quote is being processed', async () => {
-    const mockedRecommendedQuote =
-      mockUseQuotesAndCustomActionsInitialValues.recommendedQuote;
-
-    if (!mockedRecommendedQuote) {
+    if (!mockUseQuotesAndCustomActionsInitialValues.recommendedQuote) {
       throw new Error('No recommended quote found');
     }
+
+    const mockedRecommendedQuote = {
+      ...mockUseQuotesAndCustomActionsInitialValues.recommendedQuote,
+    } as QuoteResponse;
 
     const mockQuoteProviderName = mockedRecommendedQuote.provider
       ?.name as string;
 
-    (mockedRecommendedQuote as QuoteResponse).buy = () =>
-      new Promise(() => {
-        // Never resolves — keeps isQuoteLoading true for the duration of the test
-      });
+    mockedRecommendedQuote.buy = () => new Promise(() => undefined);
 
     mockUseQuotesAndCustomActionsValues = {
       ...mockUseQuotesAndCustomActionsInitialValues,
