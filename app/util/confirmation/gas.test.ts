@@ -269,7 +269,6 @@ describe('normalizeReplacementGasFeeParams', () => {
     const result = normalizeReplacementGasFeeParams({
       legacyGasFee: {
         gasPrice: '0x123',
-        unexpected: 'ignored',
       },
     });
 
@@ -283,7 +282,6 @@ describe('normalizeReplacementGasFeeParams', () => {
       eip1559GasFee: {
         maxFeePerGas: '0x456',
         maxPriorityFeePerGas: '0x789',
-        unexpected: 'ignored',
       },
     });
 
