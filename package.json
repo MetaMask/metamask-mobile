@@ -277,7 +277,7 @@
     "@metamask/metamask-eth-abis": "3.1.1",
     "@metamask/mobile-wallet-protocol-core": "^0.4.0",
     "@metamask/mobile-wallet-protocol-wallet-client": "^0.3.0",
-    "@metamask/money-account-balance-service": "file:.yalc/@metamask/money-account-balance-service",
+    "@metamask/money-account-balance-service": "^0.2.0",
     "@metamask/money-account-controller": "^0.1.0",
     "@metamask/multichain-account-service": "^8.0.1",
     "@metamask/multichain-api-client": "^0.10.1",
@@ -683,12 +683,6 @@
     "ws": "^8.19.0",
     "xhr2": "^0.2.1",
     "xml2js": "^0.5.0"
-  },
-  "previewBuilds": {
-    "@metamask/money-account-balance-service": {
-      "type": "non-breaking",
-      "previewVersion": "0.0.0-preview-cc71b5c28"
-    }
   },
   "config": {
     "react-native-storybook-loader": {
