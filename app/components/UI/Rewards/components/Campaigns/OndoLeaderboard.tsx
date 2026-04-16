@@ -361,35 +361,6 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
         </Pressable>
       ) : null}
 
-      {/* Error banner when has error but no data to display */}
-      {hasError && !isLoading && entries.length === 0 && (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR}
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            twClassName="flex-1"
-          >
-            {strings('rewards.ondo_campaign_leaderboard.error_loading')}
-          </Text>
-          {onRetry && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.ErrorDefault}
-              fontWeight={FontWeight.Medium}
-              onPress={onRetry}
-              twClassName="ml-2"
-            >
-              {strings('rewards.ondo_campaign_leaderboard.retry')}
-            </Text>
-          )}
-        </Box>
-      )}
-
       {/* Leaderboard list */}
       {visibleEntries.length > 0 ? (
         <Box testID={CAMPAIGN_LEADERBOARD_TEST_IDS.LIST}>
