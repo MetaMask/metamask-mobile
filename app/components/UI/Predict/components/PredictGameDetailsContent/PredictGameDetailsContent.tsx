@@ -13,7 +13,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Pressable, RefreshControl, ScrollView } from 'react-native';
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  useWindowDimensions,
+} from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -90,8 +95,10 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     outcomeGroups: market.outcomeGroups ?? [],
   });
 
+  const { height: windowHeight } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
   const stickyHeaderY = useRef(0);
+  const pendingChipScroll = useRef(false);
 
   const handleStickyHeaderLayout = useCallback(
     (e: { nativeEvent: { layout: { y: number } } }) => {
@@ -102,14 +109,26 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const onChipSelect = useCallback(
     (key: string) => {
-      handleChipSelect(key);
       scrollRef.current?.scrollTo({
         y: stickyHeaderY.current,
-        animated: true,
+        animated: false,
       });
+      handleChipSelect(key);
+      pendingChipScroll.current = true;
     },
     [handleChipSelect],
   );
+
+  useEffect(() => {
+    if (!pendingChipScroll.current) return;
+    pendingChipScroll.current = false;
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({
+        y: stickyHeaderY.current,
+        animated: false,
+      });
+    });
+  }, [activeChipKey]);
 
   const showStickyHeader = showTabBar || showChips;
   const stickyHeaderIndices = useMemo(
@@ -209,16 +228,18 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           </Box>
         )}
 
-        <PredictGameDetailsTabsContent
-          market={market}
-          activeTab={activeTab}
-          tabs={tabs}
-          enabled={tabsEnabled}
-          showTabBar={showTabBar}
-          activePositions={activePositions}
-          claimablePositions={claimablePositions}
-          activeChipKey={activeChipKey}
-        />
+        <Box style={{ minHeight: windowHeight }}>
+          <PredictGameDetailsTabsContent
+            market={market}
+            activeTab={activeTab}
+            tabs={tabs}
+            enabled={tabsEnabled}
+            showTabBar={showTabBar}
+            activePositions={activePositions}
+            claimablePositions={claimablePositions}
+            activeChipKey={activeChipKey}
+          />
+        </Box>
       </ScrollView>
 
       <PredictGameDetailsFooter
