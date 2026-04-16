@@ -61,21 +61,6 @@ jest.mock('../../../../../util/analytics/AnalyticsEventBuilder', () => ({
   },
 }));
 
-jest.mock('../../../../Analytics/MetaMetrics.events', () => ({
-  MetaMetricsEvents: {
-    DEEP_LINK_USED: 'Deep Link Used',
-  },
-}));
-
-jest.mock('../../../types/deepLinkAnalytics.types', () => ({
-  DeepLinkRoute: {
-    MMC_MWP: 'mmc-mwp',
-  },
-  SignatureStatus: {
-    MISSING: 'missing',
-  },
-}));
-
 jest.mock('../../../util/deeplinks/deepLinkAnalytics', () => ({
   detectAppInstallation: jest.fn(),
 }));
