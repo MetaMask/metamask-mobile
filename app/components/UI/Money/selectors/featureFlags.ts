@@ -37,7 +37,7 @@ export const selectMoneyEnableMoneyAccountFlag = createSelector(
 export const selectMoneyHubEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MONEY_HUB_ENABLED === 'true';
+    const localFlag = process.env.MM_MONEY_HUB_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnMoneyHubEnabled as unknown as VersionGatedFeatureFlag;
 
