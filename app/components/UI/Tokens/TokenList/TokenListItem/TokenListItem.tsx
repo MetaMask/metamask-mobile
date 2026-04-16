@@ -2,7 +2,6 @@ import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useSelector } from 'react-redux';
 import Badge, {
   BadgeVariant,
@@ -55,7 +54,6 @@ import Logger from '../../../../../util/Logger';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
 import { MUSD_CONVERSION_APY, isMusdToken } from '../../../Earn/constants/musd';
-import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
@@ -149,8 +147,6 @@ interface TokenListItemProps {
   showPercentageChange?: boolean;
   isFullView?: boolean;
   shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
-  // Whether this item is currently visible in the viewport.
-  isVisible?: boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -162,7 +158,6 @@ export const TokenListItem = React.memo(
     showPercentageChange = true,
     isFullView = false,
     shouldShowTokenListItemCta,
-    isVisible = true,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
@@ -233,40 +228,9 @@ export const TokenListItem = React.memo(
       [asset, shouldShowTokenListItemCta],
     );
 
-    const merklClaimData = useMerklBonusClaim(
-      asset,
-      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
-      isVisible,
-    );
-    const { claimRewards, claimableReward, hasPendingClaim } = merklClaimData;
-
-    const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
     const isMusdAsset = !!asset && isMusdToken(asset.address);
     const showMusdBonusRow =
       isMusdAsset && isMusdConversionFlowEnabled && isMusdGeoEligible;
-
-    const handleClaimBonus = useCallback(() => {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
-          .addProperties({
-            location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
-            action_type: 'claim_bonus',
-            button_text: strings('earn.claim_bonus'),
-            network_chain_id: asset?.chainId,
-            network_name: networkName,
-            asset_symbol: asset?.symbol,
-          })
-          .build(),
-      );
-      claimRewards();
-    }, [
-      trackEvent,
-      createEventBuilder,
-      asset?.chainId,
-      asset?.symbol,
-      networkName,
-      claimRewards,
-    ]);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
@@ -410,11 +374,10 @@ export const TokenListItem = React.memo(
       Number.isFinite(pricePercentChange1d);
 
     const onItemPress = useCallback(
-      (token: TokenI, scrollToMerklRewards?: boolean) => {
+      (token: TokenI) => {
         trace({ name: TraceName.AssetDetails });
         navigation.navigate('Asset', {
           ...token,
-          scrollToMerklRewards,
           source: isFullView
             ? TokenDetailsSource.MobileTokenListPage
             : TokenDetailsSource.MobileTokenList,
@@ -429,16 +392,6 @@ export const TokenListItem = React.memo(
     });
 
     const secondaryBalanceDisplay = useMemo(() => {
-      if (hasClaimableBonus && !isMusdAsset) {
-        return {
-          text: strings('earn.claim_bonus'),
-          color: CLTextColor.Primary,
-          onPress: handleClaimBonus,
-        };
-      }
-
-      // mUSD rows always show the green "3% bonus" label (claim affordance
-      // lives on the mUSD asset detail page, not the token row).
       if (showMusdBonusRow) {
         return {
           text: strings('earn.musd_conversion.percentage_bonus', {
@@ -492,14 +445,11 @@ export const TokenListItem = React.memo(
       return { text, color, onPress: undefined };
     }, [
       showMusdBonusRow,
-      hasClaimableBonus,
       shouldShowConvertToMusdCta,
       isStablecoinLendingEnabled,
       earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
-      isMusdAsset,
-      handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,
     ]);
@@ -678,56 +628,48 @@ export const TokenListItem = React.memo(
               </>
             ) : (
               <>
-                {/* Token price and percentage change — or claim bonus CTA */}
+                {/* Token price and percentage change */}
                 <View style={styles.percentageChange}>
-                  {merklClaimData.isClaiming ? (
-                    <Spinner />
-                  ) : (
-                    <>
-                      {!hasClaimableBonus && (
-                        <Text
-                          variant={TextVariant.BodySm}
-                          fontWeight={FontWeight.Medium}
-                          color={TextColor.TextAlternative}
-                          twClassName="uppercase"
-                        >
-                          {tokenPriceInFiat && !hideFiatForScamWarning
-                            ? formatPriceWithSubscriptNotation(
-                                tokenPriceInFiat,
-                                currentCurrency,
-                              )
-                            : '-'}
-                          {' \u2022 '}
-                        </Text>
-                      )}
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
+                    twClassName="uppercase"
+                  >
+                    {tokenPriceInFiat && !hideFiatForScamWarning
+                      ? formatPriceWithSubscriptNotation(
+                          tokenPriceInFiat,
+                          currentCurrency,
+                        )
+                      : '-'}
+                    {' \u2022 '}
+                  </Text>
 
-                      {hideFiatForScamWarning ? (
-                        <Text
-                          variant={TextVariant.BodySm}
-                          fontWeight={FontWeight.Medium}
-                          color={TextColor.TextAlternative}
-                          twClassName="uppercase"
-                        >
-                          {'-'}
-                        </Text>
-                      ) : (
-                        <TouchableOpacity
-                          disabled={!secondaryBalanceDisplay.onPress}
-                          onPress={secondaryBalanceDisplay.onPress}
-                          testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
-                        >
-                          <SensitiveText
-                            variant={CLTextVariant.BodySMMedium}
-                            color={secondaryBalanceDisplay.color}
-                            isHidden={false}
-                            length={SensitiveTextLength.Short}
-                            testID={SECONDARY_BALANCE_TEST_ID}
-                          >
-                            {secondaryBalanceDisplay.text || '-'}
-                          </SensitiveText>
-                        </TouchableOpacity>
-                      )}
-                    </>
+                  {hideFiatForScamWarning ? (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                      twClassName="uppercase"
+                    >
+                      {'-'}
+                    </Text>
+                  ) : (
+                    <TouchableOpacity
+                      disabled={!secondaryBalanceDisplay.onPress}
+                      onPress={secondaryBalanceDisplay.onPress}
+                      testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
+                    >
+                      <SensitiveText
+                        variant={CLTextVariant.BodySMMedium}
+                        color={secondaryBalanceDisplay.color}
+                        isHidden={false}
+                        length={SensitiveTextLength.Short}
+                        testID={SECONDARY_BALANCE_TEST_ID}
+                      >
+                        {secondaryBalanceDisplay.text || '-'}
+                      </SensitiveText>
+                    </TouchableOpacity>
                   )}
                 </View>
 
