@@ -20,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import {
   Button as DesignSystemButton,
   ButtonVariant as DesignSystemButtonVariant,
@@ -59,6 +60,21 @@ interface EarnMusdConversionEducationViewRouteParams {
     address: Hex;
     chainId: Hex;
   };
+  /**
+   * Caller's intended navigation override. When present, this is forwarded to
+   * `initiateCustomConversion` on continue so the education screen doesn't hijack
+   * the destination (e.g., pencil-in-Hub preserves CUSTOM; other callers keep their intent).
+   */
+  navigationOverride?: MUSD_CONVERSION_NAVIGATION_OVERRIDE;
+  /**
+   * Pure-navigation exit target. When present, the primary button routes here and
+   * skips conversion entirely. Use for entry points that only needed the education
+   * screen as a gate (e.g., home -> Money Hub).
+   */
+  returnTo?: {
+    screen: string;
+    params?: Record<string, unknown>;
+  };
 }
 
 /**
@@ -73,8 +89,12 @@ const EarnMusdConversionEducationView = () => {
   const { initiateCustomConversion } = useMusdConversion();
   const { goToBuy } = useRampNavigation();
 
-  const { preferredPaymentToken, isDeeplink } =
-    useParams<EarnMusdConversionEducationViewRouteParams>();
+  const {
+    preferredPaymentToken,
+    isDeeplink,
+    navigationOverride: callerNavigationOverride,
+    returnTo,
+  } = useParams<EarnMusdConversionEducationViewRouteParams>();
 
   // Hooks for deeplink case (when no params provided)
   const {
@@ -88,7 +108,8 @@ const EarnMusdConversionEducationView = () => {
 
   const { styles } = useStyles(styleSheet, {});
 
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
 
   const colorScheme = useColorScheme();
 
@@ -244,6 +265,12 @@ const EarnMusdConversionEducationView = () => {
       // Mark education as seen so it won't show again
       dispatch(setMusdConversionEducationSeen(true));
 
+      // returnTo wins: pure navigation, no conversion.
+      if (returnTo) {
+        navigation.replace(returnTo.screen as never, returnTo.params as never);
+        return;
+      }
+
       // Handle deeplink case
       if (deeplinkState) {
         if (deeplinkState.action === 'navigate_home') {
@@ -277,12 +304,15 @@ const EarnMusdConversionEducationView = () => {
         }
       }
 
-      // Proceed to conversion flow if we have the required params (normal flow)
+      // Proceed to conversion flow if we have the required params (normal flow).
+      // Honor caller's navigationOverride; fall back to QUICK_CONVERT.
       if (!isDeeplink && preferredPaymentToken) {
         await initiateCustomConversion({
           preferredPaymentToken,
           skipEducationCheck: true,
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
+          navigationOverride:
+            callerNavigationOverride ??
+            MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
         return;
       }
@@ -306,6 +336,8 @@ const EarnMusdConversionEducationView = () => {
     navigation,
     goToBuy,
     isDeeplink,
+    returnTo,
+    callerNavigationOverride,
   ]);
 
   const handleGoBack = () => {

@@ -782,6 +782,71 @@ describe('EarnMusdConversionEducationView', () => {
         expect(mockInitiateConversion).not.toHaveBeenCalled();
       });
     });
+
+    it('navigates to returnTo.screen when returnTo is provided, without initiating conversion', async () => {
+      const replace = jest.fn();
+      mockUseNavigation.mockReturnValue({
+        ...mockNavigation,
+        replace,
+      } as unknown as ReturnType<typeof useNavigation>);
+
+      mockUseParams.mockReturnValue({
+        returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(replace).toHaveBeenCalledWith(
+          Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+          undefined,
+        );
+      });
+      expect(mockInitiateConversion).not.toHaveBeenCalled();
+    });
+
+    it("forwards caller's navigationOverride (CUSTOM) to initiateCustomConversion instead of hardcoding QUICK_CONVERT", async () => {
+      mockUseParams.mockReturnValue({
+        preferredPaymentToken: {
+          address: '0xabc' as Hex,
+          chainId: '0x1' as Hex,
+        },
+        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockInitiateConversion).toHaveBeenCalledWith(
+          expect.objectContaining({
+            navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
+            skipEducationCheck: true,
+          }),
+        );
+      });
+    });
   });
 
   describe('MetaMetrics', () => {
