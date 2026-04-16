@@ -122,21 +122,21 @@ describe('sanitizeTokenName', () => {
     expect(sanitizeTokenName('Token (ondo tokenized)')).toBe('Token');
   });
 
-  it('truncates to 20 characters with ellipsis', () => {
+  it('truncates to 28 characters with ellipsis', () => {
     expect(sanitizeTokenName('A Very Long Token Name That Exceeds')).toBe(
-      'A Very Long Token Na...',
+      'A Very Long Token Name That...',
     );
   });
 
   it('strips then truncates with ellipsis', () => {
-    const long = 'Extremely Long Name Here (Ondo Tokenized)';
+    const long = 'Extremely Long Name Here That Keeps Going (Ondo Tokenized)';
     const result = sanitizeTokenName(long);
-    expect(result).toBe('Extremely Long Name...');
+    expect(result).toBe('Extremely Long Name Here Tha...');
   });
 
-  it('does not add ellipsis when exactly 20 characters', () => {
-    expect(sanitizeTokenName('12345678901234567890')).toBe(
-      '12345678901234567890',
+  it('does not add ellipsis when exactly 28 characters', () => {
+    expect(sanitizeTokenName('1234567890123456789012345678')).toBe(
+      '1234567890123456789012345678',
     );
   });
 
