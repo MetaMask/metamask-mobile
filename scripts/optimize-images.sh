@@ -53,13 +53,13 @@ if ! command -v pngquant &>/dev/null; then
   brew install pngquant
 fi
 
-if ! command -v cjpeg &>/dev/null; then
+MOZJPEG_CJPEG="$(brew --prefix mozjpeg 2>/dev/null)/bin/cjpeg"
+if [[ ! -x "$MOZJPEG_CJPEG" ]]; then
   echo "Installing mozjpeg..."
   brew install mozjpeg
-  CJPEG="$(brew --prefix mozjpeg)/bin/cjpeg"
-else
-  CJPEG="cjpeg"
+  MOZJPEG_CJPEG="$(brew --prefix mozjpeg)/bin/cjpeg"
 fi
+CJPEG="$MOZJPEG_CJPEG"
 
 total_saved=0
 files_optimized=0
@@ -119,9 +119,10 @@ optimize_jpg() {
   local original_size
   original_size=$(stat -f%z "$file")
 
-  local tmp
-  tmp=$(mktemp).jpg
-  trap "rm -f '$tmp'" RETURN
+  local tmp_base
+  tmp_base=$(mktemp)
+  local tmp="${tmp_base}.jpg"
+  trap "rm -f '$tmp_base' '$tmp'" RETURN
 
   if ! "$CJPEG" -quality "$QUALITY_JPG" -outfile "$tmp" "$file" 2>/dev/null; then
     ((files_skipped++)) || true
