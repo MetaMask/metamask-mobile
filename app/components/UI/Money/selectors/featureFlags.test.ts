@@ -205,7 +205,7 @@ describe('selectMoneyHubEnabledFlag', () => {
 
   it('falls back to local env var when remote flag returns undefined', () => {
     mockedValidate.mockReturnValue(undefined);
-    process.env.MONEY_HUB_ENABLED = 'true';
+    process.env.MM_MONEY_HUB_ENABLED = 'true';
 
     const state = createState({ _unique: 'hub-fallback-true' });
 
@@ -216,7 +216,7 @@ describe('selectMoneyHubEnabledFlag', () => {
 
   it('returns false when both remote and local flags are unavailable', () => {
     mockedValidate.mockReturnValue(undefined);
-    delete process.env.MONEY_HUB_ENABLED;
+    delete process.env.MM_MONEY_HUB_ENABLED;
 
     const state = createState({ _unique: 'hub-fallback-false' });
 
