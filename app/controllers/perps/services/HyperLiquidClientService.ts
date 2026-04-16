@@ -533,6 +533,10 @@ export class HyperLiquidClientService {
         'HyperLiquidClientService.fetchHistoricalCandles',
       );
 
+      this.#deps.debugLogger.log(
+        '[PR-28953] BUG_MARKER: abort error logged to Sentry in fetchHistoricalCandles',
+        { errorName: errorInstance.name, errorMessage: errorInstance.message },
+      );
       // Log to Sentry: prevents initial chart data load
       this.#deps.logger.error(errorInstance, {
         tags: {
