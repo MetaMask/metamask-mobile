@@ -26,14 +26,14 @@ automatically **uninstalls and reinstalls** it on the emulator every run.
 | --------------------------- | ------------------------------------------------------------ |
 | Android emulator            | Running and reachable via `adb`                              |
 | MetaMask wallet APK         | Built or pointed to via `buildPath` in `appwright.config.ts` |
-| `connect-monorepo` checkout | Cloned **next to** `metamask-mobile` (same parent directory) |
+| `metamask-connect` checkout | Cloned **next to** `metamask-mobile` (same parent directory) |
 
 Expected directory layout:
 
 ```
 Documents/MetaMask/          # or wherever you keep these repos
 ├── metamask-mobile/         # this repo
-└── connect-monorepo/        # https://github.com/MetaMask/connect-monorepo
+└── metamask-connect/        # https://github.com/MetaMask/metamask-connect
     └── playground/
         └── react-native-playground/
 ```
@@ -41,7 +41,7 @@ Documents/MetaMask/          # or wherever you keep these repos
 ### Get the Playground APK
 
 The playground APK is published as a GitHub Release asset with every
-connect-monorepo release. You can download it automatically or build locally.
+metamask-connect release. You can download it automatically or build locally.
 
 #### Option A — Download from GitHub Releases (recommended)
 
@@ -81,7 +81,7 @@ expects a Metro dev server at runtime.
 **Step 1 — Install monorepo dependencies:**
 
 ```bash
-cd /path/to/connect-monorepo
+cd /path/to/metamask-connect
 yarn install
 ```
 
@@ -89,7 +89,7 @@ yarn install
 `@metamask/playground-ui`, etc. have their `dist/` output):
 
 ```bash
-cd /path/to/connect-monorepo
+cd /path/to/metamask-connect
 yarn build
 ```
 
@@ -99,7 +99,7 @@ The playground uses Infura RPC endpoints for blockchain requests. Copy the
 example `.env` file and add your key:
 
 ```bash
-cd /path/to/connect-monorepo/playground/react-native-playground
+cd /path/to/metamask-connect/playground/react-native-playground
 cp .env.example .env
 ```
 
@@ -116,14 +116,14 @@ EXPO_PUBLIC_INFURA_API_KEY=your_infura_api_key_here
 deleting the `android/` directory):
 
 ```bash
-cd /path/to/connect-monorepo/playground/react-native-playground
+cd /path/to/metamask-connect/playground/react-native-playground
 npx expo prebuild --platform android
 ```
 
 **Step 5 — Build the release APK:**
 
 ```bash
-cd /path/to/connect-monorepo/playground/react-native-playground/android
+cd /path/to/metamask-connect/playground/react-native-playground/android
 ./gradlew assembleRelease
 ```
 
@@ -131,7 +131,7 @@ The first build takes ~7 minutes. Subsequent builds are incremental and much
 faster. The output APK will be at:
 
 ```
-connect-monorepo/playground/react-native-playground/android/app/build/outputs/apk/release/app-release.apk
+metamask-connect/playground/react-native-playground/android/app/build/outputs/apk/release/app-release.apk
 ```
 
 #### Rebuilding after changes
@@ -139,7 +139,7 @@ connect-monorepo/playground/react-native-playground/android/app/build/outputs/ap
 When you edit the playground source, run the build command again:
 
 ```bash
-cd /path/to/connect-monorepo/playground/react-native-playground/android
+cd /path/to/metamask-connect/playground/react-native-playground/android
 ./gradlew assembleRelease
 ```
 
@@ -147,7 +147,7 @@ If you also changed shared workspace packages (e.g. `@metamask/playground-ui`),
 rebuild those first:
 
 ```bash
-cd /path/to/connect-monorepo
+cd /path/to/metamask-connect
 yarn build
 ```
 
@@ -160,7 +160,7 @@ BrowserStack before test execution. The relevant environment variables are:
 
 | Variable                         | Description                                     |
 | -------------------------------- | ----------------------------------------------- |
-| `RN_PLAYGROUND_APK_VERSION`      | Pin to a specific connect-monorepo release      |
+| `RN_PLAYGROUND_APK_VERSION`      | Pin to a specific metamask-connect release      |
 | `RN_PLAYGROUND_APK_PATH`         | Override APK path (skips download)              |
 | `BROWSERSTACK_RN_PLAYGROUND_URL` | BrowserStack `bs://` URL for the playground APK |
 
@@ -289,12 +289,12 @@ reinstall (`adb install app/build/outputs/apk/release/app-release.apk`).
 **`RPCErr50: 401 on https://mainnet.infura.io/v3/ for method POST`**
 
 The Infura API key is missing or was not inlined during the APK build. Make
-sure the `.env` file in `connect-monorepo/playground/react-native-playground/`
+sure the `.env` file in `metamask-connect/playground/react-native-playground/`
 contains a valid `EXPO_PUBLIC_INFURA_API_KEY`. After updating the key you must
 clear the build cache and rebuild:
 
 ```bash
-cd /path/to/connect-monorepo/playground/react-native-playground
+cd /path/to/metamask-connect/playground/react-native-playground
 rm -rf android/app/build
 cd android && ./gradlew assembleRelease
 ```

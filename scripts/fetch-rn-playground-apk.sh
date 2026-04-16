@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fetch the React Native Playground APK from the connect-monorepo GitHub Releases.
+# Fetch the React Native Playground APK from the metamask-connect GitHub Releases.
 #
 # Usage:
 #   ./scripts/fetch-rn-playground-apk.sh [--version <version>] [--output <path>]
@@ -15,11 +15,11 @@
 #   RN_PLAYGROUND_APK_VERSION  Alternative to --version flag.
 #
 # The script downloads the rn-playground-<version>.apk asset from the
-# MetaMask/connect-monorepo GitHub Release matching the requested version.
+# MetaMask/metamask-connect GitHub Release matching the requested version.
 
 set -euo pipefail
 
-REPO="MetaMask/connect-monorepo"
+REPO="MetaMask/metamask-connect"
 APK_PATTERN="rn-playground-"
 OUTPUT_PATH="./tmp/rn-playground.apk"
 VERSION="${RN_PLAYGROUND_APK_VERSION:-}"
