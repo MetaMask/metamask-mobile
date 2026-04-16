@@ -25,6 +25,22 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    })),
+  }),
+}));
+
+jest.mock('../../../../../core/Analytics', () => ({
+  MetaMetricsEvents: {
+    REWARDS_PAGE_BUTTON_CLICKED: 'REWARDS_PAGE_BUTTON_CLICKED',
+  },
+}));
+
 jest.mock('./CampaignOptInSheet', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -290,7 +306,7 @@ describe('OndoCampaignCTA', () => {
 
   describe('notEligibleForCampaign', () => {
     describe('not opted in + notEligibleForCampaign=true', () => {
-      it('shows the Join Campaign button', () => {
+      it('shows the Entries closed button', () => {
         const { getByTestId, getByText } = render(
           <OndoCampaignCTA
             campaign={buildCampaign()}
@@ -300,7 +316,7 @@ describe('OndoCampaignCTA', () => {
           />,
         );
         expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
-        expect(getByText('Join Campaign')).toBeOnTheScreen();
+        expect(getByText('Entries closed')).toBeOnTheScreen();
       });
 
       it('fires entries-closed toast (not the opt-in sheet) when pressed', () => {

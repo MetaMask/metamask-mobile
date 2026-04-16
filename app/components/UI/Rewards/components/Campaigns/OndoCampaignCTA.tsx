@@ -105,9 +105,13 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
   const isLoading = participantStatus.isLoading;
   const isOptedIn = participantStatus?.status?.optedIn === true;
 
-  // Show "Entries closed" for complete campaigns when user has not opted in
+  // Show "Entries closed" when the user cannot enter: campaign is complete,
+  // or campaign is active but the user is not eligible (and has not opted in).
   const isEntriesClosed =
-    !isLoading && !isOptedIn && campaignStatus === 'complete';
+    !isLoading &&
+    !isOptedIn &&
+    (campaignStatus === 'complete' ||
+      (campaignStatus === 'active' && notEligibleForCampaign));
 
   const handleEntriesClosedPress = useCallback(() => {
     showToast(
@@ -141,21 +145,6 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
   }
 
   if (!isOptedIn) {
-    if (notEligibleForCampaign) {
-      return (
-        <Box twClassName="px-4 pt-2">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleEntriesClosedPress}
-            testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
-          >
-            {strings('rewards.campaign_details.join_campaign')}
-          </Button>
-        </Box>
-      );
-    }
     return (
       <CampaignOptInCta
         campaign={campaign}
