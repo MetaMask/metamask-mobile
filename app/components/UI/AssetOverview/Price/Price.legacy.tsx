@@ -11,6 +11,7 @@ import { toDateFormat } from '../../../../util/date';
 import { addCurrencySymbol } from '../../../../util/number';
 import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import {
+  Box,
   FontWeight,
   Text,
   TextColor,
@@ -21,6 +22,7 @@ import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
+import ChartNavigationButton from '../ChartNavigationButton';
 
 export interface PriceLegacyProps {
   prices: TokenPrice[];
@@ -30,6 +32,8 @@ export interface PriceLegacyProps {
   comparePrice: number;
   isLoading: boolean;
   timePeriod: TimePeriod;
+  chartNavigationButtons?: TimePeriod[];
+  onTimePeriodChange?: (period: TimePeriod) => void;
 }
 
 const PriceLegacy = ({
@@ -40,6 +44,8 @@ const PriceLegacy = ({
   comparePrice,
   isLoading,
   timePeriod,
+  chartNavigationButtons = [],
+  onTimePeriodChange,
 }: PriceLegacyProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
 
@@ -104,7 +110,7 @@ const PriceLegacy = ({
                 >
                   <SkeletonPlaceholder.Item
                     width={100}
-                    height={32}
+                    height={40}
                     borderRadius={6}
                   />
                 </SkeletonPlaceholder>
@@ -123,12 +129,12 @@ const PriceLegacy = ({
               >
                 <SkeletonPlaceholder.Item
                   width={150}
-                  height={18}
+                  height={24}
                   borderRadius={6}
                 />
               </SkeletonPlaceholder>
             </View>
-          ) : distributedPriceData.length > 0 ? (
+          ) : (
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
@@ -164,15 +170,31 @@ const PriceLegacy = ({
                 {date}
               </Text>
             </Text>
-          ) : null}
+          )}
         </Text>
       </View>
-      <PriceChart
-        prices={distributedPriceData}
-        priceDiff={priceDiff}
-        isLoading={isLoading}
-        onChartIndexChange={handleChartInteraction}
-      />
+      <Box twClassName={'mt-3'}>
+        <PriceChart
+          prices={distributedPriceData}
+          priceDiff={priceDiff}
+          isLoading={isLoading}
+          onChartIndexChange={handleChartInteraction}
+        />
+      </Box>
+      {chartNavigationButtons.length > 0 && onTimePeriodChange && (
+        <View style={styles.chartNavigationWrapper}>
+          {chartNavigationButtons.map((label) => (
+            <ChartNavigationButton
+              key={label}
+              label={strings(
+                `asset_overview.chart_time_period_navigation.${label}`,
+              )}
+              onPress={() => onTimePeriodChange(label)}
+              selected={timePeriod === label}
+            />
+          ))}
+        </View>
+      )}
     </>
   );
 };
