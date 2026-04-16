@@ -12,10 +12,9 @@ import {
 import { DappVariants } from '../../../framework/Constants';
 import Browser from '../../../page-objects/Browser/BrowserView';
 import EnsWebsite from '../../../page-objects/Browser/ExternalWebsites/EnsWebsite';
-import { Assertions } from '../../../framework';
+import { Assertions, Utilities } from '../../../framework';
 import { TestSpecificMock } from '../../../framework/types';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
-import TestHelpers from '../../../helpers.js';
 import { ensResolutionMock } from '../../../api-mocking/mock-responses/ens-resolution-mocks';
 
 const INVALID_URL = 'https://quackquakc.easq';
@@ -112,9 +111,16 @@ describe(SmokeWalletPlatform('Browser Navigation'), () => {
         await navigateToBrowserView();
         await Browser.tapUrlInputBox();
         await Browser.navigateToURL('vitalik.eth');
-        // ENS resolution + IPFS gateway fetch takes time
-        await TestHelpers.delay(5000);
-        await EnsWebsite.tapGeneralButton();
+        // Wait for ENS page to load, then tap the "General" link
+        await Utilities.executeWithRetry(
+          async () => {
+            await EnsWebsite.tapGeneralButton();
+          },
+          {
+            timeout: 15000,
+            description: 'wait for ENS page to load and tap General link',
+          },
+        );
       },
     );
   });
