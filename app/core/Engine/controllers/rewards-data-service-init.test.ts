@@ -1,7 +1,7 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getRewardsDataServiceMessenger } from '../messengers/rewards-data-service-messenger';
-import { MessengerClientInitRequest } from '../types';
+import { ControllerInitRequest } from '../types';
 import { rewardsDataServiceInit } from './rewards-data-service-init';
 import {
   RewardsDataService,
@@ -12,14 +12,14 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('./rewards-controller/services');
 
 function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<RewardsDataServiceMessenger>
+  ControllerInitRequest<RewardsDataServiceMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getRewardsDataServiceMessenger(baseMessenger),
     initMessenger: undefined,
   };

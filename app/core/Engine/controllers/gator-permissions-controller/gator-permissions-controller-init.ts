@@ -1,4 +1,4 @@
-import type { MessengerClientInitFunction } from '../../types';
+import type { ControllerInitFunction } from '../../types';
 import {
   type GatorPermissionsControllerMessenger,
   GatorPermissionsController,
@@ -32,7 +32,7 @@ const createGatorPermissionsConfig = (): GatorPermissionsControllerConfig => {
   return config;
 };
 
-export const GatorPermissionsControllerInit: MessengerClientInitFunction<
+export const GatorPermissionsControllerInit: ControllerInitFunction<
   GatorPermissionsController,
   GatorPermissionsControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

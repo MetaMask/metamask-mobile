@@ -14,6 +14,6 @@ describe('AvatarBase', () => {
         <Image source={SAMPLE_AVATARBASE_IMAGESOURCE} />
       </AvatarBase>,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 });

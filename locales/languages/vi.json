@@ -240,6 +240,7 @@
     "import_wallet_button": "Đồng bộ hoặc nhập ví",
     "new_to_crypto": "Bạn mới tìm hiểu về tiền mã hóa?",
     "start_exploring_now": "Tạo một ví mới",
+    "unlock": "Mở khóa",
     "new_to_metamask": "Bạn mới sử dụng MetaMask?",
     "already_have_wallet": "Bạn đã có ví?",
     "optin_back_title": "Chú ý!",
@@ -2679,7 +2680,8 @@
     "description_content_2": "Khi thu thập số liệu, chúng tôi sẽ luôn cam kết điều này...",
     "description_content_3": "Tìm hiểu cách chúng tôi bảo vệ quyền riêng tư của bạn khi thu thập dữ liệu sử dụng cho hồ sơ của bạn.",
     "gather_basic_usage_title": "Thu thập dữ liệu sử dụng cơ bản",
-    "gather_basic_usage_description": "Chúng tôi sẽ thu thập dữ liệu sử dụng sản phẩm cơ bản. Chúng tôi có thể liên kết thông tin này với dữ liệu trên chuỗi.",
+    "gather_basic_usage_description": "Chúng tôi sẽ thu thập dữ liệu sử dụng sản phẩm cơ bản như vị trí chung, lượt nhấp và lượt xem. Chúng tôi không lưu trữ thông tin nào khác.",
+    "gather_basic_usage_description_updated": "Chúng tôi sẽ thu thập dữ liệu sử dụng sản phẩm cơ bản. Chúng tôi có thể liên kết thông tin này với dữ liệu trên chuỗi.",
     "gather_basic_usage_learn_more": "Tìm hiểu thêm",
     "checkbox_marketing": "Cập nhật hoạt động tiếp thị",
     "checkbox": "Chúng tôi sẽ sử dụng dữ liệu này để tìm hiểu cách bạn tương tác với các thông tin tiếp thị. Chúng tôi có thể chia sẻ tin tức liên quan (chẳng hạn như tính năng sản phẩm).",
@@ -4809,9 +4811,11 @@
     "body_for_seedphrase": "Giá trị đó giờ đã được cộng vào ví của bạn, hãy bảo vệ ví bằng cách cài đặt mật khẩu và lưu Cụm từ khôi phục bí mật (bắt buộc).",
     "button": "Bảo vệ ví"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "Cập nhật giao dịch thất bại",
-    "already_confirmed": "Giao dịch này đã được xác nhận và không thể chỉnh sửa."
+    "text": "Bạn có muốn thử lại?",
+    "cancel_button": "Hủy",
+    "retry_button": "Thử lại"
   },
   "payment_request": {
     "title": "Yêu cầu",
@@ -6635,6 +6639,7 @@
     "nested_transaction_heading": "Giao dịch {{index}}",
     "transaction": "Bảo vệ",
     "available_balance": "Số dư khả dụng: ",
+    "available_perps_balance": "Số dư Hợp đồng vĩnh cửu khả dụng: ",
     "edit_amount_done": "Tiếp tục",
     "deposit_edit_amount_done": "Nạp tiền",
     "deposit_edit_amount_predict_withdraw": "Rút tiền",

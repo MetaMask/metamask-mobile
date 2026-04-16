@@ -14,6 +14,6 @@ describe('TagUrl', () => {
         label={SAMPLE_TAGURL_PROPS.label}
       />,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 });

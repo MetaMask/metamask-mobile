@@ -808,23 +808,18 @@ const createMockStreamManager = () => {
         };
       },
       subscribe: jest.fn(() => jest.fn()),
-      getSnapshot: jest.fn(() => null),
     },
     orders: {
       subscribe: jest.fn(() => jest.fn()),
-      getSnapshot: jest.fn(() => null),
     },
     positions: {
       subscribe: jest.fn(() => jest.fn()),
-      getSnapshot: jest.fn(() => null),
     },
     fills: {
       subscribe: jest.fn(() => jest.fn()),
-      getSnapshot: jest.fn(() => null),
     },
     account: {
       subscribe: jest.fn(() => jest.fn()),
-      getSnapshot: jest.fn(() => null),
     },
     topOfBook: {
       subscribeToSymbol: ({
@@ -847,16 +842,13 @@ const createMockStreamManager = () => {
           subscribers.delete(id);
         };
       },
-      getSnapshot: jest.fn(() => null),
     },
     marketData: {
       subscribe: jest.fn(() => jest.fn()),
       getMarkets: jest.fn(),
-      getSnapshot: jest.fn(() => null),
     },
     oiCaps: {
       subscribe: jest.fn(() => jest.fn()),
-      getSnapshot: jest.fn(() => null),
     },
   };
 };
@@ -1119,11 +1111,14 @@ describe('PerpsOrderView', () => {
     expect(mockGetPositions).toBeDefined();
   });
 
-  it('shows standard submitted toast when custom token is selected (deposit flow)', async () => {
+  it('shows persistent submitting toast when custom token is selected (deposit flow)', async () => {
     mockUseIsPerpsBalanceSelected.mockReturnValue(false);
 
     const mockShowToast = jest.fn();
     const mockSubmitted = jest.fn(() => ({ id: 'order-submitted-toast' }));
+    const mockSubmitting = jest.fn(() => ({
+      id: 'submitting-your-trade-toast',
+    }));
     (usePerpsToasts as jest.Mock).mockReturnValue({
       showToast: mockShowToast,
       PerpsToastOptions: {
@@ -1145,7 +1140,7 @@ describe('PerpsOrderView', () => {
             creationFailed: jest.fn(),
           },
           shared: {
-            submitting: jest.fn(),
+            submitting: mockSubmitting,
           },
         },
         positionManagement: { tpsl: { updateTPSLError: jest.fn() } },
@@ -1180,7 +1175,8 @@ describe('PerpsOrderView', () => {
     await waitFor(() => {
       expect(mockShowToast).toHaveBeenCalled();
     });
-    expect(mockSubmitted).toHaveBeenCalled();
+    expect(mockSubmitting).toHaveBeenCalled();
+    expect(mockSubmitted).not.toHaveBeenCalled();
   });
 
   it('shows standard submitted toast when using perps balance', async () => {
@@ -1188,6 +1184,9 @@ describe('PerpsOrderView', () => {
 
     const mockShowToast = jest.fn();
     const mockSubmitted = jest.fn(() => ({ id: 'order-submitted-toast' }));
+    const mockSubmitting = jest.fn(() => ({
+      id: 'submitting-your-trade-toast',
+    }));
     (usePerpsToasts as jest.Mock).mockReturnValue({
       showToast: mockShowToast,
       PerpsToastOptions: {
@@ -1209,7 +1208,7 @@ describe('PerpsOrderView', () => {
             creationFailed: jest.fn(),
           },
           shared: {
-            submitting: jest.fn(),
+            submitting: mockSubmitting,
           },
         },
         positionManagement: { tpsl: { updateTPSLError: jest.fn() } },
@@ -1245,6 +1244,7 @@ describe('PerpsOrderView', () => {
       expect(mockShowToast).toHaveBeenCalled();
     });
     expect(mockSubmitted).toHaveBeenCalled();
+    expect(mockSubmitting).not.toHaveBeenCalled();
   });
 
   it('handles failed order placement', async () => {

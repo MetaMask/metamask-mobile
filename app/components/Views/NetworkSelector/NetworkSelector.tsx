@@ -41,17 +41,12 @@ import Networks, {
   isMainNet,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
+import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
-  Button,
-  ButtonVariant,
   ButtonSize,
-  Box,
-} from '@metamask/design-system-react-native';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import {
-  ButtonSize as InternalButtonSize,
-  ButtonProps,
-} from '../../../component-library/components/Buttons/Button/Button.types';
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { NetworkListModalSelectorsIDs } from './NetworkListModal.testIds';
@@ -77,6 +72,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AccountAction from '../AccountAction';
 import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
@@ -85,6 +81,7 @@ import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import { Box } from '@metamask/design-system-react-native';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
 import {
   TraceName,
@@ -919,14 +916,14 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
     label: strings('accountApproval.cancel'),
-    size: InternalButtonSize.Lg,
+    size: ButtonSize.Lg,
     onPress: () => closeDeleteModal(),
   };
 
   const deleteButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,
     label: strings('app_settings.delete'),
-    size: InternalButtonSize.Lg,
+    size: ButtonSize.Lg,
     onPress: () => confirmRemoveRpc(),
   };
 
@@ -986,15 +983,14 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
           </ScrollView>
           {!isSendFlow ? (
             <Button
-              variant={ButtonVariant.Secondary}
+              variant={ButtonVariants.Secondary}
+              label={strings(buttonLabelAddNetwork)}
               onPress={goToNetworkSettings}
-              isFullWidth
+              width={ButtonWidthTypes.Full}
               size={ButtonSize.Lg}
               style={styles.addNetworkButton}
               testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
-            >
-              {strings(buttonLabelAddNetwork)}
-            </Button>
+            />
           ) : null}
         </KeyboardAvoidingView>
 

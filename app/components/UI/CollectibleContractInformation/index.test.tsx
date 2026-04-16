@@ -1,14 +1,14 @@
 import React from 'react';
+import { shallow } from 'enzyme';
 import CollectibleContractInformation from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockTheme, ThemeContext } from '../../../util/theme';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { InteractionManager } from 'react-native';
 
 jest.mock('react-native', () => ({
-  ...jest.requireActual('react-native'),
   InteractionManager: {
     runAfterInteractions: jest.fn((callback) => {
       callback();
@@ -36,22 +36,20 @@ describe('CollectibleContractInformation', () => {
   const mockRunAfterInteractions =
     InteractionManager.runAfterInteractions as jest.Mock;
   it('should render correctly', () => {
-    render(
+    const wrapper = shallow(
       <Provider store={store}>
-        <ThemeContext.Provider value={mockTheme}>
-          <CollectibleContractInformation
-            collectibleContract={{
-              name: 'name',
-              symbol: 'symbol',
-              description: 'description',
-              address: '0x123',
-              totalSupply: 1,
-            }}
-          />
-        </ThemeContext.Provider>
+        <CollectibleContractInformation
+          collectibleContract={{
+            name: 'name',
+            symbol: 'symbol',
+            description: 'description',
+            address: '0x123',
+            totalSupply: 1,
+          }}
+        />
       </Provider>,
     );
-    expect(screen.getByText('name')).toBeOnTheScreen();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should call onClose when title text is pressed', () => {

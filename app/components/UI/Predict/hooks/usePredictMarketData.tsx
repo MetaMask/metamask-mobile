@@ -13,7 +13,6 @@ export interface UsePredictMarketDataOptions {
   category?: PredictCategory;
   pageSize?: number;
   customQueryParams?: string;
-  refine?: (markets: PredictMarket[]) => PredictMarket[];
 }
 
 export interface UsePredictMarketDataResult {
@@ -38,7 +37,6 @@ export const usePredictMarketData = (
     q,
     pageSize = 20,
     customQueryParams,
-    refine,
   } = options;
   const [marketData, setMarketData] = useState<PredictMarket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -121,19 +119,18 @@ export const usePredictMarketData = (
 
             if (isLoadMore) {
               setMarketData((prevData) => {
-                // Use a Set to efficiently deduplicate by ID
+                // Use a Map to efficiently deduplicate by ID
                 const existingIds = new Set(prevData.map((event) => event.id));
                 const newEvents = markets.filter(
                   (event) => !existingIds.has(event.id),
                 );
-                const accumulated = [...prevData, ...newEvents];
-                return refine ? refine(accumulated) : accumulated;
+                return [...prevData, ...newEvents];
               });
               setCurrentOffset((prev) => prev + pageSize);
               currentOffsetRef.current += pageSize;
             } else {
               // Replace data for initial load or refresh
-              setMarketData(refine ? refine(markets) : markets);
+              setMarketData(markets);
               setCurrentOffset(pageSize);
               currentOffsetRef.current = pageSize;
             }
@@ -191,7 +188,7 @@ export const usePredictMarketData = (
         setIsLoadingMore(false);
       }
     },
-    [category, q, pageSize, customQueryParams, refine],
+    [category, q, pageSize, customQueryParams],
   );
 
   const loadMore = useCallback(async () => {

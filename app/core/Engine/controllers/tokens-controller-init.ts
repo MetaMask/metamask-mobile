@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   TokensController,
   type TokensControllerMessenger,
@@ -14,7 +14,7 @@ import { assert } from '@metamask/utils';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const tokensControllerInit: MessengerClientInitFunction<
+export const tokensControllerInit: ControllerInitFunction<
   TokensController,
   TokensControllerMessenger,
   TokensControllerInitMessenger

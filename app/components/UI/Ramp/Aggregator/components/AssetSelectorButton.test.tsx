@@ -25,7 +25,7 @@ describe('AssetSelectorButton', () => {
     renderWithProvider(<AssetSelectorButton {...mockProps} />, {
       state: defaultState,
     });
-    expect(screen.getByText('Ethereum')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly without icon', () => {
@@ -34,7 +34,7 @@ describe('AssetSelectorButton', () => {
     renderWithProvider(<AssetSelectorButton {...propsWithoutIcon} />, {
       state: defaultState,
     });
-    expect(screen.getByText('Ethereum')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('calls onPress when pressed', () => {
@@ -53,7 +53,7 @@ describe('AssetSelectorButton', () => {
     renderWithProvider(<AssetSelectorButton {...mockProps} loading />, {
       state: defaultState,
     });
-    expect(screen.queryByText('Ethereum')).not.toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('does not call onPress when loading', () => {

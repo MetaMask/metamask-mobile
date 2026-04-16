@@ -2,8 +2,8 @@ import {
   AccountsController,
   type AccountsControllerMessenger,
 } from '@metamask/accounts-controller';
-import type { MessengerClientInitRequest } from '../../types';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import type { ControllerInitRequest } from '../../types';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { accountsControllerInit } from '.';
 import { defaultAccountsControllerState } from './constants';
 import { logAccountsControllerCreation } from './utils';
@@ -23,7 +23,7 @@ jest.mock('@metamask/accounts-controller');
 describe('accounts controller init', () => {
   const accountsControllerClassMock = jest.mocked(AccountsController);
   let initRequestMock: jest.Mocked<
-    MessengerClientInitRequest<AccountsControllerMessenger>
+    ControllerInitRequest<AccountsControllerMessenger>
   >;
 
   beforeEach(() => {
@@ -35,10 +35,8 @@ describe('accounts controller init', () => {
     >({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    // Create messenger client init request mock
-    initRequestMock = buildMessengerClientInitRequestMock(
-      baseControllerMessenger,
-    );
+    // Create controller init request mock
+    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
 
   describe('logs are registered during controller creation', () => {

@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { registerStepHudCallback } from './AgenticService';
 
 interface Step {
@@ -14,27 +13,25 @@ interface Step {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 90,
     left: 0,
     right: 0,
     zIndex: 9999,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 6,
+    backgroundColor: '#000000',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
   },
   stepId: {
     color: '#00FF88',
     fontFamily: 'Courier',
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: '700',
-    marginRight: 8,
+    marginBottom: 2,
   },
   description: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
-    flexShrink: 1,
   },
 });
 /* eslint-enable react-native/no-color-literals, @metamask/design-tokens/color-no-hex */
@@ -42,19 +39,6 @@ const styles = StyleSheet.create({
 // Inner component — hooks always called unconditionally, per rules of React.
 const AgentStepHudInner = () => {
   const [step, setStep] = useState<Step | null>(null);
-  const insets = useSafeAreaInsets();
-
-  const containerStyle = useMemo(
-    () => [
-      styles.container,
-      {
-        paddingLeft: Math.max(insets.left, 10),
-        paddingRight: Math.max(insets.right, 10),
-        paddingBottom: insets.bottom > 0 ? insets.bottom : 6,
-      },
-    ],
-    [insets.left, insets.right, insets.bottom],
-  );
 
   useEffect(() => {
     registerStepHudCallback(setStep);
@@ -66,11 +50,9 @@ const AgentStepHudInner = () => {
   if (!step) return null;
 
   return (
-    <View style={containerStyle} pointerEvents="none">
+    <View style={styles.container} pointerEvents="none">
       <Text style={styles.stepId}>{step.id}</Text>
-      <Text style={styles.description} numberOfLines={2}>
-        {step.description}
-      </Text>
+      <Text style={styles.description}>{step.description}</Text>
     </View>
   );
 };

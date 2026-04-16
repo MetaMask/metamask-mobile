@@ -36,7 +36,7 @@ describe('TabsList', () => {
     const tabs = ['Tab 1', 'Tab 2', 'Tab 3'];
 
     // Act
-    const { getByText, queryByText } = render(
+    const { toJSON } = render(
       <TabsList>
         {tabs.map((label, index) => (
           <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
@@ -46,10 +46,8 @@ describe('TabsList', () => {
       </TabsList>,
     );
 
-    // Assert - first tab is active by default; other tabs are not yet rendered
-    expect(getByText('Tab 1 Content')).toBeOnTheScreen();
-    expect(queryByText('Tab 2 Content')).toBeNull();
-    expect(queryByText('Tab 3 Content')).toBeNull();
+    // Assert
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays correct initial tab content with on-demand loading', async () => {
@@ -325,8 +323,11 @@ describe('TabsList', () => {
   });
 
   it('handles empty children gracefully', () => {
-    // Act — should not throw
-    expect(() => render(<TabsList>{[]}</TabsList>)).not.toThrow();
+    // Act
+    const { toJSON } = render(<TabsList>{[]}</TabsList>);
+
+    // Assert
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with initial page set to specific index', () => {
@@ -360,7 +361,7 @@ describe('TabsList', () => {
     const tabs = ['Tab 1', 'Tab 2'];
 
     // Act
-    const { getByText } = render(
+    const { toJSON } = render(
       <TabsList twClassName="bg-background-alternative" padding={4}>
         {tabs.map((label, index) => (
           <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
@@ -370,8 +371,8 @@ describe('TabsList', () => {
       </TabsList>,
     );
 
-    // Assert - BoxProps accepted; first tab content renders correctly
-    expect(getByText('Tab 1 Content')).toBeOnTheScreen();
+    // Assert - Box should receive the props and render correctly
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles all tabs disabled by setting activeIndex to -1', () => {
@@ -829,7 +830,7 @@ describe('TabsList', () => {
       const nonReactElementChild = 'Plain text';
 
       // Act
-      const { getByText } = render(
+      const { toJSON } = render(
         <TabsList>
           <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
             <Text>Tab 1 Content</Text>
@@ -838,8 +839,8 @@ describe('TabsList', () => {
         </TabsList>,
       );
 
-      // Assert - valid React element child renders; non-React element is handled without crash
-      expect(getByText('Tab 1 Content')).toBeOnTheScreen();
+      // Assert - Component handles non-React elements gracefully
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('uses initialActiveIndex when it points to an enabled tab', () => {

@@ -242,21 +242,6 @@ const EarnInputView = () => {
 
   useEndTraceOnMount(TraceName.EarnDepositScreen);
 
-  // Debounced fee computation that reacts to amount/resourceType changes from any input method.
-  // resourceType is captured implicitly via tronValidateStakeAmount's dependency on it.
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  useEffect(() => {
-    if (!isTronEnabled || !isNonZeroAmount) return undefined;
-
-    // Debounce the fee computation to avoid unnecessary re-renders and API calls.
-    const timer = setTimeout(() => {
-      tronValidateStakeAmount?.(amountToken);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [amountToken, isTronEnabled, isNonZeroAmount, tronValidateStakeAmount]);
-  ///: END:ONLY_INCLUDE_IF
-
   const navigateToLearnMoreModal = useCallback(() => {
     const tokenExperience = earnToken?.experience?.type;
 
@@ -809,8 +794,20 @@ const EarnInputView = () => {
   const handleKeypadChangeWithValidation = useCallback(
     (data: { value: string; valueAsNumber: number; pressedKey: string }) => {
       handleKeypadChange(data);
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      if (isTronEnabled && !isFiat) {
+        tronValidateStakeAmount?.(data.value);
+      }
+      ///: END:ONLY_INCLUDE_IF
     },
-    [handleKeypadChange],
+    [
+      handleKeypadChange,
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      isTronEnabled,
+      isFiat,
+      tronValidateStakeAmount,
+      ///: END:ONLY_INCLUDE_IF
+    ],
   );
 
   const getButtonLabel = () => {

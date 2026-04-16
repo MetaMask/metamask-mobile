@@ -12,7 +12,7 @@ import {
 describe('SheetHeader', () => {
   it('should render correctly', () => {
     const wrapper = shallow(<SheetHeader title={'Title'} />);
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should render back button', () => {

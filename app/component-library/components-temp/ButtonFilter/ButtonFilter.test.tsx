@@ -19,25 +19,18 @@ describe('ButtonFilter', () => {
     expect(getByRole('button')).toBeOnTheScreen();
   });
 
-  it('applies different text styles for active vs inactive state', () => {
-    const { getByText: getActiveText, unmount: unmountActive } = render(
-      <ButtonFilter {...defaultProps} isActive>
-        All
-      </ButtonFilter>,
-    );
-    const activeTextStyle = getActiveText('All').props.style;
-    unmountActive();
+  it('renders correctly in active state', () => {
+    const { toJSON } = render(<ButtonFilter {...defaultProps} isActive />);
 
-    const { getByText: getInactiveText } = render(
-      <ButtonFilter {...defaultProps} isActive={false}>
-        All
-      </ButtonFilter>,
-    );
-    const inactiveTextStyle = getInactiveText('All').props.style;
+    expect(toJSON()).toMatchSnapshot();
+  });
 
-    expect(JSON.stringify(activeTextStyle)).not.toEqual(
-      JSON.stringify(inactiveTextStyle),
+  it('renders correctly in inactive state', () => {
+    const { toJSON } = render(
+      <ButtonFilter {...defaultProps} isActive={false} />,
     );
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls onPress when pressed', () => {

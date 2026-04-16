@@ -63,8 +63,6 @@ jest.mock('react-native', () => {
   };
 });
 
-const defaultTestAssetId = 'eip155:1/slip44:60';
-
 const mockProviders = [
   {
     id: '/providers/transak',
@@ -79,7 +77,6 @@ const mockProviders = [
       height: 24,
       width: 90,
     },
-    supportedCryptoCurrencies: { [defaultTestAssetId]: true },
   },
   {
     id: '/providers/moonpay',
@@ -94,7 +91,6 @@ const mockProviders = [
       height: 24,
       width: 90,
     },
-    supportedCryptoCurrencies: { [defaultTestAssetId]: true },
   },
 ];
 
@@ -147,12 +143,11 @@ jest.mock('../../../hooks/useRampsQuotes', () => ({
 
 let capturedOnClose: ((hasPendingAction?: boolean) => void) | undefined;
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return {
-    ...actual,
-    BottomSheet: ReactActual.forwardRef(
+jest.mock(
+  '../../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    return ReactActual.forwardRef(
       (
         {
           children,
@@ -166,9 +161,9 @@ jest.mock('@metamask/design-system-react-native', () => {
         capturedOnClose = onClose;
         return <>{children}</>;
       },
-    ),
-  };
-});
+    );
+  },
+);
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -202,9 +197,9 @@ describe('ProviderSelectionModal', () => {
     mockUseParams.mockReturnValue({ amount: 100 });
   });
 
-  it('renders provider selection modal with providers list', () => {
-    const { getByText } = renderWithProvider(ProviderSelectionModal);
-    expect(getByText('Transak')).toBeOnTheScreen();
+  it('matches snapshot', () => {
+    const { toJSON } = renderWithProvider(ProviderSelectionModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls useRampsQuotes with provider params on mount', () => {
@@ -217,6 +212,7 @@ describe('ProviderSelectionModal', () => {
         assetId: 'eip155:1/slip44:60',
         providers: ['/providers/transak', '/providers/moonpay'],
         paymentMethods: ['/payments/debit-credit-card-1'],
+        forceRefresh: true,
       }),
     );
   });
@@ -250,29 +246,6 @@ describe('ProviderSelectionModal', () => {
     expect(mockUseRampsQuotes).toHaveBeenCalledWith(null);
   });
 
-  it('filters providers by selectedToken.assetId when route assetId is omitted', () => {
-    mockUseParams.mockReturnValue({ amount: 100, skipQuotes: true });
-    mockUseRampsController.mockImplementation(() => ({
-      ...defaultControllerReturn,
-      providers: [
-        {
-          ...mockProviders[0],
-          supportedCryptoCurrencies: { [defaultTestAssetId]: true },
-        },
-        {
-          ...mockProviders[1],
-          supportedCryptoCurrencies: { [defaultTestAssetId]: false },
-        },
-      ],
-    }));
-    const { getByText, queryByText } = renderWithProvider(
-      ProviderSelectionModal,
-    );
-
-    expect(getByText('Transak')).toBeOnTheScreen();
-    expect(queryByText('MoonPay')).not.toBeOnTheScreen();
-  });
-
   it('filters providers by assetId when provided', () => {
     const assetId = 'eip155:1/erc20:0x123';
     mockUseParams.mockReturnValue({ assetId, skipQuotes: true });
@@ -281,25 +254,16 @@ describe('ProviderSelectionModal', () => {
       providers: [
         {
           ...mockProviders[0],
-          supportedCryptoCurrencies: {
-            [assetId]: true,
-            [defaultTestAssetId]: false,
-          },
+          supportedCryptoCurrencies: { [assetId]: true },
         },
         {
           ...mockProviders[1],
-          supportedCryptoCurrencies: {
-            [assetId]: true,
-            [defaultTestAssetId]: false,
-          },
+          supportedCryptoCurrencies: { [assetId]: true },
         },
         {
           id: '/providers/other',
           name: 'Other',
-          supportedCryptoCurrencies: {
-            [defaultTestAssetId]: true,
-            [assetId]: false,
-          },
+          supportedCryptoCurrencies: { 'eip155:1/slip44:60': true },
           environmentType: 'PRODUCTION',
           description: '',
           hqAddress: '',
@@ -314,7 +278,7 @@ describe('ProviderSelectionModal', () => {
 
     expect(getByText('Transak')).toBeOnTheScreen();
     expect(getByText('MoonPay')).toBeOnTheScreen();
-    expect(queryByText('Other')).not.toBeOnTheScreen();
+    expect(queryByText('Other')).toBeNull();
   });
 
   it('navigates to token selection when dismissed without action and skipQuotes is true', () => {
@@ -349,9 +313,7 @@ describe('ProviderSelectionModal', () => {
     const { queryByText } = renderWithProvider(ProviderSelectionModal);
 
     // Should not show "no quotes available" error since showQuotes is false
-    expect(
-      queryByText('fiat_on_ramp.no_quotes_available'),
-    ).not.toBeOnTheScreen();
+    expect(queryByText('fiat_on_ramp.no_quotes_available')).toBeNull();
   });
 
   it('does not navigate to token selection when dismissed without action and skipQuotes is false', () => {

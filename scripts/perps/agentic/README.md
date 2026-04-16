@@ -238,9 +238,6 @@ Executable gate checks that must pass before a flow runs. Defined in `teams/<tea
 | `select_account` | `address` | Switch Ethereum account |
 | `toggle_testnet` | | Enable/disable testnet mode |
 | `switch_provider` | `provider` | Switch perps provider |
-| `app_background` | `duration_ms` | Send app to home screen (iOS: Cmd+Shift+H). Waits `duration_ms` (default 5000) |
-| `app_foreground` | | Bring app back to foreground via `xcrun simctl launch` |
-| `app_restart` | `boot_wait_ms` | Terminate + relaunch app. Waits `boot_wait_ms` (default 15000) for Metro reconnect |
 | `switch` | `cases` | Branch based on assertions (workflow only) |
 | `end` | | Terminal node with pass/fail (workflow only) |
 

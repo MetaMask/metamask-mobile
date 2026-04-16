@@ -15,12 +15,11 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   canOpenURL: jest.fn().mockResolvedValue(true),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return {
-    ...actual,
-    BottomSheet: ReactActual.forwardRef(
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    return ReactActual.forwardRef(
       (
         {
           children,
@@ -34,9 +33,9 @@ jest.mock('@metamask/design-system-react-native', () => {
         }));
         return <>{children}</>;
       },
-    ),
-  };
-});
+    );
+  },
+);
 
 function render(component: React.ComponentType) {
   return renderScreen(
@@ -56,11 +55,9 @@ describe('EligibilityFailedModal', () => {
   });
 
   it('renders modal with title and description', () => {
-    const { getByText } = render(EligibilityFailedModal);
+    const { toJSON } = render(EligibilityFailedModal);
 
-    expect(getByText('Eligibility check failed')).toBeOnTheScreen();
-    expect(getByText('Contact support')).toBeOnTheScreen();
-    expect(getByText('Got it')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('navigates to contact support when the contact support button is pressed', () => {
     const { getByText } = render(EligibilityFailedModal);

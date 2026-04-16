@@ -11,13 +11,11 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 import expo.modules.ReactActivityDelegateWrapper
 import io.branch.rnbranch.RNBranchModule
 import io.metamask.nativeModules.NotificationModule
-import com.braze.reactbridge.BrazeReactUtils
 
 class MainActivity : ReactActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // Capture Notification Intent
         NotificationModule.saveNotificationIntent(intent)
-        BrazeReactUtils.populateInitialPushPayloadFromIntent(intent)
 
         // Set the theme to AppTheme BEFORE onCreate to support
         // coloring the background, status bar, and navigation bar.
@@ -41,7 +39,6 @@ class MainActivity : ReactActivity() {
     override fun onNewIntent(intent: Intent) {
         // Capture New Notification Intent
         NotificationModule.saveNotificationIntent(intent)
-        BrazeReactUtils.populateInitialPushPayloadFromIntent(intent)
 
         super.onNewIntent(intent)
         /*

@@ -1,5 +1,5 @@
 import React from 'react';
-import { waitFor, act, screen } from '@testing-library/react-native';
+import { waitFor, act } from '@testing-library/react-native';
 import {
   useCameraPermission,
   useCameraDevice,
@@ -274,10 +274,11 @@ describe('QrScanner', () => {
   });
 
   it('render matches snapshot', () => {
-    renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
-      state: initialState,
-    });
-    expect(screen.getByText('Scan a QR code')).toBeOnTheScreen();
+    const { toJSON } = renderWithProvider(
+      <QrScanner onScanSuccess={jest.fn()} />,
+      { state: initialState },
+    );
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('requests permission when hasPermission is false', async () => {

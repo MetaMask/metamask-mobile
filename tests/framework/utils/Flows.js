@@ -1,6 +1,8 @@
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
+import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
 import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
+import TimerHelper from '../TimerHelper';
 import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
@@ -156,6 +158,60 @@ export async function checkPredictionsModalIsVisible(device) {
     'predict-gtm-not-now-button',
   );
   await expect(notNowPredictionsModalButton).toBeVisible({ timeout: 10000 });
+}
+
+export async function importSRPFlow(device, srp, dismissModals = false) {
+  WalletMainScreen.device = device;
+  AccountListComponent.device = device;
+  AddAccountModal.device = device;
+  ImportFromSeedScreen.device = device;
+  const timers = [];
+  const timer = new TimerHelper(
+    'Time since the user clicks on "Account list" button until the account list is visible',
+    { ios: 2500, android: 3000 },
+    device,
+  );
+  const timer2 = new TimerHelper(
+    'Time since the user clicks on "Add account" button until the next modal is visible',
+    { ios: 1000, android: 1700 },
+    device,
+  );
+  const timer3 = new TimerHelper(
+    'Time since the user clicks on "Import SRP" button until SRP field is displayed',
+    { ios: 1700, android: 1700 },
+    device,
+  );
+  const timer4 = new TimerHelper(
+    'Time since the user clicks on "Continue" button on SRP screen until Wallet main screen is visible',
+    { ios: 5000, android: 2000 },
+    device,
+  );
+
+  await WalletMainScreen.tapIdenticon();
+  timer.start();
+  await AccountListComponent.isComponentDisplayed();
+  timer.stop();
+  await AccountListComponent.waitForSyncingToComplete();
+  await AccountListComponent.tapOnAddWalletButton();
+  timer2.start();
+  await AddAccountModal.isVisible();
+  timer2.stop();
+
+  await AddAccountModal.tapImportSrpButton();
+  timer3.start();
+  await ImportFromSeedScreen.isScreenTitleVisible(false);
+  timer3.stop();
+  await ImportFromSeedScreen.typeSecretRecoveryPhrase(srp, false);
+  await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard(false);
+
+  await ImportFromSeedScreen.tapContinueButton(false);
+  dismissModals ? await dissmissAllModals(device) : null;
+  timer4.start();
+  await WalletMainScreen.isMainWalletViewVisible();
+  timer4.stop();
+
+  timers.push(timer, timer2, timer3, timer4);
+  return timers;
 }
 
 export async function login(device, options = {}) {

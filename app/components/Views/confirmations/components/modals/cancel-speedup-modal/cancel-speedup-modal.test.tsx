@@ -66,7 +66,6 @@ const defaultGasValues = {
   networkFeeFiat: '$1.80',
   nativeTokenSymbol: 'ETH',
   isInitialGasReady: true,
-  isTransactionModifiable: true,
 };
 
 jest.mock('../../../hooks/gas/useCancelSpeedupGas', () => ({
@@ -85,11 +84,6 @@ jest.mock('../../../../../../util/transaction-controller', () => ({
 
 jest.mock('../../../hooks/gas/useGasFeeEstimates', () => ({
   useGasFeeEstimates: jest.fn(() => ({ gasFeeEstimates: {} })),
-}));
-
-jest.mock('../../../../../../core/ToastService/ToastService', () => ({
-  __esModule: true,
-  default: { showToast: jest.fn() },
 }));
 
 jest.mock('../../../context/gas-fee-modal-transaction', () => ({
@@ -275,45 +269,6 @@ describe('CancelSpeedupModal', () => {
     });
   });
 
-  it('does not show edit gas when transaction is not modifiable', () => {
-    mockedUseCancelSpeedupGas.mockReturnValue({
-      ...defaultGasValues,
-      isTransactionModifiable: false,
-    });
-
-    const { queryByTestId } = renderWithProvider(
-      <CancelSpeedupModal {...defaultProps} />,
-      { state: baseState },
-    );
-
-    expect(queryByTestId('cancel-speedup-edit-gas')).toBeNull();
-  });
-
-  it('dismisses gas modal when transaction becomes non-modifiable', async () => {
-    mockedUseCancelSpeedupGas.mockReturnValue({
-      ...defaultGasValues,
-      isTransactionModifiable: true,
-    });
-
-    const { getByTestId, queryByTestId, rerender } = renderWithProvider(
-      <CancelSpeedupModal {...defaultProps} />,
-      { state: baseState },
-    );
-
-    fireEvent.press(getByTestId('cancel-speedup-edit-gas'));
-    expect(getByTestId('gas-fee-modal')).toBeOnTheScreen();
-
-    mockedUseCancelSpeedupGas.mockReturnValue({
-      ...defaultGasValues,
-      isTransactionModifiable: false,
-    });
-    rerender(<CancelSpeedupModal {...defaultProps} />);
-
-    await waitFor(() => {
-      expect(queryByTestId('gas-fee-modal')).toBeNull();
-    });
-  });
-
   it('does not call onConfirm when isInitialGasReady is false', () => {
     mockedUseCancelSpeedupGas.mockReturnValue({
       ...defaultGasValues,
@@ -347,72 +302,6 @@ describe('CancelSpeedupModal', () => {
       expect(mockOnConfirm).toHaveBeenCalledWith({
         maxFeePerGas: '0x1',
         maxPriorityFeePerGas: '0x1',
-      });
-    });
-  });
-
-  describe('when transaction is no longer modifiable', () => {
-    const notModifiableGasValues = {
-      ...defaultGasValues,
-      isTransactionModifiable: false,
-    };
-
-    it('hides the edit gas icon when isTransactionModifiable is false', () => {
-      mockedUseCancelSpeedupGas.mockReturnValue(notModifiableGasValues);
-
-      const { queryByTestId } = renderWithProvider(
-        <CancelSpeedupModal {...defaultProps} />,
-        { state: baseState },
-      );
-
-      expect(queryByTestId('cancel-speedup-edit-gas')).toBeNull();
-    });
-
-    it('still calls onConfirm when isTransactionModifiable is false', async () => {
-      mockedUseCancelSpeedupGas.mockReturnValue(notModifiableGasValues);
-
-      const { getByText } = renderWithProvider(
-        <CancelSpeedupModal {...defaultProps} />,
-        { state: baseState },
-      );
-
-      fireEvent.press(getByText('Confirm'));
-
-      await waitFor(() => {
-        expect(mockOnConfirm).toHaveBeenCalledWith(
-          notModifiableGasValues.paramsForController,
-        );
-      });
-    });
-
-    it('does not close the parent modal when tx becomes non-modifiable', async () => {
-      mockedUseCancelSpeedupGas.mockReturnValue(notModifiableGasValues);
-
-      renderWithProvider(<CancelSpeedupModal {...defaultProps} />, {
-        state: baseState,
-      });
-
-      await waitFor(() => {
-        expect(mockOnClose).not.toHaveBeenCalled();
-      });
-    });
-
-    it('auto-closes gas modal when tx becomes non-modifiable', async () => {
-      mockedUseCancelSpeedupGas.mockReturnValue(defaultGasValues);
-
-      const { getByTestId, queryByTestId, rerender } = renderWithProvider(
-        <CancelSpeedupModal {...defaultProps} />,
-        { state: baseState },
-      );
-
-      fireEvent.press(getByTestId('cancel-speedup-edit-gas'));
-      expect(getByTestId('gas-fee-modal')).toBeOnTheScreen();
-
-      mockedUseCancelSpeedupGas.mockReturnValue(notModifiableGasValues);
-      rerender(<CancelSpeedupModal {...defaultProps} />);
-
-      await waitFor(() => {
-        expect(queryByTestId('gas-fee-modal')).toBeNull();
       });
     });
   });

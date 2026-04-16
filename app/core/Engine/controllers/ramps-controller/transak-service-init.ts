@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { MessengerClientInitFunction } from '../../types';
+import { ControllerInitFunction } from '../../types';
 import {
   TransakService,
   TransakServiceMessenger,
@@ -27,7 +27,7 @@ function getTransakContext(): string {
   return Platform.OS === 'ios' ? 'mobile-ios' : 'mobile-android';
 }
 
-export const transakServiceInit: MessengerClientInitFunction<
+export const transakServiceInit: ControllerInitFunction<
   TransakService,
   TransakServiceMessenger
 > = ({ controllerMessenger }) => {

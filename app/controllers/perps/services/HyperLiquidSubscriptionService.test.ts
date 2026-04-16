@@ -59,10 +59,6 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
     detailedOrderType: order.orderType || 'Limit',
     isTrigger: order.isTrigger ?? false,
     reduceOnly: order.reduceOnly ?? false,
-    triggerPrice: order.triggerPx,
-    ...(typeof order.isPositionTpsl === 'boolean'
-      ? { isPositionTpsl: order.isPositionTpsl }
-      : {}),
   })),
   adaptAccountStateFromSDK: jest.fn(() => ({
     availableBalance: '1000.00',

@@ -83,7 +83,6 @@ export const SwapsConfirmButton = ({
     blockaidError,
     quoteFetchError,
     isNoQuotesAvailable,
-    isActiveQuoteForCurrentTokenPair,
   } = useBridgeQuoteData({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -144,7 +143,6 @@ export const SwapsConfirmButton = ({
   const isSubmitDisabled =
     !hasNonZeroSourceAmount ||
     isAwaitingQuote ||
-    (activeQuote && !isActiveQuoteForCurrentTokenPair) ||
     isPendingQuoteRefresh ||
     (isLoading && !activeQuote) ||
     hasInsufficientBalance ||

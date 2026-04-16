@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   EarnController,
   EarnControllerMessenger,
@@ -11,7 +11,7 @@ import {
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const earnControllerInit: MessengerClientInitFunction<
+export const earnControllerInit: ControllerInitFunction<
   EarnController,
   EarnControllerMessenger
 > = ({ controllerMessenger, getController }) => {

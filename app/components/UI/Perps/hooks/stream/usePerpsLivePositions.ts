@@ -99,27 +99,15 @@ export function usePerpsLivePositions(
 ): UsePerpsLivePositionsReturn {
   const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
-  const initialChannelPositions = stream.positions.getSnapshot();
-  const [isInitialLoading, setIsInitialLoading] = useState(() => {
-    if (
-      initialChannelPositions !== null &&
-      initialChannelPositions !== undefined
-    ) {
-      return false;
-    }
-    const hasCached = hasPreloadedData('cachedPositions');
-    return !hasCached;
-  });
+  const [isInitialLoading, setIsInitialLoading] = useState(
+    () => !hasPreloadedData('cachedPositions'),
+  );
   const hasReceivedFirstUpdate = useRef(false);
 
   // Store raw positions and price data in state
-  const [rawPositions, setRawPositions] = useState<Position[]>(() => {
-    const cached =
-      initialChannelPositions ??
-      getPreloadedData<Position[]>('cachedPositions') ??
-      EMPTY_POSITIONS;
-    return cached;
-  });
+  const [rawPositions, setRawPositions] = useState<Position[]>(
+    () => getPreloadedData<Position[]>('cachedPositions') ?? EMPTY_POSITIONS,
+  );
   const [priceData, setPriceData] = useState<Record<string, PriceUpdate>>({});
 
   // Derive enriched positions synchronously to avoid one-frame flash

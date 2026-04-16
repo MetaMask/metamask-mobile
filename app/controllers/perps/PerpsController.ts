@@ -21,9 +21,6 @@ import {
   PERPS_CONSTANTS,
   MARKET_SORTING_CONFIG,
   PROVIDER_CONFIG,
-  PERPS_DISK_CACHE_MARKETS,
-  PERPS_DISK_CACHE_USER_DATA,
-  buildProviderCacheKey,
 } from './constants/perpsConfig';
 import type { SortOptionId } from './constants/perpsConfig';
 import type { PerpsControllerMethodActions } from './PerpsController-method-action-types';
@@ -122,11 +119,6 @@ import {
 } from './types/transactionTypes';
 import { getSelectedEvmAccount } from './utils/accountUtils';
 import { ensureError } from './utils/errorUtils';
-import {
-  hydrateFromDiskSync,
-  persistMarketEntriesToDisk,
-  persistUserEntriesToDisk,
-} from './utils/perpsDiskPersistence';
 import type { SortDirection } from './utils/sortMarkets';
 import { wait } from './utils/wait';
 
@@ -1000,10 +992,6 @@ export class PerpsController extends BaseController<
 
     // Migrate old persisted data without accountAddress
     this.#migrateRequestsIfNeeded();
-
-    // Eagerly hydrate in-memory caches from disk so hooks see data on first render.
-    // Must happen at construction time — before any React component mounts.
-    this.#hydrateCacheFromDiskSync();
   }
 
   // ============================================================================
@@ -1034,58 +1022,38 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Resolve the provider ids that should participate in aggregated cache reads.
+   * Build a cache key for per-provider market data.
+   * Format: "providerId:network" (e.g. 'hyperliquid:mainnet', 'myx:testnet')
    *
-   * Providers can still be registering when the first render happens, so we
-   * also look at cache keys to recover disk-hydrated provider snapshots before
-   * `init()` finishes populating `this.providers`.
-   *
-   * @param cacheKeys - Cache keys currently present in the relevant cache map.
-   * @returns Provider ids that should be included in aggregated reads.
+   * @param providerId - The provider identifier.
+   * @param isTestnet - Whether the provider is on testnet.
+   * @returns The cache key string.
    */
-  #getAggregatedCacheProviderIds(cacheKeys: string[]): string[] {
-    const providerIds = new Set<string>();
-    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+  #marketCacheKey(providerId: string, isTestnet: boolean): string {
+    return `${providerId}:${isTestnet ? 'testnet' : 'mainnet'}`;
+  }
 
-    for (const [providerId] of this.providers) {
-      providerIds.add(providerId);
+  /**
+   * Determine the effective testnet flag for a given provider.
+   * MYX may be forced to testnet via PROVIDER_CONFIG.MYX_TESTNET_ONLY.
+   *
+   * @param providerId - The provider identifier.
+   * @returns Whether this provider should use testnet.
+   */
+  #providerIsTestnet(providerId: string): boolean {
+    if (providerId === 'myx') {
+      return PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet;
     }
-
-    for (const key of cacheKeys) {
-      const [providerId, network] = key.split(':');
-      if (
-        !providerId ||
-        network !== currentNetwork ||
-        providerId === 'aggregated'
-      ) {
-        continue;
-      }
-
-      if (
-        providerId === 'hyperliquid' ||
-        (providerId === 'myx' && this.#isMYXProviderEnabled()) ||
-        this.providers.has(providerId as PerpsProviderType)
-      ) {
-        providerIds.add(providerId);
-      }
-    }
-
-    return Array.from(providerIds);
+    return this.state.isTestnet;
   }
 
   /**
    * Read cached market data for the currently active provider (or aggregated).
    * Returns null when no valid cache exists or when cache has expired.
    *
-   * @param options - Optional settings.
-   * @param options.skipTTL - When true, bypass the 5-minute TTL check.
-   * Used during initial render so disk-hydrated structural data (with
-   * placeholder prices) is returned regardless of age.
    * @returns The cached market data array, or null if no valid cache.
    */
-  getCachedMarketDataForActiveProvider(options?: {
-    skipTTL?: boolean;
-  }): PerpsMarketData[] | null {
+  getCachedMarketDataForActiveProvider(): PerpsMarketData[] | null {
     const { activeProvider } = this.state;
     const cache = this.state.cachedMarketDataByProvider;
 
@@ -1093,10 +1061,11 @@ export class PerpsController extends BaseController<
       // Assemble from all registered provider entries
       const assembled: PerpsMarketData[] = [];
       let oldestTimestamp = Infinity;
-      for (const providerId of this.#getAggregatedCacheProviderIds(
-        Object.keys(cache),
-      )) {
-        const key = buildProviderCacheKey(providerId, this.state.isTestnet);
+      for (const [providerId] of this.providers) {
+        const key = this.#marketCacheKey(
+          providerId,
+          this.#providerIsTestnet(providerId),
+        );
         const entry = cache[key];
         if (!entry || entry.data.length === 0) {
           continue;
@@ -1108,25 +1077,22 @@ export class PerpsController extends BaseController<
         return null;
       }
       // Check TTL against the oldest entry
-      if (
-        !options?.skipTTL &&
-        Date.now() - oldestTimestamp > PerpsController.#preloadGuardMs * 10
-      ) {
+      if (Date.now() - oldestTimestamp > PerpsController.#preloadGuardMs * 10) {
         return null;
       }
       return assembled;
     }
 
     // Single provider mode
-    const key = buildProviderCacheKey(activeProvider, this.state.isTestnet);
+    const key = this.#marketCacheKey(
+      activeProvider,
+      this.#providerIsTestnet(activeProvider),
+    );
     const entry = cache[key];
     if (!entry || entry.data.length === 0) {
       return null;
     }
-    if (
-      !options?.skipTTL &&
-      Date.now() - entry.timestamp > PerpsController.#preloadGuardMs * 10
-    ) {
+    if (Date.now() - entry.timestamp > PerpsController.#preloadGuardMs * 10) {
       return null;
     }
     return entry.data;
@@ -1137,13 +1103,9 @@ export class PerpsController extends BaseController<
    * Returns null when no valid cache exists, cache has expired, or address
    * does not match the currently selected EVM account.
    *
-   * @param options - Optional settings.
-   * @param options.skipTTL - When true, bypass the 60s staleness check.
-   * Used during initial render so disk-hydrated user data (positions/orders)
-   * is returned regardless of age, avoiding a skeleton flash.
    * @returns The cached user data, or null if no valid cache.
    */
-  getCachedUserDataForActiveProvider(options?: { skipTTL?: boolean }): {
+  getCachedUserDataForActiveProvider(): {
     positions: Position[];
     orders: Order[];
     accountState: AccountState | null;
@@ -1165,15 +1127,13 @@ export class PerpsController extends BaseController<
       // Can't determine current account — trust the cache
     }
 
-    const skipTTL = options?.skipTTL ?? false;
-
     const isValidEntry = (
       entry: { timestamp: number; address: string } | undefined,
     ): entry is { timestamp: number; address: string } => {
       if (!entry) {
         return false;
       }
-      if (!skipTTL && Date.now() - entry.timestamp >= staleCutoff) {
+      if (Date.now() - entry.timestamp >= staleCutoff) {
         return false;
       }
       if (
@@ -1192,10 +1152,11 @@ export class PerpsController extends BaseController<
       let defaultAccountState: AccountState | null = null;
       let hasValidEntry = false;
 
-      for (const providerId of this.#getAggregatedCacheProviderIds(
-        Object.keys(cache),
-      )) {
-        const key = buildProviderCacheKey(providerId, this.state.isTestnet);
+      for (const [providerId] of this.providers) {
+        const key = this.#marketCacheKey(
+          providerId,
+          this.#providerIsTestnet(providerId),
+        );
         const entry = cache[key];
         if (!isValidEntry(entry)) {
           continue;
@@ -1221,7 +1182,10 @@ export class PerpsController extends BaseController<
     }
 
     // Single provider mode
-    const key = buildProviderCacheKey(activeProvider, this.state.isTestnet);
+    const key = this.#marketCacheKey(
+      activeProvider,
+      this.#providerIsTestnet(activeProvider),
+    );
     const entry = cache[key];
     if (!entry || !isValidEntry(entry)) {
       return null;
@@ -1730,9 +1694,7 @@ export class PerpsController extends BaseController<
       // IMPORTANT: Must use import() — NOT require() — for core/extension tree-shaking.
       // require() is synchronous and bundlers include it in the main bundle.
       // import() enables true code splitting so MYX is excluded when not enabled.
-      this.#myxRegistrationPromise = import(
-        /* webpackIgnore: true */ './providers/MYXProvider'
-      )
+      this.#myxRegistrationPromise = import('./providers/MYXProvider')
         .then(({ MYXProvider }) => {
           this.registerMYXProvider(MYXProvider);
           return undefined;
@@ -2949,42 +2911,6 @@ export class PerpsController extends BaseController<
   static readonly #preloadGuardMs = 30_000; // 30s debounce
 
   /**
-   * Synchronously hydrate in-memory caches from disk-persisted snapshots.
-   * Uses the sync MMKV API (~1ms) so data is available before any hook reads.
-   * Falls back to no-op when getItemSync is not available (e.g. E2E).
-   * All computed updates are applied in a single this.update() call to avoid
-   * triggering state subscribers once per provider entry.
-   */
-  #hydrateCacheFromDiskSync(): void {
-    const { marketUpdates, userUpdates, stats } = hydrateFromDiskSync(
-      this.#options.infrastructure.diskCache,
-      this.state.cachedMarketDataByProvider,
-      this.state.cachedUserDataByProvider,
-      PerpsController.#preloadGuardMs,
-    );
-
-    const hasMarketUpdates = Object.keys(marketUpdates).length > 0;
-    const hasUserUpdates = Object.keys(userUpdates).length > 0;
-    if (hasMarketUpdates || hasUserUpdates) {
-      this.update((state) => {
-        if (hasMarketUpdates) {
-          Object.assign(state.cachedMarketDataByProvider, marketUpdates);
-        }
-        if (hasUserUpdates) {
-          Object.assign(state.cachedUserDataByProvider, userUpdates);
-        }
-      });
-    }
-
-    this.#debugLog('PerpsController: Disk cache hydrated (sync)', {
-      markets: stats.marketCount,
-      positions: stats.userPositions,
-      orders: stats.userOrders,
-      duration_ms: stats.durationMs,
-    });
-  }
-
-  /**
    * Start background market data preloading.
    * Fetches market data immediately and refreshes every 5 minutes.
    * Watches for isTestnet and hip3ConfigVersion changes to re-preload.
@@ -3089,12 +3015,6 @@ export class PerpsController extends BaseController<
         this.update((state) => {
           state.cachedUserDataByProvider = {};
         });
-        // Invalidate disk-cached user data for the old account
-        this.#options.infrastructure.diskCache
-          .removeItem(PERPS_DISK_CACHE_USER_DATA)
-          .catch(() => {
-            /* fire-and-forget */
-          });
         // Only preload if the new account is an EVM account
         if (currentAddress) {
           this.#performUserDataPreload().catch(() => {
@@ -3159,9 +3079,9 @@ export class PerpsController extends BaseController<
     const actualProviderId = this.activeProviderInstance
       ? this.state.activeProvider // includes 'aggregated'
       : 'hyperliquid';
-    const cacheKey = buildProviderCacheKey(
+    const cacheKey = this.#marketCacheKey(
       actualProviderId,
-      this.state.isTestnet,
+      this.#providerIsTestnet(actualProviderId),
     );
 
     const now = Date.now();
@@ -3192,20 +3112,10 @@ export class PerpsController extends BaseController<
       });
 
       this.#debugLog('PerpsController: Fetching market data in background');
-      this.#debugLog('PerpsController: rest_preload_start');
       const data = await this.getMarketDataWithPrices({ standalone: true });
-      this.#debugLog('PerpsController: rest_preload_end', {
-        duration_ms: Math.round(performance.now() - preloadStart),
-        markets: data.length,
-      });
 
       // Store under per-provider key(s)
       const ts = Date.now();
-      const marketDiskEntries: {
-        providerNetworkKey: string;
-        data: PerpsMarketData[];
-        timestamp: number;
-      }[] = [];
       if (
         this.state.activeProvider === 'aggregated' &&
         this.activeProviderInstance
@@ -3224,12 +3134,7 @@ export class PerpsController extends BaseController<
         }
         this.update((state) => {
           for (const [pid, slice] of byProvider) {
-            const key = buildProviderCacheKey(pid, this.state.isTestnet);
-            marketDiskEntries.push({
-              providerNetworkKey: key,
-              data: slice,
-              timestamp: ts,
-            });
+            const key = this.#marketCacheKey(pid, this.#providerIsTestnet(pid));
             state.cachedMarketDataByProvider[key] = {
               data: slice,
               timestamp: ts,
@@ -3242,11 +3147,6 @@ export class PerpsController extends BaseController<
           };
         });
       } else {
-        marketDiskEntries.push({
-          providerNetworkKey: cacheKey,
-          data,
-          timestamp: ts,
-        });
         this.update((state) => {
           state.cachedMarketDataByProvider[cacheKey] = {
             data,
@@ -3254,11 +3154,6 @@ export class PerpsController extends BaseController<
           };
         });
       }
-
-      persistMarketEntriesToDisk(
-        this.#options.infrastructure.diskCache,
-        marketDiskEntries,
-      );
 
       this.#debugLog('PerpsController: Market data preloaded', {
         marketCount: data.length,
@@ -3323,9 +3218,9 @@ export class PerpsController extends BaseController<
     const actualProviderId = this.activeProviderInstance
       ? this.state.activeProvider // includes 'aggregated'
       : 'hyperliquid';
-    const userCacheKey = buildProviderCacheKey(
+    const userCacheKey = this.#marketCacheKey(
       actualProviderId,
-      this.state.isTestnet,
+      this.#providerIsTestnet(actualProviderId),
     );
 
     // Skip if cache is fresh and for same account
@@ -3424,25 +3319,9 @@ export class PerpsController extends BaseController<
           accountState.providerId ?? fallbackProviderId,
         ).accountState = accountState;
 
-        const diskEntries: {
-          providerNetworkKey: string;
-          address: string;
-          positions: Position[];
-          orders: Order[];
-          accountState: AccountState | null;
-          timestamp: number;
-        }[] = [];
         this.update((state) => {
           for (const [pid, data] of byProvider) {
-            const key = buildProviderCacheKey(pid, this.state.isTestnet);
-            diskEntries.push({
-              providerNetworkKey: key,
-              address: userAddress,
-              positions: data.positions,
-              orders: data.orders,
-              accountState: data.accountState,
-              timestamp: ts,
-            });
+            const key = this.#marketCacheKey(pid, this.#providerIsTestnet(pid));
             state.cachedUserDataByProvider[key] = {
               ...data,
               timestamp: ts,
@@ -3458,34 +3337,17 @@ export class PerpsController extends BaseController<
             address: userAddress,
           };
         });
-
-        persistUserEntriesToDisk(
-          this.#options.infrastructure.diskCache,
-          diskEntries,
-        );
       } else {
         // Single provider — store directly under its key
-        const ts = Date.now();
         this.update((state) => {
           state.cachedUserDataByProvider[userCacheKey] = {
             positions,
             orders,
             accountState,
-            timestamp: ts,
+            timestamp: Date.now(),
             address: userAddress,
           };
         });
-
-        persistUserEntriesToDisk(this.#options.infrastructure.diskCache, [
-          {
-            providerNetworkKey: userCacheKey,
-            address: userAddress,
-            positions,
-            orders,
-            accountState,
-            timestamp: ts,
-          },
-        ]);
       }
 
       this.#debugLog('PerpsController: User data preloaded', {

@@ -137,7 +137,7 @@ describe('AccountStatus', () => {
         fireEvent.press(primaryButton);
 
         expect(StackActions.replace).toHaveBeenCalledWith(
-          Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
+          Routes.ONBOARDING.REHYDRATE,
           expect.objectContaining({
             [PREVIOUS_SCREEN]: Routes.ONBOARDING.ONBOARDING,
             oauthLoginSuccess: undefined,
@@ -181,7 +181,7 @@ describe('AccountStatus', () => {
         fireEvent.press(primaryButton);
 
         expect(StackActions.replace).toHaveBeenCalledWith(
-          Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
+          Routes.ONBOARDING.REHYDRATE,
           expect.objectContaining({
             [PREVIOUS_SCREEN]: Routes.ONBOARDING.ONBOARDING,
             oauthLoginSuccess: true,

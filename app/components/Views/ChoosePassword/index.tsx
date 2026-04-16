@@ -57,10 +57,6 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  AccountType,
-  getSocialAccountType,
-} from '../../../constants/onboarding';
 import type {
   IMetaMetricsEvent,
   ITrackingEvent,
@@ -94,6 +90,7 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
+import { getSocialAccountType } from '../../../constants/onboarding';
 
 interface KeyringState {
   type: string;
@@ -441,9 +438,7 @@ const ChoosePassword = () => {
     if (!validation.valid) return;
 
     const provider = route.params?.provider;
-    const accountType = provider
-      ? getSocialAccountType(provider, false)
-      : AccountType.Metamask;
+    const accountType = provider ? `metamask_${provider}` : 'metamask';
     const isSocialLogin = getOauth2LoginSuccess();
 
     track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {

@@ -29,23 +29,6 @@ class PerpsMarketListView {
     );
   }
 
-  /**
-   * HeaderCompactStandard back on explore market list (see PerpsMarketListView.tsx).
-   * Navigates from the market list back to Perps portfolio home.
-   */
-  get headerBackButton(): DetoxElement {
-    return Matchers.getElementByID(
-      `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
-    );
-  }
-
-  async tapHeaderBackToPortfolioHome(): Promise<void> {
-    await Gestures.waitAndTap(this.headerBackButton, {
-      elemDescription: 'Market list header back (to Perps portfolio home)',
-      timeout: 15000,
-    });
-  }
-
   get searchBar() {
     return Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.SEARCH_BAR);
   }

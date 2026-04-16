@@ -19,7 +19,7 @@ describe('TextFieldSearch', () => {
       <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
     );
 
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('renders TextFieldSearch component', () => {

@@ -54,11 +54,7 @@ import { TraceName } from '../../../../../util/trace';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { useWithdrawValidation } from '../../hooks/useWithdrawValidation';
-import {
-  formatPerpsFiat,
-  parseCurrencyString,
-  truncateToTwoDecimals,
-} from '../../utils/formatUtils';
+import { formatPerpsFiat, parseCurrencyString } from '../../utils/formatUtils';
 
 import type { Hex } from '@metamask/utils';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
@@ -108,10 +104,11 @@ const PerpsWithdrawView: React.FC = () => {
   // Get withdrawal tokens from hook
   const { destToken } = useWithdrawTokens();
 
-  // Truncate to 2 decimals so the user can withdraw exactly what they see.
+  // Parse available balance from perps account state
   const availableBalance = useMemo(() => {
     if (!account?.availableBalance) return 0;
-    return truncateToTwoDecimals(parseCurrencyString(account.availableBalance));
+    // Use parseCurrencyString to properly parse formatted currency
+    return parseCurrencyString(account.availableBalance);
   }, [account?.availableBalance]);
 
   const formattedBalance = useMemo(

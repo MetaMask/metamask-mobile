@@ -2,7 +2,6 @@
  * Utility functions for error handling across the application.
  * These are general-purpose utilities, not domain-specific.
  */
-import { hasProperty } from '@metamask/utils';
 
 /**
  * Ensures we have a proper Error object for logging.
@@ -27,7 +26,7 @@ export function ensureError(error: unknown, context?: string): Error {
     return new Error(error);
   }
   return new Error(
-    typeof error === 'object' && error !== null && hasProperty(error, 'message')
+    typeof error === 'object' && error !== null && 'message' in error
       ? String((error as { message: unknown }).message)
       : 'Unknown error',
   );

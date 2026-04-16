@@ -471,8 +471,9 @@ export const createMockAPIServer = async (
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
 
-  // Feature Flags — use lower priority so testSpecificMock overrides take precedence
-  await setupRemoteFeatureFlagsMock(mockServer, {}, 998);
+  // Feature Flags
+  // testSpecificMock can override this if needed
+  await setupRemoteFeatureFlagsMock(mockServer);
 
   const endpoints = await mockServer.getMockedEndpoints();
   logger.debug(`Mocked endpoints: ${endpoints.length}`);
@@ -680,17 +681,14 @@ export async function withFixtures(
       mockServerInstance &&
       shouldRunAnalyticsExpectations(analyticsExpectations)
     ) {
-      logger.debug('Running analytics expectations');
       try {
         await runAnalyticsExpectations(
           mockServerInstance.server,
           analyticsExpectations,
         );
-        logger.debug('Analytics expectations completed');
       } catch (analyticsError) {
         logger.error('Error in analyticsExpectations:', analyticsError);
         cleanupErrors.push(analyticsError as Error);
-        logger.error('Analytics expectations failed');
       }
     }
 

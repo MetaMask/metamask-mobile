@@ -7,7 +7,6 @@
 #import <Firebase.h>
 #import <BrazeKit/BrazeKit-Swift.h>
 #import "BrazeReactBridge.h"
-#import "BrazeReactUtils.h"
 
 static Braze *_braze = nil;
 
@@ -56,7 +55,6 @@ static Braze *_braze = nil;
     configuration.push.automation.requestAuthorizationAtLaunch = NO;
     Braze *braze = [BrazeReactBridge initBraze:configuration];
     AppDelegate.braze = braze;
-    [[BrazeReactUtils sharedInstance] populateInitialPayloadFromLaunchOptions:launchOptions];
   }
 
   return [super application:application didFinishLaunchingWithOptions:launchOptions];

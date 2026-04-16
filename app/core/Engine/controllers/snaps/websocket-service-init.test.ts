@@ -1,6 +1,6 @@
 import { WebSocketService } from '@metamask/snaps-controllers';
-import { MessengerClientInitRequest } from '../../types';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { ControllerInitRequest } from '../../types';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import {
   getWebSocketServiceMessenger,
   WebSocketServiceMessenger,
@@ -10,14 +10,14 @@ import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<WebSocketServiceMessenger>
+  ControllerInitRequest<WebSocketServiceMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getWebSocketServiceMessenger(baseMessenger),
     initMessenger: undefined,
   };

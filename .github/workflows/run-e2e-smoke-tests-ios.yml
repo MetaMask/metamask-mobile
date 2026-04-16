@@ -235,24 +235,6 @@ jobs:
       metamask_environment: 'qa'
     secrets: inherit
 
-  seedless-onboarding-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSeedlessOnboarding')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: seedless-onboarding-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeSeedlessOnboarding'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      metamask_environment: 'qa'
-    secrets: inherit
-
   report-ios-smoke-tests:
     name: Report iOS Smoke Tests
     runs-on: ubuntu-latest
@@ -270,7 +252,6 @@ jobs:
       - card-ios-smoke
       - ramps-ios-smoke
       - multichain-api-ios-smoke
-      - seedless-onboarding-ios-smoke
     steps:
       - name: Checkout
         uses: actions/checkout@v4

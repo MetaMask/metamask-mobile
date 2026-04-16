@@ -13,7 +13,7 @@ import {
 describe('Label', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(<Label>{SAMPLE_LABEL_TEXT}</Label>);
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
   it('should render Label', () => {
     const wrapper = shallow(<Label>{SAMPLE_LABEL_TEXT}</Label>);

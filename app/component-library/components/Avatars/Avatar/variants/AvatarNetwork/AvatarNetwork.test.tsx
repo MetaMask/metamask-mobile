@@ -13,7 +13,7 @@ import {
 describe('AvatarNetwork', () => {
   it('should render correctly', () => {
     const wrapper = shallow(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should render remote network image', () => {

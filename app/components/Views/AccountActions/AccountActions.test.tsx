@@ -575,39 +575,6 @@ describe('AccountActions', () => {
   });
 
   describe('export srp', () => {
-    const MOCK_HD_ACCOUNT_WITH_ENTROPY = {
-      ...MOCK_ACCOUNT,
-      options: { entropySource: 'hd-keyring-entropy-id' },
-    };
-
-    it('navigates to full-screen reveal SRP', () => {
-      mockedUseRoute.mockImplementation(() => ({
-        key: 'mock-key',
-        name: 'mock-route',
-        params: {
-          selectedAccount: MOCK_HD_ACCOUNT_WITH_ENTROPY,
-        },
-      }));
-
-      const { getByTestId } = renderWithProvider(<AccountActions />, {
-        state: initialState,
-      });
-
-      fireEvent.press(
-        getByTestId(
-          AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
-        ),
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
-        {
-          keyringId: 'hd-keyring-entropy-id',
-          popToTopOnDone: true,
-        },
-      );
-    });
-
     it.each([
       { account: MOCK_ACCOUNT },
       { account: MOCK_BTC_ACCOUNT },
@@ -723,7 +690,7 @@ describe('AccountActions', () => {
         state: initialState,
       });
 
-      expect(queryByText('Switch to Smart account')).not.toBeOnTheScreen();
+      expect(queryByText('Switch to Smart account')).toBeNull();
     });
 
     it('option should not be displayed for hardware wallet accounts', () => {
@@ -733,7 +700,7 @@ describe('AccountActions', () => {
         state: initialState,
       });
 
-      expect(queryByText('Switch to Smart account')).not.toBeOnTheScreen();
+      expect(queryByText('Switch to Smart account')).toBeNull();
     });
   });
 

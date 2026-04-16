@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   PreferencesController,
   type PreferencesControllerMessenger,
@@ -12,7 +12,7 @@ import AppConstants from '../../AppConstants';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const preferencesControllerInit: MessengerClientInitFunction<
+export const preferencesControllerInit: ControllerInitFunction<
   PreferencesController,
   PreferencesControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

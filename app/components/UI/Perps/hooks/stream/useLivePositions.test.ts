@@ -12,7 +12,6 @@ let mockCachedUserData: {
   orders: unknown[];
   accountState: unknown;
 } | null = null;
-let mockChannelPositionsSnapshot: Position[] | null | undefined;
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -30,7 +29,6 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     positions: {
       subscribe: mockPositionsSubscribe,
-      getSnapshot: () => mockChannelPositionsSnapshot,
     },
     prices: {
       subscribe: mockPricesSubscribe,
@@ -68,7 +66,6 @@ describe('usePerpsLivePositions', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockCachedUserData = null;
-    mockChannelPositionsSnapshot = undefined;
   });
 
   afterEach(() => {
@@ -683,23 +680,6 @@ describe('usePerpsLivePositions', () => {
   });
 
   describe('initial state from cache', () => {
-    it('seeds positions from the channel snapshot before controller cache', () => {
-      const channelPositions: Position[] = [
-        { ...mockPosition, symbol: 'BTC-PERP', size: '2.0' },
-        { ...mockPosition, symbol: 'SOL-PERP', size: '3.0' },
-      ];
-
-      mockChannelPositionsSnapshot = channelPositions;
-      mockCachedUserData = null;
-      mockPositionsSubscribe.mockReturnValue(jest.fn());
-      mockPricesSubscribe.mockReturnValue(jest.fn());
-
-      const { result } = renderHook(() => usePerpsLivePositions());
-
-      expect(result.current.positions).toEqual(channelPositions);
-      expect(result.current.isInitialLoading).toBe(false);
-    });
-
     it('seeds positions from cache when fresh cached data exists', () => {
       const cachedPositions: Position[] = [
         { ...mockPosition, symbol: 'BTC-PERP', size: '2.0' },

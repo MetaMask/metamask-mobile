@@ -3,7 +3,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { updateSelectedGasFeeToken } from '../../../../util/transaction-controller';
 import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
 import { useIsGaslessSupported } from './gas/useIsGaslessSupported';
-import { useConfirmationMetricEvents } from './metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useHasInsufficientBalance } from './useHasInsufficientBalance';
 
@@ -15,23 +14,18 @@ export function useAutomaticGasFeeTokenSelect() {
     (useTransactionMetadataRequest() as TransactionMeta) ??
     ({} as TransactionMeta);
   const [checked, setChecked] = useState(false);
-  const { setConfirmationMetric } = useConfirmationMetricEvents();
 
   const {
     gasFeeTokens,
     id: transactionId,
     selectedGasFeeToken,
-    excludeNativeTokenForFee,
   } = transactionMeta;
 
   const [first, second] = gasFeeTokens || [];
-  const shouldSkipNativeToken =
-    first?.tokenAddress === NATIVE_TOKEN_ADDRESS &&
-    (!isSmartTransaction || excludeNativeTokenForFee);
-
-  const firstGasFeeTokenAddress = shouldSkipNativeToken
-    ? second?.tokenAddress
-    : first?.tokenAddress;
+  const firstGasFeeTokenAddress =
+    !isSmartTransaction && first?.tokenAddress === NATIVE_TOKEN_ADDRESS
+      ? second?.tokenAddress
+      : first?.tokenAddress;
 
   const selectFirstToken = useCallback(() => {
     if (!transactionId || !firstGasFeeTokenAddress) {
@@ -40,47 +34,17 @@ export function useAutomaticGasFeeTokenSelect() {
     updateSelectedGasFeeToken(transactionId, firstGasFeeTokenAddress);
   }, [transactionId, firstGasFeeTokenAddress]);
 
-  /**
-   * Selecting first gas fee token when `selectedGasFeeToken` is set but
-   * actually doesn't exist in the gasFeeTokens list.
-   * Since this logic is introduced with Tempo we use `excludeNativeTokenForFee`
-   * (only be set for Tempo as of now) to reduce regression risks.
-   */
-  const hasSelectedGasFeeTokenNotInList =
-    excludeNativeTokenForFee &&
-    selectedGasFeeToken &&
-    !gasFeeTokens?.find(
-      ({ tokenAddress }) =>
-        tokenAddress.toLocaleLowerCase() ===
-        selectedGasFeeToken.toLocaleLowerCase(),
-    );
-
   const shouldSelect =
-    Boolean(firstGasFeeTokenAddress) &&
     !checked &&
-    ((isGaslessSupported && hasInsufficientBalance && !selectedGasFeeToken) ||
-      hasSelectedGasFeeTokenNotInList);
+    isGaslessSupported &&
+    hasInsufficientBalance &&
+    !selectedGasFeeToken &&
+    Boolean(firstGasFeeTokenAddress);
 
   useEffect(() => {
     if (shouldSelect) {
       selectFirstToken();
-      const automaticFeeTokenSelectedSymbol = gasFeeTokens?.find(
-        ({ tokenAddress }) => tokenAddress === firstGasFeeTokenAddress,
-      )?.symbol;
-      setConfirmationMetric({
-        properties: {
-          // eslint-disable-next-line @typescript-eslint/naming-convention
-          gas_payment_token_default: true,
-          gas_payment_token_default_symbol: automaticFeeTokenSelectedSymbol,
-        },
-      });
       setChecked(true);
     }
-  }, [
-    shouldSelect,
-    selectFirstToken,
-    gasFeeTokens,
-    firstGasFeeTokenAddress,
-    setConfirmationMetric,
-  ]);
+  }, [shouldSelect, selectFirstToken]);
 }

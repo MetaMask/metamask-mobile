@@ -2,7 +2,7 @@ import {
   SnapRegistryController,
   SnapRegistryControllerMessenger,
 } from '@metamask/snaps-controllers';
-import { MessengerClientInitFunction } from '../../types';
+import { ControllerInitFunction } from '../../types';
 import { getVersion } from 'react-native-device-info';
 import { SemVerVersion } from '@metamask/utils';
 
@@ -14,7 +14,7 @@ import { SemVerVersion } from '@metamask/utils';
  * @param request.persistedState - The persisted state of the extension.
  * @returns The initialized controller.
  */
-export const snapRegistryControllerInit: MessengerClientInitFunction<
+export const snapRegistryControllerInit: ControllerInitFunction<
   SnapRegistryController,
   SnapRegistryControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

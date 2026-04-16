@@ -5,6 +5,8 @@ import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useTheme } from '../../../../../util/theme';
+import { getDepositNavbarOptions } from '../../../Navbar';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
 import { getRampRoutingDecision } from '../../../../../reducers/fiatOrders';
 import { normalizeProviderCode } from '@metamask/ramps-controller';
@@ -20,17 +22,20 @@ import ErrorView from '../../Aggregator/components/ErrorView';
 import Logger from '../../../../../util/Logger';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
-import {
-  BottomSheet,
-  type BottomSheetRef,
-} from '@metamask/design-system-react-native';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
-import { useStyles } from '../../../../hooks/useStyles';
+import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
+import {
+  getCheckoutCallback,
+  removeCheckoutCallback,
+} from '../../utils/checkoutCallbackRegistry';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
 
 interface CheckoutParams {
@@ -54,7 +59,12 @@ interface CheckoutParams {
   cryptocurrency?: string;
   /** V2: the Redux provider type for this order. Defaults to AGGREGATOR. */
   providerType?: FIAT_ORDER_PROVIDERS;
-  /** Optional callback invoked on navigation state changes after URL de-duplication (e.g. redirect URLs). */
+  /**
+   * Key into the checkout callback registry. Used by Transak/Deposit flows.
+   * The actual callback lives outside navigation state so that route params stay serializable.
+   */
+  callbackKey?: string;
+  /** Optional callback invoked on every navigation state change (e.g. to intercept redirect URLs). */
   onNavigationStateChange?: (navState: { url: string }) => void;
 }
 
@@ -71,6 +81,7 @@ const Checkout = () => {
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
   const params = useParams<CheckoutParams>();
+  const theme = useTheme();
   const { styles } = useStyles(styleSheet, {});
   const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
     useRampsOrders();
@@ -81,18 +92,58 @@ const Checkout = () => {
   const {
     url: uri,
     providerCode,
+    providerName,
     orderId: orderIdParam,
     customOrderId,
     walletAddress,
     network,
     userAgent,
     onNavigationStateChange,
+    callbackKey,
   } = params ?? {};
   const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 
   const initialUriRef = useRef(uri);
+  const callbackKeyRef = useRef(callbackKey);
   const registeredOrderIdsRef = useRef<Set<string>>(new Set());
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
+
+  useEffect(() => {
+    callbackKeyRef.current = callbackKey;
+    return () => {
+      if (callbackKey) {
+        removeCheckoutCallback(callbackKey);
+      }
+    };
+  }, [callbackKey]);
+
+  useEffect(() => {
+    navigation.setOptions(
+      getDepositNavbarOptions(
+        navigation,
+        { title: providerName ?? '' },
+        theme,
+        () => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'Checkout',
+                ramp_type: 'UNIFIED_BUY_2',
+                ramp_routing: rampRoutingDecision ?? undefined,
+              })
+              .build(),
+          );
+        },
+      ),
+    );
+  }, [
+    navigation,
+    theme,
+    providerName,
+    createEventBuilder,
+    trackEvent,
+    rampRoutingDecision,
+  ]);
 
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
@@ -240,10 +291,12 @@ const Checkout = () => {
     (navState: { url: string }) => {
       if (navState.url !== previousUrlRef.current) {
         previousUrlRef.current = navState.url;
-        onNavigationStateChange?.(navState);
+        if (callbackKeyRef.current) {
+          getCheckoutCallback(callbackKeyRef.current)?.(navState);
+        }
       }
     },
-    [onNavigationStateChange],
+    [],
   );
 
   const handleShouldStartLoadWithRequest = useCallback(
@@ -265,7 +318,7 @@ const Checkout = () => {
     return (
       <BottomSheet
         ref={sheetRef}
-        goBack={navigation.goBack}
+        shouldNavigateBack
         isFullscreen
         keyboardAvoidingViewEnabled={false}
       >
@@ -291,7 +344,7 @@ const Checkout = () => {
     return (
       <BottomSheet
         ref={sheetRef}
-        goBack={navigation.goBack}
+        shouldNavigateBack
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
@@ -327,9 +380,9 @@ const Checkout = () => {
           onNavigationStateChange={
             hasCallbackFlow
               ? handleNavigationStateChange
-              : onNavigationStateChange
+              : callbackKey
                 ? handleNavigationStateChangeWithDedup
-                : undefined
+                : onNavigationStateChange
           }
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           testID={CHECKOUT_TEST_IDS.WEBVIEW}
@@ -341,7 +394,7 @@ const Checkout = () => {
   return (
     <BottomSheet
       ref={sheetRef}
-      goBack={navigation.goBack}
+      shouldNavigateBack
       isFullscreen
       keyboardAvoidingViewEnabled={false}
     >

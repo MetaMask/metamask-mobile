@@ -12,6 +12,8 @@ export interface UsePerpsActionsParams {
   symbol: string | null;
   /** When true, signals that navigation originated from the token details screen */
   fromTokenDetails?: boolean;
+  /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
+  abTestTokenDetailsLayout?: string;
 }
 
 export interface UsePerpsActionsResult extends UsePerpsMarketForAssetResult {
@@ -42,6 +44,7 @@ export interface UsePerpsActionsResult extends UsePerpsMarketForAssetResult {
 export const usePerpsActions = ({
   symbol,
   fromTokenDetails,
+  abTestTokenDetailsLayout,
 }: UsePerpsActionsParams): UsePerpsActionsResult => {
   const navigation = useNavigation();
 
@@ -60,10 +63,13 @@ export const usePerpsActions = ({
           direction,
           asset: marketData.symbol,
           fromTokenDetails,
+          ...(abTestTokenDetailsLayout && {
+            assetsASSETS2493AbtestTokenDetailsLayout: abTestTokenDetailsLayout,
+          }),
         },
       });
     },
-    [navigation, marketData, fromTokenDetails],
+    [navigation, marketData, fromTokenDetails, abTestTokenDetailsLayout],
   );
 
   return useMemo(

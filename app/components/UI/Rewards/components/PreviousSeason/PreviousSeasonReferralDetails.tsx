@@ -21,7 +21,7 @@ import RewardsErrorBanner from '../RewardsErrorBanner';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 const PreviousSeasonReferralDetails = () => {
-  const { fetchReferralDetails } = useReferralDetails({ fetchOnMount: false });
+  const { fetchReferralDetails } = useReferralDetails();
   const seasonId = useSelector(selectSeasonId);
   const totalReferees = useSelector(selectReferralCount);
   const referralDetailsLoading = useSelector(selectReferralDetailsLoading);

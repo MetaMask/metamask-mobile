@@ -79,11 +79,10 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
   }, [seedphraseBackedUp, hdKeyringsWithSnapAccounts, account]);
 
   const onExportMnemonic = useCallback(() => {
-    const keyringId = account.options.entropySource;
-    if (keyringId) {
-      navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-        shouldUpdateNav: true,
-        keyringId,
+    if (account.options.entropySource) {
+      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+        keyringId: account.options.entropySource,
       });
     }
   }, [navigate, account.options.entropySource]);

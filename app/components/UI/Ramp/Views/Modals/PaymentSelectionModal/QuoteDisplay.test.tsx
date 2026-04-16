@@ -38,48 +38,46 @@ const renderWithTheme = (component: React.ReactElement) =>
   );
 
 describe('QuoteDisplay', () => {
-  it('renders skeleton placeholders when loading', () => {
-    const { getAllByTestId } = renderWithTheme(
+  it('matches snapshot when loading', () => {
+    const { toJSON } = renderWithTheme(
       <QuoteDisplay cryptoAmount="" fiatAmount={null} isLoading />,
     );
-    expect(getAllByTestId('skeleton').length).toBeGreaterThan(0);
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders crypto and fiat amounts', () => {
-    const { getByText } = renderWithTheme(
+  it('matches snapshot with crypto and fiat', () => {
+    const { toJSON } = renderWithTheme(
       <QuoteDisplay
         cryptoAmount="0.05 ETH"
         fiatAmount="$100.00"
         isLoading={false}
       />,
     );
-    expect(getByText('0.05 ETH')).toBeOnTheScreen();
-    expect(getByText('$100.00')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders crypto amount only when fiat is null', () => {
-    const { getByText, queryByText } = renderWithTheme(
+  it('matches snapshot with crypto only', () => {
+    const { toJSON } = renderWithTheme(
       <QuoteDisplay
         cryptoAmount="1.5 USDC"
         fiatAmount={null}
         isLoading={false}
       />,
     );
-    expect(getByText('1.5 USDC')).toBeOnTheScreen();
-    expect(queryByText('$')).not.toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders warning icon when showWarningIcon is true', () => {
-    const { getByTestId } = renderWithTheme(
+  it('matches snapshot with warning icon', () => {
+    const { toJSON } = renderWithTheme(
       <QuoteDisplay cryptoAmount="" fiatAmount={null} showWarningIcon />,
     );
-    expect(getByTestId('icon')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders unavailable text when quote is unavailable', () => {
-    const { getByText } = renderWithTheme(
+  it('matches snapshot when quote is unavailable', () => {
+    const { toJSON } = renderWithTheme(
       <QuoteDisplay cryptoAmount="" fiatAmount={null} quoteUnavailable />,
     );
-    expect(getByText('Quote unavailable.')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

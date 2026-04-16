@@ -12,7 +12,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import { endTrace, trace, TraceName } from '../../../../../../util/trace';
 import { EARN_EXPERIENCES } from '../../../constants/experiences';
-import useTronStakeApy, { FetchStatus } from '../../../hooks/useTronStakeApy';
+import useTronStakeApy from '../../../hooks/useTronStakeApy';
 import styleSheet from './TronStakingLearnMoreModal.styles';
 import {
   LearnMoreModalFooter,
@@ -27,7 +27,7 @@ const TronStakingLearnMoreModal = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const { apyPercent, fetchStatus } = useTronStakeApy();
+  const { apyPercent, isLoading } = useTronStakeApy();
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
@@ -42,10 +42,10 @@ const TronStakingLearnMoreModal = () => {
   }, []);
 
   useEffect(() => {
-    if (fetchStatus !== FetchStatus.Fetching && apyPercent) {
+    if (!isLoading && apyPercent) {
       endTrace({ name: TraceName.EarnFaqApys });
     }
-  }, [fetchStatus, apyPercent]);
+  }, [isLoading, apyPercent]);
 
   const bodyTextStrings: StakingInfoStrings = useMemo(
     () => ({

@@ -1,7 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -17,55 +15,18 @@ import {
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../util/theme';
-import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
-import { TrendingTokenNetworkBottomSheet } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
-import {
-  TraderRow,
-  TraderRowSkeleton,
-  NetworkFilterButton,
-} from '../../Homepage/Sections/TopTraders/components';
-import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
-import type { NetworkFilterSelection } from '../../Homepage/Sections/TopTraders/types';
-import type { CaipChainId } from '@metamask/utils';
-import Routes from '../../../../constants/navigation/Routes';
-import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-
-const SKELETON_COUNT = 5;
-const SKELETON_KEYS = Array.from(
-  { length: SKELETON_COUNT },
-  (_, i) => `top-trader-skeleton-${i}`,
-);
 
 /**
  * TopTradersView — Social leaderboard detail screen.
  *
- * Displays the full ranked list of top-performing traders with
- * network filtering and Follow / Following actions.
+ * Displays top-performing traders across the platform.
+ * Currently an empty scaffold; content will be added once the data layer is ready.
  */
 const TopTradersView = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
-  const { colors } = useTheme();
-  const isEnabled = useSelector(selectSocialLeaderboardEnabled);
-
-  const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
-    enabled: isEnabled,
-  });
-
-  const [refreshing, setRefreshing] = useState(false);
-
-  useEffect(() => {
-    if (!isEnabled) {
-      navigation.goBack();
-    }
-  }, [isEnabled, navigation]);
-
-  const [showNetworkBottomSheet, setShowNetworkBottomSheet] = useState(false);
-  const [selectedNetwork, setSelectedNetwork] =
-    useState<NetworkFilterSelection>(null);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -75,52 +36,11 @@ const TopTradersView = () => {
     // Search UI will be wired when the leaderboard data layer ships.
   }, []);
 
-  const handleNetworkPress = useCallback(() => {
-    setShowNetworkBottomSheet(true);
-  }, []);
-
-  const handleNetworkSelect = useCallback((chainIds: CaipChainId[] | null) => {
-    setSelectedNetwork(chainIds ? chainIds[0] : null);
-  }, []);
-
-  const handleNetworkBottomSheetClose = useCallback(() => {
-    setShowNetworkBottomSheet(false);
-  }, []);
-
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      const minDuration = new Promise<void>((resolve) =>
-        setTimeout(resolve, 1000),
-      );
-      await Promise.all([refresh(), minDuration]);
-    } catch (err) {
-      Logger.error(err as Error, 'TopTradersView: pull-to-refresh failed');
-    } finally {
-      setRefreshing(false);
-    }
-  }, [refresh]);
-
-  const handleTraderPress = useCallback(
-    (traderId: string, traderName: string) => {
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
-        traderId,
-        traderName,
-      });
-    },
-    [navigation],
-  );
-
-  const selectedNetworkCaip = selectedNetwork
-    ? ([selectedNetwork] as CaipChainId[])
-    : null;
-
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
       testID={TopTradersViewSelectorsIDs.CONTAINER}
     >
-      {/* Header row */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -141,7 +61,6 @@ const TopTradersView = () => {
         />
       </Box>
 
-      {/* Title */}
       <Box twClassName="px-4 pt-2 pb-3">
         <Text
           variant={TextVariant.HeadingLg}
@@ -151,50 +70,6 @@ const TopTradersView = () => {
           {strings('social_leaderboard.top_traders_view.title')}
         </Text>
       </Box>
-
-      {/* Network filter */}
-      <Box twClassName="px-4 pb-3">
-        <NetworkFilterButton
-          selectedNetwork={selectedNetwork}
-          onPress={handleNetworkPress}
-          testID="top-traders-view-network-filter"
-        />
-      </Box>
-
-      {/* Trader list */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={tw.style('pb-6')}
-        testID={TopTradersViewSelectorsIDs.TRADER_LIST}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.primary.default]}
-            tintColor={colors.icon.default}
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-          />
-        }
-      >
-        {isLoading
-          ? SKELETON_KEYS.map((key) => <TraderRowSkeleton key={key} />)
-          : traders.map((trader) => (
-              <TraderRow
-                key={trader.id}
-                trader={trader}
-                onFollowPress={toggleFollow}
-                onTraderPress={handleTraderPress}
-              />
-            ))}
-      </ScrollView>
-
-      {/* Network filter bottom sheet */}
-      <TrendingTokenNetworkBottomSheet
-        isVisible={showNetworkBottomSheet}
-        onClose={handleNetworkBottomSheetClose}
-        onNetworkSelect={handleNetworkSelect}
-        selectedNetwork={selectedNetworkCaip}
-        networks={[]}
-      />
     </SafeAreaView>
   );
 };

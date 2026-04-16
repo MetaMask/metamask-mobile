@@ -2,8 +2,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { useMemo, useCallback } from 'react';
 import { Hex } from '@metamask/utils';
-import { FundingStatus, CardFundingToken } from '../types';
-import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
+import { AllowanceState, CardTokenAllowance } from '../types';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
@@ -82,7 +81,7 @@ export interface AssetBalanceInfo {
  * - For non-enabled tokens: shows the user's actual wallet balance from their wallet
  */
 export const useAssetBalances = (
-  tokens: CardFundingToken[],
+  tokens: CardTokenAllowance[],
 ): Map<string, AssetBalanceInfo> => {
   const { MultichainAssetsRatesController, TokenRatesController } =
     Engine.context;
@@ -210,7 +209,7 @@ export const useAssetBalances = (
   // Helper: Determine which balance to use based on token state
   const determineBalanceToUse = useCallback(
     (
-      token: CardFundingToken,
+      token: CardTokenAllowance,
       filteredToken: TokenI | undefined,
       walletAsset: TokenI | undefined,
     ): {
@@ -218,14 +217,14 @@ export const useAssetBalances = (
       source: 'availableBalance' | 'filteredToken' | 'walletAsset';
     } => {
       const isEnabled =
-        token.fundingStatus === FundingStatus.Enabled ||
-        token.fundingStatus === FundingStatus.Limited;
+        token.allowanceState === AllowanceState.Enabled ||
+        token.allowanceState === AllowanceState.Limited;
 
       if (isEnabled) {
         // Token is enabled/delegated - use availableBalance
-        if (token.spendableBalance) {
+        if (token.availableBalance) {
           return {
-            balance: token.spendableBalance,
+            balance: token.availableBalance,
             source: 'availableBalance',
           };
         }
@@ -253,7 +252,7 @@ export const useAssetBalances = (
   // Helper: Calculate fiat for Solana tokens
   const calculateSolanaFiat = useCallback(
     (
-      token: CardFundingToken,
+      token: CardTokenAllowance,
       balanceToUse: string,
     ): { balanceFiat: string; rawFiatNumber: number | undefined } => {
       const conversionRates =
@@ -376,7 +375,7 @@ export const useAssetBalances = (
   // Helper: Calculate fiat for EVM tokens
   const calculateEvmFiat = useCallback(
     (
-      _token: CardFundingToken,
+      _token: CardTokenAllowance,
       balanceToUse: string,
       balanceSource: 'availableBalance' | 'filteredToken' | 'walletAsset',
       chainId: Hex,
@@ -613,7 +612,7 @@ export const useAssetBalances = (
   // Helper: Build asset object
   const buildAssetObject = useCallback(
     (
-      token: CardFundingToken,
+      token: CardTokenAllowance,
       balanceToUse: string,
       balanceFiat: string,
       assetChainId: string,
@@ -648,7 +647,7 @@ export const useAssetBalances = (
       }
 
       // Create a unique key for this token
-      const tokenKey = getAssetBalanceKey(token);
+      const tokenKey = `${token.address?.toLowerCase()}-${token.caipChainId}-${token.walletAddress?.toLowerCase()}`;
       const isSolana = isSolanaChainId(token.caipChainId);
 
       // Get asset address and chain ID

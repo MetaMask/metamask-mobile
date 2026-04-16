@@ -5,8 +5,8 @@ import {
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 import type {
-  MessengerClientInitFunction,
-  MessengerClientInitRequest,
+  ControllerInitFunction,
+  ControllerInitRequest,
 } from '../../types';
 import AppConstants from '../../../AppConstants';
 import Logger from '../../../../util/Logger';
@@ -17,7 +17,7 @@ const LEGACY_GAS_API_ENDPOINT =
 const EIP1559_API_ENDPOINT =
   'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees';
 
-export const GasFeeControllerInit: MessengerClientInitFunction<
+export const GasFeeControllerInit: ControllerInitFunction<
   GasFeeController,
   GasFeeMessenger
 > = (request) => {
@@ -53,7 +53,7 @@ export const GasFeeControllerInit: MessengerClientInitFunction<
   }
 };
 
-function getControllers(request: MessengerClientInitRequest<GasFeeMessenger>) {
+function getControllers(request: ControllerInitRequest<GasFeeMessenger>) {
   return {
     networkController: request.getController('NetworkController'),
   };

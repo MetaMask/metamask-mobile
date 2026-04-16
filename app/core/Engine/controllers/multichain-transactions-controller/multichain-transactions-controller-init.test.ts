@@ -3,8 +3,8 @@ import {
   MultichainTransactionsController,
   MultichainTransactionsControllerState,
 } from '@metamask/multichain-transactions-controller';
-import type { MessengerClientInitRequest } from '../../types';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import type { ControllerInitRequest } from '../../types';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { multichainTransactionsControllerInit } from './multichain-transactions-controller-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_SOLANA_ACCOUNT } from '../../../../util/test/accountsControllerTestUtils';
@@ -18,7 +18,7 @@ describe('multichain transactions controller init', () => {
     MultichainTransactionsController,
   );
   let initRequestMock: jest.Mocked<
-    MessengerClientInitRequest<MultichainTransactionsControllerMessenger>
+    ControllerInitRequest<MultichainTransactionsControllerMessenger>
   >;
 
   beforeEach(() => {
@@ -27,10 +27,8 @@ describe('multichain transactions controller init', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
 
-    // Create messenger client init request mock
-    initRequestMock = buildMessengerClientInitRequestMock(
-      baseControllerMessenger,
-    );
+    // Create controller init request mock
+    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
 
   it('returns controller instance', () => {

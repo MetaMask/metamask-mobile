@@ -175,9 +175,6 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: mockRefetchTransactions,
-      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
-      hasFundingMore: true,
-      isFetchingMoreFunding: false,
     });
 
     mockUsePerpsEventTracking.mockReturnValue({
@@ -302,9 +299,6 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: mockRefetch,
-      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
-      hasFundingMore: true,
-      isFetchingMoreFunding: false,
     });
 
     renderWithProvider(<PerpsTransactionsView />, {
@@ -324,9 +318,6 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn(),
-      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
-      hasFundingMore: true,
-      isFetchingMoreFunding: false,
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -359,9 +350,6 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: mockRefetchTransactions,
-      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
-      hasFundingMore: true,
-      isFetchingMoreFunding: false,
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -380,9 +368,6 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: 'API Error',
       refetch: jest.fn(),
-      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
-      hasFundingMore: true,
-      isFetchingMoreFunding: false,
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -441,9 +426,6 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn(),
-      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
-      hasFundingMore: true,
-      isFetchingMoreFunding: false,
     });
 
     renderWithProvider(<PerpsTransactionsView />, {
@@ -477,9 +459,6 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn(),
-      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
-      hasFundingMore: true,
-      isFetchingMoreFunding: false,
     });
 
     renderWithProvider(<PerpsTransactionsView />, {
@@ -498,9 +477,6 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: 'Network error',
       refetch: jest.fn(),
-      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
-      hasFundingMore: true,
-      isFetchingMoreFunding: false,
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -523,9 +499,6 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn(),
-      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
-      hasFundingMore: true,
-      isFetchingMoreFunding: false,
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -641,9 +614,6 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn(),
-      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
-      hasFundingMore: true,
-      isFetchingMoreFunding: false,
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {

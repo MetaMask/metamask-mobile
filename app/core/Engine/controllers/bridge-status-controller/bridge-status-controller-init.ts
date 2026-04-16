@@ -5,15 +5,12 @@ import {
 } from '@metamask/bridge-status-controller';
 import { handleFetch, TraceCallback } from '@metamask/controller-utils';
 
-import {
-  MessengerClientInitFunction,
-  MessengerClientInitRequest,
-} from '../../types';
+import { ControllerInitFunction, ControllerInitRequest } from '../../types';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 
-export const bridgeStatusControllerInit: MessengerClientInitFunction<
+export const bridgeStatusControllerInit: ControllerInitFunction<
   BridgeStatusController,
   BridgeStatusControllerMessenger
 > = (request) => {
@@ -44,7 +41,7 @@ export const bridgeStatusControllerInit: MessengerClientInitFunction<
 };
 
 function getControllers(
-  request: MessengerClientInitRequest<BridgeStatusControllerMessenger>,
+  request: ControllerInitRequest<BridgeStatusControllerMessenger>,
 ) {
   return {
     transactionController: request.getController('TransactionController'),

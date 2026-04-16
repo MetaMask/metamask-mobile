@@ -211,22 +211,6 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
-  seedless-onboarding-android-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSeedlessOnboarding')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: seedless-onboarding-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'SmokeSeedlessOnboarding'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-    secrets: inherit
-
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ubuntu-latest
@@ -244,7 +228,6 @@ jobs:
       - card-android-smoke
       - ramps-android-smoke
       - multichain-api-android-smoke
-      - seedless-onboarding-android-smoke
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -1,6 +1,6 @@
 import { AccountActivityService } from '@metamask/core-backend';
 import Logger from '../../../../util/Logger';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { accountActivityServiceInit } from './account-activity-service-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
@@ -18,7 +18,7 @@ describe('accountActivityServiceInit', () => {
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    const initRequestMock = buildMessengerClientInitRequestMock(
+    const initRequestMock = buildControllerInitRequestMock(
       baseControllerMessenger,
     );
 

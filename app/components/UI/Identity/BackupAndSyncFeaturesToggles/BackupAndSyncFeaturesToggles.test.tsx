@@ -67,17 +67,11 @@ describe('BackupAndSyncToggle', () => {
     );
   });
 
-  it('renders all feature toggle sections', () => {
-    const { getByTestId } = renderWithProvider(
-      <BackupAndSyncFeaturesToggles />,
-      {
-        state: MOCK_STORE_STATE,
-      },
-    );
-
-    backupAndSyncFeaturesTogglesSections.forEach((section) => {
-      expect(getByTestId(section.testID)).toBeOnTheScreen();
+  it('renders correctly', () => {
+    const { toJSON } = renderWithProvider(<BackupAndSyncFeaturesToggles />, {
+      state: MOCK_STORE_STATE,
     });
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('tracks toggle event when toggling the switch', async () => {

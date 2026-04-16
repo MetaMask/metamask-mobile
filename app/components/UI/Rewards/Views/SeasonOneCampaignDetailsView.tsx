@@ -10,7 +10,6 @@ import PreviousSeasonSummary from '../components/PreviousSeason/PreviousSeasonSu
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
-import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -34,11 +33,6 @@ const SeasonOneCampaignDetailsView: React.FC = () => {
     () => campaigns.find((c) => c.id === campaignId) ?? null,
     [campaigns, campaignId],
   );
-
-  useTrackRewardsPageView({
-    page_type: 'campaign_season_1',
-    campaign_id: campaignId,
-  });
 
   return (
     <ErrorBoundary navigation={navigation} view="SeasonOneCampaignDetailsView">

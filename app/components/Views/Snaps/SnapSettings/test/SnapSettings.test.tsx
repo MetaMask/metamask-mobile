@@ -264,7 +264,9 @@ describe('SnapSettings with non keyring snap', () => {
     expect(description).toBeTruthy();
     expect(permissionContainer).toBeTruthy();
     expect(permissions.length).toBe(7);
-    expect(removeButton).toHaveTextContent('Remove Filsnap');
+    expect(removeButton.props.children[1].props.children).toBe(
+      'Remove Filsnap',
+    );
   });
 
   it('remove snap and goes back when Remove button is pressed', async () => {

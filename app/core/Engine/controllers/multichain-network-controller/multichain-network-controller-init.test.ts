@@ -7,8 +7,8 @@ import {
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { multichainNetworkControllerInit } from './multichain-network-controller-init';
 import { BtcScope } from '@metamask/keyring-api';
-import type { MessengerClientInitRequest } from '../../types';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import type { ControllerInitRequest } from '../../types';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/multichain-network-controller');
@@ -17,7 +17,7 @@ describe('multichain network controller init', () => {
   const multichainNetworkControllerClassMock = jest.mocked(
     MultichainNetworkController,
   );
-  let initRequestMock: MessengerClientInitRequest<MultichainNetworkControllerMessenger> & {
+  let initRequestMock: ControllerInitRequest<MultichainNetworkControllerMessenger> & {
     fetchFunction: typeof fetch;
   };
 
@@ -26,9 +26,9 @@ describe('multichain network controller init', () => {
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    // Create messenger client init request mock
+    // Create controller init request mock
     initRequestMock = {
-      ...buildMessengerClientInitRequestMock(baseControllerMessenger),
+      ...buildControllerInitRequestMock(baseControllerMessenger),
       fetchFunction: global.fetch,
     };
   });

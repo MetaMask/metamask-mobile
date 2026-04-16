@@ -28,7 +28,7 @@ export function PerpsWithdrawBalance() {
       <Text
         variant={TextVariant.BodyMDMedium}
         color={TextColor.Alternative}
-      >{`${strings('confirm.available_balance')}${balanceFormatted}`}</Text>
+      >{`${strings('confirm.available_perps_balance')}${balanceFormatted}`}</Text>
     </Box>
   );
 }

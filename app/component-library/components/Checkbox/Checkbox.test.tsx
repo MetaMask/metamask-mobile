@@ -17,7 +17,7 @@ import {
 describe('Checkbox', () => {
   it('should render correctly', () => {
     const wrapper = render(<Checkbox />);
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should render the correct icon when isChecked is true', () => {

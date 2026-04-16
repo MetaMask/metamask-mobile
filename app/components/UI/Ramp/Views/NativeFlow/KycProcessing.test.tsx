@@ -4,18 +4,14 @@ import V2KycProcessing from './KycProcessing';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    goBack: mockGoBack,
+    setOptions: mockSetOptions,
   }),
-  useFocusEffect: (cb: () => void) => {
-    const { useEffect } = jest.requireActual('react');
-    useEffect(cb, [cb]);
-  },
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -23,18 +19,26 @@ jest.mock('../../../../../../locales/i18n', () => ({
   I18nEvents: { addListener: jest.fn() },
 }));
 
+jest.mock('../../../Navbar', () => ({
+  getDepositNavbarOptions: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  createNavigationDetails:
+    (..._args: unknown[]) =>
+    (params: unknown) => ['MockRoute', params],
+  useParams: () => ({
+    quote: { quoteId: 'test-quote-id', fiatAmount: 100 },
+  }),
+}));
+
 const mockGetAdditionalRequirements = jest.fn();
 const mockGetUserDetails = jest.fn();
-let mockBuyQuote: { quoteId: string; fiatAmount: number } | null = {
-  quoteId: 'test-quote-id',
-  fiatAmount: 100,
-};
 
 jest.mock('../../hooks/useTransakController', () => ({
   useTransakController: () => ({
     getAdditionalRequirements: mockGetAdditionalRequirements,
     getUserDetails: mockGetUserDetails,
-    buyQuote: mockBuyQuote,
   }),
 }));
 
@@ -75,7 +79,6 @@ describe('V2KycProcessing', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    mockBuyQuote = { quoteId: 'test-quote-id', fiatAmount: 100 };
     mockGetAdditionalRequirements.mockResolvedValue({
       formsRequired: [],
     });
@@ -88,18 +91,9 @@ describe('V2KycProcessing', () => {
     jest.useRealTimers();
   });
 
-  it('renders loading state with activity indicator', async () => {
-    const { getByTestId, getByText } = renderWithTheme(<V2KycProcessing />);
-    expect(getByTestId('activity-indicator')).toBeOnTheScreen();
-    expect(getByText('deposit.kyc_processing.heading')).toBeOnTheScreen();
-    expect(getByText('deposit.kyc_processing.description')).toBeOnTheScreen();
-
-    fireEvent.press(getByTestId('deposit-back-navbar-button'));
-    expect(mockGoBack).toHaveBeenCalled();
-
-    await act(async () => {
-      await Promise.resolve();
-    });
+  it('matches snapshot in loading state', () => {
+    const { toJSON } = renderWithTheme(<V2KycProcessing />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders activity indicator while polling', async () => {
@@ -301,173 +295,7 @@ describe('V2KycProcessing', () => {
     });
 
     await waitFor(() => {
-      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockBuyQuote);
+      expect(mockRouteAfterAuthentication).toHaveBeenCalled();
     });
-  });
-
-  it('shows loading state on continue button while routeAfterAuthentication is in progress', async () => {
-    let resolveRoute: () => void;
-    mockRouteAfterAuthentication.mockImplementation(
-      () =>
-        new Promise<void>((resolve) => {
-          resolveRoute = resolve;
-        }),
-    );
-    mockGetAdditionalRequirements.mockResolvedValue({ formsRequired: [] });
-    mockGetUserDetails.mockResolvedValue({
-      kyc: { status: 'APPROVED', type: 'SIMPLE' },
-    });
-
-    const { getByText } = renderWithTheme(<V2KycProcessing />);
-
-    await act(async () => {
-      await Promise.resolve();
-    });
-    await act(async () => {
-      jest.advanceTimersByTime(100);
-    });
-
-    await waitFor(() => {
-      expect(
-        getByText('deposit.kyc_processing.success_button'),
-      ).toBeOnTheScreen();
-    });
-
-    // Press continue — button should enter loading state
-    await act(async () => {
-      fireEvent.press(getByText('deposit.kyc_processing.success_button'));
-    });
-
-    // Resolve the pending routeAfterAuthentication
-    await act(async () => {
-      resolveRoute();
-    });
-
-    // After resolving, routeAfterAuthentication should have been called
-    expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockBuyQuote);
-  });
-
-  it('clears loading state when routeAfterAuthentication fails', async () => {
-    mockRouteAfterAuthentication.mockRejectedValue(new Error('Route failed'));
-    mockGetAdditionalRequirements.mockResolvedValue({ formsRequired: [] });
-    mockGetUserDetails.mockResolvedValue({
-      kyc: { status: 'APPROVED', type: 'SIMPLE' },
-    });
-
-    const { getByText } = renderWithTheme(<V2KycProcessing />);
-
-    await act(async () => {
-      await Promise.resolve();
-    });
-    await act(async () => {
-      jest.advanceTimersByTime(100);
-    });
-
-    await waitFor(() => {
-      expect(
-        getByText('deposit.kyc_processing.success_button'),
-      ).toBeOnTheScreen();
-    });
-
-    await act(async () => {
-      fireEvent.press(getByText('deposit.kyc_processing.success_button'));
-    });
-
-    // Button should still be visible after error (loading cleared)
-    await waitFor(() => {
-      expect(
-        getByText('deposit.kyc_processing.success_button'),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  it('does not fetch forms when buyQuote is null', async () => {
-    mockBuyQuote = null;
-
-    renderWithTheme(<V2KycProcessing />);
-
-    await act(async () => {
-      await Promise.resolve();
-    });
-
-    expect(mockGetAdditionalRequirements).not.toHaveBeenCalled();
-  });
-
-  it('calls Logger.error when routeAfterAuthentication fails', async () => {
-    const Logger = jest.requireMock('../../../../../util/Logger') as {
-      error: jest.Mock;
-    };
-    mockRouteAfterAuthentication.mockRejectedValue(new Error('Route failed'));
-    mockGetAdditionalRequirements.mockResolvedValue({ formsRequired: [] });
-    mockGetUserDetails.mockResolvedValue({
-      kyc: { status: 'APPROVED', type: 'SIMPLE' },
-    });
-
-    const { getByText } = renderWithTheme(<V2KycProcessing />);
-
-    await act(async () => {
-      await Promise.resolve();
-    });
-    await act(async () => {
-      jest.advanceTimersByTime(100);
-    });
-
-    await waitFor(() => {
-      expect(
-        getByText('deposit.kyc_processing.success_button'),
-      ).toBeOnTheScreen();
-    });
-
-    await act(async () => {
-      fireEvent.press(getByText('deposit.kyc_processing.success_button'));
-    });
-
-    await waitFor(() => {
-      expect(Logger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          message: 'V2KycProcessing::handleContinue error',
-        }),
-      );
-    });
-  });
-
-  it('shows loading state on error-state continue button', async () => {
-    let resolveRoute: () => void;
-    mockRouteAfterAuthentication.mockImplementation(
-      () =>
-        new Promise<void>((resolve) => {
-          resolveRoute = resolve;
-        }),
-    );
-    mockGetAdditionalRequirements.mockResolvedValue({ formsRequired: [] });
-    mockGetUserDetails.mockResolvedValue({
-      kyc: { status: 'REJECTED', type: 'SIMPLE' },
-    });
-
-    const { getByText } = renderWithTheme(<V2KycProcessing />);
-
-    await act(async () => {
-      await Promise.resolve();
-    });
-    await act(async () => {
-      jest.advanceTimersByTime(100);
-    });
-
-    await waitFor(() => {
-      expect(
-        getByText('deposit.kyc_processing.error_button'),
-      ).toBeOnTheScreen();
-    });
-
-    await act(async () => {
-      fireEvent.press(getByText('deposit.kyc_processing.error_button'));
-    });
-
-    await act(async () => {
-      resolveRoute();
-    });
-
-    expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockBuyQuote);
   });
 });

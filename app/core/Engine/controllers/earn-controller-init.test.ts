@@ -1,4 +1,4 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getEarnControllerMessenger } from '../messengers/earn-controller-messenger';
 import { earnControllerInit } from './earn-controller-init';
@@ -13,7 +13,7 @@ function getInitRequestMock() {
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getEarnControllerMessenger(baseMessenger),
   };
 

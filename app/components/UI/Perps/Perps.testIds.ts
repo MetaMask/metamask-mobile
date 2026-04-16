@@ -262,7 +262,7 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 export const PerpsTPSLViewSelectorsIDs = {
   BACK_BUTTON: 'back-button',
   BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
-  SET_BUTTON: 'perps-tpsl-set-button',
+  SET_BUTTON: 'bottomsheetfooter-button',
   TAKE_PROFIT_PRICE_INPUT: 'perps-tpsl-tp-input',
   STOP_LOSS_PRICE_INPUT: 'perps-tpsl-sl-input',
 } as const;
@@ -677,8 +677,8 @@ export const getPerpsHeroCardViewSelector = {
 // ========================================
 
 export const PerpsGeneralSelectorsIDs = {
-  // TPSL screen primary action ("Set" / "Updating"); same id as PerpsTPSLViewSelectorsIDs.SET_BUTTON
-  BOTTOM_SHEET_FOOTER_BUTTON: 'perps-tpsl-set-button',
+  // TPSL bottom sheet primary action button ("Set" / "Updating")
+  BOTTOM_SHEET_FOOTER_BUTTON: 'perps-tpsl-bottomsheet',
   // Order success toast dismiss button on PerpsOrderView
   ORDER_SUCCESS_TOAST_DISMISS_BUTTON:
     'perps-order-success-toast-dismiss-button',
@@ -759,7 +759,6 @@ export const PerpsTransactionsViewSelectorsIDs = {
   TAB_ORDERS: 'perps-transactions-tab-orders',
   TAB_FUNDING: 'perps-transactions-tab-funding',
   TAB_DEPOSITS: 'perps-transactions-tab-deposits',
-  FUNDING_LOAD_MORE_SPINNER: 'perps-transactions-funding-load-more-spinner',
 } as const;
 
 // ========================================

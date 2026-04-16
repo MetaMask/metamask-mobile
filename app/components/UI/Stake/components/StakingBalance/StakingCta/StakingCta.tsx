@@ -8,8 +8,7 @@ import Text, {
 import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../../constants/events';
 import { Hex } from 'viem/_types/types/misc';
 import { trace, TraceName } from '../../../../../../util/trace';
@@ -27,7 +26,7 @@ const StakingCta = ({
 }: StakingCtaProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const navigateToLearnMoreModal = () => {
     trace({

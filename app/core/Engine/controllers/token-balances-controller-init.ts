@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   TokenBalancesController,
   type TokenBalancesControllerMessenger,
@@ -15,7 +15,7 @@ import { selectCompletedOnboarding } from '../../../selectors/onboarding';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const tokenBalancesControllerInit: MessengerClientInitFunction<
+export const tokenBalancesControllerInit: ControllerInitFunction<
   TokenBalancesController,
   TokenBalancesControllerMessenger,
   TokenBalancesControllerInitMessenger

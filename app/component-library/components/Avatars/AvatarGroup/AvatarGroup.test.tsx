@@ -17,7 +17,7 @@ describe('AvatarGroup', () => {
 
   it('should render AvatarGroup component', () => {
     const { toJSON } = renderComponent();
-    expect(toJSON()).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render the correct number of avatars', () => {

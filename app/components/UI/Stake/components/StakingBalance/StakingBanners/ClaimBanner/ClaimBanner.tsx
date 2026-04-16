@@ -19,8 +19,10 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
 
-import { useAnalytics } from '../../../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
+import {
+  MetaMetricsEvents,
+  useMetrics,
+} from '../../../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS } from '../../../../constants/events';
 import usePooledStakes from '../../../../hooks/usePooledStakes';
 import usePoolStakedClaim from '../../../../hooks/usePoolStakedClaim';
@@ -40,7 +42,7 @@ type StakeBannerProps = Pick<BannerProps, 'style'> & {
 
 const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [isSubmittingClaimTransaction, setIsSubmittingClaimTransaction] =
     useState(false);
   const { MultichainNetworkController } = Engine.context;

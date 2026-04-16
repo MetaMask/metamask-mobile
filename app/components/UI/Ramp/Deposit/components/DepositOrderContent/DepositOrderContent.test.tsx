@@ -52,6 +52,7 @@ describe('DepositOrderContent Component', () => {
     });
 
     expect(screen.getByText('Order succeeded')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders error state correctly with statusDescription from API', () => {
@@ -73,6 +74,7 @@ describe('DepositOrderContent Component', () => {
     });
 
     expect(screen.getByText('Order failed')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders error state with specific failure reason when statusDescription is available', () => {
@@ -96,6 +98,7 @@ describe('DepositOrderContent Component', () => {
     expect(
       screen.getByText('Payment declined due to insufficient funds'),
     ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders no subtitle when statusDescription is empty string', () => {
@@ -119,10 +122,9 @@ describe('DepositOrderContent Component', () => {
       },
     );
 
-    expect(
-      screen.queryByText('Your deposit is being processed'),
-    ).not.toBeOnTheScreen();
-    expect(screen.queryByText('Order failed')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Your deposit is being processed')).toBeNull();
+    expect(screen.queryByText('Order failed')).toBeNull();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders no subtitle when statusDescription is missing', () => {
@@ -148,10 +150,10 @@ describe('DepositOrderContent Component', () => {
       },
     );
 
-    expect(
-      screen.queryByText('Your deposit is being processed'),
-    ).not.toBeOnTheScreen();
-    expect(screen.queryByText('Order processing')).not.toBeOnTheScreen();
+    // Should not show any subtitle when statusDescription is missing
+    expect(screen.queryByText('Your deposit is being processed')).toBeNull();
+    expect(screen.queryByText('Order processing')).toBeNull();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders processing state correctly', () => {
@@ -173,6 +175,7 @@ describe('DepositOrderContent Component', () => {
     });
 
     expect(screen.getByText('Order processing')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders cancelled state correctly', () => {
@@ -194,6 +197,7 @@ describe('DepositOrderContent Component', () => {
     });
 
     expect(screen.getByText('Order cancelled')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders bank transfer state correctly', () => {
@@ -215,7 +219,7 @@ describe('DepositOrderContent Component', () => {
       },
     });
 
-    expect(screen.getByText('Bank transfer initiated')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('copies order ID when copy button is pressed', () => {
@@ -247,7 +251,7 @@ describe('DepositOrderContent Component', () => {
         },
       },
     });
-    expect(screen.getByText('Order succeeded')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders with crypto fee when regular fee is not provided', () => {
@@ -264,6 +268,6 @@ describe('DepositOrderContent Component', () => {
         },
       },
     });
-    expect(screen.getByText('Fees')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

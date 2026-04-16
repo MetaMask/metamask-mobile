@@ -10,7 +10,6 @@ const selectTokenListConstrollerState = (state: RootState) =>
 /**
  * Return token list from TokenListController.
  * Can pass directly into useSelector.
- * @deprecated tokensChainsCache will be removed from TokenListController
  */
 export const selectTokenList = createSelector(
   selectTokenListConstrollerState,
@@ -19,17 +18,11 @@ export const selectTokenList = createSelector(
     tokenListControllerState?.tokensChainsCache?.[chainId]?.data || [],
 );
 
-/**
- * @deprecated tokensChainsCache will be removed from TokenListController
- */
 const selectERC20TokensByChainInternal = createDeepEqualSelector(
   selectTokenListConstrollerState,
   (tokenListControllerState) => tokenListControllerState?.tokensChainsCache,
 );
 
-/**
- * @deprecated tokensChainsCache will be removed from TokenListController
- */
 export const selectERC20TokensByChain = createDeepEqualSelector(
   selectERC20TokensByChainInternal,
   (tokensChainsCache) => tokensChainsCache,

@@ -181,25 +181,6 @@ app/core/AgenticService/             @MetaMask/perps
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
 
-# Social & AI Team
-app/components/Views/SocialLeaderboard/                              @MetaMask/social-ai
-app/components/UI/MarketInsights/                                    @MetaMask/social-ai
-app/components/Views/Homepage/Sections/WhatsHappening/               @MetaMask/social-ai
-app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
-app/core/Engine/controllers/social-controller-init*                  @MetaMask/social-ai
-app/core/Engine/controllers/social-service-init*                     @MetaMask/social-ai
-app/core/Engine/messengers/social-controller-messenger*              @MetaMask/social-ai
-app/core/Engine/messengers/social-service-messenger*                 @MetaMask/social-ai
-app/core/Engine/controllers/ai-digest-controller-init*               @MetaMask/social-ai
-app/core/Engine/messengers/ai-digest-controller-messenger*           @MetaMask/social-ai
-app/selectors/featureFlagController/socialLeaderboard/               @MetaMask/social-ai
-app/selectors/featureFlagController/marketInsights/                  @MetaMask/social-ai
-app/selectors/featureFlagController/whatsHappening/                  @MetaMask/social-ai
-**/SocialLeaderboard/**                                              @MetaMask/social-ai
-**/MarketInsights/**                                                 @MetaMask/social-ai
-**/WhatsHappening/**                                                 @MetaMask/social-ai
-**/TopTraders/**                                                 @MetaMask/social-ai
-
 # Predict Team
 app/components/UI/Predict/                                    @MetaMask/predict
 app/core/Engine/controllers/predict-controller                @MetaMask/predict

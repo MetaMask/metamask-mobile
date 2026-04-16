@@ -1,0 +1,88 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ListItem should render snapshot correctly 1`] = `
+<View
+  accessibilityRole="none"
+  accessible={true}
+  style={
+    {
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View />
+  </View>
+</View>
+`;
+
+exports[`ListItem should render the bottom accessory 1`] = `
+<View
+  accessibilityRole="none"
+  accessible={true}
+  style={
+    {
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View />
+  </View>
+  <View
+    style={
+      {
+        "marginTop": 0,
+      }
+    }
+  >
+    <View />
+  </View>
+</View>
+`;
+
+exports[`ListItem should render the top accessory 1`] = `
+<View
+  accessibilityRole="none"
+  accessible={true}
+  style={
+    {
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "marginBottom": 0,
+      }
+    }
+  >
+    <View />
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View />
+  </View>
+</View>
+`;

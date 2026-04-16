@@ -30,9 +30,10 @@ describe('rampsProvidersOptions', () => {
     expect(opts.queryKey).toEqual(['ramps', 'providers', 'us-tx']);
     expect(typeof opts.queryFn).toBe('function');
     expect(opts.staleTime).toBe(1000 * 60 * 15);
+    expect(opts.refetchOnMount).toBe(true);
   });
 
-  it('queryFn calls getProviders with regionCode', async () => {
+  it('queryFn calls getProviders with forceRefresh: true', async () => {
     const mockProviders = [{ id: 'provider-1', name: 'Provider 1' }];
     (
       Engine.context.RampsController.getProviders as jest.Mock
@@ -46,6 +47,7 @@ describe('rampsProvidersOptions', () => {
 
     expect(Engine.context.RampsController.getProviders).toHaveBeenCalledWith(
       'us-tx',
+      { forceRefresh: true },
     );
     expect(result).toEqual(mockProviders);
   });

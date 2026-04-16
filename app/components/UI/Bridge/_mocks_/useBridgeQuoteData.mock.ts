@@ -10,7 +10,6 @@ export const mockUseBridgeQuoteData = {
   isExpired: false,
   needsNewQuote: false,
   willRefresh: false,
-  isActiveQuoteForCurrentTokenPair: true,
   formattedQuoteData: {
     networkFee: '0',
     estimatedTime: '0 min',

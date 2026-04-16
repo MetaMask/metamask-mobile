@@ -1,6 +1,4 @@
-import FixtureBuilder, {
-  DEFAULT_FIXTURE_ACCOUNT,
-} from '../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
 import SendView from '../../../page-objects/Send/RedesignedSendView';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
@@ -12,6 +10,7 @@ import { loginToApp } from '../../../flows/wallet.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { LocalNode } from '../../../framework/types';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagExtensionUxPna25 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { validateTransactionHashInTransactionFinalizedEvent } from './metricsValidationHelper';
@@ -39,7 +38,10 @@ describe(SmokeConfirmations('Send native asset'), () => {
           .withPreferencesController({})
           .build(),
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer);
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureFlagExtensionUxPna25(true),
+          );
 
           await setupMockRequest(mockServer, {
             requestMethod: 'PUT',
@@ -47,28 +49,6 @@ describe(SmokeConfirmations('Send native asset'), () => {
             response: {
               message: 'OK',
             },
-            responseCode: 200,
-          });
-
-          await setupMockRequest(mockServer, {
-            url: /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
-            response: {
-              balances: [
-                {
-                  object: 'token',
-                  address: '0x0000000000000000000000000000000000000000',
-                  symbol: 'ETH',
-                  name: 'Ether',
-                  type: 'native',
-                  decimals: 18,
-                  chainId: 1337,
-                  balance: '10.000000000000000000',
-                  accountAddress: `eip155:1337:${DEFAULT_FIXTURE_ACCOUNT}`,
-                },
-              ],
-              unprocessedNetworks: [],
-            },
-            requestMethod: 'GET',
             responseCode: 200,
           });
         },

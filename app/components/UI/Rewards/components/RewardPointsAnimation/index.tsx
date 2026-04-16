@@ -2,12 +2,15 @@ import React, { useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import Rive, { Alignment, Fit } from 'rive-react-native';
 import Animated from 'react-native-reanimated';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  IconSize,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useTheme } from '../../../../../util/theme';
 import Icon, {
   IconName,
-  IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import {
   useRewardsAnimation,

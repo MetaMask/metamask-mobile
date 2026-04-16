@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import MoneyBalanceSummary from './MoneyBalanceSummary';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -11,62 +11,19 @@ describe('MoneyBalanceSummary', () => {
     expect(getByTestId(MoneyBalanceSummaryTestIds.TITLE)).toBeOnTheScreen();
   });
 
-  it('renders the APY label inside a tag', () => {
+  it('renders the APY label with the provided percentage', () => {
     const { getByTestId } = render(<MoneyBalanceSummary apy="5.5" />);
 
-    expect(getByTestId(MoneyBalanceSummaryTestIds.APY_TAG)).toBeOnTheScreen();
     expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toHaveTextContent(
       strings('money.apy_label', { percentage: '5.5' }),
     );
   });
 
-  it('renders the default zero balance when no balance prop is provided', () => {
+  it('renders zero balance', () => {
     const { getByTestId } = render(<MoneyBalanceSummary apy="4" />);
 
     expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
       '$0.00',
     );
-  });
-
-  it('renders the provided balance value', () => {
-    const { getByTestId } = render(
-      <MoneyBalanceSummary apy="4" balance="$123.45" />,
-    );
-
-    expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
-      '$123.45',
-    );
-  });
-
-  it('renders a skeleton instead of the balance when loading', () => {
-    const { getByTestId, queryByTestId } = render(
-      <MoneyBalanceSummary apy="4" isLoading />,
-    );
-
-    expect(
-      getByTestId(MoneyBalanceSummaryTestIds.BALANCE_SKELETON),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('does not render the info button when no handler is provided', () => {
-    const { queryByTestId } = render(<MoneyBalanceSummary apy="4" />);
-
-    expect(
-      queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('calls onApyInfoPress when the info button is pressed', () => {
-    const mockInfoPress = jest.fn();
-    const { getByTestId } = render(
-      <MoneyBalanceSummary apy="4" onApyInfoPress={mockInfoPress} />,
-    );
-
-    fireEvent.press(getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON));
-
-    expect(mockInfoPress).toHaveBeenCalledTimes(1);
   });
 });

@@ -191,50 +191,6 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
   return allFills;
 }
 
-/**
- * Merges REST and WebSocket fill arrays into a single deduplicated, sorted array.
- *
- * REST fills are added first; WS fills overwrite duplicates (fresher data).
- * When a WS fill lacks `detailedOrderType` or `liquidation` that the REST fill has,
- * the REST metadata is preserved so TP/SL pills remain visible on all screens.
- *
- * Dedup key: `orderId-timestamp-size-price`
- *
- * @param restFills - Historical fills from the REST API
- * @param liveFills - Real-time fills from the WebSocket
- * @returns Merged, deduplicated fills sorted by timestamp descending
- */
-export function mergeOrderFills(
-  restFills: OrderFill[],
-  liveFills: OrderFill[],
-): OrderFill[] {
-  const fillsMap = new Map<string, OrderFill>();
-
-  for (const fill of restFills) {
-    const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
-    fillsMap.set(key, fill);
-  }
-
-  for (const fill of liveFills) {
-    const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
-    const existing = fillsMap.get(key);
-    if (existing?.detailedOrderType && !fill.detailedOrderType) {
-      fillsMap.set(key, {
-        ...fill,
-        detailedOrderType: existing.detailedOrderType,
-        ...(existing.liquidation &&
-          !fill.liquidation && { liquidation: existing.liquidation }),
-      });
-    } else {
-      fillsMap.set(key, fill);
-    }
-  }
-
-  return Array.from(fillsMap.values()).sort(
-    (a, b) => b.timestamp - a.timestamp,
-  );
-}
-
 export interface WithdrawalRequest {
   id: string;
   timestamp: number;
@@ -558,7 +514,10 @@ export function transformOrdersToTransactions(
 export function transformFundingToTransactions(
   funding: Funding[],
 ): PerpsTransaction[] {
-  return funding.map((fundingItem) => {
+  // Sort funding by timestamp in descending order (newest first) to match Orders and Trades
+  const sortedFunding = [...funding].sort((a, b) => b.timestamp - a.timestamp);
+
+  return sortedFunding.map((fundingItem) => {
     const { symbol, amountUsd, rate, timestamp } = fundingItem;
 
     // Create safe amount strings
@@ -667,137 +626,109 @@ const WALLET_STATUS_TO_DEPOSIT_STATUS: Record<
 export function transformWalletPerpsDepositsToTransactions(
   transactions: TransactionMeta[],
 ): PerpsTransaction[] {
-  return transactions.map((tx) => {
-    const tokenData = getTokenTransferData(tx);
-    const decoded = tokenData?.data
-      ? parseStandardTokenTransactionData(tokenData.data)
-      : undefined;
-    const amountWei = decoded?.args?._value?.toString?.();
-    const amountBN =
-      amountWei !== undefined
-        ? new BigNumber(
-            calcTokenAmount(amountWei, ARBITRUM_USDC.decimals).toString(),
-          )
-        : new BigNumber(0);
+  return transactions
+    .filter(
+      (tx) =>
+        tx.type === TransactionType.perpsDeposit ||
+        tx.type === TransactionType.perpsDepositAndOrder,
+    )
+    .map((tx) => {
+      const tokenData = getTokenTransferData(tx);
+      const decoded = tokenData?.data
+        ? parseStandardTokenTransactionData(tokenData.data)
+        : undefined;
+      const amountWei = decoded?.args?._value?.toString?.();
+      const amountBN =
+        amountWei !== undefined
+          ? new BigNumber(
+              calcTokenAmount(amountWei, ARBITRUM_USDC.decimals).toString(),
+            )
+          : new BigNumber(0);
 
-    const displayAmount = `+$${amountBN.toFixed(2)}`;
-    const status = WALLET_STATUS_TO_DEPOSIT_STATUS[tx.status] ?? 'pending';
-    const statusText =
-      status === 'completed'
-        ? strings('perps.transactions.activity.status_completed')
-        : status === 'failed'
-          ? strings('perps.transactions.activity.status_failed')
-          : strings('perps.transactions.activity.status_pending');
+      const displayAmount = `+$${amountBN.toFixed(2)}`;
+      const status = WALLET_STATUS_TO_DEPOSIT_STATUS[tx.status] ?? 'pending';
+      const statusText =
+        status === 'completed'
+          ? strings('perps.transactions.activity.status_completed')
+          : status === 'failed'
+            ? strings('perps.transactions.activity.status_failed')
+            : strings('perps.transactions.activity.status_pending');
 
-    const title =
-      amountBN.isZero() || !amountWei
-        ? strings('perps.transactions.activity.deposit_title')
-        : strings('perps.transactions.activity.deposited_amount', {
-            amount: amountBN.toFixed(2),
-            symbol: ARBITRUM_USDC.symbol,
-          });
+      const title =
+        amountBN.isZero() || !amountWei
+          ? strings('perps.transactions.activity.deposit_title')
+          : strings('perps.transactions.activity.deposited_amount', {
+              amount: amountBN.toFixed(2),
+              symbol: ARBITRUM_USDC.symbol,
+            });
 
-    return {
-      id: `wallet-deposit-${tx.id}`,
-      type: 'deposit' as const,
-      category: 'deposit' as const,
-      title,
-      subtitle: statusText,
-      timestamp: tx.time ?? 0,
-      asset: ARBITRUM_USDC.symbol,
-      depositWithdrawal: {
-        amount: displayAmount,
-        amountNumber: amountBN.toNumber(),
-        isPositive: true,
-        asset: ARBITRUM_USDC.symbol,
-        txHash: tx.hash ?? '',
-        status,
+      return {
+        id: `wallet-deposit-${tx.id}`,
         type: 'deposit' as const,
-      },
-    };
-  });
+        category: 'deposit' as const,
+        title,
+        subtitle: statusText,
+        timestamp: tx.time ?? 0,
+        asset: ARBITRUM_USDC.symbol,
+        depositWithdrawal: {
+          amount: displayAmount,
+          amountNumber: amountBN.toNumber(),
+          isPositive: true,
+          asset: ARBITRUM_USDC.symbol,
+          txHash: tx.hash ?? '',
+          status,
+          type: 'deposit' as const,
+        },
+      };
+    });
 }
 
 /**
  * Transform WithdrawalRequest objects to PerpsTransaction format
+ * Only shows completed withdrawals (txHash not displayed in UI)
  * @param withdrawalRequests - Array of WithdrawalRequest objects
  * @returns Array of PerpsTransaction objects
  */
 export function transformWithdrawalRequestsToTransactions(
   withdrawalRequests: WithdrawalRequest[],
 ): PerpsTransaction[] {
-  return withdrawalRequests.map((request) => {
-    const { id, timestamp, amount, asset, txHash, status } = request;
+  return withdrawalRequests
+    .filter((request) => request.status === 'completed')
+    .map((request) => {
+      const { id, timestamp, amount, asset, txHash, status } = request;
 
-    const amountBN = BigNumber(amount);
-    const displayAmount = `-$${amountBN.toFixed(2)}`;
+      // Format amount with negative sign for withdrawals
+      const amountBN = BigNumber(amount);
+      const displayAmount = `-$${amountBN.toFixed(2)}`;
 
-    const statusText =
-      status === 'completed'
-        ? strings('perps.transactions.activity.status_completed')
-        : status === 'failed'
-          ? strings('perps.transactions.activity.status_failed')
-          : strings('perps.transactions.activity.status_pending');
+      // For completed withdrawals, status is always positive (green)
+      const statusText = strings(
+        'perps.transactions.activity.status_completed',
+      );
+      const isPositive = true;
 
-    const title = amountBN.isZero()
-      ? strings('perps.transactions.activity.withdrawal_title')
-      : strings('perps.transactions.activity.withdrew_amount', {
+      return {
+        id: `withdrawal-${id}`,
+        type: 'withdrawal' as const,
+        category: 'withdrawal' as const,
+        title: strings('perps.transactions.activity.withdrew_amount', {
           amount,
           symbol: asset,
-        });
-
-    return {
-      id,
-      type: 'withdrawal' as const,
-      category: 'withdrawal' as const,
-      title,
-      subtitle: statusText,
-      timestamp,
-      asset,
-      depositWithdrawal: {
-        amount: displayAmount,
-        amountNumber: -amountBN.toNumber(),
-        isPositive: false,
+        }),
+        subtitle: statusText,
+        timestamp,
         asset,
-        txHash: txHash || '',
-        status,
-        type: 'withdrawal' as const,
-      },
-    };
-  });
-}
-
-/**
- * Convert wallet TransactionMeta (perpsWithdraw) to WithdrawalRequest format
- * so it can be passed to transformWithdrawalRequestsToTransactions.
- * @param transactions - Array of TransactionMeta with type perpsWithdraw
- * @returns Array of WithdrawalRequest objects
- */
-export function walletPerpsWithdrawalsToRequests(
-  transactions: TransactionMeta[],
-): WithdrawalRequest[] {
-  return transactions.map((tx) => {
-    const tokenData = getTokenTransferData(tx);
-    const decoded = tokenData?.data
-      ? parseStandardTokenTransactionData(tokenData.data)
-      : undefined;
-    const amountWei = decoded?.args?._value?.toString?.();
-    const amountBN =
-      amountWei !== undefined
-        ? new BigNumber(
-            calcTokenAmount(amountWei, ARBITRUM_USDC.decimals).toString(),
-          )
-        : new BigNumber(0);
-
-    return {
-      id: `wallet-withdrawal-${tx.id}`,
-      timestamp: tx.time ?? 0,
-      amount: amountBN.toFixed(2),
-      asset: ARBITRUM_USDC.symbol,
-      txHash: tx.hash,
-      status: WALLET_STATUS_TO_DEPOSIT_STATUS[tx.status] ?? 'pending',
-    };
-  });
+        depositWithdrawal: {
+          amount: displayAmount,
+          amountNumber: -amountBN.toNumber(), // Negative for withdrawals
+          isPositive,
+          asset,
+          txHash: txHash || '',
+          status,
+          type: 'withdrawal' as const,
+        },
+      };
+    });
 }
 
 /**

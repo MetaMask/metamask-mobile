@@ -13,9 +13,7 @@ import { resetRewardsState } from '../../../../reducers/rewards';
 import { ModalType } from '../components/RewardsBottomSheetModal';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { useBulkLinkState } from './useBulkLinkState';
 
@@ -47,11 +45,24 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
+// Mock useMetrics
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
-const mockIdentify = jest.fn();
+const mockAddTraitsToUser = jest.fn();
 
-jest.mock('../../../hooks/useAnalytics/useAnalytics');
+jest.mock('../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+    addTraitsToUser: mockAddTraitsToUser,
+  }),
+  MetaMetricsEvents: {
+    REWARDS_OPT_OUT_STARTED: 'rewards_opt_out_started',
+    REWARDS_OPT_OUT_COMPLETED: 'rewards_opt_out_completed',
+    REWARDS_OPT_OUT_FAILED: 'rewards_opt_out_failed',
+    REWARDS_PAGE_BUTTON_CLICKED: 'rewards_page_button_clicked',
+  },
+}));
 
 // Mock utils
 jest.mock('../utils', () => ({
@@ -164,14 +175,7 @@ describe('useOptout', () => {
       build: jest.fn().mockReturnValue({}),
     });
     mockTrackEvent.mockClear();
-    mockIdentify.mockClear();
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-        identify: mockIdentify,
-      }),
-    );
+    mockAddTraitsToUser.mockClear();
 
     // Setup useBulkLinkState mock
     mockUseBulkLinkState.mockReturnValue({
@@ -242,7 +246,7 @@ describe('useOptout', () => {
       );
 
       // Verify user traits are updated
-      expect(mockIdentify).toHaveBeenCalledWith({
+      expect(mockAddTraitsToUser).toHaveBeenCalledWith({
         [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.OFF,
       });
 
@@ -290,7 +294,7 @@ describe('useOptout', () => {
       );
 
       // Verify user traits are NOT updated on failure
-      expect(mockIdentify).not.toHaveBeenCalled();
+      expect(mockAddTraitsToUser).not.toHaveBeenCalled();
 
       expect(
         mockResetAllSessionTrackingForRewardsDashboardModals,
@@ -337,7 +341,7 @@ describe('useOptout', () => {
       );
 
       // Verify user traits are NOT updated on exception
-      expect(mockIdentify).not.toHaveBeenCalled();
+      expect(mockAddTraitsToUser).not.toHaveBeenCalled();
 
       expect(
         mockResetAllSessionTrackingForRewardsDashboardModals,

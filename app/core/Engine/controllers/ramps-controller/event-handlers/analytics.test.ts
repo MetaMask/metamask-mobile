@@ -2,19 +2,16 @@ import {
   RampsOrderStatus as Status,
   type RampsOrder,
 } from '@metamask/ramps-controller';
-import { analytics } from '../../../../../util/analytics/analytics';
-import Logger from '../../../../../util/Logger';
 import { handleOrderStatusChangedForMetrics } from './analytics';
 
 const mockTrackEvent = jest.fn();
 
-jest.mock('../../../../../util/analytics/analytics', () => ({
-  analytics: {
-    trackEvent: jest.fn(),
-  },
-}));
-
 jest.mock('../../../../Analytics', () => ({
+  MetaMetrics: {
+    getInstance: () => ({
+      trackEvent: mockTrackEvent,
+    }),
+  },
   MetaMetricsEvents: {
     ONRAMP_PURCHASE_COMPLETED: { category: 'On-ramp Purchase Completed' },
     ONRAMP_PURCHASE_FAILED: { category: 'On-ramp Purchase Failed' },
@@ -24,6 +21,8 @@ jest.mock('../../../../Analytics', () => ({
     OFFRAMP_PURCHASE_CANCELLED: { category: 'Off-ramp Purchase Cancelled' },
   },
 }));
+
+import Logger from '../../../../../util/Logger';
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -67,7 +66,6 @@ const createMockOrder = (overrides: Partial<RampsOrder> = {}): RampsOrder => ({
 describe('handleOrderStatusChangedForMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(analytics.trackEvent).mockImplementation(mockTrackEvent);
   });
 
   describe('BUY orders', () => {
@@ -82,19 +80,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       const trackedEvent = mockTrackEvent.mock.calls[0][0];
       expect(trackedEvent.name).toBe('On-ramp Purchase Completed');
-      expect(trackedEvent.properties).toEqual({
-        amount: 100,
-        amount_in_usd: 100,
-        chain_id_destination: 'eip155:1',
-        crypto_out: '0.5',
-        currency_destination: 'ETH',
-        currency_source: 'USD',
-        exchange_rate: 190,
-        order_type: 'BUY',
-        payment_method_id: 'card-1',
-        provider_onramp: 'Transak',
-        total_fee: 5,
-      });
+      expect(trackedEvent.properties).toMatchSnapshot();
     });
 
     it('tracks ONRAMP_PURCHASE_FAILED for Failed status', () => {

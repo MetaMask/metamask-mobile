@@ -279,8 +279,8 @@ describe('RegionSelectorModal', () => {
         </Provider>,
       );
 
-      expect(queryByText('(+1)')).not.toBeOnTheScreen();
-      expect(queryByText('(+44)')).not.toBeOnTheScreen();
+      expect(queryByText('(+1)')).toBeNull();
+      expect(queryByText('(+44)')).toBeNull();
     });
   });
 
@@ -301,7 +301,7 @@ describe('RegionSelectorModal', () => {
       await waitFor(() => {
         expect(getByText('United States')).toBeTruthy();
         expect(getByText('United Kingdom')).toBeTruthy();
-        expect(queryByText('Germany')).not.toBeOnTheScreen();
+        expect(queryByText('Germany')).toBeNull();
       });
     });
 
@@ -355,7 +355,7 @@ describe('RegionSelectorModal', () => {
         </Provider>,
       );
 
-      expect(queryByTestId('search-clear-button')).not.toBeOnTheScreen();
+      expect(queryByTestId('search-clear-button')).toBeNull();
 
       const searchInput = getByTestId('region-selector-search-input');
 
@@ -456,7 +456,7 @@ describe('RegionSelectorModal', () => {
         </Provider>,
       );
 
-      expect(queryByTestId('region-selector-item')).not.toBeOnTheScreen();
+      expect(queryByTestId('region-selector-item')).toBeNull();
       expect(getByTestId('region-selector-modal')).toBeTruthy();
     });
 
@@ -472,7 +472,7 @@ describe('RegionSelectorModal', () => {
         </Provider>,
       );
 
-      expect(queryByTestId('region-selector-item')).not.toBeOnTheScreen();
+      expect(queryByTestId('region-selector-item')).toBeNull();
     });
 
     it('handles undefined regions parameter', () => {
@@ -487,7 +487,7 @@ describe('RegionSelectorModal', () => {
         </Provider>,
       );
 
-      expect(queryByTestId('region-selector-item')).not.toBeOnTheScreen();
+      expect(queryByTestId('region-selector-item')).toBeNull();
     });
 
     it('handles region with missing emoji', () => {
@@ -531,9 +531,7 @@ describe('RegionSelectorModal', () => {
       );
 
       expect(getByText('Test Country')).toBeTruthy();
-      expect(
-        queryByTestId('region-selector-item-area-code'),
-      ).not.toBeOnTheScreen();
+      expect(queryByTestId('region-selector-item-area-code')).toBeNull();
     });
   });
 

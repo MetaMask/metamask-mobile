@@ -1,0 +1,136 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SelectButton should render snapshot correctly 1`] = `
+<TouchableOpacity
+  accessibilityRole="button"
+  activeOpacity={1}
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#949596",
+      "borderRadius": 8,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "minHeight": 40,
+      "opacity": 1,
+      "paddingHorizontal": 16,
+      "paddingVertical": 8,
+    }
+  }
+  testID="selectbutton"
+>
+  <View
+    accessibilityRole="none"
+    accessible={true}
+    style={
+      {
+        "flex": 1,
+        "marginRight": 8,
+        "padding": 0,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": -1,
+          }
+        }
+        testID="listitemcolumn"
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderRadius": 8,
+              "height": 32,
+              "overflow": "hidden",
+              "width": 32,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "height": 32,
+                "width": 32,
+              }
+            }
+          />
+        </View>
+      </View>
+      <View
+        accessible={false}
+        style={
+          {
+            "width": 8,
+          }
+        }
+        testID="listitem-gap"
+      />
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+        testID="listitemcolumn"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#131416",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Sample SelectButton label
+        </Text>
+        <Text
+          accessibilityRole="text"
+          numberOfLines={1}
+          style={
+            {
+              "color": "#66676a",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Sample SelectButton description
+        </Text>
+      </View>
+    </View>
+  </View>
+  <View>
+    <SvgMock
+      color="#131416"
+      fill="currentColor"
+      height={16}
+      name="ArrowDown"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </View>
+</TouchableOpacity>
+`;

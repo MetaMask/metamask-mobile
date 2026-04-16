@@ -1,5 +1,4 @@
 export const MoneyHowItWorksTestIds = {
   CONTAINER: 'money-how-it-works-container',
-  DESCRIPTION: 'money-how-it-works-description',
-  APY: 'money-how-it-works-apy',
+  ADD_MUSD_BUTTON: 'money-how-it-works-add-musd-button',
 } as const;

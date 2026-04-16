@@ -23,14 +23,10 @@ import {
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
-import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
-import { ScrollView } from 'react-native';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -38,10 +34,8 @@ const RewardsDashboard: React.FC = () => {
   const toastRef = useRef<ToastRef>(null);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const activeTab = useSelector(selectActiveTab);
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const hasTrackedDashboardViewed = useRef(false);
-
-  useTrackRewardsPageView({ page_type: 'home' });
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
   );
@@ -197,23 +191,12 @@ const RewardsDashboard: React.FC = () => {
               disabled: !subscriptionId,
               testID: REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
             },
-            {
-              iconName: IconName.UserCircleAdd,
-              onPress: () => navigation.navigate(Routes.REFERRAL_REWARDS_VIEW),
-              testID: REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
-            },
           ]}
         />
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          style={tw.style('flex-1')}
-        >
-          <Box twClassName="gap-3">
-            <CampaignsPreview />
-            <EarnRewardsPreview />
-            <BenefitsPreview />
-          </Box>
-        </ScrollView>
+        <Box twClassName="flex-1 gap-4">
+          <CampaignsPreview />
+          <EarnRewardsPreview />
+        </Box>
       </SafeAreaView>
       <Toast ref={toastRef} />
     </ErrorBoundary>

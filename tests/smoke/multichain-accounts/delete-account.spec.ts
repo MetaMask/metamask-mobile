@@ -13,8 +13,6 @@ import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomS
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../flows/wallet.flow';
-import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
 const deleteAccount = async () => {
   await AccountDetails.tapDeleteAccountLink();
@@ -34,14 +32,6 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
           .withImportedHdKeyringAndTwoDefaultAccountsSimpleKeyPairAccount()
           .build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          await setupMockRequest(mockServer, {
-            requestMethod: 'GET',
-            url: /^https:\/\/api\.merkl\.xyz\/v4\/users\/[a-zA-Z0-9]+\/rewards(\?|$)/,
-            response: [],
-            responseCode: 200,
-          });
-        },
       },
       async () => {
         await loginToApp();

@@ -69,7 +69,7 @@ describe('RevealSRP', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to full-screen reveal SRP when get started button is pressed', () => {
+  it('navigates to SRP reveal quiz when get started button is pressed', () => {
     const { getByText } = render();
 
     const getStartedButton = getByText(
@@ -77,9 +77,8 @@ describe('RevealSRP', () => {
     );
     fireEvent.press(getStartedButton);
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ,
       {
-        shouldUpdateNav: true,
         keyringId: 'test-keyring-id',
       },
     );

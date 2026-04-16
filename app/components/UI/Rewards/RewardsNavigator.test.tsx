@@ -69,18 +69,6 @@ jest.mock('./Views/RewardsSettingsView', () => {
   };
 });
 
-jest.mock('./Views/CampaignTourStepView', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockCampaignTourStepView() {
-    return ReactActual.createElement(
-      View,
-      { testID: 'campaign-tour-step-view' },
-      ReactActual.createElement(Text, null, 'Campaign Tour Step View'),
-    );
-  };
-});
-
 jest.mock('./Views/OndoCampaignDetailsView', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -89,18 +77,6 @@ jest.mock('./Views/OndoCampaignDetailsView', () => {
       View,
       { testID: 'campaign-details-view' },
       ReactActual.createElement(Text, null, 'Campaign Details View'),
-    );
-  };
-});
-
-jest.mock('./Views/OndoCampaignRwaSelectorView', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockOndoCampaignRwaSelectorView() {
-    return ReactActual.createElement(
-      View,
-      { testID: 'ondo-campaign-rwa-selector-view' },
-      ReactActual.createElement(Text, null, 'Ondo Campaign RWA Selector View'),
     );
   };
 });
@@ -231,13 +207,6 @@ jest.mock('./hooks/useSeasonStatus', () => ({
 // Mock useGeoRewardsMetadata hook
 jest.mock('./hooks/useGeoRewardsMetadata', () => ({
   useGeoRewardsMetadata: jest.fn(),
-}));
-
-// Mock useReferralDetails hook
-jest.mock('./hooks/useReferralDetails', () => ({
-  useReferralDetails: jest.fn().mockReturnValue({
-    fetchReferralDetails: jest.fn(),
-  }),
 }));
 
 // Mock useRewardsVersionGuard hook
@@ -512,31 +481,6 @@ describe('RewardsNavigator', () => {
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
 
       // Rendering should not throw even with the new screens registered
-      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
-      });
-    });
-
-    it('registers REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR route when subscription exists', async () => {
-      // The RWA selector screen is registered inside the subscriptionId-guarded block
-      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
-
-      // Rendering should not throw with the new screen registered
-      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
-      });
-    });
-
-    it('registers REWARDS_CAMPAIGN_TOUR_STEP route when subscription exists', async () => {
-      // The campaign tour screen is registered inside the subscriptionId-guarded block
-      // so that navigate() from the tour to campaign details is a push (not a pop),
-      // keeping the slide-left direction consistent with the carousel animation.
-      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
-
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {

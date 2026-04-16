@@ -43,10 +43,8 @@ describe('NetworkDetailsCheckSettings', () => {
       if (selector === selectUseSafeChainsListValidation) return false;
       return null;
     });
-    const { getByText } = renderWithProvider(<NetworkDetailsCheckSettings />);
-    expect(
-      getByText(strings('wallet.network_details_check')),
-    ).toBeOnTheScreen();
+    const { toJSON } = renderWithProvider(<NetworkDetailsCheckSettings />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render the Network Details Check section', () => {

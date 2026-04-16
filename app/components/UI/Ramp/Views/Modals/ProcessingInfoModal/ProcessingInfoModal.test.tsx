@@ -12,13 +12,12 @@ const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
   callback?.();
 });
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return {
-    ...actual,
-    BottomSheet: ReactActual.forwardRef(
+jest.mock(
+  '../../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.forwardRef(
       (
         {
           children,
@@ -34,9 +33,9 @@ jest.mock('@metamask/design-system-react-native', () => {
         }));
         return <View testID={testID}>{children}</View>;
       },
-    ),
-  };
-});
+    );
+  },
+);
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -98,6 +97,12 @@ describe('ProcessingInfoModal', () => {
   });
 
   it('renders correctly', () => {
+    renderModal();
+    expect(screen.getByTestId('processing-info-modal')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders the close button', () => {
     renderModal();
     expect(
       screen.getByTestId('processing-info-modal-close-button'),

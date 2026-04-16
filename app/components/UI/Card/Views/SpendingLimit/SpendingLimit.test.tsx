@@ -28,20 +28,6 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
-// Mock useCardHomeData hook (SpendingLimit now reads from it)
-jest.mock('../../hooks/useCardHomeData', () => ({
-  useCardHomeData: jest.fn(() => ({
-    data: null,
-    isLoading: false,
-    isError: false,
-    refetch: jest.fn(),
-    primaryToken: null,
-    availableTokens: [],
-    fundingTokens: [],
-    balanceMap: new Map(),
-  })),
-}));
-
 // Mock useSpendingLimitData hook
 jest.mock('../../hooks/useSpendingLimitData', () => jest.fn());
 
@@ -64,39 +50,44 @@ jest.mock('react-redux', () => ({
 }));
 
 // Import types after mocks but before usage
-import { FundingStatus, CardFundingToken } from '../../types';
+import {
+  AllowanceState,
+  CardTokenAllowance,
+  DelegationSettingsResponse,
+  CardExternalWalletDetailsResponse,
+} from '../../types';
 
-const mockPriorityToken: CardFundingToken = {
+const mockPriorityToken: CardTokenAllowance = {
   address: '0x123',
   symbol: 'USDC',
   name: 'USD Coin',
   decimals: 6,
   caipChainId: 'eip155:59144' as `${string}:${string}`,
-  fundingStatus: FundingStatus.Limited,
-  spendableBalance: '1000000',
+  allowanceState: AllowanceState.Limited,
+  allowance: '1000000',
   walletAddress: '0xwallet123',
 };
 
-const mockSolanaToken: CardFundingToken = {
+const mockSolanaToken: CardTokenAllowance = {
   address: 'solana123',
   symbol: 'SOL',
   name: 'Solana',
   decimals: 9,
   caipChainId:
     'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as `${string}:${string}`,
-  fundingStatus: FundingStatus.Enabled,
-  spendableBalance: '500000',
+  allowanceState: AllowanceState.Enabled,
+  allowance: '500000',
   walletAddress: '0xwallet123',
 };
 
-const mockMUSDToken: CardFundingToken = {
+const mockMUSDToken: CardTokenAllowance = {
   address: '0xmusd',
   symbol: 'mUSD',
   name: 'Meta USD',
   decimals: 18,
   caipChainId: 'eip155:59144' as `${string}:${string}`,
-  fundingStatus: FundingStatus.Enabled,
-  spendableBalance: '2000000',
+  allowanceState: AllowanceState.Enabled,
+  allowance: '2000000',
   walletAddress: '0xwallet123',
 };
 
@@ -258,8 +249,23 @@ jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
 interface MockRoute {
   params?: {
     flow?: 'manage' | 'enable' | 'onboarding';
-    selectedToken?: CardFundingToken;
-    returnedSelectedToken?: CardFundingToken;
+    selectedToken?: CardTokenAllowance;
+    priorityToken?: CardTokenAllowance | null;
+    allTokens?: CardTokenAllowance[];
+    delegationSettings?: DelegationSettingsResponse | null;
+    externalWalletDetailsData?:
+      | {
+          walletDetails: never[];
+          mappedWalletDetails: never[];
+          priorityWalletDetail: null;
+        }
+      | {
+          walletDetails: CardExternalWalletDetailsResponse;
+          mappedWalletDetails: CardTokenAllowance[];
+          priorityWalletDetail: CardTokenAllowance | undefined;
+        }
+      | null;
+    returnedSelectedToken?: CardTokenAllowance;
   };
 }
 
@@ -275,6 +281,10 @@ const mockRoute: MockRoute = {
   params: {
     flow: 'manage' as const,
     selectedToken: undefined,
+    priorityToken: mockPriorityToken,
+    allTokens: [mockPriorityToken, mockMUSDToken],
+    delegationSettings: null,
+    externalWalletDetailsData: null,
   },
 };
 
@@ -495,6 +505,10 @@ describe('SpendingLimit Component', () => {
         params: {
           flow: 'enable' as const,
           selectedToken: mockMUSDToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockPriorityToken, mockMUSDToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
         },
       };
 
@@ -522,6 +536,11 @@ describe('SpendingLimit Component', () => {
       const solanaRoute: MockRoute = {
         params: {
           flow: 'manage' as const,
+          selectedToken: undefined,
+          priorityToken: mockSolanaToken,
+          allTokens: [mockSolanaToken, mockMUSDToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
         },
       };
 
@@ -539,6 +558,11 @@ describe('SpendingLimit Component', () => {
       const emptyRoute: MockRoute = {
         params: {
           flow: 'manage' as const,
+          selectedToken: undefined,
+          priorityToken: null,
+          allTokens: [],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
         },
       };
 
@@ -556,6 +580,11 @@ describe('SpendingLimit Component', () => {
       const solanaOnlyRoute: MockRoute = {
         params: {
           flow: 'manage' as const,
+          selectedToken: undefined,
+          priorityToken: mockSolanaToken,
+          allTokens: [mockSolanaToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
         },
       };
 
@@ -593,6 +622,10 @@ describe('SpendingLimit Component', () => {
         params: {
           flow: 'enable' as const,
           selectedToken: mockSolanaToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockSolanaToken, mockPriorityToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
         },
       };
 
@@ -656,6 +689,10 @@ describe('SpendingLimit Component', () => {
         params: {
           flow: 'enable' as const,
           selectedToken: mockMUSDToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockPriorityToken, mockMUSDToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
         },
       };
 
@@ -670,6 +707,10 @@ describe('SpendingLimit Component', () => {
         params: {
           flow: 'enable' as const,
           selectedToken: mockSolanaToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockSolanaToken, mockPriorityToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
         },
       };
 
@@ -786,6 +827,10 @@ describe('SpendingLimit Component', () => {
         params: {
           flow: 'enable' as const,
           selectedToken: solanaTokenWithFullChainId,
+          priorityToken: mockPriorityToken,
+          allTokens: [solanaTokenWithFullChainId, mockPriorityToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
         },
       };
 
@@ -812,6 +857,11 @@ describe('SpendingLimit Component', () => {
     const onboardingRoute: MockRoute = {
       params: {
         flow: 'onboarding' as const,
+        selectedToken: undefined,
+        priorityToken: null,
+        allTokens: undefined,
+        delegationSettings: undefined,
+        externalWalletDetailsData: null,
       },
     };
 
@@ -949,6 +999,10 @@ describe('SpendingLimit Component', () => {
         params: {
           flow: 'onboarding' as const,
           selectedToken: mockPriorityToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockPriorityToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
         },
       };
 
@@ -967,6 +1021,10 @@ describe('SpendingLimit Component', () => {
         params: {
           flow: 'onboarding' as const,
           selectedToken: mockPriorityToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockPriorityToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
         },
       };
 
@@ -985,6 +1043,10 @@ describe('SpendingLimit Component', () => {
         params: {
           flow: 'onboarding' as const,
           selectedToken: mockPriorityToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockPriorityToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
         },
       };
 

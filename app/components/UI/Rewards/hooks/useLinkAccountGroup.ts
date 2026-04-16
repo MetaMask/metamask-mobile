@@ -5,12 +5,9 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import Engine from '../../../../core/Engine';
 import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
-import {
-  MetaMetricsEvents,
-  IMetaMetricsEvent,
-} from '../../../../core/Analytics';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { deriveAccountMetricProps } from '../utils';
+import { IMetaMetricsEvent } from '../../../../core/Analytics';
 import useRewardsToast from './useRewardsToast';
 import { strings } from '../../../../../locales/i18n';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -36,7 +33,7 @@ export const useLinkAccountGroup = (
 
   const getAccountsByGroupId = useSelector(selectInternalAccountsByGroupId);
   const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const triggerAccountLinkingEvent = useCallback(
     (event: IMetaMetricsEvent, account: InternalAccount) => {

@@ -73,8 +73,9 @@ describe('KycWebviewModal', () => {
     mockRouteAfterAuthentication.mockClear();
   });
 
-  it('renders the WebviewModal without crashing', () => {
-    expect(() => render(KycWebviewModal)).not.toThrow();
+  it('render matches snapshot', () => {
+    const { toJSON } = render(KycWebviewModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls the hook when component mounts', () => {

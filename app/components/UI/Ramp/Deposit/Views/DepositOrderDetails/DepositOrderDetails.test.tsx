@@ -109,8 +109,7 @@ describe('DepositOrderDetails Component', () => {
         },
       },
     });
-    expect(screen.getByText('Order ID')).toBeOnTheScreen();
-    expect(screen.getByText('Total')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders error state correctly', () => {
@@ -124,8 +123,7 @@ describe('DepositOrderDetails Component', () => {
         },
       },
     });
-    expect(screen.getByText('Order ID')).toBeOnTheScreen();
-    expect(screen.getByText('Total')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders processing state correctly', () => {
@@ -139,8 +137,7 @@ describe('DepositOrderDetails Component', () => {
         },
       },
     });
-    expect(screen.getByText('Order ID')).toBeOnTheScreen();
-    expect(screen.getByText('Total')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders no order found state', () => {
@@ -153,8 +150,7 @@ describe('DepositOrderDetails Component', () => {
         },
       },
     });
-    expect(screen.queryByText('Order ID')).not.toBeOnTheScreen();
-    expect(screen.queryByText('Total')).not.toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders loading state correctly', () => {
@@ -168,8 +164,7 @@ describe('DepositOrderDetails Component', () => {
         },
       },
     });
-    expect(screen.queryByText('Order ID')).not.toBeOnTheScreen();
-    expect(screen.queryByText('Total')).not.toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders an error screen if a CREATED order cannot be polled on load', async () => {
@@ -189,9 +184,7 @@ describe('DepositOrderDetails Component', () => {
       });
     });
 
-    expect(
-      screen.getByText('There was an error with your deposit order'),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('calls handleOnRefresh successfully on mount for CREATED orders', async () => {
