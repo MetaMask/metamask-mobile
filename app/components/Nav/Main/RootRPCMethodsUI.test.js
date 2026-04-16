@@ -1,10 +1,13 @@
 import React from 'react';
+import { Alert } from 'react-native';
 import { render } from '@testing-library/react-native';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 // Resolves to the mock from jest.mock below, not the real Engine
 import Engine, { controllerMessenger } from '../../../core/Engine';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import Logger from '../../../util/Logger';
+import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
 
 let capturedAutoSign;
 const SOFTWARE_ADDRESS = '0x1111111111111111111111111111111111111111';
@@ -40,6 +43,10 @@ jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   })),
+}));
+
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
 }));
 
 const mockExecuteHardwareWalletOperation = jest.fn();
@@ -93,6 +100,7 @@ jest.mock('../../UI/QRHardware/QRSigningTransactionModal', () => ({
 describe('RootRPCMethodsUI', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     capturedAutoSign = undefined;
     mockGetHardwareWalletTypeForAddress.mockReturnValue(
       HardwareWalletType.Ledger,
@@ -218,5 +226,65 @@ describe('RootRPCMethodsUI', () => {
     );
     expect(mockBuild).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('tracks DAPP_TRANSACTION_CANCELLED when the shared hardware wallet flow handles an STX no-hash cancel', async () => {
+    mockExecuteHardwareWalletOperation.mockImplementationOnce(
+      async ({ onError }) => {
+        await onError?.(new Error(STX_NO_HASH_ERROR));
+        return false;
+      },
+    );
+
+    render(<RootRPCMethodsUI navigation={{ navigate: jest.fn() }} />);
+
+    const subscribeCall = controllerMessenger.subscribe.mock.calls[0];
+    const handleUnapprovedTransaction = subscribeCall[1];
+
+    handleUnapprovedTransaction({
+      id: 'tx-stx',
+      txParams: { from: LEDGER_ADDRESS },
+    });
+
+    await capturedAutoSign({
+      id: 'tx-stx',
+      txParams: { from: LEDGER_ADDRESS },
+    });
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('logs unexpected hardware wallet errors through the shared error callback', async () => {
+    const error = new Error('Ledger signing failed');
+    mockExecuteHardwareWalletOperation.mockImplementationOnce(
+      async ({ onError }) => {
+        await onError?.(error);
+        return false;
+      },
+    );
+
+    render(<RootRPCMethodsUI navigation={{ navigate: jest.fn() }} />);
+
+    const subscribeCall = controllerMessenger.subscribe.mock.calls[0];
+    const handleUnapprovedTransaction = subscribeCall[1];
+
+    handleUnapprovedTransaction({
+      id: 'tx-error',
+      txParams: { from: LEDGER_ADDRESS },
+    });
+
+    await capturedAutoSign({
+      id: 'tx-error',
+      txParams: { from: LEDGER_ADDRESS },
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      error,
+      'error while trying to send transaction (Main)',
+    );
+    expect(Alert.alert).not.toHaveBeenCalled();
   });
 });
