@@ -1,0 +1,511 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CashTokensFullViewSkeleton matches snapshot 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
+      "paddingBottom": 16,
+    }
+  }
+  testID="cash-tokens-full-view-skeleton"
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 16,
+          "height": "auto",
+        },
+        false,
+        {
+          "paddingBottom": 16,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+          "paddingTop": 16,
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "borderRadius": 4,
+              "overflow": "hidden",
+            },
+            {
+              "height": 20,
+            },
+            {
+              "width": 120,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          collapsable={false}
+          pointerEvents="none"
+          style={
+            {
+              "backgroundColor": "#66676a",
+              "borderRadius": 4,
+              "bottom": 0,
+              "left": 0,
+              "opacity": 0.2,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+        />
+      </View>
+    </View>
+  </View>
+  <RCTScrollView
+    showsVerticalScrollIndicator={false}
+    style={
+      {
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
+      }
+    }
+  >
+    <View>
+      <View
+        style={
+          [
+            {
+              "display": "flex",
+              "marginTop": 8,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 4,
+                "overflow": "hidden",
+              },
+              {
+                "height": 140,
+              },
+              {
+                "width": "100%",
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            collapsable={false}
+            pointerEvents="none"
+            style={
+              {
+                "backgroundColor": "#66676a",
+                "borderRadius": 4,
+                "bottom": 0,
+                "left": 0,
+                "opacity": 0.2,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              }
+            }
+          />
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "display": "flex",
+              "marginTop": 16,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 4,
+                "overflow": "hidden",
+              },
+              {
+                "height": 96,
+              },
+              {
+                "width": "100%",
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            collapsable={false}
+            pointerEvents="none"
+            style={
+              {
+                "backgroundColor": "#66676a",
+                "borderRadius": 4,
+                "bottom": 0,
+                "left": 0,
+                "opacity": 0.2,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              }
+            }
+          />
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "display": "flex",
+              "marginTop": 16,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 4,
+                "overflow": "hidden",
+              },
+              {
+                "height": 28,
+              },
+              {
+                "width": "60%",
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            collapsable={false}
+            pointerEvents="none"
+            style={
+              {
+                "backgroundColor": "#66676a",
+                "borderRadius": 4,
+                "bottom": 0,
+                "left": 0,
+                "opacity": 0.2,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              }
+            }
+          />
+        </View>
+        <View
+          style={
+            [
+              {
+                "display": "flex",
+                "marginTop": 12,
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 4,
+                  "overflow": "hidden",
+                },
+                {
+                  "height": 16,
+                },
+                {
+                  "width": "90%",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "backgroundColor": "#66676a",
+                  "borderRadius": 4,
+                  "bottom": 0,
+                  "left": 0,
+                  "opacity": 0.2,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+        </View>
+        <View
+          style={
+            [
+              {
+                "display": "flex",
+                "marginTop": 8,
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 4,
+                  "overflow": "hidden",
+                },
+                {
+                  "height": 16,
+                },
+                {
+                  "width": "80%",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "backgroundColor": "#66676a",
+                  "borderRadius": 4,
+                  "bottom": 0,
+                  "left": 0,
+                  "opacity": 0.2,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+        </View>
+        <View
+          style={
+            [
+              {
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": 8,
+                "marginTop": 12,
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 4,
+                  "overflow": "hidden",
+                },
+                {
+                  "height": 24,
+                },
+                {
+                  "width": 88,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "backgroundColor": "#66676a",
+                  "borderRadius": 4,
+                  "bottom": 0,
+                  "left": 0,
+                  "opacity": 0.2,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 4,
+                  "overflow": "hidden",
+                },
+                {
+                  "height": 24,
+                },
+                {
+                  "width": 88,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "backgroundColor": "#66676a",
+                  "borderRadius": 4,
+                  "bottom": 0,
+                  "left": 0,
+                  "opacity": 0.2,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+        </View>
+        <View
+          style={
+            [
+              {
+                "display": "flex",
+                "marginTop": 16,
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 4,
+                  "overflow": "hidden",
+                },
+                {
+                  "height": 48,
+                },
+                {
+                  "width": "100%",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "backgroundColor": "#66676a",
+                  "borderRadius": 4,
+                  "bottom": 0,
+                  "left": 0,
+                  "opacity": 0.2,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+          "paddingLeft": 16,
+          "paddingRight": 16,
+          "paddingTop": 16,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "overflow": "hidden",
+          },
+          {
+            "height": 48,
+          },
+          {
+            "width": "100%",
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        collapsable={false}
+        pointerEvents="none"
+        style={
+          {
+            "backgroundColor": "#66676a",
+            "borderRadius": 4,
+            "bottom": 0,
+            "left": 0,
+            "opacity": 0.2,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      />
+    </View>
+  </View>
+</View>
+`;

@@ -1,7 +1,9 @@
 import React from 'react';
+import { InteractionManager } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CashTokensFullView from './CashTokensFullView';
+import { CashTokensFullViewSkeletonTestIds } from './CashTokensFullViewSkeleton';
 import { useMerklBonusClaim } from '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { selectMoneyHubEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { AssetType } from '../confirmations/types/token';
@@ -130,9 +132,24 @@ jest.mock('../../UI/Tokens', () => {
   return { __esModule: true, default: MockTokens };
 });
 
+const flushInteractionManager = () =>
+  jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation((cb) => {
+      if (typeof cb === 'function') {
+        cb();
+      }
+      return {
+        then: jest.fn(),
+        done: jest.fn(),
+        cancel: jest.fn(),
+      };
+    });
+
 describe('CashTokensFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    flushInteractionManager();
     mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
     mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
     mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
@@ -251,5 +268,23 @@ describe('CashTokensFullView', () => {
     expect(mockGoToBuy).toHaveBeenCalledWith({
       assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
     });
+  });
+
+  it('renders CashTokensFullViewSkeleton on first render before data is marked loaded', () => {
+    // Prevent InteractionManager's callback from running so the view stays
+    // in its loading state for the duration of the render.
+    jest.restoreAllMocks();
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation(() => ({
+        then: jest.fn(),
+        done: jest.fn(),
+        cancel: jest.fn(),
+      }));
+
+    renderWithProvider(<CashTokensFullView />);
+    expect(
+      screen.getByTestId(CashTokensFullViewSkeletonTestIds.CONTAINER),
+    ).toBeOnTheScreen();
   });
 });

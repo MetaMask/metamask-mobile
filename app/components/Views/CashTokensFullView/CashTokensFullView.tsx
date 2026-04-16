@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import { Linking, ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { InteractionManager, Linking, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -35,6 +35,7 @@ import AssetOverviewClaimBonus from '../../UI/Earn/components/AssetOverviewClaim
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import CashGetMusdEmptyState from '../Homepage/Sections/Cash/CashGetMusdEmptyState';
 import SectionRow from '../Homepage/components/SectionRow/SectionRow';
+import CashTokensFullViewSkeleton from './CashTokensFullViewSkeleton';
 import { AssetType } from '../confirmations/types/token';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../../core/AppConstants';
@@ -50,6 +51,19 @@ const CashTokensFullView = () => {
   const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
 
   const hasConversionTokens = conversionTokens.length > 0;
+
+  // Loading signal: neither useMusdBalance nor useMusdConversionTokens expose
+  // an isLoading flag (they derive from synchronous Redux selectors). We mirror
+  // the Tokens component's hasInitialLoad pattern and flip loading off after
+  // the first InteractionManager tick so the Hub's dedicated skeleton shows on
+  // the first paint instead of falling through to TokenListSkeleton.
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    const handle = InteractionManager.runAfterInteractions(() => {
+      setIsLoading(false);
+    });
+    return () => handle.cancel();
+  }, []);
 
   const { initiateMaxConversion, initiateCustomConversion } =
     useMusdConversion();
@@ -130,6 +144,10 @@ const CashTokensFullView = () => {
       handleLearnMorePress,
     ],
   );
+
+  if (isLoading) {
+    return <CashTokensFullViewSkeleton />;
+  }
 
   return (
     <SafeAreaView style={tw`flex-1 bg-default pb-4`}>
