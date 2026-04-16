@@ -98,20 +98,26 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   const footerTimeText = timeRemaining ?? scheduledTime;
 
   const outcome = market.outcomes[0];
+  const matchesTeam = (
+    tokenTitle: string | undefined,
+    team: { name?: string; alias?: string },
+  ) => {
+    if (!tokenTitle) return false;
+    const lower = tokenTitle.toLowerCase();
+    return (
+      lower === team.name?.toLowerCase() ||
+      (team.alias != null && lower === team.alias.toLowerCase())
+    );
+  };
+
   const homeToken =
-    outcome?.tokens?.find(
-      (t) =>
-        t.title.toLowerCase() === game.homeTeam.name.toLowerCase() ||
-        t.title.toLowerCase() === game.homeTeam.alias.toLowerCase(),
-    ) ?? outcome?.tokens?.[0];
+    outcome?.tokens?.find((t) => matchesTeam(t.title, game.homeTeam)) ??
+    outcome?.tokens?.[0];
   const awayToken =
-    outcome?.tokens?.find(
-      (t) =>
-        t.title.toLowerCase() === game.awayTeam.name.toLowerCase() ||
-        t.title.toLowerCase() === game.awayTeam.alias.toLowerCase(),
-    ) ?? outcome?.tokens?.[1];
+    outcome?.tokens?.find((t) => matchesTeam(t.title, game.awayTeam)) ??
+    outcome?.tokens?.[1];
   const drawToken = showDraw
-    ? outcome?.tokens?.find((t) => t.title.toLowerCase() === 'draw')
+    ? outcome?.tokens?.find((t) => t.title?.toLowerCase() === 'draw')
     : undefined;
 
   const handleCardPress = useCallback(() => {
