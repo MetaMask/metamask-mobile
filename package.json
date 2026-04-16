@@ -305,7 +305,6 @@
     "@metamask/rpc-errors": "^7.0.2",
     "@metamask/sample-controllers": "^3.0.0",
     "@metamask/scure-bip39": "^2.1.0",
-    "@metamask/sdk-analytics": "0.0.5",
     "@metamask/sdk-communication-layer": "0.33.1",
     "@metamask/seedless-onboarding-controller": "^9.0.0",
     "@metamask/selected-network-controller": "^25.0.0",
