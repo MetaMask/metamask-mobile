@@ -38,7 +38,7 @@ describe('MoneyBalanceSummary', () => {
     );
   });
 
-  it('renders a skeleton instead of the balance when loading', () => {
+  it('renders the balance skeleton instead of the balance value when loading', () => {
     const { getByTestId, queryByTestId } = render(
       <MoneyBalanceSummary apy="4" isLoading />,
     );
@@ -48,6 +48,19 @@ describe('MoneyBalanceSummary', () => {
     ).toBeOnTheScreen();
     expect(
       queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the APY skeleton instead of the APY tag when loading', () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyBalanceSummary apy="4" isLoading />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.APY_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.APY_TAG),
     ).not.toBeOnTheScreen();
   });
 
@@ -68,5 +81,13 @@ describe('MoneyBalanceSummary', () => {
     fireEvent.press(getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON));
 
     expect(mockInfoPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the formatted APY label using the dash fallback string', () => {
+    const { getByTestId } = render(<MoneyBalanceSummary apy="-" />);
+
+    expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toHaveTextContent(
+      strings('money.apy_label', { percentage: '-' }),
+    );
   });
 });

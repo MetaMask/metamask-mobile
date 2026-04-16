@@ -47,7 +47,7 @@ const useMoneyAccountBalance = (
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const formatFiat = useFiatFormatter();
 
-  const [musdBalanceResult, vaultApyResult, musdEquivalentBalanceResult] =
+  const [musdBalanceQuery, vaultApyQuery, musdEquivalentBalanceQuery] =
     useQueries({
       queries: [
         {
@@ -102,16 +102,16 @@ const useMoneyAccountBalance = (
    * isLoading is only true when there is no cached data even if it's stale.
    */
   const isAggregatedBalanceLoading = useMemo(
-    () => musdBalanceResult.isLoading || musdEquivalentBalanceResult.isLoading,
-    [musdBalanceResult.isLoading, musdEquivalentBalanceResult.isLoading],
+    () => musdBalanceQuery.isLoading || musdEquivalentBalanceQuery.isLoading,
+    [musdBalanceQuery.isLoading, musdEquivalentBalanceQuery.isLoading],
   );
 
   const { musdFiat, musdSHFvdFiat, tokenTotal, totalFiat } = useMemo(() => {
     // mUSD balance: raw uint256 (6 decimals) → decimal BigNumber
-    const musdDecimal = musdBalanceResult.data?.balance
+    const musdDecimal = musdBalanceQuery.data?.balance
       ? new BigNumber(
           fromTokenMinimalUnitString(
-            musdBalanceResult.data.balance,
+            musdBalanceQuery.data.balance,
             MUSD_DECIMALS,
           ),
         )
@@ -119,11 +119,11 @@ const useMoneyAccountBalance = (
 
     // musdSHFvd balance expressed in mUSD: pre-computed by the service as
     // musdSHFvdBalance * exchangeRate / 10^6, returned as a raw uint256 string.
-    const musdSHFvdDecimal = musdEquivalentBalanceResult.data
+    const musdSHFvdDecimal = musdEquivalentBalanceQuery.data
       ?.musdEquivalentValue
       ? new BigNumber(
           fromTokenMinimalUnitString(
-            musdEquivalentBalanceResult.data.musdEquivalentValue,
+            musdEquivalentBalanceQuery.data.musdEquivalentValue,
             MUSD_DECIMALS,
           ),
         )
@@ -157,8 +157,8 @@ const useMoneyAccountBalance = (
     };
   }, [
     isAggregatedBalanceLoading,
-    musdBalanceResult.data,
-    musdEquivalentBalanceResult.data,
+    musdBalanceQuery.data,
+    musdEquivalentBalanceQuery.data,
     musdFiatRate,
   ]);
 
@@ -170,9 +170,9 @@ const useMoneyAccountBalance = (
   const totalFiatRaw = totalFiat ? totalFiat.toString() : undefined;
 
   return {
-    musdBalanceResult,
-    vaultApyResult,
-    musdEquivalentBalanceResult,
+    musdBalanceQuery,
+    vaultApyQuery,
+    musdEquivalentBalanceQuery,
     isAggregatedBalanceLoading,
     musdFiatFormatted,
     musdSHFvdFiatFormatted,

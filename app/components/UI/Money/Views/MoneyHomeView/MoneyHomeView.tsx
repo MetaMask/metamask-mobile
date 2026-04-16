@@ -37,7 +37,7 @@ const MoneyHomeView = () => {
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
 
-  const { totalFiatFormatted, vaultApyResult, isAggregatedBalanceLoading } =
+  const { totalFiatFormatted, vaultApyQuery, isAggregatedBalanceLoading } =
     useMoneyAccountBalance();
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
@@ -90,10 +90,10 @@ const MoneyHomeView = () => {
         showsVerticalScrollIndicator={false}
       >
         <MoneyBalanceSummary
-          apy={String(vaultApyResult.data?.apy)}
+          apy={String(vaultApyQuery.data?.apy)}
           balance={totalFiatFormatted ?? '-'}
           onApyInfoPress={handleApyInfoPress}
-          isLoading={vaultApyResult.isLoading || isAggregatedBalanceLoading}
+          isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
         />
         <MoneyActionButtonRow
           onAddPress={handleAddPress}
@@ -105,7 +105,7 @@ const MoneyHomeView = () => {
         <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
         <Divider />
         <MoneyHowItWorks
-          apy={String(vaultApyResult.data?.apy)}
+          apy={String(vaultApyQuery.data?.apy)}
           onHeaderPress={handleHowItWorksHeaderPress}
         />
         <MoneyMusdTokenRow
@@ -117,7 +117,7 @@ const MoneyHomeView = () => {
           <>
             <MoneyPotentialEarnings
               tokens={conversionTokens}
-              apy={MUSD_CONVERSION_APY}
+              apy={String(vaultApyQuery.data?.apy)}
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
@@ -143,7 +143,7 @@ const MoneyHomeView = () => {
           </>
         )}
         <MoneyWhatYouGet
-          apy={String(vaultApyResult.data?.apy)}
+          apy={String(vaultApyQuery.data?.apy)}
           onLearnMorePress={handleLearnMorePress}
         />
       </ScrollView>

@@ -64,7 +64,7 @@ interface MoneyPotentialEarningsProps {
    * {@link PROJECTION_YEARS} to compute the projected earnings displayed
    * alongside each token and in the gradient headline.
    */
-  apy: number;
+  apy: string;
   onTokenPress?: (token: AssetType) => void;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
@@ -210,7 +210,7 @@ const MoneyPotentialEarnings = ({
 }: MoneyPotentialEarningsProps) => {
   const formatFiat = useFiatFormatter();
   const projectedMultiplier = useMemo(
-    () => (apy / 100) * PROJECTION_YEARS,
+    () => (Number(apy) / 100) * PROJECTION_YEARS,
     [apy],
   );
   // Tokens arrive pre-sorted (stablecoins first, then fiat desc) from

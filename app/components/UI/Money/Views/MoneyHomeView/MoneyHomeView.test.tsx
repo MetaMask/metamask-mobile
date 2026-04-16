@@ -17,6 +17,7 @@ import { MoneyActivityListTestIds } from '../../components/MoneyActivityList/Mon
 import Routes from '../../../../../constants/navigation/Routes';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -55,9 +56,16 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
+
+const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
