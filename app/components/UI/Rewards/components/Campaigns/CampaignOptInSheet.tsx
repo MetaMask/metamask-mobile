@@ -31,6 +31,8 @@ import { selectGeolocationStatus } from '../../../../../selectors/geolocationCon
 import ContentfulRichText, {
   isDocument,
 } from '../ContentfulRichText/ContentfulRichText';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface CampaignOptInSheetProps {
   campaign: CampaignDto;
@@ -45,6 +47,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   campaign,
   onClose,
 }) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { optInToCampaign, isOptingIn, optInError } = useOptInToCampaign();
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const geolocation = useSelector(getDetectedGeolocation);
@@ -72,6 +75,13 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
     try {
       const result = await optInToCampaign(campaign.id);
       if (result?.optedIn) {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.REWARDS_CAMPAIGN_OPT_IN_COMPLETED,
+          )
+            .addProperties({ campaign_id: campaign.id })
+            .build(),
+        );
         showToast(
           RewardsToastOptions.success(
             strings('rewards.campaign.opt_in_success_toast'),
@@ -82,7 +92,15 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
     } catch {
       // Error is handled by the hook; sheet stays open so user can retry
     }
-  }, [optInToCampaign, campaign.id, showToast, RewardsToastOptions, onClose]);
+  }, [
+    optInToCampaign,
+    campaign.id,
+    trackEvent,
+    createEventBuilder,
+    showToast,
+    RewardsToastOptions,
+    onClose,
+  ]);
 
   return (
     <BottomSheet onClose={onClose}>

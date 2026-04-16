@@ -3,8 +3,9 @@ import { View } from 'react-native';
 import {
   FontWeight,
   Text,
-  TextColor,
   TextVariant,
+  SensitiveText,
+  SensitiveTextLength,
 } from '@metamask/design-system-react-native';
 import createStyles from './SpendingLimitProgressBar.styles';
 import { useTheme } from '../../../../../util/theme';
@@ -18,6 +19,7 @@ interface SpendingLimitProgressBarProps {
   remainingAllowance: string;
   symbol: string;
   isLoading: boolean;
+  privacyMode?: boolean;
 }
 
 const SpendingLimitProgressBar = ({
@@ -26,6 +28,7 @@ const SpendingLimitProgressBar = ({
   remainingAllowance,
   symbol,
   isLoading,
+  privacyMode = false,
 }: SpendingLimitProgressBarProps) => {
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -73,7 +76,7 @@ const SpendingLimitProgressBar = ({
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, styles.skeletonContainer]}>
         <Skeleton
           height={20}
           width={'100%'}
@@ -91,13 +94,13 @@ const SpendingLimitProgressBar = ({
         <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
           Spending Limit
         </Text>
-        <Text
+        <SensitiveText
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
           variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
         >
-          {consumedAmountDisplay}/{totalAllowanceDisplay} {symbol}
-        </Text>
+          {`${consumedAmountDisplay}/${totalAllowanceDisplay} ${symbol}`}
+        </SensitiveText>
       </View>
       <ProgressBar
         progress={progress}

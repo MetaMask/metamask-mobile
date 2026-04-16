@@ -4,15 +4,20 @@ import Engine from '../../../../core/Engine';
 import {
   selectCardHomeData,
   selectCardHomeDataStatus,
+  selectCardPrimaryToken,
+  selectCardAvailableTokens,
+  selectCardFundingTokens,
 } from '../../../../selectors/cardController';
-import { toCardTokenAllowance } from '../util/toCardTokenAllowance';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useAssetBalances } from './useAssetBalances';
-import type { CardAssetWithBalance } from '../types';
+import type { CardFundingTokenWithBalance } from '../types';
 
 export const useCardHomeData = () => {
   const data = useSelector(selectCardHomeData);
   const status = useSelector(selectCardHomeDataStatus);
+  const primaryTokenRaw = useSelector(selectCardPrimaryToken);
+  const availableTokensRaw = useSelector(selectCardAvailableTokens);
+  const fundingTokensRaw = useSelector(selectCardFundingTokens);
 
   // Safety net: if the controller hasn't started a fetch yet (e.g. deep link
   // before KeyringController:unlock fires), kick one off on mount.
@@ -22,6 +27,7 @@ export const useCardHomeData = () => {
     if (status === 'idle') {
       Engine.context.CardController.fetchCardHomeData();
     }
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -30,57 +36,40 @@ export const useCardHomeData = () => {
     [],
   );
 
-  // Convert all CardFundingAsset arrays to CardTokenAllowance once.
-  // This is the single place where this type bridge occurs.
-  const primaryAssetToken = useMemo(
-    () => (data?.primaryAsset ? toCardTokenAllowance(data.primaryAsset) : null),
-    [data?.primaryAsset],
-  );
-
-  const supportedAssetTokens = useMemo(
-    () => (data?.supportedTokens ?? []).map(toCardTokenAllowance),
-    [data?.supportedTokens],
-  );
-
-  const allAssetTokens = useMemo(
-    () => (data?.assets ?? []).map(toCardTokenAllowance),
-    [data?.assets],
-  );
-
   // One useAssetBalances call covering all known card tokens, deduplicated by key.
-  const allTokensForBalance = useMemo(() => {
+  const tokensForBalanceLookup = useMemo(() => {
     const seen = new Set<string>();
     return [
-      ...(primaryAssetToken ? [primaryAssetToken] : []),
-      ...supportedAssetTokens,
-      ...allAssetTokens,
+      ...(primaryTokenRaw ? [primaryTokenRaw] : []),
+      ...availableTokensRaw,
+      ...fundingTokensRaw,
     ].filter((token) => {
       const key = getAssetBalanceKey(token);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
-  }, [primaryAssetToken, supportedAssetTokens, allAssetTokens]);
-  const assetBalancesMap = useAssetBalances(allTokensForBalance);
+  }, [primaryTokenRaw, availableTokensRaw, fundingTokensRaw]);
+  const balanceMap = useAssetBalances(tokensForBalanceLookup);
 
   // Merge balance info into enriched token objects.
-  const primaryAsset = useMemo((): CardAssetWithBalance | null => {
-    if (!primaryAssetToken) return null;
-    const info = assetBalancesMap.get(getAssetBalanceKey(primaryAssetToken));
+  const primaryToken = useMemo((): CardFundingTokenWithBalance | null => {
+    if (!primaryTokenRaw) return null;
+    const info = balanceMap.get(getAssetBalanceKey(primaryTokenRaw));
     return {
-      ...primaryAssetToken,
+      ...primaryTokenRaw,
       asset: info?.asset,
       balanceFiat: info?.balanceFiat,
       balanceFormatted: info?.balanceFormatted,
       rawFiatNumber: info?.rawFiatNumber,
       rawTokenBalance: info?.rawTokenBalance,
     };
-  }, [primaryAssetToken, assetBalancesMap]);
+  }, [primaryTokenRaw, balanceMap]);
 
-  const supportedAssets = useMemo(
-    (): CardAssetWithBalance[] =>
-      supportedAssetTokens.map((token) => {
-        const info = assetBalancesMap.get(getAssetBalanceKey(token));
+  const availableTokens = useMemo(
+    (): CardFundingTokenWithBalance[] =>
+      availableTokensRaw.map((token) => {
+        const info = balanceMap.get(getAssetBalanceKey(token));
         return {
           ...token,
           asset: info?.asset,
@@ -90,13 +79,13 @@ export const useCardHomeData = () => {
           rawTokenBalance: info?.rawTokenBalance,
         };
       }),
-    [supportedAssetTokens, assetBalancesMap],
+    [availableTokensRaw, balanceMap],
   );
 
-  const assetTokens = useMemo(
-    (): CardAssetWithBalance[] =>
-      allAssetTokens.map((token) => {
-        const info = assetBalancesMap.get(getAssetBalanceKey(token));
+  const fundingTokens = useMemo(
+    (): CardFundingTokenWithBalance[] =>
+      fundingTokensRaw.map((token) => {
+        const info = balanceMap.get(getAssetBalanceKey(token));
         return {
           ...token,
           asset: info?.asset,
@@ -106,7 +95,7 @@ export const useCardHomeData = () => {
           rawTokenBalance: info?.rawTokenBalance,
         };
       }),
-    [allAssetTokens, assetBalancesMap],
+    [fundingTokensRaw, balanceMap],
   );
 
   return {
@@ -114,9 +103,9 @@ export const useCardHomeData = () => {
     isLoading: status === 'loading' || status === 'idle',
     isError: status === 'error',
     refetch,
-    primaryAsset,
-    supportedAssets,
-    assetTokens,
-    assetBalancesMap,
+    primaryToken,
+    availableTokens,
+    fundingTokens,
+    balanceMap,
   };
 };

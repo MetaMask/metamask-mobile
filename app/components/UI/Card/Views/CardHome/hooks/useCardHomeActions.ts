@@ -28,42 +28,17 @@ import useCardPinToken from '../../../hooks/useCardPinToken';
 import { useOpenSwaps } from '../../../hooks/useOpenSwaps';
 import { useNavigateToCardPage } from '../../../hooks/useNavigateToCardPage';
 import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
-import type {
-  CardAssetWithBalance,
-  DelegationSettingsResponse,
-} from '../../../types';
-
-function buildSpendingLimitParams(
-  primaryAsset: CardAssetWithBalance | null,
-  supportedAssets: CardAssetWithBalance[],
-  assetTokens: CardAssetWithBalance[],
-  delegationSettings: DelegationSettingsResponse | null,
-) {
-  return {
-    allTokens: supportedAssets,
-    priorityToken: primaryAsset,
-    delegationSettings,
-    externalWalletDetailsData: {
-      walletDetails: [] as never[],
-      mappedWalletDetails: assetTokens,
-      priorityWalletDetail: primaryAsset ?? undefined,
-    },
-  };
-}
+import type { CardFundingTokenWithBalance } from '../../../types';
 
 interface UseCardHomeActionsParams {
   data: CardHomeData | null | undefined;
-  primaryAsset: CardAssetWithBalance | null;
-  supportedAssets: CardAssetWithBalance[];
-  assetTokens: CardAssetWithBalance[];
+  primaryToken: CardFundingTokenWithBalance | null;
   isFrozen: boolean;
 }
 
 export function useCardHomeActions({
   data,
-  primaryAsset,
-  supportedAssets,
-  assetTokens,
+  primaryToken,
   isFrozen,
 }: UseCardHomeActionsParams) {
   const navigation = useNavigation();
@@ -89,18 +64,7 @@ export function useCardHomeActions({
     isLoading: isPinLoading,
     reset: resetPinToken,
   } = useCardPinToken();
-  const { openSwaps } = useOpenSwaps({ priorityToken: primaryAsset });
-
-  const spendingLimitParams = useMemo(
-    () =>
-      buildSpendingLimitParams(
-        primaryAsset,
-        supportedAssets,
-        assetTokens,
-        data?.delegationSettings ?? null,
-      ),
-    [primaryAsset, supportedAssets, assetTokens, data?.delegationSettings],
-  );
+  const { openSwaps } = useOpenSwaps({ priorityToken: primaryToken });
 
   // --- Freeze ---
 
@@ -324,23 +288,24 @@ export function useCardHomeActions({
       createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
     );
     const isPriorityTokenSupportedDeposit = !!DEPOSIT_SUPPORTED_TOKENS.find(
-      (t) => t.toLowerCase() === data?.primaryAsset?.symbol?.toLowerCase(),
+      (t) =>
+        t.toLowerCase() === data?.primaryFundingAsset?.symbol?.toLowerCase(),
     );
 
     if (isPriorityTokenSupportedDeposit) {
       navigation.navigate(
         ...createAddFundsModalNavigationDetails({
-          priorityToken: primaryAsset ?? undefined,
+          priorityToken: primaryToken ?? undefined,
         }),
       );
-    } else if (data?.primaryAsset) {
+    } else if (data?.primaryFundingAsset) {
       openSwaps({});
     }
   }, [
     trackEvent,
     createEventBuilder,
-    data?.primaryAsset,
-    primaryAsset,
+    data?.primaryFundingAsset,
+    primaryToken,
     openSwaps,
     navigation,
   ]);
@@ -352,24 +317,11 @@ export function useCardHomeActions({
         .build(),
     );
     if (isAuthenticated) {
-      navigation.navigate(
-        ...createAssetSelectionModalNavigationDetails({
-          tokensWithAllowances: spendingLimitParams.allTokens,
-          delegationSettings: spendingLimitParams.delegationSettings,
-          cardExternalWalletDetails:
-            spendingLimitParams.externalWalletDetailsData,
-        }),
-      );
+      navigation.navigate(...createAssetSelectionModalNavigationDetails({}));
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
-  }, [
-    isAuthenticated,
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    spendingLimitParams,
-  ]);
+  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
 
   const enableCardAction = useCallback(() => {
     trackEvent(
@@ -379,12 +331,8 @@ export function useCardHomeActions({
     );
     navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
       flow: 'manage',
-      priorityToken: spendingLimitParams.priorityToken,
-      allTokens: spendingLimitParams.allTokens,
-      delegationSettings: spendingLimitParams.delegationSettings,
-      externalWalletDetailsData: spendingLimitParams.externalWalletDetailsData,
     });
-  }, [navigation, trackEvent, createEventBuilder, spendingLimitParams]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const manageSpendingLimitAction = useCallback(() => {
     trackEvent(
@@ -395,22 +343,11 @@ export function useCardHomeActions({
     if (isAuthenticated) {
       navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
         flow: 'enable',
-        priorityToken: spendingLimitParams.priorityToken,
-        allTokens: spendingLimitParams.allTokens,
-        delegationSettings: spendingLimitParams.delegationSettings,
-        externalWalletDetailsData:
-          spendingLimitParams.externalWalletDetailsData,
       });
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
-  }, [
-    isAuthenticated,
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    spendingLimitParams,
-  ]);
+  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
 
   const logoutAction = useCallback(() => {
     Alert.alert(
