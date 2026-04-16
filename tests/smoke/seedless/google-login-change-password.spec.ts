@@ -75,9 +75,20 @@ describe(SmokeSeedlessOnboarding('Google Login - Change Password'), () => {
               'Change password form should dismiss after successful change',
           },
         );
+
+        await Assertions.expectElementToBeVisible(
+          SecurityAndPrivacy.securityAndPrivacyHeading,
+          {
+            timeout: 30000,
+            description:
+              'Security & Privacy screen should be visible after password change',
+          },
+        );
+
         await Assertions.expectElementToBeVisible(
           ToastModal.notificationTitle,
           {
+            timeout: 20000,
             description: 'Password changed success toast should appear',
           },
         );
@@ -85,6 +96,7 @@ describe(SmokeSeedlessOnboarding('Google Login - Change Password'), () => {
         await Assertions.expectElementToNotBeVisible(
           ToastModal.notificationTitle,
           {
+            timeout: 10000,
             description: 'Toast should disappear',
           },
         );
