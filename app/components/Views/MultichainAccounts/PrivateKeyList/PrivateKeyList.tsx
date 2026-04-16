@@ -6,40 +6,33 @@ import React, {
   useContext,
   useLayoutEffect,
 } from 'react';
-import { View, TextInput, Linking } from 'react-native';
+import { TextInput, Linking } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { FlashList } from '@shopify/flash-list';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-// Core
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  BannerAlert,
+  BannerAlertSeverity,
+  Text,
+  TextVariant,
+  TextColor,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
 import ClipboardManager from '../../../../core/ClipboardManager';
-// Hooks
-import { useStyles } from '../../../hooks/useStyles';
-// Selectors
-import {
-  selectInternalAccountListSpreadByScopesByGroupId,
-  selectInternalAccountsByGroupId,
-} from '../../../../selectors/multichainAccounts/accounts';
-// Components
 import MultichainAddressRow from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 import getHeaderCompactStandardNavbarOptions from '../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import { ToastContext } from '../../../../component-library/components/Toast';
-import Banner, {
-  BannerVariant,
-  BannerAlertSeverity,
-} from '../../../../component-library/components/Banners/Banner';
 import { strings } from '../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../component-library/components/Texts/Text';
-import {
-  Button,
-  ButtonVariant,
-  ButtonBaseSize,
-} from '@metamask/design-system-react-native';
 import {
   useParams,
   createNavigationDetails,
@@ -47,28 +40,24 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { PRIVATE_KEY_GUIDE_URL } from '../../../../constants/urls';
 import { PrivateKeyListIds } from './PrivateKeyList.testIds';
-
-import styleSheet from './styles';
 import type { Params as PrivateKeyListParams, AddressItem } from './types';
+import {
+  selectInternalAccountListSpreadByScopesByGroupId,
+  selectInternalAccountsByGroupId,
+} from '../../../../selectors/multichainAccounts/accounts';
 import {
   endTrace,
   trace,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import { useTheme } from '../../../../util/theme';
 
 export const createPrivateKeyListNavigationDetails =
   createNavigationDetails<PrivateKeyListParams>(
     Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
   );
 
-/**
- * Check if the account has the private key available according to its keyring type.
- * TODO: Add support for KeyringTypes.snap
- *
- * @param account - The internal account to check.
- * @returns True if the private key is available, false otherwise.
- */
 const hasPrivateKeyAvailable = (account: InternalAccount) =>
   account.metadata.keyring.type === KeyringTypes.hd ||
   account.metadata.keyring.type === KeyringTypes.simple;
@@ -82,8 +71,10 @@ const hasPrivateKeyAvailable = (account: InternalAccount) =>
 export const PrivateKeyList = () => {
   const navigation = useNavigation();
   const { groupId, title } = useParams<PrivateKeyListParams>();
+  const tw = useTailwind();
+  const theme = useTheme();
+  const { bottom: bottomInset } = useSafeAreaInsets();
 
-  const { styles } = useStyles(styleSheet, {});
   const { toastRef } = useContext(ToastContext);
   const [password, setPassword] = useState<string>('');
   const [wrongPassword, setWrongPassword] = useState<boolean>(false);
@@ -103,7 +94,6 @@ export const PrivateKeyList = () => {
 
   useEffect(
     () => () => {
-      // Clean state variables on unmount
       setPassword('');
       setWrongPassword(false);
       setReveal(false);
@@ -112,8 +102,6 @@ export const PrivateKeyList = () => {
     [],
   );
 
-  // Start tracing the private key list display only after the password is
-  // entered and verified.
   useEffect(() => {
     if (reveal) {
       trace({
@@ -151,7 +139,7 @@ export const PrivateKeyList = () => {
     const { KeyringController } = Engine.context;
     try {
       await KeyringController.verifyPassword(password);
-    } catch (error) {
+    } catch {
       setWrongPassword(true);
       setReveal(false);
       setPrivateKeys({});
@@ -209,97 +197,15 @@ export const PrivateKeyList = () => {
     [privateKeys, toastRef],
   );
 
-  const renderPassword = useCallback(
-    () => (
-      <>
-        <View style={styles.password}>
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            testID={PrivateKeyListIds.PASSWORD_TITLE}
-          >
-            {strings('multichain_accounts.private_key_list.enter_password')}
-          </Text>
-
-          <TextInput
-            style={styles.input}
-            onChangeText={onPasswordChange}
-            placeholder={strings(
-              'multichain_accounts.private_key_list.password_placeholder',
-            )}
-            secureTextEntry
-            autoCapitalize="none"
-            testID={PrivateKeyListIds.PASSWORD_INPUT}
-          />
-
-          {wrongPassword && (
-            <Text
-              variant={TextVariant.BodyLGMedium}
-              color={TextColor.Error}
-              testID={PrivateKeyListIds.PASSWORD_ERROR}
-            >
-              {strings('multichain_accounts.private_key_list.wrong_password')}
-            </Text>
-          )}
-        </View>
-        <View style={styles.buttons}>
-          <Button
-            size={ButtonBaseSize.Lg}
-            variant={ButtonVariant.Secondary}
-            onPress={onCancel}
-            style={styles.button}
-            testID={PrivateKeyListIds.CANCEL_BUTTON}
-          >
-            {strings('multichain_accounts.private_key_list.cancel')}
-          </Button>
-          <Button
-            size={ButtonBaseSize.Lg}
-            variant={ButtonVariant.Primary}
-            onPress={() => verifyPasswordAndUnlockKeys()}
-            style={styles.button}
-            testID={PrivateKeyListIds.CONTINUE_BUTTON}
-          >
-            {strings('multichain_accounts.private_key_list.continue')}
-          </Button>
-        </View>
-      </>
-    ),
-    [
-      styles.password,
-      styles.input,
-      styles.buttons,
-      styles.button,
-      onPasswordChange,
-      wrongPassword,
-      onCancel,
-      verifyPasswordAndUnlockKeys,
-    ],
-  );
-
-  const renderPrivateKeyList = useCallback(
-    () => (
-      <View style={styles.listContainer}>
-        <FlashList
-          data={filteredAccounts()}
-          keyExtractor={(item) => item.scope}
-          renderItem={renderAddressItem}
-          testID={PrivateKeyListIds.LIST}
-          onLoad={() => {
-            endTrace({ name: TraceName.ShowAccountPrivateKeyList });
-          }}
-        />
-      </View>
-    ),
-    [filteredAccounts, renderAddressItem, styles.listContainer],
-  );
-
   const privateKeyBannerDescription = useMemo(
     () => (
-      <Text>
+      <Text variant={TextVariant.BodyMd}>
         {`${strings(
           'multichain_accounts.private_key_list.warning_description',
         )} `}
         <Text
-          color={TextColor.Primary}
+          variant={TextVariant.BodyMd}
+          color={TextColor.PrimaryDefault}
           onPress={() => Linking.openURL(PRIVATE_KEY_GUIDE_URL)}
         >
           {strings('reveal_credential.learn_more')}
@@ -309,18 +215,114 @@ export const PrivateKeyList = () => {
     [],
   );
 
+  const passwordFooterPaddingBottom = Math.max(bottomInset, 16);
+
+  const renderPassword = useCallback(
+    () => (
+      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
+        <Box twClassName="flex-1 px-4 pt-6">
+          <Text
+            variant={TextVariant.BodyLg}
+            testID={PrivateKeyListIds.PASSWORD_TITLE}
+          >
+            {strings('multichain_accounts.private_key_list.enter_password')}
+          </Text>
+
+          <TextInput
+            style={tw.style(
+              'mt-2 rounded-lg border border-border-default bg-background-default px-4 py-4 text-xl text-text-default',
+            )}
+            onChangeText={onPasswordChange}
+            placeholder={strings(
+              'multichain_accounts.private_key_list.password_placeholder',
+            )}
+            placeholderTextColor={theme.colors.text.muted}
+            secureTextEntry
+            autoCapitalize="none"
+            testID={PrivateKeyListIds.PASSWORD_INPUT}
+          />
+
+          {wrongPassword && (
+            <Text
+              variant={TextVariant.BodyLg}
+              color={TextColor.ErrorDefault}
+              testID={PrivateKeyListIds.PASSWORD_ERROR}
+            >
+              {strings('multichain_accounts.private_key_list.wrong_password')}
+            </Text>
+          )}
+        </Box>
+
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Evenly}
+          style={{ paddingBottom: passwordFooterPaddingBottom }}
+          twClassName="w-full shrink-0 border-t border-border-muted px-4 pt-4"
+        >
+          <Box twClassName="mx-2 flex-1">
+            <Button
+              size={ButtonSize.Lg}
+              variant={ButtonVariant.Secondary}
+              onPress={onCancel}
+              twClassName="w-full"
+              testID={PrivateKeyListIds.CANCEL_BUTTON}
+            >
+              {strings('multichain_accounts.private_key_list.cancel')}
+            </Button>
+          </Box>
+          <Box twClassName="mx-2 flex-1">
+            <Button
+              size={ButtonSize.Lg}
+              variant={ButtonVariant.Primary}
+              onPress={() => verifyPasswordAndUnlockKeys()}
+              twClassName="w-full"
+              testID={PrivateKeyListIds.CONTINUE_BUTTON}
+            >
+              {strings('multichain_accounts.private_key_list.continue')}
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+    ),
+    [
+      tw,
+      theme.colors.text.muted,
+      onPasswordChange,
+      wrongPassword,
+      onCancel,
+      verifyPasswordAndUnlockKeys,
+      passwordFooterPaddingBottom,
+    ],
+  );
+
+  const renderPrivateKeyList = useCallback(
+    () => (
+      <Box twClassName="flex-1 p-4">
+        <FlashList
+          data={filteredAccounts()}
+          keyExtractor={(item) => item.scope}
+          renderItem={renderAddressItem}
+          testID={PrivateKeyListIds.LIST}
+          onLoad={() => {
+            endTrace({ name: TraceName.ShowAccountPrivateKeyList });
+          }}
+        />
+      </Box>
+    ),
+    [filteredAccounts, renderAddressItem],
+  );
+
   return (
-    <View style={styles.safeArea}>
-      <Banner
-        variant={BannerVariant.Alert}
-        severity={BannerAlertSeverity.Error}
+    <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
+      <BannerAlert
+        severity={BannerAlertSeverity.Danger}
         title={strings('multichain_accounts.private_key_list.warning_title')}
         description={privateKeyBannerDescription}
-        style={styles.banner}
+        twClassName="mx-[10px]"
         testID={PrivateKeyListIds.BANNER}
       />
 
       {reveal ? renderPrivateKeyList() : renderPassword()}
-    </View>
+    </Box>
   );
 };
