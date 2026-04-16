@@ -1,11 +1,6 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 
-jest.mock(
-  'react-native-safe-area-context',
-  () => jest.requireActual('react-native-safe-area-context/jest/mock').default,
-);
-
 import TokenSelectorModal from './TokenSelectorModal';
 import { useParams } from '../../../../../../../util/navigation/navUtils';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
@@ -22,6 +17,11 @@ jest.mock('../../../sdk', () => ({
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
+
+jest.mock(
+  'react-native-safe-area-context',
+  () => jest.requireActual('react-native-safe-area-context/jest/mock').default,
+);
 
 function renderWithProvider(
   component: React.ComponentType,

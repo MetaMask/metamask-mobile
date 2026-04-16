@@ -1,11 +1,6 @@
 import React from 'react';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-jest.mock(
-  'react-native-safe-area-context',
-  () => jest.requireActual('react-native-safe-area-context/jest/mock').default,
-);
-
 import KycWebviewModal from './KycWebviewModal';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
@@ -15,6 +10,11 @@ import { endTrace } from '../../../../../../../util/trace';
 
 const mockNavigate = jest.fn();
 const mockRouteAfterAuthentication = jest.fn();
+
+jest.mock(
+  'react-native-safe-area-context',
+  () => jest.requireActual('react-native-safe-area-context/jest/mock').default,
+);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
