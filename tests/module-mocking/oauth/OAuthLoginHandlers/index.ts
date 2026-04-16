@@ -19,8 +19,10 @@ import {
 import type { BaseHandlerOptions } from '../../../../app/core/OAuthService/OAuthLoginHandlers/baseHandler';
 
 const MOCK_GOOGLE_OAUTH_CLIENT_ID_IOS =
+  process.env.IOS_GOOGLE_CLIENT_ID ||
   '387141446914-5ja3p4dfanfkm8uq238fm1b8t1rkscv4.apps.googleusercontent.com';
 const MOCK_GOOGLE_OAUTH_CLIENT_ID_ANDROID =
+  process.env.ANDROID_GOOGLE_CLIENT_ID ||
   '387141446914-olajr83p1bbvabh1u8tfglt1k4u6jlcb.apps.googleusercontent.com';
 
 function getMockGoogleOAuthClientId(): string {
@@ -293,7 +295,9 @@ export function createLoginHandler(
       });
     case 'apple':
       return new MockAppleLoginHandler({
-        clientId: 'io.metamask.appleloginclient.uat',
+        clientId:
+          process.env.ANDROID_APPLE_CLIENT_ID ||
+          'io.metamask.appleloginclient.uat',
       });
     default:
       throw new Error(`[E2E Mock] Unsupported provider: ${provider}`);
