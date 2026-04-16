@@ -72,7 +72,6 @@ function getRedesignedConfirmationsHeaderOptions({
     title: '',
     headerBackVisible: false,
     contentStyle: { backgroundColor: 'transparent' },
-    presentation: 'transparentModal',
   };
 }
 
