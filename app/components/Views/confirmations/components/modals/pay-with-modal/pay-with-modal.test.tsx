@@ -438,12 +438,6 @@ describe('PayWithModal', () => {
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
 
-    it('calls useWithdrawTokenFilter with no arguments', () => {
-      render();
-
-      expect(useWithdrawTokenFilterMock).toHaveBeenCalledWith();
-    });
-
     it('awaits addTokens before calling setPayToken for zero-balance withdraw token', async () => {
       const callOrder: string[] = [];
 

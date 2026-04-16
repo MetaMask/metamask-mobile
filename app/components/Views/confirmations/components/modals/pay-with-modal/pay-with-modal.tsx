@@ -5,7 +5,6 @@ import Engine from '../../../../../../core/Engine';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { Asset } from '../../send/asset';
 import BottomSheet, {

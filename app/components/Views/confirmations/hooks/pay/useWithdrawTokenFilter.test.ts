@@ -105,7 +105,7 @@ function runHook({
     },
   } as never;
 
-  return renderHookWithProvider(() => useWithdrawTokenFilter(), {
+  return renderHookWithProvider(useWithdrawTokenFilter, {
     state: mockState,
   });
 }

@@ -80,14 +80,15 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
     return null;
   }
 
-  const hideTokenAmount = hasTransactionType(transaction, [
+  // Don't render token amount for perps and predict deposit transactions
+  const isPerpsOrPredictDeposit = hasTransactionType(transaction, [
     TransactionType.perpsDeposit,
     TransactionType.perpsDepositAndOrder,
     TransactionType.predictDeposit,
     TransactionType.predictDepositAndOrder,
   ]);
 
-  if (hideTokenAmount) {
+  if (isPerpsOrPredictDeposit) {
     return null;
   }
 
