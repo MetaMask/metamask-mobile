@@ -238,9 +238,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tronNativeToken = isTronNativeToken(token) ? token : null;
 
-  const isTokenOverviewAdvancedChartEnabled = useSelector(
-    selectTokenOverviewAdvancedChartEnabled,
-  );
   const {
     hasPerpsMarket,
     marketData,
