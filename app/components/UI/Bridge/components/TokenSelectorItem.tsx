@@ -461,6 +461,7 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
 export const TokenSelectorItem = React.memo(
   TokenSelectorItemInner,
   (prev, next) =>
+    prev.onPress === next.onPress &&
     prev.token.address === next.token.address &&
     prev.token.chainId === next.token.chainId &&
     prev.token.balance === next.token.balance &&
