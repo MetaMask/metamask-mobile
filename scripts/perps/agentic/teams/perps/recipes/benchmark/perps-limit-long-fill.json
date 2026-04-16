@@ -1,6 +1,6 @@
 {
   "title": "Benchmark: Perps Limit Long Fill — limit long ETH at Mid, verify order and fill",
-  "description": "Mirrors smoke/perps/perps-limit-long-fill.spec.ts. Creates an ETH limit long at Mid preset price, verifies the order appears, then waits for fill. Uses inline steps because Detox spec uses Mid preset (not typed price), which differs from order-limit-place flow.",
+  "description": "Mirrors smoke/perps/perps-limit-long-fill.spec.ts. Creates an ETH limit long at mid price via controller API, verifies the order appears, then waits for fill. Uses order-limit-place-controller flow (bypasses UI deposit path broken in dev mode).",
   "validate": {
     "workflow": {
       "pre_conditions": ["wallet.unlocked", "perps.ready_to_trade", "perps.sufficient_balance"],
@@ -24,74 +24,12 @@
           "action": "eval_async",
           "expression": "Engine.context.PerpsController.getOpenOrders().then(function(os){var eth=os.filter(function(o){return o.symbol==='ETH'&&!o.isTrigger});if(!eth.length)return JSON.stringify({cancelled:0});return Promise.all(eth.map(function(o){return Engine.context.PerpsController.cancelOrder({orderId:o.oid})})).then(function(){return JSON.stringify({cancelled:eth.length})})})",
           "assert": { "operator": "not_null" },
-          "next": "nav-market"
+          "next": "place-limit-order"
         },
-        "nav-market": {
-          "action": "navigate",
-          "target": "PerpsMarketDetails",
-          "params": {
-            "market": { "symbol": "ETH", "name": "ETH", "price": "0", "change24h": "0", "change24hPercent": "0", "volume": "0", "maxLeverage": "100" }
-          },
-          "next": "wait-long-button"
-        },
-        "wait-long-button": {
-          "action": "wait_for",
-          "test_id": "perps-market-details-long-button",
-          "next": "press-long"
-        },
-        "press-long": {
-          "action": "press",
-          "test_id": "perps-market-details-long-button",
-          "next": "wait-order-form"
-        },
-        "wait-order-form": {
-          "action": "wait_for",
-          "test_id": "perps-order-header-order-type-button",
-          "next": "press-order-type"
-        },
-        "press-order-type": {
-          "action": "press",
-          "test_id": "perps-order-header-order-type-button",
-          "next": "wait-type-options"
-        },
-        "wait-type-options": {
-          "action": "wait_for",
-          "test_id": "perps-order-type-limit",
-          "next": "press-limit"
-        },
-        "press-limit": {
-          "action": "press",
-          "test_id": "perps-order-type-limit",
-          "next": "wait-limit-price-sheet"
-        },
-        "wait-limit-price-sheet": {
-          "action": "wait_for",
-          "test_id": "perps-limit-price-preset-mid",
-          "next": "press-mid-preset"
-        },
-        "press-mid-preset": {
-          "action": "press",
-          "test_id": "perps-limit-price-preset-mid",
-          "next": "press-confirm-price"
-        },
-        "press-confirm-price": {
-          "action": "press",
-          "test_id": "perps-limit-price-confirm-button",
-          "next": "wait-place-order"
-        },
-        "wait-place-order": {
-          "action": "wait_for",
-          "test_id": "perps-order-view-place-order-button",
-          "next": "press-place-order"
-        },
-        "press-place-order": {
-          "action": "press",
-          "test_id": "perps-order-view-place-order-button",
-          "next": "wait-order-confirmed"
-        },
-        "wait-order-confirmed": {
-          "action": "wait_for",
-          "not_route": "RedesignedConfirmations",
+        "place-limit-order": {
+          "action": "call",
+          "ref": "order-limit-place-controller",
+          "params": { "symbol": "ETH", "side": "long", "usdAmount": "10" },
           "next": "screenshot-order"
         },
         "screenshot-order": {

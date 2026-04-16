@@ -42,14 +42,15 @@ if [[ -f "$PROJECT_ROOT/.js.env" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Config — two simulators, two ports
+# Config — two simulators, shared port (Metro restarts between phases)
 # ---------------------------------------------------------------------------
 
 DETOX_SIMULATOR="${DETOX_SIMULATOR:-detox-benchmark}"
-DETOX_PORT=8081  # Detox default, hardcoded in helpers.js fallback
+SHARED_PORT="${WATCHER_PORT:-8062}"
+DETOX_PORT="$SHARED_PORT"
 
 AGENTIC_SIMULATOR="${AGENTIC_SIMULATOR:-${IOS_SIMULATOR:-mm-2}}"
-AGENTIC_PORT="${WATCHER_PORT:-8062}"
+AGENTIC_PORT="$SHARED_PORT"
 
 # Matched pairs: Detox spec path -> agentic recipe path
 SPEC_NAMES=("perps-position" "perps-position-stop-loss" "perps-limit-long-fill")
@@ -142,23 +143,33 @@ echo "  Simulator: $DETOX_SIMULATOR"
 echo "  Metro port: $DETOX_PORT (METAMASK_ENVIRONMENT=e2e)"
 echo "========================================"
 
-# Ensure Metro on DETOX_PORT with e2e env
-METRO_PID=$(lsof -iTCP:"$DETOX_PORT" -sTCP:LISTEN -t 2>/dev/null | head -1 || true)
+# Ensure Metro on shared port with e2e env — kill any existing Metro first
+METRO_PID=$(lsof -iTCP:"$SHARED_PORT" -sTCP:LISTEN -t 2>/dev/null | head -1 || true)
 if [[ -n "$METRO_PID" ]]; then
   METRO_ENV=$(ps -p "$METRO_PID" -E 2>/dev/null | grep -o 'METAMASK_ENVIRONMENT=[^ ]*' || echo "")
-  if [[ "$METRO_ENV" != "METAMASK_ENVIRONMENT=e2e" ]]; then
-    echo "Metro on $DETOX_PORT has $METRO_ENV — restarting with e2e..."
-    kill "$METRO_PID" 2>/dev/null; sleep 3
+  if [[ "$METRO_ENV" == "METAMASK_ENVIRONMENT=e2e" ]]; then
+    echo "Metro already running on $SHARED_PORT with e2e"
   else
-    echo "Metro already running on $DETOX_PORT with e2e"
+    echo "Metro on $SHARED_PORT has $METRO_ENV — restarting with e2e..."
+    kill "$METRO_PID" 2>/dev/null; sleep 3
+    METRO_PID=""
   fi
 fi
-if ! curl -sf "http://localhost:$DETOX_PORT/status" >/dev/null 2>&1; then
-  echo "Starting Metro on port $DETOX_PORT with METAMASK_ENVIRONMENT=e2e..."
-  METAMASK_ENVIRONMENT=e2e METAMASK_BUILD_TYPE=main \
-    nohup yarn expo start --port "$DETOX_PORT" --clear >/dev/null 2>&1 &
-  sleep 15
-  curl -sf "http://localhost:$DETOX_PORT/status" >/dev/null 2>&1 || echo "WARNING: Metro may not be ready"
+if [[ -z "$METRO_PID" ]] || ! curl -sf "http://localhost:$SHARED_PORT/status" >/dev/null 2>&1; then
+  echo "Starting Metro on port $SHARED_PORT with METAMASK_ENVIRONMENT=e2e IS_TEST=true..."
+  METAMASK_ENVIRONMENT=e2e IS_TEST=true METAMASK_BUILD_TYPE=main \
+    nohup yarn expo start --port "$SHARED_PORT" >/dev/null 2>&1 &
+  echo "Waiting for Metro on $SHARED_PORT to become ready..."
+  for i in $(seq 1 30); do
+    if curl -sf "http://localhost:$SHARED_PORT/status" >/dev/null 2>&1; then
+      echo "Metro ready on $SHARED_PORT after $((i * 3))s"
+      break
+    fi
+    if [[ $i -eq 30 ]]; then
+      echo "ERROR: Metro on $SHARED_PORT not ready after 90s — Detox specs will likely fail"
+    fi
+    sleep 3
+  done
 fi
 
 # Source .e2e.env for Detox
@@ -198,13 +209,59 @@ echo "  Simulator: $AGENTIC_SIMULATOR"
 echo "  Metro port: $AGENTIC_PORT (METAMASK_ENVIRONMENT=dev)"
 echo "========================================"
 
-# Ensure Metro on AGENTIC_PORT with dev env (start-metro.sh handles reuse)
-if ! curl -sf "http://localhost:$AGENTIC_PORT/status" >/dev/null 2>&1; then
-  echo "Starting Metro on port $AGENTIC_PORT..."
-  METAMASK_ENVIRONMENT=dev METAMASK_BUILD_TYPE=main \
-    bash "$SCRIPT_DIR/start-metro.sh" --platform ios --launch
-  wait_for_cdp "$AGENTIC_PORT"
+# Restart Metro on shared port with dev env for agentic phase
+echo "Switching Metro on $SHARED_PORT to dev environment..."
+METRO_PID=$(lsof -iTCP:"$SHARED_PORT" -sTCP:LISTEN -t 2>/dev/null | head -1 || true)
+if [[ -n "$METRO_PID" ]]; then
+  kill "$METRO_PID" 2>/dev/null; sleep 3
 fi
+METAMASK_ENVIRONMENT=dev METAMASK_BUILD_TYPE=main \
+  bash "$SCRIPT_DIR/start-metro.sh" --platform ios --launch
+wait_for_cdp "$SHARED_PORT"
+
+# Post-restart setup: unlock wallet, dismiss onboarding, init perps
+echo ""
+echo "Post-restart: setting up agentic environment..."
+CDP_BRIDGE="$SCRIPT_DIR/cdp-bridge.js"
+export IOS_SIMULATOR="$AGENTIC_SIMULATOR"
+export WATCHER_PORT="$AGENTIC_PORT"
+
+# Wait for app to fully load (Login or Wallet screen)
+echo "  Waiting for app to be ready..."
+for i in $(seq 1 15); do
+  ROUTE=$(node "$CDP_BRIDGE" get-route 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('name',''))" 2>/dev/null || echo "")
+  if [[ "$ROUTE" == "Login" || "$ROUTE" == "Wallet" ]]; then
+    echo "  App ready on $ROUTE screen after $((i * 2))s"
+    break
+  fi
+  sleep 2
+done
+
+# Unlock wallet if on Login screen
+WALLET_PW=$(python3 -c "import json; print(json.load(open('.agent/wallet-fixture.json'))['password'])" 2>/dev/null || echo "qwerasdf")
+if [[ "$ROUTE" == "Login" ]]; then
+  echo "  Unlocking wallet..."
+  node "$CDP_BRIDGE" unlock "$WALLET_PW" 2>/dev/null; sleep 3
+else
+  echo "  Wallet already unlocked"
+fi
+
+# Init perps provider + testnet
+echo "  Initializing perps provider..."
+node "$CDP_BRIDGE" eval-async 'Engine.context.PerpsController.init().then(function(){return Engine.context.PerpsController.toggleTestnet(true)}).then(function(){return JSON.stringify({ok:true})})' >/dev/null 2>&1
+sleep 2
+
+# Verify readiness
+echo "  Checking perps readiness..."
+node "$CDP_BRIDGE" check-pre-conditions '["perps.ready_to_trade","perps.sufficient_balance"]' 2>/dev/null || echo "WARNING: perps pre-conditions may not be met"
+
+# Pre-flight: check agentic wallet balance via CDP
+echo ""
+echo "Pre-flight: checking perps balance on $AGENTIC_SIMULATOR..."
+BALANCE_CHECK=$(env IOS_SIMULATOR="$AGENTIC_SIMULATOR" WATCHER_PORT="$AGENTIC_PORT" \
+  node "$SCRIPT_DIR/cdp-bridge.js" eval-ref perps/balances 2>/dev/null || echo '{"error":"balance check failed (non-fatal)"}')
+echo "  $BALANCE_CHECK"
+echo ""
 
 for name in "${SPEC_NAMES[@]}"; do
   recipe="${AGENTIC_RECIPES[$name]}"

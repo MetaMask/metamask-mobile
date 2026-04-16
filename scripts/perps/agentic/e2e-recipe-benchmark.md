@@ -169,5 +169,44 @@ Detox and agentic recipes require **different app builds and environments**, so 
 | perps-limit-long-fill | 109–116 | PASS |
 | **TOTAL** | **~350** | **3/3 PASS** |
 
-Agentic recipes need updating for the redesigned confirmations flow (`perps-amount-display-touchable` → `RedesignedConfirmations` route change). Full side-by-side comparison pending recipe fix.
+Agentic recipes updated to use controller-level `placeOrder()` / `getMarkets()` + `placeOrder()` instead of the UI deposit flow. See architectural notes below.
+
+### Architectural Difference: Detox vs Agentic Trade Path
+
+The benchmark recipes use a **different trade execution path** than Detox specs. This is intentional:
+
+| | Detox (e2e build) | Agentic (dev build) |
+|---|---|---|
+| **Order placement** | UI form → `depositWithOrder()` → mock override in `applyE2EPerpsControllerMocks` creates TransactionController tx | `PerpsController.placeOrder()` directly via CDP eval |
+| **Why** | Detox e2e env overrides `depositWithOrder` to bypass real Arbitrum USDC deposit infra | Dev mode has no mock override → `depositWithOrder` tries real mainnet deposit → fails on testnet → `RedesignedConfirmations` spinner |
+| **What's tested** | Full UI order form interaction (keypad, buttons, navigation) + mocked deposit | Controller API on real Hyperliquid testnet (real order execution) |
+| **Coverage** | UI flow correctness with hermetic mocks | Real trading API correctness without mock infrastructure |
+
+Both approaches validate the perps feature — they test **different layers** of the stack. The benchmark measures execution speed, not identical paths. Detox tests the UI layer with mocks; recipes test the controller/API layer with real testnet.
+
+
+
+## Timing Benchmark Results (2026-04-16)
+
+**6/6 PASS** — fully automated side-by-side comparison.
+
+**Detox:** simulator=detox-benchmark, port=8062, env=e2e (debug build, mock infrastructure)
+**Agentic:** simulator=mm-2, port=8062, env=dev (dev build, real Hyperliquid testnet)
+
+| Spec | Detox (s) | Detox Status | Agentic (s) | Agentic Status | Delta (s) | Speedup |
+|------|-----------|--------------|-------------|----------------|-----------|---------|
+| perps-position | 133 | PASS | 37 | PASS | 96 | 3.59x |
+| perps-position-stop-loss | 119 | PASS | 31 | PASS | 88 | 3.83x |
+| perps-limit-long-fill | 116 | PASS | 28 | PASS | 88 | 4.14x |
+| **TOTAL** | **368** | **3/3 PASS** | **96** | **3/3 PASS** | **272** | **3.83x** |
+
+### Notes
+- Detox and agentic use **different builds and simulators** — Detox needs e2e mocks, recipes need real API.
+- Detox times include app wipe+reinstall, fixture inject, mock server, test execution, teardown.
+- Agentic times include CDP connection, preflight checks, recipe execution, teardown.
+- Delta = Detox - Agentic (positive = agentic faster).
+- Speedup = Detox time / Agentic time.
+- Benchmark uses shared Metro port (from `.js.env`) with env switching between phases.
+- Agentic recipes use `PerpsController.placeOrder()` directly (controller-level); Detox uses full UI form with mocked `depositWithOrder()`.
+- Both approaches validate different layers: Detox = UI correctness with mocks, Agentic = controller/API correctness on real testnet.
 

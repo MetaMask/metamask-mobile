@@ -22,7 +22,7 @@
         },
         "open-long-eth": {
           "action": "call",
-          "ref": "trade-open-market",
+          "ref": "trade-open-market-controller",
           "params": { "symbol": "ETH", "side": "long", "usdAmount": "10" },
           "next": "wait-position"
         },
