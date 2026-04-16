@@ -1,9 +1,9 @@
 import type { Theme } from '@metamask/design-tokens';
 import { StyleSheet, ViewStyle } from 'react-native';
+import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from './tokenOverviewChart.constants';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  return StyleSheet.create({
+const styleSheet = (_params: { theme: Theme }) =>
+  StyleSheet.create({
     wrapper: {
       width: '100%',
       paddingHorizontal: 16,
@@ -49,15 +49,19 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       zIndex: 2,
     } as ViewStyle,
+    /**
+     * Segment row for legacy chart periods; matches {@link TimeRangeSelector} segment padding (`py-1` / `px-4`).
+     * Vertical spacing chart→selector and selector→actions comes from the parent `timeRangeContainer`
+     * (same as `Price.advanced`).
+     */
     chartNavigationWrapper: {
       display: 'flex',
       flexDirection: 'row',
-      justifyContent: 'space-around',
-      paddingHorizontal: 10,
-      paddingTop: 20,
-      marginBottom: 16,
+      alignItems: 'center',
+      width: '100%',
+      borderRadius: 8,
+      minHeight: TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT,
     } as ViewStyle,
   });
-};
 
 export default styleSheet;

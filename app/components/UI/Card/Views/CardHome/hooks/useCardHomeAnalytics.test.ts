@@ -141,8 +141,24 @@ describe('useCardHomeAnalytics', () => {
     );
   });
 
-  it("sets state to 'VERIFIED' when authenticated with no special alerts or actions", () => {
-    setupHook();
+  it("sets state to 'UNFUNDED' when authenticated with zero balance", () => {
+    setupHook({ rawTokenBalance: 0 });
+    const builder = mockCreateEventBuilder.mock.results[0].value;
+    expect(builder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({ state: 'UNFUNDED' }),
+    );
+  });
+
+  it("sets state to 'UNFUNDED' when authenticated with undefined balance", () => {
+    setupHook({ rawTokenBalance: undefined });
+    const builder = mockCreateEventBuilder.mock.results[0].value;
+    expect(builder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({ state: 'UNFUNDED' }),
+    );
+  });
+
+  it("sets state to 'VERIFIED' when authenticated with positive balance", () => {
+    setupHook({ rawTokenBalance: 10 });
     const builder = mockCreateEventBuilder.mock.results[0].value;
     expect(builder.addProperties).toHaveBeenCalledWith(
       expect.objectContaining({ state: 'VERIFIED' }),

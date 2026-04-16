@@ -2693,7 +2693,7 @@ describe('BaanxProvider', () => {
   });
 
   describe('buildActions — additional edge cases', () => {
-    it('returns add_funds and change_asset for VERIFIED user with active card and active asset', async () => {
+    it('returns add_funds for VERIFIED user with active card and active asset', async () => {
       service.get.mockImplementation((url: string) => {
         if (url === '/v1/delegation/chain/config')
           return Promise.resolve({
@@ -2751,6 +2751,10 @@ describe('BaanxProvider', () => {
       expect(result.actions).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ type: 'add_funds' }),
+        ]),
+      );
+      expect(result.actions).not.toEqual(
+        expect.arrayContaining([
           expect.objectContaining({ type: 'change_asset' }),
         ]),
       );
