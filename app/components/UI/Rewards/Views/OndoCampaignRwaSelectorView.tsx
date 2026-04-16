@@ -262,18 +262,16 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     sourceToken: srcBridgeToken,
   });
 
-  // Deduplicate by symbol so the same stock on multiple chains appears once.
-  // Use CAIP-19 assetId (not symbol) to exclude the source token in swap mode —
-  // symbol comparison is fragile when casing differs between chains.
-  // Names are sanitized here so renderItem can pass token directly without
-  // creating a new object on every render call.
+  // Deduplicate by assetId and sanitize display names.
+  // Use CAIP-19 assetId (not symbol) for deduplication — symbol comparison
+  // is fragile when casing differs between chains.
   const tokens = useMemo((): TrendingAsset[] => {
     const seen = new Set<string>();
     return rwaTokens
       .filter((token) => {
         if (srcTokenAsset && token.assetId === srcTokenAsset) return false;
-        if (seen.has(token.symbol)) return false;
-        seen.add(token.symbol);
+        if (seen.has(token.assetId)) return false;
+        seen.add(token.assetId);
         return true;
       })
       .map((token) => ({ ...token, name: sanitizeOndoTokenName(token.name) }));
