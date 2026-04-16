@@ -18,7 +18,7 @@ import type {
 } from '../types';
 import type { HyperLiquidNetwork } from '../types/config';
 import type { CandleData } from '../types/perps-types';
-import { ensureError } from '../utils/errorUtils';
+import { ensureError, isAbortError } from '../utils/errorUtils';
 import { getPerpsConnectionAttemptContext } from '../utils/perpsConnectionAttemptContext';
 
 /**
@@ -533,10 +533,11 @@ export class HyperLiquidClientService {
         'HyperLiquidClientService.fetchHistoricalCandles',
       );
 
-      this.#deps.debugLogger.log(
-        '[PR-28953] BUG_MARKER: abort error logged to Sentry in fetchHistoricalCandles',
-        { errorName: errorInstance.name, errorMessage: errorInstance.message },
-      );
+      // Expected cancellation — skip Sentry to avoid noisy abort reports
+      if (isAbortError(error)) {
+        throw error;
+      }
+
       // Log to Sentry: prevents initial chart data load
       this.#deps.logger.error(errorInstance, {
         tags: {
