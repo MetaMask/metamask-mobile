@@ -171,7 +171,10 @@ describe('RewardsReferralView', () => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
           MetaMetricsEvents.REWARDS_REFERRALS_VIEWED,
         );
-        expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.REWARDS_PAGE_VIEWED,
+        );
+        expect(mockTrackEvent).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -182,7 +185,7 @@ describe('RewardsReferralView', () => {
       rerender(<RewardsReferralView />);
 
       await waitFor(() => {
-        expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        expect(mockTrackEvent).toHaveBeenCalledTimes(2);
       });
     });
   });

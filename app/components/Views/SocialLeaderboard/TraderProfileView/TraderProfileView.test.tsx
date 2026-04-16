@@ -3,6 +3,7 @@ import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TraderProfileView from './TraderProfileView';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
+import Routes from '../../../../constants/navigation/Routes';
 import type { UseTraderProfileResult } from './hooks/useTraderProfile';
 import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
 import type {
@@ -11,6 +12,7 @@ import type {
 } from '@metamask/social-controllers';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
 
@@ -22,7 +24,7 @@ jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack }),
+    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
     useRoute: () => ({
       params: { traderId: 'trader-1', traderName: 'dutchiono' },
     }),
@@ -165,6 +167,22 @@ describe('TraderProfileView', () => {
     renderWithProvider(<TraderProfileView />);
     expect(screen.getByText('STARKBOT')).toBeOnTheScreen();
     expect(screen.getByText('$2,259.96')).toBeOnTheScreen();
+  });
+
+  it('navigates to the trader position view when a position is pressed', () => {
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.POSITION,
+      {
+        traderId: 'trader-1',
+        traderName: 'dutchiono',
+        tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
+        position: fixtureOpenPositions[0],
+      },
+    );
   });
 
   it('shows empty state when no positions', () => {

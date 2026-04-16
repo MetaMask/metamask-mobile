@@ -89,5 +89,9 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 12,
       paddingHorizontal: 16,
     },
+    loadMoreContainer: {
+      paddingVertical: 16,
+      alignItems: 'center' as const,
+    },
   };
 };

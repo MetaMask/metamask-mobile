@@ -15,7 +15,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
@@ -30,6 +30,10 @@ import Animated, {
 // External dependencies.
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { MultichainAddWalletActions } from '../../../component-library/components-temp/MultichainAccounts';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Engine from '../../../core/Engine';
 import { store } from '../../../store';
@@ -76,6 +80,7 @@ import {
   JustifyContent,
 } from '../../UI/Box/box.types';
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
+import Routes from '../../../constants/navigation/Routes';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -119,12 +124,32 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
 
   const { accounts } = useAccounts(accountsParams);
+  const shouldRedirectToAddWallet =
+    navigateToAddAccountActions ===
+    AccountSelectorScreens.MultichainAddWalletActions;
 
-  const [screen, setScreen] = useState<AccountSelectorScreens>(
-    () => navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
-  );
+  const getInitialScreen = (): AccountSelectorScreens => {
+    if (shouldRedirectToAddWallet) {
+      return AccountSelectorScreens.MultichainAddWalletActions;
+    }
+    if (
+      navigateToAddAccountActions === AccountSelectorScreens.AddAccountActions
+    ) {
+      return AccountSelectorScreens.AddAccountActions;
+    }
+    return AccountSelectorScreens.AccountSelector;
+  };
+
+  const [screen, setScreen] =
+    useState<AccountSelectorScreens>(getInitialScreen());
   const [keyboardAvoidingViewEnabled, setKeyboardAvoidingViewEnabled] =
     useState(false);
+
+  useLayoutEffect(() => {
+    if (shouldRedirectToAddWallet) {
+      navigation.dispatch(StackActions.replace(Routes.SHEET.ADD_WALLET));
+    }
+  }, [navigation, shouldRedirectToAddWallet]);
 
   // Tracing for the account list rendering:
   const isAccountSelector = useMemo(
@@ -198,8 +223,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
 
   const handleAddAccount = useCallback(() => {
-    setScreen(AccountSelectorScreens.MultichainAddWalletActions);
-  }, []);
+    navigation.navigate(Routes.SHEET.ADD_WALLET);
+  }, [navigation]);
 
   const handleBackToSelector = useCallback(() => {
     setScreen(AccountSelectorScreens.AccountSelector);
@@ -293,6 +318,17 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [handleBackToSelector],
   );
 
+  const renderAccountScreens = useCallback(() => {
+    switch (screen) {
+      case AccountSelectorScreens.AccountSelector:
+        return renderAccountSelector();
+      case AccountSelectorScreens.AddAccountActions:
+        return renderAddAccountActions();
+      default:
+        return renderAccountSelector();
+    }
+  }, [screen, renderAccountSelector, renderAddAccountActions]);
+
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
@@ -304,6 +340,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const showAddWalletModal =
     screen === AccountSelectorScreens.AddAccountActions ||
     screen === AccountSelectorScreens.MultichainAddWalletActions;
+
+  if (shouldRedirectToAddWallet) {
+    return null;
+  }
 
   return (
     <>

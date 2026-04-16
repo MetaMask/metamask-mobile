@@ -69,6 +69,18 @@ jest.mock('./Views/RewardsSettingsView', () => {
   };
 });
 
+jest.mock('./Views/CampaignTourStepView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockCampaignTourStepView() {
+    return ReactActual.createElement(
+      View,
+      { testID: 'campaign-tour-step-view' },
+      ReactActual.createElement(Text, null, 'Campaign Tour Step View'),
+    );
+  };
+});
+
 jest.mock('./Views/OndoCampaignDetailsView', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -512,6 +524,19 @@ describe('RewardsNavigator', () => {
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
 
       // Rendering should not throw with the new screen registered
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
+      });
+    });
+
+    it('registers REWARDS_CAMPAIGN_TOUR_STEP route when subscription exists', async () => {
+      // The campaign tour screen is registered inside the subscriptionId-guarded block
+      // so that navigate() from the tour to campaign details is a push (not a pop),
+      // keeping the slide-left direction consistent with the carousel animation.
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {

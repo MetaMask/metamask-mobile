@@ -43,14 +43,12 @@ import Price from '../../AssetOverview/Price';
 import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
-import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
 import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
-import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import {
@@ -172,10 +170,6 @@ export interface AssetOverviewContentProps {
   // Feature flags
   isPerpsEnabled: boolean;
 
-  // Display flags
-  displayBuyButton: boolean;
-  displaySwapsButton: boolean;
-
   // Currency
   currentCurrency: string;
 
@@ -183,7 +177,6 @@ export interface AssetOverviewContentProps {
   onBuy: () => void;
   onSend: () => Promise<void>;
   onReceive: () => void;
-  goToSwaps: () => void;
 
   // Tron-specific
   stakedTrxAsset?: TokenI;
@@ -234,13 +227,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   setTimePeriod,
   chartNavigationButtons,
   isPerpsEnabled,
-  displayBuyButton,
-  displaySwapsButton,
   currentCurrency,
   onBuy,
   onSend,
   onReceive,
-  goToSwaps,
   stakedTrxAsset,
   inLockPeriodBalance,
   readyForWithdrawalBalance,
@@ -257,8 +247,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tronNativeToken = isTronNativeToken(token) ? token : null;
 
-  // A/B test hook for layout selection (must be called before usePerpsActions to pass ab_tests)
-  const { useNewLayout, isTestActive, variantName } = useTokenDetailsABTest();
   const isTokenOverviewAdvancedChartEnabled = useSelector(
     selectTokenOverviewAdvancedChartEnabled,
   );
@@ -270,7 +258,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   } = usePerpsActions({
     symbol: isPerpsEnabled ? token.symbol : null,
     fromTokenDetails: true,
-    abTestTokenDetailsLayout: isTestActive ? variantName : undefined,
   });
 
   const isEligible = useSelector(selectPerpsEligibility);
@@ -362,7 +349,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       case 'Verified':
         return {
           icon: IconName.VerifiedFilled,
-          iconColor: IconColor.IconDefault,
+          iconColor: IconColor.PrimaryDefault,
           label: null,
           bg: null,
           textColor: undefined,
@@ -700,7 +687,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   </Text>
                 </Box>
                 {securityBadge && securityBadge.label === null && (
-                  <Box twClassName="shrink-0">
+                  <Box twClassName="shrink-0 pb-[2px]">
                     <TouchableOpacity
                       onPress={handleSecurityBadgePress}
                       testID="security-badge-verified"
@@ -714,7 +701,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   </Box>
                 )}
                 {securityBadge && securityBadge.label !== null && (
-                  <Box twClassName="shrink-0">
+                  <Box twClassName="shrink-0 pb-[2px]">
                     <TouchableOpacity
                       onPress={handleSecurityBadgePress}
                       testID={
@@ -836,37 +823,20 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             </View>
           )}
-          {useNewLayout ? (
-            <TokenDetailsActions
-              hasPerpsMarket={hasPerpsMarket}
-              hasBalance={Boolean(balance) && balance !== '0'}
-              isBuyable={isBuyable}
-              isNativeCurrency={token.isETH || token.isNative || false}
-              token={token}
-              onBuy={onBuy}
-              onLong={handlePerpsAction ? handleLongPress : undefined}
-              onShort={handlePerpsAction ? handleShortPress : undefined}
-              onSend={onSend}
-              onReceive={onReceive}
-              isLoading={isButtonsLoading}
-              resetNavigationLockRef={resetNavigationLockRef}
-            />
-          ) : (
-            <AssetDetailsActions
-              displayBuyButton={displayBuyButton && isBuyable}
-              displaySwapsButton={
-                displaySwapsButton && isTokenTradingOpen(token as BridgeToken)
-              }
-              goToSwaps={goToSwaps}
-              onBuy={onBuy}
-              onReceive={onReceive}
-              onSend={onSend}
-              asset={{
-                address: token.address,
-                chainId: token.chainId,
-              }}
-            />
-          )}
+          <TokenDetailsActions
+            hasPerpsMarket={hasPerpsMarket}
+            hasBalance={Boolean(balance) && balance !== '0'}
+            isBuyable={isBuyable}
+            isNativeCurrency={token.isETH || token.isNative || false}
+            token={token}
+            onBuy={onBuy}
+            onLong={handlePerpsAction ? handleLongPress : undefined}
+            onShort={handlePerpsAction ? handleShortPress : undefined}
+            onSend={onSend}
+            onReceive={onReceive}
+            isLoading={isButtonsLoading}
+            resetNavigationLockRef={resetNavigationLockRef}
+          />
           {shouldShowMarketInsights ? (
             <View style={styles.marketInsightsWrapper}>
               {marketInsightsReport ? (
