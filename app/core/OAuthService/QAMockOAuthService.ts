@@ -1,12 +1,7 @@
 import { E2E_QA_MOCK_OAUTH_TOKEN_URL } from './OAuthLoginHandlers/constants';
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
-import {
-  OAuthLoginResultType,
-  type AuthResponse,
-  type HandleOAuthLoginResult,
-  type OAuthUserInfo,
-} from './OAuthInterface';
+import { type AuthResponse, type OAuthUserInfo } from './OAuthInterface';
 import {
   getE2EByoaAuthSecret,
   getE2EMockOAuthEmailForQaMock,

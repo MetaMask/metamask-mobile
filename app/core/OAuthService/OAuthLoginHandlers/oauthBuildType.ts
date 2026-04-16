@@ -20,18 +20,16 @@ export function buildTypeMapping(
   switch (buildType) {
     case 'qa':
       return BUILD_TYPE.main_uat;
-    case 'main':
-      return isQaChannel
-        ? BUILD_TYPE.main_uat
-        : isDev
-          ? BUILD_TYPE.main_dev
-          : BUILD_TYPE.main_prod;
-    case 'flask':
-      return isQaChannel
-        ? BUILD_TYPE.flask_uat
-        : isDev
-          ? BUILD_TYPE.flask_dev
-          : BUILD_TYPE.flask_prod;
+    case 'main': {
+      if (isQaChannel) return BUILD_TYPE.main_uat;
+      if (isDev) return BUILD_TYPE.main_dev;
+      return BUILD_TYPE.main_prod;
+    }
+    case 'flask': {
+      if (isQaChannel) return BUILD_TYPE.flask_uat;
+      if (isDev) return BUILD_TYPE.flask_dev;
+      return BUILD_TYPE.flask_prod;
+    }
     default:
       return BUILD_TYPE.development;
   }
