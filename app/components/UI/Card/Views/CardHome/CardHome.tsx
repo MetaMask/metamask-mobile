@@ -44,7 +44,6 @@ import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/fea
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
-import { useAssetBalances } from '../../hooks/useAssetBalances';
 import {
   ToastContext,
   ToastVariants,
@@ -55,6 +54,7 @@ import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterren
 import AnimatedSpinner from '../../../AnimatedSpinner';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
+import { isEvmChain, isSpendingLimitSupportedToken } from '../../constants';
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
@@ -65,7 +65,6 @@ import CardHomeFooter from './components/CardHomeFooter';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
-import { toCardTokenAllowance } from '../../util/toCardTokenAllowance';
 
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
@@ -75,7 +74,7 @@ const SETUP_ALERT_TYPES = new Set(['kyc_pending', 'card_provisioning']);
 
 const CardHome = () => {
   // --- Data ---
-  const { data, isLoading, isError, refetch } = useCardHomeData();
+  const { data, isLoading, isError, refetch, primaryToken } = useCardHomeData();
   const capabilities = useCardCapabilities();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const userLocation = useSelector(selectCardUserLocation);
@@ -90,24 +89,8 @@ const CardHome = () => {
   const tw = useTailwind();
   const { toastRef } = useContext(ToastContext);
 
-  // --- Wallet-side balance data ---
-  const legacyPriorityToken = useMemo(
-    () => (data?.primaryAsset ? toCardTokenAllowance(data.primaryAsset) : null),
-    [data?.primaryAsset],
-  );
-  const assetBalancesMap = useAssetBalances(
-    legacyPriorityToken ? [legacyPriorityToken] : [],
-  );
-  const assetBalance = legacyPriorityToken
-    ? assetBalancesMap.get(
-        `${legacyPriorityToken.address?.toLowerCase()}-${legacyPriorityToken.caipChainId}-${legacyPriorityToken.walletAddress?.toLowerCase()}`,
-      )
-    : undefined;
-  const { balanceFiat, balanceFormatted, rawFiatNumber, rawTokenBalance } =
-    assetBalance ?? {};
-
   const isSwapEnabled = useIsSwapEnabledForPriorityToken(
-    data?.primaryAsset?.walletAddress,
+    data?.primaryFundingAsset?.walletAddress,
   );
 
   const isFrozen = data?.card?.status === CardStatus.FROZEN;
@@ -119,7 +102,7 @@ const CardHome = () => {
   // --- Extracted hooks ---
   const actions = useCardHomeActions({
     data,
-    legacyPriorityToken,
+    primaryToken,
     isFrozen,
   });
 
@@ -130,9 +113,9 @@ const CardHome = () => {
     data,
     isLoading,
     hasSetupActions,
-    balanceFormatted,
-    rawTokenBalance,
-    rawFiatNumber,
+    balanceFormatted: primaryToken?.balanceFormatted,
+    rawTokenBalance: primaryToken?.rawTokenBalance,
+    rawFiatNumber: primaryToken?.rawFiatNumber,
   });
 
   const [isSpendingLimitWarningDismissed, setIsSpendingLimitWarningDismissed] =
@@ -201,11 +184,12 @@ const CardHome = () => {
 
   // --- Derived state ---
   const balanceAmount = useMemo(() => {
+    const { balanceFiat, balanceFormatted } = primaryToken ?? {};
     if (!balanceFiat || balanceFiat === TOKEN_RATE_UNDEFINED) {
       return balanceFormatted;
     }
     return balanceFiat;
-  }, [balanceFiat, balanceFormatted]);
+  }, [primaryToken]);
 
   const hasSetupAlerts = (data?.alerts ?? []).some((a) =>
     SETUP_ALERT_TYPES.has(a.type),
@@ -216,11 +200,13 @@ const CardHome = () => {
 
   const showSpendingLimitProgress =
     isAuthenticated &&
-    data?.primaryAsset?.status === FundingAssetStatus.Limited &&
+    data?.primaryFundingAsset?.status === FundingAssetStatus.Limited &&
+    isEvmChain(data?.primaryFundingAsset?.chainId) &&
+    isSpendingLimitSupportedToken(data?.primaryFundingAsset?.symbol) &&
     !hasSetupActions;
 
   const isSpendingLimitActive =
-    data?.primaryAsset?.status === FundingAssetStatus.Active;
+    data?.primaryFundingAsset?.status === FundingAssetStatus.Active;
 
   // --- Error state ---
   if (isError) {
@@ -306,7 +292,9 @@ const CardHome = () => {
             cardType={data?.card?.type}
             cardStatus={data?.card?.status}
             walletAddress={
-              isAuthenticated ? data?.primaryAsset?.walletAddress : undefined
+              isAuthenticated
+                ? data?.primaryFundingAsset?.walletAddress
+                : undefined
             }
           />
         </Box>
@@ -316,18 +304,23 @@ const CardHome = () => {
             isLoading={isLoading}
             balanceAmount={balanceAmount}
             privacyMode={privacyMode}
-            assetBalance={assetBalance}
+            assetBalance={primaryToken ?? undefined}
             onTogglePrivacy={handleTogglePrivacy}
           />
         )}
 
-        {showSpendingLimitProgress && data?.primaryAsset && (
+        {showSpendingLimitProgress && data?.primaryFundingAsset && (
           <SpendingLimitProgressBar
             isLoading={isLoading}
-            decimals={data.primaryAsset.decimals ?? 6}
-            totalAllowance={data.primaryAsset.allowance ?? '0'}
-            remainingAllowance={data.primaryAsset.balance ?? '0'}
-            symbol={data.primaryAsset.symbol ?? ''}
+            decimals={data.primaryFundingAsset.decimals ?? 6}
+            totalAllowance={
+              data.primaryFundingAsset.originalSpendingCap ??
+              data.primaryFundingAsset.spendingCap ??
+              '0'
+            }
+            remainingAllowance={data.primaryFundingAsset.spendingCap ?? '0'}
+            symbol={data.primaryFundingAsset.symbol ?? ''}
+            privacyMode={privacyMode}
           />
         )}
 

@@ -1,12 +1,18 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import { act, screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TopTradersView from './TopTradersView';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hooks/useTopTraders';
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
+import Logger from '../../../../util/Logger';
+
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
 
@@ -14,7 +20,7 @@ jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack }),
+    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   };
 });
 
@@ -52,14 +58,15 @@ const mockUseTopTraders: UseTopTradersResult = {
   traders: fixtureTraders,
   isLoading: false,
   error: null,
-  refresh: mockRefresh,
+  refresh: mockRefresh as () => Promise<void>,
   toggleFollow: mockToggleFollow,
 };
 
+const mockSelectSocialLeaderboardEnabled = jest.fn((): boolean => true);
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
-    selectSocialLeaderboardEnabled: jest.fn(() => true),
+    selectSocialLeaderboardEnabled: () => mockSelectSocialLeaderboardEnabled(),
   }),
 );
 
@@ -97,7 +104,7 @@ describe('TopTradersView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('handles search button press without error', () => {
+  it('search button press fires with no side effects', () => {
     renderWithProvider(<TopTradersView />);
     fireEvent.press(
       screen.getByTestId(TopTradersViewSelectorsIDs.SEARCH_BUTTON),
@@ -126,5 +133,49 @@ describe('TopTradersView', () => {
     const followButtons = screen.getAllByText('Follow');
     fireEvent.press(followButtons[0]);
     expect(mockToggleFollow).toHaveBeenCalledWith(fixtureTraders[0].id);
+  });
+
+  it('renders a RefreshControl with the correct props on the trader list', () => {
+    renderWithProvider(<TopTradersView />);
+
+    const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+    const { refreshControl } = list.props;
+
+    expect(typeof refreshControl.props.onRefresh).toBe('function');
+    expect(typeof refreshControl.props.refreshing).toBe('boolean');
+  });
+
+  it('calls refresh when the scroll view is pulled down', async () => {
+    mockRefresh.mockResolvedValue(undefined);
+    renderWithProvider(<TopTradersView />);
+    const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+
+    await act(async () => {
+      await list.props.refreshControl.props.onRefresh();
+    });
+
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('logs an error when refresh fails', async () => {
+    const refreshError = new Error('fetch failed');
+    mockRefresh.mockRejectedValue(refreshError);
+    renderWithProvider(<TopTradersView />);
+    const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+
+    await act(async () => {
+      await list.props.refreshControl.props.onRefresh();
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      refreshError,
+      'TopTradersView: pull-to-refresh failed',
+    );
+  });
+
+  it('navigates back when the feature flag is disabled', () => {
+    mockSelectSocialLeaderboardEnabled.mockReturnValue(false);
+    renderWithProvider(<TopTradersView />);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });

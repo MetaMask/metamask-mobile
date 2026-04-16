@@ -30,6 +30,7 @@ const Routes = {
     BANK_DETAILS: 'RampBankDetails',
     BANK_DETAILS_STANDALONE: 'RampBankDetailsStandalone',
     ADDITIONAL_VERIFICATION: 'RampAdditionalVerification',
+    KYC_WEBVIEW: 'RampKycWebview',
     ENTER_ADDRESS: 'RampEnterAddress',
     MODALS: {
       ID: 'RampModals',
@@ -48,6 +49,8 @@ const Routes = {
       ERROR_DETAILS: 'RampErrorDetailsModal',
       PROCESSING_INFO: 'RampProcessingInfoModal',
       SSN_INFO: 'RampSsnInfoModal',
+      STATE_SELECTOR: 'RampStateSelectorModal',
+      UNSUPPORTED_STATE: 'RampUnsupportedStateModal',
     },
   },
   DEPOSIT: {
@@ -121,6 +124,8 @@ const Routes = {
   REWARDS_ONBOARDING_2: 'RewardsOnboarding2',
   REWARDS_ONBOARDING_3: 'RewardsOnboarding3',
   REWARDS_ONBOARDING_4: 'RewardsOnboarding4',
+  REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
+  REWARD_BENEFIT_FULL_VIEW: 'BenefitFullView',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -151,7 +156,6 @@ const Routes = {
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
-    REWARDS_ONDO_PENDING_SHEET: 'RewardsOndoPendingSheet',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -349,6 +353,8 @@ const Routes = {
   SOCIAL_LEADERBOARD: {
     ROOT: 'SocialLeaderboard',
     VIEW: 'TopTradersView',
+    PROFILE: 'TraderProfileView',
+    POSITION: 'TraderPositionView',
   },
   PREDICT: {
     ROOT: 'Predict',

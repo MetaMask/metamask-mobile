@@ -73,11 +73,13 @@ import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
-  AllowanceState,
+  FundingStatus,
+  CardFundingTokenWithBalance,
   CardStateWarning,
   CardStatus,
   CardType,
 } from '../../types';
+import type { TokenI } from '../../../Tokens/types';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -128,30 +130,38 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// mockPriorityToken matches the output of toCardTokenAllowance(mockPrimaryAsset)
+// mockPriorityToken matches the output of toCardFundingToken(mockPrimaryFundingAsset)
 const mockPriorityToken = {
   address: '0x123...',
   symbol: 'USDC',
   decimals: 6,
-  availableBalance: '250000000',
-  allowance: '250000000',
-  totalAllowance: '500000000',
+  spendableBalance: '250000000',
+  spendingCap: '500000000',
   name: 'USD Coin',
   caipChainId: 'eip155:1',
   walletAddress: '0x789',
-  allowanceState: AllowanceState.Enabled,
+  fundingStatus: FundingStatus.Enabled,
   priority: 1,
   stagingTokenAddress: null,
   delegationContract: null,
 };
 
-// CardFundingAsset version — balance is remaining amount, allowance is total cap.
-const mockPrimaryAsset = {
+// CardFundingTokenWithBalance — mockPriorityToken with balance data merged in.
+const mockPrimaryAssetWithBalance = {
+  ...mockPriorityToken,
+  balanceFiat: '$1,000.00',
+  balanceFormatted: '1000.000000 USDC',
+  rawFiatNumber: 1000,
+  rawTokenBalance: 1000,
+};
+
+// CardFundingAsset version — spendableBalance is remaining amount, spendingCap is total cap.
+const mockPrimaryFundingAsset = {
   address: '0x123...',
   symbol: 'USDC',
   decimals: 6,
-  balance: '250000000',
-  allowance: '500000000',
+  spendableBalance: '250000000',
+  spendingCap: '500000000',
   name: 'USD Coin',
   chainId: 'eip155:1',
   walletAddress: '0x789',
@@ -695,7 +705,7 @@ function setupLoadCardDataMock(
         mailingUsState?: string | null;
       } | null;
     } | null;
-    externalWalletDetailsData: Record<string, unknown> | null;
+    hasExternalWallets: boolean;
     delegationSettings: Record<string, unknown> | null;
   }>,
 ) {
@@ -713,49 +723,49 @@ function setupLoadCardDataMock(
       userId: 'user-123',
       userDetails: undefined,
     },
-    externalWalletDetailsData: null,
+    hasExternalWallets: false,
     delegationSettings: null,
   };
 
   const config = { ...defaults, ...overrides };
 
-  // Map priorityToken (CardTokenAllowance) to primaryAsset (CardFundingAsset).
-  // In CardFundingAsset: allowance = total spending cap, balance = remaining amount.
-  // In old CardTokenAllowance: totalAllowance = cap, allowance = remaining.
-  const primaryAsset = config.priorityToken
+  // Map priorityToken (CardFundingToken) to primaryFundingAsset (CardFundingAsset).
+  const primaryFundingAsset = config.priorityToken
     ? {
         address: config.priorityToken.address,
         symbol: config.priorityToken.symbol,
         decimals: config.priorityToken.decimals,
-        balance: String(config.priorityToken.allowance ?? '0'),
-        allowance: String(config.priorityToken.totalAllowance ?? '0'),
+        spendableBalance: String(config.priorityToken.spendableBalance ?? '0'),
+        spendingCap: String(config.priorityToken.spendingCap ?? '0'),
+        originalSpendingCap: (config.priorityToken as Record<string, unknown>)
+          .originalSpendingCap as string | undefined,
         name: config.priorityToken.name,
         chainId: config.priorityToken.caipChainId,
         walletAddress: config.priorityToken.walletAddress,
         priority: 1,
         status:
-          config.priorityToken.allowanceState === AllowanceState.Limited
+          config.priorityToken.fundingStatus === FundingStatus.Limited
             ? 'limited'
-            : config.priorityToken.allowanceState === AllowanceState.NotEnabled
+            : config.priorityToken.fundingStatus === FundingStatus.NotEnabled
               ? 'inactive'
               : 'active',
       }
     : null;
 
-  const assets = config.allTokens.map((t) => ({
+  const fundingAssets = config.allTokens.map((t) => ({
     address: t.address,
     symbol: t.symbol,
     decimals: t.decimals,
-    balance: String(t.allowance ?? '0'),
-    allowance: String(t.totalAllowance ?? '0'),
+    spendableBalance: String(t.spendableBalance ?? '0'),
+    spendingCap: String(t.spendingCap ?? '0'),
     name: t.name,
     chainId: t.caipChainId,
     walletAddress: t.walletAddress,
     priority: 1,
     status:
-      t.allowanceState === AllowanceState.Limited
+      t.fundingStatus === FundingStatus.Limited
         ? 'limited'
-        : t.allowanceState === AllowanceState.NotEnabled
+        : t.fundingStatus === FundingStatus.NotEnabled
           ? 'inactive'
           : 'active',
   }));
@@ -769,24 +779,20 @@ function setupLoadCardDataMock(
     alerts.push({ type: 'kyc_pending', dismissable: false });
   }
 
-  // Map actions based on warning + kycStatus + externalWalletDetailsData
+  // Map actions based on warning + kycStatus + hasExternalWallets
   const actions: { type: string; enabled?: boolean }[] = [];
   if (
     config.warning === CardStateWarning.NeedDelegation ||
     config.warning === CardStateWarning.NoCard
   ) {
     if (config.kycStatus?.verificationState === 'VERIFIED') {
-      const wallets = config.externalWalletDetailsData as {
-        mappedWalletDetails?: unknown[];
-      } | null;
-      const hasWallets = (wallets?.mappedWalletDetails?.length ?? 0) > 0;
-      if (hasWallets) {
+      if (config.hasExternalWallets) {
         alerts.push({ type: 'card_provisioning', dismissable: false });
       } else {
         actions.push({ type: 'enable_card' });
       }
     }
-  } else if (!config.warning && primaryAsset) {
+  } else if (!config.warning && primaryFundingAsset) {
     actions.push({ type: 'add_funds', enabled: true });
     actions.push({ type: 'change_asset' });
   }
@@ -847,23 +853,86 @@ function setupLoadCardDataMock(
       }
     : null;
 
+  // Build enriched CardFundingTokenWithBalance for the new fields returned by useCardHomeData
+  const enrichedPrimaryAsset = config.priorityToken
+    ? {
+        ...config.priorityToken,
+        balanceFiat: '$1,000.00',
+        balanceFormatted: '1000.000000 USDC',
+        rawFiatNumber: 1000,
+        rawTokenBalance: 1000,
+      }
+    : null;
+
   (useCardHomeData as jest.Mock).mockReturnValue({
     data: config.error
       ? null
       : {
-          primaryAsset,
-          assets,
-          supportedTokens: assets,
+          primaryFundingAsset,
+          fundingAssets,
+          availableFundingAssets: fundingAssets,
           card,
           account,
           alerts,
           actions,
           delegationSettings: config.delegationSettings,
         },
+    primaryToken: enrichedPrimaryAsset,
+    availableTokens: enrichedPrimaryAsset ? [enrichedPrimaryAsset] : [],
+    fundingTokens: enrichedPrimaryAsset ? [enrichedPrimaryAsset] : [],
+    balanceMap: enrichedPrimaryAsset
+      ? createMockAssetBalancesMap(
+          {
+            balanceFiat: '$1,000.00',
+            asset: { symbol: enrichedPrimaryAsset.symbol, image: '' },
+            balanceFormatted: '1000.000000 USDC',
+            rawTokenBalance: 1000,
+            rawFiatNumber: 1000,
+          },
+          enrichedPrimaryAsset,
+        )
+      : new Map(),
     isLoading: config.isLoading,
     isError: !!config.error,
     refetch: mockRefetchAllData,
   });
+}
+
+// Helper: Override only primaryToken balance fields in the useCardHomeData mock.
+// Use once=true to override only the next render, false to override all subsequent renders.
+// This replaces mockUseAssetBalances overrides — balance now flows via useCardHomeData().primaryToken.
+function overrideCardHomeDataBalance(
+  assetOverrides: Partial<CardFundingTokenWithBalance>,
+  once = false,
+) {
+  const mockReturn = {
+    data: {
+      primaryFundingAsset: mockPrimaryFundingAsset,
+      fundingAssets: [mockPrimaryFundingAsset],
+      availableFundingAssets: [mockPrimaryFundingAsset],
+      card: {
+        id: 'card-123',
+        status: 'ACTIVE',
+        lastFour: '1234',
+        type: CardType.VIRTUAL,
+      },
+      account: null,
+      alerts: [],
+      actions: [{ type: 'add_funds', enabled: true }, { type: 'change_asset' }],
+    },
+    primaryToken: { ...mockPrimaryAssetWithBalance, ...assetOverrides },
+    availableTokens: [mockPrimaryAssetWithBalance],
+    fundingTokens: [mockPrimaryAssetWithBalance],
+    balanceMap: new Map(),
+    isLoading: false,
+    isError: false,
+    refetch: mockRefetchAllData,
+  };
+  if (once) {
+    (useCardHomeData as jest.Mock).mockReturnValueOnce(mockReturn);
+  } else {
+    (useCardHomeData as jest.Mock).mockReturnValue(mockReturn);
+  }
 }
 
 // Helper: Render component with proper wrapper
@@ -959,9 +1028,9 @@ describe('CardHome Component', () => {
     // Setup hook mocks with default values
     (useCardHomeData as jest.Mock).mockReturnValue({
       data: {
-        primaryAsset: mockPrimaryAsset,
-        assets: [mockPrimaryAsset],
-        supportedTokens: [mockPrimaryAsset],
+        primaryFundingAsset: mockPrimaryFundingAsset,
+        fundingAssets: [mockPrimaryFundingAsset],
+        availableFundingAssets: [mockPrimaryFundingAsset],
         card: {
           id: 'card-123',
           status: 'ACTIVE',
@@ -975,6 +1044,16 @@ describe('CardHome Component', () => {
           { type: 'change_asset' },
         ],
       },
+      primaryToken: mockPrimaryAssetWithBalance,
+      availableTokens: [mockPrimaryAssetWithBalance],
+      fundingTokens: [mockPrimaryAssetWithBalance],
+      balanceMap: createMockAssetBalancesMap({
+        balanceFiat: '$1,000.00',
+        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+        balanceFormatted: '1000.000000 USDC',
+        rawTokenBalance: 1000,
+        rawFiatNumber: 1000,
+      }),
       isLoading: false,
       isError: false,
       refetch: mockRefetchAllData,
@@ -1100,13 +1179,14 @@ describe('CardHome Component', () => {
     fireEvent.press(addFundsButton);
 
     // Then: should navigate to add funds modal, not swaps
+    // priorityToken is CardFundingTokenWithBalance (superset of mockPriorityToken) so use objectContaining
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
         'CardModals',
         expect.objectContaining({
           screen: 'CardAddFundsModal',
           params: expect.objectContaining({
-            priorityToken: mockPriorityToken,
+            priorityToken: expect.objectContaining(mockPriorityToken),
           }),
         }),
       );
@@ -1132,13 +1212,14 @@ describe('CardHome Component', () => {
     fireEvent.press(addFundsButton);
 
     // Then: should navigate to add funds modal for supported token
+    // priorityToken is CardFundingTokenWithBalance (superset of usdtToken) so use objectContaining
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
         'CardModals',
         expect.objectContaining({
           screen: 'CardAddFundsModal',
           params: expect.objectContaining({
-            priorityToken: usdtToken,
+            priorityToken: expect.objectContaining(usdtToken),
           }),
         }),
       );
@@ -1248,19 +1329,17 @@ describe('CardHome Component', () => {
   });
 
   it('passes formatted balance to CardAssetItem', () => {
-    // Given: asset balances with formatted balance
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: '$1,000.00',
-        asset: {
-          symbol: 'USDC',
-          image: 'usdc-image-url',
-        },
-        balanceFormatted: '1000.000000 USDC',
-        rawTokenBalance: 1000,
-        rawFiatNumber: 1000,
-      }),
-    );
+    // Given: primary asset includes formatted balance and token metadata (from useCardHomeData)
+    overrideCardHomeDataBalance({
+      balanceFiat: '$1,000.00',
+      asset: {
+        symbol: 'USDC',
+        image: 'usdc-image-url',
+      } as TokenI,
+      balanceFormatted: '1000.000000 USDC',
+      rawTokenBalance: 1000,
+      rawFiatNumber: 1000,
+    });
 
     // When: component renders
     render();
@@ -1342,7 +1421,7 @@ describe('CardHome Component', () => {
     // Given: priority token has limited allowance
     const limitedAllowanceToken = {
       ...mockPriorityToken,
-      allowanceState: AllowanceState.Limited,
+      fundingStatus: FundingStatus.Limited,
     };
     setupLoadCardDataMock({
       priorityToken: limitedAllowanceToken,
@@ -1408,19 +1487,11 @@ describe('CardHome Component', () => {
   });
 
   it('falls back to balanceFormatted when balanceFiat is TOKEN_RATE_UNDEFINED', () => {
-    // Given: fiat rate is undefined
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: TOKEN_RATE_UNDEFINED,
-        asset: {
-          symbol: 'USDC',
-          image: 'usdc-image-url',
-        },
-        balanceFormatted: '1000.000000 USDC',
-        rawTokenBalance: 1000,
-        rawFiatNumber: 0,
-      }),
-    );
+    // Given: fiat rate is undefined — balance comes from useCardHomeData().primaryAsset now
+    overrideCardHomeDataBalance({
+      balanceFiat: TOKEN_RATE_UNDEFINED,
+      balanceFormatted: '1000.000000 USDC',
+    });
 
     // When: component renders
     render();
@@ -1430,19 +1501,11 @@ describe('CardHome Component', () => {
   });
 
   it('falls back to balanceFormatted when balanceFiat is not available', () => {
-    // Given: fiat balance is empty
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: '',
-        asset: {
-          symbol: 'USDC',
-          image: 'usdc-image-url',
-        },
-        balanceFormatted: '1000.000000 USDC',
-        rawTokenBalance: 1000,
-        rawFiatNumber: 0,
-      }),
-    );
+    // Given: fiat balance is empty — balance comes from useCardHomeData().primaryAsset now
+    overrideCardHomeDataBalance({
+      balanceFiat: '',
+      balanceFormatted: '1000.000000 USDC',
+    });
 
     // When: component renders
     render();
@@ -1479,14 +1542,14 @@ describe('CardHome Component', () => {
 
   it('includes zero raw balances in metrics', async () => {
     // Given: zero balances
-    mockUseAssetBalances.mockReturnValueOnce(
-      createMockAssetBalancesMap({
+    overrideCardHomeDataBalance(
+      {
         balanceFiat: '$0.00',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
         balanceFormatted: '0.000000 USDC',
         rawTokenBalance: 0,
         rawFiatNumber: 0,
-      }),
+      },
+      true,
     );
 
     // When: component renders
@@ -1504,14 +1567,14 @@ describe('CardHome Component', () => {
 
   it('includes only rawTokenBalance when fiat is undefined', async () => {
     // Given: only formatted balance is valid (fiat undefined)
-    mockUseAssetBalances.mockReturnValueOnce(
-      createMockAssetBalancesMap({
+    overrideCardHomeDataBalance(
+      {
         balanceFiat: undefined as unknown as string,
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
         balanceFormatted: '1000.000000 USDC',
         rawTokenBalance: 1000,
-        // rawFiatNumber intentionally omitted (undefined)
-      }),
+        rawFiatNumber: undefined,
+      },
+      true,
     );
 
     // When: component renders
@@ -1530,14 +1593,14 @@ describe('CardHome Component', () => {
 
   it('does not fire metrics when formatted balance is undefined even if rawFiatNumber exists', async () => {
     // Given: fiat exists but formatted balance is missing
-    mockUseAssetBalances.mockReturnValueOnce(
-      createMockAssetBalancesMap({
+    overrideCardHomeDataBalance(
+      {
         balanceFiat: '$1,000.00',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
         balanceFormatted: undefined as unknown as string,
-        // rawTokenBalance omitted
+        rawTokenBalance: undefined,
         rawFiatNumber: 1000,
-      }),
+      },
+      true,
     );
 
     // When: component renders
@@ -1550,15 +1613,15 @@ describe('CardHome Component', () => {
   });
 
   it('fires CARD_HOME_VIEWED once when only balanceFormatted is valid', async () => {
-    // Given: only formatted balance is available
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: undefined as unknown as string,
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+    // Given: only formatted balance is available (no fiat / no raw fiat from useCardHomeData)
+    overrideCardHomeDataBalance(
+      {
+        balanceFiat: undefined,
         balanceFormatted: '1000.000000 USDC',
         rawTokenBalance: 1000,
-        // rawFiatNumber omitted
-      }),
+        rawFiatNumber: undefined,
+      },
+      true,
     );
 
     // When: component renders
@@ -1575,15 +1638,12 @@ describe('CardHome Component', () => {
 
   it('does not fire CARD_HOME_VIEWED when only fiat balance is available', async () => {
     // Given: fiat exists but formatted balance is missing
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: '$1,000.00',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
-        balanceFormatted: undefined as unknown as string,
-        // rawTokenBalance omitted
-        rawFiatNumber: 1000,
-      }),
-    );
+    overrideCardHomeDataBalance({
+      balanceFiat: '$1,000.00',
+      balanceFormatted: undefined as unknown as string,
+      rawTokenBalance: undefined,
+      rawFiatNumber: 1000,
+    });
 
     // When: component renders
     render();
@@ -1595,14 +1655,12 @@ describe('CardHome Component', () => {
 
   it('does not fire metrics when balances are still loading', async () => {
     // Given: balances show loading sentinels
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: 'tokenBalanceLoading',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
-        balanceFormatted: 'TOKENBALANCELOADING',
-        // raw values omitted
-      }),
-    );
+    overrideCardHomeDataBalance({
+      balanceFiat: 'tokenBalanceLoading',
+      balanceFormatted: 'TOKENBALANCELOADING',
+      rawTokenBalance: undefined,
+      rawFiatNumber: undefined,
+    });
 
     // When: component renders
     render();
@@ -1614,14 +1672,12 @@ describe('CardHome Component', () => {
 
   it('does not fire metrics when balances are unavailable', async () => {
     // Given: fiat is undefined and formatted balance is also undefined
-    mockUseAssetBalances.mockReturnValue(
-      createMockAssetBalancesMap({
-        balanceFiat: 'tokenRateUndefined',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
-        balanceFormatted: undefined as unknown as string,
-        // raw values omitted
-      }),
-    );
+    overrideCardHomeDataBalance({
+      balanceFiat: 'tokenRateUndefined',
+      balanceFormatted: undefined as unknown as string,
+      rawTokenBalance: undefined,
+      rawFiatNumber: undefined,
+    });
 
     // When: component renders
     render();
@@ -1633,14 +1689,14 @@ describe('CardHome Component', () => {
 
   it('converts NaN rawTokenBalance to 0 in metrics', async () => {
     // Given: rawTokenBalance is NaN
-    mockUseAssetBalances.mockReturnValueOnce(
-      createMockAssetBalancesMap({
+    overrideCardHomeDataBalance(
+      {
         balanceFiat: '$1,000.00',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
         balanceFormatted: '1000.000000 USDC',
         rawTokenBalance: NaN,
         rawFiatNumber: 1000,
-      }),
+      },
+      true,
     );
 
     // When: component renders and fires metrics
@@ -1659,14 +1715,14 @@ describe('CardHome Component', () => {
 
   it('converts NaN rawFiatNumber to 0 in metrics', async () => {
     // Given: rawFiatNumber is NaN
-    mockUseAssetBalances.mockReturnValueOnce(
-      createMockAssetBalancesMap({
+    overrideCardHomeDataBalance(
+      {
         balanceFiat: '$1,000.00',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
         balanceFormatted: '1000.000000 USDC',
         rawTokenBalance: 1000,
         rawFiatNumber: NaN,
-      }),
+      },
+      true,
     );
 
     // When: component renders and fires metrics
@@ -1685,14 +1741,14 @@ describe('CardHome Component', () => {
 
   it('converts both NaN raw values to 0 in metrics', async () => {
     // Given: both raw values are NaN
-    mockUseAssetBalances.mockReturnValueOnce(
-      createMockAssetBalancesMap({
+    overrideCardHomeDataBalance(
+      {
         balanceFiat: '$1,000.00',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
         balanceFormatted: '1000.000000 USDC',
         rawTokenBalance: NaN,
         rawFiatNumber: NaN,
-      }),
+      },
+      true,
     );
 
     // When: component renders and fires metrics
@@ -1711,13 +1767,14 @@ describe('CardHome Component', () => {
 
   it('preserves undefined raw values in metrics', async () => {
     // Given: raw values are undefined (not provided)
-    mockUseAssetBalances.mockReturnValueOnce(
-      createMockAssetBalancesMap({
+    overrideCardHomeDataBalance(
+      {
         balanceFiat: '$1,000.00',
-        asset: { symbol: 'USDC', image: 'usdc-image-url' },
         balanceFormatted: '1000.000000 USDC',
-        // rawTokenBalance and rawFiatNumber intentionally omitted (undefined)
-      }),
+        rawTokenBalance: undefined,
+        rawFiatNumber: undefined,
+      },
+      true,
     );
 
     // When: component renders and fires metrics
@@ -1847,7 +1904,6 @@ describe('CardHome Component', () => {
         isAuthenticated: true,
         kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         warning: CardStateWarning.NoCard,
-        externalWalletDetailsData: null,
       });
       setupMockSelectors({ isAuthenticated: true });
 
@@ -1869,7 +1925,6 @@ describe('CardHome Component', () => {
         isAuthenticated: true,
         kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         warning: CardStateWarning.NeedDelegation,
-        externalWalletDetailsData: null,
       });
       setupMockSelectors({ isAuthenticated: true });
 
@@ -1891,7 +1946,6 @@ describe('CardHome Component', () => {
         isAuthenticated: true,
         kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         warning: CardStateWarning.NoCard,
-        externalWalletDetailsData: null,
         priorityToken: null,
         allTokens: [],
       });
@@ -1919,9 +1973,7 @@ describe('CardHome Component', () => {
         isAuthenticated: true,
         kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         warning: CardStateWarning.NoCard,
-        externalWalletDetailsData: {
-          mappedWalletDetails: [{ id: 'wallet-1' }],
-        },
+        hasExternalWallets: true,
       });
       setupMockSelectors({ isAuthenticated: true });
 
@@ -1943,9 +1995,7 @@ describe('CardHome Component', () => {
         isAuthenticated: true,
         kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         warning: CardStateWarning.NeedDelegation,
-        externalWalletDetailsData: {
-          mappedWalletDetails: [{ id: 'wallet-1' }],
-        },
+        hasExternalWallets: true,
       });
       setupMockSelectors({ isAuthenticated: true });
 
@@ -1967,9 +2017,7 @@ describe('CardHome Component', () => {
         isAuthenticated: true,
         kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         warning: CardStateWarning.NoCard,
-        externalWalletDetailsData: {
-          mappedWalletDetails: [{ id: 'wallet-1' }],
-        },
+        hasExternalWallets: true,
         priorityToken: null,
         allTokens: [],
       });
@@ -2130,14 +2178,12 @@ describe('CardHome Component', () => {
       );
       fireEvent.press(changeAssetButton);
 
-      // Then: should navigate to asset selection modal
+      // Then: should navigate to asset selection modal with empty params
       expect(mockNavigate).toHaveBeenCalledWith(
         'CardModals',
         expect.objectContaining({
           screen: 'CardAssetSelectionModal',
-          params: expect.objectContaining({
-            tokensWithAllowances: [mockPriorityToken],
-          }),
+          params: {},
         }),
       );
     });
@@ -2425,7 +2471,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: false });
       const limitedAllowanceToken = {
         ...mockPriorityToken,
-        allowanceState: AllowanceState.Limited,
+        fundingStatus: FundingStatus.Limited,
       };
       setupLoadCardDataMock({
         priorityToken: limitedAllowanceToken,
@@ -2449,7 +2495,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true });
       const limitedAllowanceToken = {
         ...mockPriorityToken,
-        allowanceState: AllowanceState.Limited,
+        fundingStatus: FundingStatus.Limited,
       };
       setupLoadCardDataMock({
         priorityToken: limitedAllowanceToken,
@@ -2471,7 +2517,7 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: false });
       const enabledAllowanceToken = {
         ...mockPriorityToken,
-        allowanceState: AllowanceState.Enabled,
+        fundingStatus: FundingStatus.Enabled,
       };
       setupLoadCardDataMock({
         priorityToken: enabledAllowanceToken,
@@ -2490,14 +2536,18 @@ describe('CardHome Component', () => {
   });
 
   describe('SpendingLimitProgressBar', () => {
-    it('renders when authenticated and allowance is limited', () => {
-      // Given: authenticated with limited allowance
+    it('renders when authenticated and allowance is limited on EVM chain', () => {
+      // Given: authenticated with limited allowance on EVM chain
+      // originalSpendingCap = 1000 (original cap), spendingCap = 500 (remaining allowance)
+      // consumed = 1000 - 500 = 500
       setupMockSelectors({ isAuthenticated: true });
       const limitedAllowanceToken = {
         ...mockPriorityToken,
-        allowanceState: AllowanceState.Limited,
-        totalAllowance: '1000',
-        allowance: '500',
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '500',
+        spendableBalance: '500',
+        originalSpendingCap: '1000',
+        caipChainId: 'eip155:59144',
       };
       setupLoadCardDataMock({
         priorityToken: limitedAllowanceToken,
@@ -2509,7 +2559,7 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: should display spending limit progress bar
+      // Then: should display spending limit progress bar with consumed/total
       expect(screen.getByText('Spending Limit')).toBeOnTheScreen();
       expect(screen.getByText('500/1000 USDC')).toBeOnTheScreen();
     });
@@ -2519,9 +2569,11 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: false });
       const limitedAllowanceToken = {
         ...mockPriorityToken,
-        allowanceState: AllowanceState.Limited,
-        totalAllowance: '1000',
-        allowance: '500',
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '500',
+        spendableBalance: '500',
+        originalSpendingCap: '1000',
+        caipChainId: 'eip155:59144',
       };
       setupLoadCardDataMock({
         priorityToken: limitedAllowanceToken,
@@ -2537,13 +2589,14 @@ describe('CardHome Component', () => {
     });
 
     it('does not render when allowance is enabled', () => {
-      // Given: authenticated with enabled allowance
+      // Given: authenticated with enabled allowance (unlimited)
       setupMockSelectors({ isAuthenticated: true });
       const enabledAllowanceToken = {
         ...mockPriorityToken,
-        allowanceState: AllowanceState.Enabled,
-        totalAllowance: '1000',
-        allowance: '500',
+        fundingStatus: FundingStatus.Enabled,
+        spendingCap: '1000',
+        spendableBalance: '500',
+        caipChainId: 'eip155:59144',
       };
       setupLoadCardDataMock({
         priorityToken: enabledAllowanceToken,
@@ -2558,15 +2611,68 @@ describe('CardHome Component', () => {
       expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
     });
 
+    it('does not render for Solana chain assets', () => {
+      // Given: authenticated with limited allowance on Solana chain
+      setupMockSelectors({ isAuthenticated: true });
+      const limitedSolanaToken = {
+        ...mockPriorityToken,
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '500',
+        spendableBalance: '500',
+        caipChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      };
+      setupLoadCardDataMock({
+        priorityToken: limitedSolanaToken,
+        allTokens: [limitedSolanaToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar (Solana not supported)
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('does not render for unsupported tokens (AUSDC, AMUSD)', () => {
+      // Given: authenticated with limited allowance on an unsupported token
+      setupMockSelectors({ isAuthenticated: true });
+      const unsupportedToken = {
+        ...mockPriorityToken,
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '500',
+        spendableBalance: '500',
+        originalSpendingCap: '1000',
+        symbol: 'AUSDC',
+        caipChainId: 'eip155:59144',
+      };
+      setupLoadCardDataMock({
+        priorityToken: unsupportedToken,
+        allTokens: [unsupportedToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar (AUSDC not supported)
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
     it('displays correct consumed and total amounts', () => {
       // Given: authenticated with specific allowance values
+      // originalSpendingCap = 200, spendingCap = 150 (remaining), consumed = 50
       setupMockSelectors({ isAuthenticated: true });
       const limitedAllowanceToken = {
         ...mockPriorityToken,
-        allowanceState: AllowanceState.Limited,
-        totalAllowance: '200',
-        allowance: '150',
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '150',
+        spendableBalance: '150',
+        originalSpendingCap: '200',
         symbol: 'USDC',
+        caipChainId: 'eip155:59144',
       };
       setupLoadCardDataMock({
         priorityToken: limitedAllowanceToken,
@@ -2582,14 +2688,17 @@ describe('CardHome Component', () => {
       expect(screen.getByText('50/200 USDC')).toBeOnTheScreen();
     });
 
-    it('handles zero remaining allowance', () => {
-      // Given: authenticated with zero remaining allowance
+    it('handles zero remaining allowance (fully consumed)', () => {
+      // Given: authenticated with zero remaining allowance (all spent)
+      // originalSpendingCap = 1000, spendingCap = 0 (all consumed)
       setupMockSelectors({ isAuthenticated: true });
       const limitedAllowanceToken = {
         ...mockPriorityToken,
-        allowanceState: AllowanceState.Limited,
-        totalAllowance: '1000',
-        allowance: '0',
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '0',
+        spendableBalance: '0',
+        originalSpendingCap: '1000',
+        caipChainId: 'eip155:59144',
       };
       setupLoadCardDataMock({
         priorityToken: limitedAllowanceToken,
@@ -2610,9 +2719,10 @@ describe('CardHome Component', () => {
       setupMockSelectors({ isAuthenticated: true });
       const limitedAllowanceToken = {
         ...mockPriorityToken,
-        allowanceState: AllowanceState.Limited,
-        totalAllowance: undefined as unknown as string,
-        allowance: undefined as unknown as string,
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: undefined as unknown as string,
+        spendableBalance: undefined as unknown as string,
+        caipChainId: 'eip155:59144',
       };
       setupLoadCardDataMock({
         priorityToken: limitedAllowanceToken,
@@ -3237,14 +3347,18 @@ describe('CardHome Component', () => {
 
         (useCardHomeData as jest.Mock).mockReturnValueOnce({
           data: {
-            primaryAsset: null,
-            assets: [],
-            supportedTokens: [],
+            primaryFundingAsset: null,
+            fundingAssets: [],
+            availableFundingAssets: [],
             card: null,
             account: null,
             alerts: [],
             actions: [{ type: 'enable_card' }],
           },
+          primaryToken: null,
+          availableTokens: [],
+          fundingTokens: [],
+          balanceMap: new Map(),
           isLoading: false,
           isError: false,
           refetch: mockRefetchAllData,
@@ -3260,7 +3374,7 @@ describe('CardHome Component', () => {
         // Then: navigates to spending limit screen (delegation)
         await waitFor(() => {
           expect(mockNavigate).toHaveBeenCalledWith(
-            'CardSpendingLimit',
+            Routes.CARD.SPENDING_LIMIT,
             expect.objectContaining({
               flow: 'manage',
             }),
@@ -5477,11 +5591,6 @@ describe('CardHome Component', () => {
   describe('Enable Card - ChooseYourCard Redirect', () => {
     it('navigates to SpendingLimit when Enable Card pressed', async () => {
       // Given: Verified, authenticated US user with shipping address, metal card enabled, no card
-      const priorityTokenForNav = { ...mockPriorityToken };
-      const allTokensForNav = [mockPriorityToken];
-      const delegationSettingsForNav = { networks: [] };
-      const externalWalletDetailsForNav = { mappedWalletDetails: [] };
-
       setupMockSelectors({
         isAuthenticated: true,
         userLocation: 'us',
@@ -5490,42 +5599,46 @@ describe('CardHome Component', () => {
 
       (useCardHomeData as jest.Mock).mockReturnValueOnce({
         data: {
-          primaryAsset: {
-            address: priorityTokenForNav.address,
-            symbol: priorityTokenForNav.symbol,
-            decimals: priorityTokenForNav.decimals,
-            balance: '1000000000',
-            allowance: String(priorityTokenForNav.allowance ?? '0'),
-            name: priorityTokenForNav.name,
-            chainId: priorityTokenForNav.caipChainId,
-            walletAddress: priorityTokenForNav.walletAddress,
+          primaryFundingAsset: {
+            address: mockPriorityToken.address,
+            symbol: mockPriorityToken.symbol,
+            decimals: mockPriorityToken.decimals,
+            spendableBalance: '1000000000',
+            spendingCap: String(mockPriorityToken.spendingCap ?? '0'),
+            name: mockPriorityToken.name,
+            chainId: mockPriorityToken.caipChainId,
+            walletAddress: mockPriorityToken.walletAddress,
             priority: 1,
             status: 'active',
           },
-          assets: allTokensForNav.map((t) => ({
-            address: t.address,
-            symbol: t.symbol,
-            decimals: t.decimals,
-            balance: '1000000000',
-            allowance: String(t.allowance ?? '0'),
-            name: t.name,
-            chainId: t.caipChainId,
-            walletAddress: t.walletAddress,
-            priority: 1,
-            status: 'active',
-          })),
-          supportedTokens: allTokensForNav.map((t) => ({
-            address: t.address,
-            symbol: t.symbol,
-            decimals: t.decimals,
-            balance: '1000000000',
-            allowance: String(t.allowance ?? '0'),
-            name: t.name,
-            chainId: t.caipChainId,
-            walletAddress: t.walletAddress,
-            priority: 1,
-            status: 'active',
-          })),
+          fundingAssets: [
+            {
+              address: mockPriorityToken.address,
+              symbol: mockPriorityToken.symbol,
+              decimals: mockPriorityToken.decimals,
+              spendableBalance: '1000000000',
+              spendingCap: String(mockPriorityToken.spendingCap ?? '0'),
+              name: mockPriorityToken.name,
+              chainId: mockPriorityToken.caipChainId,
+              walletAddress: mockPriorityToken.walletAddress,
+              priority: 1,
+              status: 'active',
+            },
+          ],
+          availableFundingAssets: [
+            {
+              address: mockPriorityToken.address,
+              symbol: mockPriorityToken.symbol,
+              decimals: mockPriorityToken.decimals,
+              spendableBalance: '1000000000',
+              spendingCap: String(mockPriorityToken.spendingCap ?? '0'),
+              name: mockPriorityToken.name,
+              chainId: mockPriorityToken.caipChainId,
+              walletAddress: mockPriorityToken.walletAddress,
+              priority: 1,
+              status: 'active',
+            },
+          ],
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
@@ -5543,6 +5656,10 @@ describe('CardHome Component', () => {
           actions: [{ type: 'enable_card' }],
           delegationSettings: null,
         },
+        primaryToken: mockPrimaryAssetWithBalance,
+        availableTokens: [mockPrimaryAssetWithBalance],
+        fundingTokens: [mockPrimaryAssetWithBalance],
+        balanceMap: new Map(),
         isLoading: false,
         isError: false,
         refetch: mockRefetchAllData,
@@ -5555,13 +5672,12 @@ describe('CardHome Component', () => {
       );
       fireEvent.press(enableButton);
 
-      // Then: navigates to SpendingLimit with full params
+      // Then: navigates to SpendingLimit with flow param only
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
             flow: 'manage',
-            delegationSettings: null,
           }),
         );
       });
@@ -5577,9 +5693,9 @@ describe('CardHome Component', () => {
 
       (useCardHomeData as jest.Mock).mockReturnValueOnce({
         data: {
-          primaryAsset: null,
-          assets: [],
-          supportedTokens: [],
+          primaryFundingAsset: null,
+          fundingAssets: [],
+          availableFundingAssets: [],
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
@@ -5596,6 +5712,10 @@ describe('CardHome Component', () => {
           alerts: [],
           actions: [{ type: 'enable_card' }],
         },
+        primaryToken: null,
+        availableTokens: [],
+        fundingTokens: [],
+        balanceMap: new Map(),
         isLoading: false,
         isError: false,
         refetch: mockRefetchAllData,
@@ -5611,7 +5731,7 @@ describe('CardHome Component', () => {
       // Then: navigates to SpendingLimit (delegation) instead of ChooseYourCard
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          'CardSpendingLimit',
+          Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
             flow: 'manage',
           }),
@@ -5629,9 +5749,9 @@ describe('CardHome Component', () => {
 
       (useCardHomeData as jest.Mock).mockReturnValueOnce({
         data: {
-          primaryAsset: null,
-          assets: [],
-          supportedTokens: [],
+          primaryFundingAsset: null,
+          fundingAssets: [],
+          availableFundingAssets: [],
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
@@ -5648,6 +5768,10 @@ describe('CardHome Component', () => {
           alerts: [],
           actions: [{ type: 'enable_card' }],
         },
+        primaryToken: null,
+        availableTokens: [],
+        fundingTokens: [],
+        balanceMap: new Map(),
         isLoading: false,
         isError: false,
         refetch: mockRefetchAllData,
@@ -5663,7 +5787,7 @@ describe('CardHome Component', () => {
       // Then: navigates to SpendingLimit (delegation) instead of ChooseYourCard
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          'CardSpendingLimit',
+          Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
             flow: 'manage',
           }),
@@ -5681,9 +5805,9 @@ describe('CardHome Component', () => {
 
       (useCardHomeData as jest.Mock).mockReturnValueOnce({
         data: {
-          primaryAsset: null,
-          assets: [],
-          supportedTokens: [],
+          primaryFundingAsset: null,
+          fundingAssets: [],
+          availableFundingAssets: [],
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
@@ -5700,6 +5824,10 @@ describe('CardHome Component', () => {
           alerts: [],
           actions: [{ type: 'enable_card' }],
         },
+        primaryToken: null,
+        availableTokens: [],
+        fundingTokens: [],
+        balanceMap: new Map(),
         isLoading: false,
         isError: false,
         refetch: mockRefetchAllData,
@@ -5715,7 +5843,7 @@ describe('CardHome Component', () => {
       // Then: navigates to SpendingLimit (delegation), not ChooseYourCard
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          'CardSpendingLimit',
+          Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
             flow: 'manage',
           }),
@@ -5733,14 +5861,18 @@ describe('CardHome Component', () => {
 
       (useCardHomeData as jest.Mock).mockReturnValueOnce({
         data: {
-          primaryAsset: null,
-          assets: [],
-          supportedTokens: [],
+          primaryFundingAsset: null,
+          fundingAssets: [],
+          availableFundingAssets: [],
           card: null,
           account: null,
           alerts: [],
           actions: [{ type: 'enable_card' }],
         },
+        primaryToken: null,
+        availableTokens: [],
+        fundingTokens: [],
+        balanceMap: new Map(),
         isLoading: false,
         isError: false,
         refetch: mockRefetchAllData,
@@ -5756,7 +5888,7 @@ describe('CardHome Component', () => {
       // Then: navigates to delegation since no shipping address is available
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          'CardSpendingLimit',
+          Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
             flow: 'manage',
           }),

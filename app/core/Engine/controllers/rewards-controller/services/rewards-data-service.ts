@@ -22,6 +22,7 @@ import type {
   DiscoverSeasonsDto,
   SeasonMetadataDto,
   SeasonStateDto,
+  SubscriptionBenefitDto,
   LineaTokenRewardDto,
   ApplyReferralDto,
   ApplyBonusCodeDto,
@@ -115,6 +116,7 @@ export interface RewardsDataServiceGetPerpsDiscountAction {
   type: `${typeof SERVICE_NAME}:getPerpsDiscount`;
   handler: RewardsDataService['getPerpsDiscount'];
 }
+
 export interface RewardsDataServiceMobileOptinAction {
   type: `${typeof SERVICE_NAME}:mobileOptin`;
   handler: RewardsDataService['mobileOptin'];
@@ -275,6 +277,16 @@ export interface RewardsDataServiceGetDefaultRewardsEnvUrlAction {
   handler: RewardsDataService['getDefaultRewardsEnvUrl'];
 }
 
+export interface RewardsDataServiceGetBenefitsAction {
+  type: `${typeof SERVICE_NAME}:getBenefits`;
+  handler: RewardsDataService['getBenefits'];
+}
+
+export interface RewardsDataServicePostBenefitImpressionAction {
+  type: `${typeof SERVICE_NAME}:postBenefitImpression`;
+  handler: RewardsDataService['postBenefitImpression'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -306,6 +318,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
+  | RewardsDataServiceGetBenefitsAction
+  | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
@@ -499,6 +513,14 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getDefaultRewardsEnvUrl`,
       this.getDefaultRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getBenefits`,
+      this.getBenefits.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:postBenefitImpression`,
+      this.postBenefitImpression.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getClientVersionRequirements`,
@@ -1454,6 +1476,58 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as CampaignParticipantStatusDto;
+  }
+
+  /**
+   * Get benefits for a specific subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The benefits paged array.
+   */
+  async getBenefits(
+    subscriptionId: string,
+    limit: number,
+  ): Promise<SubscriptionBenefitDto[]> {
+    const response = await this.makeRequest(
+      `/benefits?limit=${limit}&offset=0`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get benefits failed: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.results as SubscriptionBenefitDto[];
+  }
+
+  /**
+   * Record an impression for a specific benefit. This is used to track when users have viewed a benefit in the UI.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param benefitId - The benefit ID to record impression for.
+   * @param benefitType - The benefit type to record impression for.
+   * @returns Promise that resolves when the impression is recorded successfully.
+   */
+  async postBenefitImpression(
+    subscriptionId: string,
+    benefitId: number,
+    benefitType: number,
+  ): Promise<void> {
+    const response = await this.makeRequest(
+      `/benefits/impression`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          benefitId,
+          benefitType,
+        }),
+      },
+      subscriptionId,
+    );
+    if (!response.ok) {
+      throw new Error(`Post benefit impression failed: ${response.status}`);
+    }
   }
 
   /**

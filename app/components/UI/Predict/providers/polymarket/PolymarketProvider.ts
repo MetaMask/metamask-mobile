@@ -18,6 +18,7 @@ import { filterSupportedLeagues } from '../../constants/sports';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
   GetPriceHistoryParams,
+  GetCryptoTargetPriceParams,
   GetPriceParams,
   GetPriceResponse,
   GetSeriesParams,
@@ -175,9 +176,12 @@ export class PolymarketProvider implements PredictProvider {
     return filterSupportedLeagues(liveSportsLeagues);
   }
 
+  #getExtendedSportsMarketsLeagues(): string[] {
+    return this.#getFeatureFlags().extendedSportsMarketsLeagues;
+  }
+
   #hasExtendedMarketsForLeague(league: string): boolean {
-    const { extendedSportsMarketsLeagues } = this.#getFeatureFlags();
-    return extendedSportsMarketsLeagues.includes(league);
+    return this.#getExtendedSportsMarketsLeagues().includes(league);
   }
 
   #createTeamLookup(
@@ -296,6 +300,7 @@ export class PolymarketProvider implements PredictProvider {
       const [parsedMarket] = parsePolymarketEvents([event], {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       });
 
       if (!parsedMarket) {
@@ -403,6 +408,7 @@ export class PolymarketProvider implements PredictProvider {
         category,
         sortMarketsBy: 'price',
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       });
 
       const markets = isSearch
@@ -469,6 +475,7 @@ export class PolymarketProvider implements PredictProvider {
       return parsePolymarketEvents(events, {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       });
     } catch (error) {
       DevLogger.log('Error fetching series events via Polymarket API:', error);
@@ -500,6 +507,7 @@ export class PolymarketProvider implements PredictProvider {
         category: 'trending',
         sortMarketsBy: 'price',
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       }).filter((m) => m.status === 'open' && m.outcomes.length > 0);
 
       return liveSportsEnabled
@@ -586,6 +594,34 @@ export class PolymarketProvider implements PredictProvider {
       );
 
       return [];
+    }
+  }
+
+  public async getCryptoTargetPrice(
+    params: GetCryptoTargetPriceParams,
+  ): Promise<number | null> {
+    try {
+      const { CRYPTO_PRICE_ENDPOINT } = getPolymarketEndpoints();
+      const url = `${CRYPTO_PRICE_ENDPOINT}?symbol=${encodeURIComponent(params.symbol)}&eventStartTime=${encodeURIComponent(params.eventStartTime)}&variant=${encodeURIComponent(params.variant)}&endDate=${encodeURIComponent(params.endDate)}`;
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Crypto target price API returned ${response.status}`);
+      }
+
+      const data: unknown = await response.json();
+      const parsed = data as { openPrice?: number } | undefined;
+      if (typeof parsed?.openPrice !== 'number') {
+        throw new Error('Crypto target price API returned unexpected shape');
+      }
+      return parsed.openPrice;
+    } catch (error) {
+      DevLogger.log(
+        'Error getting crypto target price via Polymarket API:',
+        error,
+      );
+
+      return null;
     }
   }
 

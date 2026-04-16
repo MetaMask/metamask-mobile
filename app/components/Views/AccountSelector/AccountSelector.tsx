@@ -28,7 +28,6 @@ import Animated, {
 
 // External dependencies.
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
-import { MultichainAddWalletActions } from '../../../component-library/components-temp/MultichainAccounts';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -135,13 +134,20 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     navigateToAddAccountActions ===
     AccountSelectorScreens.MultichainAddWalletActions;
 
-  const [screen, setScreen] = useState<AccountSelectorScreens>(() =>
-    shouldRedirectToAddWallet
-      ? AccountSelectorScreens.MultichainAddWalletActions
-      : navigateToAddAccountActions === AccountSelectorScreens.AddAccountActions
-        ? AccountSelectorScreens.AddAccountActions
-        : AccountSelectorScreens.AccountSelector,
-  );
+  const getInitialScreen = (): AccountSelectorScreens => {
+    if (shouldRedirectToAddWallet) {
+      return AccountSelectorScreens.MultichainAddWalletActions;
+    }
+    if (
+      navigateToAddAccountActions === AccountSelectorScreens.AddAccountActions
+    ) {
+      return AccountSelectorScreens.AddAccountActions;
+    }
+    return AccountSelectorScreens.AccountSelector;
+  };
+
+  const [screen, setScreen] =
+    useState<AccountSelectorScreens>(getInitialScreen());
   const [keyboardAvoidingViewEnabled, setKeyboardAvoidingViewEnabled] =
     useState(false);
 

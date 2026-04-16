@@ -56,6 +56,8 @@ import {
   RewardsDataServiceGetCampaignsAction,
   RewardsDataServiceOptInToCampaignAction,
   RewardsDataServiceGetCampaignParticipantStatusAction,
+  RewardsDataServiceGetBenefitsAction,
+  RewardsDataServicePostBenefitImpressionAction,
   RewardsDataServiceGetClientVersionRequirementsAction,
   RewardsDataServiceGetOndoCampaignLeaderboardAction,
   RewardsDataServiceGetOndoCampaignLeaderboardPositionAction,
@@ -102,6 +104,8 @@ type AllowedActions =
   | RewardsDataServiceSetRewardsEnvUrlAction
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
   | RewardsDataServiceApplyBonusCodeAction
+  | RewardsDataServiceGetBenefitsAction
+  | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
@@ -177,6 +181,8 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:canChangeRewardsEnvUrl',
       'RewardsDataService:setRewardsEnvUrl',
       'RewardsDataService:getDefaultRewardsEnvUrl',
+      'RewardsDataService:getBenefits',
+      'RewardsDataService:postBenefitImpression',
       'RewardsDataService:getClientVersionRequirements',
       'RewardsDataService:getOndoCampaignLeaderboard',
       'RewardsDataService:getOndoCampaignLeaderboardPosition',
