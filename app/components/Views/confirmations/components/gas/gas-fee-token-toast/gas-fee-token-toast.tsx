@@ -4,6 +4,7 @@ import {
   ToastVariants,
 } from '../../../../../../component-library/components/Toast';
 import { strings } from '../../../../../../../locales/i18n';
+import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import {
@@ -37,6 +38,7 @@ export function GasFeeTokenToast() {
 
   useEffect(() => {
     if (!toast || !gasFeeToken || !transactionMetadata) return;
+    if (transactionMetadata.type === TransactionType.musdConversion) return;
     if (gasFeeToken.tokenAddress === prevRef.current) return;
 
     prevRef.current = gasFeeToken.tokenAddress;
