@@ -25,6 +25,7 @@ const useCampaignGeoRestriction = (
 
   const isGeoLoading =
     !campaign ||
+    !geolocationStatus ||
     geolocationStatus === 'loading' ||
     geolocationStatus === 'idle';
 
