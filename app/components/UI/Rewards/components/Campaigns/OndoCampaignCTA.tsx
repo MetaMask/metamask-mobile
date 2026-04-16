@@ -33,7 +33,8 @@ interface OndoCampaignCTAProps {
  * Bottom CTA for the Ondo campaign details page.
  * Renders one of four states depending on campaign/participant status:
  * - Delegates to CampaignCTA for the opt-in flow (active, not opted in, within deposit window)
- * - "Entries closed" button (with Lock icon + toast) when cutoff has passed and user is not opted in
+ * - "Entries closed" button (with Lock icon + toast) when the entry window has closed — either
+ *   because the campaign is complete, or because fewer than the required qualifying days remain
  * - "Open Position" button when the user has opted in but has no portfolio positions
  * - "Swap Ondo Assets" button when the user has opted in and has portfolio positions
  */
@@ -147,10 +148,11 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
+            startIconName={IconName.Lock}
             onPress={handleEntriesClosedPress}
             testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
           >
-            {strings('rewards.campaign_details.join_campaign')}
+            {strings('rewards.campaign_details.ondo.entries_closed_title')}
           </Button>
         </Box>
       );

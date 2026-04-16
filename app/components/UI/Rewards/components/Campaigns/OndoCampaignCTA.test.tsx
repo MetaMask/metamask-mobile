@@ -283,7 +283,7 @@ describe('OndoCampaignCTA', () => {
 
   describe('notEligibleForCampaign', () => {
     describe('not opted in + notEligibleForCampaign=true', () => {
-      it('shows the Join Campaign button', () => {
+      it('shows the Entries closed button', () => {
         const { getByTestId, getByText } = render(
           <OndoCampaignCTA
             campaign={buildCampaign()}
@@ -293,7 +293,7 @@ describe('OndoCampaignCTA', () => {
           />,
         );
         expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
-        expect(getByText('Join Campaign')).toBeOnTheScreen();
+        expect(getByText('Entries closed')).toBeOnTheScreen();
       });
 
       it('fires entries-closed toast (not the opt-in sheet) when pressed', () => {
