@@ -43,7 +43,7 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
 }) => {
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
   const { showToast, RewardsToastOptions } = useRewardsToast();
-  const { isGeoRestricted } = useCampaignGeoRestriction(
+  const { isGeoRestricted, isGeoLoading } = useCampaignGeoRestriction(
     campaign,
     customRestrictedCountries,
   );
@@ -57,8 +57,8 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
   const handleGeoLockedPress = useCallback(() => {
     showToast(
       RewardsToastOptions.entriesClosed(
-        strings('rewards.campaign_details.ondo.geo_locked_toast_title'),
-        strings('rewards.campaign_details.ondo.geo_locked_toast_description'),
+        strings('rewards.campaign.geo_locked_toast_title'),
+        strings('rewards.campaign.geo_locked_toast_description'),
       ),
     );
   }, [showToast, RewardsToastOptions]);
@@ -91,6 +91,8 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
+          isLoading={isGeoLoading}
+          isDisabled={isGeoLoading}
           onPress={() => {
             onJoinPress?.();
             setIsOptInSheetOpen(true);
