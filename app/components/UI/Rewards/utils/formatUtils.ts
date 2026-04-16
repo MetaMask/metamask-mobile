@@ -483,9 +483,14 @@ export const shortenAddress = (address: string): string => {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
+const MAX_ONDO_TOKEN_NAME_LENGTH = 28;
+
 /**
- * Strips the "Ondo Tokenized " prefix from a token name returned by the
- * search API, so list rows show just the underlying asset name (e.g. "Apple").
+ * Strips the "(Ondo Tokenized)" suffix from a token name and truncates to
+ * MAX_ONDO_TOKEN_NAME_LENGTH characters with an ellipsis if needed.
  */
-export const sanitizeOndoTokenName = (name: string): string =>
-  name.replace(/^ondo\s+tokenized\s+/i, '').trim();
+export function sanitizeOndoTokenName(raw: string): string {
+  const cleaned = raw.replace(/\(Ondo Tokenized\)/gi, '').trim();
+  if (cleaned.length <= MAX_ONDO_TOKEN_NAME_LENGTH) return cleaned;
+  return `${cleaned.slice(0, MAX_ONDO_TOKEN_NAME_LENGTH).trim()}...`;
+}

@@ -1600,30 +1600,41 @@ describe('formatUtils', () => {
   });
 
   describe('sanitizeOndoTokenName', () => {
-    it('strips "Ondo Tokenized " prefix (exact casing)', () => {
-      expect(sanitizeOndoTokenName('Ondo Tokenized Apple')).toBe('Apple');
+    it('strips "(Ondo Tokenized)" suffix and trims', () => {
+      expect(sanitizeOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
+        'US Dollar',
+      );
     });
 
-    it('strips prefix case-insensitively', () => {
-      expect(sanitizeOndoTokenName('ondo tokenized google')).toBe('google');
-      expect(sanitizeOndoTokenName('ONDO TOKENIZED TSLA')).toBe('TSLA');
+    it('is case-insensitive', () => {
+      expect(sanitizeOndoTokenName('Token (ondo tokenized)')).toBe('Token');
     });
 
-    it('handles multiple spaces between words', () => {
-      expect(sanitizeOndoTokenName('Ondo  Tokenized  Apple')).toBe('Apple');
+    it('truncates to 28 characters with ellipsis', () => {
+      expect(sanitizeOndoTokenName('A Very Long Token Name That Exceeds')).toBe(
+        'A Very Long Token Name That...',
+      );
+    });
+
+    it('strips then truncates with ellipsis', () => {
+      const long = 'Extremely Long Name Here That Keeps Going (Ondo Tokenized)';
+      expect(sanitizeOndoTokenName(long)).toBe(
+        'Extremely Long Name Here Tha...',
+      );
+    });
+
+    it('does not add ellipsis when exactly 28 characters', () => {
+      expect(sanitizeOndoTokenName('1234567890123456789012345678')).toBe(
+        '1234567890123456789012345678',
+      );
     });
 
     it('leaves unrelated names unchanged', () => {
-      expect(sanitizeOndoTokenName('Apple Inc')).toBe('Apple Inc');
-      expect(sanitizeOndoTokenName('USDY')).toBe('USDY');
+      expect(sanitizeOndoTokenName('OUSG')).toBe('OUSG');
     });
 
     it('returns empty string for an empty input', () => {
       expect(sanitizeOndoTokenName('')).toBe('');
-    });
-
-    it('trims surrounding whitespace after stripping', () => {
-      expect(sanitizeOndoTokenName('Ondo Tokenized  Apple  ')).toBe('Apple');
     });
   });
 });
