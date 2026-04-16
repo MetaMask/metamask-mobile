@@ -136,7 +136,7 @@ const OndoCampaignDetailsView: React.FC = () => {
 
   useTrackRewardsPageView({
     page_type: 'ondo_campaign_detail',
-    campaign_id: effectiveCampaignId,
+    campaign_id: effectiveCampaignId || undefined,
   });
 
   useEffect(() => {
