@@ -4,10 +4,12 @@ import { useAccountTokens, EnrichTokenRequest } from './useAccountTokens';
 import { useSendType } from './useSendType';
 
 export function useSendTokens({
+  accountAddress,
   includeNoBalance = false,
   tokenFilter,
   enrichTokenRequests,
 }: {
+  accountAddress?: string;
   includeNoBalance?: boolean;
   tokenFilter?: (chainId: string, address: string) => boolean;
   enrichTokenRequests?: EnrichTokenRequest[];
@@ -19,6 +21,7 @@ export function useSendTokens({
     isPredefinedEvm,
   } = useSendType();
   const allTokens = useAccountTokens({
+    accountAddress,
     includeNoBalance,
     tokenFilter,
     enrichTokenRequests,

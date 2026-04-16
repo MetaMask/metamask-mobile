@@ -1,10 +1,12 @@
 import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { noop } from 'lodash';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import Engine from '../../../../../../core/Engine';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { Asset } from '../../send/asset';
 import BottomSheet, {
@@ -38,7 +40,15 @@ import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaym
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 
+type PayWithModalRoute = RouteProp<
+  { [Routes.CONFIRMATION_PAY_WITH_MODAL]: { selectedAccount?: string } },
+  typeof Routes.CONFIRMATION_PAY_WITH_MODAL
+>;
+
 export function PayWithModal() {
+  const route = useRoute<PayWithModalRoute>();
+  const selectedAccount = route.params?.selectedAccount;
+
   const transactionMeta = useTransactionMetadataRequest();
   const hideNetworkFilter = hasTransactionType(
     transactionMeta,
@@ -56,7 +66,7 @@ export function PayWithModal() {
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
-  const withdrawTokenFilter = useWithdrawTokenFilter();
+  const withdrawTokenFilter = useWithdrawTokenFilter(selectedAccount);
   const blockedTokens = useTransactionPayBlockedTokens();
   const { onPaymentTokenChange: onPredictPaymentTokenChange } =
     usePredictPaymentToken();

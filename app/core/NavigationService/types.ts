@@ -561,7 +561,7 @@ export interface RootStackParamList extends ParamListBase {
   LockScreen: undefined;
   ConfirmationRequestModal: undefined;
   ConfirmationSwitchAccountType: undefined;
-  ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithModal: { selectedAccount?: string } | undefined;
   ConfirmationPayWithNetworkModal: undefined;
   SmartAccountOptIn: undefined;
 

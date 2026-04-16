@@ -78,8 +78,10 @@ export function PayWithRow({ selectedAccount }: PayWithRowProps = {}) {
         mm_pay_token_list_opened: true,
       },
     });
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [isDisabled, navigation, setConfirmationMetric]);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
+      selectedAccount,
+    });
+  }, [isDisabled, navigation, selectedAccount, setConfirmationMetric]);
 
   const label = isWithdraw
     ? strings('confirm.label.receive_as')

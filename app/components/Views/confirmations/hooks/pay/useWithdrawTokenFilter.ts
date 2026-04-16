@@ -22,7 +22,9 @@ import { RootState } from '../../../../../reducers';
  * is fetched from the tokens API (via `enrichTokenRequests` in `useAccountTokens`)
  * so they still appear as zero-balance options.
  */
-export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
+export function useWithdrawTokenFilter(
+  accountAddress?: string,
+): (tokens: AssetType[]) => AssetType[] {
   const transactionMeta = useTransactionMetadataRequest();
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const transactionType = getPostQuoteTransactionType(transactionMeta);
@@ -54,6 +56,7 @@ export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
   }, [shouldEnrich, allowlist]);
 
   const walletTokens = useSendTokens({
+    accountAddress,
     includeNoBalance: shouldEnrich,
     tokenFilter,
     enrichTokenRequests,
