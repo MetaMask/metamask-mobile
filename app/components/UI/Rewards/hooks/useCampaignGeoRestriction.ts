@@ -13,7 +13,7 @@ interface UseCampaignGeoRestrictionResult {
  * Determines whether the current user's geolocation restricts them from
  * participating in the given campaign.
  *
- * @param campaign - The campaign to check. Accepts `null` for convenience when the campaign has not yet loaded — in that case `isGeoLoading` is `true` and `isGeoRestricted` is `false`.
+ * @param campaign - The campaign to check. Accepts `null` for convenience when the campaign has not yet loaded — in that case `isGeoLoading` is `true` and `isGeoRestricted` is `true` (safe/restricted default while undetermined).
  * @param customRestrictedCountries - An optional set of country codes that are restricted independently of the campaign's `excludedRegions`. When provided this list is checked first; if the user's country is found here the function returns `true` without consulting `excludedRegions`. If not found here, `excludedRegions` is still checked.
  */
 const useCampaignGeoRestriction = (
@@ -30,8 +30,7 @@ const useCampaignGeoRestriction = (
 
   const isGeoRestricted = useMemo(() => {
     if (__DEV__) return false;
-    if (!campaign) return false;
-    if (isGeoLoading) return false;
+    if (isGeoLoading) return true;
     const country = geolocation?.toUpperCase().split('-')[0];
 
     // Check the custom list first (if provided).

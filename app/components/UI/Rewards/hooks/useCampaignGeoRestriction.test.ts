@@ -50,32 +50,32 @@ describe('useCampaignGeoRestriction', () => {
   });
 
   describe('null campaign', () => {
-    it('returns isGeoLoading=true and isGeoRestricted=false when campaign is null', () => {
+    it('returns isGeoLoading=true and isGeoRestricted=true when campaign is null', () => {
       const { result } = renderHook(() => useCampaignGeoRestriction(null));
       expect(result.current.isGeoLoading).toBe(true);
-      expect(result.current.isGeoRestricted).toBe(false);
+      expect(result.current.isGeoRestricted).toBe(true);
     });
   });
 
   describe('geo loading states', () => {
-    it('returns isGeoLoading=true when geolocationStatus is "idle"', () => {
+    it('returns isGeoLoading=true and isGeoRestricted=true when geolocationStatus is "idle"', () => {
       mockGeoStatus = 'idle';
       setupSelectors();
       const { result } = renderHook(() =>
         useCampaignGeoRestriction(buildCampaign()),
       );
       expect(result.current.isGeoLoading).toBe(true);
-      expect(result.current.isGeoRestricted).toBe(false);
+      expect(result.current.isGeoRestricted).toBe(true);
     });
 
-    it('returns isGeoLoading=true when geolocationStatus is "loading"', () => {
+    it('returns isGeoLoading=true and isGeoRestricted=true when geolocationStatus is "loading"', () => {
       mockGeoStatus = 'loading';
       setupSelectors();
       const { result } = renderHook(() =>
         useCampaignGeoRestriction(buildCampaign()),
       );
       expect(result.current.isGeoLoading).toBe(true);
-      expect(result.current.isGeoRestricted).toBe(false);
+      expect(result.current.isGeoRestricted).toBe(true);
     });
 
     it('returns isGeoLoading=false when geolocationStatus is "complete"', () => {

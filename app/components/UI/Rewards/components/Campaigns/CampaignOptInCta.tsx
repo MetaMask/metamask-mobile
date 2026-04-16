@@ -67,7 +67,7 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
     return null;
   }
 
-  if (isGeoRestricted) {
+  if (!isGeoLoading && isGeoRestricted) {
     return (
       <Box twClassName="p-4 mb-2">
         <Button
@@ -92,7 +92,7 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
           size={ButtonSize.Lg}
           isFullWidth
           isLoading={isGeoLoading}
-          loadingText={strings('rewards.campaign_details.geo_loading')}
+          loadingText={strings('rewards.campaign.geo_loading')}
           onPress={() => {
             if (isGeoLoading) return;
             onJoinPress?.();
