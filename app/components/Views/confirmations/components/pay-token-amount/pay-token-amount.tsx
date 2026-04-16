@@ -85,8 +85,6 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
     TransactionType.perpsDepositAndOrder,
     TransactionType.predictDeposit,
     TransactionType.predictDepositAndOrder,
-    TransactionType.moneyAccountDeposit,
-    TransactionType.moneyAccountWithdraw,
   ]);
 
   if (hideTokenAmount) {
