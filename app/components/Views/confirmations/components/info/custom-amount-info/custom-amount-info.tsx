@@ -117,12 +117,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const transactionMeta = useTransactionMetadataRequest();
     const transactionId = transactionMeta?.id;
 
-    const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountWithdraw,
-    ]);
-    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountDeposit,
-    ]);
     const [selectedAccount, setSelectedAccount] = useState<string | undefined>(
       undefined,
     );
@@ -130,9 +124,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const handleAccountSelected = useCallback((address: string) => {
       setSelectedAccount(address);
     }, []);
-
-    const isAccountMissing =
-      (isMoneyAccountWithdraw || isMoneyAccountDeposit) && !selectedAccount;
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
@@ -201,7 +192,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {!hidePayTokenAmount && disablePay !== true && !isAccountMissing && (
+          {!hidePayTokenAmount && disablePay !== true && (
             <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
           )}
           {!hidePayTokenAmount && children}
@@ -209,20 +200,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         <Box gap={16}>
           <AlertMessage alertMessage={alertMessage} />
           {!hidePayTokenAmount && (
-            <>
-              {isMoneyAccountDeposit && (
-                <PayAccountSelector
-                  label={strings('confirm.label.from')}
-                  onAccountSelected={handleAccountSelected}
-                />
-              )}
-              {isMoneyAccountWithdraw && (
-                <PayAccountSelector
-                  isPostQuote
-                  onAccountSelected={handleAccountSelected}
-                />
-              )}
-            </>
+            <PayAccountSelector onAccountSelected={handleAccountSelected} />
           )}
           {!isResultReady && disablePay !== true && hasTokens && (
             <PayWithRow selectedAccount={selectedAccount} />
@@ -271,7 +249,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
-              disableConfirm={disableConfirm || isAccountMissing}
+              disableConfirm={disableConfirm}
             />
           )}
         </Box>

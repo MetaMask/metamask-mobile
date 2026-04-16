@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { PaymentType } from '@consensys/on-ramp-sdk';
@@ -11,8 +11,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { type PaymentMethod } from '@metamask/ramps-controller';
-import { TransactionType } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 
 import { strings } from '../../../../../../../locales/i18n';
 import Icon, {
@@ -30,41 +28,27 @@ import {
   FlexDirection,
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
-import {
-  MUSD_TOKEN,
-  MUSD_TOKEN_ADDRESS,
-  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-} from '../../../../../UI/Earn/constants/musd';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
 } from '../../../ConfirmationView.testIds';
-import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
+import { useMoneyAccountPayToken } from '../../../hooks/pay/useMoneyAccountPayToken';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { isTestNet } from '../../../../../../util/networks';
-import { hasTransactionType } from '../../../utils/transaction';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import styleSheet from './pay-with-row.styles';
-
-const MUSD_FALLBACK_TOKEN = {
-  address: MUSD_TOKEN_ADDRESS,
-  chainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-  symbol: MUSD_TOKEN.symbol,
-  decimals: MUSD_TOKEN.decimals,
-} as const;
 interface PayWithRowProps {
   selectedAccount?: string;
 }
 
 export function PayWithRow({ selectedAccount }: PayWithRowProps = {}) {
   const navigation = useNavigation();
-  const { payToken, setPayToken } = useTransactionPayToken();
+  const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const selectedFiatPaymentMethod =
@@ -78,59 +62,13 @@ export function PayWithRow({ selectedAccount }: PayWithRowProps = {}) {
     txParams: { from },
   } = transactionMeta ?? { txParams: {} };
 
-  const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountWithdraw,
-  ]);
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
-
-  const accountTokens = useAccountTokens({
-    accountAddress: selectedAccount,
-  });
-  const isAwaitingAccountSelection =
-    (isMoneyAccountDeposit || isMoneyAccountWithdraw) && !selectedAccount;
+  const {
+    displayToken: moneyAccountDisplayToken,
+    isAwaitingAccountSelection,
+    isMoneyAccountWithdraw,
+  } = useMoneyAccountPayToken(selectedAccount);
 
   const canEdit = !isHardwareAccount(from ?? '');
-  const prevSelectedAccountRef = useRef(selectedAccount);
-
-  useEffect(() => {
-    if (selectedAccount && selectedAccount !== prevSelectedAccountRef.current) {
-      prevSelectedAccountRef.current = selectedAccount;
-    }
-  }, [selectedAccount]);
-
-  useEffect(() => {
-    if (!selectedAccount) {
-      return;
-    }
-
-    if (isMoneyAccountWithdraw) {
-      setPayToken({
-        address: MUSD_TOKEN_ADDRESS,
-        chainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-      });
-      return;
-    }
-
-    const firstEvmToken = accountTokens.find(
-      (t) => t.chainId?.startsWith('0x') && !isTestNet(t.chainId),
-    );
-
-    if (isMoneyAccountDeposit && firstEvmToken) {
-      setPayToken({
-        address: firstEvmToken.address as Hex,
-        chainId: firstEvmToken.chainId as Hex,
-      });
-    }
-  }, [
-    accountTokens,
-    isMoneyAccountDeposit,
-    isMoneyAccountWithdraw,
-    selectedAccount,
-    setPayToken,
-  ]);
-
   const isDisabled = !canEdit || isAwaitingAccountSelection;
 
   const handleClick = useCallback(() => {
@@ -156,14 +94,14 @@ export function PayWithRow({ selectedAccount }: PayWithRowProps = {}) {
   );
 
   const displayToken = useMemo(() => {
-    if (isMoneyAccountWithdraw) {
-      return payToken ?? MUSD_FALLBACK_TOKEN;
+    if (moneyAccountDisplayToken) {
+      return moneyAccountDisplayToken;
     }
     if (isWithdraw) {
       return payToken ?? defaultWithdrawToken ?? null;
     }
     return payToken ?? null;
-  }, [isMoneyAccountWithdraw, isWithdraw, payToken, defaultWithdrawToken]);
+  }, [moneyAccountDisplayToken, isWithdraw, payToken, defaultWithdrawToken]);
 
   // For deposits, show the user's balance of the selected pay token
   const balanceUsdFormatted = useMemo(

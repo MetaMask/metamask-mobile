@@ -1,6 +1,7 @@
 import React, { act } from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
@@ -73,8 +74,20 @@ describe('PayAccountSelector', () => {
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'mock-tx-id',
+      type: TransactionType.moneyAccountDeposit,
       txParams: { from: '0x123' },
     } as never);
+  });
+
+  it('returns null for non-money-account transactions', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'mock-tx-id',
+      type: TransactionType.simpleSend,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { queryByTestId } = render();
+    expect(queryByTestId('account-selector')).toBeNull();
   });
 
   it('renders with no pre-selected address', () => {
@@ -85,10 +98,22 @@ describe('PayAccountSelector', () => {
     );
   });
 
-  it('passes label prop through to AccountSelector', () => {
-    const { getByTestId } = render({ label: 'From' });
+  it('shows "From" label for deposit transactions', () => {
+    const { getByTestId } = render();
 
     expect(getByTestId('account-selector-label')).toHaveTextContent('From');
+  });
+
+  it('shows default "To" label for withdraw transactions', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'mock-tx-id',
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByTestId } = render();
+
+    expect(getByTestId('account-selector-label')).toHaveTextContent('To');
   });
 
   it('calls setTransactionConfig with accountOverride on account selection', async () => {
@@ -110,8 +135,14 @@ describe('PayAccountSelector', () => {
     expect(config.accountOverride).toBe('0xSelectedAddress');
   });
 
-  it('sets isPostQuote in config when isPostQuote prop is true', async () => {
-    const { getByTestId } = render({ isPostQuote: true });
+  it('sets isPostQuote for withdraw transactions', async () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'mock-tx-id',
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByTestId } = render();
 
     await act(async () => {
       fireEvent.press(getByTestId('account-selector'));
@@ -125,7 +156,7 @@ describe('PayAccountSelector', () => {
     expect(config.isPostQuote).toBe(true);
   });
 
-  it('does not set isPostQuote in config when isPostQuote prop is falsy', async () => {
+  it('does not set isPostQuote for deposit transactions', async () => {
     const { getByTestId } = render();
 
     await act(async () => {
@@ -142,6 +173,7 @@ describe('PayAccountSelector', () => {
 
   it('does not call setTransactionConfig when transactionId is missing', async () => {
     useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountDeposit,
       txParams: { from: '0x123' },
     } as never);
 

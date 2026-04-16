@@ -1,21 +1,29 @@
 import React, { useCallback, useState } from 'react';
+import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+
+import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { hasTransactionType } from '../../utils/transaction';
 import AccountSelector from '../AccountSelector';
 
 export interface PayAccountSelectorProps {
-  label?: string;
-  isPostQuote?: boolean;
   onAccountSelected?: (address: string) => void;
 }
+
 const PayAccountSelector: React.FC<PayAccountSelectorProps> = ({
-  label,
-  isPostQuote,
   onAccountSelected,
 }) => {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id;
+
+  const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
 
   const [selectedAddress, setSelectedAddress] = useState<string | undefined>(
     undefined,
@@ -28,7 +36,7 @@ const PayAccountSelector: React.FC<PayAccountSelectorProps> = ({
           transactionId,
           (config) => {
             config.accountOverride = address as Hex;
-            if (isPostQuote) {
+            if (isMoneyAccountWithdraw) {
               config.isPostQuote = true;
             }
           },
@@ -37,8 +45,16 @@ const PayAccountSelector: React.FC<PayAccountSelectorProps> = ({
       setSelectedAddress(address);
       onAccountSelected?.(address);
     },
-    [transactionId, isPostQuote, onAccountSelected],
+    [transactionId, isMoneyAccountWithdraw, onAccountSelected],
   );
+
+  if (!isMoneyAccountDeposit && !isMoneyAccountWithdraw) {
+    return null;
+  }
+
+  const label = isMoneyAccountDeposit
+    ? strings('confirm.label.from')
+    : undefined;
 
   return (
     <AccountSelector

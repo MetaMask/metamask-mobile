@@ -80,15 +80,16 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
     return null;
   }
 
-  // Don't render token amount for perps and predict deposit transactions
-  const isPerpsOrPredictDeposit = hasTransactionType(transaction, [
+  const hideTokenAmount = hasTransactionType(transaction, [
     TransactionType.perpsDeposit,
     TransactionType.perpsDepositAndOrder,
     TransactionType.predictDeposit,
     TransactionType.predictDepositAndOrder,
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
   ]);
 
-  if (isPerpsOrPredictDeposit) {
+  if (hideTokenAmount) {
     return null;
   }
 

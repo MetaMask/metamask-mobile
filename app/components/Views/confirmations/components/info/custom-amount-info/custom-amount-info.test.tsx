@@ -74,19 +74,14 @@ jest.mock('../../PayAccountSelector', () => {
     __esModule: true,
     default: ({
       onAccountSelected,
-      label,
-      isPostQuote,
     }: {
       onAccountSelected?: (address: string) => void;
-      label?: string;
-      isPostQuote?: boolean;
     }) => (
       <TouchableOpacity
         testID="pay-account-selector"
         onPress={() => onAccountSelected?.('0xTestAccount')}
       >
-        <Text testID="pay-account-selector-label">{label ?? 'To'}</Text>
-        {isPostQuote && <Text testID="pay-account-selector-post-quote" />}
+        <Text>Select account</Text>
       </TouchableOpacity>
     ),
   };
@@ -409,24 +404,10 @@ describe('CustomAmountInfo', () => {
     expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
   });
 
-  it('does not render PayAccountSelector for non-moneyAccount transactions', () => {
-    const { queryByTestId } = render();
-
-    expect(queryByTestId('pay-account-selector')).toBeNull();
-  });
-
-  it('renders PayAccountSelector with isPostQuote for moneyAccountWithdraw', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.moneyAccountWithdraw,
-      txParams: { from: '0x123' },
-    } as never);
-
-    const { getByTestId } = render({
-      transactionType: TransactionType.moneyAccountWithdraw,
-    });
+  it('renders PayAccountSelector', () => {
+    const { getByTestId } = render();
 
     expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
-    expect(getByTestId('pay-account-selector-post-quote')).toBeOnTheScreen();
   });
 
   it('renders no funds alert message for moneyAccountDeposit when alert is present', () => {
@@ -467,21 +448,6 @@ describe('CustomAmountInfo', () => {
     expect(
       queryByText(strings('alert_system.account_no_funds.message')),
     ).toBeNull();
-  });
-
-  it('renders PayAccountSelector without isPostQuote for moneyAccountDeposit', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.moneyAccountDeposit,
-      txParams: { from: '0x123' },
-    } as never);
-
-    const { getByTestId, queryByTestId } = render({
-      transactionType: TransactionType.moneyAccountDeposit,
-    });
-
-    expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
-    expect(getByTestId('pay-account-selector-label')).toHaveTextContent('From');
-    expect(queryByTestId('pay-account-selector-post-quote')).toBeNull();
   });
 
   describe('showPaymentDetails', () => {
