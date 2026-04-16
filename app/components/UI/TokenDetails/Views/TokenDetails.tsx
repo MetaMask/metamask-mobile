@@ -67,10 +67,12 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       isMarketInsightsDisplayed,
       severity,
       hasPerpsMarket,
+      stickyButtonsShown,
     }: {
       isMarketInsightsDisplayed: boolean;
       severity: string | undefined;
       hasPerpsMarket: boolean;
+      stickyButtonsShown: 'both' | 'buy' | 'swap' | undefined;
     }) => {
       const source = params.source ?? TokenDetailsSource.Unknown;
       const tokenTrackingKey = `${params.chainId ?? ''}:${params.address ?? ''}:${params.symbol ?? ''}:${source}`;
@@ -95,6 +97,9 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         market_insights_displayed: isMarketInsightsDisplayed,
         severity,
         has_perps_market: hasPerpsMarket,
+        ...(stickyButtonsShown !== undefined && {
+          sticky_buttons_shown: stickyButtonsShown,
+        }),
       };
       const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
         .addProperties(eventProperties)
@@ -125,7 +130,8 @@ const TokenDetails: React.FC<{
     isDisplayed: boolean;
     severity: string | undefined;
   }) => void;
-}> = ({ token, onMarketInsightsDisplayResolved }) => {
+  onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
+}> = ({ token, onMarketInsightsDisplayResolved, onStickyButtonsResolved }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
@@ -179,13 +185,14 @@ const TokenDetails: React.FC<{
   const {
     balance,
     fiatBalance,
+    balanceFiatUsd,
     tokenFormattedBalance,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     stakedTrxAsset,
     inLockPeriodBalance,
     readyForWithdrawalBalance,
     ///: END:ONLY_INCLUDE_IF
-  } = useTokenBalance(token);
+  } = useTokenBalance(token, { calculateUsdBalance: true });
 
   const {
     onBuy,
@@ -306,9 +313,11 @@ const TokenDetails: React.FC<{
         <TokenDetailsStickyFooter
           token={token}
           securityData={securityData}
+          balanceFiatUsd={balanceFiatUsd}
           onBuy={onBuy}
           onSwap={handleStickySwapPress}
           hasEligibleSwapTokens={hasEligibleSwapTokens}
+          onStickyButtonsResolved={onStickyButtonsResolved}
         />
       )}
       {isInsightsDisclaimerVisible && (
@@ -331,6 +340,11 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const { hasPerpsMarket, isLoading: isPerpsMarketLoading } =
     usePerpsMarketForAsset(isPerpsEnabled ? token.symbol : null);
+
+  // undefined = not yet resolved; null = footer won't render; string = resolved value
+  const [resolvedStickyButtons, setResolvedStickyButtons] = useState<
+    'both' | 'buy' | 'swap' | null | undefined
+  >(undefined);
 
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);
 
@@ -371,10 +385,15 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     if (isPerpsEnabled && isPerpsMarketLoading) {
       return;
     }
+    if (resolvedStickyButtons === undefined) {
+      // Wait until sticky buttons have settled before firing the event.
+      return;
+    }
     trackTokenDetailsOpened({
       isMarketInsightsDisplayed: pendingInsights.isDisplayed,
       severity: pendingInsights.severity,
       hasPerpsMarket: isPerpsEnabled ? hasPerpsMarket : false,
+      stickyButtonsShown: resolvedStickyButtons ?? undefined,
     });
     setPendingInsights(null);
   }, [
@@ -382,6 +401,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     hasPerpsMarket,
     isPerpsEnabled,
     isPerpsMarketLoading,
+    resolvedStickyButtons,
     tokenKey,
     trackTokenDetailsOpened,
   ]);
@@ -390,6 +410,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     <TokenDetails
       token={token}
       onMarketInsightsDisplayResolved={handleMarketInsightsDisplayResolved}
+      onStickyButtonsResolved={setResolvedStickyButtons}
     />
   );
 };

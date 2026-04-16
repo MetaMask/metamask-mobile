@@ -18,7 +18,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import { getDepositNavbarOptions } from '../../../Navbar';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { createV2OtpCodeNavDetails } from './OtpCode';
 import { validateEmail } from '../../Deposit/utils';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar/DepositProgressBar';
@@ -51,25 +51,17 @@ const V2EnterEmail = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { sendUserOtp } = useTransakController();
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.enter_email.navbar_title') },
-        theme,
-        () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'Enter Email',
-                ramp_type: 'UNIFIED_BUY_2',
-              })
-              .build(),
-          );
-        },
-      ),
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Enter Email',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
     );
-  }, [navigation, theme, trackEvent, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
@@ -138,6 +130,12 @@ const V2EnterEmail = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderCompactStandard
+          title={strings('deposit.enter_email.navbar_title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={0} />
           <View style={styles.contentContainer}>

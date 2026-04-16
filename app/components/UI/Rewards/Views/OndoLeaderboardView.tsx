@@ -16,7 +16,6 @@ import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import {
   StatCell,
   PendingTag,
-  QualifiedTag,
 } from '../components/Campaigns/CampaignStatsSummary';
 import {
   formatTierDisplayName,
@@ -31,6 +30,7 @@ import {
   selectReferralCode,
   selectCampaignById,
 } from '../../../../reducers/rewards/selectors';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 
 // ParamListBase requires an index signature, which interfaces don't support
@@ -56,6 +56,11 @@ const OndoLeaderboardView: React.FC = () => {
   );
   const campaign = useSelector(selectCampaign);
 
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_leaderboard',
+    campaign_id: campaignId,
+  });
+
   const { status: participantStatus } =
     useGetCampaignParticipantStatus(campaignId);
   const isOptedIn = participantStatus?.optedIn === true;
@@ -64,7 +69,6 @@ const OndoLeaderboardView: React.FC = () => {
     useGetOndoLeaderboardPosition(isOptedIn ? campaignId : undefined);
 
   const isPending = position != null && !position.qualified;
-  const isQualified = position != null && position.qualified;
   const {
     leaderboard: leaderboardData,
     selectedTier,
@@ -82,21 +86,6 @@ const OndoLeaderboardView: React.FC = () => {
     () => campaign?.details?.tiers?.map((t) => t.name) ?? [],
     [campaign],
   );
-
-  const pendingSheetPosition = useMemo(() => {
-    if (!position || position.qualified) return null;
-    const tierMinDeposit = getTierMinNetDeposit(
-      campaign?.details?.tiers,
-      position.projectedTier,
-    );
-    if (tierMinDeposit == null) return null;
-    return {
-      tier: position.projectedTier,
-      netDeposit: position.netDeposit,
-      qualifiedDays: position.qualifiedDays,
-      tierMinDeposit,
-    };
-  }, [position, campaign]);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoLeaderboardView">
@@ -139,13 +128,6 @@ const OndoLeaderboardView: React.FC = () => {
                   label="Tier"
                   value={formatTierDisplayName(position.projectedTier)}
                   isLoading={isPositionLoading}
-                  suffix={
-                    isPending ? (
-                      <PendingTag />
-                    ) : isQualified ? (
-                      <QualifiedTag />
-                    ) : undefined
-                  }
                 />
               </Box>
             </Box>
@@ -164,7 +146,7 @@ const OndoLeaderboardView: React.FC = () => {
               isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
               onRetry={refetchLeaderboard}
               currentUserReferralCode={referralCode}
-              pendingSheetPosition={pendingSheetPosition}
+              campaignId={campaignId}
             />
           </Box>
         </ScrollView>

@@ -319,7 +319,8 @@ jest.mock('../OnboardingStep', () => {
     default: ({
       renderStepInfo,
       renderStepImage,
-      renderReferralSection,
+      renderAboveCTA,
+      renderBelowCTA,
       renderLegalDisclaimer,
       onNext,
       onNextDisabled,
@@ -330,7 +331,8 @@ jest.mock('../OnboardingStep', () => {
     }: {
       renderStepInfo: () => React.ReactElement;
       renderStepImage?: () => React.ReactElement;
-      renderReferralSection?: () => React.ReactElement;
+      renderAboveCTA?: () => React.ReactElement | null;
+      renderBelowCTA?: () => React.ReactElement;
       renderLegalDisclaimer?: () => React.ReactElement;
       onNext: () => void;
       onNextDisabled?: boolean;
@@ -347,7 +349,7 @@ jest.mock('../OnboardingStep', () => {
         },
         renderStepInfo?.(),
         renderStepImage?.(),
-        renderReferralSection?.(),
+        renderAboveCTA?.(),
         renderLegalDisclaimer?.(),
         ReactActual.createElement(
           View,
@@ -358,6 +360,7 @@ jest.mock('../OnboardingStep', () => {
           },
           nextButtonText || 'Next',
         ),
+        renderBelowCTA?.(),
         onNextLoadingText &&
           ReactActual.createElement(
             View,
@@ -571,21 +574,22 @@ describe('OnboardingMainStep', () => {
     it('shows referral input when prompt is pressed', () => {
       renderWithProviders(<OnboardingMainStep />);
 
-      const prompts = screen.getAllByTestId('referral-prompt');
-      const pressable = prompts[0];
-      fireEvent.press(pressable);
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
 
       expect(screen.getByTestId('referral-input')).toBeDefined();
     });
 
-    it('hides prompt text when referral input is shown', () => {
+    it('shows hide code text when referral input is visible', () => {
       renderWithProviders(<OnboardingMainStep />);
 
-      const prompts = screen.getAllByTestId('referral-prompt');
-      const pressable = prompts[0];
-      fireEvent.press(pressable);
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
 
-      expect(screen.queryByTestId('referral-prompt')).toBeNull();
+      expect(screen.getAllByTestId('referral-prompt').length).toBeGreaterThan(
+        0,
+      );
+      expect(
+        screen.getByText('mocked_rewards.onboarding.referral_hide'),
+      ).toBeDefined();
       expect(screen.getByTestId('referral-input')).toBeDefined();
     });
 
