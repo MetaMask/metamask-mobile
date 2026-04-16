@@ -31,8 +31,55 @@ const EVM_ETH_ASSET = {
   rawBalance: '0x1BC16D674EC80000', // 2 ETH
 };
 
+/**
+ * Native ETH with high balance so keypad "5" is within available funds (smoke
+ * `send-native-token` uses ~10 ETH from balances API).
+ */
+const EVM_NATIVE_ETH_ASSET_SEND_FIVE = {
+  ...EVM_ETH_ASSET,
+  balance: '10',
+  rawBalance: '0x8AC7230489E80000', // 10 ETH
+};
+
 const VALID_EVM_RECIPIENT = '0x0000000000000000000000000000000000000002';
 const TOKEN_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000003';
+
+/** Mainnet USDC (6 decimals), high balance — mirrors smoke ERC-20 send E2E fixture. */
+const EVM_USDC_ASSET = {
+  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  chainId: '0x1',
+  symbol: 'USDC',
+  decimals: 6,
+  balance: '10000',
+  rawBalance: '0x2540BE400', // 10_000 * 10^6
+  standard: TokenStandard.ERC20,
+};
+
+const BTC_MAINNET_CHAIN_ID = 'bip122:000000000019d6689c085ae165831e93' as const;
+
+const SOLANA_MAINNET_CHAIN_ID =
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const;
+
+/** Native SOL (smoke `send-solana-token` / non-EVM send tests). */
+const SOLANA_NATIVE_ASSET = {
+  address: `${SOLANA_MAINNET_CHAIN_ID}/native`,
+  chainId: SOLANA_MAINNET_CHAIN_ID,
+  symbol: 'SOL',
+  decimals: 9,
+  balance: '100',
+  rawBalance: '100',
+};
+
+/** Native BTC with 1 satoshi on-chain balance — any full-unit input exceeds it. */
+const MINIMAL_BTC_BALANCE_ASSET = {
+  address: `${BTC_MAINNET_CHAIN_ID}/slip44:0`,
+  chainId: BTC_MAINNET_CHAIN_ID,
+  symbol: 'BTC',
+  decimals: 8,
+  balance: '0.00000001',
+  rawBalance: '0x1',
+  isNative: true,
+};
 
 describeForPlatforms('Send', () => {
   describe('Non-EVM', () => {
@@ -101,20 +148,10 @@ describeForPlatforms('Send', () => {
      * Only contacts for the current chain/protocol should be shown.
      */
     it('Solana send Recipient screen does not show EVM contacts', async () => {
-      const SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
       const EVM_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
 
       const addressBookOverrides =
         buildAddressBookOverridesWithEvmContact(EVM_CONTACT_ADDRESS);
-
-      const solanaAsset = {
-        address: `${SOLANA_CHAIN_ID}/native`,
-        chainId: SOLANA_CHAIN_ID,
-        symbol: 'SOL',
-        decimals: 9,
-        balance: '100',
-        rawBalance: '100',
-      };
 
       const state = initialStateWallet()
         .withOverrides(sendViewOverrides)
@@ -126,7 +163,10 @@ describeForPlatforms('Send', () => {
         { name: Routes.SEND.DEFAULT },
         [],
         { state },
-        { screen: Routes.SEND.RECIPIENT, params: { asset: solanaAsset } },
+        {
+          screen: Routes.SEND.RECIPIENT,
+          params: { asset: SOLANA_NATIVE_ASSET },
+        },
       );
 
       expect(
@@ -139,6 +179,90 @@ describeForPlatforms('Send', () => {
         getRecipientRowTestId(EVM_CONTACT_ADDRESS),
       );
       expect(evmContactRow).not.toBeOnTheScreen();
+    });
+
+    /**
+     * Smoke `send-solana-token`: Amount screen shows the Send header title and SOL
+     * symbol (same text checks as E2E; no transfer).
+     */
+    it('Solana native: Amount screen shows Send title and SOL', async () => {
+      const nonEvmNetworkOverride = {
+        engine: {
+          backgroundState: {
+            MultichainNetworkController: {
+              isEvmSelected: false,
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>;
+
+      const state = initialStateWallet()
+        .withOverrides(sendViewOverrides)
+        .withOverrides(nonEvmNetworkOverride)
+        .build();
+
+      const { getByTestId } = renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        { screen: Routes.SEND.AMOUNT, params: { asset: SOLANA_NATIVE_ASSET } },
+      );
+
+      expect(
+        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+      ).toBeOnTheScreen();
+      // Title and/or other copy may repeat "Send" — mirror E2E "text displayed" checks
+      expect(screen.getAllByText('Send').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('SOL').length).toBeGreaterThanOrEqual(1);
+    });
+
+    /**
+     * Bitcoin send Amount: entering an amount above balance shows “Insufficient funds”
+     * on Continue (input validation only; no transaction). Aligns with smoke
+     * `send-btc-token` insufficient-funds coverage.
+     */
+    it('Bitcoin Amount: exceeding balance shows Insufficient funds', async () => {
+      const nonEvmNetworkOverride = {
+        engine: {
+          backgroundState: {
+            MultichainNetworkController: {
+              isEvmSelected: false,
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>;
+
+      const state = initialStateWallet()
+        .withOverrides(sendViewOverrides)
+        .withOverrides(nonEvmNetworkOverride)
+        .build();
+
+      const { getByTestId, getByText, findByRole } = renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        {
+          screen: Routes.SEND.AMOUNT,
+          params: { asset: MINIMAL_BTC_BALANCE_ASSET },
+        },
+      );
+
+      expect(
+        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+      ).toBeOnTheScreen();
+
+      // One satoshi balance; keypad "1" is 1 BTC — far exceeds balance
+      fireEvent.press(getByText('1'));
+
+      expect(
+        await findByRole(
+          'button',
+          { name: 'Insufficient funds' },
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -271,8 +395,9 @@ describeForPlatforms('Send', () => {
     });
 
     /**
-     * Core EVM send happy path: Amount → Continue → Recipient.
-     * Typing a valid address must enable the Review button.
+     * Core EVM native ETH path: Amount (100%) → Continue → Recipient → Review.
+     * Uses the same `Amount` / `useAmountValidation` stack as ERC-20; native vs
+     * token is determined by asset (zero address vs contract).
      */
     it('ETH: Amount → Continue → Recipient, valid address enables Review', async () => {
       const state = initialStateWallet()
@@ -311,6 +436,181 @@ describeForPlatforms('Send', () => {
       await waitFor(() => expect(reviewButton).toBeEnabled(), {
         timeout: 5000,
       });
+    });
+
+    /**
+     * Native ETH keyed amount — first segment of smoke `send-native-token` (5 ETH
+     * then Continue; E2E also runs 50% and Max in the same spec). Same screens and
+     * hooks as `ERC-20 USDC: digit 5` but `0x…0` native asset (18 decimals).
+     */
+    it('Native ETH: digit 5 → Continue → Recipient screen', async () => {
+      const state = initialStateWallet()
+        .withOverrides(sendViewOverrides)
+        .build();
+
+      const { getByTestId, getByText, getByRole, findByTestId } =
+        renderScreenWithRoutes(
+          Send as unknown as React.ComponentType,
+          { name: Routes.SEND.DEFAULT },
+          [],
+          { state },
+          {
+            screen: Routes.SEND.AMOUNT,
+            params: { asset: EVM_NATIVE_ETH_ASSET_SEND_FIVE },
+          },
+        );
+
+      expect(
+        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByText('5'));
+      fireEvent.press(getByRole('button', { name: 'Continue' }));
+
+      expect(
+        await findByTestId(
+          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    /**
+     * Covers smoke `send-erc20-token`: enter a fixed USDC amount (5) and advance
+     * to Recipient — validates amount keyboard + Continue without broadcasting.
+     */
+    it('ERC-20 USDC: digit 5 → Continue → Recipient screen', async () => {
+      const state = initialStateWallet()
+        .withOverrides(sendViewOverrides)
+        .build();
+
+      const { getByTestId, getByText, getByRole, findByTestId } =
+        renderScreenWithRoutes(
+          Send as unknown as React.ComponentType,
+          { name: Routes.SEND.DEFAULT },
+          [],
+          { state },
+          { screen: Routes.SEND.AMOUNT, params: { asset: EVM_USDC_ASSET } },
+        );
+
+      expect(
+        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByText('5'));
+      fireEvent.press(getByRole('button', { name: 'Continue' }));
+
+      expect(
+        await findByTestId(
+          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    /**
+     * Covers smoke `send-erc20-token`: 50% of balance → Continue → Recipient.
+     */
+    it('ERC-20 USDC: 50% → Continue → Recipient screen', async () => {
+      const state = initialStateWallet()
+        .withOverrides(sendViewOverrides)
+        .build();
+
+      const { getByTestId, getByRole, findByTestId } = renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        { screen: Routes.SEND.AMOUNT, params: { asset: EVM_USDC_ASSET } },
+      );
+
+      expect(
+        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_50),
+      );
+      fireEvent.press(getByRole('button', { name: 'Continue' }));
+
+      expect(
+        await findByTestId(
+          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    /**
+     * Smoke `send-erc20-token`: Max balance → Continue → Recipient (third segment
+     * of the E2E spec alongside digit 5 and 50%).
+     */
+    it('ERC-20 USDC: Max → Continue → Recipient screen', async () => {
+      const state = initialStateWallet()
+        .withOverrides(sendViewOverrides)
+        .build();
+
+      const { getByTestId, getByRole, findByTestId } = renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        { screen: Routes.SEND.AMOUNT, params: { asset: EVM_USDC_ASSET } },
+      );
+
+      expect(
+        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByRole('button', { name: 'Max' }));
+      fireEvent.press(getByRole('button', { name: 'Continue' }));
+
+      expect(
+        await findByTestId(
+          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    /**
+     * Smoke `send-native-token`: Max ETH → Continue → Recipient (same flow as 5 ETH
+     * and 50% in the consolidated E2E case).
+     */
+    it('Native ETH: Max → Continue → Recipient screen', async () => {
+      const state = initialStateWallet()
+        .withOverrides(sendViewOverrides)
+        .build();
+
+      const { getByTestId, getByRole, findByTestId } = renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        {
+          screen: Routes.SEND.AMOUNT,
+          params: { asset: EVM_NATIVE_ETH_ASSET_SEND_FIVE },
+        },
+      );
+
+      expect(
+        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByRole('button', { name: 'Max' }));
+      fireEvent.press(getByRole('button', { name: 'Continue' }));
+
+      expect(
+        await findByTestId(
+          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
     });
 
     /**

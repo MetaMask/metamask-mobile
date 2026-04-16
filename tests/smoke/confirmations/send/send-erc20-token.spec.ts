@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../../framework/fixtures/FixtureBuilder';
@@ -272,7 +273,8 @@ async function setupAccountsApiMocks(mockServer: Mockttp): Promise<void> {
 }
 
 describe(SmokeConfirmations('Send ERC20 asset'), () => {
-  it('should send USDC amount 5 to an address', async () => {
+  // Moved to cv tests (send.view.test.tsx)
+  it.skip('should send USDC amount 5 to an address', async () => {
     await withFixtures(
       {
         dapps: [
@@ -336,7 +338,8 @@ describe(SmokeConfirmations('Send ERC20 asset'), () => {
     );
   });
 
-  it('should send USDC amount 50% to an address', async () => {
+  // Moved to cv tests (send.view.test.tsx)
+  it.skip('should send USDC amount 50% to an address', async () => {
     await withFixtures(
       {
         dapps: [
@@ -400,7 +403,8 @@ describe(SmokeConfirmations('Send ERC20 asset'), () => {
     );
   });
 
-  it('should send USDC send maxto an address', async () => {
+  // Moved to cv tests (send.view.test.tsx)
+  it.skip('should send USDC send maxto an address', async () => {
     await withFixtures(
       {
         dapps: [

@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
 import { SmokeNetworkAbstractions } from '../../../tags';
 import WalletView from '../../../page-objects/wallet/WalletView';
 import Assertions from '../../../framework/Assertions';
@@ -13,7 +14,8 @@ import DefiView from '../../../page-objects/wallet/DefiView';
 import DefiPositionView from '../../../page-objects/wallet/DefiPositionView';
 
 describe(SmokeNetworkAbstractions('View DeFi details'), () => {
-  it('open the Aave V3 position details', async () => {
+  // Moved to cv tests (DeFiProtocolPositionDetails.view.test.tsx)
+  it.skip('open the Aave V3 position details', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
