@@ -126,6 +126,16 @@ export interface MusdConversionConfig {
    * Optional navigation mode override for this initiation.
    */
   navigationOverride?: MUSD_CONVERSION_NAVIGATION_OVERRIDE;
+  /**
+   * When the education screen is shown for a first-time user, and this config has
+   * `returnTo`, the education screen's primary button routes to `returnTo` instead of
+   * continuing the conversion. Use this for navigation-only entry points (e.g.,
+   * pressing a section header that gates on education).
+   */
+  returnTo?: {
+    screen: string;
+    params?: Record<string, unknown>;
+  };
 }
 
 /**
@@ -422,6 +432,8 @@ export const useMusdConversion = () => {
         screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
         params: {
           preferredPaymentToken,
+          navigationOverride: config.navigationOverride,
+          returnTo: config.returnTo,
         },
       });
 
