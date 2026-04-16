@@ -36,7 +36,6 @@ import {
   isCampaignIneligible,
 } from '../utils/ondoCampaignConstants';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
-import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
@@ -100,10 +99,6 @@ const OndoCampaignStatsView: React.FC = () => {
     hasError: hasLeaderboardPositionError,
     refetch: refetchLeaderboardPosition,
   } = useGetOndoLeaderboardPosition(isOptedIn ? campaignId : undefined);
-
-  useGetOndoLeaderboard(campaignId, {
-    defaultTier: leaderboardPosition?.projectedTier,
-  });
 
   const leaderboardLoading =
     isLeaderboardPositionLoading && !leaderboardPosition;

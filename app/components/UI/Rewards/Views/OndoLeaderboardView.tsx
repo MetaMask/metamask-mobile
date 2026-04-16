@@ -22,6 +22,7 @@ import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits'
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { getCurrentPrize } from '../components/Campaigns/OndoPrizePool';
 import { formatPercentChange, formatUsd } from '../utils/formatUtils';
+import { isCampaignIneligible } from '../utils/ondoCampaignConstants';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -75,6 +76,11 @@ const OndoLeaderboardView: React.FC = () => {
   const isPending = position != null && !position.qualified;
   const isQualified = position != null && position.qualified;
 
+  const isIneligible = useMemo(
+    () => isCampaignIneligible(campaign, position?.qualified),
+    [campaign, position],
+  );
+
   const returnValue = portfolioData?.summary
     ? formatPercentChange(portfolioData.summary.portfolioPnlPercent)
     : undefined;
@@ -106,6 +112,26 @@ const OndoLeaderboardView: React.FC = () => {
     () => campaign?.details?.tiers?.map((t) => t.name) ?? [],
     [campaign],
   );
+
+  const leaderboardUserPosition = useMemo(
+    () =>
+      position
+        ? {
+            projectedTier: position.projectedTier,
+            rank: position.rank,
+            neighbors: position.neighbors ?? [],
+          }
+        : null,
+    [position],
+  );
+
+  const rankValue =
+    isIneligible || !position ? '-' : String(position.rank).padStart(2, '0');
+
+  const tierValue =
+    isIneligible || !position
+      ? '-'
+      : formatTierDisplayName(position.projectedTier);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoLeaderboardView">
@@ -139,11 +165,12 @@ const OndoLeaderboardView: React.FC = () => {
             <>
               <Box twClassName="p-4">
                 <LeaderboardPositionHeader
-                  rank={String(position.rank).padStart(2, '0')}
-                  tier={formatTierDisplayName(position.projectedTier)}
+                  rank={rankValue}
+                  tier={tierValue}
                   isLoading={isPositionLoading}
                   isPending={isPending}
                   isQualified={isQualified}
+                  isIneligible={isIneligible}
                   showReturn
                   returnValue={returnValue}
                   returnColor={returnColor}
@@ -168,6 +195,7 @@ const OndoLeaderboardView: React.FC = () => {
               isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
               onRetry={refetchLeaderboard}
               currentUserReferralCode={referralCode}
+              userPosition={leaderboardUserPosition}
               campaignId={campaignId}
             />
           </Box>
