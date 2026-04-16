@@ -29,6 +29,7 @@ jobs:
       !github.event.pull_request.head.repo.fork
     runs-on:
       group: temp-bitrise-runners
+      labels: ["bitrise_pool_name:DemoFAXL"]
     timeout-minutes: 60
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
