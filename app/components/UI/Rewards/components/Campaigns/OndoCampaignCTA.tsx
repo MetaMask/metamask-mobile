@@ -27,6 +27,7 @@ interface OndoCampaignCTAProps {
   hasPositions: boolean;
   campaignId: string;
   notEligibleForCampaign?: boolean;
+  isGeoRestricted?: boolean;
 }
 
 /**
@@ -43,6 +44,7 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
   hasPositions,
   campaignId,
   notEligibleForCampaign = false,
+  isGeoRestricted = false,
 }) => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -117,6 +119,15 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
     );
   }, [showToast, RewardsToastOptions]);
 
+  const handleGeoLockedPress = useCallback(() => {
+    showToast(
+      RewardsToastOptions.entriesClosed(
+        strings('rewards.campaign_details.ondo.geo_locked_toast_title'),
+        strings('rewards.campaign_details.ondo.geo_locked_toast_description'),
+      ),
+    );
+  }, [showToast, RewardsToastOptions]);
+
   if (isEntriesClosed) {
     return (
       <Box twClassName="px-4 pt-2">
@@ -137,6 +148,23 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
   const isActive = !isLoading && campaignStatus === 'active';
   if (!isActive) {
     return null;
+  }
+
+  if (!isOptedIn && isGeoRestricted) {
+    return (
+      <Box twClassName="px-4 pt-2">
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          startIconName={IconName.Lock}
+          onPress={handleGeoLockedPress}
+          testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
+        >
+          {strings('rewards.campaign_details.ondo.geo_locked_cta')}
+        </Button>
+      </Box>
+    );
   }
 
   if (!isOptedIn) {

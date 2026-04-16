@@ -88,6 +88,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.campaign_details.ondo.entries_closed_title': 'Entries closed',
       'rewards.campaign_details.ondo.entries_closed_description':
         'You missed the opt-in window. Check back for more campaigns in the future.',
+      'rewards.campaign_details.ondo.geo_locked_cta': 'Check eligibility',
+      'rewards.campaign_details.ondo.geo_locked_toast_title':
+        'Not available in your region',
+      'rewards.campaign_details.ondo.geo_locked_toast_description':
+        "This campaign isn't available where you are. Check back later for new campaigns.",
     };
     return map[key] ?? key;
   },
@@ -406,6 +411,95 @@ describe('OndoCampaignCTA', () => {
         fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
         expect(queryByTestId('ondo-not-eligible-sheet')).toBeNull();
         expect(mockNavigate).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
+  describe('geo-locked', () => {
+    describe('active campaign, not opted in, isGeoRestricted=true', () => {
+      it('renders "Check eligibility" button with a lock icon', () => {
+        const { getByTestId, getByText } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign()}
+            participantStatus={notOptedIn}
+            {...defaultProps}
+            isGeoRestricted
+          />,
+        );
+        expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
+        expect(getByText('Check eligibility')).toBeOnTheScreen();
+      });
+
+      it('shows the geo-locked toast when pressed', () => {
+        const { getByTestId } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign()}
+            participantStatus={notOptedIn}
+            {...defaultProps}
+            isGeoRestricted
+          />,
+        );
+        fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+        expect(mockEntriesClosed).toHaveBeenCalledWith(
+          'Not available in your region',
+          "This campaign isn't available where you are. Check back later for new campaigns.",
+        );
+        expect(mockShowToast).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not open the opt-in sheet when pressed', () => {
+        const { getByTestId, queryByTestId } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign()}
+            participantStatus={notOptedIn}
+            {...defaultProps}
+            isGeoRestricted
+          />,
+        );
+        fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+        expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
+      });
+
+      it('geo-lock takes precedence over notEligibleForCampaign', () => {
+        const { getByText } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign()}
+            participantStatus={notOptedIn}
+            {...defaultProps}
+            isGeoRestricted
+            notEligibleForCampaign
+          />,
+        );
+        expect(getByText('Check eligibility')).toBeOnTheScreen();
+      });
+    });
+
+    describe('opted in, isGeoRestricted=true', () => {
+      it('geo-lock is ignored for already-opted-in users (shows position CTA)', () => {
+        const { getByText } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign()}
+            participantStatus={optedIn}
+            {...defaultProps}
+            hasPositions={false}
+            isGeoRestricted
+          />,
+        );
+        expect(getByText('Open Position')).toBeOnTheScreen();
+      });
+    });
+
+    describe('isGeoRestricted=false (default)', () => {
+      it('renders the normal opt-in CTA when not geo-restricted', () => {
+        const { getByText } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign()}
+            participantStatus={notOptedIn}
+            {...defaultProps}
+            isGeoRestricted={false}
+          />,
+        );
+        expect(getByText('Join Campaign')).toBeOnTheScreen();
       });
     });
   });

@@ -1,5 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useCallback } from 'react';
 import {
   Box,
   BoxAlignItems,
@@ -16,18 +15,13 @@ import {
   FontWeight,
   BottomSheet,
 } from '@metamask/design-system-react-native';
-import {
-  type CampaignDto,
-  CampaignType,
-} from '../../../../../core/Engine/controllers/rewards-controller/types';
+import { type CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { useOptInToCampaign } from '../../hooks/useOptInToCampaign';
 import useRewardsToast from '../../hooks/useRewardsToast';
+import useOndoGeoRestriction from '../../hooks/useOndoGeoRestriction';
 import { strings } from '../../../../../../locales/i18n';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsInfoBanner from '../RewardsInfoBanner';
-import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
-import { ONDO_RESTRICTED_COUNTRIES } from '../../../../../util/ondoGeoRestrictions';
-import { selectGeolocationStatus } from '../../../../../selectors/geolocationController';
 import ContentfulRichText, {
   isDocument,
 } from '../ContentfulRichText/ContentfulRichText';
@@ -50,26 +44,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { optInToCampaign, isOptingIn, optInError } = useOptInToCampaign();
   const { showToast, RewardsToastOptions } = useRewardsToast();
-  const geolocation = useSelector(getDetectedGeolocation);
-  const geolocationStatus = useSelector(selectGeolocationStatus);
-
-  const isGeoLoading =
-    geolocationStatus === 'loading' || geolocationStatus === 'idle';
-
-  const isGeoRestricted = useMemo(() => {
-    if (__DEV__) return false;
-    if (isGeoLoading) return false;
-    const country = geolocation?.toUpperCase().split('-')[0];
-    if (campaign.type === CampaignType.ONDO_HOLDING) {
-      return !country || ONDO_RESTRICTED_COUNTRIES.has(country);
-    }
-    // Unknown country: can't confirm user is not in an excluded region, so block.
-    // If the campaign has no exclusions this is a no-op.
-    if (!country) return campaign.excludedRegions.length > 0;
-    return campaign.excludedRegions.some(
-      (region) => region.toUpperCase() === country,
-    );
-  }, [isGeoLoading, geolocation, campaign.type, campaign.excludedRegions]);
+  const { isGeoRestricted, isGeoLoading } = useOndoGeoRestriction(campaign);
 
   const handleOptIn = useCallback(async () => {
     try {
