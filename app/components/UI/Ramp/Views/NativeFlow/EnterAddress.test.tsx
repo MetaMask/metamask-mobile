@@ -4,23 +4,19 @@ import V2EnterAddress from './EnterAddress';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    setOptions: mockSetOptions,
+    goBack: mockGoBack,
   }),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
   I18nEvents: { addListener: jest.fn() },
-}));
-
-jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -200,6 +196,14 @@ describe('V2EnterAddress', () => {
     await waitFor(() => {
       expect(mockPatchUser).toHaveBeenCalled();
     });
+  });
+
+  it('calls navigation.goBack when header back is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('tracks analytics event on form submission', async () => {

@@ -77,6 +77,7 @@ enum EVENT_NAME {
   NFT_DETAILS_OPENED = 'NFT Details Opened',
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
+  TOKEN_DETAILS_CTA_CLICKED = 'Token Details CTA Clicked',
   /** Token overview advanced chart: user switched line vs candlestick */
   CHART_TYPE_CHANGED = 'chart_type_changed',
   /** Token overview advanced chart: user selected a different timeframe */
@@ -631,6 +632,8 @@ enum EVENT_NAME {
   REWARDS_WAYS_TO_EARN_CTA_CLICKED = 'Rewards Ways to Earn CTA Clicked',
   REWARDS_VERSION_GUARD_VIEWED = 'Rewards Version Guard Viewed',
   REWARDS_VERSION_GUARD_UPDATE_CLICKED = 'Rewards Version Guard Update Clicked',
+  REWARDS_CAMPAIGN_OPT_IN_COMPLETED = 'Rewards Campaign Opt In Completed',
+  REWARDS_PAGE_VIEWED = 'Rewards Page Viewed',
 
   // Predict
   PREDICT_TRADE_TRANSACTION = 'Predict Trade Transaction',
@@ -1519,6 +1522,7 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
+  TOKEN_DETAILS_CTA_CLICKED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED),
   CHART_TYPE_CHANGED: generateOpt(EVENT_NAME.CHART_TYPE_CHANGED),
   CHART_TIMEFRAME_CHANGED: generateOpt(EVENT_NAME.CHART_TIMEFRAME_CHANGED),
   CHART_INTERACTED: generateOpt(EVENT_NAME.CHART_INTERACTED),
@@ -1694,6 +1698,10 @@ const events = {
   REWARDS_VERSION_GUARD_UPDATE_CLICKED: generateOpt(
     EVENT_NAME.REWARDS_VERSION_GUARD_UPDATE_CLICKED,
   ),
+  REWARDS_CAMPAIGN_OPT_IN_COMPLETED: generateOpt(
+    EVENT_NAME.REWARDS_CAMPAIGN_OPT_IN_COMPLETED,
+  ),
+  REWARDS_PAGE_VIEWED: generateOpt(EVENT_NAME.REWARDS_PAGE_VIEWED),
   // Predict
   PREDICT_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PREDICT_TRADE_TRANSACTION),
   PREDICT_MARKET_DETAILS_OPENED: generateOpt(
