@@ -15,6 +15,7 @@ import { MoneyWhatYouGetTestIds } from '../../components/MoneyWhatYouGet/MoneyWh
 import { MoneyFooterTestIds } from '../../components/MoneyFooter/MoneyFooter.testIds';
 import { MoneyActivityListTestIds } from '../../components/MoneyActivityList/MoneyActivityList.testIds';
 import { MoneyCondensedInfoCardsTestIds } from '../../components/MoneyCondensedInfoCards/MoneyCondensedInfoCards.testIds';
+import { MoneyMusdTokenRowTestIds } from '../../components/MoneyMusdTokenRow/MoneyMusdTokenRow.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
@@ -241,6 +242,17 @@ describe('MoneyHomeView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ACTIVITY);
   });
 
+  it.each([
+    ['action row Add', MoneyActionButtonRowTestIds.ADD_BUTTON],
+    ['footer Add money', MoneyFooterTestIds.ADD_MONEY_BUTTON],
+  ])('opens the Add money sheet from the %s button', (_label, testId) => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(testId));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ADD_MONEY_SHEET);
+  });
+
   describe('milestone state (1-9 transactions)', () => {
     beforeEach(() => {
       mockUseMoneyAccountTransactions.mockReturnValue({
@@ -334,6 +346,17 @@ describe('MoneyHomeView', () => {
     it('renders expanded WhatYouGet section', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it.each([
+      ['onboarding card CTA', MoneyOnboardingCardTestIds.CTA_BUTTON],
+      ['mUSD row Add', MoneyMusdTokenRowTestIds.ADD_BUTTON],
+    ])('opens the Add money sheet from the %s button', (_label, testId) => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(testId));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ADD_MONEY_SHEET);
     });
   });
 });

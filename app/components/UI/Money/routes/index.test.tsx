@@ -55,14 +55,19 @@ jest.mock('../Views/MoneyActivityView', () => () => (
   <MockView testID="mock-money-activity-view" />
 ));
 
+jest.mock('../components/MoneyAddMoneySheet', () => () => (
+  <MockView testID="mock-money-add-money-sheet" />
+));
+
 describe('MoneyScreenStack', () => {
-  it('registers Money home and activity screens', () => {
+  it('registers Money home, activity, and add-money sheet screens', () => {
     const { getByTestId } = renderWithProvider(<MoneyScreenStack />, {
       theme: themeWithCustomBackground,
     });
 
     expect(getByTestId('money-screen-MoneyHome')).toBeOnTheScreen();
     expect(getByTestId('money-screen-MoneyActivity')).toBeOnTheScreen();
+    expect(getByTestId('money-screen-MoneyAddMoneySheet')).toBeOnTheScreen();
   });
 
   it('sets stack card background from theme to avoid flash during inner navigation', () => {

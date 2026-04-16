@@ -6440,6 +6440,13 @@
     "footer": {
       "add_money": "Add money"
     },
+    "add_money_sheet": {
+      "title": "Add money",
+      "convert_tokens": "Convert tokens",
+      "convert_tokens_description": "Use crypto you already have",
+      "buy_with_fiat": "Buy with fiat",
+      "buy_with_fiat_description": "Use debit or credit card"
+    },
     "activity": {
       "title": "Activity",
       "view_all": "View all",
