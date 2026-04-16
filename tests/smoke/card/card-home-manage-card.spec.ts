@@ -5,18 +5,16 @@ import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { testSpecificMock } from '../../api-mocking/mock-responses/cardholder-mocks';
-import {
-  EventPayload,
-  getEventsPayloads,
-} from '../../helpers/analytics/helpers';
 import CardHomeView from '../../page-objects/Card/CardHomeView';
-import SoftAssert from '../../framework/SoftAssert';
 import { CustomNetworks } from '../../resources/networks.e2e';
+import { cardHomeManageCardExpectations } from '../../helpers/analytics/expectations/card-home-manage-card.analytics';
 
 describe(SmokeCard('CardHome - Manage Card'), () => {
-  const eventsToCheck: EventPayload[] = [];
+  beforeEach(async () => {
+    jest.setTimeout(150000);
+  });
 
-  const setupCardTest = async (testFunction: () => Promise<void>) => {
+  it('opens Card Home and opens internal browser with correct card dashboard URL', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -35,85 +33,20 @@ describe(SmokeCard('CardHome - Manage Card'), () => {
             ],
             '0xe708',
           )
+          .withCardController()
           .build(),
         restartDevice: true,
         testSpecificMock,
-        endTestfn: async ({ mockServer }) => {
-          const events = await getEventsPayloads(mockServer);
-          eventsToCheck.push(...events);
-        },
+        analyticsExpectations: cardHomeManageCardExpectations,
       },
       async () => {
         await loginToApp();
-        await testFunction();
+        await Assertions.expectElementToBeVisible(WalletView.navbarCardButton);
+        await WalletView.tapNavbarCardButton();
+        await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
+        await CardHomeView.tapAdvancedCardManagementItem();
+        await CardHomeView.cardDashboardVisible();
       },
     );
-  };
-
-  beforeEach(async () => {
-    jest.setTimeout(150000);
-    eventsToCheck.length = 0;
-  });
-
-  it('should open Card Home and open internal browser with correct card dashboard URL', async () => {
-    await setupCardTest(async () => {
-      await Assertions.expectElementToBeVisible(WalletView.navbarCardButton);
-      await WalletView.tapNavbarCardButton();
-      await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
-      await CardHomeView.tapAdvancedCardManagementItem();
-      await CardHomeView.cardDashboardVisible();
-    });
-  });
-
-  it('should validate segment/metametric event when opening Card Home', async () => {
-    await setupCardTest(async () => {
-      await Assertions.expectElementToBeVisible(WalletView.navbarCardButton);
-      await WalletView.tapNavbarCardButton();
-      await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
-      await CardHomeView.tapAdvancedCardManagementItem();
-      await CardHomeView.cardDashboardVisible();
-    });
-
-    const expectedEvents = {
-      CARD_BUTTON_VIEWED: 'Card Button Viewed',
-      CARD_HOME_CLICKED: 'Card Home Clicked',
-      CARD_ADVANCED_MANAGEMENT_CLICKED: 'Card Advanced Management Clicked',
-    };
-
-    const softAssert = new SoftAssert();
-
-    // Find all events
-    const cardButtonViewed = eventsToCheck.filter(
-      (event) => event.event === expectedEvents.CARD_BUTTON_VIEWED,
-    );
-    const cardHomeClicked = eventsToCheck.filter(
-      (event) => event.event === expectedEvents.CARD_HOME_CLICKED,
-    );
-    const cardAdvancedManagementClicked = eventsToCheck.filter(
-      (event) =>
-        event.event === expectedEvents.CARD_ADVANCED_MANAGEMENT_CLICKED,
-    );
-
-    const checkCardButtonViewed = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(cardButtonViewed);
-    }, 'Check Card Viewed event');
-
-    const checkCardHomeClicked = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(cardHomeClicked);
-    }, 'Check Card Home Clicked event');
-
-    const checkCardAdvancedManagementClicked = softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfValueIsDefined(cardAdvancedManagementClicked);
-      },
-      'Check Card Advanced Management Clicked event',
-    );
-
-    await Promise.all([
-      checkCardButtonViewed,
-      checkCardHomeClicked,
-      checkCardAdvancedManagementClicked,
-    ]);
-    softAssert.throwIfErrors();
   });
 });

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { View, TextInput, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -10,7 +10,7 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../Navbar';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/EnterAddress/EnterAddress.styles';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -32,6 +32,7 @@ import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { BasicInfoFormData } from './BasicInfo';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { ENTER_ADDRESS_TEST_IDS } from './EnterAddress.testIds';
+import StateSelector from './StateSelector';
 
 export interface AddressFormData {
   addressLine1: string;
@@ -49,7 +50,7 @@ interface V2EnterAddressParams {
 
 const V2EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const { quote, previousFormData } = useParams<V2EnterAddressParams>();
   const { patchUser } = useTransakController();
   const { userRegion } = useRampsUserRegion();
@@ -66,14 +67,31 @@ const V2EnterAddress = (): JSX.Element => {
   const addressLine1InputRef = useRef<TextInput>(null);
   const addressLine2InputRef = useRef<TextInput>(null);
   const cityInputRef = useRef<TextInput>(null);
+  const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
 
-  const stateName = userRegion?.state?.name || '';
+  const deriveUsStateCode = (): string => {
+    const stateId = userRegion?.state?.stateId;
+    if (stateId) {
+      return stateId.toUpperCase().replace(/^US-/, '');
+    }
+    const id = userRegion?.state?.id;
+    if (id) {
+      const match = id.match(/us-([a-z]{2})$/i);
+      if (match) return match[1].toUpperCase();
+    }
+    return '';
+  };
+
+  const initialStateValue =
+    regionIsoCode === 'US'
+      ? deriveUsStateCode()
+      : userRegion?.state?.name || '';
 
   const initialFormData: AddressFormData = {
     addressLine1: previousFormData?.addressLine1 || '',
     addressLine2: previousFormData?.addressLine2 || '',
-    state: previousFormData?.state || stateName,
+    state: previousFormData?.state || initialStateValue,
     city: previousFormData?.city || '',
     postCode: previousFormData?.postCode || '',
     countryCode: previousFormData?.countryCode || regionIsoCode,
@@ -107,12 +125,10 @@ const V2EnterAddress = (): JSX.Element => {
       formErrors.city = strings('deposit.enter_address.city_invalid');
     }
 
-    if (regionIsoCode === 'US') {
-      if (!data.state.trim()) {
-        formErrors.state = strings('deposit.enter_address.state_required');
-      } else if (!VALIDATION_REGEX.state.test(data.state)) {
-        formErrors.state = strings('deposit.enter_address.state_invalid');
-      }
+    if (!data.state.trim()) {
+      formErrors.state = strings('deposit.enter_address.state_required');
+    } else if (!VALIDATION_REGEX.state.test(data.state)) {
+      formErrors.state = strings('deposit.enter_address.state_invalid');
     }
 
     if (!data.postCode.trim()) {
@@ -164,15 +180,9 @@ const V2EnterAddress = (): JSX.Element => {
     [formData, handleFormDataChange],
   );
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.enter_address.navbar_title') },
-        theme,
-      ),
-    );
-  }, [navigation, theme]);
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
@@ -220,6 +230,12 @@ const V2EnterAddress = (): JSX.Element => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderCompactStandard
+          title={strings('deposit.enter_address.navbar_title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -286,7 +302,9 @@ const V2EnterAddress = (): JSX.Element => {
                 value={formData.city}
                 onChangeText={handleFieldChange(
                   'city',
-                  focusNextField(postCodeInputRef),
+                  focusNextField(
+                    regionIsoCode === 'US' ? postCodeInputRef : stateInputRef,
+                  ),
                 )}
                 error={errors.city}
                 returnKeyType="next"
@@ -295,18 +313,40 @@ const V2EnterAddress = (): JSX.Element => {
                 ref={cityInputRef}
                 textContentType="addressCity"
                 autoCapitalize="words"
-                onSubmitEditing={focusNextField(postCodeInputRef)}
+                onSubmitEditing={focusNextField(
+                  regionIsoCode === 'US' ? postCodeInputRef : stateInputRef,
+                )}
               />
 
-              <DepositTextField
-                label={strings('deposit.enter_address.state')}
-                placeholder={strings('deposit.enter_address.state')}
-                value={formData.state}
-                error={errors.state}
-                testID={ENTER_ADDRESS_TEST_IDS.STATE_INPUT}
-                containerStyle={styles.nameInputContainer}
-                isDisabled
-              />
+              {regionIsoCode === 'US' ? (
+                <StateSelector
+                  label={strings('deposit.enter_address.state')}
+                  selectedValue={formData.state}
+                  onValueChange={handleFormDataChange('state')}
+                  error={errors.state}
+                  containerStyle={styles.nameInputContainer}
+                  defaultValue={strings('deposit.enter_address.select_state')}
+                  testID={ENTER_ADDRESS_TEST_IDS.STATE_INPUT}
+                />
+              ) : (
+                <DepositTextField
+                  label={strings('deposit.enter_address.state')}
+                  placeholder={strings('deposit.enter_address.state')}
+                  value={formData.state}
+                  onChangeText={handleFieldChange(
+                    'state',
+                    focusNextField(postCodeInputRef),
+                  )}
+                  error={errors.state}
+                  returnKeyType="next"
+                  testID={ENTER_ADDRESS_TEST_IDS.STATE_INPUT}
+                  containerStyle={styles.nameInputContainer}
+                  ref={stateInputRef}
+                  textContentType="addressState"
+                  autoCapitalize="words"
+                  onSubmitEditing={focusNextField(postCodeInputRef)}
+                />
+              )}
             </View>
 
             <View style={styles.nameInputRow}>

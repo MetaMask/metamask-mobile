@@ -1,5 +1,9 @@
-import type { CaipChainId } from '@metamask/utils';
-import { CardStatus, CardType } from '../../../../components/UI/Card/types';
+import type { CaipChainId, Json } from '@metamask/utils';
+import {
+  CardStatus,
+  CardType,
+  DelegationSettingsResponse,
+} from '../../../../components/UI/Card/types';
 
 export { CardStatus, CardType };
 
@@ -101,6 +105,8 @@ export interface CardProviderCapabilities {
   supportsFreeze: boolean;
   supportsPushProvisioning: boolean;
   onboarding: CardOnboardingCapability;
+  supportsPinView: boolean;
+  supportsCashback: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --
@@ -115,13 +121,17 @@ export interface CardFundingAsset {
   symbol: string;
   name: string;
   address: string;
+  walletAddress: string;
   decimals: number;
   chainId: CaipChainId;
-  balance: string;
-  allowance: string;
+  spendableBalance: string;
+  spendingCap: string;
+  originalSpendingCap?: string;
   priority: number;
   status: FundingAssetStatus;
   stagingTokenAddress?: string;
+  externalId?: number;
+  delegationContract?: string;
 }
 
 // -- Card Details --
@@ -136,7 +146,7 @@ export interface CardDetails {
 }
 
 export interface CardSecureViewParams {
-  customCss?: string;
+  customCss?: Record<string, string>;
 }
 
 export interface CardSecureView {
@@ -173,7 +183,7 @@ export type CardAlertType =
 export interface CardAlertAction {
   type: 'navigate';
   route: string;
-  params?: Record<string, unknown>;
+  params?: Record<string, Json>;
 }
 
 export interface CardAlert {
@@ -190,22 +200,26 @@ export type CardAction =
 // -- Card Home Data --
 
 export interface CardHomeData {
-  primaryAsset: CardFundingAsset | null;
-  assets: CardFundingAsset[];
+  primaryFundingAsset: CardFundingAsset | null;
+  fundingAssets: CardFundingAsset[];
+  availableFundingAssets: CardFundingAsset[];
   card: CardDetails | null;
   account: CardAccountStatus | null;
   alerts: CardAlert[];
   actions: CardAction[];
+  delegationSettings: DelegationSettingsResponse | null;
 }
 
 export function emptyCardHomeData(): CardHomeData {
   return {
-    primaryAsset: null,
-    assets: [],
+    primaryFundingAsset: null,
+    fundingAssets: [],
+    availableFundingAssets: [],
     card: null,
     account: null,
     alerts: [],
     actions: [],
+    delegationSettings: null,
   };
 }
 
@@ -236,6 +250,49 @@ export interface CardFundingConfig {
   maxLimit: string;
   fundingOptions: CardFundingOption[];
   supportedChains: CaipChainId[];
+}
+
+// -- Cashback --
+
+export interface CashbackWalletResponse {
+  id: string;
+  balance: string;
+  currency: string;
+  isWithdrawable: boolean;
+  type: string;
+}
+
+export interface CashbackWithdrawEstimationResponse {
+  wei: string;
+  eth: string;
+  price: string;
+}
+
+export interface CashbackWithdrawParams {
+  amount: string;
+}
+
+export interface CashbackWithdrawResponse {
+  txHash: string;
+}
+
+// -- Push Provisioning --
+
+export interface GoogleWalletProvisioningResponse {
+  opaquePaymentCard: string;
+}
+
+export interface ApplePayProvisioningParams {
+  leafCertificate: string;
+  intermediateCertificate: string;
+  nonce: string;
+  nonceSignature: string;
+}
+
+export interface ApplePayProvisioningResponse {
+  encryptedPassData: string;
+  activationData: string;
+  ephemeralPublicKey: string;
 }
 
 // -- Onboarding --
@@ -269,6 +326,7 @@ export interface RegistrationStatus {
 export interface ICardProvider {
   readonly id: CardProviderId;
   readonly capabilities: CardProviderCapabilities;
+  resolveCapabilities?(location: string): CardProviderCapabilities;
 
   initiateAuth(country: string): Promise<CardAuthSession>;
   submitCredentials(
@@ -288,7 +346,11 @@ export interface ICardProvider {
   getCardDetails(tokens: CardAuthTokens): Promise<CardDetails>;
   freezeCard(cardId: string, tokens: CardAuthTokens): Promise<void>;
   unfreezeCard(cardId: string, tokens: CardAuthTokens): Promise<void>;
-  getCardSecureView?(
+  getCardDetailsView?(
+    tokens: CardAuthTokens,
+    params: CardSecureViewParams,
+  ): Promise<CardSecureView>;
+  getCardPinView?(
     tokens: CardAuthTokens,
     params: CardSecureViewParams,
   ): Promise<CardSecureView>;
@@ -305,6 +367,23 @@ export interface ICardProvider {
     tokens: CardAuthTokens,
     wallet: WalletOperations,
   ): Promise<void>;
+
+  getCashbackWallet?(tokens: CardAuthTokens): Promise<CashbackWalletResponse>;
+  getCashbackWithdrawEstimation?(
+    tokens: CardAuthTokens,
+  ): Promise<CashbackWithdrawEstimationResponse>;
+  withdrawCashback?(
+    params: CashbackWithdrawParams,
+    tokens: CardAuthTokens,
+  ): Promise<CashbackWithdrawResponse>;
+
+  createGoogleWalletProvisioningRequest?(
+    tokens: CardAuthTokens,
+  ): Promise<GoogleWalletProvisioningResponse>;
+  createApplePayProvisioningRequest?(
+    params: ApplePayProvisioningParams,
+    tokens: CardAuthTokens,
+  ): Promise<ApplePayProvisioningResponse>;
 
   getRegistrationSettings?(country: string): Promise<RegistrationSettings>;
   getRegistrationStatus?(

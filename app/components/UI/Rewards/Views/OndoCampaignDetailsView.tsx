@@ -1,23 +1,26 @@
-import React, { useEffect, useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable, ScrollView } from 'react-native';
-import {
-  useNavigation,
-  useRoute,
-  RouteProp,
-  type NavigationProp,
-  type ParamListBase,
-} from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { selectReferralCode } from '../../../../reducers/rewards/selectors';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Skeleton,
   Text,
-  TextColor,
+  TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -27,12 +30,13 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
-import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
 import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
 import OndoAccountPickerSheet from '../components/Campaigns/OndoAccountPickerSheet';
 import OndoCampaignCTA from '../components/Campaigns/OndoCampaignCTA';
+import OndoNotEligibleSheet from '../components/Campaigns/OndoNotEligibleSheet';
+import CampaignStatsSummary from '../components/Campaigns/CampaignStatsSummary';
+import OndoPrizePool from '../components/Campaigns/OndoPrizePool';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
-import { formatComputedAt } from '../components/Campaigns/OndoLeaderboard.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
@@ -40,21 +44,23 @@ import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPos
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useOndoAccountPicker } from '../hooks/useOndoAccountPicker';
+import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { OndoCampaignHowItWorks } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
+import {
+  ONDO_GM_REQUIRED_QUALIFIED_DAYS,
+  isCampaignIneligible,
+} from '../utils/ondoCampaignConstants';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type OndoCampaignDetailsRouteParams = {
   CampaignDetails: { campaignId: string };
-};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type RewardsCampaignStackParamList = ParamListBase & {
-  RewardsCampaignsView: undefined;
-  RewardsCampaignMechanics: { campaignId: string };
-  RewardsOndoCampaignLeaderboard: { campaignId: string };
 };
 
 export const CAMPAIGN_DETAILS_TEST_IDS = {
@@ -64,12 +70,34 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
   const { campaignId } = route.params;
 
+  const referralCode = useSelector(selectReferralCode);
   const { pendingPicker, setPendingPicker, sheetRef, handleGroupSelect } =
     useOndoAccountPicker(campaignId);
+
+  const [portfolioNotEligibleAction, setPortfolioNotEligibleAction] = useState<
+    (() => void) | null
+  >(null);
+  const portfolioNotEligibleActionRef = useRef<(() => void) | null>(null);
+
+  const handlePortfolioNotEligible = useCallback(
+    (confirmAction: () => void) => {
+      portfolioNotEligibleActionRef.current = confirmAction;
+      setPortfolioNotEligibleAction(() => confirmAction);
+    },
+    [],
+  );
+
+  const {
+    deposits,
+    isLoading: isDepositsLoading,
+    hasError: hasDepositsError,
+    refetch: refetchDeposits,
+  } = useGetOndoCampaignDeposits(campaignId);
 
   const {
     campaigns,
@@ -87,6 +115,11 @@ const OndoCampaignDetailsView: React.FC = () => {
     status: participantStatusData,
     isLoading: isParticipantStatusLoading,
   } = useGetCampaignParticipantStatus(campaignId);
+
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_detail',
+    campaign_id: campaignId,
+  });
 
   useEffect(() => {
     if (campaign && getCampaignStatus(campaign) === 'upcoming') {
@@ -107,54 +140,100 @@ const OndoCampaignDetailsView: React.FC = () => {
   const hasPositions = Boolean(portfolioData?.positions.length);
 
   const {
-    tierNames,
-    selectedTier,
-    selectedTierData,
-    computedAt,
-    setSelectedTier,
-    isLoading: isLeaderboardLoading,
-    hasError: hasLeaderboardError,
-    isLeaderboardNotYetComputed,
-    refetch: refetchLeaderboard,
-  } = useGetOndoLeaderboard(campaignId);
-
-  const {
     position: leaderboardPosition,
     isLoading: isLeaderboardPositionLoading,
     hasError: hasLeaderboardPositionError,
-    hasFetched: leaderboardPositionHasFetched,
     refetch: refetchLeaderboardPosition,
   } = useGetOndoLeaderboardPosition(
     isOptedIn && hasPositions ? campaignId : undefined,
   );
 
   const {
+    leaderboard,
+    selectedTier,
+    selectedTierData,
+    setSelectedTier,
+    isLoading: isLeaderboardLoading,
+    hasError: hasLeaderboardError,
+    isLeaderboardNotYetComputed,
+    refetch: refetchLeaderboard,
+  } = useGetOndoLeaderboard(campaignId, {
+    defaultTier: leaderboardPosition?.projectedTier,
+  });
+
+  const tierNames = useMemo(
+    () => campaign?.details?.tiers?.map((t) => t.name) ?? [],
+    [campaign],
+  );
+
+  const leaderboardUserPosition = useMemo(
+    () =>
+      leaderboardPosition
+        ? {
+            projectedTier: leaderboardPosition.projectedTier,
+            rank: leaderboardPosition.rank,
+            neighbors: leaderboardPosition.neighbors ?? [],
+          }
+        : null,
+    [leaderboardPosition],
+  );
+
+  const tierMinDeposit = useMemo(
+    () =>
+      leaderboardPosition &&
+      campaign &&
+      getCampaignStatus(campaign) === 'active'
+        ? getTierMinNetDeposit(
+            campaign.details?.tiers,
+            leaderboardPosition.projectedTier,
+          )
+        : null,
+    [campaign, leaderboardPosition],
+  );
+
+  const leaderboardPendingSheetPosition = useMemo(
+    () =>
+      leaderboardPosition &&
+      !leaderboardPosition.qualified &&
+      tierMinDeposit != null
+        ? {
+            tier: leaderboardPosition.projectedTier,
+            netDeposit: leaderboardPosition.netDeposit,
+            qualifiedDays: leaderboardPosition.qualifiedDays,
+            tierMinDeposit,
+          }
+        : null,
+    [leaderboardPosition, tierMinDeposit],
+  );
+
+  const notEligibleForCampaign = useMemo(
+    () => isCampaignIneligible(campaign, leaderboardPosition?.qualified),
+    [campaign, leaderboardPosition],
+  );
+
+  const {
     showHowItWorksSection,
+    showStatsSummarySection,
     showLeaderboardSection,
-    showLeaderboardPositionSection,
     showPortfolioSection,
   } = useMemo(() => {
     if (!campaign) {
       return {
         showHowItWorksSection: false,
+        showStatsSummarySection: false,
         showLeaderboardSection: false,
-        showLeaderboardPositionSection: false,
         showPortfolioSection: false,
       };
     }
 
-    const showHowItWorksSection =
-      Boolean(campaign.details?.howItWorks) &&
-      !hasPositions &&
-      getCampaignStatus(campaign) === 'active';
-
-    const showLeaderboardPositionSection = isOptedIn && hasPositions;
-
     return {
-      showHowItWorksSection,
-      showLeaderboardPositionSection,
-      showPortfolioSection: isOptedIn,
-      showLeaderboardSection: !showLeaderboardPositionSection,
+      showHowItWorksSection:
+        Boolean(campaign.details?.howItWorks) &&
+        !hasPositions &&
+        getCampaignStatus(campaign) === 'active',
+      showStatsSummarySection: hasPositions,
+      showPortfolioSection: isOptedIn && hasPositions,
+      showLeaderboardSection: true,
     };
   }, [campaign, isOptedIn, hasPositions]);
 
@@ -219,7 +298,7 @@ const OndoCampaignDetailsView: React.FC = () => {
               {/* Phase 1: Not opted in, show how it works section */}
               {showHowItWorksSection && (
                 <>
-                  <Box twClassName="px-4 py-4">
+                  <Box twClassName="p-4">
                     <CampaignHowItWorks
                       howItWorks={
                         campaign.details?.howItWorks as OndoCampaignHowItWorks
@@ -229,77 +308,13 @@ const OndoCampaignDetailsView: React.FC = () => {
                 </>
               )}
 
-              {showLeaderboardPositionSection && (
+              {showStatsSummarySection && (
                 <>
-                  <Box twClassName="border-b border-border-muted" />
-                  <Box twClassName="p-4">
-                    <>
-                      <Pressable
-                        onPress={() =>
-                          navigation.navigate(
-                            Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD,
-                            { campaignId },
-                          )
-                        }
-                      >
-                        <Box
-                          flexDirection={BoxFlexDirection.Row}
-                          alignItems={BoxAlignItems.Center}
-                          justifyContent={BoxJustifyContent.Between}
-                          twClassName="mb-4"
-                        >
-                          <Box
-                            flexDirection={BoxFlexDirection.Row}
-                            alignItems={BoxAlignItems.Center}
-                            twClassName="gap-2"
-                          >
-                            <Text variant={TextVariant.HeadingMd}>
-                              {strings(
-                                'rewards.ondo_campaign_leaderboard.title',
-                              )}
-                            </Text>
-                            <Icon
-                              name={IconName.ArrowRight}
-                              size={IconSize.Md}
-                            />
-                          </Box>
-                          {leaderboardPosition?.computedAt && (
-                            <Text
-                              variant={TextVariant.BodyXs}
-                              color={TextColor.TextAlternative}
-                            >
-                              {strings(
-                                'rewards.ondo_campaign_leaderboard_position.updated_at',
-                                {
-                                  time: formatComputedAt(
-                                    leaderboardPosition.computedAt,
-                                  ),
-                                },
-                              )}
-                            </Text>
-                          )}
-                        </Box>
-                      </Pressable>
-                      <OndoLeaderboardPosition
-                        position={leaderboardPosition}
-                        isLoading={isLeaderboardPositionLoading}
-                        hasError={hasLeaderboardPositionError}
-                        hasFetched={leaderboardPositionHasFetched}
-                        refetch={refetchLeaderboardPosition}
-                      />
-                    </>
-                  </Box>
-                </>
-              )}
-
-              {showPortfolioSection && (
-                <>
-                  <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="p-4">
                     <Pressable
                       onPress={() =>
                         navigation.navigate(
-                          Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW,
+                          Routes.REWARDS_ONDO_CAMPAIGN_STATS,
                           { campaignId },
                         )
                       }
@@ -307,37 +322,90 @@ const OndoCampaignDetailsView: React.FC = () => {
                       <Box
                         flexDirection={BoxFlexDirection.Row}
                         alignItems={BoxAlignItems.Center}
-                        twClassName="gap-2 mb-4"
+                        twClassName="gap-2 mb-3"
                       >
                         <Text variant={TextVariant.HeadingMd}>
-                          {strings(
-                            'rewards.ondo_campaign_portfolio.positions_title',
-                          )}
+                          {strings('rewards.ondo_campaign_stats.title')}
                         </Text>
-                        <Icon name={IconName.ArrowRight} size={IconSize.Md} />
-                        {portfolioData?.computedAt &&
-                          portfolioData.positions.length > 0 && (
-                            <Box
-                              twClassName="flex-1"
-                              alignItems={BoxAlignItems.End}
-                            >
-                              <Text
-                                variant={TextVariant.BodyXs}
-                                color={TextColor.TextAlternative}
-                              >
-                                {strings(
-                                  'rewards.ondo_campaign_portfolio.updated_at',
-                                  {
-                                    time: formatComputedAt(
-                                      portfolioData.computedAt,
-                                    ),
-                                  },
-                                )}
-                              </Text>
-                            </Box>
-                          )}
+                        <Icon
+                          name={IconName.ArrowRight}
+                          size={IconSize.Md}
+                          color={IconColor.IconAlternative}
+                        />
                       </Box>
                     </Pressable>
+                    <CampaignStatsSummary
+                      leaderboardPosition={leaderboardPosition}
+                      portfolioSummary={portfolioData?.summary ?? null}
+                      leaderboard={{
+                        isLoading: isLeaderboardPositionLoading,
+                        hasError: hasLeaderboardPositionError,
+                        refetch: refetchLeaderboardPosition,
+                      }}
+                      portfolio={{
+                        isLoading: isPortfolioLoading,
+                        hasError: hasPortfolioError,
+                        refetch: refetchPortfolio,
+                      }}
+                      showHeader={false}
+                      tierMinDeposit={tierMinDeposit}
+                      isIneligible={notEligibleForCampaign}
+                      onQualifyPress={
+                        leaderboardPendingSheetPosition
+                          ? () => {
+                              trackEvent(
+                                createEventBuilder(
+                                  MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+                                )
+                                  .addProperties({
+                                    button_type:
+                                      'ondo_campaign_qualify_for_rank',
+                                  })
+                                  .build(),
+                              );
+                              navigation.navigate(
+                                Routes.MODAL.REWARDS_ONDO_PENDING_SHEET,
+                                {
+                                  variant: 'own',
+                                  ...leaderboardPendingSheetPosition,
+                                },
+                              );
+                            }
+                          : undefined
+                      }
+                    />
+                  </Box>
+                </>
+              )}
+
+              {showPortfolioSection && (
+                <>
+                  <Box twClassName="p-4">
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      justifyContent={BoxJustifyContent.Between}
+                      twClassName="mb-4"
+                    >
+                      <Text variant={TextVariant.HeadingMd}>
+                        {strings(
+                          'rewards.ondo_campaign_portfolio.positions_title',
+                        )}
+                      </Text>
+                      <TextButton
+                        variant={TextVariant.ButtonLabelMd}
+                        onPress={() =>
+                          navigation.navigate(
+                            Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW,
+                            { campaignId },
+                          )
+                        }
+                      >
+                        {strings(
+                          'rewards.ondo_campaign_portfolio.view_activity',
+                        )}
+                      </TextButton>
+                    </Box>
                     <OndoPortfolio
                       portfolio={portfolioData}
                       isLoading={isPortfolioLoading}
@@ -348,6 +416,25 @@ const OndoCampaignDetailsView: React.FC = () => {
                       isCampaignComplete={
                         getCampaignStatus(campaign) === 'complete'
                       }
+                      notEligibleForCampaign={notEligibleForCampaign}
+                      onNotEligible={handlePortfolioNotEligible}
+                    />
+                  </Box>
+                </>
+              )}
+
+              {getCampaignStatus(campaign) === 'active' && (
+                <>
+                  <Box twClassName="my-1 border-b border-border-muted" />
+                  <Box twClassName="p-4">
+                    <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
+                      {strings('rewards.ondo_campaign_prize_pool.title')}
+                    </Text>
+                    <OndoPrizePool
+                      totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
+                      isLoading={isDepositsLoading}
+                      hasError={hasDepositsError}
+                      refetch={refetchDeposits}
                     />
                   </Box>
                 </>
@@ -355,31 +442,32 @@ const OndoCampaignDetailsView: React.FC = () => {
 
               {showLeaderboardSection && (
                 <>
-                  <Box twClassName="border-b border-border-muted" />
-                  <Box twClassName="p-4">
-                    {isLeaderboardNotYetComputed && (
-                      <Pressable
-                        onPress={() =>
-                          navigation.navigate(
-                            Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD,
-                            { campaignId },
-                          )
-                        }
+                  <Box twClassName="my-1 border-b border-border-muted" />
+                  <Box twClassName="py-4">
+                    <Pressable
+                      onPress={() =>
+                        navigation.navigate(
+                          Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD,
+                          { campaignId },
+                        )
+                      }
+                    >
+                      <Box
+                        flexDirection={BoxFlexDirection.Row}
+                        alignItems={BoxAlignItems.Center}
+                        twClassName="gap-2 mb-4 px-4"
                       >
-                        <Box
-                          flexDirection={BoxFlexDirection.Row}
-                          alignItems={BoxAlignItems.Center}
-                          twClassName="gap-2 mb-4"
-                        >
-                          <Text variant={TextVariant.HeadingMd}>
-                            {strings('rewards.ondo_campaign_leaderboard.title')}
-                          </Text>
-                          <Icon name={IconName.ArrowRight} size={IconSize.Md} />
-                        </Box>
-                      </Pressable>
-                    )}
+                        <Text variant={TextVariant.HeadingMd}>
+                          {strings('rewards.ondo_campaign_leaderboard.title')}
+                        </Text>
+                        <Icon
+                          name={IconName.ArrowRight}
+                          size={IconSize.Md}
+                          color={IconColor.IconAlternative}
+                        />
+                      </Box>
+                    </Pressable>
                     <OndoLeaderboard
-                      showTitle={false}
                       tierNames={tierNames}
                       selectedTier={selectedTier}
                       onTierChange={setSelectedTier}
@@ -387,11 +475,15 @@ const OndoCampaignDetailsView: React.FC = () => {
                       totalParticipants={
                         selectedTierData?.totalParticipants ?? 0
                       }
-                      computedAt={computedAt}
                       isLoading={isLeaderboardLoading}
                       hasError={hasLeaderboardError}
                       isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
                       onRetry={refetchLeaderboard}
+                      maxEntries={5}
+                      currentUserReferralCode={referralCode}
+                      userPosition={leaderboardUserPosition}
+                      pendingSheetPosition={leaderboardPendingSheetPosition}
+                      campaignId={campaignId}
                     />
                   </Box>
                 </>
@@ -409,6 +501,7 @@ const OndoCampaignDetailsView: React.FC = () => {
             }}
             hasPositions={hasPositions}
             campaignId={campaignId}
+            notEligibleForCampaign={notEligibleForCampaign}
           />
         )}
 
@@ -418,6 +511,21 @@ const OndoCampaignDetailsView: React.FC = () => {
             sheetRef={sheetRef}
             onClose={() => setPendingPicker(null)}
             onGroupSelect={handleGroupSelect}
+          />
+        )}
+
+        {portfolioNotEligibleAction && (
+          <OndoNotEligibleSheet
+            onClose={() => {
+              setPortfolioNotEligibleAction(null);
+              portfolioNotEligibleActionRef.current = null;
+            }}
+            onConfirm={() => {
+              const action = portfolioNotEligibleActionRef.current;
+              portfolioNotEligibleActionRef.current = null;
+              setPortfolioNotEligibleAction(null);
+              action?.();
+            }}
           />
         )}
       </SafeAreaView>

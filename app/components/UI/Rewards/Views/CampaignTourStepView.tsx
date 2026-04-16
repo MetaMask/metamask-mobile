@@ -8,6 +8,7 @@ import React, {
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
+  StackActions,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -22,7 +23,7 @@ import {
   Text,
 } from '@metamask/design-system-react-native';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
-import { selectCampaigns } from '../../../../reducers/rewards/selectors';
+import { selectCampaignById } from '../../../../reducers/rewards/selectors';
 import Routes from '../../../../constants/navigation/Routes';
 import ProgressIndicator from '../components/Onboarding/ProgressIndicator';
 import CampaignTourStep, {
@@ -47,11 +48,11 @@ const CampaignTourStepView: React.FC = () => {
   const { campaignId } = route.params;
   const safeAreaInsets = useSafeAreaInsets();
 
-  const campaigns = useSelector(selectCampaigns);
-  const campaign = useMemo(
-    () => campaigns.find((c) => c.id === campaignId),
-    [campaigns, campaignId],
+  const selectCampaign = useMemo(
+    () => selectCampaignById(campaignId),
+    [campaignId],
   );
+  const campaign = useSelector(selectCampaign);
 
   const tour = campaign?.details?.howItWorks?.tour;
   const [currentTab, setCurrentTab] = useState(0);
@@ -60,9 +61,11 @@ const CampaignTourStepView: React.FC = () => {
   >(null);
 
   const navigateToDetails = useCallback(() => {
-    navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
-      campaignId,
-    });
+    navigation.dispatch(
+      StackActions.replace(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+        campaignId,
+      }),
+    );
   }, [navigation, campaignId]);
 
   const currentStep = tour?.[currentTab];

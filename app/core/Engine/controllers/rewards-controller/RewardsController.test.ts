@@ -21,6 +21,8 @@ import {
   type CampaignState,
   type CampaignParticipantStatusState,
   type CampaignLeaderboardPositionState,
+  type SubscriptionBenefitsState,
+  type SubscriptionBenefitDto,
 } from './types';
 import type { CaipAccountId, Json } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -349,6 +351,8 @@ describe('RewardsController', () => {
       validateBonusCode: jest.fn(),
       claimReward: jest.fn(),
       login: jest.fn(),
+      getBenefits: jest.fn(),
+      postBenefitImpression: jest.fn(),
     }));
 
     // @ts-expect-error TODO: Resolve type mismatch
@@ -393,6 +397,8 @@ describe('RewardsController', () => {
           'isRewardsFeatureEnabled',
           'getSeasonStatus',
           'getReferralDetails',
+          'getBenefits',
+          'postBenefitImpression',
           'getSeasonOneLineaRewardTokens',
           'optIn',
           'optOut',
@@ -6884,6 +6890,208 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('getBenefits', () => {
+    const mockSubscriptionId = 'sub-benefits';
+    const mockLimit = 200;
+
+    const createMockBenefit = (
+      overrides: Partial<SubscriptionBenefitDto> = {},
+    ): SubscriptionBenefitDto => ({
+      id: 1,
+      longTitle: 'Benefit title',
+      shortDescription: 'Short',
+      longDescription: 'Long description',
+      thumbnail: 'https://example.com/thumb.png',
+      validFrom: '2026-01-01T00:00:00Z',
+      validTo: '2026-12-31T23:59:59Z',
+      url: 'https://example.com/claim',
+      actionDate: '2026-08-01T00:00:00Z',
+      chain: 'ethereum',
+      type: { id: 9, name: 'Partner' },
+      ...overrides,
+    });
+
+    it('returns cached benefits when cache is fresh', async () => {
+      const cachedState: SubscriptionBenefitsState = {
+        benefits: [createMockBenefit({ id: 99 })],
+        limit: mockLimit,
+        lastFetched: 100,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptionBenefits: {
+            [mockSubscriptionId]: cachedState,
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      const result = await controller.getBenefits(
+        mockSubscriptionId,
+        mockLimit,
+      );
+
+      expect(result).toEqual(cachedState);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getBenefits',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('fetches fresh benefits when cache is empty', async () => {
+      const apiBenefits = [createMockBenefit({ id: 2 })];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiBenefits);
+
+      const result = await controller.getBenefits(
+        mockSubscriptionId,
+        mockLimit,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getBenefits',
+        mockSubscriptionId,
+        mockLimit,
+      );
+      expect(result.benefits).toEqual(apiBenefits);
+      expect(result.limit).toBe(mockLimit);
+      expect(result.lastFetched).toBe(123);
+    });
+
+    it('fetches fresh benefits when cache is stale', async () => {
+      const staleState: SubscriptionBenefitsState = {
+        benefits: [createMockBenefit({ id: 3 })],
+        limit: mockLimit,
+        lastFetched: -900000,
+      };
+
+      const freshFromApi = [createMockBenefit({ id: 4 })];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptionBenefits: {
+            [mockSubscriptionId]: staleState,
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(freshFromApi);
+
+      const result = await controller.getBenefits(
+        mockSubscriptionId,
+        mockLimit,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getBenefits',
+        mockSubscriptionId,
+        mockLimit,
+      );
+      expect(result.benefits).toEqual(freshFromApi);
+      expect(result.lastFetched).toBe(123);
+    });
+
+    it('persists fetched benefits to subscriptionBenefits state', async () => {
+      const apiBenefits = [createMockBenefit({ id: 5 })];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiBenefits);
+
+      await controller.getBenefits(mockSubscriptionId, mockLimit);
+
+      expect(controller.state.subscriptionBenefits[mockSubscriptionId]).toEqual(
+        {
+          benefits: apiBenefits,
+          limit: mockLimit,
+          lastFetched: 123,
+        },
+      );
+    });
+
+    it('logs and rethrows when the benefits API call fails', async () => {
+      mockLogger.log.mockClear();
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      const apiError = new Error('Benefits API failed');
+      mockMessenger.call.mockRejectedValue(apiError);
+
+      await expect(
+        controller.getBenefits(mockSubscriptionId, mockLimit),
+      ).rejects.toThrow('Benefits API failed');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get benefits details:',
+        'Benefits API failed',
+      );
+    });
+  });
+
+  describe('postBenefitImpression', () => {
+    const mockSubscriptionId = 'sub-impression';
+    const mockBenefitId = 42;
+    const mockBenefitType = 7;
+
+    it('calls RewardsDataService to post a benefit impression', async () => {
+      mockMessenger.call.mockResolvedValue(undefined);
+
+      await controller.postBenefitImpression(
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:postBenefitImpression',
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+      );
+    });
+
+    it('logs and rethrows when posting a benefit impression fails', async () => {
+      mockLogger.log.mockClear();
+
+      const apiError = new Error('Impression API failed');
+      mockMessenger.call.mockRejectedValue(apiError);
+
+      await expect(
+        controller.postBenefitImpression(
+          mockSubscriptionId,
+          mockBenefitId,
+          mockBenefitType,
+        ),
+      ).rejects.toThrow('Impression API failed');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to post benefit impression:',
+        'Impression API failed',
+      );
+    });
+  });
+
   describe('handleAuthenticationTrigger', () => {
     beforeEach(() => {
       mockIsHardwareAccount.mockReturnValue(false);
@@ -8811,64 +9019,6 @@ describe('RewardsController', () => {
 
       // Assert
       expect(result.balance.total).toBe(largeBalance);
-    });
-
-    it('preserves shouldInstallNewVersion when present', () => {
-      // Arrange
-      const seasonMetadata: SeasonDtoState = {
-        id: 'season-update',
-        name: 'Update Required Season',
-        startDate: Date.now(),
-        endDate: Date.now() + 86400000,
-        tiers: createTestTiers(),
-        activityTypes: [],
-        waysToEarn: [],
-        shouldInstallNewVersion: '1.2.3',
-      };
-
-      const seasonState: SeasonStateDto = {
-        balance: 5000,
-        currentTierId: 'gold',
-        updatedAt: new Date(),
-      };
-
-      // Act
-      const result = controller.convertToSeasonStatusDto(
-        seasonMetadata,
-        seasonState,
-      );
-
-      // Assert
-      expect(result.season.shouldInstallNewVersion).toBe('1.2.3');
-    });
-
-    it('handles shouldInstallNewVersion when undefined', () => {
-      // Arrange
-      const seasonMetadata: SeasonDtoState = {
-        id: 'season-no-update',
-        name: 'No Update Required Season',
-        startDate: Date.now(),
-        endDate: Date.now() + 86400000,
-        tiers: createTestTiers(),
-        activityTypes: [],
-        waysToEarn: [],
-        // shouldInstallNewVersion is intentionally omitted
-      };
-
-      const seasonState: SeasonStateDto = {
-        balance: 3000,
-        currentTierId: 'silver',
-        updatedAt: new Date(),
-      };
-
-      // Act
-      const result = controller.convertToSeasonStatusDto(
-        seasonMetadata,
-        seasonState,
-      );
-
-      // Assert
-      expect(result.season.shouldInstallNewVersion).toBeUndefined();
     });
   });
 
@@ -15817,7 +15967,7 @@ describe('RewardsController', () => {
           controller.metadata,
           'includeInDebugSnapshot',
         ),
-      ).toMatchInlineSnapshot(`{}`);
+      ).toMatchSnapshot();
     });
   });
 
@@ -15828,54 +15978,13 @@ describe('RewardsController', () => {
         controller.metadata,
         'includeInStateLogs',
       ),
-    ).toMatchInlineSnapshot(`
-        {
-          "accounts": {},
-          "activeAccount": null,
-          "activeBoosts": {},
-          "campaignParticipantStatus": {},
-          "campaigns": {},
-          "offDeviceSubscriptionAccounts": {},
-          "ondoCampaignActivity": {},
-          "ondoCampaignLeaderboard": {},
-          "ondoCampaignLeaderboardPositions": {},
-          "ondoCampaignPortfolio": {},
-          "pointsEstimateHistory": [],
-          "pointsEvents": {},
-          "seasonStatuses": {},
-          "seasons": {},
-          "subscriptionReferralDetails": {},
-          "subscriptions": {},
-          "unlockedRewards": {},
-        }
-      `);
+    ).toMatchSnapshot();
   });
 
   it('persists expected state', () => {
     expect(
       deriveStateFromMetadata(controller.state, controller.metadata, 'persist'),
-    ).toMatchInlineSnapshot(`
-        {
-          "accounts": {},
-          "activeAccount": null,
-          "activeBoosts": {},
-          "campaignParticipantStatus": {},
-          "campaigns": {},
-          "offDeviceSubscriptionAccounts": {},
-          "ondoCampaignActivity": {},
-          "ondoCampaignLeaderboard": {},
-          "ondoCampaignLeaderboardPositions": {},
-          "ondoCampaignPortfolio": {},
-          "pointsEstimateHistory": [],
-          "pointsEvents": {},
-          "rewardsEnvUrl": null,
-          "seasonStatuses": {},
-          "seasons": {},
-          "subscriptionReferralDetails": {},
-          "subscriptions": {},
-          "unlockedRewards": {},
-        }
-      `);
+    ).toMatchSnapshot();
   });
 
   it('exposes expected state to UI', () => {
@@ -15885,27 +15994,7 @@ describe('RewardsController', () => {
         controller.metadata,
         'usedInUi',
       ),
-    ).toMatchInlineSnapshot(`
-        {
-          "accounts": {},
-          "activeAccount": null,
-          "activeBoosts": {},
-          "campaignParticipantStatus": {},
-          "campaigns": {},
-          "offDeviceSubscriptionAccounts": {},
-          "ondoCampaignActivity": {},
-          "ondoCampaignLeaderboard": {},
-          "ondoCampaignLeaderboardPositions": {},
-          "ondoCampaignPortfolio": {},
-          "pointsEvents": {},
-          "rewardsEnvUrl": null,
-          "seasonStatuses": {},
-          "seasons": {},
-          "subscriptionReferralDetails": {},
-          "subscriptions": {},
-          "unlockedRewards": {},
-        }
-      `);
+    ).toMatchSnapshot();
   });
 
   describe('#signRewardsMessage', () => {
@@ -16912,6 +17001,9 @@ describe('RewardsController', () => {
         currentUsdValue: 0,
         totalUsdDeposited: 0,
         netDeposit: 0,
+        qualifiedDays: 10,
+        qualified: true,
+        neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
       } as CampaignLeaderboardPositionState;
@@ -17006,6 +17098,9 @@ describe('RewardsController', () => {
         currentUsdValue: 0,
         totalUsdDeposited: 0,
         netDeposit: 0,
+        qualifiedDays: 10,
+        qualified: true,
+        neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
       } as CampaignLeaderboardPositionState;
@@ -17017,6 +17112,9 @@ describe('RewardsController', () => {
         currentUsdValue: 0,
         totalUsdDeposited: 0,
         netDeposit: 0,
+        qualifiedDays: 10,
+        qualified: true,
+        neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
       } as CampaignLeaderboardPositionState;
@@ -19082,9 +19180,10 @@ describe('RewardsController', () => {
               positions: [],
               summary: {
                 totalCurrentValue: '1',
-                totalCostBasis: '1',
+                totalBookValue: '1',
                 totalUsdDeposited: '1',
                 netDeposit: '1',
+                totalCashedOut: '0',
                 portfolioPnl: '0',
                 portfolioPnlPercent: '0',
               },
@@ -19376,6 +19475,24 @@ describe('RewardsController', () => {
       currentUsdValue: 12500.5,
       totalUsdDeposited: 10000.0,
       netDeposit: 8500.0,
+      qualifiedDays: 10,
+      qualified: true,
+      neighbors: [
+        {
+          rank: 4,
+          referralCode: 'NBR004',
+          rateOfReturn: 0.16,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 6,
+          referralCode: 'NBR006',
+          rateOfReturn: 0.14,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+      ],
       computedAt: '2024-03-20T12:00:00.000Z',
     };
 
@@ -19539,8 +19656,8 @@ describe('RewardsController', () => {
           tokenAsset:
             'eip155:1/erc20:0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c',
           units: '10',
-          costBasis: '1000.000000',
-          avgCostPerUnit: '100.000000',
+          bookPrice: '100.000000',
+          bookValue: '1000.000000',
           currentPrice: '110.000000',
           currentValue: '1100.000000',
           unrealizedPnl: '100.000000',
@@ -19549,9 +19666,10 @@ describe('RewardsController', () => {
       ],
       summary: {
         totalCurrentValue: '1100.000000',
-        totalCostBasis: '1000.000000',
+        totalBookValue: '1000.000000',
         totalUsdDeposited: '1000.000000',
         netDeposit: '1000.000000',
+        totalCashedOut: '0',
         portfolioPnl: '100.000000',
         portfolioPnlPercent: '0.1',
       },
@@ -19886,6 +20004,80 @@ describe('RewardsController', () => {
       await expect(
         controller.getActivityLastUpdated('campaign-1', 'sub-1'),
       ).rejects.toThrow('API error');
+    });
+  });
+
+  describe('getOndoCampaignDeposits', () => {
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockCampaignId = 'campaign-deposits-123';
+    const mockDeposits = { totalUsdDeposited: '1250000.000000' };
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns zero deposits when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result =
+        await disabledController.getOndoCampaignDeposits(mockCampaignId);
+
+      expect(result).toEqual({ totalUsdDeposited: '0' });
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches deposits from API and caches result', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockDeposits);
+
+      const result = await ctrl.getOndoCampaignDeposits(mockCampaignId);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignDeposits',
+        mockCampaignId,
+      );
+      expect(result).toEqual(mockDeposits);
+      expect(ctrl.state.ondoCampaignDeposits[mockCampaignId]).toBeDefined();
+    });
+
+    it('returns cached deposits when cache is fresh', async () => {
+      const recentTime = Date.now() - 60000;
+      const state = {
+        ...getRewardsControllerDefaultState(),
+        ondoCampaignDeposits: {
+          [mockCampaignId]: {
+            totalUsdDeposited: mockDeposits.totalUsdDeposited,
+            lastFetched: recentTime,
+          },
+        },
+      };
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state,
+      });
+
+      const result = await ctrl.getOndoCampaignDeposits(mockCampaignId);
+
+      expect(result).toEqual(mockDeposits);
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
   });
 });
