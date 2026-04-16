@@ -8,9 +8,8 @@
 # in-progress run of this workflow for that branch is cancelled (same behavior as
 # Bitrise “Rolling builds” / “Abort running builds” for one branch + one workflow).
 #
-# Builds are triggered via the Runway OTA/build pipeline (runway-ota-build-core.yml):
-# - iOS runs first and performs the version bump.
-# - Android runs after, skipping the version bump (already done by iOS).
+# Version bump runs once (update-latest-build-version.yml), then iOS and Android
+# builds are triggered in parallel via runway-ota-build-core.yml (skip_version_bump).
 #
 ##############################################################################################
 name: Auto RC builds
@@ -95,14 +94,30 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  update_rc_build_version:
+    name: Update RC build version
+    uses: ./.github/workflows/update-latest-build-version.yml
+    needs: validate-and-check-label
+    if: needs.validate-and-check-label.outputs.has-label == 'true'
+    permissions:
+      contents: write
+      id-token: write
+    with:
+      base-branch: ${{ needs.validate-and-check-label.outputs.branch-name }}
+    secrets:
+      PR_TOKEN: ${{ secrets.PR_TOKEN }}
+
   trigger-ios-rc-build:
     name: Trigger iOS RC Build
     uses: ./.github/workflows/runway-ota-build-core.yml
-    needs: validate-and-check-label
+    needs:
+      - validate-and-check-label
+      - update_rc_build_version
     if: needs.validate-and-check-label.outputs.has-label == 'true'
     with:
       platform: ios
-      source_branch: ${{ needs.validate-and-check-label.outputs.branch-name }}
+      source_branch: ${{ needs.update_rc_build_version.outputs.commit-hash }}
+      skip_version_bump: true
     secrets: inherit
 
   trigger-android-rc-build:
@@ -110,12 +125,12 @@ jobs:
     uses: ./.github/workflows/runway-ota-build-core.yml
     needs:
       - validate-and-check-label
-      - trigger-ios-rc-build
+      - update_rc_build_version
     if: needs.validate-and-check-label.outputs.has-label == 'true'
     with:
       platform: android
-      source_branch: ${{ needs.validate-and-check-label.outputs.branch-name }}
-      skip_version_bump: true # iOS step already bumped the version
+      source_branch: ${{ needs.update_rc_build_version.outputs.commit-hash }}
+      skip_version_bump: true
     secrets: inherit
 
   post-rc-build-comment:
@@ -125,7 +140,7 @@ jobs:
       - validate-and-check-label
       - trigger-ios-rc-build
       - trigger-android-rc-build
-    if: always() && needs.trigger-android-rc-build.result == 'success' && needs.validate-and-check-label.outputs.pr-number != ''
+    if: always() && needs.trigger-ios-rc-build.result == 'success' && needs.trigger-android-rc-build.result == 'success' && needs.validate-and-check-label.outputs.pr-number != ''
     permissions:
       pull-requests: write
     steps:
@@ -156,7 +171,7 @@ jobs:
       - validate-and-check-label
       - trigger-ios-rc-build
       - trigger-android-rc-build
-    if: always() && needs.trigger-android-rc-build.result == 'success'
+    if: always() && needs.trigger-ios-rc-build.result == 'success' && needs.trigger-android-rc-build.result == 'success'
     uses: ./.github/workflows/slack-rc-notification.yml
     with:
       source_branch: ${{ needs.validate-and-check-label.outputs.branch-name }}

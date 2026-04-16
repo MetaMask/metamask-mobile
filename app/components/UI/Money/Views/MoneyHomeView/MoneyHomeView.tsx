@@ -7,11 +7,14 @@ import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
-import MoneyYourPosition from '../../components/MoneyYourPosition';
+import MoneyEarnings from '../../components/MoneyEarnings';
+import MoneyMusdTokenRow from '../../components/MoneyMusdTokenRow';
+import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
+import { hasConvertibleTokensWithBalance } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings';
 import MoneyMetaMaskCard from '../../components/MoneyMetaMaskCard';
-import MoneyWhyMetaMaskMoney from '../../components/MoneyWhyMetaMaskMoney';
+import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
 import MoneyActivityList from '../../components/MoneyActivityList';
 import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -44,18 +47,18 @@ const MoneyHomeView = () => {
   const handleAddPress = noopHandler;
   const handleTransferPress = noopHandler;
   const handleCardPress = noopHandler;
-  const handleAddMusdPress = noopHandler;
+  const handleApyInfoPress = noopHandler;
+  const handleProjectedEarningsPress = noopHandler;
   const handleGetNowPress = noopHandler;
+  const handleMusdRowPress = noopHandler;
   const handleHeaderPress = noopHandler;
 
-  const handleTokenAddPress = noopHandler;
+  const handleTokenConvertPress = noopHandler;
 
-  const handleSeeEarningsPress = noopHandler;
+  const handleEarnCryptoPress = noopHandler;
   const handleLearnMorePress = noopHandler;
   const handleAddMoneyPress = noopHandler;
   const handleHowItWorksHeaderPress = noopHandler;
-  const handlePotentialEarningsHeaderPress = noopHandler;
-  const handleWhyMetaMaskMoneyHeaderPress = noopHandler;
 
   const handleViewAllActivityPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.ACTIVITY as never);
@@ -81,26 +84,36 @@ const MoneyHomeView = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <MoneyBalanceSummary apy={String(MUSD_CONVERSION_APY)} />
+        <MoneyBalanceSummary
+          apy={String(MUSD_CONVERSION_APY)}
+          onApyInfoPress={handleApyInfoPress}
+        />
         <MoneyActionButtonRow
           onAddPress={handleAddPress}
           onTransferPress={handleTransferPress}
           onCardPress={handleCardPress}
         />
-        <MoneyYourPosition />
+        <MoneyOnboardingCard onAddPress={handleAddPress} />
+        <Divider />
+        <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
         <Divider />
         <MoneyHowItWorks
-          onAddMusdPress={handleAddMusdPress}
+          apy={MUSD_CONVERSION_APY}
           onHeaderPress={handleHowItWorksHeaderPress}
         />
+        <MoneyMusdTokenRow
+          onPress={handleMusdRowPress}
+          onAddPress={handleAddPress}
+        />
         <Divider />
-        {conversionTokens.length > 0 && (
+        {hasConvertibleTokensWithBalance(conversionTokens) && (
           <>
             <MoneyPotentialEarnings
               tokens={conversionTokens}
-              onTokenAddPress={handleTokenAddPress}
-              onSeeEarningsPress={handleSeeEarningsPress}
-              onHeaderPress={handlePotentialEarningsHeaderPress}
+              apy={MUSD_CONVERSION_APY}
+              onTokenPress={handleTokenConvertPress}
+              onViewAllPress={handleEarnCryptoPress}
+              onHeaderPress={handleEarnCryptoPress}
             />
             <Divider />
           </>
@@ -110,7 +123,7 @@ const MoneyHomeView = () => {
           onHeaderPress={handleHeaderPress}
         />
         <Divider />
-        {allTransactions.length > 0 && (
+        {allTransactions.length >= 10 && (
           <>
             <MoneyActivityList
               transactions={allTransactions}
@@ -122,9 +135,9 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        <MoneyWhyMetaMaskMoney
+        <MoneyWhatYouGet
+          apy={MUSD_CONVERSION_APY}
           onLearnMorePress={handleLearnMorePress}
-          onHeaderPress={handleWhyMetaMaskMoneyHeaderPress}
         />
       </ScrollView>
       <MoneyFooter onAddMoneyPress={handleAddMoneyPress} />

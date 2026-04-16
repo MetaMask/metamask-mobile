@@ -2978,14 +2978,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  extensionUxPna25: {
-    name: 'extensionUxPna25',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: true,
-    status: FeatureFlagStatus.Active,
-  },
-
   forceRampsStagingEnvironment: {
     name: 'forceRampsStagingEnvironment',
     type: FeatureFlagType.Remote,
@@ -3032,17 +3024,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       '0x38': false,
       '0x531': false,
       '0x8f': true,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  homepageRedesignV1: {
-    name: 'homepageRedesignV1',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: true,
-      minimumVersion: '7.59',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3830,37 +3811,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
-    status: FeatureFlagStatus.Active,
-  },
-
-  tokenDetailsV2AbTest: {
-    name: 'tokenDetailsV2AbTest',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'Control is OFF',
-        scope: {
-          value: 0.5,
-          type: 'threshold',
-        },
-        value: {
-          minimumVersion: '7.69.0',
-          variant: 'treatment',
-        },
-      },
-      {
-        name: 'Control is ON',
-        scope: {
-          type: 'threshold',
-          value: 1,
-        },
-        value: {
-          minimumVersion: '7.69.0',
-          variant: 'control',
-        },
-      },
-    ],
     status: FeatureFlagStatus.Active,
   },
 

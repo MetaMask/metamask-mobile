@@ -1,7 +1,8 @@
 import React from 'react';
-import { Box, IconSize } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
+  IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import type { ToastOptions } from '../../../../component-library/components/Toast/Toast.types';
