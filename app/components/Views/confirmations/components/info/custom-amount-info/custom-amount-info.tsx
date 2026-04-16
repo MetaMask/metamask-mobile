@@ -194,7 +194,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             disabled={!hasTokens}
           />
           {!hidePayTokenAmount && disablePay !== true && (
-            <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
+            <PayTokenAmount
+              amountHuman={amountHuman}
+              disabled={
+                !hasTokens || (supportAccountSelection && !selectedAccount)
+              }
+            />
           )}
           {!hidePayTokenAmount && children}
         </Box>

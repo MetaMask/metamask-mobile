@@ -5,6 +5,7 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
+import { useMoneyAccountPayToken } from '../../../hooks/pay/useMoneyAccountPayToken';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
@@ -26,6 +27,7 @@ jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
+jest.mock('../../../hooks/pay/useMoneyAccountPayToken');
 jest.mock('../../../../../../util/address');
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents');
 
@@ -45,8 +47,10 @@ const STATE_MOCK = {
   },
 };
 
-function render() {
-  return renderWithProvider(<PayWithRow />, { state: STATE_MOCK });
+function render({ selectedAccount }: { selectedAccount?: string } = {}) {
+  return renderWithProvider(<PayWithRow selectedAccount={selectedAccount} />, {
+    state: STATE_MOCK,
+  });
 }
 
 describe('PayWithRow', () => {
