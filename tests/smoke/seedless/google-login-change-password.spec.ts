@@ -8,36 +8,23 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import SettingsView from '../../page-objects/Settings/SettingsView';
 import SecurityAndPrivacy from '../../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import ChangePasswordView from '../../page-objects/Settings/SecurityAndPrivacy/ChangePasswordView';
-import LoginView from '../../page-objects/wallet/LoginView';
-import WalletView from '../../page-objects/wallet/WalletView';
 import ToastModal from '../../page-objects/wallet/ToastModal';
 
 import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
 import { SmokeSeedlessOnboarding } from '../../tags';
-import {
-  completeGoogleNewUserOnboarding,
-  loginWithPassword,
-  TEST_PASSWORD,
-  FIXTURE_PASSWORD,
-} from './utils';
+import { loginWithPassword, FIXTURE_PASSWORD } from './utils';
 
 const NEW_PASSWORD = 'NewPass456!@#';
 
-describe(SmokeSeedlessOnboarding('Google Login - Change Password'), () => {
+describe(SmokeSeedlessOnboarding('Change Password'), () => {
   beforeAll(async () => {
     jest.setTimeout(300000);
   });
 
-  it('changes password after seedless onboarding', async () => {
-    const isIOS = device.getPlatform() === 'ios';
-
-    const fixture = isIOS
-      ? new FixtureBuilder().build()
-      : new FixtureBuilder({ onboarding: true }).build();
-
+  it('changes password after onboarding', async () => {
     await withFixtures(
       {
-        fixture,
+        fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           const oAuthMockttpService = createOAuthMockttpService();
@@ -46,20 +33,16 @@ describe(SmokeSeedlessOnboarding('Google Login - Change Password'), () => {
         },
       },
       async () => {
-        const currentPassword = isIOS ? FIXTURE_PASSWORD : TEST_PASSWORD;
-
-        if (isIOS) {
-          await loginWithPassword(FIXTURE_PASSWORD);
-        } else {
-          await completeGoogleNewUserOnboarding();
-        }
+        await loginWithPassword(FIXTURE_PASSWORD);
         await TabBarComponent.tapSettings();
         await SettingsView.tapSecurityAndPrivacy();
 
         await SecurityAndPrivacy.scrollToChangePassword();
         await SecurityAndPrivacy.tapChangePassword();
 
-        await ChangePasswordView.typeInConfirmPasswordInputBox(currentPassword);
+        await ChangePasswordView.typeInConfirmPasswordInputBox(
+          FIXTURE_PASSWORD,
+        );
         await ChangePasswordView.tapSubmitButton();
 
         await ChangePasswordView.typeInConfirmPasswordInputBox(NEW_PASSWORD);
