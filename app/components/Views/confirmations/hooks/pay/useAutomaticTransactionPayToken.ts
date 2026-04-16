@@ -1,13 +1,11 @@
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { isHardwareAccount } from '../../../../../util/address';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
-import { AssetType } from '../../types/token';
 import {
   getPostQuoteTransactionType,
   isTransactionPayWithdraw,
@@ -15,17 +13,14 @@ import {
 import { useSelector } from 'react-redux';
 import {
   selectMetaMaskPayTokensFlags,
-  PreferredToken,
   getPreferredTokensForTransactionType,
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { RootState } from '../../../../../reducers';
 import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
+import { getBestToken, SetPayTokenRequest } from '../../utils/getBestToken';
 
-export interface SetPayTokenRequest {
-  address: Hex;
-  chainId: Hex;
-}
+export type { SetPayTokenRequest } from '../../utils/getBestToken';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -166,106 +161,4 @@ export function useAutomaticTransactionPayToken({
       log('Re-selected pay token after account change', automaticToken);
     }
   }, [disable, from, selectBestToken, setPayToken]);
-}
-
-function getBestToken({
-  isHardwareWallet,
-  isWithdraw,
-  lastWithdrawToken,
-  preferredToken,
-  preferredTokensFromFlags,
-  minimumRequiredTokenBalance,
-  targetToken,
-  tokens,
-}: {
-  isHardwareWallet: boolean;
-  isWithdraw: boolean;
-  lastWithdrawToken?: SetPayTokenRequest;
-  preferredToken?: SetPayTokenRequest;
-  preferredTokensFromFlags: PreferredToken[];
-  minimumRequiredTokenBalance: number;
-  targetToken?: { address: Hex; chainId: Hex };
-  tokens: AssetType[];
-}): { address: Hex; chainId: Hex } | undefined {
-  const targetTokenFallback = targetToken
-    ? {
-        address: targetToken.address,
-        chainId: targetToken.chainId,
-      }
-    : undefined;
-
-  if (isHardwareWallet) {
-    return targetTokenFallback;
-  }
-
-  if (isWithdraw && lastWithdrawToken) {
-    const lastWithdrawTokenAvailable = tokens.some(
-      (token) =>
-        token.address.toLowerCase() ===
-          lastWithdrawToken.address.toLowerCase() &&
-        token.chainId?.toLowerCase() ===
-          lastWithdrawToken.chainId.toLowerCase(),
-    );
-
-    if (lastWithdrawTokenAvailable) {
-      return lastWithdrawToken;
-    }
-  }
-
-  if (preferredToken) {
-    const preferredTokenAvailable = tokens.some(
-      (token) =>
-        token.address.toLowerCase() === preferredToken.address.toLowerCase() &&
-        token.chainId?.toLowerCase() === preferredToken.chainId.toLowerCase(),
-    );
-
-    if (preferredTokenAvailable) {
-      return preferredToken;
-    }
-  }
-
-  if (preferredTokensFromFlags.length) {
-    const sorted = [...preferredTokensFromFlags].sort(
-      (a, b) => b.successRate - a.successRate,
-    );
-
-    for (const preferred of sorted) {
-      const matchingToken = tokens.find(
-        (token) =>
-          token.address.toLowerCase() === preferred.address.toLowerCase() &&
-          token.chainId?.toLowerCase() === preferred.chainId.toLowerCase(),
-      );
-
-      if (matchingToken) {
-        if (isWithdraw) {
-          return {
-            address: matchingToken.address as Hex,
-            chainId: matchingToken.chainId as Hex,
-          };
-        }
-
-        const fiatBalance = matchingToken.fiat?.balance ?? 0;
-
-        if (fiatBalance >= minimumRequiredTokenBalance) {
-          return {
-            address: matchingToken.address as Hex,
-            chainId: matchingToken.chainId as Hex,
-          };
-        }
-      }
-    }
-  }
-
-  if (tokens?.length) {
-    if (isWithdraw) {
-      return undefined;
-    }
-
-    return {
-      address: tokens[0].address as Hex,
-      chainId: tokens[0].chainId as Hex,
-    };
-  }
-
-  return targetTokenFallback;
 }
