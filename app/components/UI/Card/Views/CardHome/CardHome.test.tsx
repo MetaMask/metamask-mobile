@@ -2064,6 +2064,27 @@ describe('CardHome Component', () => {
         }),
       );
     });
+
+    it('includes state UNFUNDED when authenticated user has zero balance', async () => {
+      // Given: user is authenticated and VERIFIED but has zero balance
+      overrideCardHomeDataBalance({
+        rawTokenBalance: 0,
+        balanceFiat: '$0.00',
+        balanceFormatted: '0.000000 USDC',
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be UNFUNDED
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'UNFUNDED',
+        }),
+      );
+    });
   });
 
   describe('Swap Enabled for Priority Token', () => {
