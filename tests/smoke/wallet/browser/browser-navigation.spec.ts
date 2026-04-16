@@ -12,6 +12,7 @@ import {
 import { DappVariants } from '../../../framework/Constants';
 import Browser from '../../../page-objects/Browser/BrowserView';
 import EnsWebsite from '../../../page-objects/Browser/ExternalWebsites/EnsWebsite';
+import RedirectWebsite from '../../../page-objects/Browser/ExternalWebsites/RedirectWebsite';
 import { Assertions, Utilities } from '../../../framework';
 import { TestSpecificMock } from '../../../framework/types';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
@@ -63,7 +64,7 @@ describe(SmokeWalletPlatform('Browser Navigation'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should navigate back home after visiting an invalid URL', async () => {
+  it('navigates back home after visiting an invalid URL', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
@@ -81,7 +82,7 @@ describe(SmokeWalletPlatform('Browser Navigation'), () => {
     );
   });
 
-  it('should resolve and display ENS website (vitalik.eth)', async () => {
+  it('resolves and displays ENS website (vitalik.eth)', async () => {
     const ensTestMock: TestSpecificMock = async (mockServer) => {
       await ensResolutionMock(mockServer);
       await setupMockRequest(mockServer, {
@@ -125,7 +126,7 @@ describe(SmokeWalletPlatform('Browser Navigation'), () => {
     );
   });
 
-  it('should display redirected URL after cross-origin redirect', async () => {
+  it('displays redirected URL after cross-origin redirect', async () => {
     await withFixtures(
       {
         dapps: [
@@ -162,16 +163,8 @@ describe(SmokeWalletPlatform('Browser Navigation'), () => {
           },
         );
 
-        // Navigate via runScript — Detox's WebView tap() does not
-        // reliably fire JavaScript handlers on <button> elements.
         const targetUrl = `${getDappUrl(1)}/redirect-target.html`;
-        const body = web(by.id('browser-webview')).element(
-          by.web.cssSelector('body'),
-        );
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (body as any).runScript(
-          `(el) => { window.location.href = '${targetUrl}'; }`,
-        );
+        await RedirectWebsite.navigateToTargetUrl(targetUrl);
         await Assertions.expectElementToHaveText(
           Browser.urlInputBoxID,
           getOriginFromURL(getDappUrl(1)),

@@ -17,6 +17,21 @@ class RedirectWebsite {
     );
     await redirectButton.tap(); // Click button to redirect to portfolio.metamask.io website
   }
+
+  /**
+   * Navigate to a target URL via JavaScript injection in the WebView.
+   * Use this instead of tapRedirectButton when Detox WebView tap causes
+   * ReactContext crashes during cross-origin navigations.
+   */
+  async navigateToTargetUrl(targetUrl: string): Promise<void> {
+    const body = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)).element(
+      by.web.cssSelector('body'),
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (body as any).runScript(
+      `(el) => { window.location.href = '${targetUrl}'; }`,
+    );
+  }
 }
 
 export default new RedirectWebsite();
