@@ -91,7 +91,7 @@ const CustomAction: React.FC<Props> = ({
         onPress={highlighted || isLoading ? undefined : onPress}
         highlighted={highlighted}
         activeOpacity={0.8}
-        accessible={!highlighted}
+        accessible={!highlighted && !isLoading}
         accessibilityLabel={provider?.name}
         compact
       >
@@ -109,8 +109,8 @@ const CustomAction: React.FC<Props> = ({
                 </View>
               )}
               <TouchableOpacity
-                onPress={highlighted ? showInfo : undefined}
-                disabled={!highlighted}
+                onPress={highlighted && !isLoading ? showInfo : undefined}
+                disabled={!highlighted || isLoading}
                 accessibilityLabel={`${provider?.name} logo`}
                 accessibilityHint="Shows provider details"
               >
