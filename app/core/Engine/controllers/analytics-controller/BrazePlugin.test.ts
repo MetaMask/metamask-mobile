@@ -361,28 +361,22 @@ describe('BrazePlugin', () => {
 
       plugin.setLanguage('fr');
 
-      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        'currentLanguage',
-        'fr',
-      );
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('fr');
     });
 
     it('does not send language when profileId is not set', () => {
       plugin.setLanguage('fr');
 
-      expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalled();
+      expect(mockBraze.setLanguage).not.toHaveBeenCalled();
     });
 
     it('sends stored language when profileId is set later', () => {
       plugin.setLanguage('fr');
-      expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalled();
+      expect(mockBraze.setLanguage).not.toHaveBeenCalled();
 
       plugin.setBrazeProfileId('profile-123');
 
-      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        'currentLanguage',
-        'fr',
-      );
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('fr');
     });
 
     it('sends the latest language when profileId is set after multiple changes', () => {
@@ -391,32 +385,20 @@ describe('BrazePlugin', () => {
 
       plugin.setBrazeProfileId('profile-123');
 
-      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        'currentLanguage',
-        'ja',
-      );
-      expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalledWith(
-        'currentLanguage',
-        'fr',
-      );
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('ja');
+      expect(mockBraze.setLanguage).not.toHaveBeenCalledWith('fr');
     });
 
     it('sends language on every profile change', () => {
       plugin.setLanguage('fr');
       plugin.setBrazeProfileId('profile-123');
 
-      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        'currentLanguage',
-        'fr',
-      );
-      mockBraze.setCustomUserAttribute.mockClear();
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('fr');
+      mockBraze.setLanguage.mockClear();
 
       plugin.setBrazeProfileId('profile-456');
 
-      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        'currentLanguage',
-        'fr',
-      );
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('fr');
     });
   });
 

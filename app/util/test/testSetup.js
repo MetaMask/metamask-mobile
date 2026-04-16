@@ -575,6 +575,7 @@ jest.mock('@braze/react-native-sdk', () => ({
     logCustomEvent: jest.fn(),
     requestImmediateDataFlush: jest.fn(),
     setCustomUserAttribute: jest.fn(),
+    setLanguage: jest.fn(),
     addListener: jest.fn(() => ({ remove: jest.fn() })),
     Events: { PUSH_NOTIFICATION_EVENT: 'push_notification_event' },
     getInitialPushPayload: jest.fn(),

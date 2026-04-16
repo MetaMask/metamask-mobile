@@ -96,7 +96,7 @@ export class BrazePlugin extends EventPlugin {
   }
 
   /**
-   * Set the app language as a custom user attribute on Braze.
+   * Set the app language on Braze using the native setLanguage API.
    *
    * Always stores the value so it can be sent when a profileId becomes
    * available. If a profileId is already set, sends immediately.
@@ -178,7 +178,7 @@ export class BrazePlugin extends EventPlugin {
 
   private sendLanguageToBraze(locale: string): void {
     try {
-      Braze.setCustomUserAttribute('currentLanguage', locale);
+      Braze.setLanguage(locale);
       Logger.log(`[BrazePlugin] Sent language to Braze: ${locale}`);
     } catch (error) {
       captureException(error as Error, {

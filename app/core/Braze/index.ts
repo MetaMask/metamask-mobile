@@ -12,7 +12,7 @@ let brazePlugin: BrazePlugin | undefined;
  * the plugin to the platform adapter.
  *
  * On first creation, sets the current language and subscribes to locale
- * changes so the Braze `currentLanguage` attribute stays in sync.
+ * changes so the Braze language stays in sync.
  */
 export function getBrazePlugin(): BrazePlugin {
   if (!brazePlugin) {
