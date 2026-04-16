@@ -67,7 +67,7 @@ jest.mock('../../actions/user', () => ({
   seedphraseBackedUp: () => ({ type: 'SEED_PHRASE_BACKED_UP' }),
   setMultichainAccountsIntroModalSeen: (seen: boolean) => ({
     type: 'SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN',
-    seen,
+    payload: { seen },
   }),
 }));
 jest.mock('../../actions/onboarding', () => ({
@@ -866,7 +866,7 @@ describe('AgenticService.install', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN',
-          seen: true,
+          payload: { seen: true },
         }),
       );
     });
