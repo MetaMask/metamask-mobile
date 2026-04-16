@@ -108,7 +108,7 @@ const LeaderboardEntryRow: React.FC<{
         twClassName="gap-3"
       >
         <Text variant={TextVariant.BodyMd} color={textColor} twClassName="w-8">
-          {String(entry.rank).padStart(2, '0')}.
+          {String(entry.rank).padStart(2, '0')}
         </Text>
         <Box twClassName="flex-row items-center gap-1">
           <Text

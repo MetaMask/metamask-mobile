@@ -185,7 +185,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
           {/* Menu button to show account addresses */}
           <ButtonIcon
             iconName={IconNameDS.Details}
-            size={ButtonIconSize.Lg}
+            size={ButtonIconSize.Md}
             onPress={handleShowAddresses}
             isDisabled={isLoading}
             testID={`rewards-account-addresses-${accountGroup.id}`}
@@ -194,7 +194,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
 
           {isLoading ? (
             <Box
-              twClassName="bg-subsection rounded-xl h-10 w-10 items-center justify-center"
+              twClassName="rounded-xl h-10 w-10 items-center justify-center"
               testID={`rewards-account-group-link-button-loading-${accountGroup.id}`}
             >
               <ActivityIndicator
@@ -205,13 +205,13 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
           ) : (
             <ButtonIcon
               iconName={linkButtonIconName}
-              size={ButtonIconSize.Lg}
+              size={ButtonIconSize.Md}
               isDisabled={
                 accountGroup.optedOutAccounts.length === 0 || isBulkLinkRunning
               }
               onPress={handleLinkAccountGroup}
               testID={`rewards-account-group-link-button-${accountGroup.id}`}
-              twClassName="bg-subsection rounded-xl"
+              twClassName="rounded-xl"
             />
           )}
         </Box>
