@@ -71,9 +71,9 @@ const TopTradersView = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleSearchPress = useCallback(() => {
-    // Search UI will be wired when the leaderboard data layer ships.
-  }, []);
+  const handleNotificationPreferencesPress = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES);
+  }, [navigation]);
 
   const handleNetworkPress = useCallback(() => {
     setShowNetworkBottomSheet(true);
@@ -134,10 +134,10 @@ const TopTradersView = () => {
           testID={TopTradersViewSelectorsIDs.BACK_BUTTON}
         />
         <ButtonIcon
-          iconName={IconName.Search}
+          iconName={IconName.Notification}
           size={ButtonIconSize.Md}
-          onPress={handleSearchPress}
-          testID={TopTradersViewSelectorsIDs.SEARCH_BUTTON}
+          onPress={handleNotificationPreferencesPress}
+          testID={TopTradersViewSelectorsIDs.NOTIFICATION_BUTTON}
         />
       </Box>
 

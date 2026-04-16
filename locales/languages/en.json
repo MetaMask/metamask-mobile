@@ -1017,6 +1017,13 @@
     "top_traders_view": {
       "title": "Top Traders"
     },
+    "notification_preferences": {
+      "title": "Top traders",
+      "allow_push_notifications": "Allow push notifications",
+      "trades_over_label": "Get notified of trades over:",
+      "traders_you_follow": "Traders you follow",
+      "traders_you_follow_desc": "Choose who you get notifications about"
+    },
     "follow": "Follow",
     "following": "Following",
     "all_networks": "All networks",
