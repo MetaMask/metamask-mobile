@@ -457,7 +457,7 @@ describe('PredictBuyWithAnyToken', () => {
 
       expect(mockSetIsInputFocused).toHaveBeenCalledWith(false);
       expect(mockSetCurrentValue).toHaveBeenCalledWith(20);
-      expect(mockSetCurrentValueUSDString).toHaveBeenCalledWith('20.00');
+      expect(mockSetCurrentValueUSDString).toHaveBeenCalledWith('20');
     });
 
     it('hides upper PredictPayWithRow outside ScrollView in sheet mode', () => {

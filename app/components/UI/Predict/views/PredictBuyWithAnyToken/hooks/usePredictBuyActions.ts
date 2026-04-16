@@ -183,11 +183,15 @@ export const usePredictBuyActions = ({
           handleErrors: false,
         });
       } else {
-        Logger.error(
-          new Error(
-            'usePredictBuyActions: PAY_WITH_ANY_TOKEN approval request is missing — approval may have been rejected or consumed',
-          ),
+        Logger.log(
+          'usePredictBuyActions: PAY_WITH_ANY_TOKEN approval missing — attempting re-init',
         );
+        batchIdRef.current = undefined;
+        rejectPendingTransactions();
+        const result = await initPayWithAnyToken();
+        if (result?.success && result.response?.batchId) {
+          batchIdRef.current = result.response.batchId;
+        }
         setIsConfirming(false);
         return {
           status: 'error',
@@ -218,6 +222,7 @@ export const usePredictBuyActions = ({
     analyticsProperties,
     preview,
     onApprovalConfirm,
+    initPayWithAnyToken,
   ]);
 
   useEffect(() => {

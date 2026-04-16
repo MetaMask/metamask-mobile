@@ -66,6 +66,7 @@ const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
           variant={TextVariant.HeadingSm}
           numberOfLines={1}
           ellipsizeMode="tail"
+          testID="sell-sheet-header-title"
         >
           {position?.title ?? strings('predict.cash_out')}
         </Text>

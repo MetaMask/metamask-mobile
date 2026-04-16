@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
+import type { BottomSheetRef } from '@metamask/design-system-react-native';
 
 interface UsePredictBottomSheetParams {
   onDismiss?: () => void;

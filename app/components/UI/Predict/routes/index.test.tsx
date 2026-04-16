@@ -125,54 +125,54 @@ describe('PredictScreenStack', () => {
     expect(screen.getByTestId('predict-feed')).toBeOnTheScreen();
   });
 
-  it('navigates to MARKET_DETAILS screen', () => {
+  it('navigates to MARKET_DETAILS screen', async () => {
     renderWithNavigation(<PredictScreenStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(Routes.PREDICT.MARKET_DETAILS);
     });
 
     expect(screen.getByTestId('predict-market-details')).toBeOnTheScreen();
   });
 
-  it('navigates to BUY_PREVIEW with PredictBuyPreview when payWithAnyToken is off', () => {
+  it('navigates to BUY_PREVIEW with PredictBuyPreview when payWithAnyToken is off', async () => {
     mockPayWithAnyTokenEnabled = false;
 
     renderWithNavigation(<PredictScreenStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW);
     });
 
     expect(screen.getByTestId('predict-buy-preview')).toBeOnTheScreen();
   });
 
-  it('navigates to BUY_PREVIEW with PredictBuyWithAnyToken when payWithAnyToken is on', () => {
+  it('navigates to BUY_PREVIEW with PredictBuyWithAnyToken when payWithAnyToken is on', async () => {
     mockPayWithAnyTokenEnabled = true;
 
     renderWithNavigation(<PredictScreenStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW);
     });
 
     expect(screen.getByTestId('predict-buy-with-any-token')).toBeOnTheScreen();
   });
 
-  it('navigates to SELL_PREVIEW screen', () => {
+  it('navigates to SELL_PREVIEW screen', async () => {
     renderWithNavigation(<PredictScreenStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(Routes.PREDICT.MODALS.SELL_PREVIEW);
     });
 
     expect(screen.getByTestId('predict-sell-preview')).toBeOnTheScreen();
   });
 
-  it('navigates to redesigned confirmation screen', () => {
+  it('navigates to redesigned confirmation screen', async () => {
     renderWithNavigation(<PredictScreenStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(
         Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       );
@@ -181,10 +181,10 @@ describe('PredictScreenStack', () => {
     expect(screen.getByTestId('confirm-component')).toBeOnTheScreen();
   });
 
-  it('navigates to no-header confirmation screen', () => {
+  it('navigates to no-header confirmation screen', async () => {
     renderWithNavigation(<PredictScreenStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(
         Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
       );
@@ -193,10 +193,10 @@ describe('PredictScreenStack', () => {
     expect(screen.getByTestId('confirm-component')).toBeOnTheScreen();
   });
 
-  it('navigates to no-header confirmation with animation disabled', () => {
+  it('navigates to no-header confirmation with animation disabled', async () => {
     renderWithNavigation(<PredictScreenStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(
         Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
         { animationEnabled: false },
@@ -206,10 +206,10 @@ describe('PredictScreenStack', () => {
     expect(screen.getByTestId('confirm-component')).toBeOnTheScreen();
   });
 
-  it('navigates to redesigned confirmation with animation disabled', () => {
+  it('navigates to redesigned confirmation with animation disabled', async () => {
     renderWithNavigation(<PredictScreenStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(
         Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         { animationEnabled: false },
@@ -219,10 +219,10 @@ describe('PredictScreenStack', () => {
     expect(screen.getByTestId('confirm-component')).toBeOnTheScreen();
   });
 
-  it('navigates to redesigned confirmation with animation enabled', () => {
+  it('navigates to redesigned confirmation with animation enabled', async () => {
     renderWithNavigation(<PredictScreenStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(
         Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         { animationEnabled: true },
@@ -245,40 +245,40 @@ describe('PredictModalStack', () => {
     expect(screen.getByTestId('predict-unavailable-modal')).toBeOnTheScreen();
   });
 
-  it('navigates to GTM_MODAL', () => {
+  it('navigates to GTM_MODAL', async () => {
     renderWithNavigation(<PredictModalStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(Routes.PREDICT.MODALS.GTM_MODAL);
     });
 
     expect(screen.getByTestId('predict-gtm-modal')).toBeOnTheScreen();
   });
 
-  it('navigates to ADD_FUNDS_SHEET', () => {
+  it('navigates to ADD_FUNDS_SHEET', async () => {
     renderWithNavigation(<PredictModalStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(Routes.PREDICT.MODALS.ADD_FUNDS_SHEET);
     });
 
     expect(screen.getByTestId('predict-add-funds-modal')).toBeOnTheScreen();
   });
 
-  it('navigates to ACTIVITY_DETAIL', () => {
+  it('navigates to ACTIVITY_DETAIL', async () => {
     renderWithNavigation(<PredictModalStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(Routes.PREDICT.ACTIVITY_DETAIL);
     });
 
     expect(screen.getByTestId('predict-activity-detail')).toBeOnTheScreen();
   });
 
-  it('navigates to redesigned confirmation in modal stack', () => {
+  it('navigates to redesigned confirmation in modal stack', async () => {
     renderWithNavigation(<PredictModalStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(
         Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       );
@@ -287,10 +287,10 @@ describe('PredictModalStack', () => {
     expect(screen.getByTestId('confirm-component')).toBeOnTheScreen();
   });
 
-  it('navigates to no-header confirmation in modal stack', () => {
+  it('navigates to no-header confirmation in modal stack', async () => {
     renderWithNavigation(<PredictModalStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(
         Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
       );
@@ -299,10 +299,10 @@ describe('PredictModalStack', () => {
     expect(screen.getByTestId('confirm-component')).toBeOnTheScreen();
   });
 
-  it('navigates to no-header confirmation with animation disabled in modal', () => {
+  it('navigates to no-header confirmation with animation disabled in modal', async () => {
     renderWithNavigation(<PredictModalStack />);
 
-    act(() => {
+    await act(async () => {
       navigationRef.current?.navigate(
         Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
         { animationEnabled: false },

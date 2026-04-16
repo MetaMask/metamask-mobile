@@ -233,7 +233,9 @@ describe('PredictPreviewSheetContext', () => {
       Routes.PREDICT.MODALS.BUY_PREVIEW,
       buyParams,
     );
-    expect(screen.queryByTestId('predict-buy-preview-sheet')).toBeNull();
+    expect(
+      screen.queryByTestId('predict-buy-preview-sheet'),
+    ).not.toBeOnTheScreen();
   });
 
   it('navigates to SELL_PREVIEW route when flag is OFF', () => {
@@ -251,7 +253,9 @@ describe('PredictPreviewSheetContext', () => {
       Routes.PREDICT.MODALS.SELL_PREVIEW,
       sellParams,
     );
-    expect(screen.queryByTestId('predict-sell-preview-sheet')).toBeNull();
+    expect(
+      screen.queryByTestId('predict-sell-preview-sheet'),
+    ).not.toBeOnTheScreen();
   });
 
   it('falls back to navigation when used outside provider', () => {
@@ -315,7 +319,9 @@ describe('PredictPreviewSheetContext', () => {
     expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId('dismiss-sheet'));
-    expect(screen.queryByTestId('predict-buy-preview-sheet')).toBeNull();
+    expect(
+      screen.queryByTestId('predict-buy-preview-sheet'),
+    ).not.toBeOnTheScreen();
   });
 
   it('clears sell params on dismiss', () => {
@@ -329,7 +335,9 @@ describe('PredictPreviewSheetContext', () => {
     expect(screen.getByTestId('predict-sell-preview-sheet')).toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId('dismiss-sheet'));
-    expect(screen.queryByTestId('predict-sell-preview-sheet')).toBeNull();
+    expect(
+      screen.queryByTestId('predict-sell-preview-sheet'),
+    ).not.toBeOnTheScreen();
   });
 
   it('passes title and subtitle to buy sheet', () => {
@@ -366,7 +374,9 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-sell'));
 
-    expect(screen.getByText('Position')).toBeOnTheScreen();
+    expect(screen.getByTestId('sell-sheet-header-title')).toHaveTextContent(
+      'Position',
+    );
   });
 
   it('reopens buy sheet with same params via nonce increment', () => {
@@ -380,7 +390,9 @@ describe('PredictPreviewSheetContext', () => {
     expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId('dismiss-sheet'));
-    expect(screen.queryByTestId('predict-buy-preview-sheet')).toBeNull();
+    expect(
+      screen.queryByTestId('predict-buy-preview-sheet'),
+    ).not.toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId('open-buy'));
     expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
@@ -397,7 +409,9 @@ describe('PredictPreviewSheetContext', () => {
     expect(screen.getByTestId('predict-sell-preview-sheet')).toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId('dismiss-sheet'));
-    expect(screen.queryByTestId('predict-sell-preview-sheet')).toBeNull();
+    expect(
+      screen.queryByTestId('predict-sell-preview-sheet'),
+    ).not.toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId('open-sell'));
     expect(screen.getByTestId('predict-sell-preview-sheet')).toBeOnTheScreen();

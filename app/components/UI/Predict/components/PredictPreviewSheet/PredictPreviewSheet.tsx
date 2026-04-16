@@ -1,4 +1,7 @@
 import {
+  BottomSheet,
+  BottomSheetHeader,
+  BottomSheetHeaderVariant,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -9,9 +12,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { forwardRef, useImperativeHandle } from 'react';
 import { Image } from 'react-native';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
-import { BottomSheetHeaderVariant } from '../../../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.types';
 import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
@@ -65,7 +65,6 @@ const PredictPreviewSheet = forwardRef<
     return (
       <BottomSheet
         ref={sheetRef}
-        shouldNavigateBack={false}
         isInteractable
         isFullscreen={isFullscreen}
         onClose={handleSheetClosed}
@@ -74,7 +73,7 @@ const PredictPreviewSheet = forwardRef<
         <BottomSheetHeader
           onClose={closeSheet}
           variant={BottomSheetHeaderVariant.Display}
-          style={tw.style('px-6 py-4')}
+          twClassName="px-6 py-4"
         >
           {renderHeader ? (
             renderHeader()
@@ -96,6 +95,7 @@ const PredictPreviewSheet = forwardRef<
                   twClassName="text-default"
                   numberOfLines={1}
                   ellipsizeMode="tail"
+                  testID="preview-sheet-title"
                 >
                   {title}
                 </Text>
@@ -105,6 +105,7 @@ const PredictPreviewSheet = forwardRef<
                     color={TextColor.TextAlternative}
                     twClassName="font-medium"
                     numberOfLines={1}
+                    testID="preview-sheet-subtitle"
                   >
                     {subtitle}
                   </Text>

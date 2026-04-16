@@ -383,20 +383,22 @@ describe('usePredictBuyActions', () => {
       );
     });
 
-    it('passes undefined transactionId when approvalRequest is undefined', async () => {
+    it('attempts re-init and does not call placeOrder when approvalRequest is missing', async () => {
       mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
       mockApprovalRequest = undefined;
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
 
+      mockInitPayWithAnyToken.mockClear();
+
       await act(async () => {
         await result.current.handleConfirm();
       });
 
-      expect(mockPlaceOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ transactionId: undefined }),
-      );
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+      expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
     });
   });
 

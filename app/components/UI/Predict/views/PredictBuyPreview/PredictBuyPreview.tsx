@@ -32,6 +32,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import Button, {
   ButtonSize,
@@ -83,6 +84,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     ? props
     : route.params;
   const onClose = isSheetMode ? props.onClose : undefined;
+  const ActiveScrollView = isSheetMode ? GHScrollView : ScrollView;
 
   const analyticsProperties = useMemo(
     () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
@@ -318,7 +320,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   );
 
   const renderAmount = () => (
-    <ScrollView
+    <ActiveScrollView
       style={tw.style('flex-col')}
       contentContainerStyle={tw.style('flex-grow justify-center')}
       showsVerticalScrollIndicator={false}
@@ -380,7 +382,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           )}
         </Box>
       </Box>
-    </ScrollView>
+    </ActiveScrollView>
   );
 
   const renderActionButton = () => {

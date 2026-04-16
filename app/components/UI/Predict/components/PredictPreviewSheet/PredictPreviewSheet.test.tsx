@@ -77,7 +77,7 @@ describe('PredictPreviewSheet', () => {
   it('renders nothing when not opened', () => {
     render(<TestComponent />);
 
-    expect(screen.queryByTestId('sheet-child')).toBeNull();
+    expect(screen.queryByTestId('sheet-child')).not.toBeOnTheScreen();
   });
 
   it('renders children when opened', async () => {
@@ -86,15 +86,20 @@ describe('PredictPreviewSheet', () => {
     await waitFor(() => {
       expect(screen.getByTestId('sheet-child')).toBeOnTheScreen();
     });
-    expect(screen.getByText('Child Content')).toBeOnTheScreen();
+    expect(screen.getByTestId('sheet-child')).toHaveTextContent(
+      'Child Content',
+    );
   });
 
   it('displays the provided title', async () => {
     render(<TestComponent shouldOpen title="My Custom Title" />);
 
     await waitFor(() => {
-      expect(screen.getByText('My Custom Title')).toBeOnTheScreen();
+      expect(screen.getByTestId('preview-sheet-title')).toBeOnTheScreen();
     });
+    expect(screen.getByTestId('preview-sheet-title')).toHaveTextContent(
+      'My Custom Title',
+    );
   });
 
   it('renders without crashing when onDismiss is not provided', () => {
@@ -105,8 +110,11 @@ describe('PredictPreviewSheet', () => {
     render(<TestComponent shouldOpen subtitle="Odds 51¢" />);
 
     await waitFor(() => {
-      expect(screen.getByText('Odds 51¢')).toBeOnTheScreen();
+      expect(screen.getByTestId('preview-sheet-subtitle')).toBeOnTheScreen();
     });
+    expect(screen.getByTestId('preview-sheet-subtitle')).toHaveTextContent(
+      'Odds 51¢',
+    );
   });
 
   it('hides subtitle when not provided', async () => {
@@ -115,7 +123,9 @@ describe('PredictPreviewSheet', () => {
     await waitFor(() => {
       expect(screen.getByTestId('sheet-child')).toBeOnTheScreen();
     });
-    expect(screen.queryByText('Odds')).toBeNull();
+    expect(
+      screen.queryByTestId('preview-sheet-subtitle'),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders image when provided', async () => {
@@ -144,14 +154,19 @@ describe('PredictPreviewSheet', () => {
     await waitFor(() => {
       expect(screen.getByTestId('custom-header')).toBeOnTheScreen();
     });
-    expect(screen.getByText('Custom Header')).toBeOnTheScreen();
+    expect(screen.getByTestId('custom-header')).toHaveTextContent(
+      'Custom Header',
+    );
   });
 
   it('renders default header when renderHeader is not provided', async () => {
     render(<TestComponent shouldOpen title="Default Title" />);
 
     await waitFor(() => {
-      expect(screen.getByText('Default Title')).toBeOnTheScreen();
+      expect(screen.getByTestId('preview-sheet-title')).toBeOnTheScreen();
     });
+    expect(screen.getByTestId('preview-sheet-title')).toHaveTextContent(
+      'Default Title',
+    );
   });
 });
