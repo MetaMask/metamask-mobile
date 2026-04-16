@@ -482,3 +482,10 @@ export const shortenAddress = (address: string): string => {
   if (address.length <= 10) return address;
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
+
+/**
+ * Strips the "Ondo Tokenized " prefix from a token name returned by the
+ * search API, so list rows show just the underlying asset name (e.g. "Apple").
+ */
+export const sanitizeOndoTokenName = (name: string): string =>
+  name.replace(/^ondo\s+tokenized\s+/i, '').trim();

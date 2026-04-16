@@ -26,6 +26,7 @@ import {
   formatUsd,
   formatSignedUsd,
   formatCompactUsd,
+  sanitizeOndoTokenName,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -1595,6 +1596,34 @@ describe('formatUtils', () => {
 
     it('formats negative thousands', () => {
       expect(formatCompactUsd(-75_000)).toBe('-$75K');
+    });
+  });
+
+  describe('sanitizeOndoTokenName', () => {
+    it('strips "Ondo Tokenized " prefix (exact casing)', () => {
+      expect(sanitizeOndoTokenName('Ondo Tokenized Apple')).toBe('Apple');
+    });
+
+    it('strips prefix case-insensitively', () => {
+      expect(sanitizeOndoTokenName('ondo tokenized google')).toBe('google');
+      expect(sanitizeOndoTokenName('ONDO TOKENIZED TSLA')).toBe('TSLA');
+    });
+
+    it('handles multiple spaces between words', () => {
+      expect(sanitizeOndoTokenName('Ondo  Tokenized  Apple')).toBe('Apple');
+    });
+
+    it('leaves unrelated names unchanged', () => {
+      expect(sanitizeOndoTokenName('Apple Inc')).toBe('Apple Inc');
+      expect(sanitizeOndoTokenName('USDY')).toBe('USDY');
+    });
+
+    it('returns empty string for an empty input', () => {
+      expect(sanitizeOndoTokenName('')).toBe('');
+    });
+
+    it('trims surrounding whitespace after stripping', () => {
+      expect(sanitizeOndoTokenName('Ondo Tokenized  Apple  ')).toBe('Apple');
     });
   });
 });

@@ -5,19 +5,26 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import {
+  FlatList,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   BadgeWrapper,
   BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -26,6 +33,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Hex, type CaipChainId } from '@metamask/utils';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import TrendingTokenLogo from '../../Trending/components/TrendingTokenLogo';
 import Badge, {
   BadgeVariant,
@@ -36,31 +44,27 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useRwaTokens } from '../../Trending/hooks/useRwaTokens/useRwaTokens';
 import TrendingTokenRowItem from '../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { getTrendingTokenImageUrl } from '../../Trending/utils/getTrendingTokenImageUrl';
-import { parseCaip19, caipChainIdToHex } from '../utils/formatUtils';
+import {
+  parseCaip19,
+  caipChainIdToHex,
+  sanitizeOndoTokenName,
+} from '../utils/formatUtils';
 import { RWA_NETWORKS_LIST } from '../../Trending/utils/trendingNetworksList';
+import { TrendingTokenNetworkBottomSheet } from '../../Trending/components/TrendingTokensBottomSheet';
+import { FilterButton } from '../../Trending/components/FilterBar/FilterBar';
+import { useNetworkName } from '../../Trending/hooks/useNetworkName/useNetworkName';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeToken } from '../../Bridge/types';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
-import {
-  PriceChangeOption,
-  TimeOption,
-  TrendingTokenNetworkBottomSheet,
-  TrendingTokenPriceChangeBottomSheet,
-} from '../../Trending/components/TrendingTokensBottomSheet';
-import { TrendingListHeader } from '../../Trending/components/TrendingListHeader';
-import FilterBar from '../../Trending/components/FilterBar/FilterBar';
-import { useTokenListFilters } from '../../Trending/hooks/useTokenListFilters/useTokenListFilters';
+import { TimeOption } from '../../Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import OndoAfterHoursSheet from '../components/Campaigns/OndoAfterHoursSheet';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
 // USDY (Ondo USD Yield) on Ethereum mainnet — used to preset the source token
 // for open_position mode. This is the only network where USDY is supported in
@@ -68,6 +72,9 @@ import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 const USDY_CAIP19 =
   'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c' as const;
 const USDY_DECIMALS = 18;
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -94,9 +101,7 @@ const styles = StyleSheet.create({
 const OndoCampaignRwaSelectorView: React.FC = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<
       RouteProp<OndoCampaignRwaSelectorRouteParams, 'OndoCampaignRwaSelector'>
@@ -110,30 +115,11 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     campaignId,
   } = route.params;
 
-  const filters = useTokenListFilters({
-    timeOption: TimeOption.TwentyFourHours,
-  });
-
-  // Set the default network filter based on mode:
-  // - swap: pre-select the source asset's chain
-  // - open_position: pre-select Ethereum
-  const hasSetInitialNetwork = useRef(false);
-  useEffect(() => {
-    if (hasSetInitialNetwork.current) return;
-    hasSetInitialNetwork.current = true;
-
-    if (mode === 'swap' && srcTokenAsset) {
-      const parsed = parseCaip19(srcTokenAsset);
-      if (parsed) {
-        filters.handleNetworkSelect([
-          `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
-        ]);
-        return;
-      }
-    }
-    filters.handleNetworkSelect([RWA_NETWORKS_LIST[0].caipChainId]);
-  }, [mode, srcTokenAsset, filters]);
-
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedChainId, setSelectedChainId] = useState<CaipChainId>(
+    RWA_NETWORKS_LIST[0].caipChainId,
+  );
+  const [showNetworkSheet, setShowNetworkSheet] = useState(false);
   const [isAfterHoursSheetOpen, setIsAfterHoursSheetOpen] = useState(false);
   const [afterHoursNextOpen, setAfterHoursNextOpen] = useState<Date | null>(
     null,
@@ -141,35 +127,20 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   const [afterHoursPendingToken, setAfterHoursPendingToken] =
     useState<BridgeToken | null>(null);
 
-  // Uppercase the source symbol — on-chain BSC symbols use mixed case
-  // (e.g. "NIOon") but the convention on this screen is always uppercase.
-  const srcTokenSymbolDisplay = srcTokenSymbol?.toUpperCase();
-
-  // Build the source BridgeToken from route params (swap mode only).
-  // chainId must be hex for EVM chains so useLatestBalance can fetch the
-  // on-chain balance (it skips CAIP-formatted EVM chain IDs).
+  // Build the source BridgeToken from route params (swap mode only)
   const srcBridgeToken = useMemo((): BridgeToken | undefined => {
-    if (mode !== 'swap' || !srcTokenAsset || !srcTokenSymbolDisplay)
-      return undefined;
+    if (mode !== 'swap' || !srcTokenAsset || !srcTokenSymbol) return undefined;
     const parsed = parseCaip19(srcTokenAsset);
-    if (!parsed || parsed.namespace !== 'eip155') return undefined;
+    if (!parsed) return undefined;
     return {
       address: parsed.assetReference,
-      symbol: srcTokenSymbolDisplay,
-      name: srcTokenName ?? srcTokenSymbolDisplay,
+      symbol: srcTokenSymbol,
+      name: srcTokenName ?? srcTokenSymbol,
       decimals: srcTokenDecimals ?? 18,
-      chainId: caipChainIdToHex(
-        `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
-      ),
+      chainId: `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
       image: getTrendingTokenImageUrl(srcTokenAsset),
     };
-  }, [
-    mode,
-    srcTokenAsset,
-    srcTokenSymbolDisplay,
-    srcTokenName,
-    srcTokenDecimals,
-  ]);
+  }, [mode, srcTokenAsset, srcTokenSymbol, srcTokenName, srcTokenDecimals]);
 
   const srcChainHex = useMemo(() => {
     if (!srcTokenAsset) return undefined;
@@ -180,32 +151,21 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     );
   }, [srcTokenAsset]);
 
-  // In swap mode, restrict the network picker to the source asset's chain.
-  // In open_position mode, show all RWA networks.
-  const allowedNetworks = useMemo(() => {
+  // open_position: show one chain at a time (user-selected, defaults to Ethereum).
+  // swap: lock to the src asset's chain.
+  const chainIds = useMemo((): CaipChainId[] => {
     if (mode === 'swap' && srcTokenAsset) {
       const parsed = parseCaip19(srcTokenAsset);
       if (parsed) {
-        const srcCaipChainId =
-          `${parsed.namespace}:${parsed.chainId}` as CaipChainId;
-        return RWA_NETWORKS_LIST.filter(
-          (n) => n.caipChainId === srcCaipChainId,
-        );
+        return [`${parsed.namespace}:${parsed.chainId}` as CaipChainId];
       }
     }
-    return RWA_NETWORKS_LIST;
-  }, [mode, srcTokenAsset]);
-
-  const chainIds = filters.selectedNetwork;
+    return [selectedChainId];
+  }, [mode, srcTokenAsset, selectedChainId]);
 
   const { data: rwaTokens, isLoading } = useRwaTokens({
-    searchQuery: filters.searchQuery || undefined,
+    searchQuery,
     chainIds,
-    sortTrendingTokensOptions: {
-      option:
-        filters.selectedPriceChangeOption ?? PriceChangeOption.PriceChange,
-      direction: filters.priceChangeSortDirection,
-    },
   });
 
   const activeGroupAccounts = useSelector(
@@ -244,6 +204,32 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     };
   }, [mode, activeGroupAccounts, allTokenBalances]);
 
+  // Show skeleton while client-side filters are being applied.
+  // useRwaTokens applies search/sort synchronously but via useStableReference,
+  // which delays opts by one render cycle — so rwaTokens lags behind the inputs
+  // by exactly one render. isFiltering bridges that gap.
+  const [isFiltering, setIsFiltering] = useState(false);
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    setIsFiltering(true);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setIsFiltering(false);
+  }, [rwaTokens]);
+
+  const showSkeleton = isLoading || isFiltering;
+
+  const selectedNetworkName = useNetworkName(
+    mode === 'open_position' ? [selectedChainId] : null,
+  );
+
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { isTokenTradingOpen } = useRWAToken();
 
   useTrackRewardsPageView({
@@ -259,17 +245,15 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   });
 
   // Deduplicate by symbol so the same stock on multiple chains appears once.
-  // Use CAIP-19 assetId (not symbol) to exclude the source token in swap mode —
-  // symbol comparison is fragile when casing differs between chains.
   const tokens = useMemo((): TrendingAsset[] => {
     const seen = new Set<string>();
     return rwaTokens.filter((token) => {
-      if (srcTokenAsset && token.assetId === srcTokenAsset) return false;
+      if (srcTokenSymbol && token.symbol === srcTokenSymbol) return false;
       if (seen.has(token.symbol)) return false;
       seen.add(token.symbol);
       return true;
     });
-  }, [rwaTokens, srcTokenAsset]);
+  }, [rwaTokens, srcTokenSymbol]);
 
   const handleAssetSelect = useCallback(
     (asset: TrendingAsset) => {
@@ -314,10 +298,8 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     ],
   );
 
-  const swapTitle = useMemo(() => {
-    if (mode !== 'swap' || !srcTokenSymbolDisplay || !srcTokenAsset)
-      return undefined;
-    return (
+  const title =
+    mode === 'swap' && srcTokenSymbol && srcTokenAsset ? (
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -341,23 +323,21 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
         >
           <TrendingTokenLogo
             assetId={srcTokenAsset}
-            symbol={srcTokenSymbolDisplay}
+            symbol={srcTokenSymbol}
             size={28}
           />
         </BadgeWrapper>
-        <Text variant={TextVariant.HeadingSm}>{srcTokenSymbolDisplay}</Text>
+        <Text variant={TextVariant.HeadingSm}>{srcTokenSymbol}</Text>
       </Box>
+    ) : (
+      strings('rewards.ondo_rwa_asset_selector.title_open_position')
     );
-  }, [mode, srcTokenSymbolDisplay, srcTokenAsset, srcChainHex]);
-
-  const headerTitle =
-    swapTitle ?? strings('rewards.ondo_rwa_asset_selector.title_open_position');
 
   const renderItem = ({ item }: { item: TrendingAsset }) => (
     <View style={styles.row}>
       <TrendingTokenRowItem
-        token={item}
-        selectedTimeOption={filters.selectedTimeOption}
+        token={{ ...item, name: sanitizeOndoTokenName(item.name) }}
+        selectedTimeOption={TimeOption.TwentyFourHours}
         onPress={handleAssetSelect}
       />
     </View>
@@ -382,36 +362,70 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignRwaSelectorView">
       <SafeAreaView
+        edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
-        edges={['left', 'right']}
       >
-        <View style={tw.style('bg-default', { paddingTop: insets.top })}>
-          <TrendingListHeader
-            title={headerTitle}
-            isSearchVisible={filters.isSearchVisible}
-            searchQuery={filters.searchQuery}
-            onSearchQueryChange={filters.handleSearchQueryChange}
-            onBack={() => navigation.goBack()}
-            onSearchToggle={filters.handleSearchToggle}
-            testID="ondo-rwa-selector-header"
-          />
+        <HeaderCompactStandard
+          title={title}
+          onBack={() => navigation.goBack()}
+          includesTopInset
+        />
+
+        {/* Sticky search bar */}
+        <View style={tw.style('px-4 py-2 bg-default')}>
+          <View
+            style={tw.style(
+              'flex-row items-center bg-muted rounded-xl px-3 py-2 gap-2',
+            )}
+          >
+            <Icon
+              name={IconName.Search}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+            <TextInput
+              style={tw.style('flex-1 text-default body-md')}
+              placeholder={strings(
+                'rewards.ondo_rwa_asset_selector.search_placeholder',
+              )}
+              placeholderTextColor={colors.text.muted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCorrect={false}
+              autoCapitalize="none"
+              returnKeyType="search"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity
+                testID="clear-search-button"
+                onPress={() => setSearchQuery('')}
+              >
+                <Icon
+                  name={IconName.Close}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
-        {!filters.isSearchVisible ? (
-          <FilterBar
-            priceChangeButtonText={filters.priceChangeButtonText}
-            onPriceChangePress={filters.handlePriceChangePress}
-            isPriceChangeDisabled={rwaTokens.length === 0}
-            networkName={filters.selectedNetworkName}
-            onNetworkPress={filters.handleAllNetworksPress}
-          />
-        ) : null}
+        {/* Network filter — only in open_position mode */}
+        {mode === 'open_position' && (
+          <View style={tw.style('px-4 pb-2')}>
+            <FilterButton
+              testID="network-filter-button"
+              label={selectedNetworkName}
+              onPress={() => setShowNetworkSheet(true)}
+            />
+          </View>
+        )}
 
         <View
           style={[styles.divider, { backgroundColor: colors.border.muted }]}
         />
 
-        {isLoading ? (
+        {showSkeleton ? (
           renderSkeleton()
         ) : (
           <FlatList<TrendingAsset>
@@ -423,22 +437,17 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
             ListEmptyComponent={renderEmpty}
           />
         )}
-
         <TrendingTokenNetworkBottomSheet
-          isVisible={filters.showNetworkBottomSheet}
-          onClose={() => filters.setShowNetworkBottomSheet(false)}
-          onNetworkSelect={filters.handleNetworkSelect}
-          selectedNetwork={filters.selectedNetwork}
-          networks={allowedNetworks}
+          isVisible={mode === 'open_position' && showNetworkSheet}
+          onClose={() => setShowNetworkSheet(false)}
+          onNetworkSelect={(chainIds) => {
+            if (chainIds?.[0]) setSelectedChainId(chainIds[0]);
+            setShowNetworkSheet(false);
+          }}
+          selectedNetwork={[selectedChainId]}
+          networks={RWA_NETWORKS_LIST}
+          hideAllNetworks
         />
-        <TrendingTokenPriceChangeBottomSheet
-          isVisible={filters.showPriceChangeBottomSheet}
-          onClose={() => filters.setShowPriceChangeBottomSheet(false)}
-          onPriceChangeSelect={filters.handlePriceChangeSelect}
-          selectedOption={filters.selectedPriceChangeOption}
-          sortDirection={filters.priceChangeSortDirection}
-        />
-
         {isAfterHoursSheetOpen && (
           <OndoAfterHoursSheet
             onClose={() => {
