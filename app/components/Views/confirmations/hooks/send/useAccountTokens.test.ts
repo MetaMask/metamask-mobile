@@ -815,11 +815,7 @@ describe('useAccountTokens', () => {
       ],
     };
 
-    it('uses from account assets when txParams.from resolves to an account group', () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        txParams: { from: '0xFromAddress' },
-      } as ReturnType<typeof useTransactionMetadataRequest>);
-
+    it('uses from account assets when accountAddress resolves to an account group', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectAssetsBySelectedAccountGroup) {
           return mockAssets;
@@ -840,7 +836,9 @@ describe('useAccountTokens', () => {
         return overrideAssets;
       });
 
-      const { result } = renderHook(() => useAccountTokens());
+      const { result } = renderHook(() =>
+        useAccountTokens({ accountAddress: '0xFromAddress' }),
+      );
 
       expect(result.current).toHaveLength(1);
       expect(result.current[0].symbol).toBe('OVERRIDE');

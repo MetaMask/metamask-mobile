@@ -83,6 +83,10 @@ export interface CustomAmountInfoProps {
    * When true, the confirm/continue button is disabled regardless of alert state.
    */
   disableConfirm?: boolean;
+  /**
+   * When true, the account selector is shown.
+   */
+  supportAccountSelection?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -96,6 +100,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     hidePayTokenAmount,
     preferredToken,
     footerText,
+    supportAccountSelection,
   }) => {
     useClearConfirmationOnBackSwipe();
 
@@ -195,7 +200,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         </Box>
         <Box gap={16}>
           <AlertMessage alertMessage={alertMessage} />
-          {!hidePayTokenAmount && (
+          {supportAccountSelection && (
             <PayAccountSelector
               selectedAccount={selectedAccount}
               onSelectedAccountChange={setSelectedAccount}
@@ -248,7 +253,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
-              disableConfirm={disableConfirm}
+              disableConfirm={
+                disableConfirm || (supportAccountSelection && !selectedAccount)
+              }
             />
           )}
         </Box>
