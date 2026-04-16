@@ -167,6 +167,7 @@ describe('SRPErrorScreen', () => {
 
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         expect.objectContaining({
+          name: 'Wallet Creation Error Support Clicked',
           properties: expect.objectContaining({
             flow_type: 'srp',
           }),
@@ -290,6 +291,24 @@ describe('SRPErrorScreen', () => {
 
       expect(Linking.openURL).toHaveBeenCalledWith(
         AppConstants.REVIEW_PROMPT.SUPPORT,
+      );
+    });
+
+    it('tracks WALLET_CREATION_ERROR_SUPPORT_CLICKED with flow_type srp', () => {
+      mockTrackOnboarding.mockClear();
+      const { getByText } = renderWithProvider(
+        <SRPErrorScreen error={mockError} />,
+      );
+
+      fireEvent.press(getByText('MetaMask Support'));
+
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            flow_type: 'srp',
+          }),
+        }),
+        expect.any(Function),
       );
     });
   });
