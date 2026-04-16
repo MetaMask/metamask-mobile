@@ -169,6 +169,7 @@ describe('CashTokensFullView', () => {
       isClaiming: false,
       error: null,
       claimRewards: mockClaimRewards,
+      refetch: jest.fn(),
     });
     mockUseCashTokensRefresh.mockReturnValue({
       refreshing: false,

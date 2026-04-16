@@ -1,6 +1,8 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useCashTokensRefresh } from './useCashTokensRefresh';
 import Engine from '../../../core/Engine';
+import { performEvmTokenRefresh } from '../../UI/Tokens/util/tokenRefreshUtils';
+import Logger from '../../../util/Logger';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => selector()),
@@ -37,9 +39,39 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../UI/Tokens/util/tokenRefreshUtils', () => {
+  const actual = jest.requireActual('../../UI/Tokens/util/tokenRefreshUtils');
+  return {
+    ...actual,
+    performEvmTokenRefresh: jest.fn(actual.performEvmTokenRefresh),
+  };
+});
+
+const mockRefetchMerklBonus = jest.fn();
+
+jest.mock(
+  '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim',
+  () => ({
+    useMerklBonusClaim: jest.fn(() => ({
+      claimableReward: null,
+      lifetimeBonusClaimed: null,
+      hasPendingClaim: false,
+      isClaiming: false,
+      error: null,
+      claimRewards: jest.fn(),
+      refetch: mockRefetchMerklBonus,
+    })),
+  }),
+);
+
 describe('useCashTokensRefresh', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset the mock implementation to delegate to the real util by default.
+    const actual = jest.requireActual('../../UI/Tokens/util/tokenRefreshUtils');
+    (performEvmTokenRefresh as jest.Mock).mockImplementation(
+      actual.performEvmTokenRefresh,
+    );
   });
 
   it('sets refreshing true during onRefresh and false after completion', async () => {
@@ -70,12 +102,16 @@ describe('useCashTokensRefresh', () => {
     expect(
       Engine.context.TokenRatesController.updateExchangeRates,
     ).toHaveBeenCalledTimes(1);
+    expect(mockRefetchMerklBonus).toHaveBeenCalledTimes(1);
   });
 
-  it('flips refreshing back to false even when a refresher rejects', async () => {
-    (
-      Engine.context.TokenBalancesController.updateBalances as jest.Mock
-    ).mockRejectedValueOnce(new Error('boom'));
+  it('flips refreshing back to false and logs when performEvmTokenRefresh rejects', async () => {
+    (performEvmTokenRefresh as jest.Mock).mockRejectedValueOnce(
+      new Error('boom'),
+    );
+    const loggerSpy = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => undefined);
 
     const { result } = renderHook(() => useCashTokensRefresh());
 
@@ -84,5 +120,8 @@ describe('useCashTokensRefresh', () => {
     });
 
     expect(result.current.refreshing).toBe(false);
+    expect(loggerSpy).toHaveBeenCalled();
+
+    loggerSpy.mockRestore();
   });
 });
