@@ -230,6 +230,21 @@ class PlaywrightUtilities {
       );
     }
   }
+
+  static async launchApp({
+    packageName,
+    appId,
+  }: {
+    packageName?: string;
+    appId?: string;
+  }): Promise<void> {
+    const drv = getDriver();
+    if (!packageName && !appId) {
+      throw new Error('Package name or app id is not available');
+    }
+    await drv.activateApp(packageName ?? appId);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
 }
 
 // Change this once we use functions for the PlaywrightAdapter Utils

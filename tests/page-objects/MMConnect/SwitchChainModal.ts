@@ -6,6 +6,7 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
+import { sleep } from '../../framework';
 
 class SwitchChainModal {
   get connectButton(): EncapsulatedElementType {
@@ -26,7 +27,13 @@ class SwitchChainModal {
     });
   }
 
-  async tapConnectButton(): Promise<void> {
+  async tapConnectButton({
+    shouldCooldown = false,
+    timeToCooldown = 1000,
+  }: {
+    shouldCooldown?: boolean;
+    timeToCooldown?: number;
+  } = {}): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
         const element = await asPlaywrightElement(this.connectButton);
@@ -34,6 +41,9 @@ class SwitchChainModal {
           timeoutMsg: 'SwitchChainModal: connect button not visible',
         });
         await element.click();
+        if (shouldCooldown) {
+          await sleep(timeToCooldown);
+        }
       },
     });
   }

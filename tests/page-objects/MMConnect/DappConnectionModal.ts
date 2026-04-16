@@ -87,10 +87,14 @@ class DappConnectionModal {
 
   async tapConnectButton({
     shouldCooldown = false,
-  }: { shouldCooldown?: boolean } = {}): Promise<void> {
+    timeToCooldown = 1000,
+  }: {
+    shouldCooldown?: boolean;
+    timeToCooldown?: number;
+  } = {}): Promise<void> {
     await UnifiedGestures.waitAndTap(this.connectButton);
     if (shouldCooldown) {
-      await sleep(750);
+      await sleep(timeToCooldown);
     }
   }
 

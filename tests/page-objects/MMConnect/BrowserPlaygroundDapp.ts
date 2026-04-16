@@ -9,7 +9,7 @@ import UnifiedGestures from '../../framework/UnifiedGestures';
 import { expect } from '@playwright/test';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import { MMConnectDappTestIds } from '../../selectors/MMConnect/MMConnectDapp.testIds';
-import { PlaywrightGestures } from '../../framework';
+import { PlaywrightGestures, sleep } from '../../framework';
 
 class BrowserPlaygroundDapp {
   /**
@@ -232,64 +232,73 @@ class BrowserPlaygroundDapp {
 
   // Tap actions
   async tapConnectLegacy(): Promise<void> {
-    await UnifiedGestures.tap(this.connectLegacyButton);
+    await UnifiedGestures.waitAndTap(this.connectLegacyButton);
   }
 
   async tapDisconnect(): Promise<void> {
-    await UnifiedGestures.tap(this.disconnectButton);
+    await UnifiedGestures.waitAndTap(this.disconnectButton);
   }
 
   async tapPersonalSign(): Promise<void> {
-    await UnifiedGestures.tap(this.personalSignButton);
+    await UnifiedGestures.waitAndTap(this.personalSignButton);
   }
 
   async tapSignTypedDataV4(): Promise<void> {
-    await UnifiedGestures.tap(this.signTypedDataV4Button);
+    await UnifiedGestures.waitAndTap(this.signTypedDataV4Button);
   }
 
   async tapSendTransaction(): Promise<void> {
-    await UnifiedGestures.tap(this.sendTransactionButton);
+    await UnifiedGestures.waitAndTap(this.sendTransactionButton);
   }
 
   async tapSwitchToMainnet(): Promise<void> {
-    await UnifiedGestures.tap(this.switchToMainnetButton);
+    await UnifiedGestures.waitAndTap(this.switchToMainnetButton);
   }
 
   async tapSwitchToPolygon(): Promise<void> {
-    await UnifiedGestures.tap(this.switchToPolygonButton);
+    await UnifiedGestures.waitAndTap(this.switchToPolygonButton);
   }
 
   async tapSwitchToGoerli(): Promise<void> {
-    await UnifiedGestures.tap(this.switchToGoerliButton);
+    await UnifiedGestures.waitAndTap(this.switchToGoerliButton);
   }
 
   async tapGetBalance(): Promise<void> {
-    await UnifiedGestures.tap(this.getBalanceButton);
+    await UnifiedGestures.waitAndTap(this.getBalanceButton);
   }
 
   async tapConnectWagmi(): Promise<void> {
-    await UnifiedGestures.tap(this.connectWagmiButton);
+    await UnifiedGestures.waitAndTap(this.connectWagmiButton);
   }
 
   async tapWagmiDisconnect(): Promise<void> {
-    await UnifiedGestures.tap(this.wagmiDisconnectButton);
+    await UnifiedGestures.waitAndTap(this.wagmiDisconnectButton);
   }
 
-  async tapWagmiSignMessage(): Promise<void> {
+  async tapWagmiSignMessage({
+    shouldCooldown = false,
+    timeToCooldown = 1000,
+  }: {
+    shouldCooldown?: boolean;
+    timeToCooldown?: number;
+  } = {}): Promise<void> {
     await PlaywrightGestures.waitAndTap(
       await asPlaywrightElement(this.wagmiSignMessageButton),
       {
         delay: 2000, // Make sure the keyboard dismiss animation is complete
       },
     );
+    if (shouldCooldown) {
+      await sleep(timeToCooldown);
+    }
   }
 
   async tapWagmiSendTransaction(): Promise<void> {
-    await UnifiedGestures.tap(this.wagmiSendTransactionButton);
+    await UnifiedGestures.waitAndTap(this.wagmiSendTransactionButton);
   }
 
   async tapWagmiSwitchChain(chainId: number): Promise<void> {
-    await UnifiedGestures.tap(this.getWagmiSwitchChainButton(chainId));
+    await UnifiedGestures.waitAndTap(this.getWagmiSwitchChainButton(chainId));
   }
 
   async typeWagmiSignMessage(message: string): Promise<void> {
@@ -306,15 +315,15 @@ class BrowserPlaygroundDapp {
   }
 
   async tapSolanaDisconnect(): Promise<void> {
-    await UnifiedGestures.tap(this.solanaDisconnectButton);
+    await UnifiedGestures.waitAndTap(this.solanaDisconnectButton);
   }
 
   async tapSolanaSignMessage(): Promise<void> {
-    await UnifiedGestures.tap(this.solanaSignMessageButton);
+    await UnifiedGestures.waitAndTap(this.solanaSignMessageButton);
   }
 
   async tapConnect(): Promise<void> {
-    await UnifiedGestures.tap(this.connectButton);
+    await UnifiedGestures.waitAndTap(this.connectButton);
   }
 
   async waitForConnectButtonVisible(timeoutMs = 15000): Promise<void> {
@@ -582,10 +591,12 @@ class BrowserPlaygroundDapp {
   async assertScopeCardVisible(scope: string): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const element = await asPlaywrightElement(this.getScopeCard(scope));
-        await element.waitForDisplayed({
-          timeout: 10000,
-          timeoutMsg: `BrowserPlaygroundDapp: scope card "${scope}" not visible`,
+        await PlaywrightAssertions.expectConditionWithRetry(async () => {
+          const element = await asPlaywrightElement(this.getScopeCard(scope));
+          await element.waitForDisplayed({
+            timeout: 10000,
+            timeoutMsg: `BrowserPlaygroundDapp: scope card "${scope}" not visible`,
+          });
         });
       },
     });

@@ -264,11 +264,14 @@ class RNPlaygroundDapp {
     });
   }
 
-  async scrollToElement(elemGetter: EncapsulatedElementType): Promise<void> {
+  async scrollToElement(
+    elemGetter: EncapsulatedElementType,
+    scrollParams: { scrollParams?: { direction?: 'up' | 'down' } } = {},
+  ): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
         const elem = await asPlaywrightElement(elemGetter);
-        await PlaywrightGestures.scrollIntoView(elem);
+        await PlaywrightGestures.scrollIntoView(elem, scrollParams);
       },
     });
   }

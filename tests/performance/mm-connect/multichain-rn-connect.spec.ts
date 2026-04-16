@@ -36,10 +36,6 @@ const NETWORK_DISPLAY_NAMES: Record<string, string> = {
   [CHAINS.POLYGON]: 'Polygon',
 };
 
-const DEFAULT_SCROLL_PARAMS = {
-  scrollParams: { percent: 0.2 },
-};
-
 /**
  * After a MetaMask action (approve / sign), wait for the callback deeplink
  * to return to the playground. Falls back to activateApp if the automatic
@@ -113,7 +109,6 @@ test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Sol
   for (const chain of ALL_CHAINS) {
     await RNPlaygroundDapp.scrollToElement(
       RNPlaygroundDapp.getScopeCard(chain),
-      DEFAULT_SCROLL_PARAMS,
     );
     await RNPlaygroundDapp.assertScopeCardVisible(chain);
   }
@@ -130,14 +125,12 @@ test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Sol
   for (const chain of EVM_CHAINS) {
     await RNPlaygroundDapp.scrollToElement(
       RNPlaygroundDapp.getInvokeButton(chain),
-      DEFAULT_SCROLL_PARAMS,
     );
     await RNPlaygroundDapp.tapInvoke(chain);
     await sleep(5000);
 
     await RNPlaygroundDapp.scrollToElement(
       RNPlaygroundDapp.getResultCode(chain, 'eth_blockNumber'),
-      DEFAULT_SCROLL_PARAMS,
     );
     await RNPlaygroundDapp.assertResultCodeContains(
       chain,
@@ -159,13 +152,11 @@ test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Sol
     // Select personal_sign (replaces default eth_blockNumber)
     await RNPlaygroundDapp.scrollToElement(
       RNPlaygroundDapp.getMethodSelect(chain),
-      DEFAULT_SCROLL_PARAMS,
     );
     await RNPlaygroundDapp.selectMethod(chain, 'personal_sign');
 
     await RNPlaygroundDapp.scrollToElement(
       RNPlaygroundDapp.getInvokeButton(chain),
-      DEFAULT_SCROLL_PARAMS,
     );
     await RNPlaygroundDapp.tapInvoke(chain);
     await sleep(3000);
@@ -191,7 +182,6 @@ test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Sol
     // Verify a signature was returned (hex string starting with 0x)
     await RNPlaygroundDapp.scrollToElement(
       RNPlaygroundDapp.getResultCode(chain, 'personal_sign'),
-      DEFAULT_SCROLL_PARAMS,
     );
     await RNPlaygroundDapp.assertResultCodeContains(
       chain,
@@ -203,13 +193,11 @@ test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Sol
   // Solana write request
   await RNPlaygroundDapp.scrollToElement(
     RNPlaygroundDapp.getMethodSelect(CHAINS.SOLANA),
-    DEFAULT_SCROLL_PARAMS,
   );
   await RNPlaygroundDapp.selectMethod(CHAINS.SOLANA, 'signMessage');
 
   await RNPlaygroundDapp.scrollToElement(
     RNPlaygroundDapp.getInvokeButton(CHAINS.SOLANA),
-    DEFAULT_SCROLL_PARAMS,
   );
   await RNPlaygroundDapp.tapInvoke(CHAINS.SOLANA);
   await sleep(3000);
@@ -221,7 +209,6 @@ test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Sol
 
   await RNPlaygroundDapp.scrollToElement(
     RNPlaygroundDapp.getResultCode(CHAINS.SOLANA, 'signMessage'),
-    DEFAULT_SCROLL_PARAMS,
   );
   await RNPlaygroundDapp.waitForResult(CHAINS.SOLANA, 'signMessage');
 

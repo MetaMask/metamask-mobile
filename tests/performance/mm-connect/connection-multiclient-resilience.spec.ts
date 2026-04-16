@@ -21,6 +21,7 @@ import {
   cleanupAdbReverse,
   ensureAccountGroupsFinishedLoading,
   waitForDappServerReady,
+  unlockIfLockScreenVisible,
 } from './utils';
 import {
   launchMobileBrowser,
@@ -110,6 +111,8 @@ test('@metamask/connect-multichain (multiple clients) - Disconnect, reconnect, a
     await navigateToDapp(DAPP_URL);
   });
 
+  await sleep(1000);
+
   // Tap the Connect button (multichain API - default scopes)
   await PlaywrightContextHelpers.withWebAction(async () => {
     // Note: the Solana wallet standard provider itself has an issue where it does not
@@ -118,8 +121,19 @@ test('@metamask/connect-multichain (multiple clients) - Disconnect, reconnect, a
     await BrowserPlaygroundDapp.tapSolanaConnect();
   }, DAPP_URL);
 
+  // Handle connection approval in MetaMask
+  await PlaywrightContextHelpers.withNativeAction(async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await unlockIfLockScreenVisible();
+    await DappConnectionModal.tapConnectButton();
+  });
+
+  await sleep(1000);
+  await switchToMobileBrowser();
+  await sleep(1000);
+
   //
-  // Step 5: Disconnect Solana, verify EVM persists
+  // Step 1: Disconnect Solana, verify EVM persists
   //
   await PlaywrightContextHelpers.withWebAction(async () => {
     // Disconnect Solana
@@ -156,12 +170,16 @@ test('@metamask/connect-multichain (multiple clients) - Disconnect, reconnect, a
     await BrowserPlaygroundDapp.tapSolanaConnect();
   }, DAPP_URL);
 
-  // Reconnecting Solana takes a bit of time, so we need to wait for it to complete
+  // Reconnecting Solana takes a bit of time to trigger the deeplink, so we need to wait for it to complete
   await sleep(3500);
 
   await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-    await DappConnectionModal.tapConnectButton();
+    // Reconnecting Solana takes a bit of time, so we need to wait for it to complete
+    await DappConnectionModal.tapConnectButton({
+      shouldCooldown: true,
+      timeToCooldown: 4000,
+    });
   });
 
   await sleep(1000);

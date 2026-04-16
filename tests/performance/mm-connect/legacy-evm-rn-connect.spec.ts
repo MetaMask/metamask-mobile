@@ -5,11 +5,7 @@ import RNPlaygroundDapp from '../../page-objects/MMConnect/RNPlaygroundDapp';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
 import SignModal from '../../page-objects/MMConnect/SignModal';
 import { unlockIfLockScreenVisible, ensurePlaygroundInstalled } from './utils';
-import { PlaywrightGestures, sleep } from '../../framework';
-
-const DEFAULT_SCROLL_PARAMS = {
-  scrollParams: { percent: 0.2 },
-};
+import { sleep } from '../../framework';
 
 /**
  * After a MetaMask action (approve / sign / cancel), wait for the callback
@@ -65,10 +61,7 @@ test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send 
   await RNPlaygroundDapp.scrollToElement(RNPlaygroundDapp.appTitle, {
     scrollParams: { direction: 'down' },
   });
-  await RNPlaygroundDapp.scrollToElement(
-    RNPlaygroundDapp.legacyEvmCard,
-    DEFAULT_SCROLL_PARAMS,
-  );
+  await RNPlaygroundDapp.scrollToElement(RNPlaygroundDapp.legacyEvmCard);
   await RNPlaygroundDapp.assertLegacyEvmConnected();
   await RNPlaygroundDapp.assertLegacyEvmHasAccounts();
   await RNPlaygroundDapp.assertLegacyEvmActiveAccount();
@@ -82,7 +75,6 @@ test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send 
 
   await RNPlaygroundDapp.scrollToElement(
     RNPlaygroundDapp.legacyEvmBtnPersonalSign,
-    DEFAULT_SCROLL_PARAMS,
   );
   await RNPlaygroundDapp.tapLegacyEvmButton(
     RNPlaygroundDapp.legacyEvmBtnPersonalSign,
@@ -99,7 +91,6 @@ test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send 
   // Verify signature was returned (hex string starting with 0x)
   await RNPlaygroundDapp.scrollToElement(
     RNPlaygroundDapp.legacyEvmResponseText,
-    DEFAULT_SCROLL_PARAMS,
   );
   const signResponse = await RNPlaygroundDapp.getLegacyEvmResponseText();
   console.log(`personal_sign response: ${signResponse}`);
@@ -111,7 +102,6 @@ test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send 
 
   await RNPlaygroundDapp.scrollToElement(
     RNPlaygroundDapp.legacyEvmBtnSendTransaction,
-    DEFAULT_SCROLL_PARAMS,
   );
   await RNPlaygroundDapp.tapLegacyEvmButton(
     RNPlaygroundDapp.legacyEvmBtnSendTransaction,
@@ -130,7 +120,6 @@ test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send 
   // The dapp should show an error (user rejected) in the response
   await RNPlaygroundDapp.scrollToElement(
     RNPlaygroundDapp.legacyEvmResponseText,
-    DEFAULT_SCROLL_PARAMS,
   );
   const txResponse = await RNPlaygroundDapp.getLegacyEvmResponseText();
   console.log(`eth_sendTransaction (cancelled) response: ${txResponse}`);
@@ -145,7 +134,6 @@ test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send 
 
   await RNPlaygroundDapp.scrollToElement(
     RNPlaygroundDapp.legacyEvmBtnSwitchPolygon,
-    DEFAULT_SCROLL_PARAMS,
   );
   await RNPlaygroundDapp.tapLegacyEvmButton(
     RNPlaygroundDapp.legacyEvmBtnSwitchPolygon,

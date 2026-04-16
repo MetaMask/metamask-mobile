@@ -6,7 +6,11 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
-import { PlaywrightAssertions, PlaywrightElement } from '../../framework';
+import {
+  PlaywrightAssertions,
+  PlaywrightElement,
+  sleep,
+} from '../../framework';
 
 class SignModal {
   get confirmButton(): EncapsulatedElementType {
@@ -36,7 +40,13 @@ class SignModal {
     });
   }
 
-  async tapConfirmButton(): Promise<void> {
+  async tapConfirmButton({
+    shouldCooldown = false,
+    timeToCooldown = 1000,
+  }: {
+    shouldCooldown?: boolean;
+    timeToCooldown?: number;
+  } = {}): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
         let element: PlaywrightElement | undefined;
@@ -50,9 +60,18 @@ class SignModal {
         await element?.click();
       },
     });
+    if (shouldCooldown) {
+      await sleep(timeToCooldown);
+    }
   }
 
-  async tapCancelButton(): Promise<void> {
+  async tapCancelButton({
+    shouldCooldown = false,
+    timeToCooldown = 1000,
+  }: {
+    shouldCooldown?: boolean;
+    timeToCooldown?: number;
+  } = {}): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
         let element: PlaywrightElement | undefined;
@@ -66,32 +85,28 @@ class SignModal {
         await element?.click();
       },
     });
+    if (shouldCooldown) {
+      await sleep(timeToCooldown);
+    }
   }
 
   async assertNetworkText(network: string): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        // We're making 5 retries as the confirmation screen can take a
-        const maxRetries = 5;
-
-        for (let i = 0; i < maxRetries; i++) {
-          try {
+        await PlaywrightAssertions.expectConditionWithRetry(
+          async () => {
             const element = await asPlaywrightElement(
               this.getNetworkText(network),
             );
             await element.waitForDisplayed({
+              timeout: 10000,
               timeoutMsg: `SignModal: network text "${network}" not visible`,
             });
-            return;
-          } catch (error) {
-            console.log(
-              `SignModal: network text "${network}" not visible on attempt ${i + 1}`,
-            );
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-          }
-        }
-        throw new Error(
-          `SignModal: network text "${network}" not visible after ${maxRetries} attempts`,
+          },
+          {
+            maxRetries: 5,
+            interval: 1000,
+          },
         );
       },
     });
