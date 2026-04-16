@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import OndoCampaignDetailsView, {
   CAMPAIGN_DETAILS_TEST_IDS,
@@ -312,8 +312,8 @@ jest.mock('../../Trending/components/TrendingTokenLogo', () => {
 
 jest.mock('../hooks/useOndoAccountPicker', () => ({
   __esModule: true,
-  // Called as a React hook, so useState is valid inside the factory result.
   useOndoAccountPicker: () => {
+    const { useState } = jest.requireActual('react');
     const [pendingPicker, setPendingPicker] = useState(null);
     return {
       pendingPicker,
