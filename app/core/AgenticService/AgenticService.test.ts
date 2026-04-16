@@ -65,6 +65,10 @@ jest.mock('../../actions/user', () => ({
   setExistingUser: () => ({ type: 'SET_EXISTING_USER' }),
   logIn: () => ({ type: 'LOG_IN' }),
   seedphraseBackedUp: () => ({ type: 'SEED_PHRASE_BACKED_UP' }),
+  setMultichainAccountsIntroModalSeen: (seen: boolean) => ({
+    type: 'SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN',
+    seen,
+  }),
 }));
 jest.mock('../../actions/onboarding', () => ({
   setCompletedOnboarding: () => ({ type: 'SET_COMPLETED_ONBOARDING' }),
@@ -88,6 +92,7 @@ jest.mock('../../store/storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('../../constants/storage', () => ({
+  OPTIN_META_METRICS_UI_SEEN: 'optin_meta_metrics_ui_seen',
   PERPS_GTM_MODAL_SHOWN: 'perps_gtm',
   PREDICT_GTM_MODAL_SHOWN: 'predict_gtm',
   REWARDS_GTM_MODAL_SHOWN: 'rewards_gtm',
@@ -822,6 +827,47 @@ describe('AgenticService.install', () => {
       });
       expect(mockDispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: 'SET_OS_AUTH_ENABLED' }),
+      );
+    });
+
+    it('sets OPTIN_META_METRICS_UI_SEEN when metametrics is defined', async () => {
+      const StorageWrapper = jest.requireMock('../../store/storage-wrapper');
+      StorageWrapper.setItem.mockClear();
+      await bridge().setupWallet({
+        password: 'test123',
+        accounts: [],
+        settings: { metametrics: true },
+      });
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        'optin_meta_metrics_ui_seen',
+        'true',
+      );
+    });
+
+    it('does not set OPTIN_META_METRICS_UI_SEEN when metametrics is undefined', async () => {
+      const StorageWrapper = jest.requireMock('../../store/storage-wrapper');
+      StorageWrapper.setItem.mockClear();
+      await bridge().setupWallet({
+        password: 'test123',
+        accounts: [],
+      });
+      expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
+        'optin_meta_metrics_ui_seen',
+        'true',
+      );
+    });
+
+    it('always dispatches setMultichainAccountsIntroModalSeen', async () => {
+      mockDispatch.mockClear();
+      await bridge().setupWallet({
+        password: 'test123',
+        accounts: [],
+      });
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN',
+          seen: true,
+        }),
       );
     });
   });
