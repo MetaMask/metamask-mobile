@@ -115,8 +115,20 @@ describe('AdvancedChart', () => {
 
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
 
+    const webViewAfterRerender = getByTestId('mock-webview');
     act(() => {
-      webView.props.onMessage({
+      webViewAfterRerender.props.onLoadEnd();
+    });
+    act(() => {
+      webViewAfterRerender.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    act(() => {
+      webViewAfterRerender.props.onMessage({
         nativeEvent: {
           data: JSON.stringify({ type: 'CHART_LAYOUT_SETTLED', payload: {} }),
         },
@@ -200,6 +212,22 @@ describe('AdvancedChart', () => {
       },
     );
     expect(setOhlcvCallsAfterKeyChange).toHaveLength(0);
+
+    // Series key remounts the WebView; load must finish before sync runs. Stale wait still applies.
+    const webViewAfterKeyChange = getByTestId('mock-webview');
+    act(() => {
+      webViewAfterKeyChange.props.onLoadEnd();
+    });
+
+    expect(
+      mockPostMessage.mock.calls.filter((call) => {
+        try {
+          return JSON.parse(call[0] as string).type === 'SET_OHLCV_DATA';
+        } catch {
+          return false;
+        }
+      }),
+    ).toHaveLength(0);
 
     // Fresh data arrives (same key, different bars) — NOW it should send
     mockPostMessage.mockClear();
