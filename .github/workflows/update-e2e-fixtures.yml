@@ -298,6 +298,10 @@ jobs:
             echo "HAS_CHANGES=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Format updated fixture with prettier
+        if: steps.fixture-changes.outputs.HAS_CHANGES == 'true'
+        run: npx --yes prettier@^3.6.2 --write tests/framework/fixtures/json/default-fixture.json
+
       # Note: Commits pushed with the default GITHUB_TOKEN do not trigger
       # downstream CI workflows (GitHub anti-loop protection). This is
       # intentional — a follow-up push or manual CI re-run will validate
