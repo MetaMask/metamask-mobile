@@ -24,6 +24,7 @@ const { discoverTarget } = require('./lib/target-discovery');
 const { createWSClient } = require('./lib/ws-client');
 const { cdpEval, cdpEvalAsync } = require('./lib/cdp-eval');
 const { checkAssert } = require('./lib/assert');
+const { buildArmSnippet, buildCollectSnippet } = require('./lib/recipe-issues');
 
 async function evalSpec(client, entry, params) {
   const expr = typeof entry.expression === 'function' ? entry.expression(params) : entry.expression;
@@ -605,6 +606,21 @@ const COMMANDS = {
     };
   },
 
+  async 'issues-arm'(client) {
+    // Installs console.warn/error and global error/unhandledrejection hooks
+    // that push into globalThis.__AGENTIC_ISSUES__ (capped at 500 entries).
+    // Idempotent — subsequent calls return { installed: true, reason: 'already-installed' }.
+    const result = await cdpEval(client, buildArmSnippet());
+    return result || { installed: false };
+  },
+
+  async 'issues-collect'(client) {
+    // Snapshots and clears globalThis.__AGENTIC_ISSUES__.
+    // Returns { count, entries } where entries are { t, level, text }.
+    const result = await cdpEval(client, buildCollectSnippet());
+    return result || { count: 0, entries: [] };
+  },
+
   async 'eval-ref'(client, args) {
     const arg = args[0];
     if (!arg || arg === '--help') {
@@ -731,6 +747,9 @@ Commands:
                                        Stop profiler, dump Chrome-compatible
                                        .cpuprofile to <path> (default:
                                        temp/agentic/recipes/test-artifacts/traces/trace-<label>.cpuprofile)
+  issues-arm                           Install console/exception hooks that
+                                       populate globalThis.__AGENTIC_ISSUES__
+  issues-collect                       Snapshot + clear the in-app issue buffer
 
 Environment:
   WATCHER_PORT    Metro port (default: 8081)
