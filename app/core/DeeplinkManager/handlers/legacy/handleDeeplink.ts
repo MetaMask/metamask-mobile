@@ -17,7 +17,7 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
   // links here immediately to establish the WebSocket connection as fast as possible,
   // without waiting for the app to be unlocked or fully onboarded.
   if (SDKConnectV2.isMwpDeeplink(opts.uri)) {
-    trackMwpDeepLinkUsed(opts.uri);
+    trackMwpDeepLinkUsed();
     SDKConnectV2.handleMwpDeeplink(opts.uri);
     // By returning here, we bypass the standard saga-based deeplink flow below,
     // which would otherwise wait for a LOGIN or ONBOARDING_COMPLETED action.
@@ -41,7 +41,7 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
  * Fire DEEP_LINK_USED for MWP deeplinks asynchronously so the WebSocket
  * handshake is never blocked by analytics work.
  */
-function trackMwpDeepLinkUsed(url: string): void {
+function trackMwpDeepLinkUsed(): void {
   detectAppInstallation()
     .then((wasAppInstalled) => {
       const event = AnalyticsEventBuilder.createEventBuilder(
