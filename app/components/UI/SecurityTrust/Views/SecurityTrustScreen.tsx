@@ -41,6 +41,7 @@ import {
 import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetailsStickyFooter';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import { useTokenActions } from '../../TokenDetails/hooks/useTokenActions';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
   <Text
@@ -584,8 +585,11 @@ const SecurityTrustScreen: React.FC = () => {
               )}
               {Boolean(params?.address && !params.isNative) &&
                 (() => {
+                  const tokenAddress = isCaipAssetType(params.address)
+                    ? parseCaipAssetType(params.address).assetReference
+                    : params.address;
                   const blockExplorerUrl = explorer.getBlockExplorerTokenUrl(
-                    params.address,
+                    tokenAddress,
                     params.chainId,
                   );
                   const blockExplorerName = explorer.getBlockExplorerName(
