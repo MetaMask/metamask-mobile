@@ -98,6 +98,37 @@ function readSkillVersion() {
   return fs.readFileSync(VERSION_PATH, 'utf8').trim() || '0.0.0-dev';
 }
 
+function resolveCodexExecutable() {
+  const asdfWhich = spawnSync('asdf', ['which', 'codex'], { encoding: 'utf8' });
+  const which = spawnSync('which', ['codex'], { encoding: 'utf8' });
+  const codexPath = String(asdfWhich.stdout || which.stdout || '').trim();
+  if (!codexPath) {
+    throw new Error('Unable to locate codex executable');
+  }
+
+  try {
+    if (codexPath.endsWith('.js')) {
+      return {
+        command: process.execPath,
+        argsPrefix: [codexPath],
+      };
+    }
+    const realPath = fs.realpathSync(codexPath);
+    if (realPath.endsWith('.js')) {
+      return {
+        command: process.execPath,
+        argsPrefix: [realPath],
+      };
+    }
+  } catch {
+    // Fall through to direct executable invocation.
+  }
+  return {
+    command: codexPath,
+    argsPrefix: [],
+  };
+}
+
 function writeFile(filePath, contents) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, contents, 'utf8');
@@ -528,11 +559,13 @@ function resolveRunnerInvocation({ runner, runnerCmd, model }) {
   }
 
   if (runner === 'codex') {
+    const codexExec = resolveCodexExecutable();
     const outputLastMessagePath = path.join(
       os.tmpdir(),
       `fs-cook-codex-last-message-${Date.now()}-${Math.random().toString(36).slice(2)}.txt`,
     );
     const args = [
+      ...codexExec.argsPrefix,
       'exec',
       '-C',
       process.cwd(),
@@ -547,7 +580,7 @@ function resolveRunnerInvocation({ runner, runnerCmd, model }) {
     }
     args.push('-');
     return {
-      command: 'codex',
+      command: codexExec.command,
       args,
       shell: false,
       outputLastMessagePath,
@@ -565,12 +598,14 @@ function runRunnerBatch({ prompt, runner, runnerCmd, model }) {
       shell: true,
       input: prompt,
       encoding: 'utf8',
+      env: invocation.env || process.env,
       maxBuffer: 20 * 1024 * 1024,
     });
   } else {
     result = spawnSync(invocation.command, invocation.args, {
       input: prompt,
       encoding: 'utf8',
+      env: invocation.env || process.env,
       maxBuffer: 20 * 1024 * 1024,
     });
   }

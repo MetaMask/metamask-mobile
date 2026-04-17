@@ -182,6 +182,23 @@ Conclusion so far:
   1. a different non-interactive contract, or
   2. a dedicated timeout / streaming / output-capture strategy validated end-to-end
 
+Visible tmux follow-up:
+
+- validation was rerun from a real shell pane in the `mm-4` tmux session (not inside the Claude pane)
+- first visible failure was the `asdf` shim path:
+  - `No version is set for command codex`
+- local runner was then patched to bypass the shim and invoke the real Codex entrypoint
+- latest visible run:
+  - `fs-cook-runs/codex-visible-20260417T202656`
+  - `run-meta.json` written normally
+  - `runner-output.txt` effectively empty
+  - pane ended with `Runner exited with status null`
+
+Refined conclusion:
+
+- Codex support in the local runner is improved enough to launch and scaffold visible runs
+- Codex batch capture is still not template-ready because terminal completion/output handling is not yet reliable like the Claude path
+
 ## Open Questions
 
 - Should `fs-cook` have separate interactive and batch task templates?
