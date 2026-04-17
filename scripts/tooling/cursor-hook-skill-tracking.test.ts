@@ -35,8 +35,6 @@ afterEach(() => {
   stdoutWrite.mockRestore();
   jest.mocked(execFileSync).mockReset();
   jest.mocked(createInterface).mockReset();
-  delete process.env.CI;
-  delete process.env.TOOL_USAGE_COLLECTION_OPT_IN;
 });
 
 describe('extractSkillName', () => {
@@ -163,23 +161,4 @@ describe('main', () => {
     );
   });
 
-  it('allows file read without tracking when running in CI', async () => {
-    process.env.CI = 'true';
-
-    await main();
-
-    expect(stdoutWrite).toHaveBeenCalledWith('{"permission":"allow"}\n');
-    expect(execFileSync).not.toHaveBeenCalled();
-    expect(createInterface).not.toHaveBeenCalled();
-  });
-
-  it('allows file read without tracking when collection is opted out', async () => {
-    process.env.TOOL_USAGE_COLLECTION_OPT_IN = 'false';
-
-    await main();
-
-    expect(stdoutWrite).toHaveBeenCalledWith('{"permission":"allow"}\n');
-    expect(execFileSync).not.toHaveBeenCalled();
-    expect(createInterface).not.toHaveBeenCalled();
-  });
 });

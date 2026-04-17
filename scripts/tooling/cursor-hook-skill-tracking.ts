@@ -16,14 +16,6 @@ const SKILL_PATH_RE = /\.agents\/skills\/([^/]+)\/SKILL\.md$/;
 const allow: HookOutput = { permission: 'allow' };
 
 /**
- * Returns true when collection must be skipped — in CI or when the developer
- * has set the opt-out env var, so no tracking subprocess is ever spawned.
- */
-function mustSkip(): boolean {
-  return Boolean(process.env.CI) || process.env.TOOL_USAGE_COLLECTION_OPT_IN === 'false';
-}
-
-/**
  * Extracts the skill name from a path matching `.agents/skills/<name>/SKILL.md`.
  * Returns null if the path does not match.
  */
@@ -36,13 +28,11 @@ export function extractSkillName(filePath: string): string | null {
  * Entry point for the Cursor `beforeReadFile` hook.
  * Reads JSON from stdin, checks if the file is a skill, and records a start event.
  * Always outputs `{"permission":"allow"}` so the read is never blocked.
+ *
+ * CI and opt-out are handled upstream by the shell guards in .cursor/hooks.json;
+ * this script only runs when tracking is active.
  */
 export async function main(): Promise<void> {
-  if (mustSkip()) {
-    process.stdout.write(JSON.stringify(allow) + '\n');
-    return;
-  }
-
   const rl = createInterface({ input: process.stdin, crlfDelay: Infinity });
   const lines: string[] = [];
   for await (const line of rl) {
