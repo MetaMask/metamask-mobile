@@ -122,6 +122,16 @@ jest.mock('./Price.legacy', () => {
   };
 });
 
+const mockFormatAddressToAssetId = jest.fn();
+jest.mock('@metamask/bridge-controller', () => ({
+  formatAddressToAssetId: (...args: unknown[]) =>
+    mockFormatAddressToAssetId(...args),
+}));
+
+jest.mock('../../Bridge/utils/tokenUtils', () => ({
+  normalizeTokenAddress: jest.fn((address: string) => address),
+}));
+
 /** Enough points to stay on the advanced path (see CHART_DATA_THRESHOLD in Price.advanced). */
 const mockPricesAtLeast5: TokenPrice[] = Array.from({ length: 5 }, (_, i) => [
   String(1000 + i),
@@ -162,6 +172,25 @@ describe('PriceAdvanced', () => {
     });
     mockTrackEvent = analyticsHook.trackEvent as jest.Mock;
     jest.mocked(useAnalytics).mockReturnValue(analyticsHook);
+
+    // Default: formatAddressToAssetId succeeds with a valid CAIP-19 asset ID
+    mockFormatAddressToAssetId.mockReturnValue(
+      'eip155:1/erc20:0x1234567890123456789012345678901234567890',
+    );
+
+    // Reset useOHLCVChart to default success state
+    mockUseOHLCVChart.mockReturnValue({
+      ohlcvData: [
+        ...ohlcvPaddingThree,
+        { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+        { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+      hasEmptyData: false,
+    });
   });
 
   it('renders the token price when not loading', () => {
@@ -663,6 +692,122 @@ describe('PriceAdvanced', () => {
     // Should use close=100 from the first visible candle, NOT close=200 from 3 days ago
     // (105 - 100) / 100 * 100 = 5.00%
     expect(getByText(/5\.00%/)).toBeOnTheScreen();
+  });
+
+  describe('custom network support', () => {
+    it('falls back to legacy chart when formatAddressToAssetId throws for unsupported chain', () => {
+      // Simulate formatAddressToAssetId throwing for custom/unsupported networks
+      mockFormatAddressToAssetId.mockImplementation(() => {
+        throw new Error('No XChain Swaps native asset found for chainId: 0xfa');
+      });
+
+      // useOHLCVChart should receive empty assetId and skip fetch
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const customNetworkAsset: TokenI = {
+        ...mockAsset,
+        chainId: '0xfa', // Fantom
+        symbol: 'FTM',
+        name: 'Fantom',
+      };
+
+      const { getByTestId } = render(
+        <PriceAdvanced {...baseProps} asset={customNetworkAsset} />,
+      );
+
+      // Should fallback to legacy chart instead of crashing
+      expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+    });
+
+    it('handles formatAddressToAssetId error for Linea Sepolia testnet', () => {
+      mockFormatAddressToAssetId.mockImplementation(() => {
+        throw new Error(
+          'No XChain Swaps native asset found for chainId: eip155:59141',
+        );
+      });
+
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const lineaSepoliaAsset: TokenI = {
+        ...mockAsset,
+        chainId: 'eip155:59141',
+        symbol: 'ETH',
+        name: 'Ethereum',
+      };
+
+      const { getByTestId } = render(
+        <PriceAdvanced {...baseProps} asset={lineaSepoliaAsset} />,
+      );
+
+      expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+    });
+
+    it('still renders advanced chart for supported networks', () => {
+      // Ensure formatAddressToAssetId succeeds for supported chains
+      mockFormatAddressToAssetId.mockReturnValue(
+        'eip155:1/erc20:0x1234567890123456789012345678901234567890',
+      );
+
+      // Mock successful OHLCV data fetch
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          ...ohlcvPaddingThree,
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <PriceAdvanced {...baseProps} />,
+      );
+
+      // Should render advanced chart for supported networks
+      expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
+      expect(queryByTestId('price-legacy-fallback')).not.toBeOnTheScreen();
+    });
+
+    it('passes empty assetId to useOHLCVChart when formatAddressToAssetId fails', () => {
+      mockFormatAddressToAssetId.mockImplementation(() => {
+        throw new Error('Unsupported chain');
+      });
+
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      render(<PriceAdvanced {...baseProps} />);
+
+      // useOHLCVChart should be called with empty assetId
+      expect(mockUseOHLCVChart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          assetId: '',
+        }),
+      );
+    });
   });
 
   describe('touch gesture handling', () => {
