@@ -183,6 +183,8 @@ export type WebViewToRNMessageType =
   | 'INDICATOR_ADDED'
   | 'INDICATOR_REMOVED'
   | 'CROSSHAIR_MOVE'
+  | 'CHART_INTERACTED'
+  | 'VISIBLE_RANGE_CHANGED'
   | 'ERROR'
   | 'DEBUG';
 
@@ -271,6 +273,13 @@ export interface ChartInteractedPayload {
   interaction_type: ChartInteractionType;
 }
 
+export interface VisibleRangeChangedPayload {
+  /** Unix timestamp in milliseconds for the leftmost visible bar */
+  visibleFromMs: number;
+  /** Unix timestamp in milliseconds for the rightmost visible bar */
+  visibleToMs: number;
+}
+
 export interface ErrorPayload {
   message: string;
   code?: string;
@@ -283,6 +292,7 @@ export type WebViewToRNMessage =
   | { type: 'INDICATOR_REMOVED'; payload: IndicatorRemovedPayload }
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
   | { type: 'CHART_INTERACTED'; payload: ChartInteractedPayload }
+  | { type: 'VISIBLE_RANGE_CHANGED'; payload: VisibleRangeChangedPayload }
   | { type: 'CHART_TRADINGVIEW_CLICKED'; payload?: { url?: string } }
   | { type: 'ERROR'; payload: ErrorPayload }
   | { type: 'DEBUG'; payload: { message: string } };
@@ -357,6 +367,21 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
           type,
           payload: {
             interaction_type: obj.interaction_type,
+          },
+        };
+      }
+      return null;
+
+    case 'VISIBLE_RANGE_CHANGED':
+      if (
+        typeof obj.visibleFromMs === 'number' &&
+        typeof obj.visibleToMs === 'number'
+      ) {
+        return {
+          type,
+          payload: {
+            visibleFromMs: obj.visibleFromMs,
+            visibleToMs: obj.visibleToMs,
           },
         };
       }
@@ -459,6 +484,11 @@ export interface AdvancedChartProps {
    * crosshair tooltip (first OHLC payload per crosshair session). Suppressed during data reloads.
    */
   onChartInteracted?: (payload: ChartInteractedPayload) => void;
+  /**
+   * Callback when the visible time range changes due to user panning/scrolling.
+   * Used to update the compare price reference based on actual visible leftmost bar.
+   */
+  onVisibleRangeChanged?: (payload: VisibleRangeChangedPayload) => void;
   /**
    * WebView is about to navigate to tradingview.com (e.g. user tapped attribution logo).
    * Native layer opens the URL in the system browser and cancels in-WebView navigation.

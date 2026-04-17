@@ -30,6 +30,7 @@ import {
   type ChartInteractedPayload,
   type CrosshairData,
   type IndicatorType,
+  type VisibleRangeChangedPayload,
 } from '../../Charts/AdvancedChart/AdvancedChart.types';
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
@@ -99,10 +100,20 @@ const PriceAdvanced = ({
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
+  const [actualVisibleFromMs, setActualVisibleFromMs] = useState<
+    number | undefined
+  >(undefined);
   const { setIsChartBeingTouched } = usePriceChart();
 
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
+    [],
+  );
+
+  const handleVisibleRangeChanged = useCallback(
+    (payload: VisibleRangeChangedPayload) => {
+      setActualVisibleFromMs(payload.visibleFromMs);
+    },
     [],
   );
 
@@ -159,6 +170,9 @@ const PriceAdvanced = ({
       if (range === timeRange) {
         return;
       }
+      // Clear crosshair and reset visible range when changing timeframes
+      setCrosshairData(null);
+      setActualVisibleFromMs(undefined);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
           .addProperties({
@@ -240,12 +254,15 @@ const PriceAdvanced = ({
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
   // Calculate the current compare price from OHLCV data
+  // Use actual visible range from chart if available, otherwise fall back to static calculation
   const currentComparePrice = useMemo(() => {
-    if (ohlcvData.length === 0 || visibleFromMs == null) return null;
+    if (ohlcvData.length === 0) return null;
+    const compareFromMs = actualVisibleFromMs ?? visibleFromMs;
+    if (compareFromMs == null) return null;
     const firstVisible =
-      ohlcvData.find((c) => c.time >= visibleFromMs) ?? ohlcvData[0];
+      ohlcvData.find((c) => c.time >= compareFromMs) ?? ohlcvData[0];
     return firstVisible.close;
-  }, [ohlcvData, visibleFromMs]);
+  }, [ohlcvData, actualVisibleFromMs, visibleFromMs]);
 
   // Store last good compare price to show during loading
   const stableComparePriceRef = useRef<number | null>(null);
@@ -403,6 +420,7 @@ const PriceAdvanced = ({
             visibleToMs={visibleToMs}
             onCrosshairMove={handleCrosshairMove}
             onChartInteracted={handleChartInteracted}
+            onVisibleRangeChanged={handleVisibleRangeChanged}
             onChartTradingViewClicked={handleChartTradingViewClicked}
           />
         </View>

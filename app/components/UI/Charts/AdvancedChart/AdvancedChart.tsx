@@ -88,6 +88,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onError,
       onCrosshairMove,
       onChartInteracted,
+      onVisibleRangeChanged,
       onChartTradingViewClicked,
       isLoading = false,
       lineChrome,
@@ -330,6 +331,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             onChartInteracted?.(message.payload);
             break;
 
+          case 'VISIBLE_RANGE_CHANGED':
+            onVisibleRangeChanged?.(message.payload);
+            break;
+
           case 'CHART_TRADINGVIEW_CLICKED': {
             const bridgeUrl = message.payload?.url;
             if (typeof bridgeUrl === 'string' && bridgeUrl.length > 0) {
@@ -364,6 +369,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         onError,
         onCrosshairMove,
         onChartInteracted,
+        onVisibleRangeChanged,
         handleTradingViewOpen,
       ],
     );
