@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fs-cook-validator-manifest.schema.json",
+  "type": "object",
+  "required": [
+    "run_id",
+    "iteration_id",
+    "base_version_id",
+    "task_artifact_dir",
+    "learning_artifact_path",
+    "recipe_path",
+    "recipe_cook_path",
+    "candidate_patch_path",
+    "validator_manifest_path",
+    "touched_files",
+    "scenario_bundle",
+    "lane_results",
+    "score_vector",
+    "decision",
+    "decision_reason"
+  ],
+  "properties": {
+    "run_id": { "type": "string" },
+    "iteration_id": { "type": "string" },
+    "base_version_id": { "type": "string" },
+    "task_artifact_dir": { "type": "string" },
+    "learning_artifact_path": { "type": "string" },
+    "recipe_path": { "type": "string" },
+    "recipe_cook_path": { "type": ["string", "null"] },
+    "candidate_patch_path": { "type": "string" },
+    "validator_manifest_path": { "type": "string" },
+    "touched_files": { "type": "array", "items": { "type": "string" } },
+    "scenario_bundle": { "type": "array", "items": { "type": "string" } },
+    "lane_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "lane",
+          "scenario_id",
+          "task_artifact_dir",
+          "learning_artifact_path",
+          "recipe_path",
+          "recipe_cook_path",
+          "quality_semantic",
+          "quality_reasoning",
+          "live_run_exit",
+          "pass_rate_input",
+          "inference_cost_usd",
+          "source_artifacts"
+        ],
+        "properties": {
+          "lane": { "type": "string" },
+          "scenario_id": { "type": "string" },
+          "task_artifact_dir": { "type": "string" },
+          "learning_artifact_path": { "type": "string" },
+          "recipe_path": { "type": "string" },
+          "recipe_cook_path": { "type": ["string", "null"] },
+          "quality_semantic": {
+            "type": "string",
+            "enum": ["good", "ok", "bad"]
+          },
+          "quality_reasoning": { "type": "string" },
+          "live_run_exit": { "type": ["integer", "null"] },
+          "pass_rate_input": { "type": ["number", "null"] },
+          "inference_cost_usd": { "type": ["number", "null"] },
+          "source_artifacts": {
+            "type": "object",
+            "properties": {
+              "grade_path": { "type": ["string", "null"] },
+              "meta_path": { "type": ["string", "null"] },
+              "session_metrics_path": { "type": ["string", "null"] },
+              "probe_state_path": { "type": ["string", "null"] }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "score_vector": {
+      "type": "object",
+      "required": ["quality", "pass_rate", "cost_efficiency", "balanced_score"],
+      "properties": {
+        "quality": { "type": "number" },
+        "pass_rate": { "type": ["number", "null"] },
+        "cost_efficiency": { "type": ["number", "null"] },
+        "balanced_score": { "type": ["number", "null"] }
+      }
+    },
+    "decision": { "type": "string", "enum": ["keep", "reject"] },
+    "decision_reason": { "type": "string" }
+  },
+  "additionalProperties": true
+}

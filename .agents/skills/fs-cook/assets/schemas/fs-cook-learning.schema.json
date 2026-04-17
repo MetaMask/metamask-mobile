@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fs-cook-learning.schema.json",
+  "type": "object",
+  "required": [
+    "run_id",
+    "scenario_type",
+    "target_repo",
+    "branch",
+    "validation_results",
+    "evidence_verdict",
+    "artifact_dir",
+    "recipe_path",
+    "next_delta",
+    "touched_files"
+  ],
+  "properties": {
+    "run_id": { "type": "string" },
+    "scenario_type": { "type": "string" },
+    "target_repo": { "type": "string" },
+    "branch": { "type": ["string", "null"] },
+    "artifact_dir": { "type": "string" },
+    "recipe_path": { "type": "string" },
+    "recipe_cook_path": { "type": ["string", "null"] },
+    "validation_results": { "type": ["object", "null"] },
+    "evidence_verdict": { "type": ["string", "null"] },
+    "next_delta": { "type": "string" },
+    "touched_files": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "scenarios": [
+    {
+      "id": "review-explore-markets-live",
+      "lane": "review",
+      "label": "Explore markets live review",
+      "task_artifact_dir": "projects/metamask-extension-farm/tasks/review/41802-0416-1517/artifacts"
+    },
+    {
+      "id": "fix-zero-balance-cta",
+      "lane": "fix",
+      "label": "Zero-balance CTA bug fix",
+      "task_artifact_dir": "projects/metamask-extension-farm/tasks/fix/41692-0413-2142/artifacts"
+    },
+    {
+      "id": "investigation-probe-output",
+      "lane": "investigation",
+      "label": "Probe-output investigation lane",
+      "task_artifact_dir": "projects/metamask-extension-farm/tasks/review/41705-0414-1243/artifacts",
+      "probe_output_dir": "projects/metamask-extension-farm/tasks/review/41705-0414-1243/artifacts/probe-output"
+    }
+  ]
+}

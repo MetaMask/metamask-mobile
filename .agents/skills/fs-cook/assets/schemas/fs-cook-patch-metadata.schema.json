@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fs-cook-patch-metadata.schema.json",
+  "type": "object",
+  "required": [
+    "before_version_id",
+    "after_version_id",
+    "scenario_ids",
+    "touched_files",
+    "expected_score_impact"
+  ],
+  "properties": {
+    "before_version_id": { "type": "string" },
+    "after_version_id": { "type": "string" },
+    "scenario_ids": { "type": "array", "items": { "type": "string" } },
+    "touched_files": { "type": "array", "items": { "type": "string" } },
+    "expected_score_impact": { "type": "string" }
+  }
+}
