@@ -1,8 +1,17 @@
 import { renderHook, act } from '@testing-library/react-hooks';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { useTopTraders } from './useTopTraders';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn().mockReturnValue([]),
+}));
+
+jest.mock('../../../../../../selectors/socialController', () => ({
+  selectFollowingProfileIds: jest.fn(),
+}));
 
 jest.mock('../../../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -59,6 +68,7 @@ jest.mock('@metamask/react-data-query');
 
 const mockRefetch = jest.fn();
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const makeQueryResult = (
   overrides: Partial<ReturnType<typeof useQuery>> = {},
@@ -75,6 +85,7 @@ describe('useTopTraders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseQuery.mockReturnValue(makeQueryResult());
+    mockUseSelector.mockReturnValue([]);
   });
 
   describe('data mapping', () => {
@@ -174,44 +185,60 @@ describe('useTopTraders', () => {
     });
   });
 
+  describe('isFollowing seeding from controller state', () => {
+    it('seeds isFollowing true for traders present in followingProfileIds', () => {
+      mockUseSelector.mockReturnValue([mockTraders[0].profileId]);
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: mockLeaderboardResponse as never }),
+      );
+      const { result } = renderHook(() => useTopTraders());
+      expect(result.current.traders[0].isFollowing).toBe(true);
+      expect(result.current.traders[1].isFollowing).toBe(false);
+    });
+  });
+
   describe('toggleFollow', () => {
     beforeEach(() => {
       mockUseQuery.mockReturnValue(
         makeQueryResult({ data: mockLeaderboardResponse as never }),
       );
+      (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({
+        followed: [],
+        unfollowed: [],
+      });
     });
 
-    it('sets isFollowing to true on the first toggle', () => {
+    it('calls followTrader when trader is not followed', async () => {
       const { result } = renderHook(() => useTopTraders());
-      const traderId = mockTraders[0].profileId;
 
-      act(() => {
-        result.current.toggleFollow(traderId);
+      await act(async () => {
+        await result.current.toggleFollow(mockTraders[0].profileId);
       });
 
-      expect(result.current.traders[0].isFollowing).toBe(true);
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SocialController:followTrader',
+        {
+          addressOrUid: 'mock-profile-id',
+          targets: [mockTraders[0].profileId],
+        },
+      );
     });
 
-    it('toggles isFollowing back to false on a second call', () => {
-      const { result } = renderHook(() => useTopTraders());
-      const traderId = mockTraders[0].profileId;
-
-      act(() => result.current.toggleFollow(traderId));
-      act(() => result.current.toggleFollow(traderId));
-
-      expect(result.current.traders[0].isFollowing).toBe(false);
-    });
-
-    it('does not affect other traders when one is toggled', () => {
+    it('calls unfollowTrader when trader is already followed', async () => {
+      mockUseSelector.mockReturnValue([mockTraders[0].profileId]);
       const { result } = renderHook(() => useTopTraders());
 
-      act(() => {
-        result.current.toggleFollow(mockTraders[0].profileId);
+      await act(async () => {
+        await result.current.toggleFollow(mockTraders[0].profileId);
       });
 
-      result.current.traders.slice(1).forEach((trader) => {
-        expect(trader.isFollowing).toBe(false);
-      });
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SocialController:unfollowTrader',
+        {
+          addressOrUid: 'mock-profile-id',
+          targets: [mockTraders[0].profileId],
+        },
+      );
     });
   });
 

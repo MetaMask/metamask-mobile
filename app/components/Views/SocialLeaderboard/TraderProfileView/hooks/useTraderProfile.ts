@@ -1,4 +1,5 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
   TraderProfileResponse,
@@ -6,6 +7,7 @@ import type {
 } from '@metamask/social-controllers';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { selectFollowingProfileIds } from '../../../../../selectors/socialController';
 
 export interface UseTraderProfileOptions {
   refetchInterval?: number;
@@ -37,44 +39,31 @@ export const useTraderProfile = (
     refetchInterval: options?.refetchInterval,
   });
 
-  const [localFollowOverride, setLocalFollowOverride] = useState<
-    boolean | null
-  >(null);
+  const followingProfileIds = useSelector(selectFollowingProfileIds);
 
-  const isFollowing = localFollowOverride ?? false;
-
+  const isFollowing = followingProfileIds.includes(addressOrId);
   const profile = data ?? null;
 
-  const toggleFollow = useCallback(() => {
-    const wasFollowing = localFollowOverride ?? false;
-    const nowFollowing = !wasFollowing;
-    setLocalFollowOverride(nowFollowing);
-
-    (async () => {
-      try {
-        const { profileId } =
-          await Engine.context.AuthenticationController.getSessionProfile();
-        const opts = { addressOrUid: profileId, targets: [addressOrId] };
-        if (nowFollowing) {
-          await (Engine.controllerMessenger.call as CallableFunction)(
-            'SocialController:followTrader',
-            opts,
-          );
-        } else {
-          await (Engine.controllerMessenger.call as CallableFunction)(
-            'SocialController:unfollowTrader',
-            opts,
-          );
-        }
-      } catch (err) {
-        Logger.error(
-          err as Error,
-          `useTraderProfile: ${nowFollowing ? 'follow' : 'unfollow'} failed`,
+  const toggleFollow = useCallback(async () => {
+    try {
+      const { profileId } =
+        await Engine.context.AuthenticationController.getSessionProfile();
+      const opts = { addressOrUid: profileId, targets: [addressOrId] };
+      if (isFollowing) {
+        await (Engine.controllerMessenger.call as CallableFunction)(
+          'SocialController:unfollowTrader',
+          opts,
         );
-        setLocalFollowOverride(!nowFollowing);
+      } else {
+        await (Engine.controllerMessenger.call as CallableFunction)(
+          'SocialController:followTrader',
+          opts,
+        );
       }
-    })();
-  }, [localFollowOverride, addressOrId]);
+    } catch (err) {
+      Logger.error(err as Error, 'useTraderProfile: toggleFollow failed');
+    }
+  }, [isFollowing, addressOrId]);
 
   const refresh = useCallback(async () => {
     try {

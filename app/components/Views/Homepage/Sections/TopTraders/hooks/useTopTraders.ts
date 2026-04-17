@@ -1,4 +1,5 @@
-import { useMemo, useCallback, useState, useEffect } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
   LeaderboardResponse,
@@ -6,6 +7,7 @@ import type {
 } from '@metamask/social-controllers';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
+import { selectFollowingProfileIds } from '../../../../../../selectors/socialController';
 import type { TopTrader } from '../types';
 
 export interface UseTopTradersResult {
@@ -13,7 +15,7 @@ export interface UseTopTradersResult {
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
-  toggleFollow: (traderId: string) => void;
+  toggleFollow: (addressOrId: string) => void;
 }
 
 interface UseTopTradersOptions {
@@ -38,9 +40,7 @@ export const useTopTraders = (
     enabled: options?.enabled ?? true,
   });
 
-  const [localFollowOverrides, setLocalFollowOverrides] = useState<
-    Record<string, boolean>
-  >({});
+  const followingProfileIds = useSelector(selectFollowingProfileIds);
 
   const traders: TopTrader[] = useMemo(() => {
     if (!data?.traders) {
@@ -55,9 +55,9 @@ export const useTopTraders = (
       percentageChange: (entry.roiPercent30d ?? 0) * 100,
       pnlValue: entry.pnl30d,
       pnlPerChain: entry.pnlPerChain ?? {},
-      isFollowing: localFollowOverrides[entry.profileId] ?? false,
+      isFollowing: followingProfileIds.includes(entry.profileId),
     }));
-  }, [data, localFollowOverrides]);
+  }, [data, followingProfileIds]);
 
   const refresh = useCallback(async () => {
     try {
@@ -68,39 +68,30 @@ export const useTopTraders = (
     }
   }, [refetch]);
 
-  const toggleFollow = useCallback(async (traderId: string) => {
-    setLocalFollowOverrides((prev) => {
-      const wasFollowing = prev[traderId] ?? false;
-      const nowFollowing = !wasFollowing;
-
-      (async () => {
-        try {
-          const { profileId } =
-            await Engine.context.AuthenticationController.getSessionProfile();
-          const opts = { addressOrUid: profileId, targets: [traderId] };
-          if (nowFollowing) {
-            await (Engine.controllerMessenger.call as CallableFunction)(
-              'SocialController:followTrader',
-              opts,
-            );
-          } else {
-            await (Engine.controllerMessenger.call as CallableFunction)(
-              'SocialController:unfollowTrader',
-              opts,
-            );
-          }
-        } catch (err) {
-          Logger.error(
-            err as Error,
-            `useTopTraders: ${nowFollowing ? 'follow' : 'unfollow'} failed`,
+  const toggleFollow = useCallback(
+    async (addressOrId: string) => {
+      try {
+        const { profileId } =
+          await Engine.context.AuthenticationController.getSessionProfile();
+        const isCurrentlyFollowing = followingProfileIds.includes(addressOrId);
+        const opts = { addressOrUid: profileId, targets: [addressOrId] };
+        if (isCurrentlyFollowing) {
+          await (Engine.controllerMessenger.call as CallableFunction)(
+            'SocialController:unfollowTrader',
+            opts,
           );
-          setLocalFollowOverrides((p) => ({ ...p, [traderId]: !nowFollowing }));
+        } else {
+          await (Engine.controllerMessenger.call as CallableFunction)(
+            'SocialController:followTrader',
+            opts,
+          );
         }
-      })();
-
-      return { ...prev, [traderId]: nowFollowing };
-    });
-  }, []);
+      } catch (err) {
+        Logger.error(err as Error, 'useTopTraders: toggleFollow failed');
+      }
+    },
+    [followingProfileIds],
+  );
 
   useEffect(() => {
     if (error) {

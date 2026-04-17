@@ -1,7 +1,17 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
+import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { useTraderProfile } from './useTraderProfile';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn().mockReturnValue([]),
+}));
+
+jest.mock('../../../../../selectors/socialController', () => ({
+  selectFollowingProfileIds: jest.fn(),
+}));
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -26,6 +36,7 @@ jest.mock('@metamask/react-data-query');
 
 const mockRefetch = jest.fn();
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const makeQueryResult = (
   overrides: Partial<ReturnType<typeof useQuery>> = {},
@@ -62,6 +73,7 @@ describe('useTraderProfile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseQuery.mockReturnValue(makeQueryResult());
+    mockUseSelector.mockReturnValue([]);
   });
 
   describe('query configuration', () => {
@@ -162,32 +174,49 @@ describe('useTraderProfile', () => {
   });
 
   describe('toggleFollow', () => {
-    it('defaults isFollowing to false', () => {
+    beforeEach(() => {
+      (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({
+        followed: [],
+        unfollowed: [],
+      });
+    });
+
+    it('defaults isFollowing to false when not in controller state', () => {
       const { result } = renderHook(() => useTraderProfile('trader-1'));
       expect(result.current.isFollowing).toBe(false);
     });
 
-    it('sets isFollowing to true on the first toggle', () => {
+    it('seeds isFollowing true when traderId is in followingProfileIds', () => {
+      mockUseSelector.mockReturnValue(['trader-1']);
       const { result } = renderHook(() => useTraderProfile('trader-1'));
-
-      act(() => {
-        result.current.toggleFollow();
-      });
-
       expect(result.current.isFollowing).toBe(true);
     });
 
-    it('toggles isFollowing back to false on the second call', () => {
+    it('calls followTrader when not currently following', async () => {
       const { result } = renderHook(() => useTraderProfile('trader-1'));
 
-      act(() => {
-        result.current.toggleFollow();
-      });
-      act(() => {
-        result.current.toggleFollow();
+      await act(async () => {
+        await result.current.toggleFollow();
       });
 
-      expect(result.current.isFollowing).toBe(false);
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SocialController:followTrader',
+        { addressOrUid: 'mock-profile-id', targets: ['trader-1'] },
+      );
+    });
+
+    it('calls unfollowTrader when currently following', async () => {
+      mockUseSelector.mockReturnValue(['trader-1']);
+      const { result } = renderHook(() => useTraderProfile('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SocialController:unfollowTrader',
+        { addressOrUid: 'mock-profile-id', targets: ['trader-1'] },
+      );
     });
   });
 
