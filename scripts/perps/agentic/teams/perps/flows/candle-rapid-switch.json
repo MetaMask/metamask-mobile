@@ -1,6 +1,12 @@
 {
   "title": "Rapid market switching — validates candles load and no rate-limit/abort errors across BTC→ETH→SOL→HYPE→BTC→ETH",
-  "inputs": {},
+  "inputs": {
+    "screenshot_filename": {
+      "type": "string",
+      "default": "",
+      "description": "If non-empty, capture a screenshot of the final market detail screen with this filename. Pass e.g. 'evidence-ac3-rapid-switch.png' from a recipe that needs visual proof."
+    }
+  },
   "validate": {
     "workflow": {
       "pre_conditions": ["wallet.unlocked", "perps.feature_enabled"],
@@ -136,11 +142,24 @@
           "action": "wait_for",
           "test_id": "perps-market-details-view",
           "timeout_ms": 8000,
-          "next": "screenshot-chart"
+          "next": "gate-screenshot-check"
+        },
+        "gate-screenshot-check": {
+          "action": "eval_sync",
+          "expression": "JSON.stringify({take: '{{screenshot_filename}}' !== ''})",
+          "assert": { "operator": "not_null" },
+          "next": "gate-screenshot-route"
+        },
+        "gate-screenshot-route": {
+          "action": "switch",
+          "cases": [
+            { "when": { "operator": "eq", "field": "take", "value": true }, "next": "screenshot-chart" }
+          ],
+          "default": "back-6"
         },
         "screenshot-chart": {
           "action": "screenshot",
-          "filename": "evidence-rapid-switch-chart-loaded.png",
+          "filename": "{{screenshot_filename}}",
           "next": "back-6"
         },
         "back-6": {
