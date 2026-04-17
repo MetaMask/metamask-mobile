@@ -1220,7 +1220,10 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PERPS.ROOT}
             component={PerpsScreenStack}
-            options={slideFromRightAnimation}
+            options={{
+              headerShown: false,
+              ...slideFromRightAnimation,
+            }}
           />
           <Stack.Screen
             name={Routes.PERPS.TUTORIAL}
