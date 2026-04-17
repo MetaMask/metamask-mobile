@@ -55,7 +55,7 @@ export const useTopTraders = (
     }
 
     return data.traders.map((entry) => {
-      const reduxFollowing = followingProfileIds.includes(entry.profileId);
+      const currentFollowing = followingProfileIds.includes(entry.profileId);
       const optimistic = optimisticFollowState[entry.profileId];
       return {
         id: entry.profileId,
@@ -65,7 +65,7 @@ export const useTopTraders = (
         percentageChange: (entry.roiPercent30d ?? 0) * 100,
         pnlValue: entry.pnl30d,
         pnlPerChain: entry.pnlPerChain ?? {},
-        isFollowing: optimistic ?? reduxFollowing,
+        isFollowing: optimistic ?? currentFollowing,
       };
     });
   }, [data, followingProfileIds, optimisticFollowState]);
@@ -132,8 +132,8 @@ export const useTopTraders = (
       let changed = false;
       const next: Record<string, boolean> = {};
       for (const [id, value] of Object.entries(prev)) {
-        const reduxFollowing = followingProfileIds.includes(id);
-        if (reduxFollowing === value) {
+        const currentFollowing = followingProfileIds.includes(id);
+        if (currentFollowing === value) {
           changed = true;
           continue;
         }
