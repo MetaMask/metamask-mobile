@@ -1,68 +1,55 @@
-# MetaMask Mobile Farm — CDP Summary
+# MetaMask Mobile — CDP Summary
 
-## Purpose
+Quick-reference parity matrix for the mobile agentic runner. Detailed rationale lives in [CDP-capabilities-mobile.md](./CDP-capabilities-mobile.md).
 
-Quick reference for the CDP / device / in-app capability slices that are currently exposed by the mobile agentic runner, and which are structurally absent compared to the extension farm.
+## Validated capability matrix
 
-For the detailed rationale, validation notes, and capability-family discussion, see [CDP-capabilities-mobile.md](./CDP-capabilities-mobile.md).
-
-## Validated Capability Matrix (mobile)
-
-| Family | Slice | Canonical Recipe | Substrate | Live Status |
-| --- | --- | --- | --- | --- |
-| `runtime` | sync / async / ref evaluation | any `teams/perps/recipes/benchmark/*.json` | Hermes `Runtime.evaluate` | validated |
-| `page` | route navigate + synchronize | `teams/perps/recipes/benchmark/perps-position-market-buy.json` | `__AGENTIC__` bridge + fiber walk | validated |
-| `page` | interaction (press/scroll/set_input) | `teams/perps/recipes/benchmark/perps-position-market-buy.json` | `__AGENTIC__` + React DevTools hook | validated |
-| `lifecycle` | background / foreground / restart | `teams/perps/recipes/benchmark/perps-app-restart-preserves-state.json` | `xcrun simctl` (iOS) / `adb` (Android) | validated |
-| `app_state` | testnet toggle / provider / account | `teams/perps/recipes/benchmark/perps-position-market-buy.json` | Redux + `Engine.context.*` | validated |
-| `evidence` | screenshot | any benchmark recipe | `screenshot.sh` wrapper | validated |
-| `performance` | metrics snapshot | `teams/perps/recipes/capabilities/performance-metrics-smoke.json` | `HermesInternal.getInstrumentedStats()` via `eval_sync` | validated |
-| `trace` | sampling CPU profile (.cpuprofile) | `teams/perps/recipes/capabilities/profiler-trace-smoke.json` | Hermes `Profiler` domain via CDP | validated |
-
-## Structurally Absent (documented gaps)
-
-| Family | Extension status | Mobile status | Reason |
+| Family | Slice | Substrate | Canonical recipe |
 | --- | --- | --- | --- |
-| `network` | validated | absent | Hermes has no Network CDP domain. iOS NLC is system-wide, not app-scoped. |
-| `emulation` (CPU) | validated | absent | Hermes has no Emulation CDP domain. |
-| `emulation` (media / timezone) | validated | absent | No Hermes Emulation; simctl possible but out of scope. |
-| `storage` (web storage) | validated | partial | No Hermes Storage domain. MMKV/Redux clear is available via `eval_ref` instead. |
-| `service_worker` | validated | N/A | No worker concept in RN. Closest = `app_background`/`app_foreground`. |
-| `target` (multi-page) | validated | N/A | One Hermes target per simulator. |
-| `browser` (permissions) | validated | partial | No Browser CDP domain. `xcrun simctl privacy` possible; deferred. |
-| `fetch` (request failure) | validated | absent | No Hermes Fetch domain. XHR / `global.fetch` monkey-patch possible via `eval_sync`; deferred. |
-| `page` (reload) | validated | partial | `app_restart` is the mobile analog; already exposed. |
+| `runtime` | sync / async / ref evaluation | Hermes `Runtime.evaluate` | any `benchmark/*.json` |
+| `page` | navigate / press / scroll / set_input | `__AGENTIC__` + React DevTools hook | `benchmark/perps-position-market-buy.json` |
+| `page` | `wait_for` route / testID / expression | bridge + fiber walk | same |
+| `lifecycle` | background / foreground / restart | `xcrun simctl` (iOS) / `adb` (Android) | `benchmark/perps-app-restart-preserves-state.json` |
+| `app_state` | testnet / provider / account | Redux + `Engine.context.*` | `benchmark/perps-position-market-buy.json` |
+| `evidence` | screenshot | `screenshot.sh` | any |
+| `evidence` | automatic issue review (warnings/errors/exceptions) | Metro log + in-app console hook | `capabilities/recipe-issues-smoke.json` |
+| `performance` | metrics snapshot | `HermesInternal.getInstrumentedStats()` | `capabilities/performance-metrics-smoke.json` |
+| `trace` | sampling CPU profile (.cpuprofile) | Hermes `Profiler` domain | `capabilities/profiler-trace-smoke.json` |
 
-## Structure
+## Structurally absent (do not force)
 
-Mobile uses the same namespacing convention as extension:
+| Family | Why | Workaround if needed |
+| --- | --- | --- |
+| `network` | no Hermes Network domain; iOS NLC is device-wide | XHR/fetch monkey-patch via `eval_sync` |
+| `emulation` CPU | no Hermes Emulation | synthetic JS burn loop (not equivalent) |
+| `emulation` media/timezone | no Hermes Emulation | `xcrun simctl status_bar` + appearance |
+| `storage` web | no Hermes Storage | MMKV/Redux clear via `eval_ref` |
+| `service_worker` | no RN analog | `app_background` / `app_foreground` |
+| `target` multi-page | one Hermes target per sim | N/A |
+| `browser` permissions | no Browser CDP | `xcrun simctl privacy` (deferred) |
+| `fetch` request failure | no Hermes Fetch | `global.fetch` / XHR monkey-patch |
 
-- MetaMask / domain-specific recipes:
-  - `teams/perps/recipes/benchmark/...` — migrated Detox e2e specs
-  - `teams/perps/recipes/...` — other perps-domain recipes
-- Capability / CDP-generic recipes:
-  - `teams/perps/recipes/capabilities/...`
+## Directory convention
 
-This keeps product behavior separate from generic capability proofs.
+- `teams/<team>/recipes/benchmark/` — migrated Detox specs
+- `teams/<team>/recipes/capabilities/` — generic capability proofs
+- `teams/<team>/recipes/` — other product recipes
 
-## Validation Stance
+Product behavior stays separate from capability proofs.
 
-Same contract as extension: smallest trustworthy proof per slice.
+## Validation stance
 
-- Hermes-layer controls (Profiler, getInstrumentedStats): the CDP response is the source of truth; artifact existence + size is the proof.
-- Device-layer controls (simctl/adb): before/after probe of the page-visible effect.
-- App-layer controls (Redux, Engine.context, `__AGENTIC__`): direct eval of state or bridge function.
-- Structurally absent families are documented as gaps; no synthetic equivalents are forced.
+Smallest trustworthy proof per slice:
 
-## Current Gaps (beyond structural)
-
-- `xcrun simctl privacy` permission grant/reset is not yet wrapped in a runner verb.
-- `global.fetch` / `XMLHttpRequest` monkey-patch is not yet exposed as a first-class `fetch_fail` primitive.
+- Hermes-layer (Profiler, getInstrumentedStats): CDP response shape + artifact size
+- Device-layer (simctl/adb): before/after probe of page-visible effect
+- App-layer (Redux, Engine.context, `__AGENTIC__`): direct `eval_ref`
+- Structurally absent families: documented as gaps, no synthetic equivalents
 
 ## References
 
-- [CDP-capabilities-mobile.md](./CDP-capabilities-mobile.md) — detailed writeup
-- [e2e-recipe-benchmark.md](./e2e-recipe-benchmark.md) — Detox → agentic benchmark
-- [validate-recipe.js](./validate-recipe.js) — runner entry
-- [cdp-bridge.js](./cdp-bridge.js) — CDP command dispatcher
+- [CDP-capabilities-mobile.md](./CDP-capabilities-mobile.md)
+- [e2e-recipe-benchmark.md](./e2e-recipe-benchmark.md)
+- [validate-recipe.js](./validate-recipe.js) — runner
+- [cdp-bridge.js](./cdp-bridge.js) — CDP dispatcher
 - [lib/workflow.js](./lib/workflow.js) — action allowlist
