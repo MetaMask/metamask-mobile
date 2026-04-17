@@ -7699,10 +7699,7 @@ describe('PolymarketProvider', () => {
         await provider.getCarouselMarkets();
 
         expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
-          [
-            { id: 'event-live', ended: false },
-            { id: 'event-scheduled' },
-          ],
+          [{ id: 'event-live', ended: false }, { id: 'event-scheduled' }],
           expect.any(Object),
         );
       });
