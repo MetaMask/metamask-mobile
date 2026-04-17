@@ -15,8 +15,8 @@ import { getGlobalChainId } from '../../../util/networks/global-network';
 export const assetsContractControllerInit: MessengerClientInitFunction<
   AssetsContractController,
   AssetsContractControllerMessenger
-> = ({ controllerMessenger, getController }) => {
-  const networkController = getController('NetworkController');
+> = ({ controllerMessenger, getMessengerClient }) => {
+  const networkController = getMessengerClient('NetworkController');
   const controller = new AssetsContractController({
     messenger: controllerMessenger,
     chainId: getGlobalChainId(networkController),
