@@ -12,6 +12,8 @@ import TabBar from '../../../../component-library/components-temp/TabBar/TabBar'
 import { strings } from '../../../../../locales/i18n';
 import { RevealSeedViewSelectorsIDs } from '../RevealSeedView.testIds';
 import { useTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
+import { lightTheme, darkTheme } from '@metamask/design-tokens';
 import logo from '../../../../images/branding/fox.png';
 import SeedPhraseDisplay from './SeedPhraseDisplay';
 import SeedPhraseConcealer from './SeedPhraseConcealer';
@@ -21,6 +23,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
 
+const QR_SIZE = Math.round(Dimensions.get('window').width * 0.65);
+const LOGO_SIZE = Math.round(QR_SIZE * 0.2);
+
 const SRPTabView = ({
   clipboardPrivateCredential,
   showSeedPhrase,
@@ -29,7 +34,16 @@ const SRPTabView = ({
   onCopyToClipboard,
   onTabChange,
 }: SRPTabViewProps) => {
-  const { colors } = useTheme();
+  const { themeAppearance } = useTheme();
+  const isDark = themeAppearance === AppThemeKey.dark;
+
+  const qrBackground = isDark
+    ? lightTheme.colors.background.default
+    : darkTheme.colors.background.default;
+  const qrForeground = isDark
+    ? darkTheme.colors.background.default
+    : lightTheme.colors.background.default;
+
   const trimmedCredential = clipboardPrivateCredential.trim();
   const words = trimmedCredential ? trimmedCredential.split(/\s+/) : [];
   const hasCredential = words.length > 0;
@@ -78,14 +92,24 @@ const SRPTabView = ({
             }
           >
             {hasCredential ? (
-              <QRCode
-                value={clipboardPrivateCredential}
-                size={Dimensions.get('window').width - 200}
-                logo={logo}
-                logoSize={50}
-                backgroundColor={colors.background.default}
-                color={colors.text.default}
-              />
+              <Box
+                style={[
+                  tw.style('rounded-2xl overflow-hidden p-3'),
+                  { backgroundColor: qrBackground },
+                ]}
+              >
+                <QRCode
+                  value={clipboardPrivateCredential}
+                  size={QR_SIZE}
+                  color={qrForeground}
+                  backgroundColor={qrBackground}
+                  logo={logo}
+                  logoSize={LOGO_SIZE}
+                  logoBackgroundColor={qrBackground}
+                  logoBorderRadius={8}
+                  logoMargin={4}
+                />
+              </Box>
             ) : null}
           </Box>
         </CustomTabView>
