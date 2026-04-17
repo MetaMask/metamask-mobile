@@ -4,7 +4,7 @@ description: Build a validation recipe from PR intent, ticket ACs, or investigat
 compatibility: Designed for agent runners with Markdown skill loading, Bash access, git diff visibility, and repo-local recipe validation runners when available
 metadata:
   package: fs-cook
-  version: 0.1.0
+  version: 0.2.0
   loop_model: inner-run-cook plus validator-run-refine
   outputs: artifacts/recipe.json artifacts/recipe-cook.json artifacts/fs-cook-learning.json
 allowed-tools: Bash(rg:*) Bash(node:*) Bash(git:*) Read Write
@@ -13,6 +13,9 @@ allowed-tools: Bash(rg:*) Bash(node:*) Bash(git:*) Read Write
 # FS-Cook
 
 Turn PR intent, ticket acceptance criteria, or investigation findings into a validation recipe.
+
+Think of `fs-cook` as the **core recipe engine**.
+Developer-facing wrappers such as `fs-review` or `fs-fixbug` can sit on top of it without changing the core artifact contract.
 
 This is an LLM skill.
 Do not treat it as deterministic templating.

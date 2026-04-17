@@ -67,9 +67,15 @@ Promoted into the branch for broader use:
   - explicit local skill versioning
   - runner now records `skill_version` in `run-meta.json`
 - `docs/readme/fs-cook.md`
-  - usage doc for autonomous vs interactive fs-cook
+  - developer-first usage doc for `fs-cook` core + `fs-review` / `fs-fixbug` wrappers
   - documents current Codex caveat
   - documents manual worker-style delegation simulation
+- `.agents/skills/fs-cook/scripts/prepare-cooking-run.js`
+  - developer-first source prep entry surface (`pr`, `jira`, `text`, `file`)
+- `.agents/skills/fs-review/SKILL.md`
+  - thin PR review wrapper concept over `fs-cook`
+- `.agents/skills/fs-fixbug/SKILL.md`
+  - thin bug-fix wrapper concept over `fs-cook`
 
 ## Key Learnings Captured So Far
 
