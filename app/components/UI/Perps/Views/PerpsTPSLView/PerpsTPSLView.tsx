@@ -922,9 +922,11 @@ const PerpsTPSLView: React.FC = () => {
                 size={ButtonSize.Lg}
                 onPress={handleConfirm}
                 isDisabled={confirmDisabled}
-                loading={isUpdating}
+                isLoading={isUpdating}
                 testID={PerpsTPSLViewSelectorsIDs.SET_BUTTON}
-              />
+              >
+                {strings('perps.tpsl.set')}
+              </Button>
             </View>
           </View>
         )}
