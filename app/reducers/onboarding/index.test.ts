@@ -5,14 +5,19 @@ import {
   SET_COMPLETED_ONBOARDING,
   SET_ACCOUNT_TYPE,
   CLEAR_ACCOUNT_TYPE,
+  SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
+  SET_SEEDLESS_ONBOARDING,
+  CLEAR_SEEDLESS_ONBOARDING,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 import { AccountType } from '../../constants/onboarding';
+import { AuthConnection } from '../../core/OAuthService/OAuthInterface';
 
 describe('onboardingReducer', () => {
   const initialState = {
     events: [],
     completedOnboarding: false,
+    pendingSocialLoginMarketingConsentBackfill: null as string | null,
   };
 
   it('returns the initial state when no action is provided', () => {
@@ -75,5 +80,57 @@ describe('onboardingReducer', () => {
 
     expect(state.accountType).toBeUndefined();
     expect(state.onboardingVersion).toBeUndefined();
+  });
+
+  it('handles the SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL action', () => {
+    const action = {
+      type: SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
+      authConnection: 'google',
+    } as const;
+    const state = onboardingReducer(initialState, action);
+    expect(state.pendingSocialLoginMarketingConsentBackfill).toBe('google');
+  });
+
+  it('handles clearing pending social login marketing consent backfill', () => {
+    const stateWithMarker = {
+      ...initialState,
+      pendingSocialLoginMarketingConsentBackfill: 'google',
+    };
+    const action = {
+      type: SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
+      authConnection: null,
+    } as const;
+    const state = onboardingReducer(stateWithMarker, action);
+    expect(state.pendingSocialLoginMarketingConsentBackfill).toBeNull();
+  });
+
+  it('handles the SET_SEEDLESS_ONBOARDING action', () => {
+    const action = {
+      type: SET_SEEDLESS_ONBOARDING,
+      clientId: 'persisted-google-client-id',
+      authConnection: AuthConnection.Google,
+    } as const;
+
+    const state = onboardingReducer(initialState, action);
+
+    expect(state.seedlessOnboarding).toEqual({
+      clientId: 'persisted-google-client-id',
+      authConnection: AuthConnection.Google,
+    });
+  });
+
+  it('handles the CLEAR_SEEDLESS_ONBOARDING action', () => {
+    const stateWithSeedlessOnboarding = {
+      ...initialState,
+      seedlessOnboarding: {
+        clientId: 'persisted-google-client-id',
+        authConnection: AuthConnection.Google,
+      },
+    };
+
+    const action = { type: CLEAR_SEEDLESS_ONBOARDING } as const;
+    const state = onboardingReducer(stateWithSeedlessOnboarding, action);
+
+    expect(state.seedlessOnboarding).toBeUndefined();
   });
 });

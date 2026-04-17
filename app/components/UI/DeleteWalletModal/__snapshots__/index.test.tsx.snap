@@ -8,8 +8,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -410,7 +409,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
-                                  "maxHeight": 1334,
+                                  "maxHeight": 0,
                                   "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
@@ -424,7 +423,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -469,7 +468,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
+                                    "fontFamily": "Geist-SemiBold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -554,7 +553,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -611,7 +610,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -675,6 +674,6 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

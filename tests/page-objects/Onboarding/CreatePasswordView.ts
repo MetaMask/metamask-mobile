@@ -13,6 +13,7 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
 
 class CreatePasswordView {
   get container(): DetoxElement {
@@ -37,6 +38,25 @@ class CreatePasswordView {
         ios: () =>
           PlaywrightMatchers.getElementByCatchAll(
             ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+          ),
+      },
+    });
+  }
+  get passwordVisibilityIcon(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
+        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
+          ),
+
+        ios: () =>
+          PlaywrightMatchers.getElementByCatchAll(
+            ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
           ),
       },
     });
@@ -199,7 +219,7 @@ class CreatePasswordView {
         });
       },
       appium: async () => {
-        await UnifiedGestures.tap(this.iUnderstandCheckbox, {
+        await UnifiedGestures.waitAndTap(this.iUnderstandCheckbox, {
           description: 'Create Password - I Understand Checkbox',
         });
       },
@@ -217,6 +237,20 @@ class CreatePasswordView {
       appium: async () => {
         await UnifiedGestures.waitAndTap(this.submitButton, {
           description: 'Create Password Submit Button',
+        });
+      },
+    });
+  }
+  async tapPasswordVisibilityIcon(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.tap(asDetoxElement(this.passwordVisibilityIcon), {
+          elemDescription: 'Create Password Password Visibility Icon',
+        });
+      },
+      appium: async () => {
+        await UnifiedGestures.waitAndTap(this.passwordVisibilityIcon, {
+          description: 'Create Password Password Visibility Icon',
         });
       },
     });

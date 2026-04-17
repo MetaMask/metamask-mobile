@@ -19,6 +19,7 @@ import type {
 import type { HyperLiquidNetwork } from '../types/config';
 import type { CandleData } from '../types/perps-types';
 import { ensureError } from '../utils/errorUtils';
+import { getPerpsConnectionAttemptContext } from '../utils/perpsConnectionAttemptContext';
 
 /**
  * Maximum number of reconnection attempts before giving up.
@@ -120,6 +121,9 @@ export class HyperLiquidClientService {
    * @param wallet - The wallet parameters for signing typed data.
    */
   public async initialize(wallet: HyperLiquidWalletParams): Promise<void> {
+    const network = this.#isTestnet ? 'testnet' : 'mainnet';
+    const attemptContext = getPerpsConnectionAttemptContext();
+
     try {
       this.#updateConnectionState(WebSocketConnectionState.Connecting);
       this.#createTransports();
@@ -184,21 +188,32 @@ export class HyperLiquidClientService {
       );
       this.#updateConnectionState(WebSocketConnectionState.Disconnected);
 
-      // Log to Sentry: initialization failure blocks all Perps functionality
-      this.#deps.logger.error(errorInstance, {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          service: 'HyperLiquidClientService',
-          network: this.#isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: 'sdk_initialization',
-          data: {
-            operation: 'initialize',
-            isTestnet: this.#isTestnet,
+      if (attemptContext?.suppressError) {
+        this.#deps.debugLogger.log(
+          'HyperLiquid initialize failed during suppressed startup attempt',
+          {
+            error: errorInstance.message,
+            network,
+            source: attemptContext.source,
           },
-        },
-      });
+        );
+      } else {
+        this.#deps.logger.error(errorInstance, {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            service: 'HyperLiquidClientService',
+            network,
+          },
+          context: {
+            name: 'sdk_initialization',
+            data: {
+              operation: 'initialize',
+              isTestnet: this.#isTestnet,
+              source: attemptContext?.source ?? 'unspecified',
+            },
+          },
+        });
+      }
 
       throw error;
     }
@@ -456,6 +471,7 @@ export class HyperLiquidClientService {
    * @param options.interval - The candle interval (e.g., "1m", "5m", "15m", "1h", "1d").
    * @param options.limit - Number of candles to fetch (default: 100).
    * @param options.endTime - End timestamp in milliseconds (default: now).
+   * @param options.signal - Optional AbortSignal to cancel the fetch.
    * @returns The historical candle data, or null if no data is available.
    */
   public async fetchHistoricalCandles(options: {
@@ -463,8 +479,9 @@ export class HyperLiquidClientService {
     interval: ValidCandleInterval;
     limit?: number;
     endTime?: number;
+    signal?: AbortSignal;
   }): Promise<CandleData | null> {
-    const { symbol, interval, limit = 100, endTime } = options;
+    const { symbol, interval, limit = 100, endTime, signal } = options;
     this.ensureInitialized();
 
     try {
@@ -473,15 +490,19 @@ export class HyperLiquidClientService {
       const intervalMs = this.#getIntervalMilliseconds(interval);
       const startTime = now - limit * intervalMs;
 
-      // Use the SDK's InfoClient to fetch candle data
-      // HyperLiquid SDK uses 'coin' terminology
-      const infoClient = this.getInfoClient();
-      const data = await infoClient.candleSnapshot({
-        coin: symbol, // Map to HyperLiquid SDK's 'coin' parameter
-        interval,
-        startTime,
-        endTime: now,
-      });
+      // Use HTTP transport for historical candle snapshots (request/response).
+      // This avoids the WebSocket abort race condition that causes 429s
+      // during rapid market switching on extension (#TAT-2954).
+      const infoClient = this.getInfoClient({ useHttp: true });
+      const data = await infoClient.candleSnapshot(
+        {
+          coin: symbol, // Map to HyperLiquid SDK's 'coin' parameter
+          interval,
+          startTime,
+          endTime: now,
+        },
+        signal,
+      );
 
       // Transform API response to match expected format
       if (Array.isArray(data) && data.length > 0) {
@@ -567,6 +588,10 @@ export class HyperLiquidClientService {
     // This fixes a race condition where component unmounts before subscription resolves
     let subscriptionPromise: Promise<{ unsubscribe: () => void }> | null = null;
 
+    // AbortController to cancel in-flight REST calls (candleSnapshot) on cleanup.
+    // Prevents rate limit exhaustion when rapidly switching markets (#28141).
+    const abortController = new AbortController();
+
     // Calculate initial fetch size dynamically based on duration and interval
     // Match main branch behavior: up to 500 candles initially
     const initialLimit = duration
@@ -581,6 +606,7 @@ export class HyperLiquidClientService {
           symbol,
           interval,
           limit: initialLimit,
+          signal: abortController.signal,
         });
 
         // Don't proceed if already unsubscribed
@@ -683,6 +709,11 @@ export class HyperLiquidClientService {
           onError?.(errorInstance);
         }
       } catch (error) {
+        // Skip logging and notification for intentional abort (user navigated away)
+        if (abortController.signal.aborted) {
+          return;
+        }
+
         const errorInstance = ensureError(
           error,
           'HyperLiquidClientService.subscribeToCandles',
@@ -720,6 +751,8 @@ export class HyperLiquidClientService {
     // Return cleanup function
     return () => {
       isUnsubscribed = true;
+      // Cancel any in-flight REST calls (candleSnapshot) to conserve rate limit budget (#28141)
+      abortController.abort();
       if (wsUnsubscribe) {
         // Subscription already resolved - unsubscribe directly
         wsUnsubscribe();

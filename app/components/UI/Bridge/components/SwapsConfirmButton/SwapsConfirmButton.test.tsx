@@ -21,8 +21,12 @@ import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/te
 import { BigNumber } from 'ethers';
 import Engine from '../../../../../core/Engine';
 import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  MetaMetricsSwapsEventSource,
+  TokenFeatureType,
+} from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
+import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -233,6 +237,13 @@ const mockState: DeepPartial<RootState> = {
         remoteFeatureFlags: {
           bridgeConfigV2: defaultBridgeConfigV2,
         },
+      },
+      // Required by selectControllerFields (used by selectDestTokenWarning)
+      GasFeeController: {
+        gasFeeEstimatesByChainId: {},
+      },
+      BridgeController: {
+        tokenWarnings: [],
       },
     },
   },
@@ -568,6 +579,33 @@ describe('SwapsConfirmButton', () => {
       expect(button.props.accessibilityState?.disabled).toBe(true);
       // Spinner overlay is shown (label text rendered but visually hidden via opacity-0)
       expect(getByTestId('spinner-container')).toBeTruthy();
+    });
+
+    it('is disabled when active quote is for a different token pair (stale quote during token change)', () => {
+      // Regression: after flipping tokens or changing the destination token the
+      // bridge controller keeps the previous quote in state until the first new
+      // quote arrives. isActiveQuoteForCurrentTokenPair catches this mismatch.
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: mockQuoteWithMetadata,
+          isLoading: true,
+          isActiveQuoteForCurrentTokenPair: false,
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('does not show loading when source amount is empty', () => {
@@ -1103,6 +1141,155 @@ describe('SwapsConfirmButton', () => {
 
       // Verify submitBridgeTx is not called since button is disabled
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('handleContinue — token warning routing', () => {
+    const mockWarning = {
+      type: TokenFeatureType.WARNING,
+      feature_id: 'warn-1',
+      description: 'This token may be suspicious',
+    };
+
+    const stateWithWarning = (
+      warning = mockWarning,
+    ): DeepPartial<RootState> => ({
+      ...mockState,
+      engine: {
+        backgroundState: {
+          ...mockState.engine?.backgroundState,
+          BridgeController: {
+            tokenWarnings: [warning],
+          },
+        },
+      },
+    });
+
+    it('navigates to TokenWarningModal when a token warning is present', async () => {
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: stateWithWarning() },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: {
+          warningType: TokenFeatureType.WARNING,
+          description: mockWarning.description,
+          mode: TokenWarningModalMode.Execution,
+          location: MetaMetricsSwapsEventSource.MainView,
+        },
+      });
+    });
+
+    it('does not submit the transaction when a token warning is present', async () => {
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: stateWithWarning() },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+
+    it('passes MALICIOUS type through to TokenWarningModal params', async () => {
+      const maliciousWarning = {
+        type: TokenFeatureType.MALICIOUS,
+        feature_id: 'mal-1',
+        description: 'This token is malicious',
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: stateWithWarning(maliciousWarning) },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: expect.objectContaining({
+          warningType: TokenFeatureType.MALICIOUS,
+          description: maliciousWarning.description,
+          mode: TokenWarningModalMode.Execution,
+        }),
+      });
+    });
+
+    it('bypasses price impact check when token warning is present', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: { priceImpact: '0.90' }, // well above danger threshold
+            },
+          },
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: stateWithWarning() },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: expect.anything(),
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
+        params: expect.anything(),
+      });
+    });
+
+    it('proceeds to normal flow when no token warning is present', async () => {
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: mockState }, // tokenWarnings: [] by default
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: expect.anything(),
+      });
+      await waitFor(() => {
+        expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
+      });
     });
   });
 

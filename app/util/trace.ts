@@ -203,6 +203,7 @@ export enum TraceName {
   PredictGetPriceHistory = 'Predict Get Price History',
   PredictGetPrices = 'Predict Get Prices',
   PredictGetUnrealizedPnL = 'Predict Get Unrealized PnL',
+  PredictGetCryptoTargetPrice = 'Predict Get Crypto Target Price',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
@@ -211,6 +212,9 @@ export enum TraceName {
   MarketInsightsEntryCardLoad = 'Market Insights Entry Card Load',
   MarketInsightsViewLoad = 'Market Insights View Load',
   MarketInsightsViewportTracking = 'Market Insights Viewport Tracking',
+  // Homepage Section Performance
+  HomepageSectionTimeToContent = 'Homepage Section Time To Content',
+  HomepageSectionDataFetch = 'Homepage Section Data Fetch',
 }
 
 export enum TraceOperation {
@@ -262,6 +266,8 @@ export enum TraceOperation {
   // Market Insights
   MarketInsightsLoad = 'market_insights.load',
   MarketInsightsViewportTracking = 'market_insights.viewport_tracking',
+  // Homepage Section Performance
+  HomepageSectionPerformance = 'homepage.section.performance',
 }
 
 const ID_DEFAULT = 'default';

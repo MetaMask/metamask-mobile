@@ -2,12 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import { MINIMUM_BET } from '../../../constants/transactions';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
+import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
 import { formatPrice } from '../../../utils/format';
 import { getPlaceOrderErrorOutcome } from '../../../utils/predictErrorHandler';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
-import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
-import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 
 interface UsePredictBuyInfoParams {
   preview?: OrderPreview | null;
@@ -18,6 +17,7 @@ interface UsePredictBuyInfoParams {
   isInsufficientBalance: boolean;
   maxBetAmount: number;
   isPayFeesLoading: boolean;
+  blockingPayAlertMessage: string | null;
 }
 
 export const usePredictBuyError = ({
@@ -29,27 +29,24 @@ export const usePredictBuyError = ({
   isInsufficientBalance,
   maxBetAmount,
   isPayFeesLoading,
+  blockingPayAlertMessage,
 }: UsePredictBuyInfoParams) => {
   const { activeOrder, clearOrderError } = usePredictActiveOrder();
   const { isBalanceLoading } = usePredictBuyAvailableBalance();
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
   const { isPredictBalanceSelected } = usePredictPaymentToken();
-  const [insufficientPayTokenBalanceAlert] =
-    useInsufficientPayTokenBalanceAlert();
 
   const errorResult = useMemo(() => {
     if (isBalanceLoading || isPlacingOrder || isConfirming || !preview) {
       return undefined;
     }
 
-    if (
-      !isPayFeesLoading &&
-      !isPredictBalanceSelected &&
-      !!insufficientPayTokenBalanceAlert
-    ) {
+    const ready = !isPayFeesLoading && !isPredictBalanceSelected;
+
+    if (ready && !!blockingPayAlertMessage) {
       return {
         status: 'error',
-        error: insufficientPayTokenBalanceAlert.message,
+        error: blockingPayAlertMessage,
       };
     }
 
@@ -66,7 +63,7 @@ export const usePredictBuyError = ({
     preview,
     isPayFeesLoading,
     isPredictBalanceSelected,
-    insufficientPayTokenBalanceAlert,
+    blockingPayAlertMessage,
     activeOrder?.error,
   ]);
 
@@ -90,10 +87,10 @@ export const usePredictBuyError = ({
         maximumDecimals: 2,
       });
       return maxBetAmount >= MINIMUM_BET
-        ? strings('predict.order.prediction_insufficient_funds', {
+        ? strings('predict.order.prediction_insufficient_funds_try_token', {
             amount: formattedMax,
           })
-        : strings('predict.order.no_funds_enough');
+        : strings('predict.order.no_funds_enough_try_token');
     }
 
     if (!errorResult) {

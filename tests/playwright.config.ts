@@ -35,10 +35,7 @@ export default defineConfig({
           name: 'Samsung Galaxy S24 Ultra',
           osVersion: '14', // 14 for local testing
         },
-        app: {
-          packageName: 'io.metamask',
-          launchableActivity: 'io.metamask.MainActivity',
-        },
+        app: {},
         buildPath: 'PATH-TO-BUILD', // Path to your .apk file
       },
     },

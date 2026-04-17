@@ -87,8 +87,26 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../Views/confirmations/hooks/useNetworkName', () => ({
-  useNetworkName: () => 'Ethereum Mainnet',
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn((selector: (state: unknown) => unknown) => {
+    const { selectEvmNetworkConfigurationsByChainId: selectEvm } =
+      jest.requireActual<
+        typeof import('../../../../selectors/networkController')
+      >('../../../../selectors/networkController');
+    const { selectNonEvmNetworkConfigurationsByChainId: selectNonEvm } =
+      jest.requireActual<
+        typeof import('../../../../selectors/multichainNetworkController')
+      >('../../../../selectors/multichainNetworkController');
+    if (selector === selectEvm) {
+      return {
+        '0x1': { name: 'Ethereum Mainnet', chainId: '0x1' },
+      };
+    }
+    if (selector === selectNonEvm) {
+      return {};
+    }
+    return undefined;
+  }),
 }));
 
 jest.mock('../../../hooks/useBlockExplorer', () => ({
@@ -97,15 +115,6 @@ jest.mock('../../../hooks/useBlockExplorer', () => ({
     getBlockExplorerTokenUrl: (address: string) =>
       `https://etherscan.io/address/${address}`,
     getBlockExplorerName: () => 'Etherscan',
-  }),
-}));
-
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
   }),
 }));
 

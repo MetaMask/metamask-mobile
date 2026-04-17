@@ -159,7 +159,7 @@ export default class PlaywrightMatchers {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     const element = await drv.$(xpath);
-    return wrapElement(element);
+    return wrapElement(element as unknown as ChainablePromiseElement);
   }
 
   /**

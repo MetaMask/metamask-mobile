@@ -23,6 +23,8 @@ import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
+import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
+import { useProviderLimits } from '../../hooks/useProviderLimits';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
@@ -81,6 +83,7 @@ import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
 } from '../../../../../reducers/fiatOrders';
+import { selectProviderAutoSelected } from '../../../../../selectors/rampsController';
 import Device from '../../../../../util/device';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
@@ -171,7 +174,9 @@ function BuildQuote() {
 
   const {
     userRegion,
+    providers,
     selectedProvider,
+    setSelectedProvider,
     selectedToken,
     paymentMethods,
     getBuyWidgetData,
@@ -184,6 +189,7 @@ function BuildQuote() {
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const providerAutoSelected = useSelector(selectProviderAutoSelected);
   const prevSelectedProviderRef = useRef(selectedProvider);
 
   /*
@@ -208,7 +214,7 @@ function BuildQuote() {
       return false;
     }
 
-    if (!selectedProvider.supportedCryptoCurrencies?.[effectiveAssetId]) {
+    if (!providerSupportsAsset(selectedProvider, effectiveAssetId)) {
       return true;
     }
 
@@ -257,14 +263,51 @@ function BuildQuote() {
     }, []),
   );
 
-  // Show "Token Not Available" modal when the selected token is unavailable
-  // for the current provider. Debounced to let the query settle — prevents
-  // the modal from flashing when isTokenUnavailable is briefly true due to
-  // stale cached data before the fresh response arrives.
+  // When no provider is selected (e.g. first-time user in a region without
+  // Transak), pick the first provider that supports the selected token.
+  useEffect(() => {
+    if (
+      !isOnBuildQuoteScreen ||
+      selectedProvider ||
+      !effectiveAssetId ||
+      providers.length === 0
+    ) {
+      return;
+    }
+    const supportingProvider = providers.find((p) =>
+      providerSupportsAsset(p, effectiveAssetId),
+    );
+    if (supportingProvider) {
+      setSelectedProvider(supportingProvider, { autoSelected: true });
+    }
+  }, [
+    isOnBuildQuoteScreen,
+    selectedProvider,
+    effectiveAssetId,
+    providers,
+    setSelectedProvider,
+  ]);
+
+  // When the selected token is unavailable for the current provider:
+  // - If the provider was auto-selected (soft), silently switch to the best
+  //   provider that supports the token.
+  // - Otherwise, show the "Token Not Available" modal so the user can decide.
   useEffect(() => {
     if (!isOnBuildQuoteScreen || !isTokenUnavailable) {
       lastShownUnavailableKeyRef.current = '';
       return;
+    }
+
+    if (providerAutoSelected && effectiveAssetId) {
+      const supportingProvider = providers.find(
+        (p) =>
+          p.id !== selectedProvider?.id &&
+          providerSupportsAsset(p, effectiveAssetId),
+      );
+      if (supportingProvider) {
+        setSelectedProvider(supportingProvider, { autoSelected: true });
+        return;
+      }
     }
 
     const key = `${selectedProvider?.id}:${effectiveAssetId}`;
@@ -289,6 +332,9 @@ function BuildQuote() {
     navigation,
     selectedProvider?.id,
     focusTrigger,
+    providerAutoSelected,
+    providers,
+    setSelectedProvider,
   ]);
 
   const {
@@ -360,14 +406,23 @@ function BuildQuote() {
   );
 
   const debouncedPollingAmount = useDebouncedValue(amountAsNumber, 500);
+  const hasAmount = amountAsNumber > 0;
 
+  const { amountLimitError } = useProviderLimits({
+    provider: selectedProvider,
+    fiatCurrency: userRegion?.country?.currency,
+    paymentMethodId: selectedPaymentMethod?.id,
+    amount: amountAsNumber,
+    currency,
+  });
   const quoteFetchEnabled = !!(
     walletAddress &&
     selectedPaymentMethod &&
     selectedProvider &&
     selectedToken?.assetId &&
     tokenStateIsSettled &&
-    debouncedPollingAmount > 0
+    debouncedPollingAmount > 0 &&
+    !amountLimitError
   );
 
   /*
@@ -387,7 +442,6 @@ function BuildQuote() {
             redirectUrl: getRampCallbackBaseUrl(),
             paymentMethods: [selectedPaymentMethod.id],
             providers: [selectedProvider.id],
-            forceRefresh: true,
           }
         : null,
     [
@@ -449,10 +503,19 @@ function BuildQuote() {
   ]);
 
   const selectedQuote = useMemo(() => {
-    if (!quotesResponse?.success || !selectedProvider || !selectedPaymentMethod)
+    if (
+      !quotesResponse?.success ||
+      !selectedProvider ||
+      !selectedPaymentMethod
+    ) {
       return null;
-    const [quote] = quotesResponse.success;
-    return quote?.provider === selectedProvider.id ? quote : null;
+    }
+    const targetProvider = normalizeProviderCode(selectedProvider.id);
+    return (
+      quotesResponse.success.find(
+        (quote) => normalizeProviderCode(quote.provider) === targetProvider,
+      ) ?? null
+    );
   }, [quotesResponse, selectedProvider, selectedPaymentMethod]);
 
   const networkInfo = useMemo(() => {
@@ -785,10 +848,11 @@ function BuildQuote() {
     handleWidgetProviderContinue,
   ]);
 
-  const hasAmount = amountAsNumber > 0;
-
   const canContinue =
-    hasAmount && !selectedQuoteLoading && selectedQuote !== null;
+    hasAmount &&
+    !amountLimitError &&
+    !selectedQuoteLoading &&
+    selectedQuote !== null;
 
   const hasNoQuotes =
     hasAmount &&
@@ -797,170 +861,195 @@ function BuildQuote() {
     quotesResponse !== null &&
     selectedQuote === null;
 
+  const providerQuoteError = useMemo(() => {
+    if (!hasNoQuotes || !quotesResponse?.error?.length) return undefined;
+    const firstError = quotesResponse.error[0];
+    return firstError?.error;
+  }, [hasNoQuotes, quotesResponse?.error]);
+
+  const inlineQuoteError = amountLimitError ?? providerQuoteError ?? null;
+  const hasGenericNoQuotes = hasNoQuotes && !providerQuoteError;
+  const amountInputHasError = Boolean(
+    rampsError || quoteFetchError || inlineQuoteError || hasGenericNoQuotes,
+  );
+
   const noQuotesErrorMessage = selectedProvider
     ? strings('fiat_on_ramp.no_quotes_error', {
         provider: selectedProvider.name,
       })
     : strings('fiat_on_ramp.no_quotes_available');
 
+  const actionSectionMessage = (() => {
+    if (rampsError) {
+      return (
+        <TruncatedError
+          error={rampsError}
+          providerName={selectedProvider?.name}
+          providerSupportUrl={
+            selectedProvider?.links?.find(
+              (link) => link.name === PROVIDER_LINKS.SUPPORT,
+            )?.url
+          }
+        />
+      );
+    }
+    if (inlineQuoteError) {
+      return (
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.ErrorDefault}
+          style={styles.centeredText}
+        >
+          {inlineQuoteError}
+        </Text>
+      );
+    }
+    if (hasGenericNoQuotes) {
+      return (
+        <TruncatedError
+          error={noQuotesErrorMessage}
+          showChangeProvider
+          amount={amountAsNumber}
+        />
+      );
+    }
+    if (selectedProvider) {
+      return (
+        <Text variant={TextVariant.BodySm} style={styles.poweredByText}>
+          {strings('fiat_on_ramp.powered_by_provider', {
+            provider: selectedProvider.name,
+          })}
+        </Text>
+      );
+    }
+    return null;
+  })();
+
   return (
-    <>
-      <HeaderCompactStandard
-        title={
-          selectedToken?.symbol
-            ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
-            : undefined
-        }
-        subtitle={
-          networkInfo?.networkName
-            ? strings('fiat_on_ramp.on_network', {
-                networkName: networkInfo.networkName,
-              })
-            : undefined
-        }
-        onBack={handleBackPress}
-        backButtonProps={{ testID: BUILD_QUOTE_TEST_IDS.BACK_BUTTON }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Setting,
-            onPress: handleSettingsPress,
-            testID: BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON,
-          },
-        ]}
-        includesTopInset
-      />
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ScreenLayout.Content style={styles.content}>
-            <View style={styles.centerGroup}>
-              <View style={styles.amountContainer}>
-                <View style={styles.amountRow}>
+    <ScreenLayout>
+      <ScreenLayout.Body>
+        <HeaderCompactStandard
+          title={
+            selectedToken?.symbol
+              ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
+              : undefined
+          }
+          subtitle={
+            networkInfo?.networkName
+              ? strings('fiat_on_ramp.on_network', {
+                  networkName: networkInfo.networkName,
+                })
+              : undefined
+          }
+          onBack={handleBackPress}
+          backButtonProps={{ testID: BUILD_QUOTE_TEST_IDS.BACK_BUTTON }}
+          endButtonIconProps={[
+            {
+              iconName: IconName.Setting,
+              onPress: handleSettingsPress,
+              testID: BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON,
+            },
+          ]}
+          includesTopInset
+        />
+        <ScreenLayout.Content style={styles.content}>
+          <View style={styles.centerGroup}>
+            <View style={styles.amountContainer}>
+              <View style={styles.amountRow}>
+                <Text
+                  testID={BuildQuoteSelectors.AMOUNT_INPUT}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Regular}
+                  color={
+                    amountInputHasError ? TextColor.ErrorDefault : undefined
+                  }
+                  twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
+                  numberOfLines={1}
+                >
+                  {currencyPrefix}
+                  {amount}
+                </Text>
+                <Animated.View
+                  style={[
+                    styles.cursor,
+                    {
+                      height: Math.max(amountLineHeight - 4, 16),
+                      opacity: cursorOpacity,
+                    },
+                  ]}
+                />
+                {currencySuffix ? (
                   <Text
-                    testID={BuildQuoteSelectors.AMOUNT_INPUT}
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Regular}
                     color={
-                      rampsError || hasNoQuotes || quoteFetchError
-                        ? TextColor.ErrorDefault
-                        : undefined
+                      amountInputHasError ? TextColor.ErrorDefault : undefined
                     }
                     twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
-                    numberOfLines={1}
                   >
-                    {currencyPrefix}
-                    {amount}
+                    {currencySuffix}
                   </Text>
-                  <Animated.View
-                    style={[
-                      styles.cursor,
-                      {
-                        height: Math.max(amountLineHeight - 4, 16),
-                        opacity: cursorOpacity,
-                      },
-                    ]}
-                  />
-                  {currencySuffix ? (
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Regular}
-                      color={
-                        rampsError || hasNoQuotes || quoteFetchError
-                          ? TextColor.ErrorDefault
-                          : undefined
-                      }
-                      twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
-                    >
-                      {currencySuffix}
-                    </Text>
-                  ) : null}
-                </View>
-                <PaymentMethodPill
-                  label={
-                    selectedPaymentMethod?.name ||
-                    strings('fiat_on_ramp.select_payment_method')
-                  }
-                  isLoading={paymentMethodsLoading}
-                  onPress={
-                    isTokenUnavailable ? undefined : handlePaymentPillPress
-                  }
-                  testID="build-quote-payment-pill"
-                />
+                ) : null}
               </View>
-            </View>
-
-            {quoteFetchError && (
-              <BannerAlert
-                severity={BannerAlertSeverity.Error}
-                description={parseUserFacingError(
-                  quoteFetchError,
-                  strings('deposit.buildQuote.quoteFetchError'),
-                )}
+              <PaymentMethodPill
+                label={
+                  selectedPaymentMethod?.name ||
+                  strings('fiat_on_ramp.select_payment_method')
+                }
+                paymentMethod={selectedPaymentMethod}
+                isLoading={paymentMethodsLoading}
+                onPress={
+                  isTokenUnavailable ? undefined : handlePaymentPillPress
+                }
+                testID="build-quote-payment-pill"
               />
-            )}
-
-            <View style={styles.actionSection}>
-              {hasAmount ? (
-                <>
-                  {rampsError ? (
-                    <TruncatedError
-                      error={rampsError}
-                      providerName={selectedProvider?.name}
-                      providerSupportUrl={
-                        selectedProvider?.links?.find(
-                          (link) => link.name === PROVIDER_LINKS.SUPPORT,
-                        )?.url
-                      }
-                    />
-                  ) : hasNoQuotes ? (
-                    <TruncatedError
-                      error={strings('fiat_on_ramp.encountered_error')}
-                      errorDetails={noQuotesErrorMessage}
-                      showChangeProvider
-                      amount={amountAsNumber}
-                    />
-                  ) : (
-                    selectedProvider && (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        style={styles.poweredByText}
-                      >
-                        {strings('fiat_on_ramp.powered_by_provider', {
-                          provider: selectedProvider.name,
-                        })}
-                      </Text>
-                    )
-                  )}
-                  <Button
-                    variant={ButtonVariant.Primary}
-                    size={ButtonSize.Lg}
-                    onPress={handleContinuePress}
-                    isFullWidth
-                    isDisabled={!canContinue}
-                    isLoading={selectedQuoteLoading || isContinueLoading}
-                    testID={BuildQuoteSelectors.CONTINUE_BUTTON}
-                  >
-                    {strings('fiat_on_ramp.continue')}
-                  </Button>
-                </>
-              ) : (
-                quickAmounts.length > 0 && (
-                  <QuickAmounts
-                    amounts={quickAmounts}
-                    currency={currency}
-                    onAmountPress={handleQuickAmountPress}
-                  />
-                )
-              )}
             </View>
-            <Keypad
-              currency={currency}
-              value={amount}
-              onChange={handleKeypadChange}
+          </View>
+
+          {quoteFetchError && (
+            <BannerAlert
+              severity={BannerAlertSeverity.Error}
+              description={parseUserFacingError(
+                quoteFetchError,
+                strings('deposit.buildQuote.quoteFetchError'),
+              )}
             />
-          </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScreenLayout>
-    </>
+          )}
+
+          <View style={styles.actionSection}>
+            {hasAmount ? (
+              <>
+                {actionSectionMessage}
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  onPress={handleContinuePress}
+                  isFullWidth
+                  isDisabled={!canContinue}
+                  isLoading={selectedQuoteLoading || isContinueLoading}
+                  testID={BuildQuoteSelectors.CONTINUE_BUTTON}
+                >
+                  {strings('fiat_on_ramp.continue')}
+                </Button>
+              </>
+            ) : (
+              quickAmounts.length > 0 && (
+                <QuickAmounts
+                  amounts={quickAmounts}
+                  currency={currency}
+                  onAmountPress={handleQuickAmountPress}
+                />
+              )
+            )}
+          </View>
+          <Keypad
+            currency={currency}
+            value={amount}
+            onChange={handleKeypadChange}
+          />
+        </ScreenLayout.Content>
+      </ScreenLayout.Body>
+    </ScreenLayout>
   );
 }
 

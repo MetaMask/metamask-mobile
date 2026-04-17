@@ -12,12 +12,12 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "AccountTreeController": {
         "accountGroupsMetadata": {},
         "accountTree": {
-          "selectedAccountGroup": "",
           "wallets": {},
         },
         "accountWalletsMetadata": {},
         "hasAccountTreeSyncingSyncedAtLeastOnce": false,
         "isAccountTreeSyncingInProgress": false,
+        "selectedAccountGroup": "",
       },
       "AccountsController": {
         "accountIdByAddress": {},
@@ -60,21 +60,27 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "quoteRequest": {
           "srcTokenAddress": "0x0000000000000000000000000000000000000000",
         },
+        "quoteStreamComplete": null,
         "quotes": [],
         "quotesInitialLoadTime": null,
         "quotesLastFetched": null,
         "quotesLoadingStatus": null,
         "quotesRefreshCount": 0,
+        "tokenWarnings": [],
       },
       "BridgeStatusController": {
         "txHistory": {},
       },
       "CardController": {
         "activeProviderId": "baanx",
+        "cardHomeDataStatus": "idle",
         "cardholderAccounts": [],
         "isAuthenticated": false,
         "providerData": {},
         "selectedCountry": null,
+      },
+      "ClientController": {
+        "isUiOpen": false,
       },
       "ComplianceController": {},
       "ConnectivityController": {
@@ -143,6 +149,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "pooled_staking": {
           "isEligible": false,
         },
+        "tron_staking": null,
       },
       "GasFeeController": {
         "estimatedGasFeeTimeBounds": {},
@@ -152,10 +159,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "nonRPCGasFeeApisDisabled": false,
       },
       "GatorPermissionsController": {
-        "gatorPermissionsMapSerialized": "{"native-token-stream":{},"native-token-periodic":{},"erc20-token-stream":{},"erc20-token-periodic":{},"other":{}}",
-        "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+        "grantedPermissions": [],
         "isFetchingGatorPermissions": false,
-        "isGatorPermissionsEnabled": false,
+        "lastSyncedTimestamp": -1,
+        "pendingRevocations": [],
       },
       "GeolocationController": {
         "error": null,
@@ -191,6 +198,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "LoggingController": {
         "logs": {},
+      },
+      "MoneyAccountController": {
+        "moneyAccounts": {},
       },
       "MultichainAssetsController": {
         "accountsAssets": {},
@@ -652,6 +662,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "isLoading": false,
           "selected": null,
         },
+        "providerAutoSelected": false,
         "providers": {
           "data": [],
           "error": null,
@@ -680,6 +691,8 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "campaignParticipantStatus": {},
         "campaigns": {},
         "offDeviceSubscriptionAccounts": {},
+        "ondoCampaignActivity": {},
+        "ondoCampaignDeposits": {},
         "ondoCampaignLeaderboard": {},
         "ondoCampaignLeaderboardPositions": {},
         "ondoCampaignPortfolio": {},
@@ -774,11 +787,16 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "SnapInterfaceController": {
         "interfaces": {},
       },
-      "SnapsRegistry": {
+      "SnapRegistryController": {
         "database": null,
         "databaseUnavailable": false,
         "lastUpdated": null,
         "signature": null,
+      },
+      "SocialController": {
+        "followingAddresses": [],
+        "followingProfileIds": [],
+        "leaderboardEntries": [],
       },
       "SubjectMetadataController": {
         "subjectMetadata": {},
@@ -831,12 +849,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "AccountTreeController": {
         "accountGroupsMetadata": {},
         "accountTree": {
-          "selectedAccountGroup": "",
           "wallets": {},
         },
         "accountWalletsMetadata": {},
         "hasAccountTreeSyncingSyncedAtLeastOnce": false,
         "isAccountTreeSyncingInProgress": false,
+        "selectedAccountGroup": "",
       },
       "AccountsController": {
         "accountIdByAddress": {},
@@ -879,21 +897,27 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "quoteRequest": {
           "srcTokenAddress": "0x0000000000000000000000000000000000000000",
         },
+        "quoteStreamComplete": null,
         "quotes": [],
         "quotesInitialLoadTime": null,
         "quotesLastFetched": null,
         "quotesLoadingStatus": null,
         "quotesRefreshCount": 0,
+        "tokenWarnings": [],
       },
       "BridgeStatusController": {
         "txHistory": {},
       },
       "CardController": {
         "activeProviderId": "baanx",
+        "cardHomeDataStatus": "idle",
         "cardholderAccounts": [],
         "isAuthenticated": false,
         "providerData": {},
         "selectedCountry": null,
+      },
+      "ClientController": {
+        "isUiOpen": false,
       },
       "ComplianceController": {},
       "ConnectivityController": {
@@ -962,6 +986,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "pooled_staking": {
           "isEligible": false,
         },
+        "tron_staking": null,
       },
       "GasFeeController": {
         "estimatedGasFeeTimeBounds": {},
@@ -971,10 +996,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "nonRPCGasFeeApisDisabled": false,
       },
       "GatorPermissionsController": {
-        "gatorPermissionsMapSerialized": "{"native-token-stream":{},"native-token-periodic":{},"erc20-token-stream":{},"erc20-token-periodic":{},"other":{}}",
-        "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+        "grantedPermissions": [],
         "isFetchingGatorPermissions": false,
-        "isGatorPermissionsEnabled": false,
+        "lastSyncedTimestamp": -1,
+        "pendingRevocations": [],
       },
       "GeolocationController": {
         "error": null,
@@ -1010,6 +1035,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "LoggingController": {
         "logs": {},
+      },
+      "MoneyAccountController": {
+        "moneyAccounts": {},
       },
       "MultichainAssetsController": {
         "accountsAssets": {},
@@ -1471,6 +1499,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "isLoading": false,
           "selected": null,
         },
+        "providerAutoSelected": false,
         "providers": {
           "data": [],
           "error": null,
@@ -1499,6 +1528,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "campaignParticipantStatus": {},
         "campaigns": {},
         "offDeviceSubscriptionAccounts": {},
+        "ondoCampaignActivity": {},
+        "ondoCampaignDeposits": {},
         "ondoCampaignLeaderboard": {},
         "ondoCampaignLeaderboardPositions": {},
         "ondoCampaignPortfolio": {},
@@ -1576,11 +1607,16 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "SnapInterfaceController": {
         "interfaces": {},
       },
-      "SnapsRegistry": {
+      "SnapRegistryController": {
         "database": null,
         "databaseUnavailable": false,
         "lastUpdated": null,
         "signature": null,
+      },
+      "SocialController": {
+        "followingAddresses": [],
+        "followingProfileIds": [],
+        "leaderboardEntries": [],
       },
       "SubjectMetadataController": {
         "subjectMetadata": {},

@@ -15,10 +15,13 @@ import { selectNetworkConfigurationByChainId } from '../../../../../../selectors
 import { RootState } from '../../../../../../reducers';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { getUsdAmountRange } from '../../../../../../util/analytics/usdAmountRange';
 
 export interface MerklClaimData {
   /** Claimable reward string when amount >= MIN_CLAIMABLE_BONUS_USD; null otherwise (e.g. "< 0.01" or below threshold). */
   claimableReward: string | null;
+  /** Lifetime bonus claimed in human-readable USD (e.g. "221.59"); null while loading. */
+  lifetimeBonusClaimed: string | null;
   hasPendingClaim: boolean;
   isClaiming: boolean;
   /** Set when the last claim attempt failed (e.g. no reward data, network). */
@@ -34,20 +37,11 @@ export interface MerklClaimData {
 
 const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
   claimableReward: null,
+  lifetimeBonusClaimed: null,
   hasPendingClaim: false,
   isClaiming: false,
   error: null,
   claimRewards: async () => undefined,
-};
-
-const getBonusAmountRange = (bonusAmount: string): string => {
-  if (bonusAmount.startsWith('<')) return '< 0.01';
-  const value = parseFloat(bonusAmount);
-  if (value < 1) return '0.01 - 0.99';
-  if (value < 10) return '1.00 - 9.99';
-  if (value < 100) return '10.00 - 99.99';
-  if (value < 1000) return '100.00 - 999.99';
-  return '1000.00+';
 };
 
 /**
@@ -99,10 +93,14 @@ export const useMerklBonusClaim = (
 
   const eligibleAsset = isEligible ? asset : undefined;
 
-  const { claimableReward, hasClaimedBefore, rewardsFetchVersion } =
-    useMerklRewards({
-      asset: eligibleAsset,
-    });
+  const {
+    claimableReward,
+    lifetimeBonusClaimed,
+    hasClaimedBefore,
+    rewardsFetchVersion,
+  } = useMerklRewards({
+    asset: eligibleAsset,
+  });
   const { hasPendingClaim } = usePendingMerklClaim();
   const {
     claimRewards,
@@ -156,7 +154,7 @@ export const useMerklBonusClaim = (
           network_chain_id: asset?.chainId,
           network_name: network?.name,
           asset_symbol: asset?.symbol,
-          bonus_amount_range: getBonusAmountRange(claimableReward),
+          bonus_amount_range: getUsdAmountRange(claimableReward),
           has_claimed_before: hasClaimedBefore,
         })
         .build(),
@@ -184,6 +182,7 @@ export const useMerklBonusClaim = (
         !isClaimLocked && isClaimableBonusAboveThreshold(claimableReward)
           ? claimableReward
           : null,
+      lifetimeBonusClaimed,
       hasPendingClaim,
       claimRewards: claimRewardsWithSessionLock,
       isClaiming,
@@ -192,6 +191,7 @@ export const useMerklBonusClaim = (
   }, [
     isEligible,
     claimableReward,
+    lifetimeBonusClaimed,
     hasPendingClaim,
     claimRewardsWithSessionLock,
     isClaiming,

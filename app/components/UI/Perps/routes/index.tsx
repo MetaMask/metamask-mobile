@@ -1,5 +1,9 @@
 import { createStackNavigator } from '@react-navigation/stack';
-import React from 'react';
+import {
+  createNativeStackNavigator,
+  type NativeStackNavigationOptions,
+} from '@react-navigation/native-stack';
+import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -38,14 +42,15 @@ import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+/* eslint-disable-next-line */
+import { NavigationContext } from '@react-navigation/core';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
+import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
-const Stack = createStackNavigator<PerpsNavigationParamList>();
+const Stack = createNativeStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createStackNavigator();
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ScreenComponent = React.ComponentType<any>;
 
 const styles = StyleSheet.create({
   container: {
@@ -55,28 +60,56 @@ const styles = StyleSheet.create({
 
 function getRedesignedConfirmationsHeaderOptions({
   showPerpsHeader = CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader,
-}: PerpsNavigationParamList['RedesignedConfirmations'] = {}) {
-  return showPerpsHeader
-    ? {
-        headerLeft: () => null,
-        headerShown: true,
-        title: '',
-      }
-    : { header: () => null };
+}: PerpsNavigationParamList['RedesignedConfirmations'] = {}): NativeStackNavigationOptions {
+  if (showPerpsHeader) {
+    return {
+      headerBackVisible: false,
+      headerShown: true,
+      title: '',
+    };
+  }
+  return {
+    headerShown: false,
+    title: '',
+    headerBackVisible: false,
+    contentStyle: { backgroundColor: 'transparent' },
+    presentation: 'transparentModal',
+  };
 }
 
-const PerpsConfirmScreen = (
-  props: React.ComponentProps<typeof Confirm> & {
-    route: RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>;
-  },
-) => {
-  const params =
+const PerpsConfirmScreen = () => {
+  const navigation = useNavigation();
+  const { params } =
     useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
   const showPerpsHeader =
-    params?.params?.showPerpsHeader ??
+    params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
 
-  return <Confirm {...props} disableSafeArea={!showPerpsHeader} />;
+  // When showPerpsHeader is false (deposit-and-trade / long-short flow), Confirm internally
+  // calls navigation.setOptions({ headerShown: true }) for full-screen confirmations, which
+  // would cause the native nav bar to animate in. We intercept setOptions via NavigationContext
+  // so headerShown: true is never passed to the native stack, preventing any header animation
+  // or reserved header space. This is scoped only to this screen and does not affect Confirm
+  // or any other shared component.
+  const noHeaderNavigation = useMemo(
+    () =>
+      Object.assign({}, navigation, {
+        setOptions: (options: Parameters<typeof navigation.setOptions>[0]) =>
+          navigation.setOptions({ ...options, headerShown: false }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }) as any,
+    [navigation],
+  );
+
+  if (showPerpsHeader) {
+    return <Confirm />;
+  }
+
+  return (
+    <NavigationContext.Provider value={noHeaderNavigation}>
+      <Confirm disableSafeArea />
+    </NavigationContext.Provider>
+  );
 };
 
 const PerpsModalStack = () => {
@@ -100,16 +133,8 @@ const PerpsModalStack = () => {
       <PerpsStreamProvider>
         <ModalStack.Navigator
           screenOptions={{
-            headerShown: false,
-            presentation: 'modal',
-            cardStyle: {
-              backgroundColor: 'transparent',
-            },
-            cardStyleInterpolator: () => ({
-              overlayStyle: {
-                opacity: 0,
-              },
-            }),
+            ...clearStackNavigatorOptions,
+            presentation: 'transparentModal',
           }}
         >
           <ModalStack.Screen
@@ -330,6 +355,7 @@ const PerpsScreenStack = () => {
             options={{
               title: strings('perps.tpsl.title'),
               headerShown: false,
+              presentation: 'transparentModal',
             }}
           />
 
@@ -380,18 +406,17 @@ const PerpsScreenStack = () => {
             }}
           />
 
-          {/* Modal stack for ClosePosition bottom sheets (triggered bytooltip) */}
+          {/* Modal stack for ClosePosition bottom sheets (triggered by tooltip) */}
           <Stack.Screen
             name={Routes.PERPS.MODALS.CLOSE_POSITION_MODALS}
             component={PerpsClosePositionBottomSheetStack}
             options={{
               headerShown: false,
-              cardStyle: {
+              contentStyle: {
                 backgroundColor: 'transparent',
               },
-              animationEnabled: false,
-              // adding detachPreviousScreen to specific screen, rather than to the entire global stack
-              detachPreviousScreen: false,
+              animation: 'none',
+              presentation: 'transparentModal',
             }}
           />
 
@@ -401,12 +426,23 @@ const PerpsScreenStack = () => {
             component={PerpsModalStack}
             options={{
               headerShown: false,
-              cardStyle: {
+              contentStyle: {
                 backgroundColor: 'transparent',
               },
-              animationEnabled: false,
-              // Keep previous screen rendered for transparent overlay
-              detachPreviousScreen: false,
+              animation: 'none',
+              presentation: 'transparentModal',
+            }}
+          />
+
+          {/* Pay-with token selector (lives in App stack for other flows, duplicated here so the
+              navigate action is handled inside the native stack instead of being lost
+              when dispatched from a transparentModal screen) */}
+          <Stack.Screen
+            name={Routes.CONFIRMATION_PAY_WITH_MODAL}
+            component={PayWithModal}
+            options={{
+              headerShown: false,
+              presentation: 'transparentModal',
             }}
           />
 
@@ -421,7 +457,7 @@ const PerpsScreenStack = () => {
 
           <Stack.Screen
             name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-            component={PerpsConfirmScreen as ScreenComponent}
+            component={PerpsConfirmScreen}
             options={({ route }) =>
               getRedesignedConfirmationsHeaderOptions(route.params)
             }

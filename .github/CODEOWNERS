@@ -48,6 +48,7 @@ fingerprint.config.js                                       @MetaMask/mobile-pla
 builds.yml                                                  @MetaMask/mobile-platform
 .github/workflows/create-build-branch.yml                   @MetaMask/mobile-platform
 .github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
+.github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
 .github/workflows/upload-to-testflight.yml                  @MetaMask/mobile-admins
 scripts/update-expo-channel.js                              @MetaMask/mobile-admins
 certs/certificate.pem                                       @MetaMask/mobile-admins
@@ -179,6 +180,25 @@ app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts         @MetaMask/perps
 app/core/AgenticService/             @MetaMask/perps
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
+
+# Social & AI Team
+app/components/Views/SocialLeaderboard/                              @MetaMask/social-ai
+app/components/UI/MarketInsights/                                    @MetaMask/social-ai
+app/components/Views/Homepage/Sections/WhatsHappening/               @MetaMask/social-ai
+app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
+app/core/Engine/controllers/social-controller-init*                  @MetaMask/social-ai
+app/core/Engine/controllers/social-service-init*                     @MetaMask/social-ai
+app/core/Engine/messengers/social-controller-messenger*              @MetaMask/social-ai
+app/core/Engine/messengers/social-service-messenger*                 @MetaMask/social-ai
+app/core/Engine/controllers/ai-digest-controller-init*               @MetaMask/social-ai
+app/core/Engine/messengers/ai-digest-controller-messenger*           @MetaMask/social-ai
+app/selectors/featureFlagController/socialLeaderboard/               @MetaMask/social-ai
+app/selectors/featureFlagController/marketInsights/                  @MetaMask/social-ai
+app/selectors/featureFlagController/whatsHappening/                  @MetaMask/social-ai
+**/SocialLeaderboard/**                                              @MetaMask/social-ai
+**/MarketInsights/**                                                 @MetaMask/social-ai
+**/WhatsHappening/**                                                 @MetaMask/social-ai
+**/TopTraders/**                                                 @MetaMask/social-ai
 
 # Predict Team
 app/components/UI/Predict/                                    @MetaMask/predict

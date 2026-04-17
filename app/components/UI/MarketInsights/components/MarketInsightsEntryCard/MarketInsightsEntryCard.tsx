@@ -3,6 +3,10 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -10,7 +14,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import MaskedView from '@react-native-masked-view/masked-view';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Pressable } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { strings } from '../../../../../../locales/i18n';
 import AiSVG from '../../../../../component-library/components/Icons/Icon/assets/ai.svg';
@@ -34,7 +38,7 @@ import {
 } from './constants';
 
 const ARROW_ICON_SIZE = 16;
-const SPARKLE_SIZE = 16;
+const SPARKLE_SIZE = 20;
 
 const styles = StyleSheet.create({
   gradientTextMask: {
@@ -126,6 +130,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   report,
   timeAgo,
   onPress,
+  onDisclaimerPress,
   caip19Id,
   testID,
 }) => {
@@ -207,69 +212,84 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   );
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      onPress={onPress}
-      style={tw.style('px-4 mt-2 mb-4')}
-      testID={testID}
-    >
-      <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
-        <Box
-          twClassName="bg-background-muted rounded-xl"
-          padding={4}
-          gap={1}
-          onLayout={handleLayout}
-        >
-          <AnimatedGradientBorder
-            dimensions={cardDimensions}
-            animationKey={borderAnimationKey}
-          />
-
-          {/* Title row */}
+    <>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={onPress}
+        style={tw.style('px-4 mt-2 mb-4')}
+        testID={testID}
+      >
+        <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
           <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
+            twClassName="bg-background-muted rounded-xl"
+            padding={4}
             gap={1}
+            onLayout={handleLayout}
           >
-            <GradientText
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-            >
-              {strings('market_insights.title')}
-            </GradientText>
-            <ArrowRightSVG
-              name="arrow-right"
-              width={ARROW_ICON_SIZE}
-              height={ARROW_ICON_SIZE}
-              fill={CHROME_GRADIENT_TAIL}
+            <AnimatedGradientBorder
+              dimensions={cardDimensions}
+              animationKey={borderAnimationKey}
             />
-          </Box>
 
-          {/* Body text: rotating trend descriptions */}
-          <SlidingTextCarousel
-            texts={displayTexts}
-            onSlideStart={handleDescriptionSlideStart}
-          />
-
-          {/* Footer disclaimer */}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
-          >
-            <GradientSparkleIcon />
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
+            {/* Title row */}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
             >
-              {strings('market_insights.footer_disclaimer')}
-              {' • '}
-              {timeAgo}
-            </Text>
+              <GradientText
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+              >
+                {strings('market_insights.title')}
+              </GradientText>
+              <ArrowRightSVG
+                name="arrow-right"
+                width={ARROW_ICON_SIZE}
+                height={ARROW_ICON_SIZE}
+                fill={CHROME_GRADIENT_TAIL}
+              />
+            </Box>
+
+            {/* Body text: rotating trend descriptions */}
+            <SlidingTextCarousel
+              texts={displayTexts}
+              onSlideStart={handleDescriptionSlideStart}
+            />
+
+            {/* Footer disclaimer */}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+              twClassName="mt-0.5"
+            >
+              <GradientSparkleIcon />
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                twClassName="shrink"
+              >
+                {strings('market_insights.card_footer_disclaimer')}
+                {' • '}
+                {timeAgo}
+              </Text>
+              <Pressable
+                testID="market-insights-info-button"
+                onPress={onDisclaimerPress}
+                hitSlop={8}
+              >
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
+                />
+              </Pressable>
+            </Box>
           </Box>
-        </Box>
-      </View>
-    </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </>
   );
 };
 

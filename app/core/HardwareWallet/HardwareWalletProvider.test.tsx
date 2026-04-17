@@ -480,6 +480,37 @@ describe('HardwareWalletProvider', () => {
           ConnectionStatus.Disconnected,
         );
       });
+
+      it('clears operationType so retry flow is entered after signing errors', async () => {
+        const { result } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('message');
+        });
+
+        await act(async () => {
+          result.current.actions.hideAwaitingConfirmation();
+        });
+
+        await act(async () => {
+          result.current.actions.showHardwareWalletError(
+            new Error('Signing failed'),
+          );
+        });
+
+        mockAdapterInstance.resetFlowState.mockClear();
+
+        const internalRetry =
+          capturedBottomSheetProps.retryEnsureDeviceReady as () => Promise<void>;
+        await act(async () => {
+          await internalRetry();
+        });
+
+        expect(mockAdapterInstance.resetFlowState).toHaveBeenCalled();
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.Scanning,
+        );
+      });
     });
   });
 
@@ -523,7 +554,7 @@ describe('HardwareWalletProvider', () => {
     });
 
     describe('retryEnsureDeviceReady (internal, via bottom sheet props)', () => {
-      it('transitions to connecting state when retrying', async () => {
+      it('transitions to connecting state when retrying a connection error', async () => {
         const { result } = renderWithActions();
 
         act(() => {
@@ -551,6 +582,45 @@ describe('HardwareWalletProvider', () => {
         });
 
         expect(mockAdapterInstance.ensureDeviceReady).toHaveBeenCalled();
+      });
+
+      it('enters retry flow instead of closing after a signing error because hideAwaitingConfirmation clears operationType', async () => {
+        const { result } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('transaction');
+        });
+
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.AwaitingConfirmation,
+        );
+
+        await act(async () => {
+          result.current.actions.hideAwaitingConfirmation();
+        });
+
+        await act(async () => {
+          result.current.actions.showHardwareWalletError(
+            new Error('Signing failed'),
+          );
+        });
+
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.ErrorState,
+        );
+
+        mockAdapterInstance.resetFlowState.mockClear();
+
+        const internalRetry =
+          capturedBottomSheetProps.retryEnsureDeviceReady as () => Promise<void>;
+        await act(async () => {
+          await internalRetry();
+        });
+
+        expect(mockAdapterInstance.resetFlowState).toHaveBeenCalled();
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.Scanning,
+        );
       });
     });
   });

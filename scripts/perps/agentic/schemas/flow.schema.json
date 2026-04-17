@@ -138,7 +138,7 @@
           "enum": [
             "navigate", "eval_sync", "eval_async", "eval_ref",
             "press", "scroll", "set_input", "type_keypad", "clear_keypad",
-            "flow_ref", "log_watch", "wait", "wait_for", "screenshot", "manual",
+            "call", "log_watch", "wait", "wait_for", "screenshot", "manual",
             "select_account", "toggle_testnet", "switch_provider"
           ]
         },
@@ -229,7 +229,7 @@
           }
         },
         {
-          "if": { "properties": { "action": { "const": "flow_ref" } } },
+          "if": { "properties": { "action": { "const": "call" } } },
           "then": {
             "properties": {
               "ref": { "type": "string", "description": "Flow path: 'team/name' or just 'name' (defaults to perps team)." },

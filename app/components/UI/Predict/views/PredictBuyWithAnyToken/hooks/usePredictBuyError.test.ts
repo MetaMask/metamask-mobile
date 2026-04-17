@@ -8,7 +8,6 @@ const mockClearOrderError = jest.fn();
 let mockActiveOrder: { error?: string } | null = null;
 let mockIsBalanceLoading = false;
 let mockIsPredictBalanceSelected = true;
-let mockInsufficientPayTokenBalanceAlert: { message: string } | null = null;
 
 jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
@@ -30,22 +29,6 @@ jest.mock('../../../hooks/usePredictPaymentToken', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
-  () => ({
-    useInsufficientPayTokenBalanceAlert: () => [
-      mockInsufficientPayTokenBalanceAlert,
-    ],
-  }),
-);
-
-jest.mock(
-  '../../../../../Views/confirmations/hooks/pay/useTransactionPayData',
-  () => ({
-    useTransactionPayTotals: () => null,
-  }),
-);
-
 jest.mock('./usePredictBuyAvailableBalance', () => ({
   usePredictBuyAvailableBalance: () => ({
     availableBalance: 1000,
@@ -63,6 +46,12 @@ jest.mock('../../../../../../../locales/i18n', () => ({
     }
     if (key === 'predict.order.no_funds_enough') {
       return 'Not enough funds.';
+    }
+    if (key === 'predict.order.prediction_insufficient_funds_try_token') {
+      return `Not enough funds. You can use up to ${options?.amount}, or try a different token.`;
+    }
+    if (key === 'predict.order.no_funds_enough_try_token') {
+      return 'Not enough funds. Try a different token.';
     }
     return key;
   }),
@@ -120,6 +109,7 @@ const defaultParams = {
   isInsufficientBalance: false,
   maxBetAmount: 100,
   isPayFeesLoading: false,
+  blockingPayAlertMessage: null as string | null,
 };
 
 describe('usePredictBuyError', () => {
@@ -128,7 +118,6 @@ describe('usePredictBuyError', () => {
     mockActiveOrder = null;
     mockIsBalanceLoading = false;
     mockIsPredictBalanceSelected = true;
-    mockInsufficientPayTokenBalanceAlert = null;
   });
 
   describe('errorResult', () => {
@@ -210,11 +199,13 @@ describe('usePredictBuyError', () => {
     it('returns the pay token balance alert message for external payment tokens', () => {
       mockActiveOrder = { error: 'order failed' };
       mockIsPredictBalanceSelected = false;
-      mockInsufficientPayTokenBalanceAlert = {
-        message: 'Insufficient payment token balance',
-      };
 
-      const { result } = renderHook(() => usePredictBuyError(defaultParams));
+      const { result } = renderHook(() =>
+        usePredictBuyError({
+          ...defaultParams,
+          blockingPayAlertMessage: 'Insufficient payment token balance',
+        }),
+      );
 
       expect(mockGetPlaceOrderErrorOutcome).not.toHaveBeenCalled();
       expect(result.current.errorMessage).toBe(
@@ -284,7 +275,7 @@ describe('usePredictBuyError', () => {
       );
 
       expect(result.current.errorMessage).toBe(
-        'Not enough funds. You can use up to $50.00.',
+        'Not enough funds. You can use up to $50.00, or try a different token.',
       );
     });
 
@@ -297,7 +288,9 @@ describe('usePredictBuyError', () => {
         }),
       );
 
-      expect(result.current.errorMessage).toBe('Not enough funds.');
+      expect(result.current.errorMessage).toBe(
+        'Not enough funds. Try a different token.',
+      );
     });
 
     it('returns undefined when no error conditions exist', () => {

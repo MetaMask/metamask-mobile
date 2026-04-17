@@ -5,13 +5,13 @@ import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { Linking } from 'react-native';
 
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    setOptions: mockSetOptions,
+    goBack: mockGoBack,
   }),
   useRoute: () => ({
     params: {},
@@ -25,10 +25,6 @@ jest.mock('./EnterEmail', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
   I18nEvents: { addListener: jest.fn() },
-}));
-
-jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn(() => ({})),
 }));
 
 jest.mock('../../hooks/useRampsUserRegion', () => ({
@@ -52,6 +48,16 @@ jest.mock(
   () => 'mock-image',
 );
 
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: () => ({
+      addProperties: (props: object) => ({ build: () => ({ ...props }) }),
+    }),
+  }),
+}));
+
 const renderWithTheme = (component: React.ReactElement) =>
   render(
     <ThemeContext.Provider value={mockTheme}>
@@ -64,9 +70,13 @@ describe('V2VerifyIdentity', () => {
     jest.clearAllMocks();
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(<V2VerifyIdentity />);
-    expect(toJSON()).toMatchSnapshot();
+  it('calls navigation.goBack when header back is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2VerifyIdentity />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('navigates to enter email when submit button is pressed', async () => {

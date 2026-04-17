@@ -12,6 +12,7 @@ import {
   selectIsSolanaToNonSolana,
   selectSelectedQuoteRequestId,
   setSelectedQuoteRequestId,
+  selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus, isNonEvmChainId } from '@metamask/bridge-controller';
 import { areAddressesEqual } from '../../../../../util/address';
@@ -29,6 +30,7 @@ import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBri
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
 import AppConstants from '../../../../../core/AppConstants';
+import { usePriceImpactFiat } from '../usePriceImpactFiat';
 
 interface UseBridgeQuoteDataParams {
   latestSourceAtomicBalance?: EthersBigNumber;
@@ -53,6 +55,7 @@ export const useBridgeQuoteData = ({
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
   const isSolanaToNonSolana = useSelector(selectIsSolanaToNonSolana);
   const selectedQuoteRequestId = useSelector(selectSelectedQuoteRequestId);
+  const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const { validateBridgeTx } = useValidateBridgeTx();
 
   const [blockaidError, setBlockaidError] = useState<string | null>(null);
@@ -120,6 +123,8 @@ export const useBridgeQuoteData = ({
   const activeQuote = isShowingCachedQuote
     ? (manuallySelectedQuote ?? bestQuote)
     : rawActiveQuote;
+
+  const priceImpactFiat = usePriceImpactFiat(activeQuote);
 
   // Validate that the quote's source asset matches the selected source token
   // This prevents showing stale quote data when user changes source token on the same chain
@@ -231,6 +236,7 @@ export const useBridgeQuoteData = ({
             }`,
       rate,
       priceImpact: priceImpactPercentage,
+      priceImpactFiat,
       slippage: slippage ? `${slippage}%` : 'Auto',
     };
   }, [
@@ -241,13 +247,12 @@ export const useBridgeQuoteData = ({
     slippage,
     locale,
     networkFee,
+    priceImpactFiat,
   ]);
 
   const isLoading = quotesLoadingStatus === RequestStatus.LOADING;
 
-  const isNoQuotesAvailable = Boolean(
-    !bestQuote && quotesLastFetched && !isLoading,
-  );
+  const isNoQuotesAvailable = quoteStreamComplete?.hasQuotes === false;
 
   // The quote expired and no fetch is in progress — offer to get a new one.
   // Also treat the edge-case where a fetch IS running but there is no active
@@ -346,5 +351,7 @@ export const useBridgeQuoteData = ({
     shouldShowPriceImpactWarning,
     validQuotes,
     needsNewQuote,
+    isActiveQuoteForCurrentTokenPair:
+      isQuoteSourceTokenMatch && isQuoteDestTokenMatch,
   };
 };

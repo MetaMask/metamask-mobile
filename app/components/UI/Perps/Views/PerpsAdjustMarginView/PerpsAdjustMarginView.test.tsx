@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 import Logger from '../../../../../util/Logger';
 import PerpsAdjustMarginView from './PerpsAdjustMarginView';
 import { type Position } from '@metamask/perps-controller';
@@ -19,20 +19,6 @@ jest.mock('react-native-gesture-handler', () => ({
     }),
   },
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = jest.requireActual('react-native');
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaView: jest
-      .fn()
-      .mockImplementation(({ children, ...props }) => (
-        <View {...props}>{children}</View>
-      )),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-  };
-});
 
 const mockHandleAddMargin = jest.fn();
 const mockHandleRemoveMargin = jest.fn();
@@ -127,7 +113,36 @@ jest.mock('../../components/PerpsOrderHeader', () => {
   };
 });
 jest.mock('../../components/PerpsAmountDisplay', () => 'PerpsAmountDisplay');
-jest.mock('../../components/PerpsSlider', () => 'PerpsSlider');
+jest.mock('../../components/PerpsSlider', () => {
+  const ReactModule = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockPerpsSlider({
+    onValueChange,
+  }: {
+    onValueChange?: (value: number) => void;
+  }) {
+    return ReactModule.createElement(View, {
+      testID: 'mock-perps-slider',
+      onValueChange,
+    });
+  };
+});
+
+jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+  const ReactModule = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ name }: { name: string }) =>
+      ReactModule.createElement(View, { accessibilityLabel: name }),
+    IconName: {
+      ArrowRight: 'ArrowRight',
+      Info: 'Info',
+    },
+    IconSize: { Sm: 'Sm' },
+    IconColor: { Alternative: 'Alternative' },
+  };
+});
 
 describe('PerpsAdjustMarginView', () => {
   const mockPosition: Position = {
@@ -454,6 +469,25 @@ describe('PerpsAdjustMarginView', () => {
         screen.getByText('perps.adjust_margin.margin_available_to_remove'),
       ).toBeOnTheScreen();
       expect(screen.getByText('$200.00')).toBeOnTheScreen();
+    });
+  });
+
+  describe('arrow icon correctness', () => {
+    beforeEach(() => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+    });
+
+    it('uses ArrowRight (not Arrow2Right) for liquidation price and distance transition arrows', () => {
+      const { getByTestId } = render(<PerpsAdjustMarginView />);
+
+      // Trigger showTransition by setting a non-zero margin amount via the slider
+      fireEvent(getByTestId('mock-perps-slider'), 'valueChange', 100);
+
+      const arrowIcons = screen.getAllByLabelText('ArrowRight');
+      expect(arrowIcons).toHaveLength(2);
     });
   });
 });

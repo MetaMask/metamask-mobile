@@ -99,6 +99,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   });
 
   const handleFlowStart = useCallback(() => {
+    operationTypeRef.current = null;
     resetAnalyticsState();
     setAnalyticsFlow(derivedAnalyticsFlowRef.current);
   }, [resetAnalyticsState]);
@@ -156,9 +157,21 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   }, [updateConnectionState]);
 
   const handleCloseFlow = useCallback(() => {
+    operationTypeRef.current = null;
     setAnalyticsFlow(HardwareWalletAnalyticsFlow.Connection);
     closeFlow();
   }, [closeFlow]);
+
+  const handleRetryOrClose = useCallback(async () => {
+    if (operationTypeRef.current !== null) {
+      DevLogger.log(
+        '[HardwareWallet] Post-signing error — closing flow instead of retrying',
+      );
+      handleCloseFlow();
+      return;
+    }
+    await retryEnsureDeviceReady();
+  }, [handleCloseFlow, retryEnsureDeviceReady]);
 
   const handleAwaitingConfirmationCancel = useCallback(() => {
     DevLogger.log('[HardwareWallet] handleAwaitingConfirmationCancel');
@@ -200,7 +213,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         connectionState={connectionState}
         deviceSelection={deviceSelection}
         walletType={effectiveWalletType}
-        retryEnsureDeviceReady={retryEnsureDeviceReady}
+        retryEnsureDeviceReady={handleRetryOrClose}
         selectDevice={selectDevice}
         rescan={rescan}
         connect={connect}

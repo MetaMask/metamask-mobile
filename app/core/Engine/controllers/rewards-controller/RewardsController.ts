@@ -27,6 +27,9 @@ import {
   type CampaignLeaderboardPositionDto,
   type OndoGmPortfolioDto,
   type OndoGmPortfolioState,
+  type OndoGmCampaignDepositsDto,
+  type PaginatedOndoGmActivityDto,
+  type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
@@ -40,6 +43,7 @@ import {
   type ClientVersionRequirementDto,
   type CampaignState,
   type CampaignDtoState,
+  type SubscriptionBenefitsState,
   BASE32_REGEX,
   CampaignType,
 } from './types';
@@ -95,6 +99,9 @@ const SEASON_METADATA_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 // Referral details cache threshold
 const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 
+// Benefits details cache threshold
+const BENEFITS_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
+
 // Active boosts cache threshold
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
@@ -115,13 +122,19 @@ const CAMPAIGN_PARTICIPANT_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minut
 const ONDO_CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Campaign leaderboard position cache threshold
-const ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Campaign portfolio position cache threshold
-const ONDO_CAMPAIGN_PORTFOLIO_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const ONDO_CAMPAIGN_PORTFOLIO_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
+
+// Campaign deposits cache threshold
+const ONDO_CAMPAIGN_DEPOSITS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
+
+// Campaign activity cache threshold (first page only)
+const ONDO_CAMPAIGN_ACTIVITY_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
 
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
@@ -223,6 +236,18 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  ondoCampaignActivity: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  ondoCampaignDeposits: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -231,6 +256,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
   },
   rewardsEnvUrl: {
     includeInStateLogs: false,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  subscriptionBenefits: {
+    includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
     usedInUi: true,
@@ -244,6 +275,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   activeAccount: null,
   accounts: {},
   subscriptions: {},
+  subscriptionBenefits: {},
   seasons: {},
   subscriptionReferralDetails: {},
   seasonStatuses: {},
@@ -256,6 +288,8 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   ondoCampaignLeaderboard: {},
   ondoCampaignLeaderboardPositions: {},
   ondoCampaignPortfolio: {},
+  ondoCampaignActivity: {},
+  ondoCampaignDeposits: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });
@@ -339,6 +373,74 @@ export async function wrapWithCache<T>({
   return freshValue;
 }
 
+const MESSENGER_EXPOSED_METHODS = [
+  'addPointsEstimateToHistory',
+  'applyBonusCode',
+  'applyReferralCode',
+  'calculateTierStatus',
+  'canChangeRewardsEnvUrl',
+  'checkOptInStatusAgainstCache',
+  'claimReward',
+  'convertInternalAccountToCaipAccountId',
+  'convertToSeasonStatusDto',
+  'estimatePoints',
+  'getActivePointsBoosts',
+  'getActivityIfChanged',
+  'getActivityLastUpdated',
+  'getActualSubscriptionId',
+  'getBenefits',
+  'getCampaignParticipantStatus',
+  'getCampaigns',
+  'getCandidateSubscriptionId',
+  'getClientVersionRequirements',
+  'getDefaultRewardsEnvUrl',
+  'getFirstSubscriptionId',
+  'getGeoRewardsMetadata',
+  'getHasAccountOptedIn',
+  'getOffDeviceSubscriptionAccounts',
+  'getOndoCampaignDeposits',
+  'getOndoCampaignLeaderboard',
+  'getOndoCampaignLeaderboardPosition',
+  'getOndoCampaignActivity',
+  'getOndoCampaignPortfolioPosition',
+  'getOptInStatus',
+  'getPerpsDiscountForAccount',
+  'getPointsEvents',
+  'getPointsEventsIfChanged',
+  'getPointsEventsLastUpdated',
+  'getReferralDetails',
+  'getRewardsEnvUrl',
+  'getSeasonMetadata',
+  'getSeasonOneLineaRewardTokens',
+  'getSeasonStatus',
+  'getUnlockedRewards',
+  'handleAuthenticationTrigger',
+  'hasActiveSeason',
+  'hasActivityChanged',
+  'hasPointsEventsChanged',
+  'invalidateReferralDetailsCache',
+  'invalidateSubscriptionAndAccounts',
+  'invalidateSubscriptionCache',
+  'isOptInSupported',
+  'isRewardsFeatureEnabled',
+  'linkAccountsToSubscriptionCandidate',
+  'linkAccountToSubscriptionCandidate',
+  'logout',
+  'optIn',
+  'optInToCampaign',
+  'optOut',
+  'performSilentAuth',
+  'postBenefitImpression',
+  'resetAll',
+  'resetState',
+  'setActiveAccountFromCandidate',
+  'setRewardsEnvUrl',
+  'shouldSkipSilentAuth',
+  'signRewardsMessage',
+  'validateBonusCode',
+  'validateReferralCode',
+] as const;
+
 /**
  * Controller for managing user rewards and campaigns
  * Handles reward claiming, campaign fetching, and reward history
@@ -414,7 +516,6 @@ export class RewardsController extends BaseController<
       tiers: season.tiers,
       activityTypes: season.activityTypes,
       waysToEarn: season.waysToEarn,
-      shouldInstallNewVersion: season.shouldInstallNewVersion,
     };
   }
 
@@ -434,7 +535,6 @@ export class RewardsController extends BaseController<
         tiers: seasonMetadata.tiers,
         activityTypes: seasonMetadata.activityTypes,
         waysToEarn: seasonMetadata.waysToEarn,
-        shouldInstallNewVersion: seasonMetadata.shouldInstallNewVersion,
       },
       balance: {
         total: seasonState.balance,
@@ -526,178 +626,11 @@ export class RewardsController extends BaseController<
     this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
     this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
 
-    this.#registerActionHandlers();
+    this.messenger.registerMethodActionHandlers(
+      this,
+      MESSENGER_EXPOSED_METHODS,
+    );
     this.#initializeEventSubscriptions();
-  }
-
-  /**
-   * Register action handlers for this controller
-   */
-  #registerActionHandlers(): void {
-    this.messenger.registerActionHandler(
-      'RewardsController:getHasAccountOptedIn',
-      this.getHasAccountOptedIn.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getPointsEvents',
-      this.getPointsEvents.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:estimatePoints',
-      this.estimatePoints.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getPerpsDiscountForAccount',
-      this.getPerpsDiscountForAccount.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:isRewardsFeatureEnabled',
-      this.isRewardsFeatureEnabled.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:hasActiveSeason',
-      this.hasActiveSeason.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getSeasonMetadata',
-      this.getSeasonMetadata.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getSeasonStatus',
-      this.getSeasonStatus.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getReferralDetails',
-      this.getReferralDetails.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:optIn',
-      this.optIn.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:logout',
-      this.logout.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getGeoRewardsMetadata',
-      this.getGeoRewardsMetadata.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:validateReferralCode',
-      this.validateReferralCode.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:validateBonusCode',
-      this.validateBonusCode.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:linkAccountToSubscriptionCandidate',
-      this.linkAccountToSubscriptionCandidate.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:linkAccountsToSubscriptionCandidate',
-      this.linkAccountsToSubscriptionCandidate.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getCandidateSubscriptionId',
-      this.getCandidateSubscriptionId.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:optOut',
-      this.optOut.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getOptInStatus',
-      this.getOptInStatus.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getActivePointsBoosts',
-      this.getActivePointsBoosts.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getUnlockedRewards',
-      this.getUnlockedRewards.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getOffDeviceSubscriptionAccounts',
-      this.getOffDeviceSubscriptionAccounts.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getCampaigns',
-      this.getCampaigns.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:optInToCampaign',
-      this.optInToCampaign.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getCampaignParticipantStatus',
-      this.getCampaignParticipantStatus.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getOndoCampaignLeaderboard',
-      this.getOndoCampaignLeaderboard.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getOndoCampaignLeaderboardPosition',
-      this.getOndoCampaignLeaderboardPosition.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getOndoCampaignPortfolioPosition',
-      this.getOndoCampaignPortfolioPosition.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:claimReward',
-      this.claimReward.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:isOptInSupported',
-      this.isOptInSupported.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getActualSubscriptionId',
-      this.getActualSubscriptionId.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getFirstSubscriptionId',
-      this.getFirstSubscriptionId.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:resetAll',
-      this.resetAll.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getSeasonOneLineaRewardTokens',
-      this.getSeasonOneLineaRewardTokens.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:applyReferralCode',
-      this.applyReferralCode.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getRewardsEnvUrl',
-      this.getRewardsEnvUrl.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:canChangeRewardsEnvUrl',
-      this.canChangeRewardsEnvUrl.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:setRewardsEnvUrl',
-      this.setRewardsEnvUrl.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getDefaultRewardsEnvUrl',
-      this.getDefaultRewardsEnvUrl.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:applyBonusCode',
-      this.applyBonusCode.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getClientVersionRequirements',
-      this.getClientVersionRequirements.bind(this),
-    );
   }
 
   /**
@@ -2176,8 +2109,6 @@ export class RewardsController extends BaseController<
             tiers: seasonMetadata.tiers,
             activityTypes: seasonMetadata.activityTypes,
             waysToEarn: seasonMetadata.waysToEarn,
-            shouldInstallNewVersion:
-              seasonMetadata.shouldInstallNewVersion?.mobile,
           });
 
           // Add lastFetched timestamp
@@ -3648,6 +3579,52 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Get campaign-wide total deposits.
+   * This is a public endpoint - no authentication required.
+   * Results are cached for 5 minutes.
+   * @param campaignId - The campaign ID to get deposits for.
+   * @returns The total USD deposited across all participants.
+   */
+  async getOndoCampaignDeposits(
+    campaignId: string,
+  ): Promise<OndoGmCampaignDepositsDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return { totalUsdDeposited: '0' };
+    }
+
+    const result = await wrapWithCache<OndoGmCampaignDepositsDto>({
+      key: campaignId,
+      ttl: ONDO_CAMPAIGN_DEPOSITS_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.ondoCampaignDeposits[k];
+        if (!cached) return undefined;
+        return {
+          payload: { totalUsdDeposited: cached.totalUsdDeposited },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh campaign deposits via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getOndoCampaignDeposits',
+          campaignId,
+        )) as OndoGmCampaignDepositsDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.ondoCampaignDeposits[k] = {
+            totalUsdDeposited: payload.totalUsdDeposited,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+    return result;
+  }
+
+  /**
    * Get the current user's position on the campaign leaderboard.
    * This is an authenticated endpoint.
    * Results are cached for 5 minutes.
@@ -3682,6 +3659,9 @@ export class RewardsController extends BaseController<
             currentUsdValue: cached.currentUsdValue,
             totalUsdDeposited: cached.totalUsdDeposited,
             netDeposit: cached.netDeposit,
+            qualifiedDays: cached.qualifiedDays,
+            qualified: cached.qualified,
+            neighbors: cached.neighbors,
             computedAt: cached.computedAt,
           },
           lastFetched: cached.lastFetched,
@@ -3716,6 +3696,9 @@ export class RewardsController extends BaseController<
               currentUsdValue: payload.currentUsdValue,
               totalUsdDeposited: payload.totalUsdDeposited,
               netDeposit: payload.netDeposit,
+              qualifiedDays: payload.qualifiedDays,
+              qualified: payload.qualified,
+              neighbors: payload.neighbors,
               computedAt: payload.computedAt,
               lastFetched: Date.now(),
             };
@@ -3799,6 +3782,178 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Get paginated activity for an Ondo GM campaign.
+   * First page is cached for 1 minute; subsequent pages are always fetched fresh.
+   * When `forceFresh` is true the cache is bypassed but a last-updated check
+   * avoids redundant fetches if the server data hasn't changed.
+   * @param params - Campaign ID, subscription ID, pagination cursor, and optional forceFresh flag.
+   * @returns Paginated activity entries.
+   */
+  async getOndoCampaignActivity(params: {
+    campaignId: string;
+    subscriptionId: string;
+    cursor: string | null;
+    forceFresh?: boolean;
+  }): Promise<PaginatedOndoGmActivityDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return { has_more: false, cursor: null, results: [] };
+    }
+
+    const { campaignId, subscriptionId, cursor, forceFresh } = params;
+
+    if (cursor) {
+      return this.#withAuthRetry(
+        () =>
+          this.messenger.call(
+            'RewardsDataService:getOndoCampaignActivity',
+            campaignId,
+            subscriptionId,
+            cursor,
+          ) as Promise<PaginatedOndoGmActivityDto>,
+        subscriptionId,
+      );
+    }
+
+    if (forceFresh) {
+      return this.#withAuthRetry(
+        () => this.getActivityIfChanged(campaignId, subscriptionId),
+        subscriptionId,
+      );
+    }
+
+    const key = `${subscriptionId}:${campaignId}`;
+    const result = await wrapWithCache<PaginatedOndoGmActivityDto>({
+      key,
+      ttl: ONDO_CAMPAIGN_ACTIVITY_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.ondoCampaignActivity[k];
+        if (!cached) {
+          return undefined;
+        }
+        return {
+          payload: {
+            results: cached.results as PaginatedOndoGmActivityDto['results'],
+            has_more: cached.has_more,
+            cursor: cached.cursor,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh campaign activity via API call',
+          );
+          const activity = await this.getActivityIfChanged(
+            campaignId,
+            subscriptionId,
+          );
+          return activity;
+        }, subscriptionId),
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.ondoCampaignActivity[k] = {
+            results: payload.results,
+            has_more: payload.has_more,
+            cursor: payload.cursor,
+            lastFetched: Date.now(),
+          } as OndoGmActivityState;
+        });
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Fetch the first page of activity only if the server data has changed
+   * since the last cached entry. Falls back to cached data when unchanged.
+   */
+  async getActivityIfChanged(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<PaginatedOndoGmActivityDto> {
+    const key = `${subscriptionId}:${campaignId}`;
+
+    const hasChanged = await this.hasActivityChanged(
+      campaignId,
+      subscriptionId,
+    );
+
+    if (!hasChanged) {
+      const cached = this.state.ondoCampaignActivity[key];
+      return cached
+        ? {
+            results: cached.results as PaginatedOndoGmActivityDto['results'],
+            has_more: cached.has_more,
+            cursor: cached.cursor,
+          }
+        : { has_more: false, cursor: null, results: [] };
+    }
+
+    return (await this.messenger.call(
+      'RewardsDataService:getOndoCampaignActivity',
+      campaignId,
+      subscriptionId,
+      null,
+    )) as PaginatedOndoGmActivityDto;
+  }
+
+  /**
+   * Get the last-updated timestamp for Ondo GM campaign activity.
+   * @param campaignId - The campaign ID.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The last-updated date, or null if no activity exists.
+   */
+  async getActivityLastUpdated(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<Date | null> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) return null;
+    Logger.log('RewardsController: Getting campaign activity last updated', {
+      campaignId,
+      subscriptionId,
+    });
+    return this.#withAuthRetry(
+      () =>
+        this.messenger.call(
+          'RewardsDataService:getOndoCampaignActivityLastUpdated',
+          campaignId,
+          subscriptionId,
+        ),
+      subscriptionId,
+    );
+  }
+
+  /**
+   * Check if campaign activity has changed since the last fetch.
+   * Compares the server's last-updated timestamp against the most recent
+   * cached entry's timestamp.
+   * @returns true if fresh data should be fetched.
+   */
+  async hasActivityChanged(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<boolean> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) return false;
+
+    const key = `${subscriptionId}:${campaignId}`;
+    const cached = this.state.ondoCampaignActivity[key];
+
+    const cachedLatestTimestamp = cached?.results?.[0]?.timestamp;
+    if (!cachedLatestTimestamp) return true;
+
+    const lastUpdated = await this.getActivityLastUpdated(
+      campaignId,
+      subscriptionId,
+    );
+    return lastUpdated
+      ? lastUpdated.toISOString() !== cachedLatestTimestamp
+      : true;
+  }
+
+  /**
    * Claim a reward
    * @param rewardId - The reward ID
    * @param dto - The claim reward request body
@@ -3873,6 +4028,99 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to get Season 1 Linea reward tokens:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get benefits details with caching
+   * @param subscriptionId - The subscription ID for authentication
+   * @param limit - The maximum number of items requested
+   * @returns Promise<SubscriptionBenefitsState> - The benefits data
+   */
+  async getBenefits(
+    subscriptionId: string,
+    limit: number,
+  ): Promise<SubscriptionBenefitsState> {
+    return await wrapWithCache<SubscriptionBenefitsState>({
+      key: `${subscriptionId}`,
+      ttl: BENEFITS_DETAILS_CACHE_THRESHOLD_MS,
+      readCache: (key) => {
+        const cached = this.state.subscriptionBenefits[key] || undefined;
+        if (!cached) return;
+        return {
+          payload: cached,
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        try {
+          Logger.log(
+            'RewardsController: Fetching fresh benefits details data via API call for',
+            { subscriptionId, limit },
+          );
+          const benefits = await this.#withAuthRetry(
+            () =>
+              this.messenger.call(
+                'RewardsDataService:getBenefits',
+                subscriptionId,
+                limit,
+              ),
+            subscriptionId,
+          );
+          return {
+            benefits,
+            limit,
+            lastFetched: Date.now(),
+          };
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Failed to get benefits details:',
+            error instanceof Error ? error.message : String(error),
+          );
+          throw error;
+        }
+      },
+      writeCache: (key, payload) => {
+        this.update((state) => {
+          state.subscriptionBenefits[key] = payload;
+        });
+      },
+    });
+  }
+
+  /**
+   * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
+   * @param subscriptionId - The subscription ID for authentication
+   * @param benefitId - The specific benefit ID that was impressed
+   * @param benefitType - The type of the benefit that was impressed
+   * @returns Promise<SubscriptionBenefitsState> - The benefits data
+   */
+  async postBenefitImpression(
+    subscriptionId: string,
+    benefitId: number,
+    benefitType: number,
+  ): Promise<void> {
+    try {
+      Logger.log(
+        'RewardsController: Posting benefit impression via API call for',
+        { subscriptionId, benefitId },
+      );
+      await this.#withAuthRetry(
+        () =>
+          this.messenger.call(
+            'RewardsDataService:postBenefitImpression',
+            subscriptionId,
+            benefitId,
+            benefitType,
+          ),
+        subscriptionId,
+      );
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to post benefit impression:',
         error instanceof Error ? error.message : String(error),
       );
       throw error;

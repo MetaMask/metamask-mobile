@@ -260,4 +260,9 @@ export const ERROR_NAME_MAPPINGS: Record<string, ErrorCode> = {
   DeviceSocketNoBulkStatus: ErrorCode.BluetoothConnectionFailed,
   EthAppPleaseEnableContractData: ErrorCode.DeviceStateBlindSignNotSupported,
   BleError: ErrorCode.BluetoothConnectionFailed,
+  // QR-specific error names
+  QRScanError: ErrorCode.DeviceNotFound,
+  QRTimeoutError: ErrorCode.ConnectionTimeout,
+  QRCodeInvalid: ErrorCode.DeviceNotReady,
+  CameraPermissionDenied: ErrorCode.PermissionCameraDenied,
 };

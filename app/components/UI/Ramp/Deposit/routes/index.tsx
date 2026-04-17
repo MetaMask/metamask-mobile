@@ -3,7 +3,7 @@ import {
   createStackNavigator,
   StackNavigationOptions,
 } from '@react-navigation/stack';
-import { RouteProp } from '@react-navigation/native';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DepositSDKProvider } from '../sdk';
 import { DepositNavigationParams } from '../types';
@@ -33,6 +33,7 @@ import ConfigurationModal from '../Views/Modals/ConfigurationModal';
 import ErrorDetailsModal from '../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
 
 import Routes from '../../../../../constants/navigation/Routes';
+import { clearStackNavigatorOptions } from '../../../../../constants/navigation/clearStackNavigatorOptions';
 
 interface DepositParamList {
   [key: string]:
@@ -43,14 +44,6 @@ interface DepositParamList {
     | DepositNavigationParams
     | undefined;
 }
-
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
@@ -72,11 +65,9 @@ const getAnimationOptions = ({
   return { animationEnabled };
 };
 
-interface MainRoutesProps {
-  route: RouteProp<{ params: DepositNavigationParams }, 'params'>;
-}
-
-const MainRoutes = ({ route }: MainRoutesProps) => {
+const MainRoutes = () => {
+  const route =
+    useRoute<RouteProp<{ params: DepositNavigationParams }, 'params'>>();
   const parentParams = route.params;
 
   return (

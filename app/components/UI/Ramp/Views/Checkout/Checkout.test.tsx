@@ -3,10 +3,6 @@ import React from 'react';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import Checkout from './Checkout';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import {
-  registerCheckoutCallback,
-  removeCheckoutCallback,
-} from '../../utils/checkoutCallbackRegistry';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
 
@@ -57,34 +53,6 @@ jest.mock('../../../../../reducers/fiatOrders', () => ({
 
 jest.mock('../../utils/v2OrderToast', () => ({
   showV2OrderToast: jest.fn(),
-}));
-
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn().mockReturnValue({
-    colors: {
-      background: { default: '#FFFFFF' },
-      text: { default: '#000000' },
-    },
-    themeAppearance: 'light',
-    typography: {},
-    shadows: {},
-    brandColors: {},
-  }),
-}));
-
-let capturedDepositNavbarOnClose: (() => void) | undefined;
-jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn(
-    (
-      _navigation: unknown,
-      _params: unknown,
-      _theme: unknown,
-      onClose?: () => void,
-    ) => {
-      capturedDepositNavbarOnClose = onClose;
-      return { header: () => null };
-    },
-  ),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -211,21 +179,6 @@ jest.mock('@metamask/react-native-webview', () => {
   };
 });
 
-jest.mock('../../../../../util/device', () => ({
-  isAndroid: jest.fn(() => false),
-}));
-
-jest.mock('react-native-safe-area-context', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- jest mock factory
-  const { View } = require('react-native');
-  return {
-    SafeAreaProvider: View,
-    SafeAreaView: View,
-    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
-    useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
-  };
-});
-
 const mockUseParams = jest.requireMock(
   '../../../../../util/navigation/navUtils',
 ).useParams as jest.Mock;
@@ -261,7 +214,6 @@ describe('Checkout', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    capturedDepositNavbarOnClose = undefined;
     mockUseParams.mockReturnValue({
       url: 'https://provider.example.com/checkout',
       providerName: 'Test Provider',
@@ -352,15 +304,14 @@ describe('Checkout', () => {
     });
   });
 
-  describe('checkout callback registry (297-302)', () => {
-    it('invokes registered callback when callbackKey is set and WebView navigates to new URL', async () => {
+  describe('onNavigationStateChange with URL deduplication', () => {
+    it('invokes param callback when WebView navigates to new URL', async () => {
       const mockCallback = jest.fn();
-      const callbackKey = registerCheckoutCallback(mockCallback);
 
       mockUseParams.mockReturnValue({
         url: 'https://provider.example.com',
         providerName: 'Test',
-        callbackKey,
+        onNavigationStateChange: mockCallback,
       });
 
       const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
@@ -374,18 +325,15 @@ describe('Checkout', () => {
           url: 'https://custom-dedup-url.example.com',
         }),
       );
-
-      removeCheckoutCallback(callbackKey);
     });
 
     it('does not invoke callback on second navigation to same URL (dedup)', async () => {
       const mockCallback = jest.fn();
-      const callbackKey = registerCheckoutCallback(mockCallback);
 
       mockUseParams.mockReturnValue({
         url: 'https://provider.example.com',
         providerName: 'Test',
-        callbackKey,
+        onNavigationStateChange: mockCallback,
       });
 
       const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
@@ -396,8 +344,6 @@ describe('Checkout', () => {
       });
 
       expect(mockCallback).toHaveBeenCalledTimes(1);
-
-      removeCheckoutCallback(callbackKey);
     });
   });
 
@@ -519,27 +465,6 @@ describe('Checkout', () => {
       expect(Logger.log).toHaveBeenCalledWith(
         expect.stringContaining('Checkout: HTTP error 404'),
       );
-    });
-  });
-
-  describe('deposit navbar back analytics', () => {
-    it('tracks RAMPS_BACK_BUTTON_CLICKED when deposit navbar onClose runs', () => {
-      mockUseParams.mockReturnValue({
-        url: 'https://provider.example.com/checkout',
-        providerName: 'RampCo',
-      });
-
-      renderWithProvider(<Checkout />, {}, true, false);
-
-      expect(capturedDepositNavbarOnClose).toEqual(expect.any(Function));
-      act(() => {
-        capturedDepositNavbarOnClose?.();
-      });
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED,
-      );
-      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 

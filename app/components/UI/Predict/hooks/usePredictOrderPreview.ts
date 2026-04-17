@@ -67,15 +67,29 @@ export function usePredictOrderPreview(
       hasValidSize && autoRefreshTimeout ? autoRefreshTimeout : false,
   });
 
+  const [stickyError, setStickyError] = useState<string | null>(null);
+
   const preview = hasValidSize ? (query.data ?? null) : null;
-  const error = query.error
+  const parsedError = query.error
     ? parseErrorMessage({
         error: query.error,
         defaultCode: PREDICT_ERROR_CODES.PREVIEW_FAILED,
       })
     : null;
-  const isLoading = preview === null && !error;
+  const isLoading = preview === null && !parsedError && !stickyError;
   const isCalculating = query.isFetching;
+
+  useEffect(() => {
+    if (parsedError) {
+      setStickyError(parsedError);
+    } else if (query.isSuccess) {
+      setStickyError(null);
+    }
+  }, [parsedError, query.isSuccess]);
+
+  useEffect(() => {
+    setStickyError(null);
+  }, [debouncedParams.size]);
 
   useEffect(() => {
     if (!query.error) return;
@@ -108,6 +122,6 @@ export function usePredictOrderPreview(
     preview,
     isLoading,
     isCalculating,
-    error,
+    error: stickyError,
   };
 }

@@ -20,9 +20,14 @@ import {
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
+  selectTokenWarnings as selectTokenWarningsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
   isNonEvmChainId,
   formatChainIdToHex,
+  TokenFeatureType,
+  type TokenFeature,
+  type QuoteStreamCompleteData,
+  QuoteStreamCompleteReason,
 } from '@metamask/bridge-controller';
 import {
   BridgeToken,
@@ -67,9 +72,7 @@ export interface BridgeState {
    * When undefined, tokens from all chains are shown ("All" filter).
    */
   tokenSelectorNetworkFilter: CaipChainId | undefined;
-  abTestContext?: {
-    assetsASSETS2493AbtestTokenDetailsLayout?: string;
-  };
+  abTestContext?: Record<string, string>;
   /**
    * Ordered list of chain IDs shown as pills in the token selector.
    * Shared across source and dest pickers so pill order persists within a session.
@@ -676,6 +679,17 @@ export const selectIsBridgeEnabledSource = createSelector(
   (_: RootState, chainId: Hex | CaipChainId) => chainId,
   (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
 );
+
+export const selectDestTokenWarning = createSelector(
+  selectControllerFields,
+  (controllerFields): TokenFeature | undefined =>
+    selectTokenWarningsBase(controllerFields)?.[0],
+);
+
+export const selectQuoteStreamComplete = (
+  state: RootState,
+): QuoteStreamCompleteData | null =>
+  state.engine.backgroundState.BridgeController.quoteStreamComplete ?? null;
 
 // Actions
 export const {
