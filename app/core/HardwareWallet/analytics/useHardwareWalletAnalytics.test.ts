@@ -14,6 +14,8 @@ import {
   HardwareWalletAnalyticsFlow,
 } from './helpers';
 import { MetaMetricsEvents } from '../../Analytics';
+import { createQRHardwareScanError, QRHardwareScanErrorType } from '../errors';
+import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn().mockReturnValue({ name: 'built-event' });
@@ -84,6 +86,67 @@ describe('useHardwareWalletAnalytics', () => {
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('includes QR scan analytics when error is a QR hardware scan failure', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        { initialProps: defaultOptions },
+      );
+
+      const qrError = createQRHardwareScanError({
+        errorType: QRHardwareScanErrorType.NonURQrScanned,
+        purpose: QrScanRequestType.PAIR,
+        isUrFormat: false,
+      });
+
+      rerender({
+        ...defaultOptions,
+        walletType: HardwareWalletType.Qr,
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: qrError,
+        },
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error_type: HardwareWalletAnalyticsErrorType.GenericError,
+          error_category: 'non_ur_qr_scanned',
+          is_ur_format: false,
+        }),
+      );
+    });
+
+    it('includes received_ur_type for wrong UR type QR scan errors', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        { initialProps: defaultOptions },
+      );
+
+      const qrError = createQRHardwareScanError({
+        errorType: QRHardwareScanErrorType.WrongURType,
+        purpose: QrScanRequestType.SIGN,
+        receivedUrType: 'eth-signature',
+        isUrFormat: true,
+      });
+
+      rerender({
+        ...defaultOptions,
+        walletType: HardwareWalletType.Qr,
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: qrError,
+        },
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error_category: 'wrong_ur_type',
+          is_ur_format: true,
+          received_ur_type: 'eth-signature',
+        }),
+      );
     });
 
     it('fires when transitioning to AwaitingApp', () => {

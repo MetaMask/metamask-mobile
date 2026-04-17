@@ -132,6 +132,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
           error: 'Camera initialization failed',
+          is_ur_format: false,
           device_model: 'MockDevice',
           device_type: HardwareDeviceTypes.QR,
         });
@@ -1081,6 +1082,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith({
           error: 'Camera error',
+          is_ur_format: false,
           device_model: 'Unknown',
           device_type: HardwareDeviceTypes.QR,
         });
