@@ -73,8 +73,12 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     const ownedNfts = useOwnedNfts();
     const hasNfts = ownedNfts.length > 0;
     const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
-    const { onRefresh } = useNftRefresh();
-    const { detectNfts, abortDetection } = useNftDetection();
+    const { detectNfts, abortDetection, chainIdsToDetectNftsFor } =
+      useNftDetection();
+    const { onRefresh } = useNftRefresh({
+      detectNfts,
+      chainIdsToDetectNftsFor,
+    });
     const hasLoadedOnceRef = useRef(false);
     const isSilentDetectionRef = useRef(false);
 
