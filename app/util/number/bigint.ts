@@ -89,6 +89,12 @@ function roundToDecimalString(value: number, decimals: number): string {
   return (Math.round(value * base) / base).toString();
 }
 
+function floorToDecimals(value: number, decimals: number): number {
+  const base = Math.pow(10, decimals);
+  const result = Math.floor(value * base) / base;
+  return isNaN(result) ? 0 : result;
+}
+
 /**
  * Prefixes a hex string with '0x' or '-0x' and returns it. Idempotent.
  *
@@ -506,9 +512,8 @@ export function renderToGwei(
   unit: EthereumUnit = 'ether',
 ): number {
   const gwei = parseFloat(fromWei(value, unit)) * 1000000000;
-  let gweiFixed = Math.round(gwei);
-  gweiFixed = isNaN(gweiFixed) ? 0 : gweiFixed;
-  return gweiFixed;
+  const gweiFixed = Math.round(gwei);
+  return isNaN(gweiFixed) ? 0 : gweiFixed;
 }
 
 /**
@@ -616,11 +621,8 @@ export function weiToFiatNumber(
   conversionRate: number,
   decimalsToShow = 5,
 ) {
-  const base = Math.pow(10, decimalsToShow);
   const eth = fromWei(wei, 'ether');
-  let value = Math.floor(parseFloat(eth) * conversionRate * base) / base;
-  value = isNaN(value) ? 0.0 : value;
-  return value;
+  return floorToDecimals(parseFloat(eth) * conversionRate, decimalsToShow);
 }
 
 /**
@@ -754,11 +756,10 @@ export function balanceToFiatNumber(
   exchangeRate: number,
   decimalsToShow = 5,
 ) {
-  const base = Math.pow(10, decimalsToShow);
-  let fiatFixed =
-    Math.floor(Number(balance) * conversionRate * exchangeRate * base) / base;
-  fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
-  return fiatFixed;
+  return floorToDecimals(
+    Number(balance) * conversionRate * exchangeRate,
+    decimalsToShow,
+  );
 }
 
 export function getCurrencySymbol(currencyCode: CurrencyCode) {
@@ -781,9 +782,10 @@ export function renderFiat(
   currencyCode: CurrencyCode,
   decimalsToShow: number = 5,
 ) {
-  const base = Math.pow(10, decimalsToShow);
-  let fiatFixed = parseFloat(String(Math.round(Number(value) * base) / base));
-  fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
+  const num = Number(value);
+  const fiatFixed = isNaN(num)
+    ? 0
+    : parseFloat(roundToDecimalString(num, decimalsToShow));
   if (currencySymbols[currencyCode]) {
     const isNegative = fiatFixed < 0;
     const absValue = Math.abs(fiatFixed);
