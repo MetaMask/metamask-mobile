@@ -42,6 +42,7 @@ import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
+import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 /* eslint-disable-next-line */
 import { NavigationContext } from '@react-navigation/core';
@@ -354,6 +355,7 @@ const PerpsScreenStack = () => {
             options={{
               title: strings('perps.tpsl.title'),
               headerShown: false,
+              presentation: 'transparentModal',
             }}
           />
 
@@ -428,6 +430,18 @@ const PerpsScreenStack = () => {
                 backgroundColor: 'transparent',
               },
               animation: 'none',
+              presentation: 'transparentModal',
+            }}
+          />
+
+          {/* Pay-with token selector (lives in App stack for other flows, duplicated here so the
+              navigate action is handled inside the native stack instead of being lost
+              when dispatched from a transparentModal screen) */}
+          <Stack.Screen
+            name={Routes.CONFIRMATION_PAY_WITH_MODAL}
+            component={PayWithModal}
+            options={{
+              headerShown: false,
               presentation: 'transparentModal',
             }}
           />
