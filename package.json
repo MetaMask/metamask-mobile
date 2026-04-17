@@ -348,6 +348,7 @@
     "@react-native/typescript-config": "0.76.9",
     "@react-navigation/bottom-tabs": "^6.5.0",
     "@react-navigation/native": "^6.1.0",
+    "@react-navigation/native-stack": "^6.0.0",
     "@react-navigation/stack": "^6.3.0",
     "@reduxjs/toolkit": "^1.9.7",
     "@reown/walletkit": "^1.4.1",
