@@ -7715,10 +7715,7 @@ describe('PolymarketProvider', () => {
         const moneylineOutcome = {
           id: 'match-winner',
           sportsMarketType: 'moneyline',
-          tokens: [
-            { title: 'Spirit' },
-            { title: 'MOUZ' },
-          ],
+          tokens: [{ title: 'Spirit' }, { title: 'MOUZ' }],
         };
         const overUnderOutcome = {
           id: 'ou-2.5',
@@ -7811,7 +7808,10 @@ describe('PolymarketProvider', () => {
           {
             id: 'tot-vs-bri',
             status: 'open',
-            game: { homeTeam: { name: 'Tottenham' }, awayTeam: { name: 'Brighton' } },
+            game: {
+              homeTeam: { name: 'Tottenham' },
+              awayTeam: { name: 'Brighton' },
+            },
             outcomes: [soccerMoneyline, totalGoals],
           },
         ]);
@@ -7821,9 +7821,7 @@ describe('PolymarketProvider', () => {
         expect(result[0].outcomes).toEqual([soccerMoneyline]);
         expect(result[0].outcomes[0].tokens).toHaveLength(3);
         expect(
-          result[0].outcomes[0].tokens.map(
-            (t: { title: string }) => t.title,
-          ),
+          result[0].outcomes[0].tokens.map((t: { title: string }) => t.title),
         ).toEqual(['Tottenham', 'Draw', 'Brighton']);
       });
     });

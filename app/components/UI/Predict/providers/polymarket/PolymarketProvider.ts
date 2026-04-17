@@ -521,9 +521,7 @@ export class PolymarketProvider implements PredictProvider {
           const moneyline = market.outcomes.find(
             (o) => o.sportsMarketType?.toLowerCase() === 'moneyline',
           );
-          return moneyline
-            ? { ...market, outcomes: [moneyline] }
-            : market;
+          return moneyline ? { ...market, outcomes: [moneyline] } : market;
         });
 
       return liveSportsEnabled
