@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -18,6 +18,9 @@ import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
 import MoneyActivityList from '../../components/MoneyActivityList';
 import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
@@ -37,6 +40,29 @@ const MoneyHomeView = () => {
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
+  const { hasMusdBalanceOnAnyChain, tokenBalanceByChain } = useMusdBalance();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasTrackedScreenViewRef = useRef(false);
+
+  useEffect(() => {
+    if (hasTrackedScreenViewRef.current) return;
+    hasTrackedScreenViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.POSITION_SCREEN_VIEWED)
+        .addProperties({
+          item_count: Object.keys(tokenBalanceByChain).length,
+          location: 'homepage',
+          is_empty: Object.keys(tokenBalanceByChain).length === 0,
+          screen_type: 'cash',
+        })
+        .build(),
+    );
+  }, [
+    hasMusdBalanceOnAnyChain,
+    tokenBalanceByChain,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();

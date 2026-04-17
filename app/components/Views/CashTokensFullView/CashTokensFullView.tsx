@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -36,14 +36,41 @@ import Logger from '../../../util/Logger';
 import AppConstants from '../../../core/AppConstants';
 import { selectMoneyHubEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { useSelector } from 'react-redux';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 
 const CashTokensFullView = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
-  const { hasMusdBalanceOnAnyChain } = useMusdBalance();
+  const { hasMusdBalanceOnAnyChain, tokenBalanceByChain } = useMusdBalance();
   const { tokens: conversionTokens } = useMusdConversionTokens();
 
   const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasTrackedScreenViewRef = useRef(false);
+
+  useEffect(() => {
+    // Only fire for the empty state — the Tokens component fires this event
+    // when isFullView=true and hasMusdBalanceOnAnyChain=true
+    if (hasMusdBalanceOnAnyChain) return;
+    if (hasTrackedScreenViewRef.current) return;
+    hasTrackedScreenViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.POSITION_SCREEN_VIEWED)
+        .addProperties({
+          item_count: Object.keys(tokenBalanceByChain).length,
+          location: 'homepage',
+          is_empty: Object.keys(tokenBalanceByChain).length === 0,
+          screen_type: 'cash',
+        })
+        .build(),
+    );
+  }, [
+    hasMusdBalanceOnAnyChain,
+    tokenBalanceByChain,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const hasConversionTokens = conversionTokens.length > 0;
 
