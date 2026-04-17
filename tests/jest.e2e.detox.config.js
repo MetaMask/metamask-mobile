@@ -1,9 +1,9 @@
 /* eslint-disable import-x/no-commonjs */
-// Load .js.env for WATCHER_PORT used by helpers.js and general.flow.ts at
-// test runtime. dotenv never overrides existing vars, so .e2e.env keys win
-// when both files define the same key (in practice they don't overlap).
-require('dotenv').config({ path: '.js.env' });
+// dotenv never overrides existing vars — first file loaded wins on collisions.
+// Load .e2e.env first so test accounts/flags take precedence, then .js.env
+// for WATCHER_PORT used by helpers.js and general.flow.ts at test runtime.
 require('dotenv').config({ path: '.e2e.env' });
+require('dotenv').config({ path: '.js.env' });
 
 // Due the emulator resource constraints, is much better to run the tests in band (1 worker)
 // Multiple workers will cause the tests to fail due to resource constraints.
