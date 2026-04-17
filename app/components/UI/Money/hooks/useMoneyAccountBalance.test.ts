@@ -4,7 +4,7 @@ import { useQueries } from '@tanstack/react-query';
 import useMoneyAccountBalance, {
   getLiveVedaVaultExchangeRate,
 } from './useMoneyAccountBalance';
-import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
@@ -37,8 +37,9 @@ jest.mock('../../../../core/Engine', () => ({
 
 // Selector modules are only used as identity references in the useSelector mock;
 // they don't need to be individually mocked.
-jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: jest.fn(),
+jest.mock('../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: jest.fn(),
+  selectMoneyAccounts: jest.fn(),
 }));
 jest.mock('../../../../selectors/tokenRatesController', () => ({
   selectTokenMarketData: jest.fn(),
@@ -80,8 +81,8 @@ const MOCK_NETWORK_CONFIGURATIONS = {
 
 function setupDefaultSelectors() {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectSelectedInternalAccountByScope) {
-      return () => ({ address: MOCK_ADDRESS });
+    if (selector === selectPrimaryMoneyAccount) {
+      return { address: MOCK_ADDRESS };
     }
     if (selector === selectTokenMarketData) {
       return MOCK_TOKEN_MARKET_DATA;
@@ -220,8 +221,8 @@ describe('useMoneyAccountBalance', () => {
 
   it('returns undefined fiat values when musdFiatRate cannot be computed', () => {
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectSelectedInternalAccountByScope) {
-        return () => ({ address: MOCK_ADDRESS });
+      if (selector === selectPrimaryMoneyAccount) {
+        return { address: MOCK_ADDRESS };
       }
       if (selector === selectTokenMarketData) {
         // No price data available
@@ -256,8 +257,8 @@ describe('useMoneyAccountBalance', () => {
 
   it('disables musdBalanceQuery and GET_MUSD_EQUIVALENT_VALUE query when no account address', () => {
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectSelectedInternalAccountByScope) {
-        return () => undefined;
+      if (selector === selectPrimaryMoneyAccount) {
+        return undefined;
       }
       if (selector === selectTokenMarketData) {
         return MOCK_TOKEN_MARKET_DATA;

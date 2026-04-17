@@ -1,6 +1,4 @@
 import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { EVM_SCOPE } from '../../Earn/constants/networks';
 import { useMemo } from 'react';
 import {
   type MusdEquivalentValueResponse,
@@ -21,6 +19,10 @@ import { fromTokenMinimalUnitString } from '../../../../util/number';
 import { toChecksumAddress } from '../../../../util/address';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
+import {
+  selectMoneyAccounts,
+  selectPrimaryMoneyAccount,
+} from '../../../../selectors/moneyAccountController';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
 
@@ -37,10 +39,7 @@ export const getLiveVedaVaultExchangeRate = async () =>
 const useMoneyAccountBalance = (
   refetchInterval: number = DEFAULT_REFETCH_INTERVAL,
 ) => {
-  // TODO: Replace with selector for actual money account.
-  const selectedEvmAddress = useSelector(selectSelectedInternalAccountByScope)(
-    EVM_SCOPE,
-  )?.address;
+  const moneyAccountAddress = useSelector(selectPrimaryMoneyAccount)?.address;
 
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
@@ -53,9 +52,9 @@ const useMoneyAccountBalance = (
         {
           queryKey: [
             MoneyAccountBalanceServiceQueryKeys.GET_MUSD_BALANCE,
-            selectedEvmAddress,
+            moneyAccountAddress,
           ],
-          enabled: Boolean(selectedEvmAddress),
+          enabled: Boolean(moneyAccountAddress),
           refetchInterval,
         },
         {
@@ -64,9 +63,9 @@ const useMoneyAccountBalance = (
         {
           queryKey: [
             MoneyAccountBalanceServiceQueryKeys.GET_MUSD_EQUIVALENT_VALUE,
-            selectedEvmAddress,
+            moneyAccountAddress,
           ],
-          enabled: Boolean(selectedEvmAddress),
+          enabled: Boolean(moneyAccountAddress),
           refetchInterval,
         },
       ],
