@@ -241,12 +241,19 @@ const HomepagePredictPositions = ({
   </Box>
 );
 
-const usePredictNavigationHandlers = () => {
+const usePredictNavigationHandlers = (): {
+  handleViewAllPredictions: () => void;
+  handleViewAllFromPositions: () => void;
+  handlePositionPress: (position: PredictPosition) => void;
+} => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const handleViewAllPredictions = useCallback(() => {
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      },
     });
   }, [navigation]);
 

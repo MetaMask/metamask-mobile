@@ -234,7 +234,7 @@ describe('PredictionsSection', () => {
     expect(screen.getByText('Predictions')).toBeOnTheScreen();
   });
 
-  it('navigates to predictions market list on title press', () => {
+  it('navigates with home_section entry_point when trending markets title is pressed', () => {
     renderWithProvider(
       <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
@@ -243,6 +243,9 @@ describe('PredictionsSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      },
     });
   });
 
@@ -847,6 +850,32 @@ describe('PredictionsSection', () => {
       );
 
       expect(screen.getByText('Trending predictions')).toBeOnTheScreen();
+    });
+
+    it('navigates with home_section entry_point on title press', () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      fireEvent.press(screen.getByText('Predictions'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        },
+      });
     });
 
     it('returns null when no markets after loading', () => {

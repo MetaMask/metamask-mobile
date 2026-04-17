@@ -37,7 +37,6 @@ import { PredictMarketStatus, PredictOutcomeToken } from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
 import PredictGameDetailsContent from '../../components/PredictGameDetailsContent';
 import PredictCryptoUpDownDetails from '../../components/PredictCryptoUpDownDetails';
@@ -55,6 +54,7 @@ import { useChartData } from './hooks/useChartData';
 import { useOutcomeResolution } from './hooks/useOutcomeResolution';
 import { useOpenOutcomes } from './hooks/useOpenOutcomes';
 import { useSelector } from 'react-redux';
+import { usePredictPreviewSheet } from '../../contexts';
 
 // Use theme tokens instead of hex values for multi-series charts
 
@@ -63,7 +63,7 @@ interface PredictMarketDetailsProps {}
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { navigateToBuyPreview } = usePredictNavigation();
+  const { openBuySheet } = usePredictPreviewSheet();
   const { colors } = useTheme();
   const { claim, isClaimPending } = usePredictClaim();
   const route =
@@ -200,12 +200,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     executeGuardedAction(
       () => {
         const matchingOutcome =
-          market.outcomes.find((outcome) =>
-            outcome.tokens.some((marketToken) => marketToken.id === token.id),
+          market.outcomes.find((o) =>
+            o.tokens.some((marketToken) => marketToken.id === token.id),
           ) ??
           openOutcomes[0] ??
           market.outcomes?.[0];
-        navigateToBuyPreview({
+        openBuySheet({
           market,
           outcome: matchingOutcome,
           outcomeToken: token,
