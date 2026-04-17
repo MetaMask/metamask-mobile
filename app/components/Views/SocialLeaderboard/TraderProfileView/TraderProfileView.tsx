@@ -88,7 +88,6 @@ const TraderProfileView = () => {
     isLoading,
     error: profileError,
     isFollowing,
-    isFollowLoading,
     toggleFollow,
     refresh,
   } = useTraderProfile(traderId, { refetchInterval: 30_000 });
@@ -200,7 +199,6 @@ const TraderProfileView = () => {
                         : ButtonVariant.Secondary
                     }
                     isFullWidth
-                    isDisabled={isFollowLoading}
                     onPress={toggleFollow}
                     testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
                   >

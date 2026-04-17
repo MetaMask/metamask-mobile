@@ -218,6 +218,66 @@ describe('useTraderProfile', () => {
         { addressOrUid: 'mock-profile-id', targets: ['trader-1'] },
       );
     });
+
+    it('flips isFollowing optimistically before the API call resolves', async () => {
+      let resolveCall: (value: unknown) => void = () => undefined;
+      (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveCall = resolve;
+          }),
+      );
+      const { result } = renderHook(() => useTraderProfile('trader-1'));
+
+      expect(result.current.isFollowing).toBe(false);
+
+      await act(async () => {
+        result.current.toggleFollow();
+      });
+
+      expect(result.current.isFollowing).toBe(true);
+
+      await act(async () => {
+        resolveCall({ followed: [], unfollowed: [] });
+      });
+    });
+
+    it('reverts isFollowing when the API call rejects', async () => {
+      (Engine.controllerMessenger.call as jest.Mock).mockRejectedValue(
+        new Error('boom'),
+      );
+      const { result } = renderHook(() => useTraderProfile('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(result.current.isFollowing).toBe(false);
+    });
+
+    it('ignores concurrent toggleFollow calls while one is in flight', async () => {
+      let resolveCall: (value: unknown) => void = () => undefined;
+      (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveCall = resolve;
+          }),
+      );
+      const { result } = renderHook(() => useTraderProfile('trader-1'));
+
+      await act(async () => {
+        result.current.toggleFollow();
+      });
+      await act(async () => {
+        result.current.toggleFollow();
+      });
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveCall({ followed: [], unfollowed: [] });
+      });
+    });
   });
 
   describe('refresh', () => {

@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useEffect, useState } from 'react';
+import { useMemo, useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
@@ -14,7 +14,6 @@ export interface UseTopTradersResult {
   traders: TopTrader[];
   isLoading: boolean;
   error: string | null;
-  followLoadingIds: Set<string>;
   refresh: () => Promise<void>;
   toggleFollow: (addressOrId: string) => void;
 }
@@ -42,26 +41,34 @@ export const useTopTraders = (
   });
 
   const followingProfileIds = useSelector(selectFollowingProfileIds);
-  const [followLoadingIds, setFollowLoadingIds] = useState<Set<string>>(
-    () => new Set(),
-  );
+
+  // Optimistic follow overrides per trader id: `true` = optimistically
+  // following, `false` = optimistically unfollowing, absent = defer to Redux.
+  const [optimisticFollowState, setOptimisticFollowState] = useState<
+    Record<string, boolean>
+  >({});
+  const inflightIdsRef = useRef<Set<string>>(new Set());
 
   const traders: TopTrader[] = useMemo(() => {
     if (!data?.traders) {
       return [];
     }
 
-    return data.traders.map((entry) => ({
-      id: entry.profileId,
-      rank: entry.rank,
-      username: entry.name,
-      avatarUri: entry.imageUrl ?? undefined,
-      percentageChange: (entry.roiPercent30d ?? 0) * 100,
-      pnlValue: entry.pnl30d,
-      pnlPerChain: entry.pnlPerChain ?? {},
-      isFollowing: followingProfileIds.includes(entry.profileId),
-    }));
-  }, [data, followingProfileIds]);
+    return data.traders.map((entry) => {
+      const currentFollowing = followingProfileIds.includes(entry.profileId);
+      const optimistic = optimisticFollowState[entry.profileId];
+      return {
+        id: entry.profileId,
+        rank: entry.rank,
+        username: entry.name,
+        avatarUri: entry.imageUrl ?? undefined,
+        percentageChange: (entry.roiPercent30d ?? 0) * 100,
+        pnlValue: entry.pnl30d,
+        pnlPerChain: entry.pnlPerChain ?? {},
+        isFollowing: optimistic ?? currentFollowing,
+      };
+    });
+  }, [data, followingProfileIds, optimisticFollowState]);
 
   const refresh = useCallback(async () => {
     try {
@@ -74,35 +81,67 @@ export const useTopTraders = (
 
   const toggleFollow = useCallback(
     async (addressOrId: string) => {
-      setFollowLoadingIds((prev) => new Set(prev).add(addressOrId));
+      if (inflightIdsRef.current.has(addressOrId)) {
+        return;
+      }
+      inflightIdsRef.current.add(addressOrId);
+
+      const currentOptimistic = optimisticFollowState[addressOrId];
+      const currentlyFollowing =
+        currentOptimistic ?? followingProfileIds.includes(addressOrId);
+      const nextValue = !currentlyFollowing;
+
+      setOptimisticFollowState((prev) => ({
+        ...prev,
+        [addressOrId]: nextValue,
+      }));
+
       try {
         const { profileId } =
           await Engine.context.AuthenticationController.getSessionProfile();
-        const isCurrentlyFollowing = followingProfileIds.includes(addressOrId);
         const opts = { addressOrUid: profileId, targets: [addressOrId] };
-        if (isCurrentlyFollowing) {
-          await (Engine.controllerMessenger.call as CallableFunction)(
-            'SocialController:unfollowTrader',
-            opts,
-          );
-        } else {
+        if (nextValue) {
           await (Engine.controllerMessenger.call as CallableFunction)(
             'SocialController:followTrader',
             opts,
           );
+        } else {
+          await (Engine.controllerMessenger.call as CallableFunction)(
+            'SocialController:unfollowTrader',
+            opts,
+          );
         }
       } catch (err) {
-        Logger.error(err as Error, 'useTopTraders: toggleFollow failed');
-      } finally {
-        setFollowLoadingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(addressOrId);
+        setOptimisticFollowState((prev) => {
+          const next = { ...prev };
+          delete next[addressOrId];
           return next;
         });
+        Logger.error(err as Error, 'useTopTraders: toggleFollow failed');
+      } finally {
+        inflightIdsRef.current.delete(addressOrId);
       }
     },
-    [followingProfileIds],
+    [followingProfileIds, optimisticFollowState],
   );
+
+  // Clear optimistic overrides once Redux has caught up with the intended
+  // value, to avoid stale entries lingering in local state.
+  useEffect(() => {
+    setOptimisticFollowState((prev) => {
+      let changed = false;
+      const next: Record<string, boolean> = {};
+      for (const [id, value] of Object.entries(prev)) {
+        const currentFollowing = followingProfileIds.includes(id);
+        if (currentFollowing === value) {
+          changed = true;
+          continue;
+        }
+        next[id] = value;
+      }
+      return changed ? next : prev;
+    });
+  }, [followingProfileIds]);
 
   useEffect(() => {
     if (error) {
@@ -115,7 +154,6 @@ export const useTopTraders = (
     isLoading,
     error:
       error instanceof Error ? error.message : error ? String(error) : null,
-    followLoadingIds,
     refresh,
     toggleFollow,
   };
