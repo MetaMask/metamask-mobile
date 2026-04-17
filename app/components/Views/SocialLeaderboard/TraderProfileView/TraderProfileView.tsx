@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
@@ -39,6 +39,9 @@ import {
   PositionRowSkeleton,
 } from './components/Skeletons';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
+import TraderNotificationsBottomSheet, {
+  type TraderNotificationsBottomSheetRef,
+} from './components/TraderNotificationsBottomSheet';
 
 const POSITION_SKELETON_COUNT = 4;
 const POSITION_SKELETON_KEYS = Array.from(
@@ -96,12 +99,14 @@ const TraderProfileView = () => {
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
 
+  const notificationsSheetRef = useRef<TraderNotificationsBottomSheetRef>(null);
+
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleNotificationPress = useCallback(() => {
-    // TBD — notification preferences not yet wired
+    notificationsSheetRef.current?.onOpenBottomSheet();
   }, []);
 
   const handlePositionPress = useCallback(
@@ -261,6 +266,12 @@ const TraderProfileView = () => {
           </>
         )}
       </ScrollView>
+
+      <TraderNotificationsBottomSheet
+        ref={notificationsSheetRef}
+        traderId={traderId}
+        traderName={profile?.profile.name ?? traderName}
+      />
     </SafeAreaView>
   );
 };

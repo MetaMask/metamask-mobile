@@ -20,6 +20,74 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   getAssetImageUrl: () => 'https://example.com/token.png',
 }));
 
+jest.mock(
+  '../../../../selectors/featureFlagController/socialLeaderboard',
+  () => ({
+    selectSocialLeaderboardEnabled: () => true,
+  }),
+);
+
+jest.mock('../../../Views/Homepage/Sections/TopTraders/hooks', () => ({
+  useTopTraders: () => ({
+    traders: [],
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+    toggleFollow: jest.fn(),
+  }),
+}));
+
+jest.mock('../NotificationPreferencesView/hooks', () => ({
+  useNotificationPreferences: () => ({
+    preferences: {
+      enabled: true,
+      txAmountLimit: 500,
+      traderNotifications: {},
+    },
+    setEnabled: jest.fn(),
+    setTxAmountLimit: jest.fn(),
+    toggleTraderNotification: jest.fn(),
+  }),
+}));
+
+jest.mock(
+  '../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+
+    return ReactActual.forwardRef(
+      (
+        props: {
+          children?: React.ReactNode;
+          onClose?: () => void;
+          testID?: string;
+        },
+        ref: React.Ref<{
+          onCloseBottomSheet: (callback?: () => void) => void;
+          onOpenBottomSheet: (callback?: () => void) => void;
+        }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (callback?: () => void) => {
+            props.onClose?.();
+            callback?.();
+          },
+          onOpenBottomSheet: (callback?: () => void) => {
+            callback?.();
+          },
+        }));
+
+        return ReactActual.createElement(
+          View,
+          { testID: props.testID ?? 'bottom-sheet' },
+          props.children,
+        );
+      },
+    );
+  },
+);
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -222,11 +290,13 @@ describe('TraderProfileView', () => {
     expect(screen.queryByText('No positions yet')).not.toBeOnTheScreen();
   });
 
-  it('notification button press is a no-op', () => {
+  it('opens the notifications sheet when the notification button is pressed', () => {
     renderWithProvider(<TraderProfileView />);
+
     fireEvent.press(
       screen.getByTestId(TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON),
     );
+
     expect(
       screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();

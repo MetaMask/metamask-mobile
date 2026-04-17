@@ -62,12 +62,12 @@ export const useNotificationPreferences = (
     Record<string, boolean>
   >(() =>
     followedTraders.reduce<Record<string, boolean>>((acc, trader) => {
-      acc[trader.id] = true;
+      acc[trader.id] = false;
       return acc;
     }, {}),
   );
 
-  // When the followed traders list changes, add new traders defaulting to enabled.
+  // When the followed traders list changes, add new traders defaulting to disabled.
   // Existing trader preferences are preserved.
   useEffect(() => {
     setTraderNotifications((prev) => {
@@ -75,7 +75,7 @@ export const useNotificationPreferences = (
       let changed = false;
       followedTraders.forEach((trader) => {
         if (!(trader.id in updated)) {
-          updated[trader.id] = true;
+          updated[trader.id] = false;
           changed = true;
         }
       });

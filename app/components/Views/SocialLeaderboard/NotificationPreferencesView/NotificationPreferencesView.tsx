@@ -359,7 +359,7 @@ const NotificationPreferencesView = () => {
             traderId={trader.id}
             username={trader.username}
             avatarUri={trader.avatarUri}
-            isEnabled={preferences.traderNotifications[trader.id] ?? true}
+            isEnabled={preferences.traderNotifications[trader.id] ?? false}
             isDisabled={globalOff}
             onToggle={toggleTraderNotification}
           />

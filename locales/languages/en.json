@@ -1027,6 +1027,13 @@
       "traders_you_follow": "Traders you follow",
       "traders_you_follow_desc": "Choose who you get notifications about"
     },
+    "trader_notifications": {
+      "title": "Notifications from {{traderName}}",
+      "allow_push_notifications": "Allow push notifications",
+      "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
+      "manage_traders": "Manage traders you follow",
+      "save": "Save"
+    },
     "follow": "Follow",
     "following": "Following",
     "all_networks": "All networks",
