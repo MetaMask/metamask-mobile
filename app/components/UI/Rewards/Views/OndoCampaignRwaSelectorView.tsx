@@ -36,7 +36,11 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useRwaTokens } from '../../Trending/hooks/useRwaTokens/useRwaTokens';
 import TrendingTokenRowItem from '../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { getTrendingTokenImageUrl } from '../../Trending/utils/getTrendingTokenImageUrl';
-import { parseCaip19, caipChainIdToHex } from '../utils/formatUtils';
+import {
+  parseCaip19,
+  caipChainIdToHex,
+  sanitizeOndoTokenName,
+} from '../utils/formatUtils';
 import { RWA_NETWORKS_LIST } from '../../Trending/utils/trendingNetworksList';
 import {
   useSwapBridgeNavigation,
@@ -258,27 +262,30 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     sourceToken: srcBridgeToken,
   });
 
-  // Deduplicate by symbol so the same stock on multiple chains appears once.
-  // Use CAIP-19 assetId (not symbol) to exclude the source token in swap mode —
-  // symbol comparison is fragile when casing differs between chains.
+  // Deduplicate by assetId and sanitize display names.
+  // Use CAIP-19 assetId (not symbol) for deduplication — symbol comparison
+  // is fragile when casing differs between chains.
   const tokens = useMemo((): TrendingAsset[] => {
     const seen = new Set<string>();
-    return rwaTokens.filter((token) => {
-      if (srcTokenAsset && token.assetId === srcTokenAsset) return false;
-      if (seen.has(token.symbol)) return false;
-      seen.add(token.symbol);
-      return true;
-    });
+    return rwaTokens
+      .filter((token) => {
+        if (srcTokenAsset && token.assetId === srcTokenAsset) return false;
+        if (seen.has(token.assetId)) return false;
+        seen.add(token.assetId);
+        return true;
+      })
+      .map((token) => ({ ...token, name: sanitizeOndoTokenName(token.name) }));
   }, [rwaTokens, srcTokenAsset]);
 
   const handleAssetSelect = useCallback(
     (asset: TrendingAsset) => {
       const parsed = parseCaip19(asset.assetId);
       if (!parsed) return;
+      const rawToken = rwaTokens.find((t) => t.assetId === asset.assetId);
       const destToken: BridgeToken = {
         address: parsed.assetReference,
         symbol: asset.symbol,
-        name: asset.name,
+        name: rawToken?.name ?? asset.name,
         decimals: asset.decimals,
         chainId: `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
         image: getTrendingTokenImageUrl(asset.assetId),
@@ -311,6 +318,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
       trackEvent,
       createEventBuilder,
       ondoUsdSrcToken,
+      rwaTokens,
     ],
   );
 
@@ -353,14 +361,17 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   const headerTitle =
     swapTitle ?? strings('rewards.ondo_rwa_asset_selector.title_open_position');
 
-  const renderItem = ({ item }: { item: TrendingAsset }) => (
-    <View style={styles.row}>
-      <TrendingTokenRowItem
-        token={item}
-        selectedTimeOption={filters.selectedTimeOption}
-        onPress={handleAssetSelect}
-      />
-    </View>
+  const renderItem = useCallback(
+    ({ item }: { item: TrendingAsset }) => (
+      <View style={styles.row}>
+        <TrendingTokenRowItem
+          token={item}
+          selectedTimeOption={filters.selectedTimeOption}
+          onPress={handleAssetSelect}
+        />
+      </View>
+    ),
+    [filters.selectedTimeOption, handleAssetSelect],
   );
 
   const renderSkeleton = () => (
@@ -430,6 +441,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
           onNetworkSelect={filters.handleNetworkSelect}
           selectedNetwork={filters.selectedNetwork}
           networks={allowedNetworks}
+          hideAllNetworks
         />
         <TrendingTokenPriceChangeBottomSheet
           isVisible={filters.showPriceChangeBottomSheet}

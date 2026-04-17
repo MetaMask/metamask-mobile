@@ -234,10 +234,12 @@ export const BridgeTransactionDetails = (
     chainId: sourceChainId,
   };
 
-  const sourceTokenAmount = calcTokenAmount(
-    quote.srcTokenAmount,
-    quote.srcAsset.decimals,
-  ).toFixed(5);
+  const sourceTokenAmount =
+    quote.gasSponsored && bridgeTxHistoryItem.pricingData?.amountSent
+      ? parseFloat(bridgeTxHistoryItem.pricingData.amountSent).toFixed(5)
+      : calcTokenAmount(quote.srcTokenAmount, quote.srcAsset.decimals).toFixed(
+          5,
+        );
 
   const destinationChainId = isNonEvmChainId(quote.destChainId)
     ? formatChainIdToCaip(quote.destChainId)

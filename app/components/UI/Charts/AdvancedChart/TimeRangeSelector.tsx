@@ -13,6 +13,7 @@ import {
 import { IconSize } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
 import { ChartType } from './AdvancedChart.types';
+import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from '../../AssetOverview/Price/tokenOverviewChart.constants';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 const CandlestickIcon = ({
@@ -71,8 +72,8 @@ const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
 const SEGMENT_BUTTON_BASE =
   'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-lg px-4 py-1 rounded-xl';
 
-/** Matches row of segment controls + chart type toggle; Item needs explicit width to render. */
-const TIME_RANGE_SKELETON_HEIGHT = 44;
+/** @see TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT */
+const TIME_RANGE_SKELETON_HEIGHT = TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT;
 /** Root `Box` uses `px-4` (16px each side). */
 const HORIZONTAL_INSET_PX = 32;
 
@@ -105,25 +106,37 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
     [],
   );
 
+  const showChartLoadingSkeleton = isChartLoading;
+
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       twClassName="w-full px-4"
+      style={{ minHeight: TIME_RANGE_SKELETON_HEIGHT }}
     >
-      {isChartLoading ? (
-        <SkeletonPlaceholder
-          backgroundColor={colors.background.section}
-          highlightColor={colors.background.subsection}
+      {showChartLoadingSkeleton ? (
+        <Box
+          style={{ height: TIME_RANGE_SKELETON_HEIGHT }}
+          twClassName="w-full flex-1 overflow-hidden rounded-lg"
         >
-          <SkeletonPlaceholder.Item
-            width={skeletonBarWidth}
-            height={TIME_RANGE_SKELETON_HEIGHT}
-            borderRadius={8}
-          />
-        </SkeletonPlaceholder>
+          <SkeletonPlaceholder
+            backgroundColor={colors.background.section}
+            highlightColor={colors.background.subsection}
+          >
+            <SkeletonPlaceholder.Item
+              width={skeletonBarWidth}
+              height={TIME_RANGE_SKELETON_HEIGHT}
+              borderRadius={8}
+            />
+          </SkeletonPlaceholder>
+        </Box>
       ) : (
-        <>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="w-full flex-1 rounded-lg"
+        >
           {ranges.map((range) => {
             const isSelected = selected === range;
             return (
@@ -176,7 +189,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
               )}
             </Pressable>
           ) : null}
-        </>
+        </Box>
       )}
     </Box>
   );
