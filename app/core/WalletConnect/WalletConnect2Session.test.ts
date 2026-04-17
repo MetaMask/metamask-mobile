@@ -15,7 +15,8 @@ import Device from '../../util/device';
 import { Minimizer } from '../NativeModules';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { getGlobalNetworkClientId } from '../../util/networks/global-network';
-import { Hex, CaipChainId } from '@metamask/utils';
+import { Hex, CaipChainId, KnownCaipNamespace } from '@metamask/utils';
+import { handleSnapRequest } from '../Snaps/utils';
 import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
 
 jest.mock('../AppConstants', () => ({
@@ -128,6 +129,7 @@ jest.mock('../RPCMethods/RPCMethodMiddleware', () => ({
   default: () => () => ({ acknowledged: () => Promise.resolve() }),
   getRpcMethodMiddlewareHooks: jest.fn().mockReturnValue({}),
 }));
+jest.mock('./wc-config', () => jest.requireActual('./wc-config'));
 jest.mock('./wc-utils', () => ({
   ...jest.requireActual('./wc-utils'),
   hideWCLoadingState: jest.fn(),
@@ -203,6 +205,14 @@ jest.mock('../../util/networks/global-network', () => ({
 
 jest.mock('../../actions/sdk', () => ({
   updateWC2Metadata: jest.fn().mockReturnValue({ type: 'UPDATE_WC2_METADATA' }),
+}));
+
+jest.mock('../Snaps/utils', () => ({
+  handleSnapRequest: jest.fn().mockResolvedValue('snap-result'),
+}));
+
+jest.mock('../SnapKeyring/TronWalletSnap', () => ({
+  TRON_WALLET_SNAP_ID: 'npm:@metamask/tron-wallet-snap',
 }));
 
 jest.mock('../RPCMethods/lib/ethereum-chain-utils', () => ({
@@ -537,6 +547,122 @@ describe('WalletConnect2Session', () => {
     session.updateSession = originalUpdateSession;
   });
 
+  it('subscribes to chain changes', async () => {
+    // eslint-disable-next-line no-empty-function
+    let subscriberCallback: () => void = () => {};
+    (store.subscribe as jest.Mock).mockImplementation(
+      (callback: () => void) => {
+        subscriberCallback = callback;
+      },
+    );
+
+    // Mock initial chain ID
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
+
+    session = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: mockSession,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    const handleChainChangeSpy = jest.spyOn(
+      session as any,
+      'handleChainChange',
+    );
+
+    // Change the chain ID
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
+
+    subscriberCallback();
+
+    await new Promise(process.nextTick);
+
+    expect(handleChainChangeSpy).toHaveBeenCalledWith(2);
+
+    subscriberCallback();
+    expect(handleChainChangeSpy).toHaveBeenCalledTimes(1);
+
+    handleChainChangeSpy.mockRestore();
+  });
+
+  it('does not trigger handleChainChange when handler is already running', async () => {
+    // eslint-disable-next-line no-empty-function
+    let subscriberCallback: () => void = () => {};
+    (store.subscribe as jest.Mock).mockImplementation(
+      (callback: () => void) => {
+        subscriberCallback = callback;
+      },
+    );
+
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
+
+    session = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: mockSession,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    (session as any).isHandlingChainChange = true;
+
+    const handleChainChangeSpy = jest.spyOn(
+      session as any,
+      'handleChainChange',
+    );
+
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
+
+    subscriberCallback();
+
+    await new Promise(process.nextTick);
+
+    expect(handleChainChangeSpy).not.toHaveBeenCalled();
+
+    handleChainChangeSpy.mockRestore();
+  });
+
+  it('logs warning on handleChainChange error', async () => {
+    // eslint-disable-next-line no-empty-function
+    let subscriberCallback: () => void = () => {};
+    (store.subscribe as jest.Mock).mockImplementation(
+      (callback: () => void) => {
+        subscriberCallback = callback;
+      },
+    );
+
+    const devLoggerSpy = jest.spyOn(DevLogger, 'log').mockImplementation();
+
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
+
+    session = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: mockSession,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    const error = new Error('Chain change failed');
+    jest
+      .spyOn(session as any, 'handleChainChange')
+      .mockRejectedValueOnce(error);
+
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
+
+    subscriberCallback();
+
+    await new Promise(process.nextTick);
+
+    expect(devLoggerSpy).toHaveBeenCalledWith(
+      'WC2::store.subscribe Error handling chain change:',
+      error,
+    );
+
+    devLoggerSpy.mockRestore();
+  });
   describe('redirect', () => {
     beforeEach(() => {
       jest.clearAllMocks();
@@ -1121,6 +1247,227 @@ describe('WalletConnect2Session', () => {
 
       // Verify that handleSwitchToChain was called
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
+    });
+
+    it('routes tron_signTransaction to Tron Snap', async () => {
+      const requestId = Math.floor(Math.random() * 1000000);
+      const request: WalletKitTypes.SessionRequest = {
+        id: requestId,
+        topic: mockSession.topic,
+        params: {
+          request: {
+            method: 'tron_signTransaction',
+            params: [
+              {
+                address: 'TTestAddress',
+                transaction: {
+                  raw_data_hex: '0xabc',
+                  type: 'TransferContract',
+                },
+              },
+            ],
+          },
+          chainId: 'tron:728126428' as CaipChainId,
+        },
+        verifyContext: {
+          verified: {
+            origin: 'https://sunswap.com',
+            validation: 'UNKNOWN',
+            verifyUrl: '',
+          },
+        },
+      };
+
+      const approveRequestSpy = jest
+        .spyOn(session, 'approveRequest')
+        .mockResolvedValue(undefined);
+
+      session.setDeeplink(false);
+      (session as any).topicByRequestId[requestId] = mockSession.topic;
+      await session.handleRequest(request);
+
+      expect(handleSnapRequest).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          snapId: 'npm:@metamask/tron-wallet-snap',
+          origin: 'metamask',
+          handler: 'onRpcRequest',
+          request: expect.objectContaining({
+            method: 'signTransaction',
+            params: {
+              address: 'TTestAddress',
+              transaction: {
+                rawDataHex: '0xabc',
+                type: 'TransferContract',
+              },
+            },
+          }),
+        }),
+      );
+      expect(approveRequestSpy).toHaveBeenCalledWith({
+        id: requestId + '',
+        result: 'snap-result',
+      });
+    });
+
+    it('merges Tron signature-only Snap result into original transaction', async () => {
+      const requestId = Math.floor(Math.random() * 1000000);
+      (handleSnapRequest as jest.Mock).mockResolvedValueOnce({
+        signature: '0xsignature',
+      });
+      const request: WalletKitTypes.SessionRequest = {
+        id: requestId,
+        topic: mockSession.topic,
+        params: {
+          request: {
+            method: 'tron_signTransaction',
+            params: [
+              {
+                address: 'TTestAddress',
+                transaction: {
+                  transaction: {
+                    raw_data_hex: '0xabc',
+                    txID: 'tx-123',
+                    visible: false,
+                  },
+                },
+              },
+            ],
+          },
+          chainId: 'tron:728126428' as CaipChainId,
+        },
+        verifyContext: {
+          verified: {
+            origin: 'https://sunswap.com',
+            validation: 'UNKNOWN',
+            verifyUrl: '',
+          },
+        },
+      };
+
+      const approveRequestSpy = jest
+        .spyOn(session, 'approveRequest')
+        .mockResolvedValue(undefined);
+
+      session.setDeeplink(false);
+      (session as any).topicByRequestId[requestId] = mockSession.topic;
+      await session.handleRequest(request);
+
+      expect(approveRequestSpy).toHaveBeenCalledWith({
+        id: requestId + '',
+        result: {
+          raw_data_hex: '0xabc',
+          txID: 'tx-123',
+          visible: false,
+          signature: ['0xsignature'],
+        },
+      });
+    });
+
+    it('marks tron_signTransaction for redirect before routing to Snap', async () => {
+      const requestId = Math.floor(Math.random() * 1000000);
+      const request: WalletKitTypes.SessionRequest = {
+        id: requestId,
+        topic: mockSession.topic,
+        params: {
+          request: {
+            method: 'tron_signTransaction',
+            params: [],
+          },
+          chainId: 'tron:728126428' as CaipChainId,
+        },
+        verifyContext: {
+          verified: {
+            origin: 'https://sunswap.com',
+            validation: 'UNKNOWN',
+            verifyUrl: '',
+          },
+        },
+      };
+
+      jest.spyOn(session, 'approveRequest').mockResolvedValue(undefined);
+
+      session.setDeeplink(false);
+      (session as any).topicByRequestId[requestId] = mockSession.topic;
+
+      // Intercept routeToSnap to capture the redirect state at routing time
+      let redirectStateAtRouting: boolean | undefined;
+      const routeToSnapSpy = jest
+        .spyOn(session as any, 'routeToSnap')
+        .mockImplementation(async () => {
+          redirectStateAtRouting = (session as any).requestsToRedirect[
+            requestId
+          ];
+        });
+
+      await session.handleRequest(request);
+
+      expect(redirectStateAtRouting).toBe(true);
+      routeToSnapSpy.mockRestore();
+    });
+
+    it('rejects Tron Snap request and calls rejectRequest on error', async () => {
+      const requestId = Math.floor(Math.random() * 1000000);
+      const snapError = new Error('Snap rejected');
+      (handleSnapRequest as jest.Mock).mockRejectedValueOnce(snapError);
+
+      const request: WalletKitTypes.SessionRequest = {
+        id: requestId,
+        topic: mockSession.topic,
+        params: {
+          request: {
+            method: 'tron_signMessage',
+            params: ['hello'],
+          },
+          chainId: 'tron:728126428' as CaipChainId,
+        },
+        verifyContext: {
+          verified: {
+            origin: 'https://sunswap.com',
+            validation: 'UNKNOWN',
+            verifyUrl: '',
+          },
+        },
+      };
+
+      const rejectRequestSpy = jest
+        .spyOn(session, 'rejectRequest')
+        .mockResolvedValue(undefined);
+
+      session.setDeeplink(false);
+      (session as any).topicByRequestId[requestId] = mockSession.topic;
+      await session.handleRequest(request);
+
+      expect(rejectRequestSpy).toHaveBeenCalledWith({
+        id: requestId + '',
+        error: snapError,
+      });
+    });
+
+    it('getAllowedChainIds returns chains from all namespaces including non-EVM', () => {
+      session.session = {
+        ...mockSession,
+        namespaces: {
+          [KnownCaipNamespace.Eip155]: {
+            chains: ['eip155:1', 'eip155:137'],
+            methods: ['eth_sendTransaction'],
+            events: ['chainChanged'],
+            accounts: [],
+          },
+          [KnownCaipNamespace.Tron]: {
+            chains: ['tron:728126428'],
+            methods: ['tron_signTransaction'],
+            events: [],
+            accounts: [],
+          },
+        },
+      } as any;
+
+      const chainIds = session.getAllowedChainIds;
+      expect(chainIds).toContain('eip155:1');
+      expect(chainIds).toContain('eip155:137');
+      expect(chainIds).toContain('tron:728126428');
+      expect(chainIds).toHaveLength(3);
     });
 
     it('handles eth_signTypedData_v3 correctly with valid chainId that it has permissions for', async () => {

@@ -23,6 +23,7 @@ import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
 import {
+  addPermittedAccounts,
   getDefaultCaip25CaveatValue,
   getPermittedAccounts,
   updatePermittedChains,
@@ -34,19 +35,28 @@ import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
 import {
   getHostname,
+  getCompatibleTronCaipChainIdsForWalletConnect,
+  normalizeCaipChainIdOutbound,
   getScopedPermissions,
   hideWCLoadingState,
   parseWalletConnectUri,
   showWCLoadingState,
   isValidUrl,
 } from './wc-utils';
+import {
+  getChainChangedEmissionForWalletConnect,
+  shouldEmitChainChangedForWalletConnect,
+} from './multichain-connectors';
 
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import WalletConnect2Session from './WalletConnect2Session';
-import { CaipChainId } from '@metamask/utils';
+import { CaipAccountId, CaipChainId } from '@metamask/utils';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import { TrxAccountType, TrxScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 import NavigationService from '../NavigationService';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -126,6 +136,53 @@ export class WC2Manager {
   // Milliseconds to wait between consecutive session restorations on startup.
   private static readonly SESSION_RESTORE_STAGGER_MS = 200;
 
+  private async cleanupBrokenRestoredSession(
+    session: SessionTypes.Struct,
+    error: unknown,
+  ): Promise<void> {
+    DevLogger.log(
+      `WC2::restoreSessions cleaning up broken session topic=${session.topic} pairingTopic=${session.pairingTopic}`,
+      error,
+    );
+
+    try {
+      this.sessions[session.topic]?.removeListeners();
+      delete this.sessions[session.topic];
+    } catch (cleanupError) {
+      DevLogger.log(
+        `WC2::restoreSessions failed to cleanup local session topic=${session.topic}`,
+        cleanupError,
+      );
+    }
+
+    try {
+      const permissionsController = (
+        Engine.context as {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          PermissionController: PermissionController<any, any>;
+        }
+      ).PermissionController;
+      permissionsController.revokeAllPermissions(session.pairingTopic);
+    } catch (revokeError) {
+      DevLogger.log(
+        `WC2::restoreSessions failed to revoke permissions for pairingTopic=${session.pairingTopic}`,
+        revokeError,
+      );
+    }
+
+    try {
+      await this.web3Wallet.disconnectSession({
+        topic: session.topic,
+        reason: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE },
+      });
+    } catch (disconnectError) {
+      DevLogger.log(
+        `WC2::restoreSessions failed to disconnect stale session topic=${session.topic}`,
+        disconnectError,
+      );
+    }
+  }
+
   /**
    * Restores all active WalletConnect sessions one at a time.
    *
@@ -158,7 +215,7 @@ export class WC2Manager {
 
     for (const session of activeSessions) {
       if (INTERNAL_ORIGINS.includes(session.peer.metadata.url)) {
-        console.warn(
+        DevLogger.log(
           `WC2::init skipping session with invalid url: ${session.topic}`,
         );
         continue;
@@ -223,7 +280,8 @@ export class WC2Manager {
           accounts: approvedAccounts,
         });
       } catch (err) {
-        console.warn(`WC2::init can't update session ${sessionKey}`);
+        DevLogger.log(`WC2::init can't update session ${sessionKey}`);
+        await this.cleanupBrokenRestoredSession(session, err);
       }
       await wait(WC2Manager.SESSION_RESTORE_STAGGER_MS);
     }
@@ -239,7 +297,7 @@ export class WC2Manager {
       }
       throw new Error('WC2::init Init Missing projectId');
     } catch (err) {
-      console.warn(`WC2::init Init failed due to ${err}`);
+      DevLogger.log(`WC2::init Init failed due to ${err}`);
       throw err;
     }
   }
@@ -250,7 +308,7 @@ export class WC2Manager {
     sessions?: { [topic: string]: WalletConnect2Session };
   }) {
     if (!isWC2Enabled) {
-      console.warn(`WC2::init WC2 is not enabled --- SKIP INIT`);
+      DevLogger.log(`WC2::init WC2 is not enabled --- SKIP INIT`);
 
       //If WC is not enabled, we don't need to initialize it
       return;
@@ -259,7 +317,7 @@ export class WC2Manager {
     const navigation = NavigationService.navigation;
 
     if (!navigation) {
-      console.warn(`WC2::init missing navigation --- SKIP INIT`);
+      DevLogger.log(`WC2::init missing navigation --- SKIP INIT`);
       return;
     }
 
@@ -317,7 +375,7 @@ export class WC2Manager {
         deeplinkSessions = JSON.parse(unparsedDeeplinkSessions);
       }
     } catch (err) {
-      console.warn(`WC2@init() Failed to parse storage values`);
+      DevLogger.log(`WC2@init() Failed to parse storage values`);
     }
 
     try {
@@ -429,7 +487,7 @@ export class WC2Manager {
           reason: { code: 1, message: ERROR_MESSAGES.MANUAL_DISCONNECT },
         })
         .catch((err) => {
-          console.warn(`Can't remove active session ${session.topic}`, err);
+          DevLogger.log(`Can't remove active session ${session.topic}`, err);
         });
     });
 
@@ -448,7 +506,7 @@ export class WC2Manager {
           reason: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE },
         })
         .catch((err) => {
-          console.warn(`Can't remove pending session ${session.id}`, err);
+          DevLogger.log(`Can't remove pending session ${session.id}`, err);
         });
     });
 
@@ -464,7 +522,7 @@ export class WC2Manager {
           },
         });
       } catch (err) {
-        console.warn(`Can't remove request ${request.id}`, err);
+        DevLogger.log(`Can't remove request ${request.id}`, err);
       }
     });
   }
@@ -475,7 +533,7 @@ export class WC2Manager {
         this._handleSessionProposal(proposal),
         new Promise<void>((resolve) =>
           setTimeout(() => {
-            console.warn(
+            DevLogger.log(
               `WC2::session_proposal lock timeout for id=${proposal.id}`,
             );
             resolve();
@@ -492,6 +550,7 @@ export class WC2Manager {
   private async _handleSessionProposal(
     proposal: WalletKitTypes.SessionProposal,
   ) {
+    DevLogger.log(`WC2::session_proposal proposal`, proposal);
     if (this.handledProposalIds.has(proposal.id)) {
       return;
     }
@@ -502,6 +561,7 @@ export class WC2Manager {
 
     const pairingTopic = proposal.params.pairingTopic;
     const channelId = `${pairingTopic}`;
+    DevLogger.log(`WC2::session_proposal channelId=${channelId}`);
     DevLogger.log(
       `WC2::session_proposal id=${id} pairingTopic=${pairingTopic}`,
       params,
@@ -650,6 +710,33 @@ export class WC2Manager {
           err,
         );
       }
+
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      // Register Tron accounts in the permission system so the CAIP-25 caveat
+      // reflects Tron authorization alongside EVM.
+      try {
+        const tronAccounts =
+          Engine.context.AccountsController.listAccounts().filter(
+            (account: { type: string }) => account.type === TrxAccountType.Eoa,
+          );
+        if (tronAccounts.length > 0) {
+          const tronCaipAccountIds = tronAccounts.map(
+            (account: { address: string }) =>
+              `${TrxScope.Mainnet}:${account.address}` as CaipAccountId,
+          );
+          addPermittedAccounts(channelId, tronCaipAccountIds);
+          DevLogger.log(
+            `WC2::session_proposal Tron accounts added to permissions`,
+            tronCaipAccountIds,
+          );
+        }
+      } catch (err) {
+        DevLogger.log(
+          `WC2::session_proposal error adding Tron account permissions`,
+          err,
+        );
+      }
+      ///: END:ONLY_INCLUDE_IF
     } catch (err) {
       DevLogger.log(`WC2::session_proposal requestPermissions error`, {
         err,
@@ -677,6 +764,92 @@ export class WC2Manager {
 
       // Use getScopedPermissions to get properly formatted namespaces
       const namespaces = await getScopedPermissions({ channelId });
+
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      // Ensure Tron namespace is present when requested by the dapp proposal.
+      // In some flows, permission-derived namespaces can temporarily contain only eip155.
+      const requiredNamespaces = proposal.params.requiredNamespaces ?? {};
+      const optionalNamespaces = proposal.params.optionalNamespaces ?? {};
+      const requiredKeys = Object.keys(requiredNamespaces);
+      const optionalKeys = Object.keys(optionalNamespaces);
+      const allProposalNamespaces = {
+        ...optionalNamespaces,
+        ...requiredNamespaces,
+      } as Record<
+        string,
+        { chains?: string[]; methods?: string[]; events?: string[] }
+      >;
+      const proposalChains = Object.values(allProposalNamespaces).flatMap(
+        (ns) => ns?.chains ?? [],
+      );
+      const requestedTronNamespace =
+        allProposalNamespaces.tron ??
+        (proposalChains.some((chain) => chain.startsWith('tron:'))
+          ? {
+              chains: proposalChains.filter((chain) =>
+                chain.startsWith('tron:'),
+              ),
+              methods: ['tron_signTransaction', 'tron_signMessage'],
+              events: [],
+            }
+          : undefined);
+
+      DevLogger.log('[wc][WC2Manager.session_proposal] proposal namespaces', {
+        topic: proposal.params.pairingTopic,
+        requiredKeys,
+        optionalKeys,
+        proposalChains,
+      });
+
+      if (requestedTronNamespace && !namespaces.tron) {
+        const tronAccounts = Engine.context.AccountsController.listAccounts()
+          .filter(
+            (account: { type: string }) => account.type === TrxAccountType.Eoa,
+          )
+          .map((account: { address: string }) => account.address);
+
+        const requestedTronChains = requestedTronNamespace.chains ?? [];
+        const requestedTronMethods = requestedTronNamespace.methods ?? [];
+        const tronChains =
+          requestedTronChains.length > 0
+            ? Array.from(
+                new Set(
+                  requestedTronChains.flatMap((chain) =>
+                    getCompatibleTronCaipChainIdsForWalletConnect(
+                      normalizeCaipChainIdOutbound(chain),
+                    ),
+                  ),
+                ),
+              )
+            : getCompatibleTronCaipChainIdsForWalletConnect(
+                normalizeCaipChainIdOutbound(TrxScope.Mainnet),
+              );
+        namespaces.tron = {
+          chains: tronChains,
+          methods:
+            requestedTronMethods.length > 0
+              ? requestedTronMethods
+              : ['tron_signTransaction', 'tron_signMessage'],
+          events: requestedTronNamespace.events ?? [],
+          // A namespace requested by the dapp must still be structurally present,
+          // even if there are temporarily no local Tron accounts selected yet.
+          accounts: tronAccounts.flatMap((address) =>
+            tronChains.map(
+              (chainId) =>
+                `${chainId}:${address}` as `${string}:${string}:${string}`,
+            ),
+          ),
+        };
+        DevLogger.log(
+          '[wc][WC2Manager.session_proposal] injected tron namespace from proposal',
+          {
+            topic: proposal.params.pairingTopic,
+            chains: namespaces.tron.chains,
+            accountsCount: namespaces.tron.accounts.length,
+          },
+        );
+      }
+      ///: END:ONLY_INCLUDE_IF
 
       DevLogger.log(`WC2::session_proposal namespaces`, namespaces);
 
@@ -709,28 +882,64 @@ export class WC2Manager {
         accounts: approvedAccounts,
       });
 
-      // Check if the chain is in the approved chains list before emitting event
-      const caipChainId = `eip155:${walletChainIdDecimal}` as CaipChainId;
-      const approvedChains = namespaces?.eip155?.chains || [];
+      const activeNamespaces = activeSession.namespaces ?? {};
+      const chainChangedEmission = getChainChangedEmissionForWalletConnect({
+        namespaces: activeNamespaces,
+        fallbackEvmDecimal: walletChainIdDecimal,
+        fallbackEvmHex: walletChainIdHex,
+      });
+
+      const approvedChains = activeNamespaces?.eip155?.chains || [];
+      const emitDecision = shouldEmitChainChangedForWalletConnect({
+        chainId: String(chainChangedEmission.chainId),
+        namespaces: activeNamespaces,
+      });
 
       DevLogger.log(`WC2::session_proposal emitSessionEvent`, {
         topic: activeSession.topic,
         event: {
           name: 'chainChanged',
-          data: walletChainIdHex,
+          data: chainChangedEmission.data,
         },
-        chainId: caipChainId,
+        chainId: chainChangedEmission.chainId as CaipChainId,
         approvedChains,
       });
 
-      await this.web3Wallet.emitSessionEvent({
-        topic: activeSession.topic,
-        event: {
-          name: 'chainChanged',
-          data: walletChainIdHex,
-        },
-        chainId: caipChainId,
-      });
+      if (
+        !emitDecision.shouldEmit &&
+        emitDecision.reason === 'chain_not_in_session'
+      ) {
+        DevLogger.log(
+          '[wc][WC2Manager.session_proposal] skip chainChanged emit; chain not in active session',
+          {
+            topic: activeSession.topic,
+            attemptedChainId: chainChangedEmission.chainId,
+            activeSessionChains: emitDecision.activeSessionChains,
+          },
+        );
+      } else if (
+        !emitDecision.shouldEmit &&
+        emitDecision.reason === 'event_not_supported'
+      ) {
+        DevLogger.log(
+          '[wc][WC2Manager.session_proposal] skip chainChanged emit; event not supported by namespace',
+          {
+            topic: activeSession.topic,
+            chainId: chainChangedEmission.chainId,
+            chainChangedNamespace: emitDecision.namespace,
+            chainChangedEventsForNamespace: emitDecision.namespaceEvents,
+          },
+        );
+      } else {
+        await this.web3Wallet.emitSessionEvent({
+          topic: activeSession.topic,
+          event: {
+            name: 'chainChanged',
+            data: chainChangedEmission.data,
+          },
+          chainId: chainChangedEmission.chainId as CaipChainId,
+        });
+      }
 
       if (deeplink) {
         session.redirect('onSessionProposal');
@@ -823,12 +1032,31 @@ export class WC2Manager {
           this.navigation !== undefined
         }`,
       );
+
+      const wcUriPreview =
+        wcUri.length > 160 ? `${wcUri.slice(0, 160)}...` : wcUri;
+      DevLogger.log('[wc][WC2Manager.connect] start', {
+        origin,
+        redirectUrl,
+        navigationDefined: this.navigation !== undefined,
+        wcUriPreview,
+      });
+
       const params = parseWalletConnectUri(wcUri);
       const isDeepLink = origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+
+      DevLogger.log('[wc][WC2Manager.connect] parsed wc uri', {
+        protocol: params.protocol,
+        version: params.version,
+        topic: params.topic,
+      });
 
       const rawParams = getAllUrlParams(wcUri);
       // First check if the url continas sessionTopic, meaning it is only here from an existing connection (so we don't need to create pairing)
       if (rawParams.sessionTopic) {
+        DevLogger.log('[wc][WC2Manager.connect] found sessionTopic in uri', {
+          sessionTopic: rawParams.sessionTopic,
+        });
         const { sessionTopic } = rawParams;
         const session = this.sessions[sessionTopic];
         if (session) {
@@ -842,13 +1070,19 @@ export class WC2Manager {
 
         // If the session is not found, we need to create a new session
         // but this should never happen?
-        console.warn(
+        DevLogger.log(
           `WC2Manager::connect session not found for sessionTopic=${sessionTopic}`,
         );
       }
 
       if (params.version === 1) {
         // WalletConnect V1 was shut down on June 28, 2023. V1 URIs are no longer supported.
+        console.warn(
+          '[wc][WC2Manager.connect] walletconnect v1 uri not supported',
+          {
+            wcUriPreview,
+          },
+        );
         console.warn(
           `WalletConnect V1 is no longer supported. V1 was shut down on June 28, 2023. URI: ${wcUri}`,
         );
@@ -863,12 +1097,21 @@ export class WC2Manager {
             session.pairingTopic === params.topic,
         );
         if (activeSession) {
+          DevLogger.log(
+            '[wc][WC2Manager.connect] active session already exists',
+            {
+              topic: activeSession.topic,
+            },
+          );
           this.sessions[activeSession.topic]?.setDeeplink(isDeepLink);
           return;
         }
 
         // Deduplicate: the OS can deliver the same deeplink multiple times.
         if (this.seenTopics.has(params.topic)) {
+          DevLogger.log('[wc][WC2Manager.connect] duplicate topic deduped', {
+            topic: params.topic,
+          });
           return;
         }
         this.seenTopics.add(params.topic);
@@ -904,8 +1147,22 @@ export class WC2Manager {
       }
 
       console.warn(`Invalid wallet connect uri`, wcUri);
+      DevLogger.log(
+        '[wc][WC2Manager.connect] invalid parsed wallet connect uri',
+        {
+          version: params.version,
+          topic: params.topic,
+          protocol: params.protocol,
+          wcUriPreview,
+        },
+      );
     } catch (err) {
-      console.error(`Failed to connect uri=${wcUri}`, err);
+      const wcUriPreviewCatch =
+        wcUri.length > 160 ? `${wcUri.slice(0, 160)}...` : wcUri;
+      console.error('[wc][WC2Manager.connect] failed', {
+        wcUriPreview: wcUriPreviewCatch,
+        err,
+      });
     }
   }
 }

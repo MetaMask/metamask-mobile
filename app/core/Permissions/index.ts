@@ -8,6 +8,9 @@ import {
   parseCaipAccountId,
   parseCaipChainId,
 } from '@metamask/utils';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import { TrxScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   Caip25CaveatType,
@@ -297,18 +300,25 @@ export const getPermittedCaipChainIdsByHostname = (
 
 /**
  * Returns a default CAIP-25 caveat value.
+ * Each chain appends its optional scope below (feature-flagged).
  * @returns Default {@link Caip25CaveatValue}
  */
-export const getDefaultCaip25CaveatValue = (): Caip25CaveatValue => ({
-  requiredScopes: {},
-  optionalScopes: {
-    'wallet:eip155': {
-      accounts: [],
-    },
-  },
-  sessionProperties: {},
-  isMultichainOrigin: false,
-});
+export const getDefaultCaip25CaveatValue = (): Caip25CaveatValue => {
+  const optionalScopes: Caip25CaveatValue['optionalScopes'] = {
+    'wallet:eip155': { accounts: [] },
+  };
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  optionalScopes[TrxScope.Mainnet] = { accounts: [] };
+  ///: END:ONLY_INCLUDE_IF
+
+  return {
+    requiredScopes: {},
+    optionalScopes,
+    sessionProperties: {},
+    isMultichainOrigin: false,
+  };
+};
 
 // Returns the CAIP-25 caveat or undefined if it does not exist
 export const getCaip25Caveat = (origin: string) => {
@@ -624,10 +634,11 @@ export const getPermittedAccounts = (
 };
 
 /**
- * Get permitted chains for the given the host.
+ * Get permitted chains for the given the host, across all namespaces.
+ * Returns all non-wallet scopes stored in the CAIP-25 caveat.
  *
  * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
- * @returns An array containing permitted chains for the specified host.
+ * @returns An array containing permitted CAIP chain IDs for the specified host.
  */
 export const getPermittedChains = async (
   hostname: string,
@@ -640,14 +651,16 @@ export const getPermittedChains = async (
   );
 
   if (caveat) {
-    const chains = getPermittedEthChainIds(caveat.value).map(
-      (chainId: string) =>
-        `${KnownCaipNamespace.Eip155.toString()}:${parseInt(
-          chainId,
-        )}` as CaipChainId,
+    return getAllScopesFromCaip25CaveatValue(caveat.value).filter(
+      (caipChainId: CaipChainId) => {
+        try {
+          const { namespace } = parseCaipChainId(caipChainId);
+          return namespace !== KnownCaipNamespace.Wallet;
+        } catch {
+          return false;
+        }
+      },
     );
-
-    return chains;
   }
 
   return [];
