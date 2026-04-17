@@ -91,7 +91,7 @@ const CustomAction: React.FC<Props> = ({
         onPress={highlighted || isLoading ? undefined : onPress}
         highlighted={highlighted}
         activeOpacity={0.8}
-        accessible={!highlighted && !isLoading}
+        accessible={!highlighted}
         accessibilityLabel={provider?.name}
         compact
       >
