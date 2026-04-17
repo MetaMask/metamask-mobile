@@ -308,6 +308,7 @@ export const useTokenActions = ({
           is_authenticated: rampsButtonClickData.is_authenticated,
           preferred_provider: rampsButtonClickData.preferred_provider,
           order_count: rampsButtonClickData.order_count,
+          asset_symbol: token.symbol,
         })
         .build(),
     );
@@ -322,6 +323,7 @@ export const useTokenActions = ({
     rampGeodetectedRegion,
     rampsButtonClickData,
     goToBuy,
+    token.symbol,
   ]);
 
   // Convert current token to BridgeToken format (used as dest for Buy, source for Sell)
