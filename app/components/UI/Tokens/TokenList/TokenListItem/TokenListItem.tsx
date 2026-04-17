@@ -243,7 +243,8 @@ export const TokenListItem = React.memo(
     const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
     const isMusdAsset = !!asset && isMusdToken(asset.address);
     const showMusdBonusRow =
-      isMusdAsset && isMusdConversionFlowEnabled && isMusdGeoEligible;
+      isMusdAsset &&
+      ((isMusdConversionFlowEnabled && isMusdGeoEligible) || hasClaimableBonus);
 
     const handleClaimBonus = useCallback(() => {
       trackEvent(
@@ -428,14 +429,6 @@ export const TokenListItem = React.memo(
     });
 
     const secondaryBalanceDisplay = useMemo(() => {
-      if (hasClaimableBonus && !isMusdAsset) {
-        return {
-          text: strings('earn.claim_bonus'),
-          color: CLTextColor.Primary,
-          onPress: handleClaimBonus,
-        };
-      }
-
       if (showMusdBonusRow) {
         const isClaimable = hasClaimableBonus && !isFullView;
         return {
@@ -501,7 +494,6 @@ export const TokenListItem = React.memo(
       earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
-      isMusdAsset,
       handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,
@@ -691,56 +683,48 @@ export const TokenListItem = React.memo(
               </>
             ) : (
               <>
-                {/* Token price and percentage change — or claim bonus CTA */}
+                {/* Token price and percentage change */}
                 <View style={styles.percentageChange}>
-                  {merklClaimData.isClaiming ? (
-                    <Spinner />
-                  ) : (
-                    <>
-                      {!hasClaimableBonus && (
-                        <Text
-                          variant={TextVariant.BodySm}
-                          fontWeight={FontWeight.Medium}
-                          color={TextColor.TextAlternative}
-                          twClassName="uppercase"
-                        >
-                          {tokenPriceInFiat && !hideFiatForScamWarning
-                            ? formatPriceWithSubscriptNotation(
-                                tokenPriceInFiat,
-                                currentCurrency,
-                              )
-                            : '-'}
-                          {' \u2022 '}
-                        </Text>
-                      )}
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
+                    twClassName="uppercase"
+                  >
+                    {tokenPriceInFiat && !hideFiatForScamWarning
+                      ? formatPriceWithSubscriptNotation(
+                          tokenPriceInFiat,
+                          currentCurrency,
+                        )
+                      : '-'}
+                    {' \u2022 '}
+                  </Text>
 
-                      {hideFiatForScamWarning ? (
-                        <Text
-                          variant={TextVariant.BodySm}
-                          fontWeight={FontWeight.Medium}
-                          color={TextColor.TextAlternative}
-                          twClassName="uppercase"
-                        >
-                          {'-'}
-                        </Text>
-                      ) : (
-                        <TouchableOpacity
-                          disabled={!secondaryBalanceDisplay.onPress}
-                          onPress={secondaryBalanceDisplay.onPress}
-                          testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
-                        >
-                          <SensitiveText
-                            variant={CLTextVariant.BodySMMedium}
-                            color={secondaryBalanceDisplay.color}
-                            isHidden={false}
-                            length={SensitiveTextLength.Short}
-                            testID={SECONDARY_BALANCE_TEST_ID}
-                          >
-                            {secondaryBalanceDisplay.text || '-'}
-                          </SensitiveText>
-                        </TouchableOpacity>
-                      )}
-                    </>
+                  {hideFiatForScamWarning ? (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                      twClassName="uppercase"
+                    >
+                      {'-'}
+                    </Text>
+                  ) : (
+                    <TouchableOpacity
+                      disabled={!secondaryBalanceDisplay.onPress}
+                      onPress={secondaryBalanceDisplay.onPress}
+                      testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
+                    >
+                      <SensitiveText
+                        variant={CLTextVariant.BodySMMedium}
+                        color={secondaryBalanceDisplay.color}
+                        isHidden={false}
+                        length={SensitiveTextLength.Short}
+                        testID={SECONDARY_BALANCE_TEST_ID}
+                      >
+                        {secondaryBalanceDisplay.text || '-'}
+                      </SensitiveText>
+                    </TouchableOpacity>
                   )}
                 </View>
 
