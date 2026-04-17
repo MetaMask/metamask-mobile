@@ -192,7 +192,7 @@ describe('seedless onboarding controller init', () => {
   });
 
   describe('encryptorAdapter', () => {
-    it('encryptWithKey maps cipher to data field', async () => {
+    it('encryptWithKey returns Encryptor result (cipher field)', async () => {
       const { mockEncryptWithKey } = getEncryptorMocks();
       seedlessOnboardingControllerInit(initRequestMock);
 
@@ -210,12 +210,12 @@ describe('seedless onboarding controller init', () => {
       const result = await encryptorAdapter.encryptWithKey(mockKey, testData);
 
       expect(mockEncryptWithKey).toHaveBeenCalledWith(mockKey, testData);
-      expect(result).toHaveProperty('data', mockEncryptResult.cipher);
+      expect(result).toHaveProperty('cipher', mockEncryptResult.cipher);
       expect(result).toHaveProperty('iv', mockEncryptResult.iv);
       expect(result).toHaveProperty('salt', mockEncryptResult.salt);
     });
 
-    it('decryptWithKey maps data to cipher field', async () => {
+    it('decryptWithKey forwards data-format vault; Encryptor reads cipher ?? data', async () => {
       const { mockDecryptWithKey } = getEncryptorMocks();
       seedlessOnboardingControllerInit(initRequestMock);
 
@@ -242,13 +242,7 @@ describe('seedless onboarding controller init', () => {
         encryptedObject,
       );
 
-      expect(mockDecryptWithKey).toHaveBeenCalledWith(mockKey, {
-        cipher: encryptedObject.data,
-        iv: encryptedObject.iv,
-        salt: encryptedObject.salt,
-        lib: encryptedObject.lib,
-        keyMetadata: encryptedObject.keyMetadata,
-      });
+      expect(mockDecryptWithKey).toHaveBeenCalledWith(mockKey, encryptedObject);
       expect(decrypted).toEqual({ test: 'decrypted-data' });
     });
 
@@ -283,7 +277,8 @@ describe('seedless onboarding controller init', () => {
       });
     });
 
-    it('decryptWithKey throws when both data and cipher are absent', async () => {
+    it('decryptWithKey forwards malformed vault to Encryptor (no adapter guard)', async () => {
+      const { mockDecryptWithKey } = getEncryptorMocks();
       seedlessOnboardingControllerInit(initRequestMock);
 
       const encryptorAdapter =
@@ -292,16 +287,12 @@ describe('seedless onboarding controller init', () => {
       const mockKey = { key: 'test-key', lib: 'test-lib', exportable: true };
       const malformedObject = { iv: 'test-iv', salt: 'test-salt' };
 
-      // Cast as never: the package type expects `data` (DefaultEncryptionResult), but we
-      // intentionally pass a malformed vault (missing both fields) to test the error path.
-      await expect(
-        encryptorAdapter.decryptWithKey(mockKey, malformedObject as never),
-      ).rejects.toThrow(
-        'SeedlessOnboardingController encryptorAdapter: vault is missing both "data" and "cipher" fields',
-      );
+      await encryptorAdapter.decryptWithKey(mockKey, malformedObject as never);
+
+      expect(mockDecryptWithKey).toHaveBeenCalledWith(mockKey, malformedObject);
     });
 
-    it('decrypt normalizes data-format vault before decryption', async () => {
+    it('decrypt passes data-format vault string through; Encryptor uses cipher ?? data', async () => {
       const { mockDecrypt } = getEncryptorMocks();
       seedlessOnboardingControllerInit(initRequestMock);
 
@@ -316,14 +307,7 @@ describe('seedless onboarding controller init', () => {
 
       await encryptorAdapter.decrypt('password', dataFormatVault);
 
-      // Should normalize 'data' → 'cipher' before passing to underlying encryptor
-      const expectedNormalized = JSON.stringify({
-        data: 'encrypted-data',
-        iv: 'test-iv',
-        salt: 'test-salt',
-        cipher: 'encrypted-data',
-      });
-      expect(mockDecrypt).toHaveBeenCalledWith('password', expectedNormalized);
+      expect(mockDecrypt).toHaveBeenCalledWith('password', dataFormatVault);
     });
 
     it('decrypt passes cipher-format vault through unchanged', async () => {
@@ -344,7 +328,7 @@ describe('seedless onboarding controller init', () => {
       expect(mockDecrypt).toHaveBeenCalledWith('password', cipherFormatVault);
     });
 
-    it('decryptWithDetail normalizes data-format vault before decryption', async () => {
+    it('decryptWithDetail passes data-format vault string through; Encryptor uses cipher ?? data', async () => {
       const { mockDecryptWithDetail } = getEncryptorMocks();
       seedlessOnboardingControllerInit(initRequestMock);
 
@@ -359,15 +343,9 @@ describe('seedless onboarding controller init', () => {
 
       await encryptorAdapter.decryptWithDetail('password', dataFormatVault);
 
-      const expectedNormalized = JSON.stringify({
-        data: 'encrypted-data',
-        iv: 'test-iv',
-        salt: 'test-salt',
-        cipher: 'encrypted-data',
-      });
       expect(mockDecryptWithDetail).toHaveBeenCalledWith(
         'password',
-        expectedNormalized,
+        dataFormatVault,
       );
     });
 
@@ -393,24 +371,13 @@ describe('seedless onboarding controller init', () => {
     });
 
     /**
-     * End-to-end bug reproduction scenario:
-     *
-     * Bug (pre-fix): While the wallet is unlocked, a background JWT token
-     * refresh triggers SeedlessOnboardingController#updateVault, which calls
-     * encryptWithKey via the adapter. The adapter returns { data, iv, salt }
-     * (browser-passworder format). This vault string (with `data`, no `cipher`)
-     * is persisted to state.
-     *
-     * On next unlock, the controller reads the persisted vault and calls
-     * decrypt / decryptWithDetail. The underlying mobile Encryptor reads
-     * `cipher` from the parsed vault — finds undefined — and crashes with
-     * "TypeError: The first argument must be one of type string, Buffer..."
-     *
-     * Fix: normalizeVaultFormat detects a vault that has `data` but no
-     * `cipher` and injects cipher = data before handing it to the Encryptor.
+     * End-to-end: persisted vault from encryptWithKey round-trips through
+     * decrypt / decryptWithDetail. Mobile Encryptor.decryptWithKey uses
+     * `payload.cipher ?? payload.data`, so vaults with only `data` still
+     * decrypt; encryptWithKey persists `cipher` from QuickCrypto.
      */
     describe('end-to-end: background token refresh followed by unlock', () => {
-      it('decrypt can read a vault written by encryptWithKey (data-format vault)', async () => {
+      it('decrypt can read a vault written by encryptWithKey', async () => {
         const { mockDecrypt } = getEncryptorMocks();
         seedlessOnboardingControllerInit(initRequestMock);
 
@@ -424,35 +391,23 @@ describe('seedless onboarding controller init', () => {
           keyMetadata: { algorithm: 'PBKDF2', params: { iterations: 600000 } },
         };
 
-        // Step 1: background token refresh writes vault via encryptWithKey
-        // → adapter converts cipher → data, returning browser-passworder format
         const encryptedVault = await encryptorAdapter.encryptWithKey(mockKey, {
           secret: 'seed-phrase',
         });
-        expect(encryptedVault).toHaveProperty('data'); // data, not cipher
-        expect(encryptedVault).not.toHaveProperty('cipher');
+        expect(encryptedVault).toHaveProperty('cipher');
+        expect(encryptedVault).not.toHaveProperty('data');
 
-        // Step 2: controller serializes and persists the vault
         const persistedVaultString = JSON.stringify(encryptedVault);
 
-        // Step 3: wallet locks, vaultEncryptionKey is cleared (persist: false).
-        // On next unlock the controller calls decrypt with the persisted string.
-        // Without the fix this would crash because the Encryptor reads `cipher`
-        // (undefined here) and passes it to QuickCryptoLib.decrypt.
         await encryptorAdapter.decrypt('user-password', persistedVaultString);
 
-        // The underlying Encryptor must receive the vault with `cipher` injected
-        const expectedNormalized = JSON.stringify({
-          ...encryptedVault,
-          cipher: encryptedVault.data,
-        });
         expect(mockDecrypt).toHaveBeenCalledWith(
           'user-password',
-          expectedNormalized,
+          persistedVaultString,
         );
       });
 
-      it('decryptWithDetail can read a vault written by encryptWithKey (data-format vault)', async () => {
+      it('decryptWithDetail can read a vault written by encryptWithKey', async () => {
         const { mockDecryptWithDetail } = getEncryptorMocks();
         seedlessOnboardingControllerInit(initRequestMock);
 
@@ -466,27 +421,20 @@ describe('seedless onboarding controller init', () => {
           keyMetadata: { algorithm: 'PBKDF2', params: { iterations: 600000 } },
         };
 
-        // Step 1: background token refresh writes vault via encryptWithKey
         const encryptedVault = await encryptorAdapter.encryptWithKey(mockKey, {
           secret: 'seed-phrase',
         });
 
-        // Step 2: persist
         const persistedVaultString = JSON.stringify(encryptedVault);
 
-        // Step 3: unlock via decryptWithDetail (used when vaultEncryptionKey is absent)
         await encryptorAdapter.decryptWithDetail(
           'user-password',
           persistedVaultString,
         );
 
-        const expectedNormalized = JSON.stringify({
-          ...encryptedVault,
-          cipher: encryptedVault.data,
-        });
         expect(mockDecryptWithDetail).toHaveBeenCalledWith(
           'user-password',
-          expectedNormalized,
+          persistedVaultString,
         );
       });
     });

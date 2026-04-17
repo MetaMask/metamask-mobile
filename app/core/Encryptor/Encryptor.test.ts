@@ -46,6 +46,41 @@ describe('Encryptor', () => {
 
       expect(decryptedObject).toEqual({ test: 'data' });
     });
+
+    describe('vault ciphertext under data field', () => {
+      beforeEach(() => {
+        jest
+          .spyOn(QuickCryptoLib, 'decrypt')
+          .mockResolvedValue(JSON.stringify({ recovered: true }));
+        jest.spyOn(QuickCryptoLib, 'deriveKey').mockResolvedValue('mockedKey');
+      });
+
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      it('decrypts payload that stores ciphertext under data instead of cipher', async () => {
+        const password = 'testPassword';
+        const mockVault = {
+          data: 'ciphertext-in-data',
+          iv: 'mockedIV',
+          salt: 'mockedSalt',
+          lib: ENCRYPTION_LIBRARY.original,
+        };
+
+        const decryptedObject = await encryptor.decrypt(
+          password,
+          JSON.stringify(mockVault),
+        );
+
+        expect(decryptedObject).toEqual({ recovered: true });
+        expect(QuickCryptoLib.decrypt).toHaveBeenCalledWith(
+          'ciphertext-in-data',
+          'mockedKey',
+          'mockedIV',
+        );
+      });
+    });
   });
 
   describe('isVaultUpdated', () => {
@@ -315,6 +350,28 @@ describe('Encryptor', () => {
 
       const importedKey = await encryptor.importKey(result.exportedKeyString);
       expect(importedKey.keyMetadata).toEqual(LEGACY_DERIVATION_OPTIONS);
+    });
+
+    it('decrypts vault that stores ciphertext under data instead of cipher', async () => {
+      const password = 'testPassword';
+      const mockVault = {
+        data: 'mockedCipher',
+        iv: 'mockedIV',
+        salt: 'mockedSalt',
+        lib: 'original',
+      };
+
+      const result = await encryptor.decryptWithDetail(
+        password,
+        JSON.stringify(mockVault),
+      );
+
+      expect(result.vault).toEqual({ test: 'data' });
+      expect(QuickCryptoLib.decrypt).toHaveBeenCalledWith(
+        'mockedCipher',
+        expect.any(String),
+        'mockedIV',
+      );
     });
   });
 });
