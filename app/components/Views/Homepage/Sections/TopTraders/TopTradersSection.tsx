@@ -52,11 +52,10 @@ const TopTradersSection = forwardRef<
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
 
-  const { traders, isLoading, refresh, toggleFollow, followLoadingIds } =
-    useTopTraders({
-      limit: HOME_TRADER_LIMIT,
-      enabled: isEnabled,
-    });
+  const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
+    limit: HOME_TRADER_LIMIT,
+    enabled: isEnabled,
+  });
 
   useImperativeHandle(
     ref,
@@ -125,7 +124,6 @@ const TopTradersSection = forwardRef<
                   trader={trader}
                   onFollowPress={toggleFollow}
                   onTraderPress={handleTraderPress}
-                  isFollowDisabled={followLoadingIds.has(trader.id)}
                 />
               ))}
         </ScrollView>

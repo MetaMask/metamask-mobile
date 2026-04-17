@@ -134,11 +134,10 @@ const TopTradersView = () => {
   const [selectedChain, setSelectedChain] = useState<ChainFilter>('all');
   const [refreshing, setRefreshing] = useState(false);
 
-  const { traders, isLoading, refresh, toggleFollow, followLoadingIds } =
-    useTopTraders({
-      limit: 250,
-      enabled: isEnabled,
-    });
+  const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
+    limit: 250,
+    enabled: isEnabled,
+  });
 
   useEffect(() => {
     if (!isEnabled) {
@@ -264,7 +263,6 @@ const TopTradersView = () => {
               trader={item}
               onFollowPress={toggleFollow}
               onTraderPress={handleTraderPress}
-              isFollowDisabled={followLoadingIds.has(item.id)}
             />
           )}
           showsVerticalScrollIndicator={false}

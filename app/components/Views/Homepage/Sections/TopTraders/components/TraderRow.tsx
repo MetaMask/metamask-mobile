@@ -26,7 +26,6 @@ export interface TraderRowProps {
   trader: TopTrader;
   onFollowPress: (traderId: string) => void;
   onTraderPress?: (traderId: string, traderName: string) => void;
-  isFollowDisabled?: boolean;
   testID?: string;
 }
 
@@ -40,7 +39,6 @@ const TraderRow: React.FC<TraderRowProps> = ({
   trader,
   onFollowPress,
   onTraderPress,
-  isFollowDisabled,
   testID,
 }) => {
   const tw = useTailwind();
@@ -151,7 +149,6 @@ const TraderRow: React.FC<TraderRowProps> = ({
           trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
         }
         size={ButtonSize.Sm}
-        isDisabled={isFollowDisabled}
         onPress={() => onFollowPress(trader.id)}
       >
         {trader.isFollowing

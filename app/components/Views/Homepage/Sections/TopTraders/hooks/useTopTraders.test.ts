@@ -240,6 +240,67 @@ describe('useTopTraders', () => {
         },
       );
     });
+
+    it('flips isFollowing optimistically for the tapped trader', async () => {
+      let resolveCall: (value: unknown) => void = () => undefined;
+      (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveCall = resolve;
+          }),
+      );
+      const { result } = renderHook(() => useTopTraders());
+
+      expect(result.current.traders[0].isFollowing).toBe(false);
+
+      await act(async () => {
+        result.current.toggleFollow(mockTraders[0].profileId);
+      });
+
+      expect(result.current.traders[0].isFollowing).toBe(true);
+      expect(result.current.traders[1].isFollowing).toBe(false);
+
+      await act(async () => {
+        resolveCall({ followed: [], unfollowed: [] });
+      });
+    });
+
+    it('reverts optimistic isFollowing when the API call rejects', async () => {
+      (Engine.controllerMessenger.call as jest.Mock).mockRejectedValue(
+        new Error('boom'),
+      );
+      const { result } = renderHook(() => useTopTraders());
+
+      await act(async () => {
+        await result.current.toggleFollow(mockTraders[0].profileId);
+      });
+
+      expect(result.current.traders[0].isFollowing).toBe(false);
+    });
+
+    it('ignores concurrent toggleFollow calls for the same trader while in flight', async () => {
+      let resolveCall: (value: unknown) => void = () => undefined;
+      (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveCall = resolve;
+          }),
+      );
+      const { result } = renderHook(() => useTopTraders());
+
+      await act(async () => {
+        result.current.toggleFollow(mockTraders[0].profileId);
+      });
+      await act(async () => {
+        result.current.toggleFollow(mockTraders[0].profileId);
+      });
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveCall({ followed: [], unfollowed: [] });
+      });
+    });
   });
 
   describe('refresh', () => {

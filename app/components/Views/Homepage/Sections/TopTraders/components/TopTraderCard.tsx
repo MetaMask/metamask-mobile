@@ -22,7 +22,6 @@ export interface TopTraderCardProps {
   trader: TopTrader;
   onFollowPress: (traderId: string) => void;
   onTraderPress?: (traderId: string, traderName: string) => void;
-  isFollowDisabled?: boolean;
   testID?: string;
 }
 
@@ -38,7 +37,6 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
   trader,
   onFollowPress,
   onTraderPress,
-  isFollowDisabled,
   testID,
 }) => {
   const tw = useTailwind();
@@ -137,7 +135,6 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
           trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
         }
         size={ButtonSize.Sm}
-        isDisabled={isFollowDisabled}
         twClassName="self-center"
         onPress={() => onFollowPress(trader.id)}
       >
