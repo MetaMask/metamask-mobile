@@ -6,11 +6,7 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
-import {
-  PlaywrightAssertions,
-  PlaywrightElement,
-  sleep,
-} from '../../framework';
+import { PlaywrightAssertions, sleep } from '../../framework';
 
 class SignModal {
   get confirmButton(): EncapsulatedElementType {
@@ -49,15 +45,14 @@ class SignModal {
   } = {}): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        let element: PlaywrightElement | undefined;
         await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          element = await asPlaywrightElement(this.confirmButton);
+          const element = await asPlaywrightElement(this.confirmButton);
           await element.waitForDisplayed({
             timeout: 5000,
             timeoutMsg: 'SignModal: confirm button not visible',
           });
+          await element.click();
         });
-        await element?.click();
       },
     });
     if (shouldCooldown) {
@@ -74,15 +69,14 @@ class SignModal {
   } = {}): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        let element: PlaywrightElement | undefined;
         await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          element = await asPlaywrightElement(this.cancelButton);
+          const element = await asPlaywrightElement(this.cancelButton);
           await element.waitForDisplayed({
             timeout: 5000,
             timeoutMsg: 'SignModal: cancel button not visible',
           });
+          await element.click();
         });
-        await element?.click();
       },
     });
     if (shouldCooldown) {

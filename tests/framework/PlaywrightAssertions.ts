@@ -78,16 +78,19 @@ export default class PlaywrightAssertions {
     options: AssertionOptions = {},
   ): Promise<void> {
     const { maxRetries = 5, interval = 1000 } = options;
+    let lastError: unknown;
     for (let i = 0; i < maxRetries; i++) {
       try {
         await condition();
         return;
       } catch (error) {
+        lastError = error;
         console.log(
           `PlaywrightAssertions: condition not met on attempt ${i + 1}`,
         );
         await new Promise((resolve) => setTimeout(resolve, interval));
       }
     }
+    throw lastError;
   }
 }
