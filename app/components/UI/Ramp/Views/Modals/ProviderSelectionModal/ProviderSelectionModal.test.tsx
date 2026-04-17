@@ -147,11 +147,12 @@ jest.mock('../../../hooks/useRampsQuotes', () => ({
 
 let capturedOnClose: ((hasPendingAction?: boolean) => void) | undefined;
 
-jest.mock(
-  '../../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    return ReactActual.forwardRef(
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
       (
         {
           children,
@@ -165,9 +166,9 @@ jest.mock(
         capturedOnClose = onClose;
         return <>{children}</>;
       },
-    );
-  },
-);
+    ),
+  };
+});
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -201,9 +202,9 @@ describe('ProviderSelectionModal', () => {
     mockUseParams.mockReturnValue({ amount: 100 });
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithProvider(ProviderSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders provider selection modal with providers list', () => {
+    const { getByText } = renderWithProvider(ProviderSelectionModal);
+    expect(getByText('Transak')).toBeOnTheScreen();
   });
 
   it('calls useRampsQuotes with provider params on mount', () => {
@@ -269,7 +270,7 @@ describe('ProviderSelectionModal', () => {
     );
 
     expect(getByText('Transak')).toBeOnTheScreen();
-    expect(queryByText('MoonPay')).toBeNull();
+    expect(queryByText('MoonPay')).not.toBeOnTheScreen();
   });
 
   it('filters providers by assetId when provided', () => {
@@ -313,7 +314,7 @@ describe('ProviderSelectionModal', () => {
 
     expect(getByText('Transak')).toBeOnTheScreen();
     expect(getByText('MoonPay')).toBeOnTheScreen();
-    expect(queryByText('Other')).toBeNull();
+    expect(queryByText('Other')).not.toBeOnTheScreen();
   });
 
   it('navigates to token selection when dismissed without action and skipQuotes is true', () => {
@@ -348,7 +349,9 @@ describe('ProviderSelectionModal', () => {
     const { queryByText } = renderWithProvider(ProviderSelectionModal);
 
     // Should not show "no quotes available" error since showQuotes is false
-    expect(queryByText('fiat_on_ramp.no_quotes_available')).toBeNull();
+    expect(
+      queryByText('fiat_on_ramp.no_quotes_available'),
+    ).not.toBeOnTheScreen();
   });
 
   it('does not navigate to token selection when dismissed without action and skipQuotes is false', () => {

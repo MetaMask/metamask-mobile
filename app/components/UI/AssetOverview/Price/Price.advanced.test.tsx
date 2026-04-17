@@ -1,12 +1,32 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import PriceAdvanced, { type PriceAdvancedProps } from './Price.advanced';
+import PriceLegacy from './Price.legacy';
+import type { TokenPrice } from '../../../../components/hooks/useTokenHistoricalPrices';
 import type { TokenI } from '../../Tokens/types';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
+const mockSetIsChartBeingTouched = jest.fn();
+jest.mock('../PriceChart/PriceChart.context', () => ({
+  usePriceChart: () => ({
+    isChartBeingTouched: false,
+    setIsChartBeingTouched: mockSetIsChartBeingTouched,
+  }),
+}));
+
+jest.mock('react-redux', () => {
+  const actual = jest.requireActual('react-redux');
+  return {
+    ...actual,
+    useSelector: jest.fn(() => 2), // ChartType.Line = 2
+    useDispatch: jest.fn(() => jest.fn()),
+  };
+});
 
 jest.mock('react-native-skeleton-placeholder', () => {
   const { View } = jest.requireActual('react-native');
@@ -36,8 +56,16 @@ jest.mock('../../Charts/AdvancedChart/OHLCVBar/OHLCVBar', () => {
   };
 });
 
+/** Older candles so total length meets CHART_DATA_THRESHOLD (see tokenOverviewChart.constants). */
+const ohlcvPaddingThree = [
+  { time: 100, open: 90, high: 91, low: 89, close: 90, volume: 1 },
+  { time: 200, open: 90, high: 91, low: 89, close: 91, volume: 1 },
+  { time: 300, open: 91, high: 92, low: 90, close: 92, volume: 1 },
+];
+
 const mockUseOHLCVChart = jest.fn().mockReturnValue({
   ohlcvData: [
+    ...ohlcvPaddingThree,
     { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
     { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
   ],
@@ -45,6 +73,7 @@ const mockUseOHLCVChart = jest.fn().mockReturnValue({
   error: undefined,
   hasMore: false,
   nextCursor: null,
+  hasEmptyData: false,
 });
 
 jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
@@ -75,14 +104,29 @@ jest.mock('../../Charts/AdvancedChart/TimeRangeSelector', () => {
     __esModule: true,
     default: MockSelector,
     TIME_RANGE_CONFIGS: {
-      '1H': { timePeriod: '1h' },
-      '1D': { timePeriod: '1d' },
-      '1W': { timePeriod: '1w' },
-      '1M': { timePeriod: '1m' },
-      '1Y': { timePeriod: '1y' },
+      '1H': { timePeriod: '1h', durationMs: 60 * 60 * 1000 },
+      '1D': { timePeriod: '1d', durationMs: 24 * 60 * 60 * 1000 },
+      '1W': { timePeriod: '1w', durationMs: 7 * 24 * 60 * 60 * 1000 },
+      '1M': { timePeriod: '1m', durationMs: 30 * 24 * 60 * 60 * 1000 },
+      '1Y': { timePeriod: '1y', durationMs: 365 * 24 * 60 * 60 * 1000 },
     },
   };
 });
+
+jest.mock('./Price.legacy', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: jest.fn(() => <View testID="price-legacy-fallback" />),
+  };
+});
+
+/** Enough points to stay on the advanced path (see CHART_DATA_THRESHOLD in Price.advanced). */
+const mockPricesAtLeast5: TokenPrice[] = Array.from({ length: 5 }, (_, i) => [
+  String(1000 + i),
+  100,
+]);
 
 const mockAsset: TokenI = {
   address: '0x1234567890123456789012345678901234567890',
@@ -99,11 +143,12 @@ const mockAsset: TokenI = {
 
 const baseProps: PriceAdvancedProps = {
   asset: mockAsset,
-  priceDiff: 5,
   currentPrice: 105,
   currentCurrency: 'USD',
+  priceDiff: 5,
   comparePrice: 100,
   isLoading: false,
+  prices: mockPricesAtLeast5,
 };
 
 describe('PriceAdvanced', () => {
@@ -111,7 +156,10 @@ describe('PriceAdvanced', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    const analyticsHook = createMockUseAnalyticsHook();
+    jest.mocked(PriceLegacy).mockClear();
+    const analyticsHook = createMockUseAnalyticsHook({
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+    });
     mockTrackEvent = analyticsHook.trackEvent as jest.Mock;
     jest.mocked(useAnalytics).mockReturnValue(analyticsHook);
   });
@@ -135,6 +183,7 @@ describe('PriceAdvanced', () => {
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      hasEmptyData: false,
     });
     const { queryByTestId } = render(<PriceAdvanced {...baseProps} />);
     expect(queryByTestId('loading-price-diff')).not.toBeOnTheScreen();
@@ -159,24 +208,21 @@ describe('PriceAdvanced', () => {
     expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();
   });
 
-  it('shows no-data overlay when ohlcvData is empty and chart not loading', () => {
+  it('falls back to legacy chart when hasEmptyData is true', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [],
       isLoading: false,
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      hasEmptyData: true,
     });
-    const { getByTestId, queryByTestId } = render(
-      <PriceAdvanced {...baseProps} />,
-    );
+    const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-    expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
-    expect(queryByTestId('mock-advanced-chart')).not.toBeOnTheScreen();
-    expect(queryByTestId('mock-time-range-selector')).not.toBeOnTheScreen();
+    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
   });
 
-  it('shows insufficient-data overlay when only 1 data point', () => {
+  it('falls back to legacy when only one OHLCV candle (insufficient for advanced chart)', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
         { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
@@ -185,47 +231,62 @@ describe('PriceAdvanced', () => {
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      // One candle is not an empty API response; fallback is candle count < threshold
+      hasEmptyData: false,
     });
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-    expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
+    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
   });
 
-  it('shows no-data overlay on chart error', () => {
+  it('falls back to legacy chart on OHLCV error', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
-      ohlcvData: [
-        { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
-        { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
-      ],
+      ohlcvData: [],
       isLoading: false,
       error: new Error('fetch failed'),
       hasMore: false,
       nextCursor: null,
+      hasEmptyData: false,
     });
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-    expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
+    // Should fallback to legacy chart when there's an error
+    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
   });
 
-  it('tracks CHART_EMPTY_DISPLAYED when empty state is shown', () => {
+  it('falls back to legacy chart when OHLCV has fewer than 5 candles', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
-      ohlcvData: [],
+      ohlcvData: [
+        { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+        { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        { time: 3000, open: 105, high: 106, low: 104, close: 105, volume: 1 },
+        { time: 4000, open: 105, high: 106, low: 104, close: 105, volume: 1 },
+      ],
       isLoading: false,
       error: undefined,
       hasMore: false,
       nextCursor: null,
+      hasEmptyData: false,
     });
-    render(<PriceAdvanced {...baseProps} />);
+    const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
   });
 
-  it('tracks CHART_TIMEFRAME_CHANGED when a different time range is selected', () => {
+  it('tracks chart_interacted with timeframe_changed when a different time range is selected', () => {
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
     fireEvent.press(getByTestId('select-1W'));
 
-    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'chart_interacted',
+        properties: expect.objectContaining({
+          interaction_type: 'timeframe_changed',
+          chart_timeframe: '1W',
+        }),
+      }),
+    );
   });
 
   it('does not track when selecting the already-active time range', () => {
@@ -236,12 +297,20 @@ describe('PriceAdvanced', () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
-  it('tracks CHART_TYPE_CHANGED when chart type is toggled', () => {
+  it('tracks chart_interacted with chart_type_changed when chart type is toggled', () => {
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
     fireEvent.press(getByTestId('toggle-chart-type'));
 
-    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'chart_interacted',
+        properties: expect.objectContaining({
+          interaction_type: 'chart_type_changed',
+          chart_type: expect.stringMatching(/^(candlestick|line)$/),
+        }),
+      }),
+    );
   });
 
   it('passes correct OHLCV hook params based on selected time range', () => {
@@ -273,5 +342,376 @@ describe('PriceAdvanced', () => {
   it('renders price-label with the time range date label', () => {
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
     expect(getByTestId('price-label')).toBeOnTheScreen();
+  });
+
+  it('calculates percentage from OHLCV close price of the reference candle', () => {
+    // Reference candle close = 100, current price = 105
+    // Expected: (105 - 100) / 100 * 100 = 5.00%
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+    const ohlcvPadBefore = [
+      {
+        time: oneDayAgo - 4_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+      {
+        time: oneDayAgo - 3_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+      {
+        time: oneDayAgo - 2_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+    ];
+
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [
+        ...ohlcvPadBefore,
+        {
+          time: oneDayAgo,
+          open: 95,
+          high: 101,
+          low: 94,
+          close: 100,
+          volume: 1,
+        },
+        {
+          time: now - 1000,
+          open: 100,
+          high: 106,
+          low: 100,
+          close: 105,
+          volume: 1,
+        },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+      hasEmptyData: false,
+    });
+
+    const { getByText } = render(
+      <PriceAdvanced {...baseProps} currentPrice={105} />,
+    );
+
+    // Uses close (100) not open (95) — matches what the line chart visually draws
+    expect(getByText(/5\.00%/)).toBeOnTheScreen();
+  });
+
+  it('falls back to legacy when OHLCV data is empty', () => {
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+      // Same as useOHLCVChart when the API returns an empty data array
+      hasEmptyData: true,
+    });
+
+    const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+  });
+
+  it('updates percentage when time range changes and new OHLCV data loads', () => {
+    // Initial: reference candle close = 100, current price = 105
+    // Expected: (105 - 100) / 100 * 100 = 5.00%
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+    const ohlcvPadBefore = [
+      {
+        time: oneDayAgo - 4_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+      {
+        time: oneDayAgo - 3_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+      {
+        time: oneDayAgo - 2_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+    ];
+
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [
+        ...ohlcvPadBefore,
+        {
+          time: oneDayAgo,
+          open: 95,
+          high: 101,
+          low: 94,
+          close: 100,
+          volume: 1,
+        },
+        {
+          time: now - 1000,
+          open: 100,
+          high: 106,
+          low: 100,
+          close: 105,
+          volume: 1,
+        },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+      hasEmptyData: false,
+    });
+
+    const { getByText, rerender } = render(
+      <PriceAdvanced {...baseProps} currentPrice={105} />,
+    );
+
+    expect(getByText(/5\.00%/)).toBeOnTheScreen();
+
+    // After time range change: reference candle close = 103, current = 105
+    // Expected: (105 - 103) / 103 * 100 = 1.94%
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [
+        ...ohlcvPadBefore,
+        {
+          time: oneDayAgo,
+          open: 102,
+          high: 104,
+          low: 102,
+          close: 103,
+          volume: 1,
+        },
+        {
+          time: now - 1000,
+          open: 103,
+          high: 106,
+          low: 103,
+          close: 105,
+          volume: 1,
+        },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+      hasEmptyData: false,
+    });
+
+    rerender(<PriceAdvanced {...baseProps} currentPrice={105} />);
+
+    expect(getByText(/1\.94%/)).toBeOnTheScreen();
+  });
+
+  it('displays price diff when dynamicComparePrice is 0', () => {
+    // Edge case: reference candle close is 0 — should still render, not hide
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+    const ohlcvPadBefore = [
+      {
+        time: oneDayAgo - 4_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+      {
+        time: oneDayAgo - 3_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+      {
+        time: oneDayAgo - 2_000_000,
+        open: 1,
+        high: 1,
+        low: 1,
+        close: 1,
+        volume: 1,
+      },
+    ];
+
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [
+        ...ohlcvPadBefore,
+        {
+          time: oneDayAgo,
+          open: 0,
+          high: 1,
+          low: 0,
+          close: 0,
+          volume: 1,
+        },
+        {
+          time: now - 1000,
+          open: 0.5,
+          high: 10,
+          low: 0.5,
+          close: 10,
+          volume: 1,
+        },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+      hasEmptyData: false,
+    });
+
+    const { getByText, getByTestId } = render(
+      <PriceAdvanced {...baseProps} currentPrice={10} />,
+    );
+
+    expect(getByText(/\+\$10\.00/)).toBeOnTheScreen();
+    // Division by zero guard shows 0% instead of Infinity
+    expect(getByText(/0%/)).toBeOnTheScreen();
+    expect(getByTestId('price-label')).toBeOnTheScreen();
+  });
+
+  it('skips pre-visible candles when API returns extra history', () => {
+    // Simulates: API returns 4 days of data for 1D range.
+    // visibleFromMs = lastBar.time - 24h ≈ yesterday 15:00.
+    // Candles before that should be ignored.
+    const lastBarTime = Date.now() - 1000;
+    const oneDayMs = 24 * 60 * 60 * 1000;
+
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [
+        // Extra history so candle count >= CHART_DATA_THRESHOLD (ignored for compare)
+        {
+          time: lastBarTime - 4 * oneDayMs,
+          open: 50,
+          high: 51,
+          low: 49,
+          close: 50,
+          volume: 1,
+        },
+        // 3 days ago — before visible range, should be skipped
+        {
+          time: lastBarTime - 3 * oneDayMs,
+          open: 200,
+          high: 210,
+          low: 190,
+          close: 200,
+          volume: 1,
+        },
+        // 2 days ago — still before visible range, should be skipped
+        {
+          time: lastBarTime - 2 * oneDayMs,
+          open: 190,
+          high: 195,
+          low: 185,
+          close: 190,
+          volume: 1,
+        },
+        // ~24h ago — first candle in visible range (close = 100)
+        {
+          time: lastBarTime - oneDayMs + 1000,
+          open: 95,
+          high: 101,
+          low: 94,
+          close: 100,
+          volume: 1,
+        },
+        // Recent candle
+        {
+          time: lastBarTime,
+          open: 103,
+          high: 106,
+          low: 103,
+          close: 105,
+          volume: 1,
+        },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+      hasEmptyData: false,
+    });
+
+    const { getByText } = render(
+      <PriceAdvanced {...baseProps} currentPrice={105} />,
+    );
+
+    // Should use close=100 from the first visible candle, NOT close=200 from 3 days ago
+    // (105 - 100) / 100 * 100 = 5.00%
+    expect(getByText(/5\.00%/)).toBeOnTheScreen();
+  });
+
+  describe('touch gesture handling', () => {
+    it('sets isChartBeingTouched to true on touch start', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+
+      fireEvent(chartContainer, 'touchStart');
+
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+    });
+
+    it('sets isChartBeingTouched to false on touch end', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+
+      fireEvent(chartContainer, 'touchStart');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+
+      fireEvent(chartContainer, 'touchEnd');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+    });
+
+    it('sets isChartBeingTouched to false on touch cancel', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+
+      fireEvent(chartContainer, 'touchStart');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+
+      fireEvent(chartContainer, 'touchCancel');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+    });
+
+    it('handles multiple touch start/end cycles', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+
+      fireEvent(chartContainer, 'touchStart');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+
+      fireEvent(chartContainer, 'touchEnd');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+
+      fireEvent(chartContainer, 'touchStart');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+
+      fireEvent(chartContainer, 'touchEnd');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+    });
   });
 });

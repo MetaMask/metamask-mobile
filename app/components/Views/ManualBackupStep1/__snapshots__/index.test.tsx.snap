@@ -1,13 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ManualBackupStep1 matches snapshot 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -397,8 +394,7 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
                       [
                         [
                           "text-icon-default",
-                          "w-[32px]",
-                          "h-[32px]",
+                          "w-8 h-8",
                           undefined,
                         ],
                         undefined,
@@ -552,17 +548,14 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
     </View>
   </View>
   <View />
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -952,8 +945,7 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
                       [
                         [
                           "text-icon-default",
-                          "w-[32px]",
-                          "h-[32px]",
+                          "w-8 h-8",
                           undefined,
                         ],
                         undefined,
@@ -1107,17 +1099,14 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
     </View>
   </View>
   <View />
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`ManualBackupStep1 theme appearance renders with light theme on Android 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -1507,8 +1496,7 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
                       [
                         [
                           "text-icon-default",
-                          "w-[32px]",
-                          "h-[32px]",
+                          "w-8 h-8",
                           undefined,
                         ],
                         undefined,
@@ -1662,5 +1650,5 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
     </View>
   </View>
   <View />
-</RNCSafeAreaView>
+</View>
 `;

@@ -3,8 +3,6 @@ import { isEqual } from 'lodash';
 import { useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
-import { selectIsIpfsGatewayEnabled } from '../../../../selectors/preferencesController';
-import { selectTokenList } from '../../../../selectors/tokenListController';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import {
   HYPERLIQUID_MAINNET_CHAIN_ID,
@@ -12,9 +10,9 @@ import {
   USDC_ARBITRUM_MAINNET_ADDRESS,
   USDC_DECIMALS,
   USDC_SYMBOL,
+  USDC_TOKEN_ICON_URL,
   type PerpsToken,
 } from '@metamask/perps-controller';
-import { enhanceTokenWithIcon } from '../utils/tokenIconUtils';
 import { usePerpsNetwork } from './index';
 import { usePerpsLiveAccount } from './stream';
 
@@ -32,8 +30,6 @@ import { usePerpsLiveAccount } from './stream';
  */
 export function usePerpsPaymentTokens(): PerpsToken[] {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const tokenList = useSelector(selectTokenList);
-  const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
 
   // Use ref to store previous token array
   const previousTokensRef = useRef<PerpsToken[]>([]);
@@ -71,21 +67,16 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
         ? HYPERLIQUID_TESTNET_CHAIN_ID
         : HYPERLIQUID_MAINNET_CHAIN_ID;
 
-    const hyperliquidUsdcBase = {
+    const hyperliquidUsdc: PerpsToken = {
       address: USDC_ARBITRUM_MAINNET_ADDRESS,
       symbol: USDC_SYMBOL,
       name: 'USDC • Hyperliquid',
       decimals: USDC_DECIMALS,
       chainId: hyperliquidChainId as Hex,
+      image: USDC_TOKEN_ICON_URL,
       balance: (hyperliquidBalance * 1e6).toString(),
       balanceFiat: `$${hyperliquidBalance.toFixed(2)}`,
     };
-
-    const hyperliquidUsdc: PerpsToken = enhanceTokenWithIcon({
-      token: hyperliquidUsdcBase,
-      tokenList: tokenList || {},
-      isIpfsGatewayEnabled,
-    });
 
     // Always show Hyperliquid USDC first (even if balance is 0)
     tokens.push(hyperliquidUsdc);
@@ -99,30 +90,15 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
         // Show all tokens with any balance (including zero balance for visibility)
         return true;
       })
-      .map((token) => {
-        // Enhance with icon if needed
-        const enhanced =
-          tokenList && !token.image
-            ? enhanceTokenWithIcon({
-                token: {
-                  symbol: token.symbol,
-                  address: token.address,
-                  decimals: token.decimals,
-                  chainId: token.chainId as Hex,
-                  name: token.name,
-                },
-                tokenList,
-                isIpfsGatewayEnabled,
-              })
-            : token;
-
-        return {
-          ...enhanced,
-          // Ensure we have all required fields
-          balance: token.balance || '0',
-          balanceFiat: token.balanceFiat || '$0.00',
-        } as PerpsToken;
-      });
+      .map(
+        (token) =>
+          ({
+            ...token,
+            // Ensure we have all required fields
+            balance: token.balance || '0',
+            balanceFiat: token.balanceFiat || '$0.00',
+          }) as PerpsToken,
+      );
 
     // Sort tokens by priority:
     // 1. USDC tokens first (faster to bridge)
@@ -147,13 +123,7 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
     // Future: Add other supported tokens here
 
     return tokens;
-  }, [
-    tokensWithBalance,
-    hyperliquidBalance,
-    currentNetwork,
-    tokenList,
-    isIpfsGatewayEnabled,
-  ]);
+  }, [tokensWithBalance, hyperliquidBalance, currentNetwork]);
 
   // Check if tokens have actually changed using lodash deep equality
   const tokensChanged = !isEqual(previousTokensRef.current, paymentTokens);

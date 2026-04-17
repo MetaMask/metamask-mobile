@@ -1,9 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   MoneyAccountWithdrawInfo,
   MONEY_ACCOUNT_CURRENCY,
 } from './money-account-withdraw-info';
+import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 
 jest.mock('../../../hooks/ui/useNavbar', () => ({
   __esModule: true,
@@ -89,5 +91,27 @@ describe('MoneyAccountWithdrawInfo', () => {
         mockCustomAmountInfo.mock.calls.length - 1
       ][0];
     expect(lastCall.disablePay).toBe(true);
+  });
+
+  it('passes mUSD on Ethereum as preferredToken', () => {
+    render(<MoneyAccountWithdrawInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.preferredToken).toEqual({
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MAINNET,
+    });
+  });
+
+  it('renders available balance as child of CustomAmountInfo', () => {
+    const { getByTestId, getByText } = render(<MoneyAccountWithdrawInfo />);
+
+    expect(getByTestId('money-account-withdraw-balance')).toBeOnTheScreen();
+    expect(
+      getByText('confirm.available_balance$0.00', { exact: false }),
+    ).toBeOnTheScreen();
   });
 });

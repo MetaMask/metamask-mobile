@@ -1,10 +1,13 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import LockScreen from './';
+import { FoxLoaderSelectorsIDs } from '../../UI/FoxLoader/FoxLoader.testIds';
 
 describe('LockScreen', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(<LockScreen />);
-    expect(toJSON()).toMatchSnapshot();
+    render(<LockScreen />);
+    expect(
+      screen.getByTestId(FoxLoaderSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
   });
 });

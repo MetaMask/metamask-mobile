@@ -187,7 +187,7 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "7.74.0"
+        versionName "7.75.0"
         versionCode 4138
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -418,11 +418,17 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+    // Detox's AAR still reflects Espresso UiControllerImpl.eventInjector, but its POM pulls
+    // espresso-* 3.6.x where that field was removed. Exclude Espresso from Detox and pin 3.5.1.
     androidTestImplementation('com.wix:detox:+') {
-         exclude module: "protobuf-lite"
-     }
-    androidTestImplementation ('androidx.test.espresso:espresso-contrib:3.4.0')
-
+        exclude module: 'protobuf-lite'
+        exclude group: 'androidx.test.espresso', module: 'espresso-core'
+        exclude group: 'androidx.test.espresso', module: 'espresso-web'
+        exclude group: 'androidx.test.espresso', module: 'espresso-contrib'
+    }
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-web:3.5.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.5.1'
     // Add these dependencies for androidTest
     androidTestImplementation "com.google.guava:guava:31.1-android"
     androidTestImplementation "org.ow2.asm:asm:9.4"

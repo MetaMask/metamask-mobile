@@ -6,8 +6,21 @@ const stylesheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     container: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border.muted,
+    },
+    row: {
+      flexDirection: 'row',
       alignItems: 'center',
-      marginTop: 8,
+      justifyContent: 'space-between',
+    },
+    valueContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      flexShrink: 1,
     },
     modalContainer: {
       flex: 1,
@@ -22,22 +35,8 @@ const stylesheet = (params: { theme: Theme }) => {
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border.muted,
     },
-    selector: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      gap: 10,
-      alignItems: 'center',
-      backgroundColor: theme.colors.background.muted,
-      borderRadius: 12,
-      padding: 8,
-      alignSelf: 'center',
-      flexShrink: 1,
-    },
     accountText: {
       flexShrink: 1,
-    },
-    placeholderText: {
-      color: theme.colors.text.alternative,
     },
   });
 };

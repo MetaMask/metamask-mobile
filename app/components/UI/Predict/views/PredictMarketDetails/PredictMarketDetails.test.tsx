@@ -71,21 +71,6 @@ jest.mock('@react-navigation/stack', () => ({
   }),
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: View,
-    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 375, height: 812 }),
-  };
-});
-
 // Minimal mock to add testID pattern for icon assertions
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const ActualIcon = jest.requireActual(
@@ -140,6 +125,15 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
     },
   };
 });
+
+const mockOpenBuySheet = jest.fn();
+const mockOpenSellSheet = jest.fn();
+jest.mock('../../contexts', () => ({
+  usePredictPreviewSheet: () => ({
+    openBuySheet: mockOpenBuySheet,
+    openSellSheet: mockOpenSellSheet,
+  }),
+}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
@@ -321,6 +315,39 @@ jest.mock('../../components/PredictGameDetailsContent', () => {
   };
 });
 
+jest.mock('../../components/PredictCryptoUpDownDetails', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockPredictCryptoUpDownDetails() {
+    return <View testID="predict-crypto-up-down-details" />;
+  };
+});
+
+jest.mock('../../utils/cryptoUpDown', () => ({
+  isCryptoUpDown: jest.fn(() => false),
+  UP_OR_DOWN_TAG: 'up-or-down',
+  CRYPTO_TAG: 'crypto',
+}));
+
+let mockSelectPredictUpDownEnabledFlag = false;
+const mockSelectPredictFeeCollectionFlag = {
+  enabled: true,
+  collector: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+  metamaskFee: 0.02,
+  providerFee: 0.02,
+  waiveList: ['middle-east'],
+  executors: [],
+  permit2Enabled: false,
+};
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPredictUpDownEnabledFlag: jest.fn(
+    () => mockSelectPredictUpDownEnabledFlag,
+  ),
+  selectPredictFeeCollectionFlag: jest.fn(
+    () => mockSelectPredictFeeCollectionFlag,
+  ),
+}));
+
 jest.mock('../../../../Base/TabBar', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockTabBar({ textStyle }: { textStyle: object }) {
@@ -483,6 +510,15 @@ function setupPredictMarketDetailsTest(
   jest.clearAllMocks();
   runAfterInteractionsCallbacks.length = 0;
   mockRunAfterInteractions.mockImplementation(runAfterInteractionsMockImpl);
+
+  const { selectPredictUpDownEnabledFlag, selectPredictFeeCollectionFlag } =
+    jest.requireMock('../../selectors/featureFlags');
+  selectPredictUpDownEnabledFlag.mockReturnValue(
+    mockSelectPredictUpDownEnabledFlag,
+  );
+  selectPredictFeeCollectionFlag.mockReturnValue(
+    mockSelectPredictFeeCollectionFlag,
+  );
 
   const mockNavigate = jest.fn();
   const mockSetOptions = jest.fn();
@@ -1401,7 +1437,7 @@ describe('PredictMarketDetails', () => {
       expect(screen.getByText(mockMarket.title)).toBeOnTheScreen();
     });
 
-    it('handles cash out button press', () => {
+    it('cash out uses context sell sheet instead of navigation', () => {
       const mockPosition = {
         id: 'position-1',
         outcomeId: 'outcome-1',
@@ -1414,13 +1450,12 @@ describe('PredictMarketDetails', () => {
         icon: 'https://example.com/icon.png',
       };
 
-      const { mockNavigate } = setupPredictMarketDetailsTest(
+      setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
         { positions: { data: [mockPosition] } },
       );
 
-      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
         getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
@@ -1429,18 +1464,15 @@ describe('PredictMarketDetails', () => {
       const cashOutButton = screen.getByText('predict.cash_out');
       fireEvent.press(cashOutButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.SELL_PREVIEW,
-        {
+      expect(mockOpenSellSheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           position: mockPosition,
-          outcome: expect.any(Object),
-          market: expect.any(Object),
           entryPoint: 'predict_market_details',
-        },
+        }),
       );
     });
 
-    it('handles Yes button press for betting', () => {
+    it('calls openBuySheet via context when Yes button is pressed', () => {
       const singleOutcomeMarket = createMockMarket({
         status: 'open',
         outcomes: [
@@ -1456,25 +1488,23 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       const yesButton = findActionButtonByPrice(65);
       expect(yesButton).toBeDefined();
       fireEvent.press(yesButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.BUY_PREVIEW,
-        {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[0],
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        },
+          entryPoint: 'predict_market_details',
+        }),
       );
     });
 
-    it('handles No button press for betting', () => {
+    it('calls openBuySheet via context when No button is pressed', () => {
       const singleOutcomeMarket = createMockMarket({
         status: 'open',
         outcomes: [
@@ -1490,21 +1520,19 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       const noButton = findActionButtonByPrice(35);
       expect(noButton).toBeDefined();
       fireEvent.press(noButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.BUY_PREVIEW,
-        {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[1],
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        },
+          entryPoint: 'predict_market_details',
+        }),
       );
     });
 
@@ -1750,6 +1778,57 @@ describe('PredictMarketDetails', () => {
       expect(buttonLabels).toEqual(
         expect.arrayContaining(['Yes•65¢', 'No•35¢']),
       );
+    });
+  });
+
+  describe('Crypto Up/Down Branching', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSelectPredictUpDownEnabledFlag = false;
+      const { isCryptoUpDown } = jest.requireMock('../../utils/cryptoUpDown');
+      isCryptoUpDown.mockReturnValue(false);
+    });
+
+    it('renders PredictCryptoUpDownDetails when upDownEnabled and isCryptoUpDown are true', () => {
+      const { isCryptoUpDown } = jest.requireMock('../../utils/cryptoUpDown');
+      mockSelectPredictUpDownEnabledFlag = true;
+      isCryptoUpDown.mockReturnValue(true);
+
+      setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId('predict-crypto-up-down-details'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders default market details when upDownEnabled is false', () => {
+      const { isCryptoUpDown } = jest.requireMock('../../utils/cryptoUpDown');
+      mockSelectPredictUpDownEnabledFlag = false;
+      isCryptoUpDown.mockReturnValue(true);
+
+      setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-crypto-up-down-details'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders default market details when isCryptoUpDown returns false', () => {
+      const { isCryptoUpDown } = jest.requireMock('../../utils/cryptoUpDown');
+      mockSelectPredictUpDownEnabledFlag = true;
+      isCryptoUpDown.mockReturnValue(false);
+
+      setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-crypto-up-down-details'),
+      ).not.toBeOnTheScreen();
     });
   });
 
