@@ -161,6 +161,27 @@ Meaning:
   - `perps-market-details-modify-action-sheet-flip_position`
 - the old accidental `undefined-flip_position` path is no longer needed
 
+## Codex Runner Validation
+
+Fresh evidence on the promoted local runner:
+
+- `--runner codex` now launches successfully through `codex exec`
+- the local runner records normal run scaffolding + metadata before Codex completes
+- verified fields in the minimal probe run:
+  - `runner: "codex"`
+  - `task_mode: "interactive"`
+  - `skill_version: "0.1.0"`
+  - visible run package materialized under `/tmp/fs-cook-codex-mini-.../out`
+- however, the minimal Codex batch probe did **not** reach a terminal artifact set within the short validation window, while the comparable Claude path completed quickly
+
+Conclusion so far:
+
+- Codex runner path is **launch-viable**
+- Codex batch delegation path is **not yet proven terminal/reliable enough** to replace the Claude-backed proof path
+- before worker-template integration, Codex likely needs either:
+  1. a different non-interactive contract, or
+  2. a dedicated timeout / streaming / output-capture strategy validated end-to-end
+
 ## Open Questions
 
 - Should `fs-cook` have separate interactive and batch task templates?
