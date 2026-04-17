@@ -2,7 +2,6 @@ import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useSelector } from 'react-redux';
 import Badge, {
   BadgeVariant,
@@ -55,7 +54,6 @@ import Logger from '../../../../../util/Logger';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
 import { MUSD_CONVERSION_APY, isMusdToken } from '../../../Earn/constants/musd';
-import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
@@ -149,8 +147,6 @@ interface TokenListItemProps {
   showPercentageChange?: boolean;
   isFullView?: boolean;
   shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
-  // Whether this item is currently visible in the viewport.
-  isVisible?: boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -162,7 +158,6 @@ export const TokenListItem = React.memo(
     showPercentageChange = true,
     isFullView = false,
     shouldShowTokenListItemCta,
-    isVisible = true,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
@@ -233,46 +228,9 @@ export const TokenListItem = React.memo(
       [asset, shouldShowTokenListItemCta],
     );
 
-    const merklClaimData = useMerklBonusClaim(
-      asset,
-      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
-      isVisible,
-    );
-    const { claimRewards, claimableReward, hasPendingClaim } = merklClaimData;
-
-    const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
     const isMusdAsset = !!asset && isMusdToken(asset.address);
     const showMusdBonusRow =
-      isMusdAsset &&
-      ((isMusdConversionFlowEnabled && isMusdGeoEligible) || hasClaimableBonus);
-
-    const handleClaimBonus = useCallback(() => {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
-          .addProperties({
-            location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
-            action_type: 'claim_bonus',
-            button_text: strings(
-              'earn.musd_conversion.claim_percentage_bonus',
-              {
-                percentage: MUSD_CONVERSION_APY,
-              },
-            ),
-            network_chain_id: asset?.chainId,
-            network_name: networkName,
-            asset_symbol: asset?.symbol,
-          })
-          .build(),
-      );
-      claimRewards();
-    }, [
-      trackEvent,
-      createEventBuilder,
-      asset?.chainId,
-      asset?.symbol,
-      networkName,
-      claimRewards,
-    ]);
+      isMusdAsset && isMusdConversionFlowEnabled && isMusdGeoEligible;
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
@@ -435,17 +393,12 @@ export const TokenListItem = React.memo(
 
     const secondaryBalanceDisplay = useMemo(() => {
       if (showMusdBonusRow) {
-        const isClaimable = hasClaimableBonus && !isFullView;
         return {
-          text: isClaimable
-            ? strings('earn.musd_conversion.claim_percentage_bonus', {
-                percentage: MUSD_CONVERSION_APY,
-              })
-            : strings('earn.musd_conversion.percentage_bonus', {
-                percentage: MUSD_CONVERSION_APY,
-              }),
-          color: isClaimable ? CLTextColor.Primary : CLTextColor.Success,
-          onPress: isClaimable ? handleClaimBonus : undefined,
+          text: strings('earn.musd_conversion.percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+          color: CLTextColor.Success,
+          onPress: undefined,
         };
       }
 
@@ -492,14 +445,11 @@ export const TokenListItem = React.memo(
       return { text, color, onPress: undefined };
     }, [
       showMusdBonusRow,
-      hasClaimableBonus,
-      isFullView,
       shouldShowConvertToMusdCta,
       isStablecoinLendingEnabled,
       earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
-      handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,
     ]);
@@ -666,25 +616,15 @@ export const TokenListItem = React.memo(
                   </SensitiveText>
                 </Box>
 
-                {merklClaimData.isClaiming ? (
-                  <Spinner />
-                ) : (
-                  <TouchableOpacity
-                    disabled={!secondaryBalanceDisplay.onPress}
-                    onPress={secondaryBalanceDisplay.onPress}
-                    testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
-                  >
-                    <SensitiveText
-                      variant={CLTextVariant.BodySMMedium}
-                      color={secondaryBalanceDisplay.color}
-                      isHidden={false}
-                      length={SensitiveTextLength.Short}
-                      testID={SECONDARY_BALANCE_TEST_ID}
-                    >
-                      {secondaryBalanceDisplay.text}
-                    </SensitiveText>
-                  </TouchableOpacity>
-                )}
+                <SensitiveText
+                  variant={CLTextVariant.BodySMMedium}
+                  color={secondaryBalanceDisplay.color}
+                  isHidden={false}
+                  length={SensitiveTextLength.Short}
+                  testID={SECONDARY_BALANCE_TEST_ID}
+                >
+                  {secondaryBalanceDisplay.text}
+                </SensitiveText>
               </>
             ) : (
               <>

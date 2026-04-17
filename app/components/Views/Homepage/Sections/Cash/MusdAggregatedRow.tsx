@@ -35,7 +35,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
-import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
+import { LINEA_MUSD_ASSET_FOR_MERKL } from './CashGetMusdEmptyState.constants';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
@@ -48,7 +48,7 @@ const MusdAggregatedRow = () => {
     useMusdBalance();
   const { claimableReward, hasPendingClaim, isClaiming, claimRewards } =
     useMerklBonusClaim(
-      MUSD_MAINNET_ASSET_FOR_DETAILS,
+      LINEA_MUSD_ASSET_FOR_MERKL,
       MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
     );
   const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
@@ -63,8 +63,8 @@ const MusdAggregatedRow = () => {
           button_text: strings('earn.musd_conversion.claim_percentage_bonus', {
             percentage: MUSD_CONVERSION_APY,
           }),
-          network_chain_id: MUSD_MAINNET_ASSET_FOR_DETAILS.chainId,
-          asset_symbol: MUSD_MAINNET_ASSET_FOR_DETAILS.symbol,
+          network_chain_id: LINEA_MUSD_ASSET_FOR_MERKL.chainId,
+          asset_symbol: LINEA_MUSD_ASSET_FOR_MERKL.symbol,
         })
         .build(),
     );
