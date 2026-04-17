@@ -8120,7 +8120,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize Pool",
+      "title": "Prize pool",
       "current_label": "Atual",
       "next_label": "Avançar",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8209,9 +8209,7 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Tentar novamente",
       "label_return": "Retorno",
-      "label_market_value": "Market Value",
-      "label_net_deposited": "Net deposited",
-      "label_cashed_out": "Sacado",
+      "label_market_value": "Market value",
       "label_rank": "Classificação",
       "label_tier": "Tier",
       "label_your_return": "Your return",
