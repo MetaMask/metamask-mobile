@@ -700,6 +700,7 @@ export const PerpsOrderBookViewSelectorsIDs = {
   LONG_BUTTON: 'perps-order-book-long-button',
   SHORT_BUTTON: 'perps-order-book-short-button',
   MODIFY_BUTTON: 'perps-order-book-modify-button',
+  MODIFY_ACTION_SHEET: 'perps-order-book-modify-action-sheet',
   CLOSE_BUTTON: 'perps-order-book-close-button',
   DEPTH_BAND_BUTTON: 'perps-order-book-depth-band-button',
   DEPTH_BAND_OPTION: 'perps-order-book-depth-band-option',
@@ -760,6 +761,17 @@ export const PerpsTransactionsViewSelectorsIDs = {
   TAB_FUNDING: 'perps-transactions-tab-funding',
   TAB_DEPOSITS: 'perps-transactions-tab-deposits',
   FUNDING_LOAD_MORE_SPINNER: 'perps-transactions-funding-load-more-spinner',
+} as const;
+
+// ========================================
+// PERPS MODIFY ACTION SHEET SELECTORS
+// ========================================
+
+export const PerpsModifyActionSheetSelectorsIDs = {
+  SHEET: 'perps-modify-action-sheet',
+  ADD_TO_POSITION: 'perps-modify-action-sheet-add_to_position',
+  REDUCE_POSITION: 'perps-modify-action-sheet-reduce_position',
+  FLIP_POSITION: 'perps-modify-action-sheet-flip_position',
 } as const;
 
 // ========================================
