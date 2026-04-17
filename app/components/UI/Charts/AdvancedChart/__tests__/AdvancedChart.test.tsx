@@ -250,6 +250,45 @@ describe('AdvancedChart', () => {
     expect(realtimeCalls).toHaveLength(0);
   });
 
+  it('sends fresh data after a series change when the new array arrives before WebView load end', () => {
+    const staleBars: OHLCVBar[] = [
+      { time: 1000000, open: 10, high: 12, low: 9, close: 11, volume: 100 },
+      { time: 1000300, open: 11, high: 13, low: 10, close: 12, volume: 200 },
+    ];
+    const freshBars: OHLCVBar[] = [
+      { time: 2000000, open: 20, high: 22, low: 19, close: 21, volume: 400 },
+      { time: 2000300, open: 21, high: 23, low: 20, close: 22, volume: 500 },
+    ];
+
+    const { getByTestId, rerender } = render(
+      <AdvancedChart ohlcvData={staleBars} ohlcvSeriesKey="range-a" />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+
+    mockPostMessage.mockClear();
+
+    rerender(<AdvancedChart ohlcvData={staleBars} ohlcvSeriesKey="range-b" />);
+    rerender(<AdvancedChart ohlcvData={freshBars} ohlcvSeriesKey="range-b" />);
+
+    expect(mockPostMessage).not.toHaveBeenCalled();
+
+    const webViewAfterKeyChange = getByTestId('mock-webview');
+    act(() => {
+      webViewAfterKeyChange.props.onLoadEnd();
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_OHLCV_DATA',
+        payload: { data: freshBars },
+      }),
+    );
+  });
+
   it('reset() clears stale series snapshot so OHLCV sync runs after reload with the same data ref', () => {
     const staleBars: OHLCVBar[] = [
       { time: 1000000, open: 10, high: 12, low: 9, close: 11, volume: 100 },
