@@ -369,7 +369,7 @@ describe('AssetOverviewContent', () => {
         Routes.MARKET_INSIGHTS.VIEW,
         expect.objectContaining({
           assetSymbol: 'ETH',
-          tokenAddress: '0x123',
+          assetIdentifier: 'eip155:1/erc20:0x123',
           tokenChainId: '0x1',
         }),
       );
