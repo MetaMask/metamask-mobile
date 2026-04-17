@@ -6233,6 +6233,7 @@
         }
       },
       "percentage_bonus": "{{percentage}}% bonus",
+      "claim_percentage_bonus": "Claim {{percentage}}% bonus",
       "rate": "Rate"
     },
     "bonus_claim": {

@@ -32,6 +32,9 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
+import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
+import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
+import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
 
 const MusdAggregatedRow = () => {
   const tw = useTailwind();
@@ -40,6 +43,11 @@ const MusdAggregatedRow = () => {
   const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
   const { tokenBalanceAggregated, fiatBalanceAggregatedFormatted } =
     useMusdBalance();
+  const { claimableReward, hasPendingClaim } = useMerklBonusClaim(
+    MUSD_MAINNET_ASSET_FOR_DETAILS,
+    MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+  );
+  const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
 
   const handleTokenRowPress = useCallback(() => {
     if (isMoneyHomeEnabled) {
@@ -98,20 +106,6 @@ const MusdAggregatedRow = () => {
             justifyContent={BoxJustifyContent.Between}
             twClassName="gap-2.5"
           >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-            >
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.SuccessDefault}
-              >
-                {strings('earn.musd_conversion.percentage_bonus', {
-                  percentage: MUSD_CONVERSION_APY,
-                })}
-              </Text>
-            </Box>
             <SensitiveText
               variant={CLTextVariant.BodySMMedium}
               color={CLTextColor.Alternative}
@@ -121,6 +115,28 @@ const MusdAggregatedRow = () => {
             >
               {tokenBalanceDisplay}
             </SensitiveText>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={
+                  hasClaimableBonus
+                    ? TextColor.PrimaryDefault
+                    : TextColor.SuccessDefault
+                }
+              >
+                {hasClaimableBonus
+                  ? strings('earn.musd_conversion.claim_percentage_bonus', {
+                      percentage: MUSD_CONVERSION_APY,
+                    })
+                  : strings('earn.musd_conversion.percentage_bonus', {
+                      percentage: MUSD_CONVERSION_APY,
+                    })}
+              </Text>
+            </Box>
           </Box>
         </Box>
       </Box>

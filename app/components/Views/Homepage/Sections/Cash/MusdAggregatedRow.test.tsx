@@ -31,6 +31,19 @@ jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
     mockSelectMoneyHomeScreenEnabledFlag(state),
 }));
 
+jest.mock(
+  '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim',
+  () => ({
+    useMerklBonusClaim: () => ({
+      claimableReward: null,
+      hasPendingClaim: false,
+      isClaiming: false,
+      claimRewards: jest.fn(),
+      lifetimeBonusClaimed: '0',
+    }),
+  }),
+);
+
 describe('MusdAggregatedRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
