@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { Pressable, TouchableOpacity } from 'react-native';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -45,10 +46,11 @@ const MusdAggregatedRow = () => {
   const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
   const { tokenBalanceAggregated, fiatBalanceAggregatedFormatted } =
     useMusdBalance();
-  const { claimableReward, hasPendingClaim, claimRewards } = useMerklBonusClaim(
-    MUSD_MAINNET_ASSET_FOR_DETAILS,
-    MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
-  );
+  const { claimableReward, hasPendingClaim, isClaiming, claimRewards } =
+    useMerklBonusClaim(
+      MUSD_MAINNET_ASSET_FOR_DETAILS,
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+    );
   const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -133,28 +135,32 @@ const MusdAggregatedRow = () => {
             >
               {tokenBalanceDisplay}
             </SensitiveText>
-            <TouchableOpacity
-              disabled={!hasClaimableBonus}
-              onPress={handleClaimBonus}
-            >
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={
-                  hasClaimableBonus
-                    ? TextColor.PrimaryDefault
-                    : TextColor.SuccessDefault
-                }
+            {isClaiming ? (
+              <Spinner />
+            ) : (
+              <TouchableOpacity
+                disabled={!hasClaimableBonus}
+                onPress={handleClaimBonus}
               >
-                {hasClaimableBonus
-                  ? strings('earn.musd_conversion.claim_percentage_bonus', {
-                      percentage: MUSD_CONVERSION_APY,
-                    })
-                  : strings('earn.musd_conversion.percentage_bonus', {
-                      percentage: MUSD_CONVERSION_APY,
-                    })}
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={
+                    hasClaimableBonus
+                      ? TextColor.PrimaryDefault
+                      : TextColor.SuccessDefault
+                  }
+                >
+                  {hasClaimableBonus
+                    ? strings('earn.musd_conversion.claim_percentage_bonus', {
+                        percentage: MUSD_CONVERSION_APY,
+                      })
+                    : strings('earn.musd_conversion.percentage_bonus', {
+                        percentage: MUSD_CONVERSION_APY,
+                      })}
+                </Text>
+              </TouchableOpacity>
+            )}
           </Box>
         </Box>
       </Box>

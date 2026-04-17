@@ -437,18 +437,17 @@ export const TokenListItem = React.memo(
       }
 
       if (showMusdBonusRow) {
+        const isClaimable = hasClaimableBonus && !isFullView;
         return {
-          text:
-            hasClaimableBonus && !isFullView
-              ? strings('earn.musd_conversion.claim_percentage_bonus', {
-                  percentage: MUSD_CONVERSION_APY,
-                })
-              : strings('earn.musd_conversion.percentage_bonus', {
-                  percentage: MUSD_CONVERSION_APY,
-                }),
-          color: CLTextColor.Success,
-          onPress:
-            hasClaimableBonus && !isFullView ? handleClaimBonus : undefined,
+          text: isClaimable
+            ? strings('earn.musd_conversion.claim_percentage_bonus', {
+                percentage: MUSD_CONVERSION_APY,
+              })
+            : strings('earn.musd_conversion.percentage_bonus', {
+                percentage: MUSD_CONVERSION_APY,
+              }),
+          color: isClaimable ? CLTextColor.Primary : CLTextColor.Success,
+          onPress: isClaimable ? handleClaimBonus : undefined,
         };
       }
 
@@ -670,21 +669,25 @@ export const TokenListItem = React.memo(
                   </SensitiveText>
                 </Box>
 
-                <TouchableOpacity
-                  disabled={!secondaryBalanceDisplay.onPress}
-                  onPress={secondaryBalanceDisplay.onPress}
-                  testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
-                >
-                  <SensitiveText
-                    variant={CLTextVariant.BodySMMedium}
-                    color={secondaryBalanceDisplay.color}
-                    isHidden={false}
-                    length={SensitiveTextLength.Short}
-                    testID={SECONDARY_BALANCE_TEST_ID}
+                {merklClaimData.isClaiming ? (
+                  <Spinner />
+                ) : (
+                  <TouchableOpacity
+                    disabled={!secondaryBalanceDisplay.onPress}
+                    onPress={secondaryBalanceDisplay.onPress}
+                    testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
                   >
-                    {secondaryBalanceDisplay.text}
-                  </SensitiveText>
-                </TouchableOpacity>
+                    <SensitiveText
+                      variant={CLTextVariant.BodySMMedium}
+                      color={secondaryBalanceDisplay.color}
+                      isHidden={false}
+                      length={SensitiveTextLength.Short}
+                      testID={SECONDARY_BALANCE_TEST_ID}
+                    >
+                      {secondaryBalanceDisplay.text}
+                    </SensitiveText>
+                  </TouchableOpacity>
+                )}
               </>
             ) : (
               <>
