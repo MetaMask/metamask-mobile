@@ -2238,6 +2238,7 @@
       "corners": "Corners"
     },
     "sell_position": "Sell position",
+    "odds": "Odds",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
     "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
@@ -2399,6 +2400,8 @@
       "view": "View",
       "yes_buy": "Yes, buy",
       "yes_sell": "Yes, sell",
+      "confirm": "Confirm",
+      "cashout_failed": "Failed to cash out",
       "predict_balance_first": "Your Predict balance will be used first"
     },
     "withdraw": {
@@ -7903,6 +7906,7 @@
       "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.",
       "intro_confirm_geo_loading": "Checking region...",
       "step_confirm": "Next",
+      "step_finish": "Let's go",
       "step_skip": "Skip",
       "step4_title_referral_validating": "Validating referral code...",
       "step4_referral_input_error": "Invalid referral code",
@@ -8003,7 +8007,7 @@
       },
       "info": {
         "title": "Share your code with friends",
-        "description": "Some campaigns may have extra benefits for referrals. Check the description for each campaign to confirm."
+        "description": "Referral bonuses vary by campaign. Check each one for details."
       },
       "referral_code_copied": "Referral code copied to clipboard"
     },
@@ -8117,7 +8121,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize Pool",
+      "title": "Prize pool",
       "current_label": "Current",
       "next_label": "Next",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8179,7 +8183,7 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Retry",
       "label_return": "Return",
-      "label_market_value": "Market Value",
+      "label_market_value": "Market value",
       "label_rank": "Rank",
       "label_tier": "Tier",
       "label_your_rank": "Your rank",
