@@ -282,6 +282,7 @@ export type PredictOutcome = {
   negRisk?: boolean;
   tickSize?: string;
   sportsMarketType?: string;
+  line?: number;
   resolvedBy?: string;
   resolutionStatus?: string;
 };
@@ -289,6 +290,7 @@ export type PredictOutcome = {
 export type PredictOutcomeToken = {
   id: string;
   title: string;
+  shortTitle?: string;
   price: number;
 };
 
