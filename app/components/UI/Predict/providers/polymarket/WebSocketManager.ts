@@ -9,6 +9,7 @@ import {
 } from '../../types';
 import { GameCache } from './GameCache';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { trace, endTrace, TraceName } from '../../../../../util/trace';
 
 const SPORTS_WS_URL = 'wss://sports-api.polymarket.com/ws';
 const MARKET_WS_URL = 'wss://ws-subscriptions-clob.polymarket.com/ws/market';
@@ -569,9 +570,12 @@ export class WebSocketManager {
         return;
       }
 
+      trace({ name: TraceName.CryptoUpDownWsMessage, op: 'rtds.message' });
+
       const data: RtdsWebSocketEvent = JSON.parse(event.data);
 
       if (data.topic !== 'crypto_prices' || !data.payload) {
+        endTrace({ name: TraceName.CryptoUpDownWsMessage });
         return;
       }
 
@@ -583,6 +587,8 @@ export class WebSocketManager {
 
       this.cryptoPriceBuffer.set(update.symbol, update);
       this.ensureThrottleTimer();
+
+      endTrace({ name: TraceName.CryptoUpDownWsMessage });
     } catch (error) {
       DevLogger.log('WebSocketManager: Failed to parse RTDS message', {
         error,
@@ -609,6 +615,8 @@ export class WebSocketManager {
       return;
     }
 
+    trace({ name: TraceName.CryptoUpDownBufferFlush, op: 'rtds.flush' });
+
     this.cryptoPriceSubscriptions.forEach((callbacks, key) => {
       const subscribedSymbols = new Set(key.split(','));
 
@@ -620,6 +628,8 @@ export class WebSocketManager {
     });
 
     this.cryptoPriceBuffer.clear();
+
+    endTrace({ name: TraceName.CryptoUpDownBufferFlush });
   }
 
   private sendRtdsSubscribe(): void {

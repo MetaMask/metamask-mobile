@@ -11,11 +11,16 @@ jest.mock('../../hooks/useCryptoUpDownChartData', () => ({
 
 jest.mock('../../../Charts/LivelineChart', () => {
   const { View } = jest.requireActual('react-native');
+  const { forwardRef } = jest.requireActual('react');
+  const MockChart = forwardRef(
+    (props: Record<string, unknown>, _ref: unknown) => (
+      <View testID="mock-liveline-chart" {...props} />
+    ),
+  );
+  MockChart.displayName = 'MockLivelineChart';
   return {
     __esModule: true,
-    LivelineChart: jest.fn((props) => (
-      <View testID="mock-liveline-chart" {...props} />
-    )),
+    LivelineChart: MockChart,
   };
 });
 

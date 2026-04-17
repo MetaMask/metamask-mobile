@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { type RefObject, useCallback, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { predictQueries } from '../queries';
 import { useLiveCryptoPrices } from './useLiveCryptoPrices';
@@ -9,10 +9,13 @@ import {
   RECURRENCE_TO_DURATION_SECS,
 } from '../utils/cryptoUpDown';
 import type { PredictMarket, PredictSeries, CryptoPriceUpdate } from '../types';
-import type { LivelinePoint } from '../../Charts/LivelineChart/LivelineChart.types';
+import type {
+  LivelineChartRef,
+  LivelinePoint,
+} from '../../Charts/LivelineChart/LivelineChart.types';
 
 const LIVE_WINDOW_SECS = 30;
-const LIVE_BUFFER_SECS = LIVE_WINDOW_SECS * 2;
+const EMPTY_DATA: LivelinePoint[] = [];
 
 export interface UseCryptoUpDownChartDataResult {
   data: LivelinePoint[];
@@ -24,6 +27,7 @@ export interface UseCryptoUpDownChartDataResult {
 
 export const useCryptoUpDownChartData = (
   market: PredictMarket & { series: PredictSeries },
+  chartRef?: RefObject<LivelineChartRef | null>,
 ): UseCryptoUpDownChartDataResult => {
   const symbol = getCryptoSymbol(market);
   const recurrence = market.series.recurrence;
@@ -34,19 +38,19 @@ export const useCryptoUpDownChartData = (
     ? Date.now() < new Date(market.endDate).getTime()
     : false;
 
-  const [liveData, setLiveData] = useState<LivelinePoint[]>([]);
+  const [liveLoading, setLiveLoading] = useState(true);
+  const liveLoadingRef = useRef(true);
   const [liveValue, setLiveValue] = useState(0);
   const frozenRef = useRef(false);
 
-  // Reset live state and frozen flag when the market changes (e.g. time-slot switch or
-  // auto-advance to live slot). Calling setState during render is intentional here:
-  // React will immediately re-render with the reset values, avoiding stale chart data.
   const prevMarketIdRef = useRef(market.id);
   if (prevMarketIdRef.current !== market.id) {
     prevMarketIdRef.current = market.id;
     frozenRef.current = false;
-    setLiveData([]);
+    liveLoadingRef.current = true;
+    setLiveLoading(true);
     setLiveValue(0);
+    chartRef?.current?.clearData();
   }
 
   const handleLiveUpdate = useCallback(
@@ -59,22 +63,21 @@ export const useCryptoUpDownChartData = (
         return;
       }
 
-      // CryptoPriceUpdate.timestamp is in Unix milliseconds (from RTDS WebSocket)
       const timeSecs = Math.floor(update.timestamp / 1000);
       const point: LivelinePoint = {
         time: timeSecs,
         value: update.price,
       };
 
-      setLiveValue(update.price);
-      setLiveData((prev) => {
-        const updated = [...prev, point];
-        const cutoff = timeSecs - LIVE_BUFFER_SECS;
+      chartRef?.current?.appendPoint(point, update.price);
 
-        return updated.filter((entry) => entry.time >= cutoff);
-      });
+      setLiveValue(update.price);
+      if (liveLoadingRef.current) {
+        liveLoadingRef.current = false;
+        setLiveLoading(false);
+      }
     },
-    [market.endDate],
+    [market.endDate, chartRef],
   );
 
   const wsSymbol = isLive && symbol ? `${symbol.toLowerCase()}usdt` : '';
@@ -93,9 +96,9 @@ export const useCryptoUpDownChartData = (
 
   if (isLive) {
     return {
-      data: liveData,
+      data: EMPTY_DATA,
       value: liveValue,
-      loading: liveData.length === 0,
+      loading: liveLoading,
       isLive: true,
       window: LIVE_WINDOW_SECS,
     };

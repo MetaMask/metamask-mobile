@@ -62,6 +62,8 @@ export enum TraceName {
   EvmDiscoverAccounts = 'EVM Discover Accounts',
   SnapDiscoverAccounts = 'Snap Discover Accounts',
   FetchHistoricalPrices = 'Fetch Historical Prices',
+  CryptoUpDownWsMessage = 'Crypto Up Down WS Message',
+  CryptoUpDownBufferFlush = 'Crypto Up Down Buffer Flush',
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',

@@ -2,24 +2,10 @@ import { useEffect, useState, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import { CryptoPriceUpdate } from '../types';
 
-/**
- * Result returned by useLiveCryptoPrices.
- */
 export interface UseLiveCryptoPricesResult {
-  /** Whether the RTDS WebSocket is connected. */
   isConnected: boolean;
 }
 
-/**
- * Subscribes to real-time crypto price updates for a single symbol.
- * The hook itself stores no price state — each update is forwarded
- * to the mandatory `onUpdate` callback, letting consumers decide
- * how to store and process price data.
- *
- * @param symbol - Crypto symbol to subscribe to (e.g., 'btcusdt'). Pass empty string to skip subscription.
- * @param onUpdate - Mandatory callback invoked on every price update.
- * @returns Object with `isConnected` boolean indicating RTDS WebSocket status.
- */
 export const useLiveCryptoPrices = (
   symbol: string,
   onUpdate: (update: CryptoPriceUpdate) => void,
@@ -42,25 +28,20 @@ export const useLiveCryptoPrices = (
       [symbol],
       (update: CryptoPriceUpdate) => {
         if (!isMountedRef.current) return;
+        if (!isConnected) setIsConnected(true);
         onUpdateRef.current(update);
       },
     );
 
-    const checkConnection = () => {
-      if (!isMountedRef.current) return;
-      const status = PredictController.getConnectionStatus();
-      setIsConnected(status.rtdsConnected);
-    };
-
-    checkConnection();
-    const intervalId = setInterval(checkConnection, 1000);
+    const status = PredictController.getConnectionStatus();
+    setIsConnected(status.rtdsConnected);
 
     return () => {
       isMountedRef.current = false;
+      setIsConnected(false);
       unsubscribe();
-      clearInterval(intervalId);
     };
-  }, [symbol]);
+  }, [symbol]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { isConnected };
 };

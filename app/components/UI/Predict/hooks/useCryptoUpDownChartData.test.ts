@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useCryptoUpDownChartData } from './useCryptoUpDownChartData';
 import type { CryptoPriceUpdate, PredictMarket, PredictSeries } from '../types';
 import type { LivelinePoint } from '../../Charts/LivelineChart/LivelineChart.types';
+import type { LivelineChartRef } from '../../Charts/LivelineChart/LivelineChart.types';
 
 const mockCryptoPriceHistoryOptions = jest.fn();
 const mockUseLiveCryptoPrices = jest.fn();
@@ -76,6 +77,13 @@ const createMarket = (overrides: Partial<TestMarket> = {}): TestMarket => ({
   ...overrides,
 });
 
+const createMockChartRef = () => ({
+  current: {
+    appendPoint: jest.fn(),
+    clearData: jest.fn(),
+  } as LivelineChartRef,
+});
+
 describe('useCryptoUpDownChartData', () => {
   let liveUpdateHandler: ((update: CryptoPriceUpdate) => void) | undefined;
   let historicalData: LivelinePoint[];
@@ -136,22 +144,27 @@ describe('useCryptoUpDownChartData', () => {
     it('returns loading true when no live data has arrived', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
+      const chartRef = createMockChartRef();
 
-      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
-        wrapper: Wrapper,
-      });
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, chartRef),
+        { wrapper: Wrapper },
+      );
 
       expect(result.current.data).toEqual([]);
       expect(result.current.value).toBe(0);
       expect(result.current.loading).toBe(true);
     });
 
-    it('accumulates live data points from websocket updates', () => {
+    it('pushes live data points to chart ref via appendPoint', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
-      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
-        wrapper: Wrapper,
-      });
+      const chartRef = createMockChartRef();
+
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, chartRef),
+        { wrapper: Wrapper },
+      );
 
       act(() => {
         liveUpdateHandler?.({
@@ -166,49 +179,46 @@ describe('useCryptoUpDownChartData', () => {
         });
       });
 
-      expect(result.current.data).toEqual([
+      expect(chartRef.current.appendPoint).toHaveBeenCalledTimes(2);
+      expect(chartRef.current.appendPoint).toHaveBeenCalledWith(
         { time: 100, value: 51000 },
+        51000,
+      );
+      expect(chartRef.current.appendPoint).toHaveBeenCalledWith(
         { time: 110, value: 51500 },
-      ]);
+        51500,
+      );
       expect(result.current.value).toBe(51500);
       expect(result.current.loading).toBe(false);
     });
 
-    it('trims live data to the 60 second buffer', () => {
+    it('returns empty data array in live mode (data managed by WebView)', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
-      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
-        wrapper: Wrapper,
-      });
+      const chartRef = createMockChartRef();
+
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, chartRef),
+        { wrapper: Wrapper },
+      );
 
       act(() => {
         liveUpdateHandler?.({
           symbol: 'btcusdt',
-          price: 50000,
-          timestamp: 100000,
-        });
-        liveUpdateHandler?.({
-          symbol: 'btcusdt',
-          price: 50500,
-          timestamp: 130000,
-        });
-        liveUpdateHandler?.({
-          symbol: 'btcusdt',
           price: 51000,
-          timestamp: 161000,
+          timestamp: 100000,
         });
       });
 
-      expect(result.current.data).toEqual([
-        { time: 130, value: 50500 },
-        { time: 161, value: 51000 },
-      ]);
+      expect(result.current.data).toEqual([]);
     });
 
     it('freezes live data once the end date passes', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket({ endDate: '2026-01-01T00:00:05.000Z' });
-      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+      const chartRef = createMockChartRef();
+
+      renderHook(() => useCryptoUpDownChartData(market, chartRef), {
         wrapper: Wrapper,
       });
 
@@ -234,8 +244,11 @@ describe('useCryptoUpDownChartData', () => {
         });
       });
 
-      expect(result.current.data).toEqual([{ time: 100, value: 50000 }]);
-      expect(result.current.value).toBe(50000);
+      expect(chartRef.current.appendPoint).toHaveBeenCalledTimes(1);
+      expect(chartRef.current.appendPoint).toHaveBeenCalledWith(
+        { time: 100, value: 50000 },
+        50000,
+      );
     });
 
     it('returns live flags and the live window for future markets', () => {

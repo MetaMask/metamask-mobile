@@ -1,26 +1,37 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Box } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { LivelineChart } from '../../../Charts/LivelineChart';
+import type { LivelineChartRef } from '../../../Charts/LivelineChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.types';
 
 const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
   market,
   targetPrice,
+  height: explicitHeight,
 }) => {
-  const tw = useTailwind();
-  const [chartHeight, setChartHeight] = useState(0);
-  const { data, value, loading, window } = useCryptoUpDownChartData(market);
+  const chartRef = useRef<LivelineChartRef>(null);
+  const [measuredHeight, setMeasuredHeight] = useState(0);
+  const { data, value, loading, window } = useCryptoUpDownChartData(
+    market,
+    chartRef,
+  );
+
+  const chartHeight = explicitHeight ?? measuredHeight;
 
   return (
     <Box
-      twClassName="flex-1"
-      onLayout={(e) => setChartHeight(e.nativeEvent.layout.height)}
+      twClassName={explicitHeight ? undefined : 'flex-1'}
+      onLayout={
+        explicitHeight
+          ? undefined
+          : (e) => setMeasuredHeight(e.nativeEvent.layout.height)
+      }
       testID="predict-crypto-up-down-chart-container"
     >
       {chartHeight > 0 && (
         <LivelineChart
+          ref={chartRef}
           data={data}
           value={value}
           loading={loading}

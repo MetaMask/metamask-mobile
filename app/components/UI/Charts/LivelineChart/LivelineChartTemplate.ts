@@ -123,21 +123,24 @@ export const createLivelineChartTemplate = (
 
     var root = createRoot(document.getElementById('root'));
     var currentProps = null;
+    var liveData = [];
+    var liveValue = 0;
+    var inLiveMode = false;
+    var lastPerfTs = 0;
 
     function render() {
       if (!currentProps) return;
-      // Reconstruct formatValue / formatTime from their serialised bodies.
       var formatValue = currentProps.formatValue;
       var formatTime  = currentProps.formatTime;
       var rest = Object.assign({}, currentProps);
       delete rest.formatValue;
       delete rest.formatTime;
+      var effectiveData  = inLiveMode ? liveData : (rest.data || []);
+      var effectiveValue = inLiveMode ? liveValue : (rest.value || 0);
       var props = Object.assign({}, rest, callbacks, {
-        // width:100% ensures the canvas fills the flex item horizontally.
-        // height is intentionally omitted — the CSS flex layout gives the
-        // canvas-wrapper div flex:1 so it grows to fill all remaining space
-        // after any showValue / control-bar siblings have taken their height.
         style: { width: '100%' },
+        data: effectiveData,
+        value: effectiveValue,
       });
       if (formatValue) { props.formatValue = new Function('v', formatValue); }
       if (formatTime)  { props.formatTime  = new Function('t', formatTime);  }
@@ -149,9 +152,42 @@ export const createLivelineChartTemplate = (
         var msg = typeof event.data === 'string'
           ? JSON.parse(event.data)
           : event.data;
-        if (msg.type === 'SET_PROPS') {
-          currentProps = msg.payload;
-          render();
+        switch (msg.type) {
+          case 'SET_PROPS':
+            if (inLiveMode) {
+              var incoming = Object.assign({}, msg.payload);
+              delete incoming.data;
+              delete incoming.value;
+              currentProps = Object.assign(currentProps || {}, incoming);
+            } else {
+              currentProps = msg.payload;
+            }
+            render();
+            break;
+          case 'APPEND_POINT':
+            inLiveMode = true;
+            liveData.push(msg.payload.point);
+            liveValue = msg.payload.value;
+            if (currentProps && currentProps.window) {
+              var cutoff = msg.payload.point.time - currentProps.window * 2;
+              while (liveData.length > 0 && liveData[0].time < cutoff) {
+                liveData.shift();
+              }
+            }
+            var t0 = performance.now();
+            render();
+            var t1 = performance.now();
+            if (t1 - t0 > 16 && t1 - lastPerfTs > 5000) {
+              lastPerfTs = t1;
+              sendToRN('PERF', { renderMs: Math.round(t1 - t0), points: liveData.length });
+            }
+            break;
+          case 'CLEAR_DATA':
+            liveData = [];
+            liveValue = 0;
+            inLiveMode = false;
+            render();
+            break;
         }
       } catch (e) {
         sendToRN('ERROR', { message: e.message });

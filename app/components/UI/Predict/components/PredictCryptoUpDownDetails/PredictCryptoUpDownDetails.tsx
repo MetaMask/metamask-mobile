@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image } from 'react-native';
+import { Image, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Box, IconName } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -25,6 +25,8 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   onBack,
 }) => {
   const tw = useTailwind();
+  const { height: windowHeight } = useWindowDimensions();
+  const chartAreaHeight = Math.round(windowHeight * 0.48);
   const [selectedMarket, setSelectedMarket] = useState<
     PredictMarket & { series: PredictSeries }
   >(market);
@@ -122,8 +124,11 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         }
       />
 
-      <Box twClassName="flex-1">
-        <PredictCryptoUpDownChart market={selectedMarket} />
+      <Box twClassName="px-4 pt-4 border-2 border-error-default">
+        <PredictCryptoUpDownChart
+          market={selectedMarket}
+          height={chartAreaHeight}
+        />
       </Box>
     </SafeAreaView>
   );

@@ -164,31 +164,19 @@ describe('useLiveCryptoPrices', () => {
   });
 
   describe('connection status', () => {
-    it('tracks connection status via polling', () => {
+    it('reads initial connection status from getConnectionStatus', () => {
       const onUpdate = jest.fn();
-      mockGetConnectionStatus
-        .mockReturnValueOnce({
-          rtdsConnected: true,
-          sportsConnected: false,
-          marketConnected: false,
-        })
-        .mockReturnValueOnce({
-          rtdsConnected: false,
-          sportsConnected: false,
-          marketConnected: false,
-        });
+      mockGetConnectionStatus.mockReturnValue({
+        rtdsConnected: true,
+        sportsConnected: false,
+        marketConnected: false,
+      });
 
       const { result } = renderHook(() =>
         useLiveCryptoPrices('btcusdt', onUpdate),
       );
 
       expect(result.current.isConnected).toBe(true);
-
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      expect(result.current.isConnected).toBe(false);
     });
 
     it('sets isConnected to false when symbol is empty', () => {
