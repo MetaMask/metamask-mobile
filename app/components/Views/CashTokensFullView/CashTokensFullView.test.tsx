@@ -5,6 +5,8 @@ import CashTokensFullView from './CashTokensFullView';
 import { useMerklBonusClaim } from '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { selectMoneyHubEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { AssetType } from '../confirmations/types/token';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 const mockGoBack = jest.fn();
 
@@ -15,10 +17,15 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const mockUseMusdBalance = jest.fn(() => ({ hasMusdBalanceOnAnyChain: false }));
+const mockUseMusdBalance = jest.fn(() => ({
+  hasMusdBalanceOnAnyChain: false,
+  tokenBalanceByChain: {},
+}));
 jest.mock('../../UI/Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: () => mockUseMusdBalance(),
 }));
+
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Let real CashGetMusdEmptyState render; mock its dependencies
 jest.mock('../../../core/NavigationService', () => ({
@@ -128,8 +135,12 @@ jest.mock('../../UI/Tokens', () => {
 describe('CashTokensFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
     mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: null,
@@ -147,14 +158,20 @@ describe('CashTokensFullView', () => {
   });
 
   it('renders Get mUSD empty state when user has no mUSD', () => {
-    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
     renderWithProvider(<CashTokensFullView />);
     expect(screen.getByTestId('cash-get-musd-empty-state')).toBeOnTheScreen();
     expect(screen.getByText('Get mUSD')).toBeOnTheScreen();
   });
 
   it('renders Tokens with isFullView and showOnlyMusd when user has mUSD', () => {
-    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: true });
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceByChain: { '0x1': '100' },
+    });
     renderWithProvider(<CashTokensFullView />);
     expect(screen.getByTestId('tokens-cash-view')).toBeOnTheScreen();
     expect(
@@ -237,5 +254,58 @@ describe('CashTokensFullView', () => {
     expect(screen.getByText('Swap')).toBeOnTheScreen();
     expect(screen.getByText('Buy')).toBeOnTheScreen();
     expect(screen.queryByText('Convert to mUSD')).not.toBeOnTheScreen();
+  });
+
+  describe('Position Screen Viewed analytics', () => {
+    let mockTrackEvent: jest.Mock;
+    let mockAddProperties: jest.Mock;
+
+    beforeEach(() => {
+      mockTrackEvent = jest.fn();
+      mockAddProperties = jest.fn().mockReturnThis();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: jest.fn().mockReturnValue({
+            addProperties: mockAddProperties,
+            addSensitiveProperties: jest.fn().mockReturnThis(),
+            removeProperties: jest.fn().mockReturnThis(),
+            removeSensitiveProperties: jest.fn().mockReturnThis(),
+            setSaveDataRecording: jest.fn().mockReturnThis(),
+            build: jest.fn(),
+          }),
+        }),
+      );
+    });
+
+    it('tracks Position Screen Viewed with is_empty true when user has no mUSD balance', () => {
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: false,
+        tokenBalanceByChain: {},
+      });
+
+      renderWithProvider(<CashTokensFullView />);
+
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          item_count: 0,
+          location: 'homepage',
+          is_empty: true,
+          screen_type: 'cash',
+        }),
+      );
+    });
+
+    it('does not track Position Screen Viewed when user has mUSD balance (Tokens component handles it)', () => {
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        tokenBalanceByChain: { '0x1': '100' },
+      });
+
+      renderWithProvider(<CashTokensFullView />);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
   });
 });

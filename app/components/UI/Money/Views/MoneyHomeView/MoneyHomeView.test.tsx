@@ -2,6 +2,8 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHomeView from './MoneyHomeView';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import { MoneyHeaderTestIds } from '../../components/MoneyHeader/MoneyHeader.testIds';
 import { MoneyBalanceSummaryTestIds } from '../../components/MoneyBalanceSummary/MoneyBalanceSummary.testIds';
@@ -55,6 +57,15 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));
 
+jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
+  useMusdBalance: jest.fn(() => ({
+    hasMusdBalanceOnAnyChain: true,
+    tokenBalanceByChain: { '0x1': '100' },
+  })),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
+
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
@@ -97,6 +108,7 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 describe('MoneyHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     // Activity list renders when there are at least 10 transactions; pad the
     // mock set so the activity-related assertions below find the View all button.
     const paddedTransactions = Array.from({ length: 10 }, (_, index) => ({
@@ -202,5 +214,74 @@ describe('MoneyHomeView', () => {
     fireEvent.press(getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ACTIVITY);
+  });
+
+  describe('Position Screen Viewed analytics', () => {
+    let mockTrackEvent: jest.Mock;
+    let mockAddProperties: jest.Mock;
+
+    beforeEach(() => {
+      mockTrackEvent = jest.fn();
+      mockAddProperties = jest.fn().mockReturnThis();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: jest.fn().mockReturnValue({
+            addProperties: mockAddProperties,
+            addSensitiveProperties: jest.fn().mockReturnThis(),
+            removeProperties: jest.fn().mockReturnThis(),
+            removeSensitiveProperties: jest.fn().mockReturnThis(),
+            setSaveDataRecording: jest.fn().mockReturnThis(),
+            build: jest.fn(),
+          }),
+        }),
+      );
+    });
+
+    it('tracks Position Screen Viewed with item_count matching chains with balance', () => {
+      jest
+        .mocked(
+          jest.requireMock('../../../Earn/hooks/useMusdBalance').useMusdBalance,
+        )
+        .mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          tokenBalanceByChain: { '0x1': '50', '0xe708': '25' },
+        });
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          item_count: 2,
+          location: 'homepage',
+          is_empty: false,
+          screen_type: 'cash',
+        }),
+      );
+    });
+
+    it('tracks Position Screen Viewed with is_empty true when user has no mUSD balance', () => {
+      jest
+        .mocked(
+          jest.requireMock('../../../Earn/hooks/useMusdBalance').useMusdBalance,
+        )
+        .mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          tokenBalanceByChain: {},
+        });
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          item_count: 0,
+          location: 'homepage',
+          is_empty: true,
+          screen_type: 'cash',
+        }),
+      );
+    });
   });
 });
