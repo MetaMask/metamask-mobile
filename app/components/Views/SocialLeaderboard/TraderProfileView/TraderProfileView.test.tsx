@@ -105,6 +105,7 @@ describe('TraderProfileView', () => {
       isLoading: false,
       error: null,
       isFollowing: false,
+      isFollowLoading: false,
       toggleFollow: mockToggleFollow,
       refresh: mockRefresh,
     };
