@@ -57,6 +57,13 @@ describe('MusdAggregatedRow', () => {
       fiatBalanceAggregatedFormatted: '$1,800.50',
       hasMusdBalanceOnAnyChain: false,
     });
+    mockUseMerklBonusClaim.mockReturnValue({
+      claimableReward: null,
+      hasPendingClaim: false,
+      isClaiming: false,
+      claimRewards: mockClaimRewards,
+      lifetimeBonusClaimed: '0',
+    });
   });
 
   it('renders token name and balances', () => {
