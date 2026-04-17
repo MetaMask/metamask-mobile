@@ -31,6 +31,8 @@ import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Hex, CaipChainId } from '@metamask/utils';
+import { isNativeAddress } from '@metamask/bridge-controller';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import {
   Box,
   Text,
@@ -263,27 +265,32 @@ const MarketInsightsView: React.FC = () => {
 
   // Build a minimal token object from route params to drive useTokenActions
   // and TokenDetailsStickyFooter (same shape as TokenDetailsRouteParams).
-  const token = useMemo<TokenDetailsRouteParams>(
-    () => ({
-      address: tokenAddress ?? '',
+  // When tokenAddress is absent or the zero address the asset is native, so
+  // set isNative/isETH so that useTokenBuyability can find it via the
+  // /slip44: ramp lookup (same path used by the token details page).
+  const token = useMemo<TokenDetailsRouteParams>(() => {
+    const resolvedAddress = tokenAddress ?? NATIVE_SWAPS_TOKEN_ADDRESS;
+    const native = !tokenAddress || isNativeAddress(resolvedAddress);
+    return {
+      address: resolvedAddress,
       symbol: assetSymbol,
       name: tokenName ?? assetSymbol,
       image: tokenImageUrl ?? '',
       logo: tokenImageUrl,
       balance: '',
-      isETH: false,
+      isETH: native,
+      isNative: native,
       decimals: tokenDecimals ?? 18,
       chainId: tokenChainId as Hex | CaipChainId,
-    }),
-    [
-      assetSymbol,
-      tokenAddress,
-      tokenDecimals,
-      tokenName,
-      tokenImageUrl,
-      tokenChainId,
-    ],
-  );
+    };
+  }, [
+    assetSymbol,
+    tokenAddress,
+    tokenDecimals,
+    tokenName,
+    tokenImageUrl,
+    tokenChainId,
+  ]);
 
   const { onBuy, handleStickySwapPress, hasEligibleSwapTokens } =
     useTokenActions({ token });

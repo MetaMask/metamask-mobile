@@ -72,15 +72,17 @@ jest.mock('../../hooks/useMarketInsights', () => ({
   },
 }));
 
+const mockUseTokenActions = jest.fn((_args: unknown) => ({
+  onBuy: mockOnBuy,
+  handleStickySwapPress: mockOnSwap,
+  hasEligibleSwapTokens: true,
+  onSend: jest.fn(),
+  onReceive: jest.fn(),
+  networkModal: null,
+}));
+
 jest.mock('../../../TokenDetails/hooks/useTokenActions', () => ({
-  useTokenActions: () => ({
-    onBuy: mockOnBuy,
-    handleStickySwapPress: mockOnSwap,
-    hasEligibleSwapTokens: true,
-    onSend: jest.fn(),
-    onReceive: jest.fn(),
-    networkModal: null,
-  }),
+  useTokenActions: (args: unknown) => mockUseTokenActions(args),
 }));
 
 jest.mock('../../../TokenDetails/components/TokenDetailsStickyFooter', () => {
@@ -298,6 +300,14 @@ describe('MarketInsightsView', () => {
     jest.clearAllMocks();
     resetFeedbackCache();
     mockIsEligible = true;
+    mockUseTokenActions.mockReturnValue({
+      onBuy: mockOnBuy,
+      handleStickySwapPress: mockOnSwap,
+      hasEligibleSwapTokens: true,
+      onSend: jest.fn(),
+      onReceive: jest.fn(),
+      networkModal: null,
+    });
     mockRouteParams = {
       assetSymbol: 'ETH',
       assetIdentifier: 'eip155:1/erc20:0x123',
@@ -1248,5 +1258,75 @@ describe('MarketInsightsView', () => {
         }),
       }),
     );
+  });
+
+  describe('token object construction for useTokenActions', () => {
+    const mockReport = {
+      asset: 'eth',
+      generatedAt: '2026-02-17T11:55:00.000Z',
+      headline: 'ETH extends gains',
+      summary: 'Momentum improves',
+      trends: [],
+      sources: [],
+    };
+
+    beforeEach(() => {
+      mockUseMarketInsights.mockReturnValue({
+        report: mockReport,
+        isLoading: false,
+        error: null,
+        timeAgo: '5m ago',
+      });
+    });
+
+    it('passes isNative and isETH as true when tokenAddress is absent (native token)', () => {
+      mockRouteParams = {
+        assetSymbol: 'ETH',
+        assetIdentifier: 'eip155:1/slip44:60',
+        tokenImageUrl: 'https://example.com/eth.png',
+        tokenName: 'Ethereum',
+        tokenChainId: '0x1',
+        // tokenAddress intentionally omitted
+      };
+
+      renderWithProvider(<MarketInsightsView />);
+
+      expect(mockUseTokenActions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token: expect.objectContaining({
+            address: '0x0000000000000000000000000000000000000000',
+            isNative: true,
+            isETH: true,
+            symbol: 'ETH',
+            chainId: '0x1',
+          }),
+        }),
+      );
+    });
+
+    it('passes isNative and isETH as false for an ERC-20 token with an explicit address', () => {
+      mockRouteParams = {
+        assetSymbol: 'USDC',
+        assetIdentifier:
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        tokenDecimals: 6,
+        tokenName: 'USD Coin',
+        tokenChainId: '0x1',
+      };
+
+      renderWithProvider(<MarketInsightsView />);
+
+      expect(mockUseTokenActions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token: expect.objectContaining({
+            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+            isNative: false,
+            isETH: false,
+            symbol: 'USDC',
+          }),
+        }),
+      );
+    });
   });
 });
