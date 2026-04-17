@@ -1,6 +1,6 @@
 import type {
   ControllerGetStateAction,
-  ControllerStateChangeEvent,
+  ControllerStateChangedEvent,
 } from '@metamask/base-controller';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
@@ -15,8 +15,12 @@ import type {
 } from '@metamask/keyring-controller';
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
-import type { TransactionControllerAddTransactionAction } from '@metamask/transaction-controller';
-import type { CardHomeData } from './provider-types';
+import type {
+  TransactionControllerAddTransactionAction,
+  TransactionControllerTransactionConfirmedEvent,
+} from '@metamask/transaction-controller';
+import type { SnapControllerHandleRequestAction } from '@metamask/snaps-controllers';
+import type { MultichainTransactionsControllerStateChange } from '@metamask/multichain-transactions-controller';
 
 export const CARD_CONTROLLER_NAME = 'CardController';
 
@@ -56,10 +60,17 @@ export type CardControllerActions = ControllerGetStateAction<
   CardControllerState
 >;
 
-export type CardControllerEvents = ControllerStateChangeEvent<
-  typeof CARD_CONTROLLER_NAME,
-  CardControllerState
->;
+interface CardDelegationCompletedEvent {
+  type: 'CardController:delegationCompleted';
+  payload: [{ flow: 'onboarding' | 'manage' | 'enable' | null }];
+}
+
+export type CardControllerEvents =
+  | ControllerStateChangedEvent<
+      typeof CARD_CONTROLLER_NAME,
+      CardControllerState
+    >
+  | CardDelegationCompletedEvent;
 
 type CardControllerAllowedActions =
   | AccountsControllerGetStateAction
@@ -67,11 +78,14 @@ type CardControllerAllowedActions =
   | RemoteFeatureFlagControllerGetStateAction
   | KeyringControllerSignPersonalMessageAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
-  | TransactionControllerAddTransactionAction;
+  | TransactionControllerAddTransactionAction
+  | SnapControllerHandleRequestAction;
 
 type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent
-  | KeyringControllerUnlockEvent;
+  | KeyringControllerUnlockEvent
+  | TransactionControllerTransactionConfirmedEvent
+  | MultichainTransactionsControllerStateChange;
 
 export type CardControllerMessenger = Messenger<
   typeof CARD_CONTROLLER_NAME,

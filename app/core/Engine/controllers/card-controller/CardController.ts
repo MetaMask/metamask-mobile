@@ -1,5 +1,9 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  WalletDevice,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { numberToHex, type Hex, type Json } from '@metamask/utils';
 import Logger from '../../../../util/Logger';
 import {
@@ -8,7 +12,10 @@ import {
   type CardControllerMessenger,
   type CardControllerState,
 } from './types';
-import type { CardLocation } from '../../../../components/UI/Card/types';
+import type {
+  CardLocation,
+  CardFundingToken,
+} from '../../../../components/UI/Card/types';
 import {
   CardProviderError,
   CardProviderErrorCode,
@@ -30,6 +37,7 @@ import {
   type CashbackWithdrawEstimationResponse,
   type CashbackWithdrawParams,
   type CashbackWithdrawResponse,
+  type DelegationSession,
   type FundingApprovalParams,
   type ICardProvider,
   type WalletOperations,
@@ -37,6 +45,20 @@ import {
 import { CardTokenStore } from './CardTokenStore';
 import { isEthAccount } from '../../../Multichain/utils';
 import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
+import { EvmDelegationAdapter } from './delegation/EvmDelegationAdapter';
+import {
+  SolanaDelegationAdapter,
+  SOLANA_WALLET_SNAP_ID,
+} from './delegation/SolanaDelegationAdapter';
+import type { IDelegationNetworkAdapter } from './delegation/IDelegationNetworkAdapter';
+import { encodeApproveTransaction } from '../../../../components/UI/Card/util/encodeApproveTransaction';
+import { toTokenMinimalUnit } from '../../../../util/number';
+import { safeToChecksumAddress } from '../../../../util/address';
+import TransactionTypes from '../../../../core/TransactionTypes';
+import { SOLANA_CAIP_CHAIN_ID } from '../../../../components/UI/Card/constants';
+import { HandlerType } from '@metamask/snaps-utils';
+import { SolScope } from '@metamask/keyring-api';
+import { SnapId } from '@metamask/snaps-sdk';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
@@ -116,6 +138,7 @@ export class CardController extends BaseController<
   private fetchCardHomeDataPromise: Promise<void> | null = null;
   private fetchGeneration = 0;
   private previousEvmAddress: string | null = null;
+  private pendingDelegationSession: DelegationSession | null = null;
 
   constructor({
     messenger,
@@ -953,5 +976,497 @@ export class CardController extends BaseController<
       );
     }
     return provider.withdrawCashback(params, tokens);
+  }
+
+  // -- Delegation --
+
+  /**
+   * Creates a network-specific delegation adapter.
+   * Solana uses SnapController; all other chains use KeyringController signing.
+   */
+  #createDelegationAdapter(caipChainId: string): IDelegationNetworkAdapter {
+    if (caipChainId === SOLANA_CAIP_CHAIN_ID) {
+      return new SolanaDelegationAdapter(
+        (args) =>
+          this.messenger.call('SnapController:handleRequest', {
+            snapId: SOLANA_WALLET_SNAP_ID as SnapId,
+            origin: 'metamask',
+            handler: HandlerType.OnClientRequest,
+            request: args.request,
+          }) as Promise<unknown>,
+      );
+    }
+    return new EvmDelegationAdapter((params) =>
+      this.messenger.call('KeyringController:signPersonalMessage', params),
+    );
+  }
+
+  /**
+   * Returns the token to delegate with.
+   * If selectedToken is provided, use it; otherwise fetch the list and return
+   * the first available token (flow-agnostic default).
+   */
+  async resolveDelegationToken(
+    flow: 'onboarding' | 'manage' | 'enable',
+    selectedToken?: CardFundingToken | null,
+  ): Promise<CardFundingToken> {
+    if (selectedToken) return selectedToken;
+
+    const tokens = await this.requireValidTokens();
+    const provider = this.getActiveProvider();
+    if (!provider.getDelegationTokenList) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        `getDelegationTokenList not supported (flow: ${flow})`,
+      );
+    }
+    const list = await provider.getDelegationTokenList(tokens);
+    const first = list[0];
+    if (!first) {
+      throw new CardProviderError(
+        CardProviderErrorCode.NotFound,
+        'No delegation tokens available',
+      );
+    }
+    return first;
+  }
+
+  /**
+   * Encodes an ERC-20 approve tx and adds it to the TransactionController
+   * approval queue. Returns the queued transactionId and the resolved from
+   * address so the caller can pass both to prepareDelegationApproval.
+   *
+   * EVM only — Solana tx is submitted inline by prepareDelegationApproval.
+   */
+  async queueDelegationApproval(
+    token: CardFundingToken,
+    networkClientId: string,
+    amount: string,
+  ): Promise<{ transactionId: string; address: string }> {
+    if (!token.delegationContract) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Token missing delegationContract',
+      );
+    }
+    const tokenAddress = token.stagingTokenAddress || token.address;
+    if (!tokenAddress) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Token missing address',
+      );
+    }
+
+    const { internalAccounts } = this.messenger.call(
+      'AccountsController:getState',
+    );
+    const selected =
+      internalAccounts.accounts[internalAccounts.selectedAccount];
+    const address = safeToChecksumAddress(selected?.address);
+    if (!address) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'No EVM account selected',
+      );
+    }
+
+    const amountInMinimalUnits = toTokenMinimalUnit(
+      amount,
+      token.decimals ?? 18,
+    ).toString();
+
+    const transactionData = encodeApproveTransaction(
+      token.delegationContract,
+      amountInMinimalUnits,
+    );
+
+    const { transactionMeta } = await this.messenger.call(
+      'TransactionController:addTransaction',
+      { from: address, to: tokenAddress, data: transactionData },
+      {
+        networkClientId,
+        origin: TransactionTypes.MMM_CARD,
+        type: TransactionType.cardDelegation,
+        deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        requireApproval: true,
+      },
+    );
+
+    return { transactionId: transactionMeta.id, address };
+  }
+
+  /**
+   * Prefetches a delegation session from the provider and caches it in memory.
+   * Call on component mount so the session is ready when the user confirms.
+   */
+  async prefetchDelegationSession(
+    caipChainId: string,
+    address: string,
+    useGasFaucet?: boolean,
+  ): Promise<void> {
+    const tokens = await this.requireValidTokens();
+    const provider = this.getActiveProvider();
+    if (!provider.initiateDelegation) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'initiateDelegation not supported',
+      );
+    }
+    this.pendingDelegationSession = await provider.initiateDelegation(
+      { chainId: caipChainId, address, useGasFaucet },
+      tokens,
+    );
+  }
+
+  /**
+   * Main delegation orchestration:
+   * 1. Use cached session or fetch a fresh one
+   * 2. Build the SIWE message and sign it via the network adapter
+   * 3. EVM: register a one-shot tx-confirmed listener → call provider.approveDelegation → refresh → publish event
+   * Solana: submit via snap → wait for MultichainTransactionsController confirmation → approveDelegation → publish event
+   */
+  async prepareDelegationApproval(params: {
+    caipChainId: string;
+    address: string;
+    accountId?: string;
+    tokenSymbol: string;
+    /** Solana token mint address (stagingTokenAddress || address). EVM: unused. */
+    tokenMint?: string;
+    /** On-chain delegation contract address. Required for Solana snap call. */
+    delegationContract?: string;
+    amount: string;
+    transactionId: string;
+    flow: 'onboarding' | 'manage' | 'enable' | null;
+    useGasFaucet?: boolean;
+  }): Promise<void> {
+    const {
+      caipChainId,
+      address,
+      accountId,
+      tokenSymbol,
+      tokenMint,
+      delegationContract,
+      amount,
+      transactionId,
+      flow,
+      useGasFaucet,
+    } = params;
+
+    const tokens = await this.requireValidTokens();
+    const provider = this.getActiveProvider();
+    if (!provider.initiateDelegation || !provider.approveDelegation) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Delegation not supported by active provider',
+      );
+    }
+
+    // Use prefetched session or fetch a fresh one
+    const session =
+      this.pendingDelegationSession ??
+      (await provider.initiateDelegation(
+        { chainId: caipChainId, address, useGasFaucet },
+        tokens,
+      ));
+    this.pendingDelegationSession = null;
+
+    const adapter = this.#createDelegationAdapter(caipChainId);
+    const siweMessage = adapter.buildSignatureMessage(
+      address,
+      session.challenge,
+      caipChainId,
+    );
+    const hexMessage = `0x${Buffer.from(siweMessage, 'utf8').toString('hex')}`;
+    const proofSignature = await adapter.signMessage({
+      accountId,
+      address,
+      hexMessage,
+    });
+
+    if (caipChainId === SOLANA_CAIP_CHAIN_ID) {
+      await this.#executeSolanaDelegation({
+        session,
+        provider,
+        tokens,
+        address,
+        accountId,
+        tokenSymbol,
+        tokenMint,
+        delegationContract,
+        amount,
+        proofSignature,
+        proofMessage: siweMessage,
+        flow,
+        caipChainId,
+      });
+    } else {
+      this.#registerEvmDelegationListener({
+        transactionId,
+        session,
+        provider,
+        tokens,
+        address,
+        tokenSymbol,
+        amount,
+        proofSignature,
+        proofMessage: siweMessage,
+        caipChainId,
+        flow,
+      });
+    }
+  }
+
+  /**
+   * Registers a one-shot listener on TransactionController:transactionConfirmed
+   * for the given transactionId. When it fires, calls provider.approveDelegation,
+   * refreshes card home data, and publishes CardController:delegationCompleted.
+   */
+  #registerEvmDelegationListener(listenerParams: {
+    transactionId: string;
+    session: DelegationSession;
+    provider: ICardProvider;
+    tokens: CardAuthTokens;
+    address: string;
+    tokenSymbol: string;
+    amount: string;
+    proofSignature: string;
+    proofMessage: string;
+    caipChainId: string;
+    flow: 'onboarding' | 'manage' | 'enable' | null;
+  }): void {
+    const {
+      transactionId,
+      session,
+      provider,
+      tokens,
+      address,
+      tokenSymbol,
+      amount,
+      proofSignature,
+      proofMessage,
+      caipChainId,
+      flow,
+    } = listenerParams;
+
+    const handler = (meta: TransactionMeta) => {
+      if (meta.id !== transactionId) return;
+
+      // Unsubscribe immediately — we only want this to fire once
+      try {
+        this.messenger.unsubscribe(
+          'TransactionController:transactionConfirmed',
+          handler,
+        );
+      } catch {
+        // Already unsubscribed — safe to ignore
+      }
+
+      provider
+        .approveDelegation?.(
+          {
+            address,
+            chainId: caipChainId,
+            tokenSymbol,
+            amount,
+            txHash: meta.hash ?? '',
+            proofSignature,
+            proofMessage,
+            sessionId: session.sessionId,
+          },
+          tokens,
+        )
+        .then(() => this.fetchCardHomeData())
+        .then(() => {
+          this.messenger.publish('CardController:delegationCompleted', {
+            flow,
+          });
+        })
+        .catch((error: Error) => {
+          Logger.error(error, {
+            tags: { feature: 'card' },
+            context: {
+              name: 'CardController',
+              data: {
+                method: '#registerEvmDelegationListener/approveDelegation',
+              },
+            },
+          });
+        });
+    };
+
+    this.messenger.subscribe(
+      'TransactionController:transactionConfirmed',
+      handler,
+    );
+  }
+
+  /**
+   * Executes Solana delegation inline:
+   * 1. Submit approveCardAmount via SnapController
+   * 2. Wait for MultichainTransactionsController to confirm the tx (10 s timeout)
+   * 3. Call provider.approveDelegation
+   * 4. Publish CardController:delegationCompleted
+   */
+  async #executeSolanaDelegation(solanaParams: {
+    session: DelegationSession;
+    provider: ICardProvider;
+    tokens: CardAuthTokens;
+    address: string;
+    accountId?: string;
+    tokenSymbol: string;
+    tokenMint?: string;
+    delegationContract?: string;
+    amount: string;
+    proofSignature: string;
+    proofMessage: string;
+    flow: 'onboarding' | 'manage' | 'enable' | null;
+    caipChainId: string;
+  }): Promise<void> {
+    const {
+      session,
+      provider,
+      tokens,
+      address,
+      accountId,
+      tokenSymbol,
+      tokenMint,
+      delegationContract,
+      amount,
+      proofSignature,
+      proofMessage,
+      flow,
+      caipChainId,
+    } = solanaParams;
+
+    // Submit the transaction via the Solana snap
+    const snapResult = (await this.messenger.call(
+      'SnapController:handleRequest',
+      {
+        snapId: SOLANA_WALLET_SNAP_ID as SnapId,
+        origin: 'metamask',
+        handler: HandlerType.OnClientRequest,
+        request: {
+          jsonrpc: '2.0',
+          id: crypto.randomUUID(),
+          method: 'approveCardAmount',
+          params: {
+            accountId,
+            amount,
+            mint: tokenMint,
+            delegate: delegationContract,
+            scope: SolScope.Mainnet,
+          },
+        },
+      },
+    )) as { signature: string } | null;
+
+    if (!snapResult?.signature) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'No transaction signature returned from Solana snap',
+      );
+    }
+    const txHash = snapResult.signature;
+
+    // Wait for on-chain confirmation via MultichainTransactionsController
+    await this.#waitForSolanaTxConfirmation(txHash);
+
+    await provider.approveDelegation?.(
+      {
+        address,
+        chainId: caipChainId,
+        tokenSymbol,
+        amount,
+        txHash,
+        proofSignature,
+        proofMessage,
+        sessionId: session.sessionId,
+      },
+      tokens,
+    );
+
+    await this.fetchCardHomeData();
+    this.messenger.publish('CardController:delegationCompleted', { flow });
+  }
+
+  /**
+   * Waits for a Solana tx (identified by its hash/signature) to appear as
+   * confirmed or failed in MultichainTransactionsController state.
+   * Rejects after 10 seconds if no confirmation is received.
+   */
+  #waitForSolanaTxConfirmation(txHash: string): Promise<void> {
+    const TIMEOUT_MS = 10_000;
+
+    const messenger = this.messenger;
+
+    return new Promise<void>((resolve, reject) => {
+      let settled = false;
+      // Use a refs object so handleStateChange and the timeout callback share
+      // a single mutable slot without triggering prefer-const or
+      // no-use-before-define lint errors.
+      const refs: {
+        timeoutId?: ReturnType<typeof setTimeout>;
+        unsubscribe?: () => void;
+      } = {};
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const handleStateChange = (controllerState: any) => {
+        if (settled) return;
+
+        const nonEvmTxs = controllerState?.nonEvmTransactions as Record<
+          string,
+          Record<string, { transactions?: { id: string; status: string }[] }>
+        >;
+        if (!nonEvmTxs) return;
+
+        for (const accountTxs of Object.values(nonEvmTxs)) {
+          for (const chainEntry of Object.values(accountTxs)) {
+            const tx = chainEntry.transactions?.find((t) => t.id === txHash);
+            if (!tx) continue;
+
+            if (tx.status === 'confirmed') {
+              settled = true;
+              clearTimeout(refs.timeoutId);
+              refs.unsubscribe?.();
+              resolve();
+              return;
+            }
+            if (tx.status === 'failed') {
+              settled = true;
+              clearTimeout(refs.timeoutId);
+              refs.unsubscribe?.();
+              reject(
+                new Error('Solana delegation transaction failed on-chain'),
+              );
+              return;
+            }
+          }
+        }
+      };
+
+      messenger.subscribe(
+        'MultichainTransactionsController:stateChange',
+        handleStateChange,
+      );
+
+      refs.unsubscribe = () => {
+        try {
+          messenger.unsubscribe(
+            'MultichainTransactionsController:stateChange',
+            handleStateChange,
+          );
+        } catch {
+          // Already unsubscribed
+        }
+      };
+
+      refs.timeoutId = setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          refs.unsubscribe?.();
+          reject(new Error('Solana delegation tx confirmation timeout (10 s)'));
+        }
+      }, TIMEOUT_MS);
+    });
   }
 }

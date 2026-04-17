@@ -12,20 +12,12 @@ export interface OnboardingState {
   consentSetId: string | null;
 }
 
-export interface CardDelegationCredentials {
-  jwt: string;
-  signature: string;
-  signatureMessage: string;
-}
-
 export interface CardDelegationState {
   flow: 'onboarding' | 'manage' | 'enable' | null;
   canChangeToken: boolean;
   selectedToken: CardFundingToken | null;
   limitType: LimitType;
   customLimit: string;
-  pendingCredentials: CardDelegationCredentials | null;
-  delegationCompleted: boolean;
 }
 
 export interface CardSliceState {
@@ -49,8 +41,6 @@ export const initialState: CardSliceState = {
     selectedToken: null,
     limitType: 'full',
     customLimit: '',
-    pendingCredentials: null,
-    delegationCompleted: false,
   },
 };
 
@@ -108,18 +98,6 @@ const slice = createSlice({
       state.delegation.limitType = action.payload.limitType;
       state.delegation.customLimit = action.payload.customLimit;
     },
-    setDelegationCredentials: (
-      state,
-      action: PayloadAction<CardDelegationCredentials>,
-    ) => {
-      state.delegation.pendingCredentials = action.payload;
-    },
-    clearDelegationCredentials: (state) => {
-      state.delegation.pendingCredentials = null;
-    },
-    setDelegationCompleted: (state, action: PayloadAction<boolean>) => {
-      state.delegation.delegationCompleted = action.payload;
-    },
     resetDelegationState: (state) => {
       state.delegation = initialState.delegation;
     },
@@ -163,16 +141,6 @@ export const selectCardDelegationState = createSelector(
   (card) => card.delegation,
 );
 
-export const selectDelegationCredentials = createSelector(
-  selectCardState,
-  (card) => card.delegation.pendingCredentials,
-);
-
-export const selectDelegationCompleted = createSelector(
-  selectCardState,
-  (card) => card.delegation.delegationCompleted,
-);
-
 // Actions
 export const {
   resetCardState,
@@ -185,8 +153,5 @@ export const {
   setDelegationFlow,
   setDelegationSelectedToken,
   setDelegationLimit,
-  setDelegationCredentials,
-  clearDelegationCredentials,
-  setDelegationCompleted,
   resetDelegationState,
 } = actions;

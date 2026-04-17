@@ -15,6 +15,7 @@ import {
   CardLocation,
   CardStatus,
   type CardNetwork,
+  type CardFundingToken,
 } from '../../../../../components/UI/Card/types';
 import type {
   CardFeatureFlag,
@@ -67,7 +68,10 @@ import {
   CashbackWithdrawParams,
   CashbackWithdrawResponse,
   emptyCardHomeData,
+  type DelegationSession,
+  type DelegationApprovalParams,
 } from '../provider-types';
+import { buildDelegationTokenList } from '../../../../../components/UI/Card/util/buildTokenList';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
@@ -1579,5 +1583,77 @@ export class BaanxProvider implements ICardProvider {
     }
 
     return options;
+  }
+
+  // -- Delegation --
+
+  async initiateDelegation(
+    params: { chainId: string; address: string; useGasFaucet?: boolean },
+    tokens: CardAuthTokens,
+  ): Promise<DelegationSession> {
+    const network =
+      caipChainIdToNetwork[params.chainId as keyof typeof caipChainIdToNetwork];
+    if (!network) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        `Unsupported chainId for delegation: ${params.chainId}`,
+      );
+    }
+
+    const query = new URLSearchParams({
+      network,
+      address: params.address,
+      ...(params.useGasFaucet ? { faucet: 'true' } : {}),
+    }).toString();
+
+    const response = await this.service.get<{
+      token: string;
+      expiresAt: string;
+      nonce: string;
+    }>(`/v1/delegation/token?${query}`, tokens);
+
+    return {
+      sessionId: response.token,
+      challenge: response.nonce,
+      expiresAt: response.expiresAt,
+    };
+  }
+
+  async approveDelegation(
+    params: DelegationApprovalParams,
+    tokens: CardAuthTokens,
+  ): Promise<void> {
+    const network =
+      caipChainIdToNetwork[params.chainId as keyof typeof caipChainIdToNetwork];
+    const isSolana = network === 'solana';
+    const endpoint = isSolana
+      ? '/v1/delegation/solana/post-approval'
+      : '/v1/delegation/evm/post-approval';
+
+    await this.service.post(
+      endpoint,
+      {
+        address: params.address,
+        network,
+        currency: params.tokenSymbol.toLowerCase(),
+        amount: params.amount,
+        txHash: params.txHash,
+        sigHash: params.proofSignature,
+        sigMessage: params.proofMessage,
+        token: params.sessionId,
+      },
+      tokens,
+    );
+  }
+
+  async getDelegationTokenList(
+    tokens: CardAuthTokens,
+  ): Promise<CardFundingToken[]> {
+    const settings = await this.service.get<DelegationSettingsResponse>(
+      '/v1/delegation/chain/config',
+      tokens,
+    );
+
+    return buildDelegationTokenList({ delegationSettings: settings });
   }
 }

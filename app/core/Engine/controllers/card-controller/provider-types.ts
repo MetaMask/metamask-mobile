@@ -3,6 +3,7 @@ import {
   CardStatus,
   CardType,
   DelegationSettingsResponse,
+  type CardFundingToken,
 } from '../../../../components/UI/Card/types';
 
 export { CardStatus, CardType };
@@ -320,6 +321,45 @@ export interface RegistrationStatus {
   data?: Record<string, unknown>;
 }
 
+// -- Delegation --
+
+/**
+ * A delegation session initiated by the provider.
+ * The user must sign the SIWE message built from `challenge`
+ * to prove address ownership before on-chain approval.
+ */
+export interface DelegationSession {
+  /** Provider session identifier — used in approveDelegation (Baanx: JWT) */
+  sessionId: string;
+  /** Server-issued nonce used to construct the SIWE message */
+  challenge: string;
+  /** ISO 8601 expiry timestamp */
+  expiresAt: string;
+}
+
+/**
+ * Network-agnostic params for completing a delegation approval.
+ * Providers receive these and map to their own API contracts.
+ */
+export interface DelegationApprovalParams {
+  /** User wallet address */
+  address: string;
+  /** CAIP chain ID (network identifier) */
+  chainId: string;
+  /** Delegated token symbol (e.g. 'USDC') */
+  tokenSymbol: string;
+  /** Spending limit amount (human-readable) */
+  amount: string;
+  /** On-chain tx hash (EVM) or Solana transaction signature */
+  txHash: string;
+  /** User's SIWE signature proving address ownership */
+  proofSignature: string;
+  /** SIWE message that was signed */
+  proofMessage: string;
+  /** Session identifier from DelegationSession.sessionId */
+  sessionId: string;
+}
+
 // -- Provider Interface --
 
 export interface ICardProvider {
@@ -392,4 +432,30 @@ export interface ICardProvider {
   submitOnboardingStep?(step: OnboardingStep): Promise<OnboardingStepResult>;
 
   getOnChainAssets?(address: string): Promise<CardHomeData>;
+
+  /**
+   * Initiate a delegation session.
+   * Returns a challenge for SIWE signing and a session identifier.
+   */
+  initiateDelegation?(
+    params: {
+      chainId: string;
+      address: string;
+      useGasFaucet?: boolean;
+    },
+    tokens: CardAuthTokens,
+  ): Promise<DelegationSession>;
+
+  /**
+   * Complete an on-chain delegation after the tx is confirmed.
+   */
+  approveDelegation?(
+    params: DelegationApprovalParams,
+    tokens: CardAuthTokens,
+  ): Promise<void>;
+
+  /**
+   * Return the list of tokens available for delegation across all supported networks.
+   */
+  getDelegationTokenList?(tokens: CardAuthTokens): Promise<CardFundingToken[]>;
 }

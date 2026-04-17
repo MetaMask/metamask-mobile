@@ -34,7 +34,7 @@ import { toTokenMinimalUnit } from '../../../../../../util/number';
 import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 import { useAccountGroupName } from '../../../../../hooks/multichainAccounts/useAccountGroupName';
-import { useCardSDK } from '../../../../../UI/Card/sdk';
+import { encodeApproveTransaction } from '../../../../../UI/Card/util/encodeApproveTransaction';
 import {
   selectCardDelegationState,
   setDelegationSelectedToken,
@@ -74,7 +74,6 @@ export function CardDelegationInfo() {
   const dispatch = useDispatch();
 
   const transactionMetadata = useTransactionMetadataRequest();
-  const { sdk } = useCardSDK();
 
   const delegationState = useSelector(selectCardDelegationState);
 
@@ -109,7 +108,7 @@ export function CardDelegationInfo() {
 
   const updateTransactionWithNewToken = useCallback(
     async (newToken: CardFundingToken) => {
-      if (!sdk || !transactionMetadata?.id || !newToken.delegationContract) {
+      if (!transactionMetadata?.id || !newToken.delegationContract) {
         return;
       }
 
@@ -122,7 +121,7 @@ export function CardDelegationInfo() {
           newToken.decimals ?? 18,
         ).toString();
 
-        const transactionData = sdk.encodeApproveTransaction(
+        const transactionData = encodeApproveTransaction(
           newToken.delegationContract,
           amountInMinimalUnits,
         );
@@ -145,16 +144,12 @@ export function CardDelegationInfo() {
         );
       }
     },
-    [sdk, transactionMetadata, limitType, customLimit],
+    [transactionMetadata, limitType, customLimit],
   );
 
   const updateTransactionWithNewLimit = useCallback(
     async (newLimitType: LimitType, newCustomLimit: string) => {
-      if (
-        !sdk ||
-        !transactionMetadata?.id ||
-        !selectedToken?.delegationContract
-      ) {
+      if (!transactionMetadata?.id || !selectedToken?.delegationContract) {
         return;
       }
 
@@ -167,7 +162,7 @@ export function CardDelegationInfo() {
           selectedToken.decimals ?? 18,
         ).toString();
 
-        const transactionData = sdk.encodeApproveTransaction(
+        const transactionData = encodeApproveTransaction(
           selectedToken.delegationContract,
           amountInMinimalUnits,
         );
@@ -189,7 +184,7 @@ export function CardDelegationInfo() {
         );
       }
     },
-    [sdk, transactionMetadata, selectedToken],
+    [transactionMetadata, selectedToken],
   );
 
   // Handle returns from AssetSelectionBottomSheet and SpendingLimitOptionsSheet
