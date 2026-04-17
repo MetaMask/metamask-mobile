@@ -11,6 +11,7 @@ const DEFAULT_SCENARIO_CONFIG = path.resolve(__dirname, '../assets/scenarios.jso
 const TEMPLATE_PATH = path.resolve(__dirname, '../references/TASK.md');
 const INTERACTIVE_TEMPLATE_PATH = path.resolve(__dirname, '../references/TASK.interactive.md');
 const SKILL_PATH = path.resolve(__dirname, '../SKILL.md');
+const VERSION_PATH = path.resolve(__dirname, '../VERSION');
 const OVERLAYS = {
   'metamask-extension': path.resolve(__dirname, '../repos/metamask-extension.md'),
   'metamask-mobile': path.resolve(__dirname, '../repos/metamask-mobile.md'),
@@ -90,6 +91,11 @@ function parseArgs(argv = process.argv.slice(2)) {
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
+function readSkillVersion() {
+  if (!fs.existsSync(VERSION_PATH)) return '0.0.0-dev';
+  return fs.readFileSync(VERSION_PATH, 'utf8').trim() || '0.0.0-dev';
 }
 
 function writeFile(filePath, contents) {
@@ -874,6 +880,7 @@ async function main() {
   fs.mkdirSync(validationDir, { recursive: true });
 
   const skillText = fs.readFileSync(SKILL_PATH, 'utf8');
+  const skillVersion = readSkillVersion();
   const templatePath = resolveTaskTemplatePath(args.taskMode);
   const templateText = fs.readFileSync(templatePath, 'utf8');
   const sourceFiles = collectSourceFiles(taskArtifactDir);
@@ -932,6 +939,7 @@ async function main() {
     runner_mode: args.runnerMode,
     runner_log: runnerLogPath || null,
     model: args.model || null,
+    skill_version: skillVersion,
     started_at: nowIso(),
   });
 

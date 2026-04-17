@@ -312,6 +312,7 @@ function testInteractiveTaskModeMaterializesInteractiveTemplate() {
   assert.equal(result.status, 0, result.stderr || result.stdout);
   const runMeta = JSON.parse(readFileSync(path.join(outputDir, 'run-meta.json'), 'utf8'));
   assert.equal(runMeta.task_mode, 'interactive');
+  assert.equal(runMeta.skill_version, '0.1.0');
   const promptText = readFileSync(path.join(outputDir, 'prompt.txt'), 'utf8');
   assert.match(promptText, /This run uses interactive task mode/);
   assert.match(promptText, /surface progress notes, open questions, and material decision checkpoints/);

@@ -63,6 +63,9 @@ Promoted into the branch for broader use:
   - documents interactive/developer mode expectations
 - `.agents/skills/fs-cook/scripts/test-run-cooking-lane.js`
   - verifies interactive task-mode materialization and prompt wording
+- `.agents/skills/fs-cook/VERSION`
+  - explicit local skill versioning
+  - runner now records `skill_version` in `run-meta.json`
 
 ## Key Learnings Captured So Far
 
