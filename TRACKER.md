@@ -166,3 +166,39 @@ Meaning:
 - Should `fs-cook` have separate interactive and batch task templates?
 - Should successful screenshots also be copied into `fs-cook-runs/.../artifacts/screenshots/` by the local harness layer, not just the validator?
 - Should we add a dedicated pre-condition like `perps.open_position` / `perps.provider_connected` to the mobile recipes catalog?
+
+## Validated Manual Delegation Contract
+
+Manual worker-style delegation simulation completed successfully without touching worker templates:
+
+- run:
+  - `fs-cook-runs/worker-review-sim-20260417T200722`
+- emitted package:
+  - `TASK.md`
+  - `SOURCE-BUNDLE.md`
+  - `run-meta.json`
+  - `artifacts/recipe.json`
+  - `artifacts/fs-cook-learning.json`
+  - validation logs
+
+Observed contract from `run-meta.json`:
+
+- `scenario_id: mobile-review-28897`
+- `task_mode: interactive`
+- `runner_mode: batch`
+- `slot_resolution: repo-local`
+- `cdp_port: auto-mobile-live`
+- `skill_version: 0.1.0`
+
+Implication:
+
+- a worker template can plausibly delegate recipe construction to `fs-cook` as a sub-task
+- the worker does not need to own recipe-generation logic directly if it can:
+  1. call `run-cooking-lane.js`
+  2. wait for `artifacts/recipe.json` + run completion metadata
+  3. continue with downstream review/fix steps
+
+Still not validated:
+
+- template-level integration inside `review-pr.md` / `fix-bug.md`
+- signaling/wait contract if the delegated `fs-cook` task runs interactively in tmux rather than batch
