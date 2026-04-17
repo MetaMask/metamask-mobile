@@ -29,18 +29,17 @@ describe('getAssetsControllerMessenger', () => {
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         actions: expect.arrayContaining([
-          'AccountsController:getSelectedAccount',
           'AccountTreeController:getAccountsFromSelectedAccountGroup',
           'NetworkEnablementController:getState',
           'NetworkController:getState',
           'NetworkController:getNetworkClientById',
-          'TokenListController:getState',
           'BackendWebSocketService:subscribe',
           'BackendWebSocketService:getConnectionInfo',
           'BackendWebSocketService:findSubscriptionsByChannelPrefix',
           'SnapController:handleRequest',
           'SnapController:getRunnableSnaps',
           'PermissionController:getPermissions',
+          'PhishingController:bulkScanTokens',
         ]),
       }),
     );
@@ -56,6 +55,7 @@ describe('getAssetsControllerMessenger', () => {
       expect.objectContaining({
         events: expect.arrayContaining([
           'AccountTreeController:selectedAccountGroupChange',
+          'ClientController:stateChange',
           'NetworkEnablementController:stateChange',
           'KeyringController:lock',
           'KeyringController:unlock',

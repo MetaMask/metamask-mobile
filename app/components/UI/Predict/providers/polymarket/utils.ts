@@ -20,6 +20,7 @@ import {
   PredictOutcome,
   PredictOutcomeGroup,
   PredictOutcomeToken,
+  PredictMarketGame,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
 import {
@@ -82,6 +83,7 @@ export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
   CLOB_ENDPOINT: 'https://clob.polymarket.com',
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
+  CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
   HOMEPAGE_CAROUSEL_ENDPOINT: 'https://polymarket.com/api/homepage/carousel',
   CLOB_RELAYER:
@@ -524,9 +526,9 @@ export function buildOutcomeGroups(
       if (priorityDiff !== 0) {
         return priorityDiff;
       }
-      const aScore = (a.liquidity ?? 0) + a.volume;
-      const bScore = (b.liquidity ?? 0) + b.volume;
-      return bScore - aScore;
+      const volumeDiff = b.volume - a.volume;
+      if (volumeDiff !== 0) return volumeDiff;
+      return (b.liquidity ?? 0) - (a.liquidity ?? 0);
     });
   }
 
@@ -606,6 +608,14 @@ const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
   return market.groupItemTitle;
 };
 
+const YES_NO_TO_OVER_UNDER: Record<string, string> = {
+  Yes: 'Over',
+  No: 'Under',
+};
+
+const isOverUnderMarket = (market: PolymarketApiMarket): boolean =>
+  market.groupItemTitle?.includes('O/U') ?? false;
+
 const formatOutcomeTitles = (market: PolymarketApiMarket): string[] => {
   const outcomes = market.outcomes ? JSON.parse(market.outcomes) : [];
   if (isSpreadMarket(market)) {
@@ -614,7 +624,59 @@ const formatOutcomeTitles = (market: PolymarketApiMarket): string[] => {
       line ? `${outcome} ${index > 0 ? `+${line}` : `-${line}`}` : outcome,
     );
   }
+  if (isOverUnderMarket(market)) {
+    return outcomes.map(
+      (outcome: string) => YES_NO_TO_OVER_UNDER[outcome] ?? outcome,
+    );
+  }
   return outcomes;
+};
+
+const OVER_UNDER_SHORT: Record<string, string> = {
+  Over: 'O',
+  Under: 'U',
+  Yes: 'O',
+  No: 'U',
+};
+
+const buildNameToAbbreviation = (
+  game: PredictMarketGame,
+): Record<string, string> => ({
+  [game.homeTeam.name]: game.homeTeam.abbreviation,
+  ...(game.homeTeam.alias && {
+    [game.homeTeam.alias]: game.homeTeam.abbreviation,
+  }),
+  [game.awayTeam.name]: game.awayTeam.abbreviation,
+  ...(game.awayTeam.alias && {
+    [game.awayTeam.alias]: game.awayTeam.abbreviation,
+  }),
+});
+
+const formatOutcomeShortTitles = (
+  market: PolymarketApiMarket,
+  game: PredictMarketGame,
+): (string | undefined)[] => {
+  const outcomes: string[] = market.outcomes ? JSON.parse(market.outcomes) : [];
+  const nameToAbbr = buildNameToAbbreviation(game);
+
+  if (isSpreadMarket(market)) {
+    const line = market.line ? Math.abs(market.line) : 0;
+    return outcomes.map((outcome: string, index: number) => {
+      const abbr = nameToAbbr[outcome];
+      if (!abbr) return undefined;
+      return line ? `${abbr} ${index > 0 ? `+${line}` : `-${line}`}` : abbr;
+    });
+  }
+
+  return outcomes.map((outcome: string) => {
+    const shortOU = OVER_UNDER_SHORT[outcome];
+    if (shortOU && market.line != null) {
+      return `${shortOU} ${market.line}`;
+    }
+
+    const abbr = nameToAbbr[outcome];
+    return abbr ?? undefined;
+  });
 };
 
 const sortOutcomeTokens = (
@@ -650,29 +712,71 @@ const getNegRiskYesTokenTitle = (
     : market.groupItemTitle;
 };
 
+const resolveNegRiskShortTitles = (
+  market: PolymarketApiMarket,
+  game: PredictMarketGame,
+): { yesShort?: string; noShort?: string } => {
+  if (!market.negRisk || !isMoneylineMarket(market) || !market.groupItemTitle) {
+    return {};
+  }
+
+  if (market.groupItemTitle.toLowerCase().startsWith('draw')) {
+    return {};
+  }
+
+  const nameToAbbr = buildNameToAbbreviation(game);
+  const yesAbbr = nameToAbbr[market.groupItemTitle];
+  if (!yesAbbr) return {};
+
+  const isHome = yesAbbr === game.homeTeam.abbreviation;
+  const noAbbr = isHome
+    ? game.awayTeam.abbreviation
+    : game.homeTeam.abbreviation;
+
+  return { yesShort: yesAbbr, noShort: noAbbr };
+};
+
 const parsePolymarketMarketOutcomes = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
+  game?: PredictMarketGame,
 ): PredictOutcomeToken[] => {
   const outcomeTokensIds = market.clobTokenIds
     ? JSON.parse(market.clobTokenIds)
     : [];
   const outcomes = formatOutcomeTitles(market);
+  const shortTitles = game ? formatOutcomeShortTitles(market, game) : [];
   const outcomePrices = market.outcomePrices
     ? JSON.parse(market.outcomePrices)
     : [];
 
   const negRiskYesTitle = getNegRiskYesTokenTitle(market);
+  const negRiskShort = game ? resolveNegRiskShortTitles(market, game) : {};
 
   const outcomeTokens = outcomeTokensIds.map(
-    (tokenId: string, index: number) => ({
-      id: tokenId,
-      title:
-        negRiskYesTitle && outcomes[index] === 'Yes'
-          ? negRiskYesTitle
-          : outcomes[index],
-      price: parseFloat(outcomePrices[index]),
-    }),
+    (tokenId: string, index: number) => {
+      const isYes = outcomes[index] === 'Yes';
+      const isNo = outcomes[index] === 'No';
+
+      let title = outcomes[index];
+      if (negRiskYesTitle && isYes) {
+        title = negRiskYesTitle;
+      }
+
+      let shortTitle: string | undefined = shortTitles[index];
+      if (negRiskYesTitle && isYes && negRiskShort.yesShort) {
+        shortTitle = negRiskShort.yesShort;
+      } else if (negRiskYesTitle && isNo && negRiskShort.noShort) {
+        shortTitle = negRiskShort.noShort;
+      }
+
+      return {
+        id: tokenId,
+        title,
+        ...(shortTitle && { shortTitle }),
+        price: parseFloat(outcomePrices[index]),
+      };
+    },
   );
   return sortOutcomeTokens(outcomeTokens, market, event);
 };
@@ -780,6 +884,7 @@ export const sortMarkets = ({
 export const parsePolymarketMarket = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
+  game?: PredictMarketGame,
 ): PredictOutcome => ({
   id: market.conditionId,
   providerId: POLYMARKET_PROVIDER_ID,
@@ -795,8 +900,9 @@ export const parsePolymarketMarket = (
   status: market.closed ? PredictMarketStatus.CLOSED : PredictMarketStatus.OPEN,
   volume: market.volumeNum ?? 0,
   liquidity: market.liquidity ?? 0,
-  tokens: parsePolymarketMarketOutcomes(market, event),
+  tokens: parsePolymarketMarketOutcomes(market, event, game),
   sportsMarketType: market.sportsMarketType,
+  line: market.line,
   negRisk: market.negRisk,
   tickSize: market.orderPriceMinTickSize.toString(),
   resolvedBy: market.resolvedBy,
@@ -871,7 +977,7 @@ export const parsePolymarketEvents = (
           : undefined;
 
       const outcomes = markets.map((market: PolymarketApiMarket) =>
-        parsePolymarketMarket(market, event),
+        parsePolymarketMarket(market, event, game),
       );
 
       const outcomeGroupingEnabled =

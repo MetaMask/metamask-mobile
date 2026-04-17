@@ -8,7 +8,7 @@ import {
   selectSelectedSourceChainIds,
 } from '../../../../core/redux/slices/bridge';
 import { SwapBridgeNavigationLocation } from '../../Bridge/hooks/useSwapBridgeNavigation';
-import { CardTokenAllowance } from '../types';
+import { CardFundingToken } from '../types';
 import { selectAllPopularNetworkConfigurations } from '../../../../selectors/networkController';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 
@@ -93,8 +93,8 @@ describe('useOpenSwaps', () => {
     name: 'USD Coin',
     chainId: '0xe708',
     caipChainId: 'eip155:59144' as const,
-    allowanceState: 'enabled' as const,
-    allowance: '1000000',
+    fundingStatus: 'enabled' as const,
+    spendableBalance: '1000000',
   };
 
   const mockTopToken = {
@@ -161,7 +161,7 @@ describe('useOpenSwaps', () => {
     (getHighestFiatToken as jest.Mock).mockReturnValue(mockTopToken);
 
     const { result } = renderHook(() =>
-      useOpenSwaps({ priorityToken: mockPriorityToken as CardTokenAllowance }),
+      useOpenSwaps({ priorityToken: mockPriorityToken as CardFundingToken }),
     );
 
     act(() => {
@@ -196,7 +196,7 @@ describe('useOpenSwaps', () => {
 
     const { result } = renderHook(() =>
       useOpenSwaps({
-        priorityToken: mockPriorityToken as CardTokenAllowance,
+        priorityToken: mockPriorityToken as CardFundingToken,
       }),
     );
 
@@ -213,7 +213,7 @@ describe('useOpenSwaps', () => {
     (getHighestFiatToken as jest.Mock).mockReturnValue(undefined);
 
     const { result } = renderHook(() =>
-      useOpenSwaps({ priorityToken: mockPriorityToken as CardTokenAllowance }),
+      useOpenSwaps({ priorityToken: mockPriorityToken as CardFundingToken }),
     );
 
     let capturedNav: (() => void) | undefined;
@@ -241,7 +241,7 @@ describe('useOpenSwaps', () => {
     (getHighestFiatToken as jest.Mock).mockReturnValue(mockTopToken);
 
     const { result } = renderHook(() =>
-      useOpenSwaps({ priorityToken: mockPriorityToken as CardTokenAllowance }),
+      useOpenSwaps({ priorityToken: mockPriorityToken as CardFundingToken }),
     );
 
     act(() => {
@@ -269,7 +269,7 @@ describe('useOpenSwaps', () => {
     (getHighestFiatToken as jest.Mock).mockReturnValue(undefined);
 
     const { result } = renderHook(() =>
-      useOpenSwaps({ priorityToken: mockPriorityToken as CardTokenAllowance }),
+      useOpenSwaps({ priorityToken: mockPriorityToken as CardFundingToken }),
     );
 
     act(() => {
@@ -312,7 +312,7 @@ describe('useOpenSwaps', () => {
 
   it('builds correct token icon URL using buildTokenIconUrl', () => {
     const { result } = renderHook(() =>
-      useOpenSwaps({ priorityToken: mockPriorityToken as CardTokenAllowance }),
+      useOpenSwaps({ priorityToken: mockPriorityToken as CardFundingToken }),
     );
 
     act(() => {
@@ -348,8 +348,8 @@ describe('useOpenSwaps', () => {
       decimals: null,
       chainId: '0xe708',
       caipChainId: 'eip155:59144' as const,
-      allowanceState: 'enabled' as const,
-      allowance: '1000000',
+      fundingStatus: 'enabled' as const,
+      spendableBalance: '1000000',
     };
 
     const { result } = renderHook(() =>
@@ -383,7 +383,7 @@ describe('useOpenSwaps', () => {
     (getHighestFiatToken as jest.Mock).mockReturnValue(mockTopToken);
 
     const { result } = renderHook(() =>
-      useOpenSwaps({ priorityToken: mockPriorityToken as CardTokenAllowance }),
+      useOpenSwaps({ priorityToken: mockPriorityToken as CardFundingToken }),
     );
 
     act(() => {

@@ -1015,7 +1015,10 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Top Traders"
+      "title": "Top Traders",
+      "chain_filter": {
+        "all": "All"
+      }
     },
     "follow": "Follow",
     "following": "Following",
@@ -1025,7 +1028,7 @@
       "followers_count_plural": "{{count}} followers",
       "win_rate": "win rate",
       "pnl_30d": "30D P&L",
-      "avg_hold": "avg. hold",
+      "hold_time": "hold time",
       "hold_time_minutes": "{{count}}m",
       "hold_time_hours": "{{count}} hrs",
       "hold_time_days": "{{count}} days",
@@ -1252,6 +1255,7 @@
       "open_orders": "Orders",
       "max": "max",
       "cancel_order": "Cancel order",
+      "no_orders": "You do not have any open orders",
       "filled": "filled",
       "reduce_only": "Reduce only",
       "yes": "Yes",
@@ -2221,20 +2225,51 @@
     },
     "outcome_groups": {
       "game_lines": "Game Lines",
-      "assists": "Assists",
+      "first_half": "1st Half",
+      "team_totals": "Team Totals",
+      "touchdowns": "Touchdowns",
+      "rushing": "Rushing",
+      "receiving": "Receiving",
       "points": "Points",
+      "assists": "Assists",
       "rebounds": "Rebounds",
       "goals": "Goals",
-      "first_half": "1st Half",
+      "goalscorers": "Goalscorers",
+      "exact_score": "Exact Score",
+      "halftime": "Halftime",
+      "halftime_result": "Halftime Result",
+      "corners": "Corners",
       "totals": "Totals",
       "spreads": "Spreads",
+      "both_teams_to_score": "Both Teams to Score"
+    },
+    "sports_market_types": {
+      "moneyline": "Moneyline",
+      "spreads": "Spreads",
+      "totals": "Totals",
       "both_teams_to_score": "Both Teams to Score",
+      "first_half_moneyline": "1H Moneyline",
+      "first_half_spreads": "1H Spreads",
+      "first_half_totals": "1H Totals",
+      "points": "Points",
+      "assists": "Assists",
+      "rebounds": "Rebounds",
       "goalscorers": "Goalscorers",
       "exact_score": "Exact Score",
       "halftime_result": "Halftime Result",
-      "corners": "Corners"
+      "corners": "Corners",
+      "team_totals": "Team Totals",
+      "anytime_touchdowns": "Touchdowns",
+      "first_touchdowns": "1st Touchdowns",
+      "rushing_yards": "Rushing Yards",
+      "receiving_yards": "Receiving Yards",
+      "soccer_anytime_goalscorer": "Goalscorers",
+      "soccer_exact_score": "Exact Score",
+      "soccer_halftime_result": "Halftime Result",
+      "total_corners": "Corners"
     },
     "sell_position": "Sell position",
+    "odds": "Odds",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
     "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
@@ -2396,6 +2431,8 @@
       "view": "View",
       "yes_buy": "Yes, buy",
       "yes_sell": "Yes, sell",
+      "confirm": "Confirm",
+      "cashout_failed": "Failed to cash out",
       "predict_balance_first": "Your Predict balance will be used first"
     },
     "withdraw": {
@@ -2461,6 +2498,14 @@
     "sports": {
       "halftime": "Halftime",
       "final": "Final"
+    }
+  },
+  "rwa": {
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Tokenized stocks and ETFs aren't available in your region due to legal restrictions.",
+      "link": "See Ondo eligibility requirements",
+      "button": "Got it"
     }
   },
   "receive": {
@@ -3571,6 +3616,7 @@
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
+    "convert": "Convert",
     "bridge": "Bridge",
     "earn": "Earn",
     "convert_to_musd": "Convert to mUSD",
@@ -6244,31 +6290,37 @@
   "money": {
     "title": "Money",
     "apy_label": "{{percentage}}% APY",
+    "apy_info_label": "APY info",
+    "onboarding": {
+      "step_progress": "Step {{current}} of {{total}}",
+      "title": "Add money",
+      "description": "Buy mUSD and start earning APY today.",
+      "add": "Add"
+    },
     "action": {
       "add": "Add",
       "transfer": "Transfer",
       "card": "Card"
     },
-    "your_position": {
-      "title": "Your position",
-      "current_rate": "Current rate",
-      "lifetime_earnings": "Lifetime earnings",
-      "available_balance": "Avail. balance"
+    "earnings": {
+      "title": "Earnings",
+      "lifetime": "Lifetime earnings",
+      "projected": "Projected earnings"
     },
     "how_it_works": {
       "title": "How it works",
-      "description": "Hold mUSD in a Money Account and earn automatically. It's dollar-backed, always liquid, and ready to spend, trade, or send anytime.",
-      "musd_name": "MetaMask USD",
-      "musd_symbol": "mUSD",
+      "description_prefix": "Hold mUSD in your Money Account and auto-earn ",
+      "description_suffix": ". It's dollar-backed, always liquid, and ready to spend, trade, or send anytime."
+    },
+    "musd_row": {
       "add": "Add"
     },
     "potential_earnings": {
-      "title": "Potential earnings",
-      "amount": "+$26,800",
+      "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "convert": "Convert",
-      "no_fee": "No fee",
-      "see_earnings": "See potential earnings"
+      "no_fee": "No MetaMask fee",
+      "view_all": "View all"
     },
     "metamask_card": {
       "title": "MetaMask Card",
@@ -6278,14 +6330,15 @@
       "cashback": "{{percentage}}% cashback",
       "get_now": "Get now"
     },
-    "why_metamask_money": {
-      "title": "Why MetaMask Money?",
+    "what_you_get": {
+      "title": "What you get",
       "benefit_auto_earn": "Auto-earn ",
-      "benefit_dollar_backed": "Your money is held in mUSD, a 1:1 dollar-backed stablecoin",
-      "benefit_liquidity": "Full liquidity with no lockups, so you can trade or withdraw anytime",
+      "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
+      "benefit_liquidity": "Get full liquidity with no lockups, so you can trade or withdraw anytime",
       "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
       "benefit_spend_cashback": "1-3% cashback",
-      "benefit_global": "Send and receive money globally with no middle man",
+      "benefit_transfer": "Transfer money to any of your wallets across MetaMask",
+      "benefit_global": "Send and receive money globally",
       "learn_more": "Learn more"
     },
     "footer": {
@@ -7574,7 +7627,9 @@
         "unfreeze_card_description": "Resume all spending on your card",
         "freeze_error": "Failed to update card status. Please try again.",
         "freeze_success": "Card successfully frozen",
-        "unfreeze_success": "Card successfully unfrozen"
+        "unfreeze_success": "Card successfully unfrozen",
+        "change_asset": "Change asset",
+        "change_asset_description": "Select a different token"
       }
     },
     "card_spending_limit": {
@@ -7734,8 +7789,6 @@
     "auth_fail_title": "Unknown error.",
     "auth_fail_description": "An unknown error occurred while authenticating this account with MetaMask Rewards. Try again later.",
     "failed_to_authenticate": "Failed to authenticate with MetaMask Rewards",
-    "not_implemented": "Coming soon",
-    "not_implemented_season_summary": "Season summary coming soon",
     "optin_error": {
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
@@ -7752,8 +7805,7 @@
     },
     "season_status_error": {
       "error_fetching_title": "Season balance couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_description": "Check your connection and try again."
     },
     "active_boosts_error": {
       "error_fetching_title": "Boosts couldn’t be loaded",
@@ -7771,8 +7823,7 @@
     },
     "upcoming_rewards_error": {
       "error_fetching_title": "Rewards couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_description": "Check your connection and try again."
     },
     "referral_details_error": {
       "error_fetching_title": "Referral details couldn’t be loaded",
@@ -7807,7 +7858,6 @@
       "title": "Failed to claim reward"
     },
     "metal_card_claim": {
-      "title": "Redeem your reward",
       "description": "The MetaMask Metal Card is subject to eligibility and isn't available in all regions. If you don't qualify, you'll receive an exclusive premium merch reward instead.",
       "contact_info": "Share your contact info and you'll hear back within 2 weeks from @MidwitMilhouse on Telegram or christian.montoya@consensys.net.",
       "email_label": "Email",
@@ -7820,21 +7870,14 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
-    "referral_rewards_title": "Referrals",
-    "level": "Level",
-    "season_ends": "Season ends",
-    "season_ended": "Season ended",
     "main_title": "Rewards",
     "referral_title": "Referrals",
-    "tab_overview_title": "Overview",
-    "tab_activity_title": "Activity",
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
     "loading_activity": "Loading activity...",
     "error_loading_activity": "Error loading activity",
     "activity_empty_title": "No recent activity.",
     "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
-    "activity_empty_link": "See ways to earn",
     "filter_title": "Filter by activity type",
     "filter_all": "All",
     "events": {
@@ -7873,19 +7916,10 @@
     },
     "previous_season_summary": {
       "title": "{{seasonName}} Results",
-      "update_metamask_version": "Update MetaMask to {{version}}",
-      "to_claim_rewards": " to claim rewards",
-      "check_back_soon": "Check back soon to claim your rewards",
       "point_earned": "point earned",
       "points_earned": "points earned",
       "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
       "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
-    },
-    "previous_season_view": {
-      "title": "Previous Season"
-    },
-    "season_status": {
-      "points_earned": "Points earned"
     },
     "onboarding": {
       "not_supported_region_title": "Region not supported",
@@ -7902,6 +7936,7 @@
       "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.",
       "intro_confirm_geo_loading": "Checking region...",
       "step_confirm": "Next",
+      "step_finish": "Let's go",
       "step_skip": "Skip",
       "step4_title_referral_validating": "Validating referral code...",
       "step4_referral_input_error": "Invalid referral code",
@@ -7914,7 +7949,8 @@
       "legal_disclaimer_3": ". All accounts on this device will be opted in.",
       "legal_disclaimer_4": "Learn more",
       "referral_prompt": "Have a referral code?",
-      "referral_placeholder": "Optional referral code",
+      "referral_hide": "Hide code",
+      "referral_placeholder": "Referral code (optional)",
       "referral_label": "Referral code"
     },
     "settings": {
@@ -7951,8 +7987,7 @@
       "description_linked": "Invite code is now linked, so your referrer will earn rewards when you trade.",
       "description_not_linked": "Signed up before your friend could send you their code? Enter it below and you'll be linked.",
       "input_placeholder": "Enter referral code",
-      "invalid_code": "Invalid referral code",
-      "apply_button": "Apply referral code"
+      "invalid_code": "Invalid referral code"
     },
     "bonus_code": {
       "input_placeholder": "Enter bonus code",
@@ -8002,7 +8037,7 @@
       },
       "info": {
         "title": "Share your code with friends",
-        "description": "Some campaigns may have extra benefits for referrals. Check the description for each campaign to confirm."
+        "description": "Referral bonuses vary by campaign. Check each one for details."
       },
       "referral_code_copied": "Referral code copied to clipboard"
     },
@@ -8050,10 +8085,10 @@
     },
     "benefits": {
       "title": "Benefits",
-      "list_header":  "Available",
+      "list_header": "Available",
       "title_claim": "Claim Benefit",
       "action": "Claim",
-      "empty-list":  "You don’t have any benefits right now.",
+      "empty-list": "You don’t have any benefits right now.",
       "powered_by": "Powered by"
     },
     "end_of_season_rewards": {
@@ -8086,7 +8121,11 @@
       "opt_in_sheet_title": "Join the campaign",
       "geo_restriction_banner_title": "Not available in your region",
       "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations.",
-      "opt_in_success_toast": "You're in!"
+      "opt_in_success_toast": "You're in!",
+      "geo_locked_toast_title": "Not available in your region",
+      "geo_locked_toast_description": "This campaign isn't available where you are. Check back later for new campaigns.",
+      "geo_locked_cta": "Check eligibility",
+      "geo_loading": "Checking region..."
     },
     "campaign_mechanics": {
       "title": "Mechanics"
@@ -8112,7 +8151,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize Pool",
+      "title": "Prize pool",
       "current_label": "Current",
       "next_label": "Next",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8122,26 +8161,7 @@
       "error_description": "There was an error loading the prize pool. Please try again.",
       "retry_button": "Retry"
     },
-    "ondo_campaign_leaderboard_position": {
-      "title": "Your Position",
-      "rank": "My Rank",
-      "tier": "My Tier",
-      "rate_of_return": "Return",
-      "total_deposited": "Total Deposited",
-      "current_value": "Current Value",
-      "not_found": "Not on the leaderboard yet. Please check back later.",
-      "updated_at": "Last updated: {{time}}",
-      "error_loading": "Failed to load your position",
-      "error_loading_description": "There was an error loading your leaderboard position. Please try again.",
-      "retry": "Retry"
-    },
     "ondo_campaign_portfolio": {
-      "total_value": "Total value",
-      "portfolio_pnl": "P&L",
-      "portfolio_pnl_percent": "P&L (%)",
-      "summary_cost_basis": "Cost basis",
-      "summary_net_deposit": "Net deposit",
-      "summary_cashed_out": "Cashed out",
       "position_current_value": "Value",
       "position_unrealized_pnl": "P&L",
       "updated_at": "Last updated: {{time}}",
@@ -8169,7 +8189,6 @@
     },
     "ondo_campaign_leaderboard": {
       "title": "Leaderboard",
-      "of_total": "of {{total}} participants",
       "total_participants": "{{count}} participants",
       "updated_at": "Last updated: {{time}}",
       "error_loading": "Failed to load leaderboard",
@@ -8184,16 +8203,9 @@
       "tier_upper": "Platinum",
       "select_tier": "Select Tier",
       "pending": "Pending",
-      "qualified": "Qualified",
-      "ineligible": "Ineligible",
-      "pending_sheet_title": "Pending",
-      "pending_sheet_tier_label": "Tier",
-      "pending_sheet_net_deposit_label": "Net Deposit",
-      "pending_sheet_own_body": "Hold a minimum balance of {{minNetDeposit}} for {{daysRemaining}} more day(s) to qualify for this tier.",
-      "pending_sheet_other_body": "This participant hasn't yet met the holding requirement for their projected tier.",
-      "pending_sheet_cta": "Got it",
+      "ineligible": "Not eligible",
       "qualify_for_rank_title": "Qualify for this rank",
-      "qualify_for_rank_description": "Keep your deposit above {{minNetDeposit}} for {{daysRemaining}} more days, including the final day."
+      "qualify_for_rank_description": "Keep your net inflow above {{minNetDeposit}} for {{daysRemaining}} more days to stay eligible for this competition."
     },
     "ondo_campaign_stats": {
       "title": "Stats",
@@ -8201,17 +8213,16 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Retry",
       "label_return": "Return",
-      "label_market_value": "Market Value",
-      "label_net_deposited": "Net deposited",
-      "label_cashed_out": "Cashed out",
+      "label_market_value": "Market value",
       "label_rank": "Rank",
       "label_tier": "Tier",
-      "label_your_return": "Your return",
       "label_your_rank": "Your rank",
-      "label_net_deposit": "Net deposit",
+      "label_portfolio": "Portfolio",
+      "label_net_inflow": "Net inflow",
+      "label_outflow": "Outflow",
       "label_days_held": "Days held",
       "qualified_title": "You're qualified",
-      "qualified_description": "Keep your net deposit above {{minNetDeposit}} through the final day to stay eligible.",
+      "qualified_description": "Increase your net inflows to reach a higher tier and have a chance at a larger payout.",
       "not_eligible_title": "Not eligible",
       "not_eligible_description": "Trades opened too late to meet the {{days}}-day hold requirement won't count toward your rank or tier."
     },
@@ -8230,7 +8241,7 @@
     "ondo_campaign_after_hours_trading": {
       "title": "After-hours trading",
       "reopens_in_label": "Reopens in",
-      "content": "You're trading outside of regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates.",
+      "content": "You're trading outside of regular market hours (9:30 am to 4 pm EDT). When markets are closed, some assets may have reduced liquidity and higher spreads.",
       "got_it_button": "Got it"
     },
     "ondo_campaign_not_eligible": {
