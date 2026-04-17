@@ -35,6 +35,8 @@ import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors
 import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 const MusdAggregatedRow = () => {
   const tw = useTailwind();
@@ -48,10 +50,22 @@ const MusdAggregatedRow = () => {
     MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
   );
   const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleClaimBonus = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
+        .addProperties({
+          location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+          action_type: 'claim_bonus',
+          button_text: strings('earn.claim_bonus'),
+          network_chain_id: MUSD_MAINNET_ASSET_FOR_DETAILS.chainId,
+          asset_symbol: MUSD_MAINNET_ASSET_FOR_DETAILS.symbol,
+        })
+        .build(),
+    );
     claimRewards();
-  }, [claimRewards]);
+  }, [trackEvent, createEventBuilder, claimRewards]);
 
   const handleTokenRowPress = useCallback(() => {
     if (isMoneyHomeEnabled) {

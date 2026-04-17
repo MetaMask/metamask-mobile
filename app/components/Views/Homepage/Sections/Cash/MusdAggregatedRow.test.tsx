@@ -31,16 +31,21 @@ jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
     mockSelectMoneyHomeScreenEnabledFlag(state),
 }));
 
+const mockClaimRewards = jest.fn();
+const mockUseMerklBonusClaim = jest.fn(
+  (_asset?: unknown, _location?: unknown, _isVisible?: unknown) => ({
+    claimableReward: null as string | null,
+    hasPendingClaim: false,
+    isClaiming: false,
+    claimRewards: mockClaimRewards,
+    lifetimeBonusClaimed: '0',
+  }),
+);
 jest.mock(
   '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim',
   () => ({
-    useMerklBonusClaim: () => ({
-      claimableReward: null,
-      hasPendingClaim: false,
-      isClaiming: false,
-      claimRewards: jest.fn(),
-      lifetimeBonusClaimed: '0',
-    }),
+    useMerklBonusClaim: (...args: [unknown, unknown, unknown?]) =>
+      mockUseMerklBonusClaim(...args),
   }),
 );
 
@@ -62,11 +67,41 @@ describe('MusdAggregatedRow', () => {
     expect(screen.getByText(/1,800\.5\s*mUSD/)).toBeOnTheScreen();
   });
 
-  it('shows green "3% bonus" instead of Claim bonus', () => {
+  it('shows green "3% bonus" when no claimable reward', () => {
     renderWithProvider(<MusdAggregatedRow />);
 
-    expect(screen.queryByText('Claim bonus')).toBeNull();
+    expect(screen.queryByText('Claim 3% bonus')).toBeNull();
     expect(screen.getByText('3% bonus')).toBeOnTheScreen();
+  });
+
+  it('shows blue "Claim 3% bonus" when claimable reward exists', () => {
+    mockUseMerklBonusClaim.mockReturnValue({
+      claimableReward: '0.02',
+      hasPendingClaim: false,
+      isClaiming: false,
+      claimRewards: mockClaimRewards,
+      lifetimeBonusClaimed: '0',
+    });
+
+    renderWithProvider(<MusdAggregatedRow />);
+
+    expect(screen.getByText('Claim 3% bonus')).toBeOnTheScreen();
+    expect(screen.queryByText('3% bonus')).toBeNull();
+  });
+
+  it('calls claimRewards when "Claim 3% bonus" is tapped', () => {
+    mockUseMerklBonusClaim.mockReturnValue({
+      claimableReward: '0.02',
+      hasPendingClaim: false,
+      isClaiming: false,
+      claimRewards: mockClaimRewards,
+      lifetimeBonusClaimed: '0',
+    });
+
+    renderWithProvider(<MusdAggregatedRow />);
+
+    fireEvent.press(screen.getByText('Claim 3% bonus'));
+    expect(mockClaimRewards).toHaveBeenCalledTimes(1);
   });
 
   it('has cash-section-musd-row testID', () => {
