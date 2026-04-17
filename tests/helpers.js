@@ -394,7 +394,7 @@ export default class TestHelpers {
   static async launchApp(launchOptions) {
     const config = await resolveConfig();
     const platform = device.getPlatform();
-    if (config.configurationName.endsWith('debug')) {
+    if (!config.configurationName.endsWith('.ci')) {
       return this.launchAppForDebugBuild(platform, launchOptions);
     }
 
@@ -555,6 +555,8 @@ export default class TestHelpers {
   }
 
   static getDevLauncherPackagerUrl(platform) {
-    return `http://localhost:8081/index.bundle?platform=${platform}&dev=true&minify=false&disableOnboarding=1`;
+    const port =
+      process.env.METRO_PORT_E2E || process.env.WATCHER_PORT || '8081';
+    return `http://localhost:${port}/index.bundle?platform=${platform}&dev=true&minify=false&disableOnboarding=1`;
   }
 }

@@ -1,4 +1,9 @@
 /* eslint-disable import-x/no-commonjs */
+// Load .js.env for shared infra vars (WATCHER_PORT, IOS_SIMULATOR, etc.) used by
+// helpers.js and general.flow.ts. dotenv never overrides existing vars, so the
+// first file to set a key wins. In practice .js.env and .e2e.env don't share
+// keys — .js.env owns port/device config, .e2e.env owns test accounts/flags.
+require('dotenv').config({ path: '.js.env' });
 require('dotenv').config({ path: '.e2e.env' });
 
 // Due the emulator resource constraints, is much better to run the tests in band (1 worker)
