@@ -53,6 +53,8 @@ export function useCardHomeAnalytics({
         cardHomeState = 'PROVISIONING_CARD';
       } else if (hasSetupActions) {
         cardHomeState = 'ENABLE_CARD';
+      } else if (!rawTokenBalance || rawTokenBalance <= 0) {
+        cardHomeState = 'UNFUNDED';
       }
 
       trackEvent(
