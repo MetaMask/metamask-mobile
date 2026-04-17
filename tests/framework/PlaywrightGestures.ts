@@ -3,6 +3,15 @@ import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement } from './PlaywrightAdapter';
 import { boxedStep, getDriver } from './PlaywrightUtilities';
 
+export interface ScrollOptions {
+  scrollParams?: { direction?: 'up' | 'down' };
+  from?: { x: number; y: number };
+  to?: { x: number; y: number };
+  percent?: number;
+  scrollableElement?: PlaywrightElement;
+  duration?: number;
+}
+
 /**
  * PlaywrightGestures - Gesture helpers for WebdriverIO/Playwright
  *
@@ -115,47 +124,42 @@ export default class PlaywrightGestures {
 
   /**
    * Swipe element in a direction
+   * @param options - The options for the swipe
+   * @returns A promise that resolves when the swipe is complete
+   * @param options.direction - The direction to swipe
+   * @param options.duration - The duration of the swipe, the shorter the duration, the faster the swipe
+   * @param options.scrollableElement - The element to scroll
+   * @param options.percent - The percentage of the swipe
+   * @param options.from - The starting point of the swipe
+   * @param options.to - The ending point of the swipe
    */
   @boxedStep
   static async swipe(
-    elem: PlaywrightElement,
-    direction: 'up' | 'down' | 'left' | 'right',
-    speed: 'fast' | 'slow' = 'fast',
+    options: ScrollOptions = {
+      scrollParams: { direction: 'up' },
+      duration: 1000,
+      percent: 0.95,
+      from: { x: NaN, y: NaN },
+      to: { x: NaN, y: NaN },
+    },
   ): Promise<void> {
-    const location = await elem.unwrap().getLocation();
-    const size = await elem.unwrap().getSize();
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
 
-    const startX = location.x + size.width / 2;
-    const startY = location.y + size.height / 2;
-
-    let endX = startX;
-    let endY = startY;
-
-    const distance = 200; // pixels
-
-    switch (direction) {
-      case 'up':
-        endY -= distance;
-        break;
-      case 'down':
-        endY += distance;
-        break;
-      case 'left':
-        endX -= distance;
-        break;
-      case 'right':
-        endX += distance;
-        break;
-    }
-
-    await elem
-      .unwrap()
-      .touchAction([
-        { action: 'press', x: startX, y: startY },
-        { action: 'wait', ms: speed === 'slow' ? 1000 : 100 },
-        { action: 'moveTo', x: endX, y: endY },
-        'release',
-      ]);
+    const {
+      scrollParams = { direction: 'up' },
+      duration,
+      percent,
+      from,
+      to,
+    } = options || {};
+    await drv.swipe({
+      direction: scrollParams.direction,
+      duration,
+      percent,
+      from,
+      to,
+    });
   }
 
   /**
@@ -207,12 +211,66 @@ export default class PlaywrightGestures {
   @boxedStep
   static async scrollIntoView(
     elem: PlaywrightElement,
-    options?: { scrollParams?: { direction?: 'up' | 'down' } },
+    options?: ScrollOptions,
   ): Promise<void> {
-    const { scrollParams = { direction: 'up' } } = options || {};
+    const {
+      scrollParams = { direction: 'up' },
+      from,
+      to,
+      percent,
+      scrollableElement,
+      duration,
+    } = options || {};
     await elem.unwrap().scrollIntoView({
       direction: scrollParams.direction,
+      from,
+      to,
+      percent,
+      scrollableElement: scrollableElement?.unwrap(),
+      duration,
     });
+  }
+
+  /**
+   * Scroll element into view and ensure it is fully visible above the bottom
+   * navigation bar.
+   *
+   * `scrollIntoView` stops as soon as any pixel of the element enters the
+   * viewport, which can leave the element clipped behind the nav bar.
+   * This method performs a follow-up W3C pointer swipe when the element's
+   * bottom edge lands in the bottom 15% of the screen (the nav-bar zone).
+   */
+  @boxedStep
+  static async scrollIntoViewFullyVisible(
+    elem: PlaywrightElement,
+    options?: ScrollOptions,
+  ): Promise<void> {
+    await PlaywrightGestures.scrollIntoView(elem, options);
+
+    const drv = getDriver();
+    if (!drv) return;
+
+    const location = await elem.unwrap().getLocation();
+    const size = await elem.unwrap().getSize();
+    const windowSize = await drv.getWindowSize();
+    const elementBottom = location.y + size.height;
+    const safeBottom = windowSize.height * 0.85;
+
+    if (elementBottom > safeBottom) {
+      const overshoot = Math.ceil(elementBottom - safeBottom) + 20;
+      const midX = Math.floor(windowSize.width / 2);
+      const startY = Math.floor(windowSize.height * 0.6);
+      await drv
+        .action('pointer', {
+          parameters: { pointerType: 'touch' },
+        })
+        .move({ x: midX, y: startY })
+        .down()
+        .pause(100)
+        .move({ x: midX, y: startY - overshoot })
+        .up()
+        .perform();
+    }
   }
 
   /**

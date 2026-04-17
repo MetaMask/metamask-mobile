@@ -17,30 +17,30 @@ async function returnToPlayground() {
   await RNPlaygroundDapp.ensureInPlayground();
 }
 
-test.beforeAll(() => {
-  ensurePlaygroundInstalled();
-});
-
-test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send transaction, and switch chains', async ({
+test('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send transaction, and switch chains', async ({
   currentDeviceDetails,
   driver,
 }) => {
-  await driver.updateSettings({
-    waitForIdleTimeout: 100,
-    waitForSelectorTimeout: 0,
-    shouldWaitForQuiescence: false,
-  });
+  // When running on BrowserStack we skip the test if the RN playground is not installed
+  test.skip(
+    currentDeviceDetails.isBrowserstack &&
+      !process.env.BROWSERSTACK_RN_PLAYGROUND_URL,
+    'Skipped: BROWSERSTACK_RN_PLAYGROUND_URL is not set',
+  );
+
+  // handle local installs of the RN playground
+  if (!currentDeviceDetails.isBrowserstack) {
+    ensurePlaygroundInstalled(currentDeviceDetails);
+  }
 
   //
   // 1. Login to MetaMask wallet
   //
-
   await loginToAppPlaywright();
 
   //
   // 2. Switch to the RN playground and connect via Legacy EVM
   //
-
   await RNPlaygroundDapp.switchToPlayground();
   await RNPlaygroundDapp.waitForPlaygroundReady();
 
@@ -49,7 +49,10 @@ test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send 
 
   await unlockIfLockScreenVisible();
   await sleep(5000);
-  await DappConnectionModal.tapConnectButton();
+  await DappConnectionModal.tapConnectButton({
+    shouldCooldown: true,
+    timeToCooldown: 3000,
+  });
 
   //
   // 3. Verify accountsChanged — Legacy EVM card visible with accounts
@@ -72,7 +75,6 @@ test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send 
   //
   // 4. personal_sign — request, approve, verify result
   //
-
   await RNPlaygroundDapp.scrollToElement(
     RNPlaygroundDapp.legacyEvmBtnPersonalSign,
   );
@@ -83,7 +85,10 @@ test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send 
 
   await unlockIfLockScreenVisible();
   await sleep(1000);
-  await SignModal.tapConfirmButton();
+  await SignModal.tapConfirmButton({
+    shouldCooldown: true,
+    timeToCooldown: 3000,
+  });
 
   await returnToPlayground();
   await sleep(1000);
@@ -99,7 +104,6 @@ test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send 
   //
   // 5. eth_sendTransaction — request, cancel (to avoid spending funds)
   //
-
   await RNPlaygroundDapp.scrollToElement(
     RNPlaygroundDapp.legacyEvmBtnSendTransaction,
   );
@@ -112,15 +116,24 @@ test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send 
   await sleep(1000);
 
   // Cancel the transaction to avoid spending real funds
-  await SignModal.tapCancelButton();
+  await SignModal.tapCancelButton({
+    shouldCooldown: true,
+    timeToCooldown: 3000,
+  });
 
   await returnToPlayground();
   await sleep(1000);
 
   // The dapp should show an error (user rejected) in the response
+
   await RNPlaygroundDapp.scrollToElement(
     RNPlaygroundDapp.legacyEvmResponseText,
+    {
+      scrollParams: { direction: 'down' },
+      percent: 0.5,
+    },
   );
+
   const txResponse = await RNPlaygroundDapp.getLegacyEvmResponseText();
   console.log(`eth_sendTransaction (cancelled) response: ${txResponse}`);
   console.log(
@@ -144,7 +157,10 @@ test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send 
   // The SwitchChainApproval dialog uses "connect-button" as its confirm testID.
   await unlockIfLockScreenVisible();
   await sleep(1000);
-  await DappConnectionModal.tapConnectButton();
+  await DappConnectionModal.tapConnectButton({
+    shouldCooldown: true,
+    timeToCooldown: 3000,
+  });
 
   await returnToPlayground();
   await sleep(2000);

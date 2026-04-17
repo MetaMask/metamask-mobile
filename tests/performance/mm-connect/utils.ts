@@ -9,16 +9,21 @@ import {
   PlaywrightGestures,
   PlaywrightAssertions,
   sleep,
+  createLogger,
 } from '../../framework';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
 import type { CurrentDeviceDetails } from '../../framework/fixture';
 
+const logger = createLogger({
+  name: 'MMConnectUtils',
+});
+
 // Default port for the browser playground dapp server
 const DEFAULT_DAPP_PORT = 8090;
 
-const UNLOCK_WAIT_MS = 3000;
+const UNLOCK_WAIT_MS = 5000;
 
 /**
  * If the app auto-locked and the unlock/login screen is displayed, enter password and unlock.
@@ -88,10 +93,10 @@ export function getDappUrlForBrowser(
 export function setupAdbReverse(port: number): void {
   try {
     execSync(`adb reverse tcp:${port} tcp:${port}`, { stdio: 'pipe' });
-    console.log(`ADB reverse port ${port} configured`);
+    logger.info(`ADB reverse port ${port} configured`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.warn(
+    logger.warn(
       `Could not set up ADB reverse (may be expected on iOS): ${message}`,
     );
   }
@@ -103,7 +108,7 @@ export function setupAdbReverse(port: number): void {
 export function cleanupAdbReverse(port: number): void {
   try {
     execSync(`adb reverse --remove tcp:${port}`, { stdio: 'pipe' });
-    console.log(`ADB reverse port ${port} removed`);
+    logger.info(`ADB reverse port ${port} removed`);
   } catch {
     // Ignore cleanup errors
   }
@@ -182,22 +187,31 @@ export async function ensureAccountGroupsFinishedLoading(
  * connected emulator. Uninstalls any existing version first, then installs
  * the pre-built release APK so the device always has a clean copy.
  */
-export function ensurePlaygroundInstalled(): void {
+export function ensurePlaygroundInstalled(
+  currentDeviceDetails: CurrentDeviceDetails,
+): void {
+  if (currentDeviceDetails.isBrowserstack) {
+    logger.info(
+      "Playground should've been uploaded to BrowserStack before the test run",
+    );
+    return;
+  }
+
   const apkPath = resolvePlaygroundApkPath();
-  console.log(`Resolved playground APK path: ${apkPath}`);
+  logger.info(`Resolved playground APK path: ${apkPath}`);
 
   // Uninstall any existing version (debug or release) to guarantee a clean state
   try {
     execSync(`adb uninstall ${PLAYGROUND_PACKAGE_ID}`, { stdio: 'pipe' });
-    console.log(`Uninstalled existing ${PLAYGROUND_PACKAGE_ID}`);
+    logger.info(`Uninstalled existing ${PLAYGROUND_PACKAGE_ID}`);
   } catch {
     // Package was not installed; nothing to uninstall
   }
 
-  console.log(`Installing playground release APK from ${apkPath}...`);
+  logger.info(`Installing playground release APK from ${apkPath}...`);
   try {
     execSync(`adb install "${apkPath}"`, { stdio: 'pipe' });
-    console.log('Playground APK installed successfully');
+    logger.info('Playground APK installed successfully');
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to install playground APK: ${message}`);

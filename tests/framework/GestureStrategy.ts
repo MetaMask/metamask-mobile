@@ -377,7 +377,9 @@ export class AppiumGestureStrategy implements GestureStrategy {
     direction: 'up' | 'down' | 'left' | 'right',
   ): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await PlaywrightGestures.swipe(el, direction);
+    await PlaywrightGestures.swipe({
+      scrollParams: { direction: direction as 'up' | 'down' },
+    });
   }
 
   /**

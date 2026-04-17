@@ -8,10 +8,13 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import { sleep } from '../../framework/Utilities';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
-import { getDriver } from '../../framework/PlaywrightUtilities';
+import PlaywrightUtilities, {
+  getDriver,
+} from '../../framework/PlaywrightUtilities';
 import { PlaywrightGestures } from '../../framework';
 import { expect } from '@playwright/test';
 import { MMConnectDappTestIds } from '../../selectors/MMConnect/MMConnectDapp.testIds';
+import { ScrollOptions } from '../../framework/PlaywrightGestures';
 
 function escapeTestId(value: string): string {
   return value
@@ -25,7 +28,7 @@ function escapeTestId(value: string): string {
 class RNPlaygroundDapp {
   private getByTestId(testId: string): EncapsulatedElementType {
     return encapsulated({
-      appium: () => PlaywrightMatchers.getElementById(testId),
+      appium: () => PlaywrightMatchers.getElementById(testId, { exact: true }),
     });
   }
 
@@ -210,13 +213,13 @@ class RNPlaygroundDapp {
   }
 
   async tapInvoke(scope: string): Promise<void> {
-    await UnifiedGestures.tap(this.getInvokeButton(scope));
+    await UnifiedGestures.waitAndTap(this.getInvokeButton(scope));
   }
 
   async tapLegacyEvmButton(
     buttonGetter: EncapsulatedElementType,
   ): Promise<void> {
-    await UnifiedGestures.tap(buttonGetter);
+    await UnifiedGestures.waitAndTap(buttonGetter);
   }
 
   // Complex actions
@@ -224,13 +227,35 @@ class RNPlaygroundDapp {
     scope: string,
     methodName: string,
     maxScrollAttempts = 10,
+    minScrollAttempts = 0,
+    direction: 'up' | 'down' = 'up',
   ): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        await UnifiedGestures.tap(this.getMethodSelect(scope));
-        await sleep(500);
+        const { width, height } =
+          await PlaywrightUtilities.getDeviceScreenSize();
+        const amountToScroll = direction === 'up' ? 600 : -600;
+        const from = { x: width / 2, y: height / 2 };
+        const to = { x: width / 2, y: height / 2 - amountToScroll };
+        const methodSelect = await asPlaywrightElement(
+          this.getMethodSelect(scope),
+        );
+        await PlaywrightGestures.waitAndTap(methodSelect, {
+          delay: 1000,
+        });
+        await sleep(700);
 
-        const drv = getDriver();
+        // We scroll right away as we know from the test flow that we can scroll right away.
+        if (minScrollAttempts > 0) {
+          for (let attempt = 0; attempt < minScrollAttempts; attempt++) {
+            await PlaywrightGestures.swipe({
+              scrollParams: { direction },
+              duration: 200,
+              from,
+              to,
+            });
+          }
+        }
 
         for (let attempt = 0; attempt < maxScrollAttempts; attempt++) {
           try {
@@ -246,13 +271,11 @@ class RNPlaygroundDapp {
             // Option not found or not visible yet
           }
 
-          await drv.execute('mobile: swipeGesture', {
-            left: 100,
-            top: 400,
-            width: 600,
-            height: 600,
-            direction: 'down',
-            percent: 0.3,
+          await PlaywrightGestures.swipe({
+            scrollParams: { direction },
+            duration: 200,
+            from,
+            to,
           });
           await sleep(300);
         }
@@ -264,14 +287,19 @@ class RNPlaygroundDapp {
     });
   }
 
+  /**
+   * Scroll an element into view with making sure it's fully visible.
+   * @param elemGetter - The element to scroll to
+   * @param options
+   */
   async scrollToElement(
     elemGetter: EncapsulatedElementType,
-    scrollParams: { scrollParams?: { direction?: 'up' | 'down' } } = {},
+    options?: ScrollOptions,
   ): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
         const elem = await asPlaywrightElement(elemGetter);
-        await PlaywrightGestures.scrollIntoView(elem, scrollParams);
+        await PlaywrightGestures.scrollIntoViewFullyVisible(elem, options);
       },
     });
   }

@@ -27,6 +27,7 @@ export interface CurrentDeviceDetails {
   packageName?: string;
   appId?: string;
   launchableActivity?: string;
+  isBrowserstack: boolean;
 }
 
 interface TestLevelFixtures {
@@ -72,6 +73,8 @@ export const test = base.extend<TestLevelFixtures>({
     const packageName = project.use.app?.packageName;
     const appId = project.use.app?.appId;
     const launchableActivity = project.use.app?.launchableActivity;
+    const buildPath = project.use.buildPath;
+    const isBrowserstack = buildPath?.startsWith('bs://') ?? false;
 
     const missingFields = [
       ...(!platform ? ['"use.platform"'] : []),
@@ -90,6 +93,7 @@ export const test = base.extend<TestLevelFixtures>({
       packageName,
       appId,
       launchableActivity,
+      isBrowserstack,
     };
 
     await use(deviceDetails);

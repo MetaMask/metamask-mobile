@@ -18,7 +18,8 @@ class SnapSignModal {
   get confirmButton(): EncapsulatedElementType {
     return encapsulated({
       appium: {
-        android: () => PlaywrightMatchers.getElementById(
+        android: () =>
+          PlaywrightMatchers.getElementById(
             SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
             { exact: true },
           ),
@@ -39,7 +40,12 @@ class SnapSignModal {
   async tapConfirmButton({
     timeout = 5000,
     shouldCooldown = false,
-  }: { timeout?: number; shouldCooldown?: boolean } = {}): Promise<void> {
+    timeToCooldown = 1000,
+  }: {
+    timeout?: number;
+    shouldCooldown?: boolean;
+    timeToCooldown?: number;
+  } = {}): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
         let element: PlaywrightElement | undefined;
@@ -55,11 +61,19 @@ class SnapSignModal {
       },
     });
     if (shouldCooldown) {
-      await sleep(750);
+      await sleep(timeToCooldown);
     }
   }
 
-  async tapCancelButton({ timeout = 5000 } = {}): Promise<void> {
+  async tapCancelButton({
+    timeout = 5000,
+    shouldCooldown = false,
+    timeToCooldown = 1000,
+  }: {
+    timeout?: number;
+    shouldCooldown?: boolean;
+    timeToCooldown?: number;
+  } = {}): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
         const element = await asPlaywrightElement(this.cancelButton);
@@ -70,6 +84,9 @@ class SnapSignModal {
         await element.click();
       },
     });
+    if (shouldCooldown) {
+      await sleep(timeToCooldown);
+    }
   }
 }
 
