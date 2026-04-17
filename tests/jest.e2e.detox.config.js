@@ -1,8 +1,7 @@
 /* eslint-disable import-x/no-commonjs */
-// Load .js.env for shared infra vars (WATCHER_PORT, IOS_SIMULATOR, etc.) used by
-// helpers.js and general.flow.ts. dotenv never overrides existing vars, so the
-// first file to set a key wins. In practice .js.env and .e2e.env don't share
-// keys — .js.env owns port/device config, .e2e.env owns test accounts/flags.
+// Load .js.env for WATCHER_PORT used by helpers.js and general.flow.ts at
+// test runtime. dotenv never overrides existing vars, so .e2e.env keys win
+// when both files define the same key (in practice they don't overlap).
 require('dotenv').config({ path: '.js.env' });
 require('dotenv').config({ path: '.e2e.env' });
 
