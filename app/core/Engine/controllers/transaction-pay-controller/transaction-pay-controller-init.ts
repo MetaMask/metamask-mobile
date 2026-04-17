@@ -8,8 +8,6 @@ import {
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
-import { accountSupports7702 } from '../../../../util/transactions/account-supports-7702';
-import Engine from '../../Engine';
 
 export const TransactionPayControllerInit: MessengerClientInitFunction<
   TransactionPayController,
@@ -20,8 +18,6 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
 
   try {
     const transactionPayController = new TransactionPayController({
-      accountSupports7702: (account: string) =>
-        accountSupports7702(account, () => Engine.context.KeyringController),
       getDelegationTransaction: ({ transaction }) =>
         getDelegationTransaction(initMessenger, transaction),
       getStrategy,

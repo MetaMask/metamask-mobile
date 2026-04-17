@@ -236,8 +236,6 @@ async function publishHook({
   const { stxDisabled } = selectMetaMaskPayFlags(state);
 
   const payResult = await new TransactionPayPublishHook({
-    accountSupports7702: (account: string) =>
-      accountSupports7702(account, keyringController),
     isSmartTransaction: () => shouldUseSmartTransaction && !stxDisabled,
     messenger: initMessenger as TransactionPayControllerMessenger,
   }).getHook()(transactionMeta, signedTransactionInHex);
