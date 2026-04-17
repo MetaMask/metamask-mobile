@@ -2,9 +2,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
@@ -14,6 +11,11 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconName,
   IconSize,
@@ -187,37 +189,39 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
       {!isClosed && (
         <View style={styles.buttonContainer}>
           <Button
-            variant={ButtonVariant.Secondary}
+            variant={ButtonVariants.Secondary}
             size={ButtonSize.Md}
-            isFullWidth
+            width={ButtonWidthTypes.Full}
+            label={
+              <Text
+                style={tw.style('font-medium text-center')}
+                color={TextColor.SuccessDefault}
+              >
+                {outcome.tokens[0].title}
+                {isBiggerLabel ? '\n' : ' • '}
+                {formatCents(outcome.tokens[0].price)}
+              </Text>
+            }
             onPress={() => handleBuy(outcome.tokens[0])}
             style={[styles.buttonYes, isBiggerLabel && tw.style('h-full py-2')]}
-          >
-            <Text
-              style={tw.style('font-medium text-center')}
-              color={TextColor.SuccessDefault}
-            >
-              {outcome.tokens[0].title}
-              {isBiggerLabel ? '\n' : ' • '}
-              {formatCents(outcome.tokens[0].price)}
-            </Text>
-          </Button>
+          />
           <Button
-            variant={ButtonVariant.Secondary}
+            variant={ButtonVariants.Secondary}
             size={ButtonSize.Md}
-            isFullWidth
+            width={ButtonWidthTypes.Full}
+            label={
+              <Text
+                style={tw.style('font-medium text-center')}
+                color={TextColor.ErrorDefault}
+              >
+                {outcome.tokens[1].title}
+                {isBiggerLabel ? '\n' : ' • '}
+                {formatCents(outcome.tokens[1].price)}
+              </Text>
+            }
             onPress={() => handleBuy(outcome.tokens[1])}
             style={[styles.buttonNo, isBiggerLabel && tw.style('h-full py-2')]}
-          >
-            <Text
-              style={tw.style('font-medium text-center')}
-              color={TextColor.ErrorDefault}
-            >
-              {outcome.tokens[1].title}
-              {isBiggerLabel ? '\n' : ' • '}
-              {formatCents(outcome.tokens[1].price)}
-            </Text>
-          </Button>
+          />
         </View>
       )}
     </View>
