@@ -7,9 +7,15 @@ import {
   IOS_GOOGLE_WARNING_SHEET_REMINDER_INTERVAL_MS,
   promptIosGoogleWarningSheetSaga,
 } from './legacyIosGoogleReminder';
-import { presentIosGoogleLoginVersionWarningSheetReminder } from '../../../components/Views/Onboarding/OnboardingIosPrompt';
+import {
+  presentIosGoogleLoginVersionErrorSheetReminder,
+  presentIosGoogleLoginVersionWarningSheetReminder,
+} from '../../../components/Views/Onboarding/OnboardingIosPrompt';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 import Device from '../../../util/device';
+import Logger from '../../../util/Logger';
+import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { analytics } from '../../../util/analytics/analytics';
 
 jest.mock('../../../core/NavigationService', () => ({
   __esModule: true,
@@ -20,6 +26,9 @@ jest.mock('../../../core/NavigationService', () => ({
 
 jest.mock('../../../components/Views/Onboarding/OnboardingIosPrompt', () => ({
   presentIosGoogleLoginVersionWarningSheetReminder: jest
+    .fn()
+    .mockResolvedValue(undefined),
+  presentIosGoogleLoginVersionErrorSheetReminder: jest
     .fn()
     .mockResolvedValue(undefined),
 }));
@@ -82,17 +91,22 @@ describe('promptIosGoogleWarningSheetSaga', () => {
   const mockedPresentSheet = jest.mocked(
     presentIosGoogleLoginVersionWarningSheetReminder,
   );
+  const mockedPresentErrorSheet = jest.mocked(
+    presentIosGoogleLoginVersionErrorSheetReminder,
+  );
   const mockedIsIos = jest.mocked(Device.isIos);
-  const mockedIsAndroid = jest.mocked(Device.isAndroid);
   const mockedCompareVersion = jest.mocked(Device.comparePlatformVersionTo);
+  const mockedAnalyticsEnabled = jest.mocked(analytics.isEnabled);
+  const mockedTrackEvent = jest.mocked(analytics.trackEvent);
+  const mockedLoggerError = jest.mocked(Logger.error);
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     jest.spyOn(Date, 'now').mockReturnValue(fixedNow);
     mockedIsIos.mockReturnValue(true);
-    mockedIsAndroid.mockReturnValue(false);
     mockedCompareVersion.mockReturnValue(-1);
+    mockedAnalyticsEnabled.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -157,7 +171,7 @@ describe('promptIosGoogleWarningSheetSaga', () => {
     expect(mockedPresentSheet).toHaveBeenCalledTimes(1);
   });
 
-  it('does not present the sheet when Google login iOS unsupported blocking is enabled', async () => {
+  it('presents the error reminder sheet and records dismissal when Google login iOS unsupported blocking is enabled', async () => {
     const state = {
       ...googleSeedlessState,
       engine: {
@@ -180,12 +194,13 @@ describe('promptIosGoogleWarningSheetSaga', () => {
     const runPromise = expectSaga(promptIosGoogleWarningSheetSaga)
       .withState(state)
       .dispatch(loginAction)
-      .not.put(setIosGoogleWarningSheetLastDismissedAt(fixedNow))
+      .put(setIosGoogleWarningSheetLastDismissedAt(fixedNow))
       .run({ timeout: false });
 
     await jest.advanceTimersByTimeAsync(5000);
     await runPromise;
 
+    expect(mockedPresentErrorSheet).toHaveBeenCalledTimes(1);
     expect(mockedPresentSheet).not.toHaveBeenCalled();
   });
 
@@ -253,5 +268,103 @@ describe('promptIosGoogleWarningSheetSaga', () => {
     await runPromise;
 
     expect(mockedPresentSheet).not.toHaveBeenCalled();
+  });
+
+  it('completes without waiting for login on Android', async () => {
+    mockedIsIos.mockReturnValue(false);
+
+    await expectSaga(promptIosGoogleWarningSheetSaga).run();
+
+    expect(mockedPresentSheet).not.toHaveBeenCalled();
+    expect(mockedPresentErrorSheet).not.toHaveBeenCalled();
+  });
+
+  it('completes without waiting for login on iOS 17.4 or newer', async () => {
+    mockedCompareVersion.mockReturnValue(0);
+
+    await expectSaga(promptIosGoogleWarningSheetSaga).run();
+
+    expect(mockedPresentSheet).not.toHaveBeenCalled();
+    expect(mockedPresentErrorSheet).not.toHaveBeenCalled();
+  });
+
+  it('logs error when presenting the reminder sheet rejects', async () => {
+    const rejection = new Error('sheet failed');
+    mockedPresentSheet.mockRejectedValueOnce(rejection);
+
+    const runPromise = expectSaga(promptIosGoogleWarningSheetSaga)
+      .withState(googleSeedlessState)
+      .dispatch(loginAction)
+      .run({ timeout: false });
+
+    await jest.advanceTimersByTimeAsync(5000);
+    await runPromise;
+
+    expect(mockedLoggerError).toHaveBeenCalledWith(
+      rejection,
+      'Failed to prompt iOS Google warning sheet',
+    );
+  });
+
+  it('tracks warning viewed when analytics is enabled and blocking is off', async () => {
+    mockedAnalyticsEnabled.mockReturnValue(true);
+
+    const runPromise = expectSaga(promptIosGoogleWarningSheetSaga)
+      .withState(googleSeedlessState)
+      .dispatch(loginAction)
+      .put(setIosGoogleWarningSheetLastDismissedAt(fixedNow))
+      .run({ timeout: false });
+
+    await jest.advanceTimersByTimeAsync(5000);
+    await runPromise;
+
+    expect(mockedTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EVENT_NAME.WALLET_GOOGLE_IOS_WARNING_VIEWED,
+        properties: expect.objectContaining({
+          location: 'ios_google_warning_saga',
+        }),
+      }),
+    );
+  });
+
+  it('tracks error viewed when analytics is enabled and blocking is on', async () => {
+    mockedAnalyticsEnabled.mockReturnValue(true);
+    const state = {
+      ...googleSeedlessState,
+      engine: {
+        ...googleSeedlessState.engine,
+        backgroundState: {
+          ...googleSeedlessState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            ...googleSeedlessState.engine.backgroundState
+              .RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...googleSeedlessState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
+              [FeatureFlagNames.googleLoginIosUnsupportedBlockingEnabled]: true,
+            },
+          },
+        },
+      },
+    };
+
+    const runPromise = expectSaga(promptIosGoogleWarningSheetSaga)
+      .withState(state)
+      .dispatch(loginAction)
+      .put(setIosGoogleWarningSheetLastDismissedAt(fixedNow))
+      .run({ timeout: false });
+
+    await jest.advanceTimersByTimeAsync(5000);
+    await runPromise;
+
+    expect(mockedTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EVENT_NAME.WALLET_GOOGLE_IOS_ERROR_VIEWED,
+        properties: expect.objectContaining({
+          location: 'ios_google_warning_saga',
+        }),
+      }),
+    );
   });
 });
