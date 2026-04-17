@@ -84,6 +84,11 @@ const baseChange = {
   BN: (n: bigint | BigNumber): string => n.toString(16), // Returns hex string that can be used to create BigInt
 };
 
+function roundToDecimalString(value: number, decimals: number): string {
+  const base = Math.pow(10, decimals);
+  return (Math.round(value * base) / base).toString();
+}
+
 /**
  * Prefixes a hex string with '0x' or '-0x' and returns it. Idempotent.
  *
@@ -261,8 +266,7 @@ export function renderSmallNumber(value: number, decimalsToShow = 5): string {
   if (value < 0.00001 && value > 0) {
     return '< 0.00001';
   }
-  const base = Math.pow(10, decimalsToShow);
-  return (Math.round(value * base) / base).toString();
+  return roundToDecimalString(value, decimalsToShow);
 }
 
 /**
@@ -319,8 +323,7 @@ export function limitToMaximumDecimalPlaces(num: number, maxDecimalPlaces = 5) {
   if (isNaN(num) || isNaN(maxDecimalPlaces)) {
     return num;
   }
-  const base = Math.pow(10, maxDecimalPlaces);
-  return (Math.round(num * base) / base).toString();
+  return roundToDecimalString(num, maxDecimalPlaces);
 }
 
 /**
