@@ -20,7 +20,6 @@ import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
-import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMoneyActivityUnderConstructionAlert';
@@ -74,6 +73,10 @@ const MoneyHomeView = () => {
     showMoneyActivityUnderConstructionAlert();
   }, []);
 
+  // TODO: Remove before launch
+  // Useful for testing how zero and non-zero APYs are handled quickly.
+  const DEV_APY = __DEV__ ? 4 : vaultApyQuery.data?.apy;
+
   return (
     <Box
       style={[styles.safeArea, { paddingTop: insets.top }]}
@@ -90,8 +93,8 @@ const MoneyHomeView = () => {
         showsVerticalScrollIndicator={false}
       >
         <MoneyBalanceSummary
-          apy={String(vaultApyQuery.data?.apy)}
-          balance={totalFiatFormatted ?? '-'}
+          apy={DEV_APY}
+          balance={totalFiatFormatted ?? '--.--'}
           onApyInfoPress={handleApyInfoPress}
           isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
         />
@@ -105,8 +108,9 @@ const MoneyHomeView = () => {
         <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
         <Divider />
         <MoneyHowItWorks
-          apy={String(vaultApyQuery.data?.apy)}
+          apy={DEV_APY}
           onHeaderPress={handleHowItWorksHeaderPress}
+          isLoading={vaultApyQuery.isLoading}
         />
         <MoneyMusdTokenRow
           onPress={handleMusdRowPress}
@@ -117,7 +121,7 @@ const MoneyHomeView = () => {
           <>
             <MoneyPotentialEarnings
               tokens={conversionTokens}
-              apy={String(vaultApyQuery.data?.apy)}
+              apy={DEV_APY}
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
@@ -143,7 +147,7 @@ const MoneyHomeView = () => {
           </>
         )}
         <MoneyWhatYouGet
-          apy={String(vaultApyQuery.data?.apy)}
+          apy={DEV_APY}
           onLearnMorePress={handleLearnMorePress}
         />
       </ScrollView>

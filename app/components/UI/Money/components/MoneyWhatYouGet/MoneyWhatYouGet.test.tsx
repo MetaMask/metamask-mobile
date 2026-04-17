@@ -7,13 +7,13 @@ import { strings } from '../../../../../../locales/i18n';
 
 describe('MoneyWhatYouGet', () => {
   it('renders the section title', () => {
-    const { getByText } = render(<MoneyWhatYouGet apy="4" />);
+    const { getByText } = render(<MoneyWhatYouGet apy={4} />);
 
     expect(getByText(strings('money.what_you_get.title'))).toBeOnTheScreen();
   });
 
   it('does not render a chevron (section is not tappable)', () => {
-    const { queryByTestId } = render(<MoneyWhatYouGet apy="4" />);
+    const { queryByTestId } = render(<MoneyWhatYouGet apy={4} />);
 
     expect(
       queryByTestId(MoneySectionHeaderTestIds.CHEVRON),
@@ -21,7 +21,7 @@ describe('MoneyWhatYouGet', () => {
   });
 
   it('renders all six benefits', () => {
-    const { getByTestId } = render(<MoneyWhatYouGet apy="4" />);
+    const { getByTestId } = render(<MoneyWhatYouGet apy={4} />);
 
     const container = getByTestId(MoneyWhatYouGetTestIds.CONTAINER);
     expect(container).toHaveTextContent(/Auto-earn/);
@@ -35,7 +35,7 @@ describe('MoneyWhatYouGet', () => {
   });
 
   it('renders the Learn more button', () => {
-    const { getByTestId } = render(<MoneyWhatYouGet apy="4" />);
+    const { getByTestId } = render(<MoneyWhatYouGet apy={4} />);
 
     expect(
       getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON),
@@ -45,7 +45,7 @@ describe('MoneyWhatYouGet', () => {
   it('calls onLearnMorePress when Learn more is tapped', () => {
     const mockLearnMore = jest.fn();
     const { getByTestId } = render(
-      <MoneyWhatYouGet apy="4" onLearnMorePress={mockLearnMore} />,
+      <MoneyWhatYouGet apy={4} onLearnMorePress={mockLearnMore} />,
     );
 
     fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
@@ -54,10 +54,34 @@ describe('MoneyWhatYouGet', () => {
   });
 
   it('does not throw when Learn more is tapped without a handler', () => {
-    const { getByTestId } = render(<MoneyWhatYouGet apy="4" />);
+    const { getByTestId } = render(<MoneyWhatYouGet apy={4} />);
 
     expect(() => {
       fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
     }).not.toThrow();
+  });
+
+  it('renders the inline APY text in the auto-earn benefit when apy is a positive number', () => {
+    const { getByText } = render(<MoneyWhatYouGet apy={4} />);
+
+    expect(
+      getByText(strings('money.apy_label', { percentage: 4 })),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the inline APY text in the auto-earn benefit when apy is undefined', () => {
+    const { queryByText } = render(<MoneyWhatYouGet apy={undefined} />);
+
+    expect(
+      queryByText(strings('money.apy_label', { percentage: undefined })),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the inline APY text in the auto-earn benefit when apy is zero', () => {
+    const { queryByText } = render(<MoneyWhatYouGet apy={0} />);
+
+    expect(
+      queryByText(strings('money.apy_label', { percentage: 0 })),
+    ).not.toBeOnTheScreen();
   });
 });

@@ -15,6 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
+import { isPositiveNumber } from '../../utils/number';
 
 const DEFAULT_BALANCE = '$0.00';
 
@@ -24,9 +25,9 @@ interface MoneyBalanceSummaryProps {
    */
   balance?: string;
   /**
-   * APY percentage string (e.g. "4")
+   * APY expressed as a percentage (e.g. 3 for 3%).
    */
-  apy: string;
+  apy: number | undefined;
   /**
    * Render a loading skeleton in place of the balance value.
    */
@@ -39,7 +40,7 @@ interface MoneyBalanceSummaryProps {
 
 const MoneyBalanceSummary = ({
   balance = DEFAULT_BALANCE,
-  apy = '-',
+  apy,
   isLoading = false,
   onApyInfoPress,
 }: MoneyBalanceSummaryProps) => (
@@ -85,21 +86,23 @@ const MoneyBalanceSummary = ({
             testID={MoneyBalanceSummaryTestIds.APY_SKELETON}
           />
         ) : (
-          <Box
-            twClassName="self-start rounded-md bg-success-muted px-2 py-0.5"
-            testID={MoneyBalanceSummaryTestIds.APY_TAG}
-          >
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.SuccessDefault}
-              testID={MoneyBalanceSummaryTestIds.APY}
+          isPositiveNumber(apy) && (
+            <Box
+              twClassName="self-start rounded-md bg-success-muted px-2 py-0.5"
+              testID={MoneyBalanceSummaryTestIds.APY_TAG}
             >
-              {strings('money.apy_label', { percentage: apy })}
-            </Text>
-          </Box>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.SuccessDefault}
+                testID={MoneyBalanceSummaryTestIds.APY}
+              >
+                {strings('money.apy_label', { percentage: apy })}
+              </Text>
+            </Box>
+          )
         )}
-        {onApyInfoPress && (
+        {onApyInfoPress && isPositiveNumber(apy) && (
           <ButtonIcon
             iconName={IconName.Info}
             iconProps={{ color: IconColor.IconAlternative }}

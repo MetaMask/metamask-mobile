@@ -34,6 +34,7 @@ import {
 } from '../../../Earn/hooks/useMusdConversionTokens';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
+import { isPositiveNumber } from '../../utils/number';
 
 /** Number of years the projected earnings are simulated over. */
 const PROJECTION_YEARS = 5;
@@ -64,7 +65,7 @@ interface MoneyPotentialEarningsProps {
    * {@link PROJECTION_YEARS} to compute the projected earnings displayed
    * alongside each token and in the gradient headline.
    */
-  apy: string;
+  apy: number | undefined;
   onTokenPress?: (token: AssetType) => void;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
@@ -118,10 +119,11 @@ const TokenRow = ({
     () => (token.chainId ? NetworkBadgeSource(token.chainId as Hex) : null),
     [token.chainId],
   );
-  const projected = formatFiat(
-    new BigNumber(tokenFiatValue(token) * projectedMultiplier),
-  );
-  const balanceDisplay = token.balanceInSelectedCurrency;
+
+  const projectedFiatNumber = tokenFiatValue(token) * projectedMultiplier;
+  const projectedFiatFormatted = formatFiat(new BigNumber(projectedFiatNumber));
+
+  const balanceFiatFormatted = token.balanceInSelectedCurrency;
 
   return (
     <Box
@@ -176,15 +178,17 @@ const TokenRow = ({
               twClassName="gap-1"
             >
               <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-                {balanceDisplay}
+                {balanceFiatFormatted}
               </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.SuccessDefault}
-              >
-                {`+${projected}`}
-              </Text>
+              {isPositiveNumber(projectedFiatNumber) && (
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.SuccessDefault}
+                >
+                  {`+${projectedFiatFormatted}`}
+                </Text>
+              )}
             </Box>
           </Box>
         </Box>
@@ -213,6 +217,7 @@ const MoneyPotentialEarnings = ({
     () => (Number(apy) / 100) * PROJECTION_YEARS,
     [apy],
   );
+
   // Tokens arrive pre-sorted (stablecoins first, then fiat desc) from
   // useMusdConversionTokens; strip zero-balance entries defensively — the
   // feature flag threshold may be set to 0 in some environments.
@@ -255,9 +260,11 @@ const MoneyPotentialEarnings = ({
           onPress={onHeaderPress}
         />
 
-        <GradientAmountText
-          value={`+${formatFiat(new BigNumber(projectedAmount))}`}
-        />
+        {isPositiveNumber(projectedAmount) && (
+          <GradientAmountText
+            value={`+${formatFiat(new BigNumber(projectedAmount))}`}
+          />
+        )}
 
         <Text
           variant={TextVariant.BodyMd}

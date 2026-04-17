@@ -9,16 +9,17 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyHowItWorksTestIds } from './MoneyHowItWorks.testIds';
+import { isPositiveNumber } from '../../utils/number';
 
 interface MoneyHowItWorksProps {
   /** APY expressed as a percentage (e.g. 3 for 3%). */
-  apy: string;
+  apy: number | undefined;
   isLoading?: boolean;
   onHeaderPress?: () => void;
 }
 
 const MoneyHowItWorks = ({
-  apy = '-',
+  apy,
   isLoading = false,
   onHeaderPress,
 }: MoneyHowItWorksProps) => (
@@ -34,13 +35,14 @@ const MoneyHowItWorks = ({
         testID={MoneyHowItWorksTestIds.DESCRIPTION}
       >
         {strings('money.how_it_works.description_prefix')}
-        {!isLoading && (
+        {!isLoading && isPositiveNumber(apy) && (
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.SuccessDefault}
             testID={MoneyHowItWorksTestIds.APY}
           >
+            {' '}
             {strings('money.apy_label', { percentage: apy })}
           </Text>
         )}
