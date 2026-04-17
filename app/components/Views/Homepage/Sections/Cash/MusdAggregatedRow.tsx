@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -43,11 +43,15 @@ const MusdAggregatedRow = () => {
   const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
   const { tokenBalanceAggregated, fiatBalanceAggregatedFormatted } =
     useMusdBalance();
-  const { claimableReward, hasPendingClaim } = useMerklBonusClaim(
+  const { claimableReward, hasPendingClaim, claimRewards } = useMerklBonusClaim(
     MUSD_MAINNET_ASSET_FOR_DETAILS,
     MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
   );
   const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
+
+  const handleClaimBonus = useCallback(() => {
+    claimRewards();
+  }, [claimRewards]);
 
   const handleTokenRowPress = useCallback(() => {
     if (isMoneyHomeEnabled) {
@@ -115,9 +119,9 @@ const MusdAggregatedRow = () => {
             >
               {tokenBalanceDisplay}
             </SensitiveText>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
+            <TouchableOpacity
+              disabled={!hasClaimableBonus}
+              onPress={handleClaimBonus}
             >
               <Text
                 variant={TextVariant.BodySm}
@@ -136,7 +140,7 @@ const MusdAggregatedRow = () => {
                       percentage: MUSD_CONVERSION_APY,
                     })}
               </Text>
-            </Box>
+            </TouchableOpacity>
           </Box>
         </Box>
       </Box>

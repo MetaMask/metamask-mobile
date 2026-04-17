@@ -670,7 +670,11 @@ export const TokenListItem = React.memo(
                   </SensitiveText>
                 </Box>
 
-                <Box>
+                <TouchableOpacity
+                  disabled={!secondaryBalanceDisplay.onPress}
+                  onPress={secondaryBalanceDisplay.onPress}
+                  testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
+                >
                   <SensitiveText
                     variant={CLTextVariant.BodySMMedium}
                     color={secondaryBalanceDisplay.color}
@@ -680,7 +684,7 @@ export const TokenListItem = React.memo(
                   >
                     {secondaryBalanceDisplay.text}
                   </SensitiveText>
-                </Box>
+                </TouchableOpacity>
               </>
             ) : (
               <>
