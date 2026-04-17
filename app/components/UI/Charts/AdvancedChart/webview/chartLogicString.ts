@@ -1379,6 +1379,49 @@ function clearLineEndDotVisibleRangeDebounce() {
   }
 }
 
+/**
+ * Debounced visible range notification to React Native. Posts VISIBLE_RANGE_CHANGED message
+ * when user pans/scrolls the chart, allowing RN to update compare price based on actual visible bars.
+ */
+var visibleRangeChangeDebounce = null;
+var VISIBLE_RANGE_DEBOUNCE_MS = 300;
+
+function postVisibleRangeToRN(chart) {
+  if (!chart) return;
+  
+  try {
+    var vr = chart.getVisibleRange();
+    if (!vr || !vr.from || !vr.to) return;
+    
+    // Convert from seconds to milliseconds
+    var visibleFromMs = Math.round(vr.from * 1000);
+    var visibleToMs = Math.round(vr.to * 1000);
+    
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({
+        type: 'VISIBLE_RANGE_CHANGED',
+        payload: {
+          visibleFromMs: visibleFromMs,
+          visibleToMs: visibleToMs,
+        },
+      })
+    );
+  } catch (err) {
+    console.error('Failed to post visible range:', err);
+  }
+}
+
+function scheduleVisibleRangeUpdate(chart) {
+  if (visibleRangeChangeDebounce) {
+    clearTimeout(visibleRangeChangeDebounce);
+  }
+  
+  visibleRangeChangeDebounce = setTimeout(function () {
+    visibleRangeChangeDebounce = null;
+    postVisibleRangeToRN(chart);
+  }, VISIBLE_RANGE_DEBOUNCE_MS);
+}
+
 function scheduleLineEndDotAfterVisibleRangeChange() {
   if (window.currentChartType !== 2) {
     return;
@@ -1450,6 +1493,7 @@ function subscribeLastCloseLabelUpdates() {
         if (getLineChrome().useCustomLineEndMarker) {
           scheduleLineEndDotAfterVisibleRangeChange();
         }
+        scheduleVisibleRangeUpdate(window.chartWidget.activeChart());
       });
   } catch (e) {}
 }
@@ -3798,6 +3842,7 @@ function initChart() {
           .onVisibleRangeChanged()
           .subscribe(null, function () {
             scheduleChartInteractPan();
+            scheduleVisibleRangeUpdate(window.chartWidget.activeChart());
           });
       } catch (e) {}
 
