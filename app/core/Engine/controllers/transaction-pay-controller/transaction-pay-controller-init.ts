@@ -21,10 +21,7 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
   try {
     const transactionPayController = new TransactionPayController({
       accountSupports7702: (account: string) =>
-        accountSupports7702(
-          account,
-          () => Engine.context.KeyringController,
-        ),
+        accountSupports7702(account, () => Engine.context.KeyringController),
       getDelegationTransaction: ({ transaction }) =>
         getDelegationTransaction(initMessenger, transaction),
       getStrategy,

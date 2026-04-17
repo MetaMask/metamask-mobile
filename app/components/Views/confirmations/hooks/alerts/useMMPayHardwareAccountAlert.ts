@@ -5,7 +5,10 @@ import { Alert, Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
-import { isHardwareAccount } from '../../../../../util/address';
+import {
+  isHardwareAccount,
+  isQRHardwareAccount,
+} from '../../../../../util/address';
 
 export function useMMPayHardwareAccountAlert(): Alert[] {
   const transactionMeta = useTransactionMetadataRequest();
@@ -19,14 +22,16 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
   ]);
 
   const isHardwareWallet = isHardwareAccount(from ?? '');
+  const isQRWallet = isQRHardwareAccount(from ?? '');
 
   return useMemo(() => {
     if (!isHardwareWallet) {
       return [];
     }
 
-    // Hardware wallet supported MMPay transactions
-    if (isMusdConversion) {
+    // QR wallets (e.g. Keystone) do not support MMPay transactions
+    // including mUSD conversion due to signing limitations.
+    if (isMusdConversion && !isQRWallet) {
       return [];
     }
 
@@ -39,5 +44,5 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
         isBlocking: true,
       },
     ];
-  }, [isHardwareWallet, isMusdConversion]);
+  }, [isHardwareWallet, isMusdConversion, isQRWallet]);
 }

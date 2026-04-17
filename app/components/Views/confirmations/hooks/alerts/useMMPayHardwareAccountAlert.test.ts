@@ -7,7 +7,10 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { isHardwareAccount } from '../../../../../util/address';
+import {
+  isHardwareAccount,
+  isQRHardwareAccount,
+} from '../../../../../util/address';
 import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
@@ -19,6 +22,7 @@ function runHook() {
 
 describe('useMMPayHardwareAccountAlert', () => {
   const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+  const isQRHardwareAccountMock = jest.mocked(isQRHardwareAccount);
 
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
@@ -32,6 +36,8 @@ describe('useMMPayHardwareAccountAlert', () => {
         from: '0xabc',
       },
     } as TransactionMeta);
+
+    isQRHardwareAccountMock.mockReturnValue(false);
   });
 
   it('returns alert if from is hardware wallet account', () => {
@@ -58,8 +64,9 @@ describe('useMMPayHardwareAccountAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns no alert for hardware wallet on mUSD conversion', () => {
+  it('returns no alert for Ledger wallet on mUSD conversion', () => {
     isHardwareAccountMock.mockReturnValue(true);
+    isQRHardwareAccountMock.mockReturnValue(false);
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.musdConversion,
       txParams: {
@@ -70,5 +77,28 @@ describe('useMMPayHardwareAccountAlert', () => {
     const { result } = runHook();
 
     expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns alert for QR wallet on mUSD conversion', () => {
+    isHardwareAccountMock.mockReturnValue(true);
+    isQRHardwareAccountMock.mockReturnValue(true);
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.musdConversion,
+      txParams: {
+        from: '0xabc',
+      },
+    } as TransactionMeta);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual([
+      {
+        key: AlertKeys.MMPayHardwareAccount,
+        title: strings('alert_system.mmpay_hardware_account.title'),
+        message: strings('alert_system.mmpay_hardware_account.message'),
+        severity: Severity.Danger,
+        isBlocking: true,
+      },
+    ]);
   });
 });
