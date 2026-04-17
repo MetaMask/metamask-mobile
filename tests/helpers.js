@@ -394,7 +394,13 @@ export default class TestHelpers {
   static async launchApp(launchOptions) {
     const config = await resolveConfig();
     const platform = device.getPlatform();
-    if (!config.configurationName.endsWith('.ci')) {
+    // Use debug launch for configs explicitly named 'debug' (original behavior)
+    // AND for any non-CI config (e.g. ios.sim.main which uses ios.debug app locally).
+    // CI configs (*.ci) use release apps and the normal recovery-based launch.
+    if (
+      config.configurationName.endsWith('debug') ||
+      !config.configurationName.endsWith('.ci')
+    ) {
       return this.launchAppForDebugBuild(platform, launchOptions);
     }
 
