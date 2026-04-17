@@ -427,6 +427,6 @@ describe('PredictPositionDetail', () => {
       PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON,
     );
 
-    expect(cashOutButton.props.accessibilityState?.disabled).toBe(true);
+    expect(cashOutButton).toBeDisabled();
   });
 });

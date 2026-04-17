@@ -22,7 +22,7 @@ import { PredictCashOutSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Skeleton from '../../../../../component-library/components-temp/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';

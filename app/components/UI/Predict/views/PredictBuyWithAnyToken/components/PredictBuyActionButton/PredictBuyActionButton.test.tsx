@@ -86,7 +86,7 @@ describe('PredictBuyActionButton', () => {
       );
 
       const button = screen.getByRole('button');
-      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('applies reduced opacity style', () => {
