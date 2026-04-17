@@ -1,17 +1,12 @@
-import type { Json } from '@metamask/utils';
 import type { ControllerInitFunction } from '../../types';
 import {
   SeedlessOnboardingController,
-  SeedlessOnboardingControllerState,
   Web3AuthNetwork,
   getDefaultSeedlessOnboardingControllerState,
   type SeedlessOnboardingControllerMessenger,
 } from '@metamask/seedless-onboarding-controller';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
-import type {
-  EncryptionKey,
-  KeyDerivationOptions,
-} from '../../../Encryptor/types';
+import type { EncryptionKey } from '../../../Encryptor/types';
 import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
 import AuthTokenHandler from '../../../OAuthService/AuthTokenHandler';
 
@@ -44,8 +39,7 @@ export const seedlessOnboardingControllerInit: ControllerInitFunction<
 
   const controller = new SeedlessOnboardingController({
     messenger: controllerMessenger,
-    state:
-      seedlessOnboardingControllerState as SeedlessOnboardingControllerState,
+    state: seedlessOnboardingControllerState,
     encryptor,
     network: web3AuthNetwork as Web3AuthNetwork,
     passwordOutdatedCacheTTL: 15_000, // 15 seconds
