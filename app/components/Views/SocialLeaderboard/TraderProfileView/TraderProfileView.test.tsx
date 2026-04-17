@@ -1,15 +1,15 @@
+import type {
+  Position,
+  TraderProfileResponse,
+} from '@metamask/social-controllers';
+import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
+import type { UseTraderProfileResult } from './hooks/useTraderProfile';
 import TraderProfileView from './TraderProfileView';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
-import Routes from '../../../../constants/navigation/Routes';
-import type { UseTraderProfileResult } from './hooks/useTraderProfile';
-import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
-import type {
-  TraderProfileResponse,
-  Position,
-} from '@metamask/social-controllers';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -104,7 +104,6 @@ describe('TraderProfileView', () => {
       isLoading: false,
       error: null,
       isFollowing: false,
-      isFollowLoading: false,
       toggleFollow: mockToggleFollow,
       refresh: mockRefresh,
     };
