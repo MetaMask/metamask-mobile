@@ -13,6 +13,7 @@ import {
   BoxJustifyContent,
   AvatarToken,
   AvatarTokenSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import SensitiveText, {
   SensitiveTextLength,
@@ -138,7 +139,7 @@ const MusdAggregatedRow = () => {
               {tokenBalanceDisplay}
             </SensitiveText>
             {isClaiming ? (
-              <Spinner />
+              <Spinner color={IconColor.PrimaryDefault} />
             ) : (
               <TouchableOpacity
                 disabled={!hasClaimableBonus}
