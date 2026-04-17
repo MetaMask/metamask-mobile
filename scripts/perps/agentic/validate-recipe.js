@@ -568,6 +568,7 @@ function ensureRunArtifacts(runOptions, recipePath) {
     screenshotsDir: path.join(rootDir, 'screenshots'),
     failuresDir: path.join(rootDir, 'failures'),
     logsDir: path.join(rootDir, 'logs'),
+    tracesDir: path.join(rootDir, 'traces'),
     tracePath: path.join(rootDir, 'trace.json'),
     workflowPath: path.join(rootDir, 'workflow.json'),
     workflowMermaidPath: path.join(rootDir, 'workflow.mmd'),
@@ -575,7 +576,7 @@ function ensureRunArtifacts(runOptions, recipePath) {
     runLogPath: path.join(rootDir, 'run.log'),
   };
 
-  [artifacts.rootDir, artifacts.screenshotsDir, artifacts.failuresDir, artifacts.logsDir]
+  [artifacts.rootDir, artifacts.screenshotsDir, artifacts.failuresDir, artifacts.logsDir, artifacts.tracesDir]
     .forEach((dirPath) => fs.mkdirSync(dirPath, { recursive: true }));
 
   state.artifacts = artifacts;
@@ -1292,6 +1293,22 @@ async function runExecutableNode(node, context, options = {}) {
     case 'switch_provider':
       bridgeResult = handleSwitchProvider(node, appRoot);
       break;
+    case 'trace_start':
+      bridgeResult = spawnBridge(appRoot, ['profiler-start']);
+      break;
+    case 'trace_stop': {
+      const artifacts = ensureRunArtifacts(runOptions, context.recipePath);
+      const traceLabel = sanitizeFileSegment(node.label || node.id || 'trace');
+      const outPath = artifacts && artifacts.tracesDir
+        ? path.join(artifacts.tracesDir, `trace-${traceLabel}.cpuprofile`)
+        : '';
+      const stopArgs = ['profiler-stop', '--label', traceLabel];
+      if (outPath) {
+        stopArgs.push('--out', outPath);
+      }
+      bridgeResult = spawnBridge(appRoot, stopArgs);
+      break;
+    }
     default:
       throw new Error(`Unknown action "${node.action}"`);
   }

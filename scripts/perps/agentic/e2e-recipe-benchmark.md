@@ -210,3 +210,10 @@ Both approaches validate the perps feature — they test **different layers** of
 - Agentic recipes use `PerpsController.placeOrder()` directly (controller-level); Detox uses full UI form with mocked `depositWithOrder()`.
 - Both approaches validate different layers: Detox = UI correctness with mocks, Agentic = controller/API correctness on real testnet.
 
+## Capability parity with extension
+
+The recipe runner doubles as a capability probe surface: the same graph language that drives the 8 migrated Detox specs can also expose browser/runtime capabilities (perf metrics snapshot, sampling profiler trace, app lifecycle) for controlled experiments and performance work. For the mobile parity mirror of the extension's CDP capabilities study — including which families are supported, which are structurally absent (network, emulation, storage, fetch), and the two capability smoke recipes added in this PR — see:
+
+- [CDP-capabilities-mobile.md](./CDP-capabilities-mobile.md) — detailed capability-family writeup
+- [CDP-summary-mobile.md](./CDP-summary-mobile.md) — quick-reference parity matrix
+

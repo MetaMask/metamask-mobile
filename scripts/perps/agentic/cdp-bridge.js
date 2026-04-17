@@ -558,6 +558,53 @@ const COMMANDS = {
     return { ok: true };
   },
 
+  async 'profiler-start'(client) {
+    // Hermes CDP exposes the sampling profiler via the Profiler domain.
+    // Output of Profiler.stop is a Chrome-compatible .cpuprofile object.
+    // Note: Hermes does NOT implement Profiler.enable (returns -32601 Unsupported);
+    // Profiler.start/stop work without it.
+    await client.send('Profiler.start');
+    return { ok: true, started: true };
+  },
+
+  async 'profiler-stop'(client, args) {
+    let outPath = '';
+    let label = 'trace';
+    for (let i = 0; i < args.length; i++) {
+      if (args[i] === '--out' && i + 1 < args.length) {
+        outPath = args[++i];
+      } else if (args[i] === '--label' && i + 1 < args.length) {
+        label = args[++i];
+      }
+    }
+    const res = await client.send('Profiler.stop', {}, 60000);
+    const profile = res?.profile;
+    if (!profile) {
+      return { ok: false, error: 'Profiler.stop returned no profile' };
+    }
+    const serialized = JSON.stringify(profile);
+    if (!outPath) {
+      const tracesDir = path.resolve(process.env.APP_ROOT || process.cwd(), 'temp/agentic/recipes/test-artifacts/traces');
+      fs.mkdirSync(tracesDir, { recursive: true });
+      outPath = path.join(tracesDir, `trace-${label}.cpuprofile`);
+    } else {
+      fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    }
+    fs.writeFileSync(outPath, serialized);
+    const nodesCount = Array.isArray(profile.nodes) ? profile.nodes.length : 0;
+    const samplesCount = Array.isArray(profile.samples) ? profile.samples.length : 0;
+    return {
+      ok: true,
+      path: outPath,
+      label,
+      sizeBytes: Buffer.byteLength(serialized, 'utf8'),
+      nodesCount,
+      samplesCount,
+      startTime: profile.startTime ?? null,
+      endTime: profile.endTime ?? null,
+    };
+  },
+
   async 'eval-ref'(client, args) {
     const arg = args[0];
     if (!arg || arg === '--help') {
@@ -679,6 +726,11 @@ Commands:
   unlock <password>                      Unlock wallet (inject password + press login button via fiber tree)
   eval-ref <team/name>                 Run an eval ref (e.g. perps/positions)
   eval-ref --list                      List all available eval refs
+  profiler-start                       Start Hermes sampling profiler
+  profiler-stop [--out <path>] [--label <name>]
+                                       Stop profiler, dump Chrome-compatible
+                                       .cpuprofile to <path> (default:
+                                       temp/agentic/recipes/test-artifacts/traces/trace-<label>.cpuprofile)
 
 Environment:
   WATCHER_PORT    Metro port (default: 8081)
