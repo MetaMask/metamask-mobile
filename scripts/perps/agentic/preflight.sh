@@ -154,28 +154,54 @@ kill_tree() {
 # Live tail: refresh the last N lines of a log file in-place while a PID is
 # running. TTY-gated so piped runs / CI see no ANSI escapes. Called as a
 # background job; kill it once the watched process has exited.
+#
+# Frame invariant: always owns exactly N terminal rows. Reserves the frame
+# up-front, then every tick does the same symmetric cursor-up-N → redraw.
+# Truncates each line strictly below terminal width to prevent wrap (a
+# wrapped row would break the cursor-up anchor and cause accumulating scroll).
 watch_log() {
   local log="$1" watcher_of="$2" N="${3:-3}"
   [ -t 1 ] || return 0
-  local first=1
+  local cols width i
+  cols=$(tput cols 2>/dev/null || echo 120)
+  width=$((cols - 6))
+  [ "$width" -lt 20 ] && width=20
+
+  # Reserve N rows once; every subsequent tick starts with cursor-up N.
+  i=0
+  while [ $i -lt $N ]; do printf '\n'; i=$((i + 1)); done
+  # Hide cursor during tail to avoid blink/drift artifacts.
+  tput civis 2>/dev/null || true
+  trap 'tput cnorm 2>/dev/null || true' RETURN
+
   while kill -0 "$watcher_of" 2>/dev/null; do
+    # Move cursor up N rows and clear from cursor to end of screen.
+    printf '\033[%dA\033[J' "$N"
     if [ -f "$log" ]; then
-      local lines
-      lines=$(tail -n "$N" "$log" 2>/dev/null | tr -d '\r' | sed 's/\x1b\[[0-9;]*[A-Za-z]//g' | cut -c1-120)
+      local lines padded
+      lines=$(tail -n "$N" "$log" 2>/dev/null \
+        | tr -d '\r' \
+        | sed -E $'s/\x1b\\[[0-9;]*[A-Za-z]//g; s/\t/  /g' \
+        | awk -v w="$width" '{ if (length($0) > w) print substr($0, 1, w); else print }')
+      i=0
       if [ -n "$lines" ]; then
-        [ $first -eq 0 ] && printf '\033[%dA\033[J' "$N"
-        first=0
-        local i=0
         while IFS= read -r l; do
           printf '    \033[2m%s\033[0m\n' "$l"
           i=$((i + 1))
         done <<< "$lines"
-        while [ $i -lt $N ]; do printf '\n'; i=$((i + 1)); done
       fi
+      # Pad to exactly N rows so the frame size never shrinks.
+      while [ $i -lt $N ]; do printf '\n'; i=$((i + 1)); done
+    else
+      i=0
+      while [ $i -lt $N ]; do printf '\n'; i=$((i + 1)); done
     fi
     sleep 0.75
   done
-  [ $first -eq 0 ] && printf '\033[%dA\033[J' "$N"
+
+  # Final clear: leave N blank rows behind so the caller can print its status.
+  printf '\033[%dA\033[J' "$N"
+  tput cnorm 2>/dev/null || true
 }
 
 # Run a command in the background while tailing its log file live. Returns
