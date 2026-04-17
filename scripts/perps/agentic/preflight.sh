@@ -126,7 +126,7 @@ stage_log() { echo -e "  ${DIM}Log: $1${NC}"; }
 # corepack wrapper, not the deep child (yarn → corepack → yarn.cjs → node
 # expo/cli) that actually binds $PORT. Killing just the wrapper leaves the
 # child alive and still holding the port. Scoped strictly to descendants of
-# the given PID — safe for parallel worktrees / farmslot slots.
+# the given PID — safe for parallel worktrees.
 collect_tree() {
   local parent=$1
   local children
@@ -149,6 +149,48 @@ kill_tree() {
     t=$((t + 1))
   done
   for p in $pids; do kill -KILL "$p" 2>/dev/null || true; done
+}
+
+# Live tail: refresh the last N lines of a log file in-place while a PID is
+# running. TTY-gated so piped runs / CI see no ANSI escapes. Called as a
+# background job; kill it once the watched process has exited.
+watch_log() {
+  local log="$1" watcher_of="$2" N="${3:-3}"
+  [ -t 1 ] || return 0
+  local first=1
+  while kill -0 "$watcher_of" 2>/dev/null; do
+    if [ -f "$log" ]; then
+      local lines
+      lines=$(tail -n "$N" "$log" 2>/dev/null | tr -d '\r' | sed 's/\x1b\[[0-9;]*[A-Za-z]//g' | cut -c1-120)
+      if [ -n "$lines" ]; then
+        [ $first -eq 0 ] && printf '\033[%dA\033[J' "$N"
+        first=0
+        local i=0
+        while IFS= read -r l; do
+          printf '    \033[2m%s\033[0m\n' "$l"
+          i=$((i + 1))
+        done <<< "$lines"
+        while [ $i -lt $N ]; do printf '\n'; i=$((i + 1)); done
+      fi
+    fi
+    sleep 0.75
+  done
+  [ $first -eq 0 ] && printf '\033[%dA\033[J' "$N"
+}
+
+# Run a command in the background while tailing its log file live. Returns
+# the command's exit status. Usage: run_with_live_log "$LOG" "$CMD_STRING"
+run_with_live_log() {
+  local log="$1" cmd="$2"
+  bash -c "$cmd" >>"$log" 2>&1 &
+  local cmd_pid=$!
+  watch_log "$log" "$cmd_pid" 3 &
+  local watch_pid=$!
+  local rc=0
+  wait "$cmd_pid" || rc=$?
+  kill "$watch_pid" 2>/dev/null || true
+  wait "$watch_pid" 2>/dev/null || true
+  return $rc
 }
 
 # ── Early fixture validation (fail fast before long pipeline) ────────
@@ -288,7 +330,7 @@ if $DO_CLEAN; then
   fi
   stage_log "$DEPS_LOG"
   printf '$ yarn setup\n' > "$DEPS_LOG"
-  if ! yarn setup >>"$DEPS_LOG" 2>&1; then
+  if ! run_with_live_log "$DEPS_LOG" "yarn setup"; then
     echo ""
     echo -e "  ${RED}Dependencies failed — see $DEPS_LOG${NC}"
     tail -20 "$DEPS_LOG" | sed 's/^/    /'
@@ -338,7 +380,7 @@ if [ "$PLAT" = "ios" ]; then
     echo "  Running pod install via bundler..."
     stage_log "$POD_INSTALL_LOG"
     printf '$ (cd ios && bundle exec pod install --repo-update --ansi)\n' > "$POD_INSTALL_LOG"
-    if (cd ios && bundle exec pod install --repo-update --ansi >>"$POD_INSTALL_LOG" 2>&1); then
+    if run_with_live_log "$POD_INSTALL_LOG" "cd ios && bundle exec pod install --repo-update --ansi"; then
       ok "pod install complete"
     else
       warn "pod install had issues — see $POD_INSTALL_LOG"
@@ -369,12 +411,16 @@ if [ "$PLAT" = "ios" ]; then
     eval "$EXPO_CMD" >"$BUILD_LOG" 2>&1 &
     EXPO_PID=$!
 
+    watch_log "$BUILD_LOG" "$EXPO_PID" 3 &
+    WATCH_PID=$!
+
     APP_PATH=""
     BUILD_TIMEOUT=900
     while :; do
       NOW=$(date +%s)
       ELAPSED=$((NOW - BUILD_START))
       if [ $ELAPSED -ge $BUILD_TIMEOUT ]; then
+        kill "$WATCH_PID" 2>/dev/null || true; wait "$WATCH_PID" 2>/dev/null || true
         kill_tree "$EXPO_PID"
         wait $EXPO_PID 2>/dev/null || true
         echo ""
@@ -400,6 +446,7 @@ if [ "$PLAT" = "ios" ]; then
           fi
         done < <(find "$HOME/Library/Developer/Xcode/DerivedData" -path "*/MetaMask-*/Build/Products/Debug-iphonesimulator/MetaMask.app" -maxdepth 5 -prune 2>/dev/null)
         if [ -n "$APP_PATH" ]; then
+          kill "$WATCH_PID" 2>/dev/null || true; wait "$WATCH_PID" 2>/dev/null || true
           echo -e "  ${GREEN}→${NC} Build Succeeded (${ELAPSED}s)"
           kill_tree "$EXPO_PID"
           wait $EXPO_PID 2>/dev/null || true
@@ -409,6 +456,7 @@ if [ "$PLAT" = "ios" ]; then
 
       # Surface fatal CLI errors only after confirming build hasn't succeeded.
       if grep -qE 'CommandError:|BUILD FAILED' "$BUILD_LOG" 2>/dev/null; then
+        kill "$WATCH_PID" 2>/dev/null || true; wait "$WATCH_PID" 2>/dev/null || true
         kill_tree "$EXPO_PID"
         wait $EXPO_PID 2>/dev/null || true
         echo ""
@@ -419,6 +467,7 @@ if [ "$PLAT" = "ios" ]; then
 
       # If expo exited on its own before we found a fresh .app, treat as failure.
       if ! kill -0 $EXPO_PID 2>/dev/null; then
+        kill "$WATCH_PID" 2>/dev/null || true; wait "$WATCH_PID" 2>/dev/null || true
         echo ""
         echo -e "  ${RED}expo run:ios exited without producing a fresh .app${NC}"
         echo -e "  ${RED}Build log tail:${NC}"
@@ -433,11 +482,19 @@ if [ "$PLAT" = "ios" ]; then
     # Wait for expo's Metro on $PORT to actually release the socket — kill_tree
     # already SIGKILLed any stragglers, but the kernel takes a moment to free the
     # port. start-metro.sh probes /status and would race an orphaned bundler.
-    for _ in $(seq 1 10); do
+    #
+    # Exception: zombie sweep may have preserved a reused Metro on $PORT (healthy
+    # /status). In that case the port is expected to stay bound and we accept it.
+    for _ in $(seq 1 20); do
       lsof -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1 || break
+      if curl -sf --max-time 1 "http://localhost:$PORT/status" >/dev/null 2>&1; then
+        ok "Port $PORT held by healthy Metro (reused) — continuing"
+        break
+      fi
       sleep 1
     done
-    if lsof -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+    if lsof -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1 \
+       && ! curl -sf --max-time 1 "http://localhost:$PORT/status" >/dev/null 2>&1; then
       HOLDER=$(lsof -iTCP:"$PORT" -sTCP:LISTEN -Fc 2>/dev/null | grep '^c' | head -1)
       fail "Port $PORT still held after expo teardown ($HOLDER) — aborting to avoid CDP misrouting"
     fi
@@ -534,16 +591,19 @@ else
 
     BUILD_LOG="$(resolve_path '.agent/android-build.log')"
     stage_log "$BUILD_LOG"
+    : > "$BUILD_LOG"
     set +e
-    (cd android && SENTRY_DISABLE_AUTO_UPLOAD=true ./gradlew app:assembleProdDebug -PreactNativeArchitectures=arm64-v8a) 2>&1 | tee "$BUILD_LOG" | while IFS= read -r line; do
-      case "$line" in
-        *"BUILD SUCCESSFUL"*) echo -e "  ${GREEN}→${NC} $line" ;;
-        *"BUILD FAILED"*)     echo -e "  ${RED}→${NC} $line" ;;
-        *"error:"*)           echo -e "  ${RED}→${NC} $line" ;;
-        *"FAILURE"*)          echo -e "  ${RED}→${NC} $line" ;;
-      esac
-    done
+    run_with_live_log "$BUILD_LOG" "cd android && SENTRY_DISABLE_AUTO_UPLOAD=true ./gradlew app:assembleProdDebug -PreactNativeArchitectures=arm64-v8a"
+    GRADLE_RC=$?
     set -e
+    if grep -q 'BUILD SUCCESSFUL' "$BUILD_LOG" 2>/dev/null; then
+      echo -e "  ${GREEN}→${NC} BUILD SUCCESSFUL"
+    elif [ "$GRADLE_RC" -ne 0 ] || grep -qE 'BUILD FAILED|FAILURE|error:' "$BUILD_LOG" 2>/dev/null; then
+      echo ""
+      echo -e "  ${RED}Build log tail:${NC}"
+      tail -30 "$BUILD_LOG" | sed 's/^/    /'
+      fail "Gradle build failed — see $BUILD_LOG"
+    fi
 
     # Find the APK and install via adb
     APK_PATH=$(find android/app/build/outputs/apk -name "*.apk" -path "*/debug/*" 2>/dev/null | head -1)
