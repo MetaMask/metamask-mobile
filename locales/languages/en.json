@@ -1255,6 +1255,7 @@
       "open_orders": "Orders",
       "max": "max",
       "cancel_order": "Cancel order",
+      "no_orders": "No open orders",
       "filled": "filled",
       "reduce_only": "Reduce only",
       "yes": "Yes",
