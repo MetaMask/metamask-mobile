@@ -164,7 +164,7 @@ export default defineConfig({
     },
     {
       name: 'mm-connect-android-browserstack',
-      testMatch: '**/performance/mm-connect/**/*.spec.ts',
+      testMatch: 'tests/performance/mm-connect/multichain-rn-solana.spec.ts',
       timeout: 12 * 60 * 1000,
       use: {
         platform: Platform.ANDROID,
@@ -172,12 +172,16 @@ export default defineConfig({
           provider: 'browserstack',
           name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can changed
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
+          selfHeal: false,
+          otherApps: process.env.BROWSERSTACK_RN_PLAYGROUND_URL
+            ? [process.env.BROWSERSTACK_RN_PLAYGROUND_URL]
+            : [],
         },
         app: {
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
         },
-        buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
+        buildPath: 'bs://b539a5ed79b77fca9978253852afc7c5dc337e45', // Path to Browserstack url
       },
     },
     {

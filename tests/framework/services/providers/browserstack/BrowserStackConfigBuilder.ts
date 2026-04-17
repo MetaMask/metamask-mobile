@@ -93,17 +93,17 @@ export class BrowserStackConfigBuilder {
           buildIdentifier:
             process.env.GITHUB_ACTIONS === 'true' ? '' : process.env.USER,
           appProfiling: true,
-          selfHeal: true,
+          selfHeal: device.selfHeal ?? true,
           networkProfile: '4g-lte-advanced-good',
           // geoLocation: process.env.BROWSERSTACK_GEO_LOCATION || 'ES',
           enableCameraImageInjection: device.enableCameraImageInjection,
           ...(process.env.BROWSERSTACK_LOCAL_IDENTIFIER
             ? { localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER }
             : {}),
-          ...(process.env.BROWSERSTACK_RN_PLAYGROUND_URL
-            ? { otherApps: [process.env.BROWSERSTACK_RN_PLAYGROUND_URL] }
-            : {}),
         },
+        ...(device.otherApps && device.otherApps.length > 0
+          ? { 'appium:otherApps': device.otherApps as string[] }
+          : {}),
         ...(platformName === 'android'
           ? {
               'appium:appPackage': this.project.use.app?.packageName,
