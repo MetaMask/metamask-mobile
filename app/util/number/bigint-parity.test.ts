@@ -357,17 +357,8 @@ describe('Parity: toHexadecimal', () => {
     expect(bigintToHexadecimal(value)).toBe(legacyToHexadecimal(value));
   });
 
-  it('toHexadecimal(null): bigint returns "0", legacy returns null', () => {
-    // Known behavioral difference: bigint normalizes null → "0"
-    // while legacy passes null through. Both are safe since
-    // callers always check for falsy before using the result.
-    expect(bigintToHexadecimal(null)).toBe('0');
-    expect(legacyToHexadecimal(null)).toBe(null);
-  });
-
-  it('toHexadecimal(undefined): bigint returns "0", legacy returns undefined', () => {
-    expect(bigintToHexadecimal(undefined)).toBe('0');
-    expect(legacyToHexadecimal(undefined)).toBe(undefined);
+  it('toHexadecimal(null) matches legacy', () => {
+    expect(bigintToHexadecimal(null)).toBe(legacyToHexadecimal(null));
   });
 });
 

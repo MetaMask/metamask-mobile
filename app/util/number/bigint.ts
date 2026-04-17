@@ -939,17 +939,11 @@ export const conversionUtil = (
   });
 
 export const toHexadecimal = (
-  decimal?: number | string | bigint | null,
-): string => {
-  if (decimal == null) {
-    return '0';
-  }
-  if (typeof decimal === 'bigint') {
-    return decimal.toString(16);
-  }
-  if (typeof decimal !== 'string') {
-    decimal = String(decimal);
-  }
+  decimal: number | string | bigint | null,
+): string | null => {
+  if (decimal == null) return decimal;
+  if (typeof decimal === 'bigint') return decimal.toString(16);
+  if (typeof decimal !== 'string') decimal = String(decimal);
   if (decimal.startsWith('0x')) return decimal;
   return toBigInt.dec(decimal).toString(16);
 };

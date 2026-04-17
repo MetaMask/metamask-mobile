@@ -698,9 +698,8 @@ describe('toHexadecimal', () => {
     ).toEqual('159ffe6f22fd5cc42c524df6fd5e28d0de38f34e');
   });
 
-  it('returns "0" for null and undefined', () => {
-    expect(toHexadecimal(null)).toEqual('0');
-    expect(toHexadecimal(undefined)).toEqual('0');
+  it('returns null for null', () => {
+    expect(toHexadecimal(null)).toBeNull();
   });
 });
 
