@@ -121,8 +121,7 @@
     "account_no_funds": {
       "message": "Não há fundos disponíveis. Use outra conta."
     },
-    "perps_hardware_account": {
-
+    "mmpay_hardware_account": {
       "title": "Não há suporte para esta carteira",
       "message": "Não oferecemos suporte para carteiras de hardware.\nTroque de carteira para continuar."
     },

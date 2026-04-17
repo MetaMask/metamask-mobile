@@ -121,8 +121,7 @@
     "account_no_funds": {
       "message": "Dana tidak tersedia. Gunakan akun lain."
     },
-    "perps_hardware_account": {
-
+    "mmpay_hardware_account": {
       "title": "Dompet tidak didukung",
       "message": "Dompet perangkat keras tidak didukung.\nGanti dompet untuk melanjutkan."
     },

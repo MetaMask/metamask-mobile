@@ -121,8 +121,7 @@
     "account_no_funds": {
       "message": "无可用资金。请使用其他账户。"
     },
-    "perps_hardware_account": {
-
+    "mmpay_hardware_account": {
       "title": "钱包不获支持",
       "message": "暂不支持硬件钱包。请切换钱包继续操作。"
     },

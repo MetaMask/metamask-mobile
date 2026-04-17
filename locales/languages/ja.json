@@ -121,8 +121,7 @@
     "account_no_funds": {
       "message": "利用可能な資金がありません。別のアカウントをお試しください。"
     },
-    "perps_hardware_account": {
-
+    "mmpay_hardware_account": {
       "title": "未対応のウォレットです",
       "message": "ハードウェアウォレットには対応していません。\n続行するにはウォレットを切り替えてください。"
     },

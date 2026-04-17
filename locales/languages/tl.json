@@ -121,8 +121,7 @@
     "account_no_funds": {
       "message": "Walang available na mga pondo. Gumamit ng ibang account."
     },
-    "perps_hardware_account": {
-
+    "mmpay_hardware_account": {
       "title": "Hindi sinusuportahan ang wallet",
       "message": "Hindi pa sinusuportahan ang mga wallet na hardware.\nMagpalit ng wallet para magpatuloy."
     },

@@ -121,8 +121,7 @@
     "account_no_funds": {
       "message": "No hay fondos disponibles. Usa otra cuenta."
     },
-    "perps_hardware_account": {
-
+    "mmpay_hardware_account": {
       "title": "Billetera no admitida",
       "message": "Las billeteras físicas no son compatibles.\nCambia de billetera para continuar."
     },

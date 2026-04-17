@@ -121,8 +121,7 @@
     "account_no_funds": {
       "message": "Aucun fonds disponible. Veuillez utiliser un autre compte."
     },
-    "perps_hardware_account": {
-
+    "mmpay_hardware_account": {
       "title": "Portefeuille non pris en charge",
       "message": "Les portefeuilles matériels ne sont pas pris en charge.\nChangez de portefeuille pour continuer."
     },

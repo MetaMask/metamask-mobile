@@ -121,8 +121,7 @@
     "account_no_funds": {
       "message": "Para mevcut değil. Farklı bir hesap kullanın."
     },
-    "perps_hardware_account": {
-
+    "mmpay_hardware_account": {
       "title": "Cüzdan desteklenmiyor",
       "message": "Donanım cüzdanları desteklenmiyor.\nDevam etmek için cüzdan değiştirin."
     },

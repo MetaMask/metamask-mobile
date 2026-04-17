@@ -121,8 +121,7 @@
     "account_no_funds": {
       "message": "Không có tiền khả dụng. Hãy sử dụng tài khoản khác."
     },
-    "perps_hardware_account": {
-
+    "mmpay_hardware_account": {
       "title": "Ví không được hỗ trợ",
       "message": "Ví cứng hiện chưa được hỗ trợ.\nĐổi ví để tiếp tục."
     },
