@@ -198,7 +198,13 @@
     "expo-web-browser@npm:~14.0.2": "patch:expo-web-browser@npm%3A14.0.2#~/.yarn/patches/expo-web-browser-npm-14.0.2-98d00ce880.patch",
     "@metamask/messenger@^0.3.0": "^1.0.0",
     "@metamask/accounts-controller": "^37.2.0",
-    "@metamask/profile-sync-controller": "^28.0.2"
+    "@metamask/profile-sync-controller": "^28.0.2",
+    "@metamask/transaction-controller@npm:^61.0.0": "patch:@metamask/transaction-controller@npm%3A64.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-64.2.0-540bc2a651.patch",
+    "@metamask/transaction-controller@npm:^64.0.0": "patch:@metamask/transaction-controller@npm%3A64.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-64.2.0-540bc2a651.patch",
+    "@metamask/transaction-controller@npm:^62.20.0": "patch:@metamask/transaction-controller@npm%3A64.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-64.2.0-540bc2a651.patch",
+    "@metamask/transaction-controller@npm:^62.22.0": "patch:@metamask/transaction-controller@npm%3A64.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-64.2.0-540bc2a651.patch",
+    "@metamask/transaction-controller@npm:^64.2.0": "patch:@metamask/transaction-controller@npm%3A64.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-64.2.0-540bc2a651.patch",
+    "@metamask/transaction-controller@npm:^63.0.0": "patch:@metamask/transaction-controller@npm%3A64.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-64.2.0-540bc2a651.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -324,8 +330,8 @@
     "@metamask/storage-service": "^1.0.0",
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
-    "@metamask/transaction-controller": "^64.2.0",
-    "@metamask/transaction-pay-controller": "^19.1.1",
+    "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A64.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-64.2.0-540bc2a651.patch",
+    "@metamask/transaction-pay-controller": "patch:@metamask/transaction-pay-controller@npm%3A19.1.1#~/.yarn/patches/@metamask-transaction-pay-controller-npm-19.1.1-99fd296875.patch",
     "@metamask/tron-wallet-snap": "^1.25.2",
     "@metamask/utils": "^11.11.0",
     "@myx-trade/sdk": "^0.1.265",

@@ -125,13 +125,6 @@ export function useTransactionConfirm() {
         handleGasless7702(updatedMetadata);
       }
 
-      if (
-        isHardwareAccount(updatedMetadata.txParams?.from ?? '') &&
-        updatedMetadata.batchTransactionsOptions
-      ) {
-        updatedMetadata.batchTransactionsOptions.disable7702 = true;
-      }
-
       const effectiveWaitForResult = options?.waitForResult ?? waitForResult;
 
       try {
