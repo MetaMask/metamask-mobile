@@ -1,0 +1,18 @@
+<resources>
+
+    <!-- AppTheme for dark mode + API 31+ (Android 12+): dark background (#151719) for the
+         system splash so it matches the expo-splash-screen overlay in dark mode. -->
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@drawable/app_background</item>
+        <item name="android:statusBarColor">@color/theme</item>
+        <item name="android:navigationBarColor">@color/navBar</item>
+        <item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
+        <item name="android:textColor">@color/themeInverse</item>
+        <!-- Android 12+ splash screen dark mode.
+             Icon background (#151719) matches outer background — circle invisible. -->
+        <item name="android:windowSplashScreenBackground">@color/theme</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/theme</item>
+    </style>
+
+</resources>
