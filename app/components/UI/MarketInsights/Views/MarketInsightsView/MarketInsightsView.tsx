@@ -30,9 +30,6 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Hex, CaipChainId } from '@metamask/utils';
-import { isNativeAddress } from '@metamask/bridge-controller';
-import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import {
   Box,
   Text,
@@ -170,6 +167,8 @@ interface MarketInsightsRouteParams {
   isPerps?: boolean;
   /** When true, the user has an existing perps position for this asset */
   hasPerpsPosition?: boolean;
+  /** Full token object from Token Details, used to drive useTokenActions with the same state as Token Details / Security Trust. */
+  token?: TokenDetailsRouteParams;
 }
 
 /**
@@ -194,12 +193,10 @@ const MarketInsightsView: React.FC = () => {
     assetSymbol,
     assetIdentifier,
     tokenImageUrl,
-    tokenAddress,
-    tokenDecimals,
-    tokenName,
     tokenChainId,
     isPerps = false,
     hasPerpsPosition = false,
+    token: routeToken,
   } = route.params;
 
   const isMarketInsightsEnabled = isPerps
@@ -263,37 +260,16 @@ const MarketInsightsView: React.FC = () => {
     null,
   );
 
-  // Build a minimal token object from route params to drive useTokenActions
-  // and TokenDetailsStickyFooter (same shape as TokenDetailsRouteParams).
-  // When tokenAddress is absent or the zero address the asset is native, so
-  // set isNative/isETH so that useTokenBuyability can find it via the
-  // /slip44: ramp lookup (same path used by the token details page).
-  const token = useMemo<TokenDetailsRouteParams>(() => {
-    const resolvedAddress = tokenAddress ?? NATIVE_SWAPS_TOKEN_ADDRESS;
-    const native = !tokenAddress || isNativeAddress(resolvedAddress);
-    return {
-      address: resolvedAddress,
-      symbol: assetSymbol,
-      name: tokenName ?? assetSymbol,
-      image: tokenImageUrl ?? '',
-      logo: tokenImageUrl,
-      balance: '',
-      isETH: native,
-      isNative: native,
-      decimals: tokenDecimals ?? 18,
-      chainId: tokenChainId as Hex | CaipChainId,
-    };
-  }, [
-    assetSymbol,
-    tokenAddress,
-    tokenDecimals,
-    tokenName,
-    tokenImageUrl,
-    tokenChainId,
-  ]);
+  // Use the full token object passed from Token Details — same object that
+  // Security Trust and the token details sticky footer receive, so
+  // useTokenActions behaves identically (source/dest token selection, balance
+  // awareness, buyability, etc.).
+  // In the perps flow routeToken is undefined (perps uses Long/Short buttons
+  // instead of TokenDetailsStickyFooter).
+  const token = (routeToken ?? {}) as TokenDetailsRouteParams;
 
   const { onBuy, handleStickySwapPress, hasEligibleSwapTokens } =
-    useTokenActions({ token });
+    useTokenActions({ token, sourcePage: 'MarketInsightsView' });
 
   // Sends the identifier under the right analytics property name.
   // Token flow uses caip19 (a real CAIP-19 ID); perps flow uses perps_market

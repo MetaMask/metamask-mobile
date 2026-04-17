@@ -27,23 +27,33 @@ const mockGate = jest.fn((fn: () => Promise<void>) => fn());
 const mockPerpsTrack = jest.fn();
 let mockIsEligible = true;
 
+const mockTokenETH = {
+  address: '0x123',
+  symbol: 'ETH',
+  name: 'Ethereum',
+  image: 'https://example.com/eth.png',
+  logo: 'https://example.com/eth.png',
+  balance: '1.5',
+  isETH: true,
+  isNative: true,
+  decimals: 18,
+  chainId: '0x1',
+};
+
 let mockRouteParams: {
   assetSymbol: string;
   assetIdentifier: string;
   tokenImageUrl?: string;
-  tokenAddress?: string;
-  tokenDecimals?: number;
-  tokenName?: string;
   tokenChainId?: string;
   isPerps?: boolean;
+  hasPerpsPosition?: boolean;
+  token?: Record<string, unknown>;
 } = {
   assetSymbol: 'ETH',
   assetIdentifier: 'eip155:1/erc20:0x123',
   tokenImageUrl: 'https://example.com/eth.png',
-  tokenAddress: '0x123',
-  tokenDecimals: 18,
-  tokenName: 'Ethereum',
   tokenChainId: '0x1',
+  token: mockTokenETH,
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -312,10 +322,8 @@ describe('MarketInsightsView', () => {
       assetSymbol: 'ETH',
       assetIdentifier: 'eip155:1/erc20:0x123',
       tokenImageUrl: 'https://example.com/eth.png',
-      tokenAddress: '0x123',
-      tokenDecimals: 18,
-      tokenName: 'Ethereum',
       tokenChainId: '0x1',
+      token: mockTokenETH,
     };
   });
 
@@ -710,8 +718,14 @@ describe('MarketInsightsView', () => {
       ...mockRouteParams,
       assetSymbol: 'USDC',
       assetIdentifier: 'eip155:1/erc20:0x456',
-      tokenAddress: '0x456',
-      tokenName: 'USD Coin',
+      token: {
+        ...mockTokenETH,
+        address: '0x456',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        isETH: false,
+        isNative: false,
+      },
     };
 
     rerender(<MarketInsightsView />);
@@ -1208,8 +1222,14 @@ describe('MarketInsightsView', () => {
       ...mockRouteParams,
       assetSymbol: 'USDC',
       assetIdentifier: 'eip155:1/erc20:0x456',
-      tokenAddress: '0x456',
-      tokenName: 'USD Coin',
+      token: {
+        ...mockTokenETH,
+        address: '0x456',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        isETH: false,
+        isNative: false,
+      },
     };
 
     mockUseMarketInsights.mockReturnValue({
@@ -1260,7 +1280,7 @@ describe('MarketInsightsView', () => {
     );
   });
 
-  describe('token object construction for useTokenActions', () => {
+  describe('token object passed to useTokenActions', () => {
     const mockReport = {
       asset: 'eth',
       generatedAt: '2026-02-17T11:55:00.000Z',
@@ -1279,52 +1299,45 @@ describe('MarketInsightsView', () => {
       });
     });
 
-    it('passes isNative and isETH as true when tokenAddress is absent (native token)', () => {
-      mockRouteParams = {
-        assetSymbol: 'ETH',
-        assetIdentifier: 'eip155:1/slip44:60',
-        tokenImageUrl: 'https://example.com/eth.png',
-        tokenName: 'Ethereum',
-        tokenChainId: '0x1',
-        // tokenAddress intentionally omitted
-      };
-
+    it('passes the route token directly to useTokenActions (same object as Token Details)', () => {
       renderWithProvider(<MarketInsightsView />);
 
       expect(mockUseTokenActions).toHaveBeenCalledWith(
         expect.objectContaining({
-          token: expect.objectContaining({
-            address: '0x0000000000000000000000000000000000000000',
-            isNative: true,
-            isETH: true,
-            symbol: 'ETH',
-            chainId: '0x1',
-          }),
+          token: mockTokenETH,
+          sourcePage: 'MarketInsightsView',
         }),
       );
     });
 
-    it('passes isNative and isETH as false for an ERC-20 token with an explicit address', () => {
+    it('passes an ERC-20 token from route params to useTokenActions', () => {
+      const mockTokenUSDC = {
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        image: '',
+        logo: undefined,
+        balance: '500',
+        isETH: false,
+        isNative: false,
+        decimals: 6,
+        chainId: '0x1',
+      };
+
       mockRouteParams = {
         assetSymbol: 'USDC',
         assetIdentifier:
           'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        tokenDecimals: 6,
-        tokenName: 'USD Coin',
         tokenChainId: '0x1',
+        token: mockTokenUSDC,
       };
 
       renderWithProvider(<MarketInsightsView />);
 
       expect(mockUseTokenActions).toHaveBeenCalledWith(
         expect.objectContaining({
-          token: expect.objectContaining({
-            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-            isNative: false,
-            isETH: false,
-            symbol: 'USDC',
-          }),
+          token: mockTokenUSDC,
+          sourcePage: 'MarketInsightsView',
         }),
       );
     });
