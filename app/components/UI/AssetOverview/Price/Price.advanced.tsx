@@ -185,7 +185,7 @@ const PriceAdvanced = ({
       return (
         formatAddressToAssetId(normalizedAddress, asset.chainId as Hex) ?? ''
       );
-    } catch (error) {
+    } catch {
       // formatAddressToAssetId can throw for chains not supported by XChain Swaps/Bridge
       // (e.g., Linea Sepolia, custom networks). Fall back to empty string
       return '';
