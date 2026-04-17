@@ -3407,6 +3407,19 @@
     "feature_flag_override": {
       "title": "Feature flag override",
       "description": "Override the feature flags for the app locally."
+    },
+    "add_device": {
+      "title": "Add device",
+      "enter_your_password": "Enter your password",
+      "enter_your_password_desc": "For account security, enter your password to view the QR code.",
+      "continue": "Continue",
+      "add_wallets": "Add wallets",
+      "add_wallets_desc": "Pick the wallets you’d like to use on this device. You can add or remove them later.",
+      "select_all": "Select all",
+      "scan_qr_code": "Scan QR code",
+      "scan_qr_code_desc": "Scan this with the MetaMask app on the device you want to add.",
+      "enter_verification_code": "Enter verification code",
+      "enter_verification_code_desc": "For security, enter the code shown in the MetaMask app on your device."
     }
   },
   "aes_crypto_test_form": {

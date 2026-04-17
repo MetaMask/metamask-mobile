@@ -54,6 +54,10 @@ const Settings = () => {
     navigation.navigate('AdvancedSettings');
   };
 
+  const onPressAddDevice = () => {
+    navigation.navigate('AddDeviceSettings');
+  };
+
   const onPressNotifications = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SETTINGS_NOTIFICATIONS).build(),
@@ -141,6 +145,11 @@ const Settings = () => {
               : ''
           }
           testID={SettingsViewSelectorsIDs.SECURITY}
+        />
+        <SettingsDrawer
+          onPress={onPressAddDevice}
+          title={strings('app_settings.add_device.title')}
+          testID={SettingsViewSelectorsIDs.ADD_DEVICE}
         />
         <SettingsDrawer
           description={strings('app_settings.advanced_desc')}

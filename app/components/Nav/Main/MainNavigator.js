@@ -149,6 +149,7 @@ import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
+import AddDeviceSettings from '../../Views/Settings/AddDeviceSettings';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -468,6 +469,11 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="AdvancedSettings"
         component={AdvancedSettings}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AddDeviceSettings"
+        component={AddDeviceSettings}
         options={{ headerShown: false }}
       />
       <Stack.Screen
