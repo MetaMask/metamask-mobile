@@ -7686,6 +7686,45 @@ describe('PolymarketProvider', () => {
         ]);
       });
 
+      it('excludes events with ended: true before parsing', async () => {
+        const provider = createProvider();
+
+        mockFetchCarouselFromPolymarketApi.mockResolvedValue([
+          { event: { id: 'event-live', ended: false } },
+          { event: { id: 'event-ended', ended: true } },
+          { event: { id: 'event-scheduled' } },
+        ]);
+        mockParsePolymarketEvents.mockReturnValue([]);
+
+        await provider.getCarouselMarkets();
+
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          [
+            { id: 'event-live', ended: false },
+            { id: 'event-scheduled' },
+          ],
+          expect.any(Object),
+        );
+      });
+
+      it('does not load teams for events with ended: true', async () => {
+        const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+
+        mockFetchCarouselFromPolymarketApi.mockResolvedValue([
+          { event: { id: 'event-live', ended: false } },
+          { event: { id: 'event-ended', ended: true } },
+        ]);
+        mockExtractNeededTeamsFromEvents.mockReturnValue(new Map());
+        mockParsePolymarketEvents.mockReturnValue([]);
+
+        await provider.getCarouselMarkets();
+
+        expect(mockExtractNeededTeamsFromEvents).toHaveBeenCalledWith(
+          [{ id: 'event-live', ended: false }],
+          ['nfl'],
+        );
+      });
+
       it('loads teams when live sports is enabled', async () => {
         const provider = createProvider({ liveSportsLeagues: ['nfl'] });
         const mockEvents = [{ id: 'event-1' }];

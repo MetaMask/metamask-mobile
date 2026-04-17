@@ -497,7 +497,13 @@ export class PolymarketProvider implements PredictProvider {
       const liveSportsEnabled = supportedLeagues.length > 0;
 
       const items = await fetchCarouselFromPolymarketApi();
-      const events = items.map((item) => item.event);
+      // Polymarket's carousel API occasionally returns sports events that have
+      // already finished (ended: true). Filter them out here so ended games
+      // never reach the carousel UI. Non-sports events have `ended` undefined
+      // and pass through unchanged.
+      const events = items
+        .map((item) => item.event)
+        .filter((event) => !event.ended);
 
       await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
 
