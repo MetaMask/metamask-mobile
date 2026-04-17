@@ -134,7 +134,7 @@ describe('Quote Component', () => {
       { state: defaultState },
     );
 
-    expect(queryByText('Continue with Mock Provider')).not.toBeOnTheScreen();
+    expect(queryByText('Continue with Mock Provider')).not.toBeVisible();
   });
 
   it('displays previously used provider tag', () => {

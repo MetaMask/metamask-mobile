@@ -93,7 +93,7 @@ describe('CustomAction Component', () => {
       { state: defaultState },
     );
 
-    expect(queryByText('Continue with Paypal (Staging)')).not.toBeOnTheScreen();
+    expect(queryByText('Continue with Paypal (Staging)')).not.toBeVisible();
   });
 
   it('displays previously used provider tag', () => {
