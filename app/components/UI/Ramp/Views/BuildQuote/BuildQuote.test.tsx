@@ -1309,8 +1309,9 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('navigates to Enter Email when user has no token but Transak native policy was already agreed', async () => {
+    it('navigates to Enter Email for native provider without token after policy agreement', async () => {
       mockCheckExistingToken.mockResolvedValue(false);
+
       mockFiatOrdersModule.selectHasAgreedTransakNativePolicy.mockReturnValue(
         true,
       );

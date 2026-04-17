@@ -5,6 +5,7 @@ import V2VerifyIdentity from './VerifyIdentity';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { Linking } from 'react-native';
 import { setHasAgreedTransakNativePolicy } from '../../../../../reducers/fiatOrders';
+import { VerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -94,10 +95,10 @@ describe('V2VerifyIdentity', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  it('navigates to enter email when submit button is pressed', async () => {
-    const { getByText } = renderWithTheme(<V2VerifyIdentity />);
+  it('dispatches Transak native policy agreement and navigates to Enter Email on continue', () => {
+    const { getByTestId } = renderWithTheme(<V2VerifyIdentity />);
 
-    fireEvent.press(getByText('deposit.verify_identity.button'));
+    fireEvent.press(getByTestId(VerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
     expect(innerDispatch).toHaveBeenCalledWith(
       setHasAgreedTransakNativePolicy(true),

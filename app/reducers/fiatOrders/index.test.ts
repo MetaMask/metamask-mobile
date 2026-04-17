@@ -419,17 +419,27 @@ describe('fiatOrderReducer', () => {
     expect(stateWithStartedFalse.getStartedDeposit).toEqual(false);
   });
 
-  it('should set has agreed Transak native policy', () => {
-    const stateWithPolicyAgreed = fiatOrderReducer(
+  it('sets hasAgreedTransakNativePolicy to true', () => {
+    const next = fiatOrderReducer(
       initialState,
       setHasAgreedTransakNativePolicy(true),
     );
-    const stateWithPolicyCleared = fiatOrderReducer(
-      stateWithPolicyAgreed,
+
+    expect(next.hasAgreedTransakNativePolicy).toEqual(true);
+  });
+
+  it('sets hasAgreedTransakNativePolicy to false', () => {
+    const agreedState = {
+      ...initialState,
+      hasAgreedTransakNativePolicy: true,
+    };
+
+    const next = fiatOrderReducer(
+      agreedState,
       setHasAgreedTransakNativePolicy(false),
     );
-    expect(stateWithPolicyAgreed.hasAgreedTransakNativePolicy).toEqual(true);
-    expect(stateWithPolicyCleared.hasAgreedTransakNativePolicy).toEqual(false);
+
+    expect(next.hasAgreedTransakNativePolicy).toEqual(false);
   });
 
   it('should set the selected region', () => {
@@ -1106,7 +1116,7 @@ describe('selectors', () => {
   });
 
   describe('selectHasAgreedTransakNativePolicy', () => {
-    it('returns true when Transak native policy was agreed', () => {
+    it('returns true for state with hasAgreedTransakNativePolicy true', () => {
       const state = merge({}, initialRootState, {
         fiatOrders: {
           hasAgreedTransakNativePolicy: true,
@@ -1116,7 +1126,7 @@ describe('selectors', () => {
       expect(selectHasAgreedTransakNativePolicy(state)).toEqual(true);
     });
 
-    it('returns false when Transak native policy was not agreed', () => {
+    it('returns false for state with hasAgreedTransakNativePolicy false', () => {
       const state = merge({}, initialRootState, {
         fiatOrders: {
           hasAgreedTransakNativePolicy: false,
@@ -1124,6 +1134,9 @@ describe('selectors', () => {
       });
 
       expect(selectHasAgreedTransakNativePolicy(state)).toEqual(false);
+    });
+
+    it('returns false for initial root state default fiatOrders', () => {
       expect(selectHasAgreedTransakNativePolicy(initialRootState)).toEqual(
         false,
       );
