@@ -755,7 +755,7 @@ export class BaanxProvider implements ICardProvider {
   async getOnChainAssets(address: string): Promise<CardHomeData> {
     const fallback: CardHomeData = {
       ...emptyCardHomeData(),
-      actions: [{ type: 'add_funds', enabled: true }, { type: 'change_asset' }],
+      actions: [{ type: 'add_funds', enabled: true }],
     };
 
     try {
@@ -802,10 +802,7 @@ export class BaanxProvider implements ICardProvider {
         card: null,
         account: null,
         alerts: [],
-        actions: [
-          { type: 'add_funds', enabled: true },
-          { type: 'change_asset' },
-        ],
+        actions: [{ type: 'add_funds', enabled: true }],
         delegationSettings: null,
       };
     } catch (error) {
@@ -1438,7 +1435,7 @@ export class BaanxProvider implements ICardProvider {
     }
 
     if (card.status === CardStatus.ACTIVE && asset) {
-      return [{ type: 'add_funds', enabled: true }, { type: 'change_asset' }];
+      return [{ type: 'add_funds', enabled: true }];
     }
 
     return [];
