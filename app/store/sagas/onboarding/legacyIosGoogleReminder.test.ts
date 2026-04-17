@@ -6,7 +6,7 @@ import { setIosGoogleWarningSheetLastDismissedAt } from '../../../actions/onboar
 import {
   IOS_GOOGLE_WARNING_SHEET_REMINDER_INTERVAL_MS,
   promptIosGoogleWarningSheetSaga,
-} from './legacyIosGoogle';
+} from './legacyIosGoogleReminder';
 import { presentIosGoogleLoginVersionWarningSheetReminder } from '../../../components/Views/Onboarding/OnboardingIosPrompt';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 import Device from '../../../util/device';

@@ -36,7 +36,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
 import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
-import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogle';
+import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogleReminder';
 
 /**
  * Creates a channel to listen to app state changes.
