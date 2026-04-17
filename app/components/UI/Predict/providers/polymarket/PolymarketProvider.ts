@@ -508,7 +508,23 @@ export class PolymarketProvider implements PredictProvider {
         sortMarketsBy: 'price',
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
-      }).filter((m) => m.status === 'open' && m.outcomes.length > 0);
+      })
+        .filter((m) => m.status === 'open' && m.outcomes.length > 0)
+        .map((market) => {
+          // Carousel cards only have room for a single "winning team /
+          // winning side" bet. When Polymarket returns an event with
+          // multiple markets (e.g. an e-sports match with Match Winner +
+          // O/U 2.5 Games), collapse to just the moneyline outcome so
+          // users see the primary bet instead of a random pair of
+          // secondary markets. Events without a moneyline outcome are
+          // passed through unchanged.
+          const moneyline = market.outcomes.find(
+            (o) => o.sportsMarketType?.toLowerCase() === 'moneyline',
+          );
+          return moneyline
+            ? { ...market, outcomes: [moneyline] }
+            : market;
+        });
 
       return liveSportsEnabled
         ? GameCache.getInstance().overlayOnMarkets(parsedMarkets)

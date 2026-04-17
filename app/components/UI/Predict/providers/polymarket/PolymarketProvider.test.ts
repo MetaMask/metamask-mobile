@@ -7709,6 +7709,123 @@ describe('PolymarketProvider', () => {
           ['sea', 'den'],
         );
       });
+
+      it('collapses outcomes to the moneyline outcome when present', async () => {
+        const provider = createProvider();
+        const moneylineOutcome = {
+          id: 'match-winner',
+          sportsMarketType: 'moneyline',
+          tokens: [
+            { title: 'Spirit' },
+            { title: 'MOUZ' },
+          ],
+        };
+        const overUnderOutcome = {
+          id: 'ou-2.5',
+          sportsMarketType: 'totals',
+          tokens: [{ title: 'Over' }, { title: 'Under' }],
+        };
+
+        mockFetchCarouselFromPolymarketApi.mockResolvedValue([{ event: {} }]);
+        mockParsePolymarketEvents.mockReturnValue([
+          {
+            id: 'cs-spirit-vs-mouz',
+            status: 'open',
+            outcomes: [overUnderOutcome, moneylineOutcome],
+          },
+        ]);
+
+        const result = await provider.getCarouselMarkets();
+
+        expect(result).toEqual([
+          {
+            id: 'cs-spirit-vs-mouz',
+            status: 'open',
+            outcomes: [moneylineOutcome],
+          },
+        ]);
+      });
+
+      it('matches moneyline regardless of sportsMarketType casing', async () => {
+        const provider = createProvider();
+        const moneylineOutcome = {
+          id: 'match-winner',
+          sportsMarketType: 'MoneyLine',
+          tokens: [{ title: 'Home' }, { title: 'Away' }],
+        };
+
+        mockFetchCarouselFromPolymarketApi.mockResolvedValue([{ event: {} }]);
+        mockParsePolymarketEvents.mockReturnValue([
+          {
+            id: 'm1',
+            status: 'open',
+            outcomes: [
+              { id: 'spread', sportsMarketType: 'spreads' },
+              moneylineOutcome,
+            ],
+          },
+        ]);
+
+        const result = await provider.getCarouselMarkets();
+
+        expect(result[0].outcomes).toEqual([moneylineOutcome]);
+      });
+
+      it('passes markets through unchanged when no moneyline outcome exists', async () => {
+        const provider = createProvider();
+        const marketWithoutMoneyline = {
+          id: 'binary-market',
+          status: 'open',
+          outcomes: [
+            { id: 'yes', tokens: [{ title: 'Yes' }, { title: 'No' }] },
+          ],
+        };
+
+        mockFetchCarouselFromPolymarketApi.mockResolvedValue([{ event: {} }]);
+        mockParsePolymarketEvents.mockReturnValue([marketWithoutMoneyline]);
+
+        const result = await provider.getCarouselMarkets();
+
+        expect(result).toEqual([marketWithoutMoneyline]);
+      });
+
+      it('preserves all home/draw/away tokens on the moneyline outcome for soccer markets', async () => {
+        const provider = createProvider();
+        const soccerMoneyline = {
+          id: 'match-winner',
+          sportsMarketType: 'moneyline',
+          tokens: [
+            { id: 'tot', title: 'Tottenham' },
+            { id: 'draw', title: 'Draw' },
+            { id: 'bri', title: 'Brighton' },
+          ],
+        };
+        const totalGoals = {
+          id: 'total-goals',
+          sportsMarketType: 'totals',
+          tokens: [{ title: 'Over' }, { title: 'Under' }],
+        };
+
+        mockFetchCarouselFromPolymarketApi.mockResolvedValue([{ event: {} }]);
+        mockParsePolymarketEvents.mockReturnValue([
+          {
+            id: 'tot-vs-bri',
+            status: 'open',
+            game: { homeTeam: { name: 'Tottenham' }, awayTeam: { name: 'Brighton' } },
+            outcomes: [soccerMoneyline, totalGoals],
+          },
+        ]);
+
+        const result = await provider.getCarouselMarkets();
+
+        expect(result[0].outcomes).toEqual([soccerMoneyline]);
+        expect(result[0].outcomes[0].tokens).toHaveLength(3);
+        expect(
+          result[0].outcomes[0].tokens.map(
+            (t: { title: string }) => t.title,
+          ),
+        ).toEqual(['Tottenham', 'Draw', 'Brighton']);
+      });
     });
 
     describe('getMarketDetails', () => {
