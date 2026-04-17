@@ -14,7 +14,7 @@ import { isTestNet } from '../../../../../../util/networks';
  * the active order to reach PREVIEW state (after initPayWithAnyToken),
  * then either resets to Predict balance or auto-selects the token with
  * the highest fiat balance when Predict balance is below MINIMUM_BET.
- * Runs once per mount.
+ * Resets when the order leaves PREVIEW so it re-runs for the next market.
  */
 export function usePredictDefaultPaymentToken() {
   const { data: predictBalance, isLoading: isBalanceLoading } =
@@ -24,6 +24,14 @@ export function usePredictDefaultPaymentToken() {
   const { activeOrder } = usePredictActiveOrder();
   const tokens = useAccountTokens();
   const hasInitializedRef = useRef(false);
+  const prevOrderRef = useRef(activeOrder);
+
+  useEffect(() => {
+    if (activeOrder !== prevOrderRef.current) {
+      prevOrderRef.current = activeOrder;
+      hasInitializedRef.current = false;
+    }
+  }, [activeOrder]);
 
   useEffect(() => {
     if (hasInitializedRef.current) return;

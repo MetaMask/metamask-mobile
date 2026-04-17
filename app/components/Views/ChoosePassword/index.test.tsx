@@ -13,6 +13,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
+import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import Device from '../../../util/device';
 import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -706,7 +707,7 @@ describe('ChoosePassword', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+          url: RESET_PASSWORD_GUIDE_URL,
           title: 'support.metamask.io',
         },
       });

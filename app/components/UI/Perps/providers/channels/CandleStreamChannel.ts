@@ -5,6 +5,7 @@ import {
   calculateCandleCount,
   PERPS_CONSTANTS,
   PERFORMANCE_CONFIG,
+  isAbortError,
   type CandleData,
 } from '@metamask/perps-controller';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -528,6 +529,11 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         },
       );
     } catch (error) {
+      // Expected cancellation — skip Sentry to avoid noisy abort reports
+      if (isAbortError(error)) {
+        throw error;
+      }
+
       const errorInstance = ensureError(
         error,
         'CandleStreamChannel.fetchHistoricalCandles',

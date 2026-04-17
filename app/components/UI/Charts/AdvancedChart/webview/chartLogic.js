@@ -793,7 +793,7 @@ function applyChartScaleLayout(type) {
       'paneProperties.separatorColor': theme.backgroundColor,
       'paneProperties.topMargin': 8,
       // Same margin in both modes so scale padding (and logo anchor) does not shift on toggle.
-      'paneProperties.bottomMargin': 8,
+      'paneProperties.bottomMargin': 9,
     });
   } catch (e) {}
 

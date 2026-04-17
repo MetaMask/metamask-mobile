@@ -159,6 +159,8 @@ const PriceAdvanced = ({
       if (range === timeRange) {
         return;
       }
+      // Clear crosshair data when changing timeframes to reset price/percentage display
+      setCrosshairData(null);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
           .addProperties({
@@ -180,9 +182,16 @@ const PriceAdvanced = ({
       asset.address,
       asset.chainId as Hex,
     );
-    return (
-      formatAddressToAssetId(normalizedAddress, asset.chainId as Hex) ?? ''
-    );
+
+    try {
+      return (
+        formatAddressToAssetId(normalizedAddress, asset.chainId as Hex) ?? ''
+      );
+    } catch {
+      // formatAddressToAssetId can throw for chains not supported by XChain Swaps/Bridge
+      // (e.g., Linea Sepolia, custom networks). Fall back to empty string
+      return '';
+    }
   }, [asset.address, asset.chainId]);
   const config = TIME_RANGE_CONFIGS[timeRange];
 

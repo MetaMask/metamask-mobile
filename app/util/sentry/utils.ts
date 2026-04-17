@@ -160,11 +160,6 @@ export const sentryStateMask = {
       SubjectMetadataController: {
         [AllProperties]: false,
       },
-      TokenListController: {
-        tokensChainsCache: {
-          [AllProperties]: false,
-        },
-      },
       TokenRatesController: {
         [AllProperties]: false,
       },
