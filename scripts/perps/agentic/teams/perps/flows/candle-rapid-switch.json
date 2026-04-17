@@ -1,0 +1,170 @@
+{
+  "title": "Rapid market switching — validates candles load and no rate-limit/abort errors across BTC→ETH→SOL→HYPE→BTC→ETH",
+  "inputs": {},
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked", "perps.feature_enabled"],
+      "entry": "nav-list",
+      "nodes": {
+        "nav-list": {
+          "action": "navigate",
+          "target": "PerpsTrendingView",
+          "next": "wait-list"
+        },
+        "wait-list": {
+          "action": "wait_for",
+          "test_id": "perps-market-row-item-BTC",
+          "timeout_ms": 10000,
+          "next": "open-btc-1"
+        },
+        "open-btc-1": {
+          "action": "press",
+          "test_id": "perps-market-row-item-BTC",
+          "next": "wait-detail-btc-1"
+        },
+        "wait-detail-btc-1": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-view",
+          "timeout_ms": 8000,
+          "next": "back-1"
+        },
+        "back-1": {
+          "action": "press",
+          "test_id": "perps-market-header-back-button",
+          "next": "wait-eth-1"
+        },
+        "wait-eth-1": {
+          "action": "wait_for",
+          "test_id": "perps-market-row-item-ETH",
+          "timeout_ms": 5000,
+          "next": "open-eth-1"
+        },
+        "open-eth-1": {
+          "action": "press",
+          "test_id": "perps-market-row-item-ETH",
+          "next": "wait-detail-eth-1"
+        },
+        "wait-detail-eth-1": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-view",
+          "timeout_ms": 8000,
+          "next": "back-2"
+        },
+        "back-2": {
+          "action": "press",
+          "test_id": "perps-market-header-back-button",
+          "next": "wait-sol-1"
+        },
+        "wait-sol-1": {
+          "action": "wait_for",
+          "test_id": "perps-market-row-item-SOL",
+          "timeout_ms": 5000,
+          "next": "open-sol-1"
+        },
+        "open-sol-1": {
+          "action": "press",
+          "test_id": "perps-market-row-item-SOL",
+          "next": "wait-detail-sol-1"
+        },
+        "wait-detail-sol-1": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-view",
+          "timeout_ms": 8000,
+          "next": "back-3"
+        },
+        "back-3": {
+          "action": "press",
+          "test_id": "perps-market-header-back-button",
+          "next": "wait-hype-1"
+        },
+        "wait-hype-1": {
+          "action": "wait_for",
+          "test_id": "perps-market-row-item-HYPE",
+          "timeout_ms": 5000,
+          "next": "open-hype-1"
+        },
+        "open-hype-1": {
+          "action": "press",
+          "test_id": "perps-market-row-item-HYPE",
+          "next": "wait-detail-hype-1"
+        },
+        "wait-detail-hype-1": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-view",
+          "timeout_ms": 8000,
+          "next": "back-4"
+        },
+        "back-4": {
+          "action": "press",
+          "test_id": "perps-market-header-back-button",
+          "next": "wait-btc-2"
+        },
+        "wait-btc-2": {
+          "action": "wait_for",
+          "test_id": "perps-market-row-item-BTC",
+          "timeout_ms": 5000,
+          "next": "open-btc-2"
+        },
+        "open-btc-2": {
+          "action": "press",
+          "test_id": "perps-market-row-item-BTC",
+          "next": "wait-detail-btc-2"
+        },
+        "wait-detail-btc-2": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-view",
+          "timeout_ms": 8000,
+          "next": "back-5"
+        },
+        "back-5": {
+          "action": "press",
+          "test_id": "perps-market-header-back-button",
+          "next": "wait-eth-2"
+        },
+        "wait-eth-2": {
+          "action": "wait_for",
+          "test_id": "perps-market-row-item-ETH",
+          "timeout_ms": 5000,
+          "next": "open-eth-2"
+        },
+        "open-eth-2": {
+          "action": "press",
+          "test_id": "perps-market-row-item-ETH",
+          "next": "wait-detail-eth-2"
+        },
+        "wait-detail-eth-2": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-view",
+          "timeout_ms": 8000,
+          "next": "screenshot-chart"
+        },
+        "screenshot-chart": {
+          "action": "screenshot",
+          "filename": "evidence-rapid-switch-chart-loaded.png",
+          "next": "back-6"
+        },
+        "back-6": {
+          "action": "press",
+          "test_id": "perps-market-header-back-button",
+          "next": "check-no-errors"
+        },
+        "check-no-errors": {
+          "action": "log_watch",
+          "window_seconds": 45,
+          "must_not_appear": [
+            "candleSnapshot error",
+            "historical_candles_api",
+            "candle_subscription_async",
+            "initial_candles_fetch"
+          ],
+          "watch_for": ["candleSnapshot", "fetchHistoricalCandles", "historical_candles"],
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      }
+    }
+  }
+}
