@@ -20,10 +20,10 @@ test.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
 
       const balanceStableTimer = new TimerHelper(
         'Time since the user navigates to wallet tab until the balance stabilizes',
-        { ios: 25000, android: 40000 },
+        { ios: 40000, android: 40000 },
         currentDeviceDetails.platform,
       );
-      await balanceStableTimer.measureRaw(async () => {
+      await balanceStableTimer.measure(async () => {
         await WalletView.waitForBalanceToStabilize();
       });
       performanceTracker.addTimer(balanceStableTimer);

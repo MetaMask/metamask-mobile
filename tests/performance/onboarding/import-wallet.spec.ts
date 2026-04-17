@@ -30,22 +30,22 @@ test.describe(PerformanceOnboarding, () => {
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       const timer1 = new TimerHelper(
         'Time since the user clicks on "Create new wallet" button until "Social sign up" is visible',
-        { ios: 2000, android: 1800 },
+        { ios: 1500, android: 1800 },
         currentDeviceDetails.platform,
       );
       const timer2 = new TimerHelper(
         'Time since the user clicks on "Import using SRP" button until SRP field is displayed',
-        { ios: 2000, android: 2000 },
+        { ios: 1000, android: 2000 },
         currentDeviceDetails.platform,
       );
       const timer3 = new TimerHelper(
         'Time since the user clicks on "Continue" button on SRP screen until Password fields are visible',
-        { ios: 2000, android: 2000 },
+        { ios: 1000, android: 2000 },
         currentDeviceDetails.platform,
       );
       const timer4 = new TimerHelper(
         'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
-        { ios: 2000, android: 2000 },
+        { ios: 1000, android: 2000 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
@@ -59,8 +59,8 @@ test.describe(PerformanceOnboarding, () => {
         currentDeviceDetails.platform,
       );
       const timer7 = new TimerHelper(
-        'Time since the user clicks on "Tokens" section until BTC, SOL and USDC tokens are visible',
-        { ios: 5000, android: 5000 }, // since the test waits for the balance to stabilize, this step should be instantaneous
+        'Time since the user clicks on "Done" button until ETH and BTC are visible',
+        { ios: 15000, android: 15000 },
         currentDeviceDetails.platform,
       );
 
@@ -79,14 +79,14 @@ test.describe(PerformanceOnboarding, () => {
       );
 
       await OnboardingView.tapHaveAnExistingWallet();
-      await timer1.measureRaw(async () => {
+      await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(OnboardingSheet.importSeedButton),
         );
       });
 
       await OnboardingSheet.tapImportSeedButton();
-      await timer2.measureRaw(async () => {
+      await timer2.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(ImportWalletView.title),
         );
@@ -99,7 +99,7 @@ test.describe(PerformanceOnboarding, () => {
       await PlaywrightGestures.hideKeyboard();
 
       await ImportWalletView.tapContinueButton();
-      await timer3.measureRaw(async () => {
+      await timer3.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(CreatePasswordView.newPasswordInput),
         );
@@ -120,14 +120,14 @@ test.describe(PerformanceOnboarding, () => {
       }
       await CreatePasswordView.tapCreatePasswordButton();
 
-      await timer4.measureRaw(async () => {
+      await timer4.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(MetaMetricsOptInView.screenTitle),
         );
       });
 
       await MetaMetricsOptInView.tapIAgreeButton();
-      await timer5.measureRaw(async () => {
+      await timer5.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(OnboardingSuccessView.doneButton),
         );
@@ -136,26 +136,17 @@ test.describe(PerformanceOnboarding, () => {
       await OnboardingSuccessView.tapDone();
 
       if (predictGtmOnboardingModalEnabled) {
-        await timer6.measureRaw(async () => {
+        await timer6.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             await asPlaywrightElement(PredictModalView.notNowButton),
           );
         });
         await dismisspredictionsModalPlaywright();
       }
-      await withSnapshotSettings({ snapshotMaxDepth: 45 }, async () => {
-        await WalletView.waitForBalanceToStabilize();
-        await WalletView.tapOnTokensSection();
-        await timer7.measureRaw(async () => {
-          await PlaywrightAssertions.expectAllElementsToBeVisible(
-            [
-              asPlaywrightElement(WalletView.tokenRow('USDC')),
-              asPlaywrightElement(WalletView.tokenRow('SOL')),
-              // asPlaywrightElement(WalletView.tokenRow('BTC')), TODO: BTC seems to be missing sometimes
-            ],
-            { timeout: 20000 },
-          );
-        });
+      await timer7.measure(async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(WalletView.tokenRow('ETH')),
+        );
       });
 
       performanceTracker.addTimers(
@@ -164,13 +155,13 @@ test.describe(PerformanceOnboarding, () => {
         timer3,
         timer4,
         timer5,
-        timer7,
+        timer6,
       );
       if (
         predictGtmOnboardingModalEnabled &&
         predictGtmOnboardingModalEnabled === true
       ) {
-        performanceTracker.addTimer(timer6);
+        performanceTracker.addTimer(timer7);
       }
     },
   );

@@ -38,7 +38,7 @@ perfTest.describe(PerformancePredict, () => {
       await TabBarComponent.tapActions();
 
       await WalletActionsBottomSheet.tapPredictButton();
-      await timer1.measureRaw(async () => {
+      await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(PredictMarketList.container),
           { timeout: 60000 },

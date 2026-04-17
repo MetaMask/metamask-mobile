@@ -60,14 +60,14 @@ test.describe(PerformancePreps, () => {
 
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapPerpsButton();
-      await selectPerpsMainScreenTimer.measureRaw(async () => {
+      await selectPerpsMainScreenTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(PerpsOnboarding.tutorialTitle),
         );
       });
 
       await PerpsOnboarding.tapSkipButton();
-      await selectMarketTimer.measureRaw(async () => {
+      await selectMarketTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(PerpsMarketListView.header),
         );
@@ -75,7 +75,7 @@ test.describe(PerformancePreps, () => {
 
       await PerpsMarketListView.tapMarketRowItemBTC();
 
-      await MarketDetailsScreenTimer.measureRaw(async () => {
+      await MarketDetailsScreenTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(PerpsMarketDetailsView.header),
         );
@@ -95,7 +95,7 @@ test.describe(PerformancePreps, () => {
 
       await PerpsMarketDetailsView.tapLongButton();
       // Open Position
-      await openOrderScreenTimer.measureRaw(async () => {
+      await openOrderScreenTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(PerpsOrderView.placeOrderButton),
         );
@@ -105,7 +105,7 @@ test.describe(PerformancePreps, () => {
       await PerpsOrderView.setAmountUSD('10');
       await PerpsOrderView.tapPlaceOrder();
 
-      await openPositionTimer.measureRaw(async () => {
+      await openPositionTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(PerpsMarketDetailsView.closeButton),
         );

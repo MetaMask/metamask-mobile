@@ -161,6 +161,12 @@ let _overheadMs = 0;
 let _tracking = false;
 
 export function startOverheadTracking(): void {
+  if (_tracking) {
+    console.warn(
+      'TimerHelper: startOverheadTracking() called while already active — nested measure() calls are not supported; inner call ignored',
+    );
+    return;
+  }
   _overheadMs = 0;
   _tracking = true;
 }

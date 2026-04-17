@@ -48,7 +48,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
       );
 
       await PlaywrightGestures.activateApp(currentDeviceDetails);
-      await timer1.measureRaw(async () => {
+      await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(LoginView.container),
           {

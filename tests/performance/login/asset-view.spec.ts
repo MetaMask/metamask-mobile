@@ -27,16 +27,14 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await withSnapshotSettings({ snapshotMaxDepth: 45 }, async () => {
-        await WalletView.tapOnTokensSection();
-        await WalletView.tapOnToken('USDC');
-      });
+      await WalletView.tapOnTokensSection();
+      await WalletView.tapOnToken('USDC');
 
       const priceChartDotEnd = asPlaywrightElement(
         TokenOverview.priceChartDotEnd,
       );
 
-      await assetViewScreen.measureRaw(async () => {
+      await assetViewScreen.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
           priceChartDotEnd,
         );

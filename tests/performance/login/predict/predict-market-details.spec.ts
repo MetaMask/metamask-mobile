@@ -42,7 +42,7 @@ perfTest.describe(PerformancePredict, () => {
 
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapPredictButton();
-      await timer1.measureRaw(async () => {
+      await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(PredictMarketList.container),
         );
@@ -56,7 +56,7 @@ perfTest.describe(PerformancePredict, () => {
       );
 
       await PredictMarketList.tapMarketCard('trending', 1);
-      await timer2.measureRaw(async () => {
+      await timer2.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(PredictDetailsPage.container),
         );
@@ -70,7 +70,7 @@ perfTest.describe(PerformancePredict, () => {
       );
 
       await PredictDetailsPage.tapAboutTab();
-      await timer3.measureRaw(async () => {
+      await timer3.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(PredictDetailsPage.aboutTabContent),
         );
@@ -93,7 +93,7 @@ perfTest.describe(PerformancePredict, () => {
 
         await PredictDetailsPage.tapOutcomesTab();
 
-        await timer4.measureRaw(async () => {
+        await timer4.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(PredictDetailsPage.outcomesTabContent),
           );

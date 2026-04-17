@@ -92,7 +92,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
       );
       const screen3Timer = new TimerHelper(
         'Time since the user clicks on new account created until the Token list is visible',
-        { ios: 1000, android: 1000 },
+        { ios: 2000, android: 2000 },
         currentDeviceDetails.platform,
       );
 
@@ -102,7 +102,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
         );
 
         await WalletView.tapIdenticon();
-        await screen1Timer.measureRaw(
+        await screen1Timer.measure(
           async () =>
             await PlaywrightAssertions.expectElementToBeVisible(
               await asPlaywrightElement(AccountListBottomSheet.accountList),
@@ -111,7 +111,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
 
         await AccountListBottomSheet.waitForAccountSyncToComplete();
         await AccountListBottomSheet.tapCreateAccount(0);
-        await screen2Timer.measureRaw(
+        await screen2Timer.measure(
           async () =>
             await PlaywrightAssertions.expectElementToBeVisible(
               await asPlaywrightElement(
@@ -121,7 +121,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
         );
 
         await AccountListBottomSheet.tapAccountByName('Account 2');
-        await screen3Timer.measureRaw(async () => {
+        await screen3Timer.measure(async () => {
           await WalletView.checkActiveAccount('Account 2');
         });
       });

@@ -22,6 +22,7 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
       );
 
       await WalletView.tapWalletSwapButton();
+
       await swapLoadTimer.measure(() => QuoteView.isVisible());
 
       const swapTimer = new TimerHelper(
@@ -32,10 +33,8 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
       await QuoteView.selectNetworkAndTokenTo('Ethereum', 'LINK');
       await QuoteView.enterSourceTokenAmount('1');
 
-      await swapTimer.measureRaw(async () => {
-        await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
-          asPlaywrightElement(QuoteView.amountInput),
-        );
+      await swapTimer.measure(async () => {
+        await QuoteView.isQuoteDisplayed();
       });
       performanceTracker.addTimers(swapLoadTimer, swapTimer);
     },

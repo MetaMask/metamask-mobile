@@ -73,7 +73,7 @@ test.describe(PerformanceOnboarding, () => {
       const password = getPasswordForScenario('onboarding') ?? '';
 
       await OnboardingView.tapCreateNewWalletButton();
-      await timer1.measureRaw(async () => {
+      await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(OnboardingSheet.googleLoginButton),
           {
@@ -87,7 +87,7 @@ test.describe(PerformanceOnboarding, () => {
       let isNewUser = true;
 
       if (currentDeviceDetails.platform === 'ios') {
-        await timer2.measureRaw(async () => {
+        await timer2.measure(async () => {
           const result = await waitForFirstSuccessful([
             SocialLoginView.isIosNewUserScreenVisible().then(() => 'new_user'),
             SocialLoginView.isAccountFoundScreenVisible().then(
@@ -99,12 +99,12 @@ test.describe(PerformanceOnboarding, () => {
 
         if (isNewUser) {
           await SocialLoginView.tapIosNewUserSetPinButton();
-          await timer3.measureRaw(async () => {
+          await timer3.measure(async () => {
             await CreatePasswordView.isVisible();
           });
         }
       } else {
-        await timer2.measureRaw(async () => {
+        await timer2.measure(async () => {
           const result = await waitForFirstSuccessful([
             CreatePasswordView.isVisible().then(() => 'new_user'),
             SocialLoginView.isAccountFoundScreenVisible().then(
@@ -122,7 +122,7 @@ test.describe(PerformanceOnboarding, () => {
         await CreatePasswordView.tapIUnderstandCheckBox();
         await CreatePasswordView.tapCreatePasswordButton();
 
-        await timer4.measureRaw(async () => {
+        await timer4.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(OnboardingSuccessView.doneButton),
             {
@@ -132,7 +132,7 @@ test.describe(PerformanceOnboarding, () => {
         });
 
         await OnboardingSuccessView.tapDone();
-        await timer5.measureRaw(async () => {
+        await timer5.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(PredictModalView.notNowButton),
             {
@@ -143,7 +143,7 @@ test.describe(PerformanceOnboarding, () => {
         });
 
         await dismisspredictionsModalPlaywright();
-        await timer6.measureRaw(async () => {
+        await timer6.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
             {
@@ -159,14 +159,14 @@ test.describe(PerformanceOnboarding, () => {
         performanceTracker.addTimers(...timers);
       } else {
         await SocialLoginView.tapAccountFoundLoginButton();
-        await timer3.measureRaw(async () => {
+        await timer3.measure(async () => {
           await LoginView.waitForScreenToDisplay();
         });
 
         await LoginView.enterPassword(password);
         await LoginView.tapLoginButton();
 
-        await timer4.measureRaw(async () => {
+        await timer4.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(WalletView.container),
             {

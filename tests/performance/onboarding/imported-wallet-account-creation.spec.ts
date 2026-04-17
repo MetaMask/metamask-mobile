@@ -26,7 +26,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
       );
 
       await WalletView.tapIdenticon();
-      await screen1Timer.measureRaw(
+      await screen1Timer.measure(
         async () =>
           await PlaywrightAssertions.expectElementToBeVisible(
             await asPlaywrightElement(AccountListBottomSheet.accountList),
@@ -34,7 +34,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
       );
 
       await AccountListBottomSheet.tapAddAccountButton();
-      await screen3Timer.measureRaw(async () => {
+      await screen3Timer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(WalletView.tokenRow('SOL')),
         );

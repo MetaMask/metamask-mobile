@@ -37,7 +37,7 @@ test.describe(PerformancePreps, () => {
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapPerpsButton(); // may need to change for catchAll trade perps contracts
       // Open Perps Main Screen
-      await selectPerpsMainScreenTimer.measureRaw(async () => {
+      await selectPerpsMainScreenTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(PerpsOnboarding.tutorialTitle),
         );
@@ -48,7 +48,7 @@ test.describe(PerformancePreps, () => {
 
       await PerpsOnboarding.tapAddFunds();
       // Open Add Funds flow
-      await openAddFundsTimer.measureRaw(async () => {
+      await openAddFundsTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(PerpsDepositView.amountInput),
         );
@@ -58,7 +58,7 @@ test.describe(PerformancePreps, () => {
       await PerpsDepositView.tapContinue();
 
       // Get quote
-      await getQuoteTimer.measureRaw(async () => {
+      await getQuoteTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(PerpsDepositView.addFundsButton),
         );

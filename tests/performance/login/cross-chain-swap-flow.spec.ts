@@ -24,11 +24,9 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await withSnapshotSettings({ snapshotMaxDepth: 45 }, async () => {
-        await WalletView.tapWalletSwapButton();
-      });
+      await WalletView.tapWalletSwapButton();
 
-      await timer1.measureRaw(async () => {
+      await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
           asPlaywrightElement(QuoteView.amountInput),
         );
@@ -43,7 +41,7 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await timer2.measureRaw(() => QuoteView.isQuoteDisplayed());
+      await timer2.measure(() => QuoteView.isQuoteDisplayed());
 
       performanceTracker.addTimers(timer1, timer2);
     },

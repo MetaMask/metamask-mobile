@@ -58,7 +58,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
       );
 
       await LoginView.tapLoginButton();
-      await timer1.measureRaw(async () => {
+      await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(WalletView.container),
           {
