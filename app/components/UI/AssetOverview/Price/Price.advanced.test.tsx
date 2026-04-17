@@ -122,16 +122,6 @@ jest.mock('./Price.legacy', () => {
   };
 });
 
-const mockFormatAddressToAssetId = jest.fn();
-jest.mock('@metamask/bridge-controller', () => ({
-  formatAddressToAssetId: (...args: unknown[]) =>
-    mockFormatAddressToAssetId(...args),
-}));
-
-jest.mock('../../Bridge/utils/tokenUtils', () => ({
-  normalizeTokenAddress: jest.fn((address: string) => address),
-}));
-
 /** Enough points to stay on the advanced path (see CHART_DATA_THRESHOLD in Price.advanced). */
 const mockPricesAtLeast5: TokenPrice[] = Array.from({ length: 5 }, (_, i) => [
   String(1000 + i),
@@ -172,11 +162,6 @@ describe('PriceAdvanced', () => {
     });
     mockTrackEvent = analyticsHook.trackEvent as jest.Mock;
     jest.mocked(useAnalytics).mockReturnValue(analyticsHook);
-
-    // Default: formatAddressToAssetId succeeds with a valid CAIP-19 asset ID
-    mockFormatAddressToAssetId.mockReturnValue(
-      'eip155:1/erc20:0x1234567890123456789012345678901234567890',
-    );
 
     // Reset useOHLCVChart to default success state
     mockUseOHLCVChart.mockReturnValue({
@@ -696,11 +681,6 @@ describe('PriceAdvanced', () => {
 
   describe('custom network support', () => {
     it('falls back to legacy chart when formatAddressToAssetId throws for unsupported chain', () => {
-      // Simulate formatAddressToAssetId throwing for custom/unsupported networks
-      mockFormatAddressToAssetId.mockImplementation(() => {
-        throw new Error('No XChain Swaps native asset found for chainId: 0xfa');
-      });
-
       // useOHLCVChart should receive empty assetId and skip fetch
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [],
@@ -713,9 +693,9 @@ describe('PriceAdvanced', () => {
 
       const customNetworkAsset: TokenI = {
         ...mockAsset,
-        chainId: '0xfa', // Fantom
-        symbol: 'FTM',
-        name: 'Fantom',
+        chainId: '0x999999', // Unsupported custom network
+        symbol: 'CUSTOM',
+        name: 'Custom Token',
       };
 
       const { getByTestId } = render(
@@ -727,12 +707,6 @@ describe('PriceAdvanced', () => {
     });
 
     it('handles formatAddressToAssetId error for Linea Sepolia testnet', () => {
-      mockFormatAddressToAssetId.mockImplementation(() => {
-        throw new Error(
-          'No XChain Swaps native asset found for chainId: eip155:59141',
-        );
-      });
-
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [],
         isLoading: false,
@@ -744,7 +718,7 @@ describe('PriceAdvanced', () => {
 
       const lineaSepoliaAsset: TokenI = {
         ...mockAsset,
-        chainId: 'eip155:59141',
+        chainId: '0xe705', // Linea Sepolia - unsupported testnet
         symbol: 'ETH',
         name: 'Ethereum',
       };
@@ -757,11 +731,6 @@ describe('PriceAdvanced', () => {
     });
 
     it('still renders advanced chart for supported networks', () => {
-      // Ensure formatAddressToAssetId succeeds for supported chains
-      mockFormatAddressToAssetId.mockReturnValue(
-        'eip155:1/erc20:0x1234567890123456789012345678901234567890',
-      );
-
       // Mock successful OHLCV data fetch
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [
@@ -786,10 +755,6 @@ describe('PriceAdvanced', () => {
     });
 
     it('passes empty assetId to useOHLCVChart when formatAddressToAssetId fails', () => {
-      mockFormatAddressToAssetId.mockImplementation(() => {
-        throw new Error('Unsupported chain');
-      });
-
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [],
         isLoading: false,
@@ -799,7 +764,13 @@ describe('PriceAdvanced', () => {
         hasEmptyData: false,
       });
 
-      render(<PriceAdvanced {...baseProps} />);
+      const customNetworkAsset: TokenI = {
+        ...mockAsset,
+        chainId: '0x999999', // Unsupported custom network
+        address: '0x0000000000000000000000000000000000000000', // Native token
+      };
+
+      render(<PriceAdvanced {...baseProps} asset={customNetworkAsset} />);
 
       // useOHLCVChart should be called with empty assetId
       expect(mockUseOHLCVChart).toHaveBeenCalledWith(
