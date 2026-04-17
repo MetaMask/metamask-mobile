@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.74.0-ota.0]
+
 ## [7.74.0]
 
 ### Uncategorized
@@ -11246,6 +11248,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.74.0...HEAD
+[7.74.0-ota.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.1...v7.74.0-ota.0
 [7.74.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.1...v7.74.0
 [7.72.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.0...v7.72.1
 [7.72.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.1...v7.72.0
