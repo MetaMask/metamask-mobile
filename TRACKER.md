@@ -66,6 +66,10 @@ Promoted into the branch for broader use:
 - `.agents/skills/fs-cook/VERSION`
   - explicit local skill versioning
   - runner now records `skill_version` in `run-meta.json`
+- `docs/readme/fs-cook.md`
+  - usage doc for autonomous vs interactive fs-cook
+  - documents current Codex caveat
+  - documents manual worker-style delegation simulation
 
 ## Key Learnings Captured So Far
 
