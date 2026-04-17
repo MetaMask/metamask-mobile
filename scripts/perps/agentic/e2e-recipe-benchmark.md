@@ -81,7 +81,7 @@ Detox and recipes need different builds + env — run sequentially on two sims.
 | Accounts | fixture-injected ($10k fake) | real wallet (testnet) |
 | API | mock server | real Hyperliquid testnet |
 
-Detox wipes app data per test (`launchApp({ delete: true })`), so the dedicated sim protects the dev wallet. Port is shared across phases with Metro restarted between them (see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for the dual-port pitfall).
+Detox wipes app data per test (`launchApp({ delete: true })`), so the dedicated sim protects the dev wallet. Port is shared across phases with Metro restarted between them — running two Metros on different ports breaks Expo Dev Client deep links (the cached `WATCHER_PORT` from `.js.env` resolves to the wrong bundle).
 
 ### Trade path difference
 
