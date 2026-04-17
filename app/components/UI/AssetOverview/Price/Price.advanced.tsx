@@ -159,6 +159,8 @@ const PriceAdvanced = ({
       if (range === timeRange) {
         return;
       }
+      // Clear crosshair data when changing timeframes to reset price/percentage display
+      setCrosshairData(null);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
           .addProperties({
