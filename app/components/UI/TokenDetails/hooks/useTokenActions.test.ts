@@ -32,10 +32,16 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../selectors/networkController', () => ({
+  ...jest.requireActual<
+    typeof import('../../../../selectors/networkController')
+  >('../../../../selectors/networkController'),
   selectEvmChainId: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/accountsController', () => ({
+  ...jest.requireActual<
+    typeof import('../../../../selectors/accountsController')
+  >('../../../../selectors/accountsController'),
   selectSelectedInternalAccount: jest.fn(),
 }));
 

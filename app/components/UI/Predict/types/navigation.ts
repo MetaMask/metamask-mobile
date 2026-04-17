@@ -12,6 +12,7 @@ import {
   PredictPosition,
 } from '.';
 import { PredictEventValues } from '../constants/eventNames';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.CAROUSEL
@@ -43,6 +44,7 @@ export interface PredictMarketDetailsParams {
   title?: string;
   image?: string;
   isGame?: boolean;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 /** Predict activity detail parameters */
@@ -56,6 +58,7 @@ export interface PredictBuyPreviewParams {
   outcome: PredictOutcome;
   outcomeToken: PredictOutcomeToken;
   entryPoint?: PredictEntryPoint;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 /** Predict sell preview parameters */
