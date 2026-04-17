@@ -146,17 +146,6 @@ jobs:
           key: e2e-timings-never-match
           restore-keys: e2e-timings-
 
-      # Same key/restore-keys as update-e2e-timings in ci.yml: picks the latest saved
-      # tests/e2e-test-timings.json (typically from main or a prior run). Without this
-      # step, only the post-run timing job saw cache — shard splits never used it.
-      - name: Restore E2E shard timings (Actions cache)
-        uses: actions/cache/restore@v4
-        with:
-          path: tests/e2e-test-timings.json
-          key: e2e-timings-never-match
-          restore-keys: |
-            e2e-timings-
-
       - name: Set up E2E environment
         timeout-minutes: 15
         uses: ./.github/actions/setup-e2e-env
