@@ -1,6 +1,26 @@
 import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 import { CoreTypes } from '@walletconnect/types';
 import Device from '../util/device';
+import {
+  ADD_SOLANA_ACCOUNT_PRIVACY_POLICY_URL,
+  CONNECTIVITY_ISSUES_URL,
+  HIGH_GAS_FEES_URL,
+  LEARN_MORE_URL,
+  METAMASK_SUPPORT_URL,
+  MISSING_TOKENS_URL,
+  MM_ANDROID_BUNDLE_ID,
+  MM_UNIVERSAL_LINK_HOST,
+  MULTICHAIN_ACCOUNTS_URL,
+  MUSD_LEARN_MORE_URL,
+  PRIVACY_BEST_PRACTICES_URL,
+  PROFILE_SYNC_URL,
+  SMART_ACCOUNTS_URL,
+  SMART_TXS_URL,
+  SWAP_ISSUES_URL,
+  TESTNET_ETH_SCAMS_URL,
+  TOKEN_BALANCE_URL,
+  WHY_TRANSACTION_TAKE_TIME_URL,
+} from '../constants/urls';
 
 const DEVELOPMENT = 'development';
 
@@ -94,7 +114,7 @@ export default {
       1: '0xdfa6edAe2EC0cF1d4A60542422724A48195A5071',
     },
   },
-  MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+  MM_UNIVERSAL_LINK_HOST,
   MM_UNIVERSAL_LINK_HOST_ALTERNATE: 'metamask-alternate.app.link',
   MM_UNIVERSAL_LINK_TEST_APP_HOST: 'metamask.test-app.link',
   MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE: 'metamask-alternate.test-app.link',
@@ -179,40 +199,29 @@ export default {
     TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
     TERMS_OF_USE: 'https://metamask.io/terms',
     PRIVACY_POLICY: 'https://consensys.io/privacy-policy',
-    PROFILE_SYNC:
-      'https://support.metamask.io/privacy-and-security/profile-privacy',
+    PROFILE_SYNC: PROFILE_SYNC_URL,
     DATA_RETENTION_UPDATE:
       'https://consensys.net/blog/news/consensys-data-retention-update/',
-    CONNECTIVITY_ISSUES:
-      'https://support.metamask.io/troubleshooting/why-infura-cannot-serve-certain-areas/',
-    SECURITY:
-      'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
-    TOKEN_BALANCE:
-      'https://support.metamask.io/troubleshooting/what-to-do-when-your-balance-of-tokens-is-incorrect/',
-    WHY_TRANSACTION_TAKE_TIME:
-      'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
-    TESTNET_ETH_SCAMS:
-      'https://support.metamask.io/privacy-and-security/staying-safe-in-web3/testnet-eth-scams/',
+    CONNECTIVITY_ISSUES: CONNECTIVITY_ISSUES_URL,
+    SECURITY: LEARN_MORE_URL,
+    TOKEN_BALANCE: TOKEN_BALANCE_URL,
+    WHY_TRANSACTION_TAKE_TIME: WHY_TRANSACTION_TAKE_TIME_URL,
+    TESTNET_ETH_SCAMS: TESTNET_ETH_SCAMS_URL,
     WHAT_IS_SRP:
       'https://community.metamask.io/t/what-is-a-secret-recovery-phrase-and-how-to-keep-your-crypto-wallet-secure/3440',
     PRIVACY_POLICY_2024: 'https://consensys.io/privacy-policy',
-    PRIVACY_BEST_PRACTICES:
-      'https://support.metamask.io/privacy-and-security/privacy-best-practices',
-    SMART_TXS:
-      'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
-    SMART_ACCOUNTS:
-      'https://support.metamask.io/configure/accounts/what-is-a-smart-account/#what-are-metamask-smart-accounts',
+    PRIVACY_BEST_PRACTICES: PRIVACY_BEST_PRACTICES_URL,
+    SMART_TXS: SMART_TXS_URL,
+    SMART_ACCOUNTS: SMART_ACCOUNTS_URL,
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
     EARN_RISK_DISCLOSURE: 'https://consensys.io/earn-risk-disclosures',
-    ADD_SOLANA_ACCOUNT_PRIVACY_POLICY:
-      'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts',
+    ADD_SOLANA_ACCOUNT_PRIVACY_POLICY: ADD_SOLANA_ACCOUNT_PRIVACY_POLICY_URL,
     TERMS_OF_USE_URL: 'https://consensys.io/terms-of-use',
     PRIVACY_NOTICE: 'https://consensys.io/privacy-notice',
-    MULTICHAIN_ACCOUNTS:
-      'https://support.metamask.io/configure/accounts/multichain-accounts/',
+    MULTICHAIN_ACCOUNTS: MULTICHAIN_ACCOUNTS_URL,
     MUSD_CONVERSION_BONUS_TERMS_OF_USE:
       'https://metamask.io/musd-bonus-terms-of-use',
-    MUSD_LEARN_MORE: 'https://support.metamask.io/manage-crypto/tokens/musd',
+    MUSD_LEARN_MORE: MUSD_LEARN_MORE_URL,
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
@@ -253,17 +262,14 @@ export default {
     RANGE: 'range',
   },
   REVIEW_PROMPT: {
-    HIGH_GAS_FEES:
-      'https://support.metamask.io/transactions-and-gas/gas-fees/why-are-my-gas-fees-so-high/',
-    MISSING_TOKENS:
-      'https://support.metamask.io/managing-my-tokens/custom-tokens/how-to-display-tokens-in-metamask/',
-    SWAP_ISSUES:
-      'https://support.metamask.io/token-swaps/error-fetching-quote/',
-    SUPPORT: 'https://support.metamask.io',
+    HIGH_GAS_FEES: HIGH_GAS_FEES_URL,
+    MISSING_TOKENS: MISSING_TOKENS_URL,
+    SWAP_ISSUES: SWAP_ISSUES_URL,
+    SUPPORT: METAMASK_SUPPORT_URL,
   },
   BUNDLE_IDS: {
     IOS: 'io.metamask.MetaMask',
-    ANDROID: 'io.metamask',
+    ANDROID: MM_ANDROID_BUNDLE_ID,
   },
   LEAST_SUPPORTED_ANDROID_API_LEVEL: 29,
   ADD_CUSTOM_NETWORK_POPULAR_TAB_ID: 'popular-tab',

@@ -231,7 +231,7 @@ Executable gate checks that must pass before a flow runs. Defined in `teams/<tea
 | `eval_ref` | `ref`, `assert` | Run a named eval ref |
 | `call` | `ref` | Call another flow (workflow nodes only) |
 | `wait` | | Pause N ms |
-| `wait_for` | condition | Poll until condition met (route/test_id/expression) |
+| `wait_for` | condition | Poll until condition met (route/test_id/expression). Canonical timing fields are `timeout_ms` and `poll_ms`. |
 | `log_watch` | `watch_for` or `must_not_appear` | Scan Metro logs |
 | `screenshot` | | Capture screen |
 | `manual` | | Human intervention point |

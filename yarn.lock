@@ -10569,9 +10569,9 @@ __metadata:
   linkType: hard
 
 "@nktkas/rews@npm:^2":
-  version: 2.1.0
-  resolution: "@nktkas/rews@npm:2.1.0"
-  checksum: 10/c658d42d6ca79dad62d594818d680317e6f4ecc939149f02a588939b0e4fc40fb5b673199772241d4ca771b28f7bded8cbe0947d267f31a90ec6bc95d226c633
+  version: 2.1.1
+  resolution: "@nktkas/rews@npm:2.1.1"
+  checksum: 10/34fa67f8f2a4321fdfd24c7e7e4c26510b1e09c64245a390d61490077030e0c64d3a43c0b5dc24ec5d35e679ebee90804e3ea7a3b3ed5c37de81887d1156db31
   languageName: node
   linkType: hard
 
@@ -10706,9 +10706,9 @@ __metadata:
   linkType: hard
 
 "@noble/hashes@npm:^2":
-  version: 2.0.1
-  resolution: "@noble/hashes@npm:2.0.1"
-  checksum: 10/f4d00e7564eb4ff4e6d16be151dd0e404aede35f91e4372b0a8a6ec888379c1dd1e02c721b480af8e7853bea9637185b5cb9533970c5b77d60c254ead0cfd8f7
+  version: 2.2.0
+  resolution: "@noble/hashes@npm:2.2.0"
+  checksum: 10/b1b78bedc2a01394be047429f3d888905015fe8a09f1b7e43e0b5736b54133df62f73dcc73ede43af38e96e86156afb45b86973fdeaa95d9f0880333c3fc0907
   languageName: node
   linkType: hard
 
@@ -23355,13 +23355,13 @@ __metadata:
   linkType: hard
 
 "better-sqlite3@npm:^12.8.0":
-  version: 12.8.0
-  resolution: "better-sqlite3@npm:12.8.0"
+  version: 12.9.0
+  resolution: "better-sqlite3@npm:12.9.0"
   dependencies:
     bindings: "npm:^1.5.0"
     node-gyp: "npm:latest"
     prebuild-install: "npm:^7.1.1"
-  checksum: 10/63b943e5431ee2fed02796aa2bb452f19d08340bfcfee555c4865414d89262964b3b3e55324c5c5a0628247808b0ea25a357a62872a5e017455af6938b9a619a
+  checksum: 10/0b32b06140f2a98ce7fbcf7d30b56b46e16d0b6fbfb63157a7bb61dea7265e176ab362d439785e852716a03a130db5f0ab356b6a68cbcb23d59a362c1a8b01d4
   languageName: node
   linkType: hard
 
