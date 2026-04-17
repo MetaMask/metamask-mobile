@@ -198,7 +198,8 @@
     "expo-web-browser@npm:~14.0.2": "patch:expo-web-browser@npm%3A14.0.2#~/.yarn/patches/expo-web-browser-npm-14.0.2-98d00ce880.patch",
     "@metamask/messenger@^0.3.0": "^1.0.0",
     "@metamask/accounts-controller": "^37.2.0",
-    "@metamask/profile-sync-controller": "^28.0.2"
+    "@metamask/profile-sync-controller": "^28.0.2",
+    "@metamask/transaction-controller@^63.0.0": "^64.2.0"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
