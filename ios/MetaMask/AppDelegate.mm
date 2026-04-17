@@ -45,19 +45,11 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
   NSDictionary *initProps = [self prepareInitialProps];
   UIView *rootView = RCTAppSetupDefaultRootView(bridge, @"MetaMask", initProps);
 
-  // Match the storyboard background (splashBackground: white in light, #131416 in dark).
-  // The dynamic fallback ensures dark mode never shows a white flash even if the asset
-  // lookup fails — the original white-flash bug was a stale build cache; a clean build
-  // makes colorNamed succeed.
-  UIColor *splashBackground = [UIColor colorNamed:@"splashBackground"];
-  if (!splashBackground) {
-    splashBackground = [UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *traits) {
-      return traits.userInterfaceStyle == UIUserInterfaceStyleDark
-        ? [UIColor colorWithDisplayP3Red:0.075 green:0.078 blue:0.086 alpha:1.0]
-        : [UIColor whiteColor];
-    }];
+  if (@available(iOS 13.0, *)) {
+    rootView.backgroundColor = [UIColor systemBackgroundColor];
+  } else {
+    rootView.backgroundColor = [UIColor whiteColor];
   }
-  rootView.backgroundColor = splashBackground;
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
