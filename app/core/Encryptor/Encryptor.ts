@@ -169,11 +169,9 @@ class Encryptor
     key: EncryptionKey,
     payload: EncryptionResult,
   ): Promise<unknown> => {
-    const result = await QuickCryptoLib.decrypt(
-      payload.cipher,
-      key.key,
-      payload.iv,
-    );
+    // @ts-expect-error - The payload type is not exported from the package
+    const cipher: string = payload.cipher ?? payload.data;
+    const result = await QuickCryptoLib.decrypt(cipher, key.key, payload.iv);
 
     return JSON.parse(result);
   };
