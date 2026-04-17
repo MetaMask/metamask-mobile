@@ -83,7 +83,7 @@ describe('MoneyBalanceSummary', () => {
     expect(mockInfoPress).toHaveBeenCalledTimes(1);
   });
 
-  it('hides the APY tag and info tooltip when apy is undefined', () => {
+  it('hides the APY tag and tooltip button when apy is undefined', () => {
     const mockInfoPress = jest.fn();
     const { queryByTestId } = render(
       <MoneyBalanceSummary apy={undefined} onApyInfoPress={mockInfoPress} />,
@@ -97,7 +97,7 @@ describe('MoneyBalanceSummary', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('hides the APY tag and info button when apy is zero', () => {
+  it('hides the APY tag and tooltip button when apy is zero', () => {
     const mockInfoPress = jest.fn();
     const { queryByTestId } = render(
       <MoneyBalanceSummary apy={0} onApyInfoPress={mockInfoPress} />,
@@ -106,6 +106,17 @@ describe('MoneyBalanceSummary', () => {
     expect(
       queryByTestId(MoneyBalanceSummaryTestIds.APY_TAG),
     ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the APY tooltip button when isLoading is true', () => {
+    const mockInfoPress = jest.fn();
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary apy={4} isLoading onApyInfoPress={mockInfoPress} />,
+    );
+
     expect(
       queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
     ).not.toBeOnTheScreen();

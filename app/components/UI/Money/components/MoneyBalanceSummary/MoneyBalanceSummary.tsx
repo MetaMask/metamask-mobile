@@ -81,7 +81,7 @@ const MoneyBalanceSummary = ({
         {isLoading ? (
           <Skeleton
             height={24}
-            width={70}
+            width={94}
             twClassName="rounded-md"
             testID={MoneyBalanceSummaryTestIds.APY_SKELETON}
           />
@@ -102,7 +102,7 @@ const MoneyBalanceSummary = ({
             </Box>
           )
         )}
-        {onApyInfoPress && isPositiveNumber(apy) && (
+        {onApyInfoPress && isPositiveNumber(apy) && !isLoading && (
           <ButtonIcon
             iconName={IconName.Info}
             iconProps={{ color: IconColor.IconAlternative }}
