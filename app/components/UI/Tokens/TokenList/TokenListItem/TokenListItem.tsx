@@ -252,7 +252,12 @@ export const TokenListItem = React.memo(
           .addProperties({
             location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
             action_type: 'claim_bonus',
-            button_text: strings('earn.claim_bonus'),
+            button_text: strings(
+              'earn.musd_conversion.claim_percentage_bonus',
+              {
+                percentage: MUSD_CONVERSION_APY,
+              },
+            ),
             network_chain_id: asset?.chainId,
             network_name: networkName,
             asset_symbol: asset?.symbol,
