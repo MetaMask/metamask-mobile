@@ -93,6 +93,7 @@ jest.mock('./utils', () => {
       GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
       CLOB_ENDPOINT: 'https://clob.polymarket.com',
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
+      CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
     })),
     getParsedMarketsFromPolymarketApi: jest.fn(),
     fetchCarouselFromPolymarketApi: jest.fn(),
@@ -1115,8 +1116,8 @@ describe('PolymarketProvider', () => {
       expect(result).toMatchObject({
         success: true,
         response: expect.any(Object),
-        error: undefined,
       });
+      expect(result).not.toHaveProperty('error');
     });
 
     it('successfully places a sell order and returns correct result', async () => {
@@ -1136,8 +1137,8 @@ describe('PolymarketProvider', () => {
       expect(result).toMatchObject({
         success: true,
         response: expect.any(Object),
-        error: undefined,
       });
+      expect(result).not.toHaveProperty('error');
     });
 
     it('handles order submission failure', async () => {
@@ -3780,6 +3781,101 @@ describe('PolymarketProvider', () => {
       const result = await provider.getPriceHistory({ marketId: 'market-1' });
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('getCryptoTargetPrice', () => {
+    beforeEach(() => {
+      global.fetch = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('returns openPrice on successful fetch', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          openPrice: 82615.22,
+          closePrice: 82352.85,
+          timestamp: 1700000000000,
+          completed: true,
+          incomplete: false,
+          cached: false,
+        }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'up',
+        endDate: '2025-01-02',
+      });
+
+      expect(result).toBe(82615.22);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'polymarket.com/api/crypto/crypto-price?symbol=BTC',
+        ),
+      );
+    });
+
+    it('returns null when API returns non-ok response', async () => {
+      const provider = createProvider();
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+      });
+
+      const result = await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'up',
+        endDate: '2025-01-02',
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when response has unexpected shape', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ value: 'not-a-number' }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'up',
+        endDate: '2025-01-02',
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it('encodes query parameters in the URL', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ openPrice: 100 }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      await provider.getCryptoTargetPrice({
+        symbol: 'ETH/USD',
+        eventStartTime: '2025-01-01 00:00:00',
+        variant: 'up',
+        endDate: '2025-01-02',
+      });
+
+      const calledUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+      expect(calledUrl).toContain('symbol=ETH%2FUSD');
+      expect(calledUrl).toContain('eventStartTime=2025-01-01%2000%3A00%3A00');
     });
   });
 

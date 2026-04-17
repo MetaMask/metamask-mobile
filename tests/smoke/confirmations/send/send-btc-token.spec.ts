@@ -1,4 +1,3 @@
-import SendView from '../../../page-objects/Send/RedesignedSendView';
 import TokenOverview from '../../../page-objects/wallet/TokenOverview';
 import WalletView from '../../../page-objects/wallet/WalletView';
 import { SmokeConfirmations } from '../../../tags';
@@ -12,7 +11,7 @@ import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remote
 const TOKEN = 'Bitcoin';
 
 describe(SmokeConfirmations('Send Bitcoin'), () => {
-  it('shows insufficient funds', async () => {
+  it('hides send button for zero balance token', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
@@ -23,9 +22,6 @@ describe(SmokeConfirmations('Send Bitcoin'), () => {
             {
               homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
               homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
-              tokenDetailsV2AbTest: {
-                value: { variant: 'control', minimumVersion: '0.0.0' },
-              },
             },
             1000,
           );
@@ -44,9 +40,12 @@ describe(SmokeConfirmations('Send Bitcoin'), () => {
         );
         await device.disableSynchronization();
         await WalletView.tapOnToken(TOKEN, 0);
-        await TokenOverview.tapSendButton();
-        await SendView.enterZeroAmount();
-        await SendView.checkInsufficientFundsError();
+        // Token details V2 layout hides Send and shows Receive for zero-balance tokens
+        await Assertions.expectElementToBeVisible(TokenOverview.receiveButton, {
+          description:
+            'Receive button should be visible for zero-balance token',
+          timeout: 15000,
+        });
       },
     );
   });

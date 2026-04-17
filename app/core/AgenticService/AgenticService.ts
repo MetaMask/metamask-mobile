@@ -21,12 +21,14 @@ import {
   setExistingUser,
   logIn,
   seedphraseBackedUp,
+  setMultichainAccountsIntroModalSeen,
 } from '../../actions/user';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import StorageWrapper from '../../store/storage-wrapper';
 import {
+  OPTIN_META_METRICS_UI_SEEN,
   PERPS_GTM_MODAL_SHOWN,
   PREDICT_GTM_MODAL_SHOWN,
   REWARDS_GTM_MODAL_SHOWN,
@@ -488,6 +490,15 @@ const AgenticService = {
             // Suppress ExperienceEnhancer (marketing consent) modal
             store.dispatch(setDataCollectionForMarketing(false));
           }
+
+          // 5b. Set metrics UI as seen (prevents Authentication.unlockWallet
+          // from navigating to OptinMetrics after setupWallet resets to Wallet)
+          if (settings.metametrics !== undefined) {
+            await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, 'true');
+          }
+
+          // 5c. Mark multichain accounts intro modal as seen
+          store.dispatch(setMultichainAccountsIntroModalSeen(true));
 
           // 6. Skip perps tutorial onboarding if requested
           if (settings.skipPerpsTutorial === true) {
