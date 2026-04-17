@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
 import {
   STICKY_FOOTER_SWAP_LABEL_VARIANTS,
@@ -24,8 +25,30 @@ jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
 }));
 
 const mockIsTokenTradingOpen = jest.fn(() => true);
+const mockIsStockToken = jest.fn(() => false);
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
-  useRWAToken: () => ({ isTokenTradingOpen: mockIsTokenTradingOpen }),
+  useRWAToken: () => ({
+    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isStockToken: mockIsStockToken,
+  }),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../../reducers/fiatOrders', () => ({
+  getDetectedGeolocation: jest.fn(),
+}));
+
+jest.mock('../../../../util/ondoGeoRestrictions', () => ({
+  ONDO_RESTRICTED_COUNTRIES: new Set(['US', 'GB']),
+}));
+
+jest.mock('./RwaUnavailableBottomSheet/RwaUnavailableBottomSheet', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
 }));
 
 jest.mock('../../../../util/theme', () => {
@@ -282,8 +305,7 @@ describe('TokenDetailsStickyFooter', () => {
   });
 
   describe('Sticky Footer Button Tapped tracking', () => {
-    it('tracks swap button tap with hasMoreThan100USD false when balance < $100', () => {
-      // balance < $100
+    it('tracks swap button tap with usd_amount_range when balance < $100', () => {
       mockUseABTest.mockReturnValue({
         variant:
           STICKY_FOOTER_SWAP_LABEL_VARIANTS[
@@ -300,14 +322,13 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'swap',
-        hasMoreThan100USD: false,
+        balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
       });
     });
 
-    it('tracks buy button tap with hasMoreThan100USD false when balance < $100', () => {
-      // balance < $100
+    it('tracks buy button tap with usd_amount_range when balance < $100', () => {
       mockUseABTest.mockReturnValue({
         variant:
           STICKY_FOOTER_SWAP_LABEL_VARIANTS[
@@ -324,13 +345,13 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'buy',
-        hasMoreThan100USD: false,
+        balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
       });
     });
 
-    it('tracks swap tap with hasMoreThan100USD true when balance >= $100', () => {
+    it('tracks swap tap with usd_amount_range when balance >= $100', () => {
       mockUseABTest.mockReturnValue({
         variant:
           STICKY_FOOTER_SWAP_LABEL_VARIANTS[
@@ -347,13 +368,13 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'swap',
-        hasMoreThan100USD: true,
+        balanceFiatUsd: 150,
         tokenAddress: '0x123',
         chainId: '0x1',
       });
     });
 
-    it('tracks single swap button with hasMoreThan100USD false when balance is undefined', () => {
+    it('tracks single swap button with usd_amount_range when balance is undefined', () => {
       mockIsBuyable.mockReturnValue(false);
       mockUseABTest.mockReturnValue({
         variant:
@@ -364,17 +385,74 @@ describe('TokenDetailsStickyFooter', () => {
         isActive: true,
       });
       const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          balanceFiatUsd={undefined}
+        />,
       );
 
       fireEvent.press(getByText('Swap'));
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'swap',
-        hasMoreThan100USD: false,
+        balanceFiatUsd: undefined,
         tokenAddress: '0x123',
         chainId: '0x1',
       });
+    });
+  });
+
+  describe('RWA geo-restriction', () => {
+    it('blocks the buy action when token is a geo-restricted stock', () => {
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('US');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(defaultProps.onBuy).not.toHaveBeenCalled();
+    });
+
+    it('blocks the swap action when token is a geo-restricted stock', () => {
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('GB');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(defaultProps.onSwap).not.toHaveBeenCalled();
+    });
+
+    it('proceeds normally for a stock token in a non-restricted country', () => {
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('AR');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(defaultProps.onBuy).toHaveBeenCalled();
+    });
+
+    it('proceeds normally for a non-stock token even if in a restricted country', () => {
+      mockIsStockToken.mockReturnValue(false);
+      (useSelector as jest.Mock).mockReturnValue('US');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(defaultProps.onBuy).toHaveBeenCalled();
     });
   });
 });

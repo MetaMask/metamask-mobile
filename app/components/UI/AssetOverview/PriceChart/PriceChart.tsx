@@ -363,7 +363,7 @@ const PriceChart = ({
       }}
     >
       <View
-        style={styles.chartArea}
+        style={styles.chartAreaWrapper}
         testID={chartHasData ? 'price-chart-area' : undefined}
         {...panResponder.current.panHandlers}
       >
@@ -386,12 +386,12 @@ const PriceChart = ({
           {chartHasData && !isLoading ? <EndDot /> : null}
         </AreaChart>
         {isLoading && (
-          <View>
+          <View style={styles.loadingOverlayContainer}>
             <LoadingOverlay />
           </View>
         )}
         {!isLoading && !chartHasData && (
-          <View>
+          <View style={styles.noDataOverlayContainer} pointerEvents="box-none">
             <NoDataOverlay
               chartHeight={chartHeight}
               chartPlaceholderFill={theme.colors.border.muted}

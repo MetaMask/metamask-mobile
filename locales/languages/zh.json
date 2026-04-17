@@ -8120,7 +8120,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize Pool",
+      "title": "Prize pool",
       "current_label": "当前",
       "next_label": "下一步",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8209,9 +8209,7 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "重试",
       "label_return": "回报率",
-      "label_market_value": "Market Value",
-      "label_net_deposited": "Net deposited",
-      "label_cashed_out": "已提现",
+      "label_market_value": "Market value",
       "label_rank": "排名",
       "label_tier": "Tier",
       "label_your_return": "Your return",
