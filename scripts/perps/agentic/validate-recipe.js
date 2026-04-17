@@ -30,6 +30,23 @@ const {
 
 const DEFAULT_LOG_LINES = 400;
 
+function validateSchemaOrThrow(appRoot, recipePath) {
+  const validatorPath = path.join(__dirname, 'validate-flow-schema.js');
+  const result = spawnSync('node', [validatorPath, recipePath], {
+    cwd: appRoot,
+    encoding: 'utf8',
+  });
+
+  if (result.status === 0) {
+    return;
+  }
+
+  const output = [result.stdout || '', result.stderr || '']
+    .join('\n')
+    .trim();
+  throw new Error(`Schema validation failed for ${recipePath}\n${output}`);
+}
+
 function timestampSlug() {
   return new Date()
     .toISOString()
@@ -537,11 +554,14 @@ function ensureRunArtifacts(runOptions, recipePath) {
     return state.artifacts;
   }
 
+  const explicitArtifactsDir = runOptions.artifactsDir
+    ? path.resolve(runOptions.artifactsDir)
+    : '';
   const baseDir =
-    runOptions.artifactsDir ||
+    explicitArtifactsDir ||
     path.join(runOptions.appRoot, '.agent', 'recipe-runs');
   const recipeLabel = sanitizeFileSegment(path.basename(recipePath, path.extname(recipePath)));
-  const rootDir = path.resolve(path.join(baseDir, `${timestampSlug()}_${recipeLabel}`));
+  const rootDir = explicitArtifactsDir || path.resolve(path.join(baseDir, `${timestampSlug()}_${recipeLabel}`));
 
   const artifacts = {
     rootDir,
@@ -1643,6 +1663,8 @@ async function main() {
     if (!fs.existsSync(teamsDir)) {
       throw new Error(`No recipe teams directory found: ${teamsDir}`);
     }
+
+    validateSchemaOrThrow(appRoot, recipeInput.recipePath);
 
     const runOptions = {
       appRoot,
