@@ -18,16 +18,26 @@ import { strings } from '../../../../../../locales/i18n';
 export const ONDO_PRIZE_POOL_TEST_IDS = {
   CONTAINER: 'ondo-prize-pool-container',
   PROGRESS_BAR: 'ondo-prize-pool-progress-bar',
+  MAX_BADGE: 'ondo-prize-pool-max-badge',
   SUBTEXT: 'ondo-prize-pool-subtext',
   ERROR_BANNER: 'ondo-prize-pool-error-banner',
 } as const;
 
-const BREAKPOINTS = [
+export const BREAKPOINTS = [
   { deposit: 0, prize: 25_000 },
   { deposit: 1_500_000, prize: 50_000 },
   { deposit: 3_500_000, prize: 75_000 },
   { deposit: 6_000_000, prize: 100_000 },
 ] as const;
+
+export function getCurrentPrize(totalDeposited: number): number {
+  for (let i = BREAKPOINTS.length - 1; i >= 0; i--) {
+    if (totalDeposited >= BREAKPOINTS[i].deposit) {
+      return BREAKPOINTS[i].prize;
+    }
+  }
+  return BREAKPOINTS[0].prize;
+}
 
 function computeProgress(totalDeposited: number) {
   let currentIndex = 0;
@@ -144,7 +154,25 @@ const OndoPrizePool: React.FC<OndoPrizePoolProps> = ({
             {formatUsd(currentPrize)}
           </Text>
         </Box>
-        {!isMaxTier && nextPrize !== null && (
+        {isMaxTier ? (
+          <Box
+            alignItems={BoxAlignItems.End}
+            justifyContent={BoxJustifyContent.End}
+          >
+            <Box
+              twClassName="bg-success-muted rounded-[6px] px-1.5"
+              testID={ONDO_PRIZE_POOL_TEST_IDS.MAX_BADGE}
+            >
+              <Text
+                variant={TextVariant.BodyXs}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.SuccessDefault}
+              >
+                {strings('rewards.ondo_campaign_prize_pool.max_badge')}
+              </Text>
+            </Box>
+          </Box>
+        ) : nextPrize !== null ? (
           <Box alignItems={BoxAlignItems.End}>
             <Text
               variant={TextVariant.BodySm}
@@ -157,7 +185,7 @@ const OndoPrizePool: React.FC<OndoPrizePoolProps> = ({
               {formatUsd(nextPrize)}
             </Text>
           </Box>
-        )}
+        ) : null}
       </Box>
 
       <Box

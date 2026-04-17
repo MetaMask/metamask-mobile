@@ -102,7 +102,7 @@ export const createAdvancedChartTemplate = (
     <meta charset="UTF-8">
     <title>TradingView Advanced Chart</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' ${CHARTING_LIBRARY_BASE_URL}; script-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; style-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; img-src 'self' data: ${CHARTING_LIBRARY_BASE_URL}; font-src ${CHARTING_LIBRARY_BASE_URL}; worker-src blob:; frame-src 'self' blob: ${CHARTING_LIBRARY_ORIGIN}; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' ${CHARTING_LIBRARY_BASE_URL}; script-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; style-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; img-src 'self' data: ${CHARTING_LIBRARY_BASE_URL}; font-src ${CHARTING_LIBRARY_BASE_URL}; worker-src blob:; frame-src 'self' blob: ${CHARTING_LIBRARY_ORIGIN}; connect-src https://price.api.cx.metamask.io; object-src 'none'; base-uri 'none'; frame-ancestors 'none';">
     <style>
         /*
          * Page root: fill the WebView, no scrolling. TradingView draws inside this area.

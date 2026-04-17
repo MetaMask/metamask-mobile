@@ -509,6 +509,34 @@ jest.mock('@segment/analytics-react-native', () => {
     }
   }
 
+  class EventPlugin extends Plugin {
+    execute(event) {
+      return event;
+    }
+    identify(event) {
+      return event;
+    }
+    track(event) {
+      return event;
+    }
+    screen(event) {
+      return event;
+    }
+    alias(event) {
+      return event;
+    }
+    group(event) {
+      return event;
+    }
+    flush() {}
+    reset() {}
+  }
+
+  class DestinationPlugin extends EventPlugin {
+    type = 'destination';
+    key = '';
+  }
+
   class CountFlushPolicy {
     constructor(count) {
       this.count = count;
@@ -525,6 +553,7 @@ jest.mock('@segment/analytics-react-native', () => {
     createClient: jest.fn(() => initializeMockClient()),
     PluginType: {
       enrichment: 'enrichment',
+      destination: 'destination',
       utility: 'utility',
     },
     EventType: {
@@ -532,24 +561,30 @@ jest.mock('@segment/analytics-react-native', () => {
       IdentifyEvent: 'identify',
     },
     Plugin,
+    EventPlugin,
+    DestinationPlugin,
     CountFlushPolicy,
     TimerFlushPolicy,
   };
 });
 
-jest.mock('@notifee/react-native', () =>
-  require('@notifee/react-native/jest-mock'),
-);
-
-// ESM-only package; Jest must not load node_modules source (transformIgnorePatterns)
 jest.mock('@braze/react-native-sdk', () => ({
   __esModule: true,
   default: {
     changeUser: jest.fn(),
+    logCustomEvent: jest.fn(),
+    requestImmediateDataFlush: jest.fn(),
+    setCustomUserAttribute: jest.fn(),
+    setLanguage: jest.fn(),
     addListener: jest.fn(() => ({ remove: jest.fn() })),
     Events: { PUSH_NOTIFICATION_EVENT: 'push_notification_event' },
+    getInitialPushPayload: jest.fn(),
   },
 }));
+
+jest.mock('@notifee/react-native', () =>
+  require('@notifee/react-native/jest-mock'),
+);
 
 jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
   __esModule: true,

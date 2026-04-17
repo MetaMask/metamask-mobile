@@ -2770,6 +2770,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyHubEnabled: {
+    name: 'earnMoneyHubEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMusdConversionAssetOverviewCtaEnabled: {
     name: 'earnMusdConversionAssetOverviewCtaEnabled',
     type: FeatureFlagType.Remote,
@@ -2975,14 +2986,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {},
-    status: FeatureFlagStatus.Active,
-  },
-
-  extensionUxPna25: {
-    name: 'extensionUxPna25',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: true,
     status: FeatureFlagStatus.Active,
   },
 
@@ -3500,6 +3503,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictBottomSheet: {
+    name: 'predictBottomSheet',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictUpDown: {
     name: 'predictUpDown',
     type: FeatureFlagType.Remote,
@@ -3822,37 +3836,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  tokenDetailsV2AbTest: {
-    name: 'tokenDetailsV2AbTest',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'Control is OFF',
-        scope: {
-          value: 0.5,
-          type: 'threshold',
-        },
-        value: {
-          minimumVersion: '7.69.0',
-          variant: 'treatment',
-        },
-      },
-      {
-        name: 'Control is ON',
-        scope: {
-          type: 'threshold',
-          value: 1,
-        },
-        value: {
-          minimumVersion: '7.69.0',
-          variant: 'control',
-        },
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
   tokenDetailsV2ButtonLayout: {
     name: 'tokenDetailsV2ButtonLayout',
     type: FeatureFlagType.Remote,
@@ -4135,6 +4118,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       minimumVersion: '7.67.0',
       enabled: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  brazeSegmentForwarding: {
+    name: 'brazeSegmentForwarding',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      allowedEvents: [],
+      allowedTraits: [],
     },
     status: FeatureFlagStatus.Active,
   },

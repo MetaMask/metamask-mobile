@@ -116,6 +116,11 @@ describe('useTraderProfile', () => {
       const { result } = renderHook(() => useTraderProfile('trader-1'));
       expect(result.current.isLoading).toBe(true);
     });
+
+    it('returns false when useQuery is not loading', () => {
+      const { result } = renderHook(() => useTraderProfile('trader-1'));
+      expect(result.current.isLoading).toBe(false);
+    });
   });
 
   describe('error handling', () => {
@@ -127,7 +132,7 @@ describe('useTraderProfile', () => {
       expect(result.current.error).toBe('Network error');
     });
 
-    it('converts non-Error values to string', () => {
+    it('converts non-Error values to strings', () => {
       mockUseQuery.mockReturnValue(
         makeQueryResult({ error: 'raw error' as never }),
       );
@@ -140,12 +145,12 @@ describe('useTraderProfile', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('logs errors via Logger.error when error is present', () => {
-      const err = new Error('fetch failed');
-      mockUseQuery.mockReturnValue(makeQueryResult({ error: err }));
+    it('logs errors when error is present', () => {
+      const error = new Error('fetch failed');
+      mockUseQuery.mockReturnValue(makeQueryResult({ error }));
       renderHook(() => useTraderProfile('trader-1'));
       expect(Logger.error).toHaveBeenCalledWith(
-        err,
+        error,
         'useTraderProfile: profile fetch failed',
       );
     });
@@ -172,11 +177,15 @@ describe('useTraderProfile', () => {
       expect(result.current.isFollowing).toBe(true);
     });
 
-    it('toggles isFollowing back to false on a second call', () => {
+    it('toggles isFollowing back to false on the second call', () => {
       const { result } = renderHook(() => useTraderProfile('trader-1'));
 
-      act(() => result.current.toggleFollow());
-      act(() => result.current.toggleFollow());
+      act(() => {
+        result.current.toggleFollow();
+      });
+      act(() => {
+        result.current.toggleFollow();
+      });
 
       expect(result.current.isFollowing).toBe(false);
     });
@@ -194,9 +203,10 @@ describe('useTraderProfile', () => {
       expect(mockRefetch).toHaveBeenCalledTimes(1);
     });
 
-    it('logs and re-throws when refetch rejects', async () => {
-      const err = new Error('Network failure');
-      mockRefetch.mockRejectedValue(err);
+    it('logs and rethrows when refetch rejects', async () => {
+      const error = new Error('Network failure');
+
+      mockRefetch.mockRejectedValue(error);
       const { result } = renderHook(() => useTraderProfile('trader-1'));
 
       await expect(
@@ -206,7 +216,7 @@ describe('useTraderProfile', () => {
       ).rejects.toThrow('Network failure');
 
       expect(Logger.error).toHaveBeenCalledWith(
-        err,
+        error,
         'useTraderProfile: refresh failed',
       );
     });
