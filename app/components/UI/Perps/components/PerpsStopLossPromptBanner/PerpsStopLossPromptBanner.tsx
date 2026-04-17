@@ -15,7 +15,6 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsStopLossPromptSelectorsIDs } from '../../Perps.testIds';
 import {
@@ -73,7 +72,6 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
       testID = PerpsStopLossPromptSelectorsIDs.CONTAINER,
     }) => {
       const { styles } = useStyles(styleSheet, {});
-      const { colors } = useTheme();
 
       // Animation value for fade-out effect
       const fadeAnim = useRef(new Animated.Value(1)).current;
