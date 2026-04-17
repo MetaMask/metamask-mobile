@@ -2,7 +2,11 @@ import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper.js';
 import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
-import { withSnapshotSettings } from '../../framework';
+import {
+  asPlaywrightElement,
+  PlaywrightAssertions,
+  withSnapshotSettings,
+} from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import QuoteView from '../../page-objects/swaps/QuoteView.js';
 
@@ -23,7 +27,12 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
       await withSnapshotSettings({ snapshotMaxDepth: 45 }, async () => {
         await WalletView.tapWalletSwapButton();
       });
-      await timer1.measure(() => QuoteView.isVisible());
+
+      await timer1.measureRaw(async () => {
+        await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
+          asPlaywrightElement(QuoteView.amountInput),
+        );
+      });
 
       await QuoteView.selectNetworkAndTokenTo('Solana', 'SOL');
       await QuoteView.enterSourceTokenAmount('1');
@@ -34,7 +43,7 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await timer2.measure(() => QuoteView.isQuoteDisplayed());
+      await timer2.measureRaw(() => QuoteView.isQuoteDisplayed());
 
       performanceTracker.addTimers(timer1, timer2);
     },

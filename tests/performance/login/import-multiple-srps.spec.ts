@@ -51,7 +51,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAccountList}`, () => {
       );
 
       await WalletView.tapIdenticon();
-      await accountListTimer.measure(async () => {
+      await accountListTimer.measureRaw(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(AccountListBottomSheet.accountList),
           {
@@ -62,7 +62,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAccountList}`, () => {
 
       await AccountListBottomSheet.waitForAccountSyncToComplete();
       await AccountListBottomSheet.tapAddAccountButton();
-      await addAccountTimer.measure(async () => {
+      await addAccountTimer.measureRaw(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(AddAccountBottomSheet.importSrpButton),
           {
@@ -72,7 +72,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAccountList}`, () => {
       });
 
       await AddAccountBottomSheet.tapImportSrp();
-      await importSrpTimer.measure(async () => {
+      await importSrpTimer.measureRaw(async () => {
         await ImportWalletView.isScreenTitleVisible(false);
       });
 
@@ -80,7 +80,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAccountList}`, () => {
       await PlaywrightGestures.hideKeyboard();
       await ImportWalletView.tapContinueButton(false);
 
-      await walletReadyTimer.measure(async () => {
+      await walletReadyTimer.measureRaw(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(WalletView.accountIcon),
           {

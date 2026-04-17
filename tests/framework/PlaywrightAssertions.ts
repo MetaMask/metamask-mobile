@@ -2,7 +2,10 @@ import { BASE_DEFAULTS, sleep } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import type { PlaywrightElement } from './PlaywrightAdapter.ts';
 import PlaywrightMatchers from './PlaywrightMatchers.ts';
-import { addOverhead } from './PlaywrightUtilities.ts';
+import {
+  addOverhead,
+  isOverheadTrackingActive,
+} from './PlaywrightUtilities.ts';
 
 export interface VisibilityWithSettleOptions extends AssertionOptions {
   settleMs?: number;
@@ -68,7 +71,9 @@ export default class PlaywrightAssertions {
           if (attempt === 1) {
             addOverhead(Date.now() - t0);
           }
-          await this.probeOverhead(el);
+          if (isOverheadTrackingActive()) {
+            await this.probeOverhead(el);
+          }
           return;
         }
       } catch {
@@ -79,7 +84,9 @@ export default class PlaywrightAssertions {
     await el.waitForDisplayed({
       timeout: Math.max(interval, timeout - (Date.now() - start)),
     });
-    await this.probeOverhead(el);
+    if (isOverheadTrackingActive()) {
+      await this.probeOverhead(el);
+    }
   }
 
   /**
@@ -109,7 +116,9 @@ export default class PlaywrightAssertions {
   ): Promise<void> {
     const t0 = Date.now();
     const el = await targetElement;
-    addOverhead(Date.now() - t0);
+    if (isOverheadTrackingActive()) {
+      addOverhead(Date.now() - t0);
+    }
     await this.pollUntilVisible(el, this.getTimeout(options));
   }
 
@@ -161,7 +170,9 @@ export default class PlaywrightAssertions {
   ): Promise<void> {
     const t0Resolve = Date.now();
     const el = await targetElement;
-    addOverhead(Date.now() - t0Resolve);
+    if (isOverheadTrackingActive()) {
+      addOverhead(Date.now() - t0Resolve);
+    }
 
     const timeout = this.getTimeout(options);
     const interval = 300;
@@ -176,7 +187,9 @@ export default class PlaywrightAssertions {
           if (attempt === 1) {
             addOverhead(Date.now() - t0);
           }
-          await this.probeOverhead(el);
+          if (isOverheadTrackingActive()) {
+            await this.probeOverhead(el);
+          }
           return;
         }
       } catch {

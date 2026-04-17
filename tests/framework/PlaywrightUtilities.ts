@@ -176,6 +176,10 @@ export function stopOverheadTracking(): number {
   return result;
 }
 
+export function isOverheadTrackingActive(): boolean {
+  return _tracking;
+}
+
 class PlaywrightUtilities {
   /**
    * Get the device screen size.

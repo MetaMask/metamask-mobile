@@ -88,12 +88,16 @@ export default class PlaywrightGestures {
     if (checkForDisplayed) {
       const interval = 300;
       const start = Date.now();
+      let attempt = 0;
       while (Date.now() - start < timeout) {
         try {
+          attempt++;
           const t0 = Date.now();
           const exists = await elem.unwrap().isExisting();
           if (exists) {
-            addOverhead(Date.now() - t0);
+            if (attempt === 1) {
+              addOverhead(Date.now() - t0);
+            }
             break;
           }
         } catch {

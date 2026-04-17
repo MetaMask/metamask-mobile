@@ -157,6 +157,28 @@ class TimerHelper {
     return this;
   }
 
+  /**
+   * Measures wall-clock execution time of an async action **without**
+   * subtracting Appium infrastructure overhead.
+   *
+   * Use this instead of {@link measure} when the overhead model does not
+   * apply — for example when the action includes a tap whose Appium
+   * round-trip overlaps with real app loading, making it impossible to
+   * separate infra cost from app work.
+   *
+   * @param action - Async function to measure
+   * @returns This TimerHelper instance for chaining
+   */
+  async measureRaw(action: () => Promise<void>): Promise<TimerHelper> {
+    this.start();
+    try {
+      await action();
+    } finally {
+      this.stop();
+    }
+    return this;
+  }
+
   /** Returns the base threshold without margin applied. */
   get baseThreshold(): number | null {
     return this._baseThreshold;

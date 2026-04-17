@@ -102,7 +102,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
         );
 
         await WalletView.tapIdenticon();
-        await screen1Timer.measure(
+        await screen1Timer.measureRaw(
           async () =>
             await PlaywrightAssertions.expectElementToBeVisible(
               await asPlaywrightElement(AccountListBottomSheet.accountList),
@@ -111,7 +111,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
 
         await AccountListBottomSheet.waitForAccountSyncToComplete();
         await AccountListBottomSheet.tapCreateAccount(0);
-        await screen2Timer.measure(
+        await screen2Timer.measureRaw(
           async () =>
             await PlaywrightAssertions.expectElementToBeVisible(
               await asPlaywrightElement(
@@ -121,7 +121,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
         );
 
         await AccountListBottomSheet.tapAccountByName('Account 2');
-        await screen3Timer.measure(async () => {
+        await screen3Timer.measureRaw(async () => {
           await WalletView.checkActiveAccount('Account 2');
         });
       });

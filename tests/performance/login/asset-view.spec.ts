@@ -36,7 +36,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
         TokenOverview.priceChartDotEnd,
       );
 
-      await assetViewScreen.measure(async () => {
+      await assetViewScreen.measureRaw(async () => {
         await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
           priceChartDotEnd,
         );

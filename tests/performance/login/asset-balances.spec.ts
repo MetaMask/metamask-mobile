@@ -23,7 +23,7 @@ test.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
         { ios: 25000, android: 40000 },
         currentDeviceDetails.platform,
       );
-      await balanceStableTimer.measure(async () => {
+      await balanceStableTimer.measureRaw(async () => {
         await WalletView.waitForBalanceToStabilize();
       });
       performanceTracker.addTimer(balanceStableTimer);

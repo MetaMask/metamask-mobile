@@ -4,6 +4,8 @@ import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
 import QuoteView from '../../page-objects/swaps/QuoteView';
+import { asPlaywrightElement } from '../../framework/EncapsulatedElement.js';
+import PlaywrightAssertions from '../../framework/PlaywrightAssertions.js';
 
 /* Scenario 6: Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3 */
 test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
@@ -30,8 +32,11 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
       await QuoteView.selectNetworkAndTokenTo('Ethereum', 'LINK');
       await QuoteView.enterSourceTokenAmount('1');
 
-      await swapTimer.measure(() => QuoteView.isQuoteDisplayed());
-
+      await swapTimer.measureRaw(async () => {
+        await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
+          asPlaywrightElement(QuoteView.amountInput),
+        );
+      });
       performanceTracker.addTimers(swapLoadTimer, swapTimer);
     },
   );

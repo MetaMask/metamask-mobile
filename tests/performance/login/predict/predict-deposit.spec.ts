@@ -41,7 +41,7 @@ perfTest.describe(PerformancePredict, () => {
 
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapPredictButton();
-      await timer1.measure(async () => {
+      await timer1.measureRaw(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(PredictMarketList.container),
         );
@@ -55,7 +55,7 @@ perfTest.describe(PerformancePredict, () => {
       );
 
       await PredictMarketList.tapAddFundsButton();
-      await timer2.measure(async () => {
+      await timer2.measureRaw(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(TransactionPayConfirmation.keyboardContainer),
         );
@@ -69,7 +69,7 @@ perfTest.describe(PerformancePredict, () => {
       );
 
       await TransactionPayConfirmation.tapPayWithRow();
-      await timer3.measure(async () => {
+      await timer3.measureRaw(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(TransactionPayConfirmation.payWithTokenList),
         );
@@ -88,7 +88,7 @@ perfTest.describe(PerformancePredict, () => {
       );
 
       await TransactionPayConfirmation.tapKeyboardContinueButton();
-      await timer4.measure(async () => {
+      await timer4.measureRaw(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(TransactionPayConfirmation.total),
         );

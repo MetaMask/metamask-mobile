@@ -19,6 +19,7 @@ export {
   startOverheadTracking,
   addOverhead,
   stopOverheadTracking,
+  isOverheadTrackingActive,
 } from './PlaywrightUtilities.ts';
 
 // Mock server utilities
