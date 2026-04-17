@@ -244,7 +244,7 @@ const generateRawSignature = async ({
       channelId,
       analytics: {
         request_source: getSource(),
-        request_platform: analytics?.platform,
+        remote_request_platform: analytics?.platform,
       },
     },
   };
@@ -359,7 +359,7 @@ export const getRpcMethodMiddlewareHooks = ({
                   channelId,
                   analytics: {
                     request_source: getSource(),
-                    request_platform: analytics?.platform,
+                    remote_request_platform: analytics?.platform,
                   },
                 },
               },
@@ -477,7 +477,7 @@ export const getRpcMethodMiddleware = ({
             channelId,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics?.platform,
+              remote_request_platform: analytics?.platform,
             },
           },
         },
@@ -730,7 +730,7 @@ export const getRpcMethodMiddleware = ({
             icon: icon.current,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics?.platform,
+              remote_request_platform: analytics?.platform,
             },
           },
         };
@@ -794,7 +794,7 @@ export const getRpcMethodMiddleware = ({
             channelId,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics?.platform,
+              remote_request_platform: analytics?.platform,
             },
           },
         };
@@ -949,7 +949,7 @@ export const getRpcMethodMiddleware = ({
             channelId,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics?.platform,
+              remote_request_platform: analytics?.platform,
             },
           },
         }),

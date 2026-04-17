@@ -48,7 +48,7 @@ export const wallet_watchAsset = async ({
     channelId?: string;
     analytics?: {
       request_source?: string;
-      request_platform?: string | boolean;
+      remote_request_platform?: string | boolean;
     };
   };
 }) => {
