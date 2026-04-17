@@ -93,11 +93,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 2
 
       - name: Resolve base SHA
         id: base
-        run: echo "sha=$(git rev-parse HEAD~1)" >> "$GITHUB_OUTPUT"
+        run: echo "sha=$(git rev-parse ${{ github.sha }}~1)" >> "$GITHUB_OUTPUT"
 
       - name: Install sentry-cli
         run: curl -sL https://sentry.io/get-cli/ | bash
@@ -136,11 +137,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 2
 
       - name: Resolve base SHA
         id: base
-        run: echo "sha=$(git rev-parse HEAD~1)" >> "$GITHUB_OUTPUT"
+        run: echo "sha=$(git rev-parse ${{ github.sha }}~1)" >> "$GITHUB_OUTPUT"
 
       - name: Install sentry-cli
         run: curl -sL https://sentry.io/get-cli/ | bash
