@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useEffect } from 'react';
+import { useMemo, useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
@@ -14,6 +14,7 @@ export interface UseTopTradersResult {
   traders: TopTrader[];
   isLoading: boolean;
   error: string | null;
+  followLoadingId: string | null;
   refresh: () => Promise<void>;
   toggleFollow: (addressOrId: string) => void;
 }
@@ -41,6 +42,7 @@ export const useTopTraders = (
   });
 
   const followingProfileIds = useSelector(selectFollowingProfileIds);
+  const [followLoadingId, setFollowLoadingId] = useState<string | null>(null);
 
   const traders: TopTrader[] = useMemo(() => {
     if (!data?.traders) {
@@ -70,6 +72,7 @@ export const useTopTraders = (
 
   const toggleFollow = useCallback(
     async (addressOrId: string) => {
+      setFollowLoadingId(addressOrId);
       try {
         const { profileId } =
           await Engine.context.AuthenticationController.getSessionProfile();
@@ -88,6 +91,8 @@ export const useTopTraders = (
         }
       } catch (err) {
         Logger.error(err as Error, 'useTopTraders: toggleFollow failed');
+      } finally {
+        setFollowLoadingId(null);
       }
     },
     [followingProfileIds],
@@ -104,6 +109,7 @@ export const useTopTraders = (
     isLoading,
     error:
       error instanceof Error ? error.message : error ? String(error) : null,
+    followLoadingId,
     refresh,
     toggleFollow,
   };

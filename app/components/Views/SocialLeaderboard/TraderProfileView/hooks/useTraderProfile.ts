@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
@@ -18,6 +18,7 @@ export interface UseTraderProfileResult {
   isLoading: boolean;
   error: string | null;
   isFollowing: boolean;
+  isFollowLoading: boolean;
   toggleFollow: () => void;
   refresh: () => Promise<void>;
 }
@@ -42,9 +43,11 @@ export const useTraderProfile = (
   const followingProfileIds = useSelector(selectFollowingProfileIds);
 
   const isFollowing = followingProfileIds.includes(addressOrId);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
   const profile = data ?? null;
 
   const toggleFollow = useCallback(async () => {
+    setIsFollowLoading(true);
     try {
       const { profileId } =
         await Engine.context.AuthenticationController.getSessionProfile();
@@ -62,6 +65,8 @@ export const useTraderProfile = (
       }
     } catch (err) {
       Logger.error(err as Error, 'useTraderProfile: toggleFollow failed');
+    } finally {
+      setIsFollowLoading(false);
     }
   }, [isFollowing, addressOrId]);
 
@@ -86,6 +91,7 @@ export const useTraderProfile = (
     error:
       error instanceof Error ? error.message : error ? String(error) : null,
     isFollowing,
+    isFollowLoading,
     toggleFollow,
     refresh,
   };
