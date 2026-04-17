@@ -527,25 +527,66 @@ function resolveRunnerInvocation({ runner, runnerCmd, model }) {
     };
   }
 
+  if (runner === 'codex') {
+    const outputLastMessagePath = path.join(
+      os.tmpdir(),
+      `fs-cook-codex-last-message-${Date.now()}-${Math.random().toString(36).slice(2)}.txt`,
+    );
+    const args = [
+      'exec',
+      '-C',
+      process.cwd(),
+      '-s',
+      'danger-full-access',
+      '--skip-git-repo-check',
+      '-o',
+      outputLastMessagePath,
+    ];
+    if (model) {
+      args.push('-m', model);
+    }
+    args.push('-');
+    return {
+      command: 'codex',
+      args,
+      shell: false,
+      outputLastMessagePath,
+    };
+  }
+
   throw new Error(`Unsupported runner: ${runner}`);
 }
 
 function runRunnerBatch({ prompt, runner, runnerCmd, model }) {
   const invocation = resolveRunnerInvocation({ runner, runnerCmd, model });
+  let result;
   if (invocation.shell) {
-    return spawnSync(invocation.command, {
+    result = spawnSync(invocation.command, {
       shell: true,
+      input: prompt,
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+    });
+  } else {
+    result = spawnSync(invocation.command, invocation.args, {
       input: prompt,
       encoding: 'utf8',
       maxBuffer: 20 * 1024 * 1024,
     });
   }
 
-  return spawnSync(invocation.command, invocation.args, {
-    input: prompt,
-    encoding: 'utf8',
-    maxBuffer: 20 * 1024 * 1024,
-  });
+  if (
+    invocation.outputLastMessagePath &&
+    fs.existsSync(invocation.outputLastMessagePath)
+  ) {
+    try {
+      result.stdout = fs.readFileSync(invocation.outputLastMessagePath, 'utf8');
+    } catch {
+      // Fall back to process stdout if the output file can't be read.
+    }
+  }
+
+  return result;
 }
 
 function runRunnerStream({ prompt, runner, runnerCmd, model, runnerLogPath, promptPath }) {
