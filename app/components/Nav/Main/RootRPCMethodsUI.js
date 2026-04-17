@@ -65,76 +65,85 @@ const RootRPCMethodsUI = (props) => {
     [trackEvent, createEventBuilder],
   );
 
+  const handleAutoSignError = useCallback(
+    (error) => {
+      if (trackCancelledTransaction(error)) {
+        return true;
+      }
+
+      Logger.error(error, 'error while trying to send transaction (Main)');
+      return false;
+    },
+    [trackCancelledTransaction],
+  );
+
   const autoSign = useCallback(
     async (transactionMeta) => {
-      try {
-        const walletType = getHardwareWalletTypeForAddress(
-          transactionMeta.txParams.from,
-        );
+      const walletType = getHardwareWalletTypeForAddress(
+        transactionMeta.txParams.from,
+      );
 
-        if (!walletType) {
+      if (!walletType) {
+        return;
+      }
+
+      // As the `TransactionController:unapprovedTransactionAdded` event is emitted
+      // before the approval request is added to `ApprovalController`, we need to wait
+      // for the next tick to make sure the approval request is present when auto-approve it
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      if (walletType === HardwareWalletType.Qr) {
+        try {
+          props.navigation.navigate(
+            ...createQRSigningTransactionModalNavDetails({
+              transactionId: transactionMeta.id,
+              // eslint-disable-next-line no-empty-function
+              onConfirmationComplete: () => {},
+            }),
+          );
+          return;
+        } catch (error) {
+          if (!trackCancelledTransaction(error)) {
+            Alert.alert(
+              strings('transactions.transaction_error'),
+              error && error.message,
+              [{ text: strings('navigation.ok') }],
+            );
+            Logger.error(
+              error,
+              'error while trying to send transaction (Main)',
+            );
+          }
           return;
         }
-
-        // As the `TransactionController:unapprovedTransactionAdded` event is emitted
-        // before the approval request is added to `ApprovalController`, we need to wait
-        // for the next tick to make sure the approval request is present when auto-approve it
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
-        await executeHardwareWalletOperation({
-          address: transactionMeta.txParams.from,
-          operationType: 'transaction',
-          ensureDeviceReady,
-          setTargetWalletType,
-          showAwaitingConfirmation,
-          hideAwaitingConfirmation,
-          showHardwareWalletError,
-          onError: trackCancelledTransaction,
-          execute: async () => {
-            if (walletType === HardwareWalletType.Qr) {
-              await new Promise((resolve, reject) => {
-                props.navigation.navigate(
-                  ...createQRSigningTransactionModalNavDetails({
-                    transactionId: transactionMeta.id,
-                    onConfirmationComplete: (confirmed) => {
-                      if (confirmed) {
-                        resolve();
-                      } else {
-                        reject(new Error(KEYSTONE_TX_CANCELED));
-                      }
-                    },
-                  }),
-                );
-              });
-              return;
-            }
-
-            await Engine.context.ApprovalController.acceptRequest(
-              transactionMeta.id,
-              undefined,
-              {
-                waitForResult: true,
-              },
-            );
-          },
-          onRejected: () => {
-            Engine.rejectPendingApproval(
-              transactionMeta.id,
-              new Error('User rejected the transaction'),
-              { ignoreMissing: true, logErrors: false },
-            );
-          },
-        });
-      } catch (error) {
-        if (!trackCancelledTransaction(error)) {
-          Alert.alert(
-            strings('transactions.transaction_error'),
-            error && error.message,
-            [{ text: strings('navigation.ok') }],
-          );
-          Logger.error(error, 'error while trying to send transaction (Main)');
-        }
       }
+
+      await executeHardwareWalletOperation({
+        address: transactionMeta.txParams.from,
+        operationType: 'transaction',
+        ensureDeviceReady,
+        setTargetWalletType,
+        showAwaitingConfirmation,
+        hideAwaitingConfirmation,
+        showHardwareWalletError,
+        onError: handleAutoSignError,
+        execute: async () => {
+          await Engine.context.ApprovalController.acceptRequest(
+            transactionMeta.id,
+            undefined,
+            {
+              waitForResult: true,
+            },
+          );
+        },
+        onRejected: () => {
+          Engine.rejectPendingApproval(
+            transactionMeta.id,
+            new Error('User rejected the transaction'),
+            { ignoreMissing: true, logErrors: false },
+          );
+        },
+      });
     },
     [
       props.navigation,
@@ -144,6 +153,7 @@ const RootRPCMethodsUI = (props) => {
       hideAwaitingConfirmation,
       showHardwareWalletError,
       trackCancelledTransaction,
+      handleAutoSignError,
     ],
   );
 

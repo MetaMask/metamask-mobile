@@ -87,7 +87,7 @@ describe('executeHardwareWalletOperation', () => {
     expect(onRejected).toHaveBeenCalledTimes(1);
   });
 
-  it('shows hardware wallet errors for non-user cancellations', async () => {
+  it('shows the hardware wallet error for unexpected operation errors', async () => {
     const error = new Error('signing failed');
     execute.mockRejectedValueOnce(error);
 
@@ -136,7 +136,9 @@ describe('executeHardwareWalletOperation', () => {
     );
     execute.mockRejectedValueOnce(new Error('fail'));
 
-    await executeHardwareWalletOperation(baseOptions);
+    await expect(executeHardwareWalletOperation(baseOptions)).resolves.toBe(
+      false,
+    );
     cancelCallback?.();
 
     expect(onRejected).toHaveBeenCalledTimes(1);
@@ -202,7 +204,7 @@ describe('executeHardwareWalletOperation', () => {
     expect(onRejected).toHaveBeenCalledTimes(1);
   });
 
-  it('handles errors during getDeviceIdForAddress', async () => {
+  it('shows the hardware wallet error when device id lookup fails', async () => {
     const error = new Error('device lookup failed');
     mockGetDeviceIdForAddress.mockRejectedValueOnce(error);
 
@@ -217,7 +219,9 @@ describe('executeHardwareWalletOperation', () => {
   it('clears target wallet type in finally block even on error', async () => {
     execute.mockRejectedValueOnce(new Error('fail'));
 
-    await executeHardwareWalletOperation(baseOptions);
+    await expect(executeHardwareWalletOperation(baseOptions)).resolves.toBe(
+      false,
+    );
 
     expect(setTargetWalletType).toHaveBeenNthCalledWith(1, 'ledger');
     expect(setTargetWalletType).toHaveBeenLastCalledWith(null);

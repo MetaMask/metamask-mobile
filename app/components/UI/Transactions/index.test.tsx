@@ -76,6 +76,24 @@ jest.mock('../../../util/transaction-controller', () => ({
 jest.mock('../../../util/confirmation/gas', () => ({
   getGasValuesForReplacement: jest.fn((gasValues) => gasValues),
   getMediumGasPriceHex: jest.fn(() => '0x123'),
+  normalizeReplacementGasFeeParams: jest.fn((replacementParams) => {
+    if (replacementParams?.legacyGasFee?.gasPrice) {
+      return { gasPrice: replacementParams.legacyGasFee.gasPrice };
+    }
+
+    if (
+      replacementParams?.eip1559GasFee?.maxFeePerGas &&
+      replacementParams?.eip1559GasFee?.maxPriorityFeePerGas
+    ) {
+      return {
+        maxFeePerGas: replacementParams.eip1559GasFee.maxFeePerGas,
+        maxPriorityFeePerGas:
+          replacementParams.eip1559GasFee.maxPriorityFeePerGas,
+      };
+    }
+
+    return undefined;
+  }),
 }));
 
 const mockExecuteHardwareWalletOperation = jest.fn();
@@ -2599,6 +2617,42 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(
       Engine.context.TransactionController.stopTransaction,
     ).toHaveBeenCalledWith('legacy-cancel', { gasPrice: '0x999' });
+  });
+
+  it('passes undefined to stopTransaction when eip1559 replacement params are incomplete', async () => {
+    instance.props = {
+      ...instance.props,
+      selectedAddress: LEDGER_ADDRESS,
+      hardwareWallet: {
+        ensureDeviceReady: jest.fn(),
+        setTargetWalletType: jest.fn(),
+        showAwaitingConfirmation: jest.fn(),
+        hideAwaitingConfirmation: jest.fn(),
+        showHardwareWalletError: jest.fn(),
+      },
+    };
+    instance.closeSpeedUpCancelModal = jest.fn();
+
+    mockExecuteHardwareWalletOperation.mockImplementationOnce(
+      async ({ execute }: { execute: () => Promise<void> }) => {
+        await execute();
+        return true;
+      },
+    );
+
+    await instance.signLedgerTransaction({
+      id: 'incomplete-eip1559-cancel',
+      replacementParams: {
+        type: 'cancel',
+        eip1559GasFee: {
+          maxFeePerGas: '0x456',
+        },
+      },
+    });
+
+    expect(
+      Engine.context.TransactionController.stopTransaction,
+    ).toHaveBeenCalledWith('incomplete-eip1559-cancel', undefined);
   });
 
   it('does not close modal when executeHardwareWalletOperation returns false', async () => {

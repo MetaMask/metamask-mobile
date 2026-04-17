@@ -148,6 +148,21 @@ describe('LedgerTransactionModal', () => {
       expect(mockOnConfirmationComplete).toHaveBeenCalledWith(true);
       expect(mockGoBack).toHaveBeenCalled();
     });
+
+    it('passes undefined to stopTransaction when eip1559 replacement params are incomplete', async () => {
+      mockParams.replacementParams = {
+        type: LedgerReplacementTxTypes.CANCEL,
+        eip1559GasFee: {
+          maxFeePerGas: '0x789',
+        },
+      };
+
+      render(<LedgerTransactionModal />);
+
+      await capturedOnConfirmation?.();
+
+      expect(mockStopTransaction).toHaveBeenCalledWith('test-tx-id', undefined);
+    });
   });
 
   describe('onRejection', () => {

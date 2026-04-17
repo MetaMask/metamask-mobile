@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
+import { normalizeReplacementGasFeeParams } from '../../../util/confirmation/gas';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
 import {
   createNavigationDetails,
@@ -49,10 +50,9 @@ const LedgerTransactionModal = () => {
   }, [navigation]);
 
   const executeOnLedger = useCallback(async () => {
-    const gasFeeParams = getReplacementGasFeeParams(replacementParams);
+    const gasFeeParams = normalizeReplacementGasFeeParams(replacementParams);
 
     if (replacementParams?.type === LedgerReplacementTxTypes.SPEED_UP) {
-      //@ts-expect-error Will defer this typescript issue to the hardware wallet team, confirmations or transactions team
       await speedUpTransaction(transactionId, gasFeeParams);
     } else if (replacementParams?.type === LedgerReplacementTxTypes.CANCEL) {
       await TransactionController.stopTransaction(transactionId, gasFeeParams);

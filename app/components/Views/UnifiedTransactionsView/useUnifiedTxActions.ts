@@ -19,6 +19,7 @@ import { isHardwareAccount } from '../../../util/address';
 import {
   getGasValuesForReplacement,
   getMediumGasPriceHex,
+  normalizeReplacementGasFeeParams,
 } from '../../../util/confirmation/gas';
 import {
   getPreviousGasFromController,
@@ -132,7 +133,7 @@ export function useUnifiedTxActions() {
         );
       }
 
-      const gasFeeParams = getReplacementGasFeeParams(
+      const gasFeeParams = normalizeReplacementGasFeeParams(
         transaction?.replacementParams,
       );
 
