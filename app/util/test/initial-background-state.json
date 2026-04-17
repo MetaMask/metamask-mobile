@@ -394,6 +394,7 @@
   },
   "SocialController": {
     "followingAddresses": [],
+    "followingProfileIds": [],
     "leaderboardEntries": []
   },
   "SubjectMetadataController": {
